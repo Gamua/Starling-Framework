@@ -11,6 +11,7 @@ package starling.display
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
+    import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.utils.VertexData;
     
@@ -69,6 +70,8 @@ package starling.display
             if (mVertexBuffer == null) createVertexBuffer();
             var context:Context3D = Starling.context;
             var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
+            
+            if (context == null) throw new MissingContextError();
             
             context.setProgram(support.getProgram(PROGRAM_NAME));
             context.setTextureAt(1, mTexture.nativeTexture);
