@@ -3,6 +3,7 @@ package
     import flash.utils.getDefinitionByName;
     import flash.utils.getQualifiedClassName;
     
+    import scenes.AnimationScene;
     import scenes.BenchmarkScene;
     import scenes.Scene;
     import scenes.TextureScene;
@@ -33,6 +34,7 @@ package
             var scenesToCreate:Array = [
                 ["Textures",   TextureScene],
                 ["Multitouch", TouchScene],
+                ["Animation",  AnimationScene],
                 ["Benchmark",  BenchmarkScene]
             ];
             

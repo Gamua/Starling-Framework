@@ -12,6 +12,7 @@ package starling.core
     import flash.ui.MultitouchInputMode;
     import flash.utils.getTimer;
     
+    import starling.animation.Juggler;
     import starling.display.*;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
@@ -26,9 +27,10 @@ package starling.core
         private var mViewPort:Rectangle;
         
         private var mStage3D:Stage3D;
-        private var mStage:Stage; // starling stage!
+        private var mStage:Stage; // starling.display.stage!
         private var mRootClass:Class;
-        private var mContext:Context3D;                
+        private var mContext:Context3D;
+        private var mJuggler:Juggler;
         private var mStarted:Boolean;        
         private var mSupport:RenderSupport;
         private var mTouchProcessor:TouchProcessor;
@@ -37,6 +39,7 @@ package starling.core
         private var mLastFrameTimestamp:Number;
         
         private static var sContext:Context3D;
+        private static var sJuggler:Juggler;
         
         // construction
         
@@ -54,6 +57,7 @@ package starling.core
             mStage3D = stage3D;
             mStage = new Stage(viewPort.width, viewPort.height);
             mTouchProcessor = new TouchProcessor(mStage);
+            mJuggler = new Juggler();
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
@@ -112,6 +116,7 @@ package starling.core
         public function makeCurrent():void
         {
             sContext = mContext;
+            sJuggler = mJuggler;
         }
         
         public function start():void { mStarted = true; }
@@ -126,6 +131,7 @@ package starling.core
             mLastFrameTimestamp = now;
             
             mStage.advanceTime(passedTime);
+            mJuggler.advanceTime(passedTime);
             mTouchProcessor.advanceTime(passedTime);
             
             mSupport.setupOrthographicRendering(mViewPort.width, mViewPort.height);
@@ -248,7 +254,7 @@ package starling.core
         // static properties
         
         public static function get context():Context3D { return sContext; }
-        public static function set context(value:Context3D):void { sContext = value; }
+        public static function get juggler():Juggler { return sJuggler; }
         
         public static function get multitouchEnabled():Boolean 
         { 
