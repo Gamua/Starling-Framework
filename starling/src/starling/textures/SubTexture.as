@@ -23,7 +23,7 @@ package starling.textures
         
         public override function adjustVertexData(vertexData:VertexData):VertexData
         {
-            var newData:VertexData = vertexData.clone();
+            var newData:VertexData = super.adjustVertexData(vertexData);
             
             var clipX:Number = mRootClipping.x;
             var clipY:Number = mRootClipping.y;

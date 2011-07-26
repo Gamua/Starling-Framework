@@ -34,6 +34,15 @@ package starling.utils
             return new Vector3D(mData[offset], mData[offset+1], mData[offset+2]);
         }
         
+        public function translateVertex(vertexID:int, 
+                                        deltaX:Number, deltaY:Number, deltaZ:Number=0.0):void
+        {
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            mData[offset]   += deltaX;
+            mData[offset+1] += deltaY;
+            mData[offset+2] += deltaZ;
+        }
+        
         public function setColor(vertexID:int, color:uint):void
         {
             setValues(getOffset(vertexID) + COLOR_OFFSET, 

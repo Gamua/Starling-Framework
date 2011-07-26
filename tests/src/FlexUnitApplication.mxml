@@ -14,6 +14,7 @@
             import tests.DisplayObjectContainerTest;
             import tests.TextureTest;
             import tests.VertexDataTest;
+            import tests.TextureAtlasTest;
             import tests.ColorTest;
             import tests.UtilsTest;
             import tests.DisplayObjectTest;
@@ -24,6 +25,7 @@
                 testsToRun.push(tests.DisplayObjectTest);
                 testsToRun.push(tests.UtilsTest);
                 testsToRun.push(tests.ColorTest);
+                testsToRun.push(tests.TextureAtlasTest);
                 testsToRun.push(tests.VertexDataTest);
                 testsToRun.push(tests.TextureTest);
                 testsToRun.push(tests.DisplayObjectContainerTest);

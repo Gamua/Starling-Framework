@@ -5,6 +5,7 @@ package
     
     import scenes.BenchmarkScene;
     import scenes.Scene;
+    import scenes.TextureScene;
     import scenes.TouchScene;
     
     import starling.display.Button;
@@ -30,6 +31,7 @@ package
             mMainMenu.addChild(logo);
             
             var scenesToCreate:Array = [
+                ["Textures",   TextureScene],
                 ["Multitouch", TouchScene],
                 ["Benchmark",  BenchmarkScene]
             ];

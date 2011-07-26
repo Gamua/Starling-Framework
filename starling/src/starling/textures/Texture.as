@@ -17,11 +17,16 @@ package starling.textures
     {
         // TODO: create mip maps
         
+        private var mFrame:Rectangle;
+        
         public function Texture()
         {
             if (getQualifiedClassName(this) == "starling.textures::Texture")
                 throw new AbstractClassError();
         }        
+        
+        public function dispose():void
+        { }
         
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true):Texture
         {
@@ -75,11 +80,24 @@ package starling.textures
         
         public function adjustVertexData(vertexData:VertexData):VertexData
         {
-            return vertexData.clone();
+            var clone:VertexData = vertexData.clone();
+            
+            if (frame)
+            {
+                var deltaRight:Number  = mFrame.width  + mFrame.x - width;
+                var deltaBottom:Number = mFrame.height + mFrame.y - height;
+                
+                clone.translateVertex(0, -mFrame.x, -mFrame.y);
+                clone.translateVertex(1, -deltaRight, -mFrame.y);
+                clone.translateVertex(2, -mFrame.x, -deltaBottom);
+                clone.translateVertex(3, -deltaRight, -deltaBottom);
+            }
+            
+            return clone;
         }
         
-        public function dispose():void
-        { }
+        public function get frame():Rectangle { return mFrame; }
+        public function set frame(value:Rectangle):void { mFrame = value ? value.clone() : null; }
         
         public function get width():Number { return 0; }        
         public function get height():Number { return 0; }        

@@ -4,6 +4,7 @@ package
     import flash.utils.Dictionary;
     
     import starling.textures.Texture;
+    import starling.textures.TextureAtlas;
 
     public class Assets
     {
@@ -42,19 +43,40 @@ package
         [Embed(source="../media/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]        
         private static const UbuntuRegular:Class;
         
+        // Texture Atlas
+        
+        [Embed(source="../media/textures/atlas.xml", mimeType="application/octet-stream")]
+        public static const AtlasXml:Class;
+        
+        [Embed(source="../media/textures/atlas.png")]
+        public static const AtlasTexture:Class;
+        
         // Texture cache
         
-        private static var mTextures:Dictionary = new Dictionary();
+        private static var sTextures:Dictionary = new Dictionary();
+        private static var sTextureAtlas:TextureAtlas;
         
         public static function getTexture(name:String):Texture
         {
-            if (mTextures[name] == undefined)
+            if (sTextures[name] == undefined)
             {
                 var bitmap:Bitmap = new Assets[name]();
-                mTextures[name] = Texture.fromBitmap(bitmap);
+                sTextures[name] = Texture.fromBitmap(bitmap);
             }
             
-            return mTextures[name];
+            return sTextures[name];
+        }
+        
+        public static function getTextureAtlas():TextureAtlas
+        {
+            if (sTextureAtlas == null)
+            {
+                var texture:Texture = getTexture("AtlasTexture");
+                var xml:XML = XML(new AtlasXml());
+                sTextureAtlas = new TextureAtlas(texture, xml);
+            }
+            
+            return sTextureAtlas;
         }
     }
 }

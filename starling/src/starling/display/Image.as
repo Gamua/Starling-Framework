@@ -7,6 +7,7 @@ package starling.display
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -23,7 +24,12 @@ package starling.display
         {
             if (texture)
             {
-                super(texture.width, texture.height);
+                var frame:Rectangle = texture.frame;
+                var width:Number  = frame ? frame.width  : texture.width;
+                var height:Number = frame ? frame.height : texture.height;
+                
+                super(width, height);
+                
                 mVertexData.setTexCoords(0, 0.0, 0.0);
                 mVertexData.setTexCoords(1, 1.0, 0.0);
                 mVertexData.setTexCoords(2, 0.0, 1.0);

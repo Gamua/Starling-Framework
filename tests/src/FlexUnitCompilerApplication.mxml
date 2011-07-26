@@ -7,6 +7,7 @@ Please click on the "Refresh" icon in "FlexUnit Results" view to regenerate this
                 xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" minWidth="955" minHeight="600">
     <fx:Script>
         <![CDATA[
+            import tests.TextureAtlasTest;
             import tests.VertexDataTest;
             import tests.DisplayObjectContainerTest;
             import tests.UtilsTest;
@@ -31,6 +32,8 @@ Please click on the "Refresh" icon in "FlexUnit Results" view to regenerate this
             private var tests_DisplayObjectContainerTest_obj:tests.DisplayObjectContainerTest;
             
             private var tests_VertexDataTest_obj:tests.VertexDataTest;
+            
+            private var tests_TextureAtlasTest_obj:tests.TextureAtlasTest;
         ]]>
     </fx:Script>
     <fx:Declarations>

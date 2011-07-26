@@ -17,7 +17,8 @@ package starling.textures
         
         public override function dispose():void
         {
-            mBase.dispose();
+            if (mBase) mBase.dispose();
+            super.dispose();
         }
         
         public override function get width():Number  { return mWidth;  }
