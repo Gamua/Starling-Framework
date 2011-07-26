@@ -36,6 +36,8 @@ package starling.display
         {
             if (mVertexBuffer)
                 mVertexBuffer.dispose();
+            
+            super.dispose();
         }
         
         public override function getBounds(targetSpace:DisplayObject):Rectangle

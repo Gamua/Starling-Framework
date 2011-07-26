@@ -25,6 +25,14 @@ package starling.display
             mChildren = new Vector.<DisplayObject>();
         }
         
+        public override function dispose():void
+        {
+            for each (var child:DisplayObject in mChildren)
+                child.dispose();
+                
+            super.dispose();
+        }
+        
         // child management
         
         public function addChild(child:DisplayObject):void
