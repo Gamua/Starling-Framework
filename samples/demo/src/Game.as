@@ -5,6 +5,7 @@ package
     
     import scenes.AnimationScene;
     import scenes.BenchmarkScene;
+    import scenes.CustomHitTestScene;
     import scenes.Scene;
     import scenes.TextureScene;
     import scenes.TouchScene;
@@ -32,10 +33,11 @@ package
             mMainMenu.addChild(logo);
             
             var scenesToCreate:Array = [
-                ["Textures",   TextureScene],
+                ["Textures", TextureScene],
                 ["Multitouch", TouchScene],
-                ["Animation",  AnimationScene],
-                ["Benchmark",  BenchmarkScene]
+                ["Animations", AnimationScene],
+                ["Custom hit-test", CustomHitTestScene],
+                ["Benchmark", BenchmarkScene]
             ];
             
             var buttonTexture:Texture = Assets.getTexture("ButtonBig");

@@ -1,0 +1,32 @@
+package scenes
+{
+    import starling.text.TextField;
+    import starling.utils.HAlign;
+    import starling.utils.VAlign;
+    
+    import utils.RoundButton;
+
+    public class CustomHitTestScene extends Scene
+    {
+        public function CustomHitTestScene()
+        {
+            var description:String = 
+                "Pushing the egg only works when the touch occurs within a circle." + 
+                "This can be accomplished by overriding the method 'hitTestPoint:'.";
+            
+            var infoText:TextField = new TextField(300, 100, description, "Arial", 13);
+            infoText.x = infoText.y = 10;
+            infoText.vAlign = VAlign.TOP;
+            infoText.hAlign = HAlign.CENTER;
+            addChild(infoText);
+            
+            // 'RoundButton' is a helper class of the Demo, not a part of Starling!
+            // Have a look at its code to understand this sample.
+            
+            var button:RoundButton = new RoundButton(Assets.getTexture("EggClosed"));
+            button.x = Constants.CenterX - int(button.width / 2);
+            button.y = 150;
+            addChild(button);
+        }
+    }
+}
