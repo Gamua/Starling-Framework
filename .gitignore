@@ -1,0 +1,15 @@
+# Build and Release Folders
+bin-debug/
+bin-release/
+bin/
+
+# Project property files
+.actionScriptProperties
+.flexProperties
+.settings/
+.project
+.FlexUnitSettings
+.flexLibProperties
+
+# OS X folders
+.DS_Store

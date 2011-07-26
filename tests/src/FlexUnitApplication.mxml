@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- This is an auto generated file and is not intended for modification. -->
+
+<mx:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:mx="library://ns.adobe.com/flex/mx"
+                xmlns:flexui="flexunit.flexui.*"
+                minWidth="955" minHeight="600" creationComplete="onCreationComplete()"
+                layout="absolute">
+    <fx:Script>
+        <![CDATA[
+            import tests.EventTest;
+            import tests.QuadTest;
+            import tests.DisplayObjectContainerTest;
+            import tests.TextureTest;
+            import tests.VertexDataTest;
+            import tests.ColorTest;
+            import tests.UtilsTest;
+            import tests.DisplayObjectTest;
+            
+            public function currentRunTestSuite():Array
+            {
+                var testsToRun:Array = new Array();
+                testsToRun.push(tests.DisplayObjectTest);
+                testsToRun.push(tests.UtilsTest);
+                testsToRun.push(tests.ColorTest);
+                testsToRun.push(tests.VertexDataTest);
+                testsToRun.push(tests.TextureTest);
+                testsToRun.push(tests.DisplayObjectContainerTest);
+                testsToRun.push(tests.QuadTest);
+                testsToRun.push(tests.EventTest);
+                return testsToRun;
+            }
+            
+            
+            private function onCreationComplete():void
+            {
+                testRunner.runWithFlexUnit4Runner(currentRunTestSuite(), "StarlingUnitTests");
+            }
+            
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <flexui:FlexUnitTestRunnerUI id="testRunner">
+    </flexui:FlexUnitTestRunnerUI>
+</mx:Application>
