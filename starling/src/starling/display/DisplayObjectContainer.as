@@ -70,10 +70,13 @@ package starling.display
             }
         }
         
-        public function removeAllChildren():void
+        public function removeChildren(beginIndex:int=0, endIndex:int=-1):void
         {
-            for (var i:int=mChildren.length-1; i>=0; --i)
-                removeChildAt(i);
+            if (endIndex < 0 || endIndex >= numChildren) 
+                endIndex = numChildren - 1;
+            
+            for (var i:int=beginIndex; i<=endIndex; ++i)
+                removeChildAt(beginIndex);
         }
         
         public function getChildAt(index:int):DisplayObject

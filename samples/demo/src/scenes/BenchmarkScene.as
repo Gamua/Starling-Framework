@@ -128,7 +128,7 @@ package scenes
             
             addChild(mResultText);
             
-            mContainer.removeAllChildren();
+            mContainer.removeChildren();
         }
         
         

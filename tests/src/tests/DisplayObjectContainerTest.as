@@ -68,13 +68,45 @@ package tests
         }
         
         [Test]
-        public function testRemoveAllChildren():void
+        public function testRemoveChildren():void
         {
-            var parent:Sprite = new Sprite();
-            for (var i:int=0; i<10; ++i)
-                parent.addChild(new Sprite());
-            parent.removeAllChildren();
+            var parent:Sprite;
+            var numChildren:int = 10;
+            
+            // removing all children
+            
+            parent = createSprite(numChildren);
+            Assert.assertEquals(10, parent.numChildren);
+            
+            parent.removeChildren();
             Assert.assertEquals(0, parent.numChildren);
+            
+            // removing a subset
+            
+            parent = createSprite(numChildren);
+            parent.removeChildren(3, 5);
+            Assert.assertEquals(7, parent.numChildren);
+            Assert.assertEquals("2", parent.getChildAt(2).name);
+            Assert.assertEquals("6", parent.getChildAt(3).name);
+            
+            // remove beginning from an id
+            
+            parent = createSprite(numChildren);
+            parent.removeChildren(5);
+            Assert.assertEquals(5, parent.numChildren);
+            Assert.assertEquals("4", parent.getChildAt(4).name);
+            
+            function createSprite(numChildren:int):Sprite
+            {
+                var sprite:Sprite = new Sprite();                
+                for (var i:int=0; i<numChildren; ++i)
+                {
+                    var child:Sprite = new Sprite();
+                    child.name = i.toString();
+                    sprite.addChild(child);
+                }
+                return sprite;
+            }
         }
         
         [Test]
