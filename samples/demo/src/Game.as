@@ -6,6 +6,7 @@ package
     import scenes.AnimationScene;
     import scenes.BenchmarkScene;
     import scenes.CustomHitTestScene;
+    import scenes.MovieScene;
     import scenes.Scene;
     import scenes.TextureScene;
     import scenes.TouchScene;
@@ -23,6 +24,9 @@ package
         
         public function Game()
         {
+            // sound initialization takes a moment, so we prepare them here
+            Assets.prepareSounds(); 
+            
             var bg:Image = new Image(Assets.getTexture("Background"));
             addChild(bg);
             
@@ -37,6 +41,7 @@ package
                 ["Multitouch", TouchScene],
                 ["Animations", AnimationScene],
                 ["Custom hit-test", CustomHitTestScene],
+                ["Movie Clip", MovieScene],
                 ["Benchmark", BenchmarkScene]
             ];
             

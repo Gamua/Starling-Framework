@@ -1,6 +1,7 @@
 package
 {
     import flash.display.Bitmap;
+    import flash.media.Sound;
     import flash.utils.Dictionary;
     
     import starling.textures.Texture;
@@ -51,9 +52,15 @@ package
         [Embed(source="../media/textures/atlas.png")]
         public static const AtlasTexture:Class;
         
+        // Sounds
+        
+        [Embed(source="../media/audio/step.mp3")]
+        public static const StepSound:Class;
+        
         // Texture cache
         
         private static var sTextures:Dictionary = new Dictionary();
+        private static var sSounds:Dictionary = new Dictionary();
         private static var sTextureAtlas:TextureAtlas;
         
         public static function getTexture(name:String):Texture
@@ -67,6 +74,13 @@ package
             return sTextures[name];
         }
         
+        public static function getSound(name:String):Sound
+        {
+            var sound:Sound = sSounds[name] as Sound;
+            if (sound) return sound;
+            else throw new ArgumentError("Sound not found: " + name);
+        }
+        
         public static function getTextureAtlas():TextureAtlas
         {
             if (sTextureAtlas == null)
@@ -77,6 +91,11 @@ package
             }
             
             return sTextureAtlas;
+        }
+        
+        public static function prepareSounds():void
+        {
+            sSounds["Step"] = new StepSound();   
         }
     }
 }

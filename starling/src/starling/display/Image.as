@@ -112,7 +112,11 @@ package starling.display
         public function get texture():Texture { return mTexture; }
         public function set texture(value:Texture):void 
         { 
-            if (value) mTexture = value;
+            if (value)
+            {
+                mTexture = value;
+                createVertexBuffer();
+            }
             else throw new ArgumentError("Texture cannot be null");
         }
     }

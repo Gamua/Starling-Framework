@@ -59,10 +59,10 @@ package starling.textures
             }
         }
         
-        public function getTextures(prefix:String=""):Vector.<Texture>
+        public function getTextures(prefix:String=""):Array
         {
-            var textures:Vector.<Texture> = new <Texture>[];
-            var names:Vector.<String> = new <String>[];
+            var textures:Array = [];
+            var names:Array = [];
             var name:String;
             
             for (name in mTextureRegions)
