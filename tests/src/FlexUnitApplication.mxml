@@ -17,12 +17,14 @@
             import tests.TextureAtlasTest;
             import tests.ColorTest;
             import tests.UtilsTest;
+            import tests.MovieClipTest;
             import tests.DisplayObjectTest;
             
             public function currentRunTestSuite():Array
             {
                 var testsToRun:Array = new Array();
                 testsToRun.push(tests.DisplayObjectTest);
+                testsToRun.push(tests.MovieClipTest);
                 testsToRun.push(tests.UtilsTest);
                 testsToRun.push(tests.ColorTest);
                 testsToRun.push(tests.TextureAtlasTest);

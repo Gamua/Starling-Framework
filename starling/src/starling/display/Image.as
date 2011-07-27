@@ -115,7 +115,10 @@ package starling.display
             if (value)
             {
                 mTexture = value;
-                createVertexBuffer();
+                
+                // force recreation of VB
+                if (mVertexBuffer) mVertexBuffer.dispose();
+                mVertexBuffer = null; 
             }
             else throw new ArgumentError("Texture cannot be null");
         }

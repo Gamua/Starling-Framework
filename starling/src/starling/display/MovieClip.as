@@ -199,8 +199,8 @@ package starling.display
             mCurrentFrame = value;
             mCurrentTime = 0.0;
             
-            for each (var duration:Number in mDurations)
-                mCurrentTime += duration;
+            for (var i:int=0; i<value; ++i)
+                mCurrentTime += getFrameDuration(i);
             
             updateCurrentFrame();
         }
