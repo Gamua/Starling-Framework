@@ -7,6 +7,8 @@ Please click on the "Refresh" icon in "FlexUnit Results" view to regenerate this
                 xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" minWidth="955" minHeight="600">
     <fx:Script>
         <![CDATA[
+            import tests.JugglerTest;
+            import tests.TweenTest;
             import tests.MovieClipTest;
             import tests.TextureAtlasTest;
             import tests.VertexDataTest;
@@ -37,6 +39,10 @@ Please click on the "Refresh" icon in "FlexUnit Results" view to regenerate this
             private var tests_TextureAtlasTest_obj:tests.TextureAtlasTest;
             
             private var tests_MovieClipTest_obj:tests.MovieClipTest;
+            
+            private var tests_TweenTest_obj:tests.TweenTest;
+            
+            private var tests_JugglerTest_obj:tests.JugglerTest;
         ]]>
     </fx:Script>
     <fx:Declarations>
