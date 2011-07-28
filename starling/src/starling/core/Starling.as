@@ -203,8 +203,8 @@ package starling.core
             function convertPosition(globalPos:Point):Point
             {
                 return new Point(
-                    (globalPos.x - mViewPort.x) * (mViewPort.width / mStage.width),
-                    (globalPos.y - mViewPort.y) * (mViewPort.height / mStage.height));
+                    (globalPos.x - mViewPort.x) * (mViewPort.width / mStage.stageWidth),
+                    (globalPos.y - mViewPort.y) * (mViewPort.height / mStage.stageHeight));
             }
             
             function getPhaseFromMouseEvent(event:MouseEvent):String

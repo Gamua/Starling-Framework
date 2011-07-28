@@ -8,10 +8,10 @@ package starling.display
     
     public class Stage extends DisplayObjectContainer
     {
-        private var mWidth:Number;
-        private var mHeight:Number;
+        private var mWidth:int;
+        private var mHeight:int;
         
-        public function Stage(width:Number, height:Number)
+        public function Stage(width:int, height:int)
         {
             mWidth = width;
             mHeight = height;
@@ -41,13 +41,11 @@ package starling.display
             return target;
         }
         
-        public override function get width():Number { return mWidth; }
         public override function set width(value:Number):void 
         { 
             throw new IllegalOperationError("Cannot set width of stage");
         }
         
-        public override function get height():Number { return mHeight; }
         public override function set height(value:Number):void
         {
             throw new IllegalOperationError("Cannot set height of stage");
@@ -77,5 +75,8 @@ package starling.display
         {
             throw new IllegalOperationError("Cannot rotate stage");
         }
+        
+        public function get stageWidth():int { return mWidth; }
+        public function get stageHeight():int { return mHeight; }
     }
 }
