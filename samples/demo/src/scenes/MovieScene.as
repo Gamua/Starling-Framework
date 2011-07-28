@@ -6,6 +6,7 @@ package scenes
     import starling.display.MovieClip;
     import starling.events.Event;
     import starling.text.TextField;
+    import starling.textures.Texture;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
 
@@ -22,7 +23,7 @@ package scenes
             infoText.hAlign = HAlign.CENTER;
             addChild(infoText);
             
-            var frames:Array = Assets.getTextureAtlas().getTextures("walk_");
+            var frames:Vector.<Texture> = Assets.getTextureAtlas().getTextures("walk_");
             mMovie = new MovieClip(frames, 12);
             
             // add sounds

@@ -20,7 +20,7 @@ package starling.display
         private var mLoop:Boolean;
         private var mPlaying:Boolean;
         
-        public function MovieClip(textures:Array, fps:Number=12)
+        public function MovieClip(textures:Vector.<Texture>, fps:Number=12)
         {            
             if (textures.length > 0)
             {

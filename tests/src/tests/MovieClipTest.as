@@ -25,7 +25,7 @@ package tests
             var texture2:Texture = new ConcreteTexture(null, 16, 16);
             var texture3:Texture = new ConcreteTexture(null, 16, 16);
             
-            var movie:MovieClip = new MovieClip([texture0], fps);
+            var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
             
             assertThat(movie.width, closeTo(texture0.width, E));
             assertThat(movie.height, closeTo(texture0.height, E));
@@ -93,7 +93,7 @@ package tests
             var texture2:Texture = new ConcreteTexture(null, 16, 16);
             var texture3:Texture = new ConcreteTexture(null, 16, 16);
             
-            var movie:MovieClip = new MovieClip([texture0], fps);
+            var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
             movie.addFrame(texture1);
             movie.addFrame(texture2, null, 0.5);
             movie.addFrame(texture3);
@@ -134,7 +134,7 @@ package tests
             var texture1:Texture = new ConcreteTexture(null, 16, 16);
             var texture2:Texture = new ConcreteTexture(null, 16, 16);
             
-            var movie:MovieClip = new MovieClip([texture0, texture1, texture2], 4.0);
+            var movie:MovieClip = new MovieClip(new <Texture>[texture0, texture1, texture2], 4.0);
             assertThat(movie.fps, closeTo(4.0, E));
             
             movie.fps = 3.0;
@@ -165,8 +165,9 @@ package tests
             var texture1:Texture = new ConcreteTexture(null, 16, 16);
             var texture2:Texture = new ConcreteTexture(null, 16, 16);
             var texture3:Texture = new ConcreteTexture(null, 16, 16);
+            var textures:Vector.<Texture> = new <Texture>[texture0, texture1, texture2, texture3];
             
-            var movie:MovieClip = new MovieClip([texture0, texture1, texture2, texture3], fps);
+            var movie:MovieClip = new MovieClip(textures, fps);
             movie.addEventListener(Event.MOVIE_COMPLETED, onMovieCompleted);
             movie.loop = false;
             

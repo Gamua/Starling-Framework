@@ -74,7 +74,7 @@ package tests
             atlas.addRegion("bob", new Rectangle(24, 0, 8, 8));
             atlas.addRegion("prefix_2", new Rectangle(32, 0, 2, 8));
             
-            var textures:Array = atlas.getTextures("prefix_");
+            var textures:Vector.<Texture> = atlas.getTextures("prefix_");
             
             Assert.assertEquals(3, textures.length);
             Assert.assertEquals(1, textures[0].width);
