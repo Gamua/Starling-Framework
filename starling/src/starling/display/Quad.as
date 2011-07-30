@@ -5,6 +5,7 @@ package starling.display
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DVertexBufferFormat;
+    import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
     import flash.geom.Point;
@@ -22,6 +23,7 @@ package starling.display
         
         protected var mVertexData:VertexData;
         protected var mVertexBuffer:VertexBuffer3D;
+        protected var mIndexBuffer:IndexBuffer3D;
         
         public function Quad(width:Number, height:Number, color:uint=0xffffff)
         {
@@ -35,8 +37,8 @@ package starling.display
         
         public override function dispose():void
         {
-            if (mVertexBuffer)
-                mVertexBuffer.dispose();
+            if (mVertexBuffer) mVertexBuffer.dispose();
+            if (mIndexBuffer)  mIndexBuffer.dispose();
             
             super.dispose();
         }
@@ -98,18 +100,19 @@ package starling.display
         
         public override function render(support:RenderSupport):void
         {
-            if (mVertexBuffer == null) createVertexBuffer();
             var context:Context3D = Starling.context;
             var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
             
             if (context == null) throw new MissingContextError();
+            if (mVertexBuffer == null) createVertexBuffer();
+            if (mIndexBuffer == null) createIndexBuffer();
             
-            context.setProgram(support.getProgram(PROGRAM_NAME));
+            context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, Context3DVertexBufferFormat.FLOAT_3);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix, true);            
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, alphaVector, 1);
-            context.drawTriangles(support.quadIndexBuffer, 0, 2);
+            context.drawTriangles(mIndexBuffer, 0, 2);
             
             context.setVertexBufferAt(0, null);
             context.setVertexBufferAt(1, null);
@@ -121,7 +124,14 @@ package starling.display
             mVertexBuffer = mVertexData.toVertexBuffer();
         }
         
-        public static function registerPrograms(support:RenderSupport):void
+        protected function createIndexBuffer():void
+        {
+            if (mIndexBuffer) mIndexBuffer.dispose();
+            mIndexBuffer = Starling.context.createIndexBuffer(6);
+            mIndexBuffer.uploadFromVector(Vector.<uint>([0, 1, 2, 1, 2, 3]), 0, 6);
+        }
+        
+        public static function registerPrograms(target:Starling):void
         {
             // create a vertex and fragment program - from assembly
             var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
@@ -136,8 +146,8 @@ package starling.display
                 "mov oc, ft0       \n"    // output color
             );
             
-            support.registerProgram(PROGRAM_NAME, vertexProgramAssembler.agalcode,
-                                                fragmentProgramAssembler.agalcode);
+            target.registerProgram(PROGRAM_NAME, vertexProgramAssembler.agalcode,
+                                               fragmentProgramAssembler.agalcode);
         }
     }
 }

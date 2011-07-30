@@ -67,20 +67,21 @@ package starling.display
         
         public override function render(support:RenderSupport):void
         {
-            if (mVertexBuffer == null) createVertexBuffer();
             var context:Context3D = Starling.context;
             var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
             
             if (context == null) throw new MissingContextError();
+            if (mVertexBuffer == null) createVertexBuffer();
+            if (mIndexBuffer == null) createIndexBuffer();
             
-            context.setProgram(support.getProgram(PROGRAM_NAME));
+            context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
             context.setTextureAt(1, mTexture.nativeTexture);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_3);
             context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix, true);            
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, alphaVector, 1);
-            context.drawTriangles(support.quadIndexBuffer, 0, 2);
+            context.drawTriangles(mIndexBuffer, 0, 2);
             
             context.setTextureAt(1, null);
             context.setVertexBufferAt(0, null);
@@ -88,7 +89,7 @@ package starling.display
             context.setVertexBufferAt(2, null);
         }
         
-        public static function registerPrograms(support:RenderSupport):void
+        public static function registerPrograms(target:Starling):void
         {
             // create a vertex and fragment program - from assembly
             var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
@@ -105,8 +106,8 @@ package starling.display
                 "mul oc, ft2, fc0                   \n"   // multiply color with alpha
             );
             
-            support.registerProgram(PROGRAM_NAME, vertexProgramAssembler.agalcode,
-                                                fragmentProgramAssembler.agalcode);
+            target.registerProgram(PROGRAM_NAME, vertexProgramAssembler.agalcode,
+                                               fragmentProgramAssembler.agalcode);
         }
         
         public function get texture():Texture { return mTexture; }

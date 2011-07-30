@@ -2,6 +2,7 @@ package starling.core
 {
     import flash.display.Stage3D;
     import flash.display3D.Context3D;
+    import flash.display3D.Program3D;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
@@ -10,6 +11,8 @@ package starling.core
     import flash.geom.Rectangle;
     import flash.ui.Multitouch;
     import flash.ui.MultitouchInputMode;
+    import flash.utils.ByteArray;
+    import flash.utils.Dictionary;
     import flash.utils.getTimer;
     
     import starling.animation.Juggler;
@@ -24,12 +27,9 @@ package starling.core
         
         // members
         
-        private var mViewPort:Rectangle;
-        
         private var mStage3D:Stage3D;
         private var mStage:Stage; // starling.display.stage!
         private var mRootClass:Class;
-        private var mContext:Context3D;
         private var mJuggler:Juggler;
         private var mStarted:Boolean;        
         private var mSupport:RenderSupport;
@@ -37,9 +37,12 @@ package starling.core
         private var mSimulateMultitouch:Boolean;
         private var mEnableErrorChecking:Boolean;
         private var mLastFrameTimestamp:Number;
+        private var mViewPort:Rectangle;
         
-        private static var sContext:Context3D;
-        private static var sJuggler:Juggler;
+        private var mContext:Context3D;
+        private var mPrograms:Dictionary;
+        
+        private static var sCurrent:Starling;
         
         // construction
         
@@ -61,6 +64,10 @@ package starling.core
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
+            mPrograms = new Dictionary();
+            
+            if (sCurrent == null)
+                makeCurrent();
             
             // register touch/mouse event handlers            
             var touchEventTypes:Array = Multitouch.supportsTouchEvents ?
@@ -79,6 +86,15 @@ package starling.core
             mStage3D.requestContext3D(renderMode);
         }
         
+        public function dispose():void
+        {
+            for each (var program:Program3D in mPrograms)
+                program.dispose();
+            
+            if (mContext) mContext.dispose();
+            if (mTouchProcessor) mTouchProcessor.dispose();
+        }
+        
         // functions
         
         private function initializeGraphicsAPI():void
@@ -94,14 +110,12 @@ package starling.core
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:" + mContext.driverInfo);
-            
-            makeCurrent();
         }
         
         private function initializePrograms():void
         {
-            Quad.registerPrograms(mSupport);
-            Image.registerPrograms(mSupport);
+            Quad.registerPrograms(this);
+            Image.registerPrograms(this);
         }
         
         private function initializeRoot():void
@@ -115,8 +129,7 @@ package starling.core
         
         public function makeCurrent():void
         {
-            sContext = mContext;
-            sJuggler = mJuggler;
+            sCurrent = this;
         }
         
         public function start():void { mStarted = true; }
@@ -142,13 +155,6 @@ package starling.core
             mContext.present();
         }
         
-        public function dispose():void
-        {
-            if (mSupport) mSupport.dispose();
-            if (mContext) mContext.dispose();
-            mTouchProcessor.dispose();
-        }
-       
         // event handlers
         
         private function onResize(event:Event):void
@@ -232,10 +238,39 @@ package starling.core
             }
         }
         
+        // program management
+        
+        public function registerProgram(name:String, vertexProgram:ByteArray, fragmentProgram:ByteArray):void
+        {
+            if (mPrograms.hasOwnProperty(name))
+                throw new Error("Another program with this name is already registered");
+            
+            var program:Program3D = mContext.createProgram();
+            program.upload(vertexProgram, fragmentProgram);            
+            mPrograms[name] = program;
+        }
+        
+        public function deleteProgram(name:String):void
+        {
+            var program:Program3D = getProgram(name);            
+            if (program)
+            {                
+                program.dispose();
+                delete mPrograms[name];
+            }
+        }
+        
+        public function getProgram(name:String):Program3D
+        {
+            return mPrograms[name] as Program3D;
+        }
+        
         // properties
         
         public function get isStarted():Boolean { return mStarted; }
-        public function get isCurrent():Boolean { return mContext == Starling.context; }
+        
+        public function get juggler():Juggler { return mJuggler; }
+        public function get context():Context3D { return mContext; }
         
         public function get simulateMultitouch():Boolean { return mSimulateMultitouch; }
         public function set simulateMultitouch(value:Boolean):void
@@ -253,8 +288,10 @@ package starling.core
         
         // static properties
         
-        public static function get context():Context3D { return sContext; }
-        public static function get juggler():Juggler { return sJuggler; }
+        public static function get current():Starling { return sCurrent; }
+        
+        public static function get context():Context3D { return sCurrent.context; }
+        public static function get juggler():Juggler { return sCurrent.juggler; }
         
         public static function get multitouchEnabled():Boolean 
         { 
