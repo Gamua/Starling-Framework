@@ -18,11 +18,8 @@ package starling.core
         
         // construction
         
-        public function RenderSupport(context:Context3D)
+        public function RenderSupport()
         {
-            if (context == null)
-                throw new ArgumentError("Context must not be null");
-                        
             mMatrixStack = new Vector.<Matrix3D>();
             mProjectionMatrix = new Matrix3D();
             mModelViewMatrix = new Matrix3D();
@@ -100,9 +97,13 @@ package starling.core
                                              Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
         }
         
-        public function clear(color:uint=0):void
+        public function clear(argb:uint=0):void
         {
-            Starling.context.clear(Color.getRed(color), Color.getGreen(color), Color.getBlue(color));
+            Starling.context.clear(
+                Color.getRed(argb)   / 255.0, 
+                Color.getGreen(argb) / 255.0, 
+                Color.getBlue(argb)  / 255.0,
+                Color.getAlpha(argb) / 255.0);
         }
     }
 }

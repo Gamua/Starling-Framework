@@ -29,8 +29,8 @@ package utils
             if (touches.length == 1)
             {
                 var touch:Touch = touches[0];
-                var currentPos:Point = touch.getLocationInSpace(parent);
-                var previousPos:Point = touch.getPreviousLocationInSpace(parent);
+                var currentPos:Point = touch.getLocation(parent);
+                var previousPos:Point = touch.getPreviousLocation(parent);
                 var delta:Point = currentPos.subtract(previousPos);
                 
                 x += delta.x;
@@ -41,10 +41,10 @@ package utils
                 var touchA:Touch = touches[0];
                 var touchB:Touch = touches[1];
                 
-                var currentPosA:Point  = touchA.getLocationInSpace(parent);
-                var previousPosA:Point = touchA.getPreviousLocationInSpace(parent);
-                var currentPosB:Point  = touchB.getLocationInSpace(parent);
-                var previousPosB:Point = touchB.getPreviousLocationInSpace(parent);
+                var currentPosA:Point  = touchA.getLocation(parent);
+                var previousPosA:Point = touchA.getPreviousLocation(parent);
+                var currentPosB:Point  = touchB.getLocation(parent);
+                var previousPosB:Point = touchB.getPreviousLocation(parent);
                 
                 var currentVector:Point  = currentPosA.subtract(currentPosB);
                 var previousVector:Point = previousPosA.subtract(previousPosB);

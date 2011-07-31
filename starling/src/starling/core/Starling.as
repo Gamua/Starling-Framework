@@ -65,6 +65,7 @@ package starling.core
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mPrograms = new Dictionary();
+            mSupport = new RenderSupport();
             
             if (sCurrent == null)
                 makeCurrent();
@@ -102,7 +103,6 @@ package starling.core
             if (mContext) return;            
             
             mContext = mStage3D.context3D;
-            mSupport = new RenderSupport(mContext);                        
             mStage3D.x = mViewPort.x;
             mStage3D.y = mViewPort.y;
             mContext.configureBackBuffer(mViewPort.width, mViewPort.height, 1, false);

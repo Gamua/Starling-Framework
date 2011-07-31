@@ -16,10 +16,17 @@ package tests
         }
         
         [Test]
-        public function testCreate():void
+        public function testRgb():void
         {
-            var color:uint = Color.create(0xaa, 0xbb, 0xcc);
+            var color:uint = Color.rgb(0xaa, 0xbb, 0xcc);
             Assert.assertEquals(0xaabbcc, color);
+        }
+        
+        [Test]
+        public function testArgb():void
+        {
+            var color:uint = Color.argb(0xaa, 0xbb, 0xcc, 0xdd);
+            Assert.assertEquals(0xaabbccdd, color);
         }
     }
 }

@@ -60,8 +60,7 @@ package starling.utils
         public function getColor(vertexID:int):uint
         {
             var offset:int = getOffset(vertexID) + COLOR_OFFSET;
-            return Color.create(mData[offset] * 255, mData[offset+1] * 255, 
-                                         mData[offset+2] * 255);
+            return Color.rgb(mData[offset] * 255, mData[offset+1] * 255, mData[offset+2] * 255);
         }
         
         public function setTexCoords(vertexID:int, u:Number, v:Number):void

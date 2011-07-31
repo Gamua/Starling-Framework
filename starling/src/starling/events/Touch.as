@@ -27,14 +27,14 @@ package starling.events
             mTarget = target;
         }
         
-        public function getLocationInSpace(space:DisplayObject):Point
+        public function getLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mGlobalX, mGlobalY);
             var transformationMatrix:Matrix = mTarget.root.getTransformationMatrixToSpace(space);
             return transformationMatrix.transformPoint(point);
         }
         
-        public function getPreviousLocationInSpace(space:DisplayObject):Point
+        public function getPreviousLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
             var transformationMatrix:Matrix = mTarget.root.getTransformationMatrixToSpace(space);
