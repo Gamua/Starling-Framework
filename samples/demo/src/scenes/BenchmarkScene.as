@@ -69,9 +69,11 @@ package scenes
                 {
                     mFailCount++;
                     
-                    if (mFailCount > 10)
-                        mWaitFrames = 15; // slow down creation process to be more exact 
-                    if (mFailCount == 14)
+                    if (mFailCount > 20)
+                        mWaitFrames = 5; // slow down creation process to be more exact
+                    if (mFailCount > 30)
+                        mWaitFrames = 10;
+                    if (mFailCount == 40)
                         benchmarkComplete(); // target fps not reached for a while
                 }
                 
@@ -89,7 +91,7 @@ package scenes
             mStartButton.visible = false;
             mStarted = true;
             mFailCount = 0;
-            mWaitFrames = 3;
+            mWaitFrames = 1;
             mFrameCount = 0;
             
             if (mResultText) 
