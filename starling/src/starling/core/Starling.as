@@ -34,6 +34,7 @@ package starling.core
         private var mStarted:Boolean;        
         private var mSupport:RenderSupport;
         private var mTouchProcessor:TouchProcessor;
+        private var mAntiAliasing:int;
         private var mSimulateMultitouch:Boolean;
         private var mEnableErrorChecking:Boolean;
         private var mLastFrameTimestamp:Number;
@@ -61,6 +62,7 @@ package starling.core
             mStage = new Stage(viewPort.width, viewPort.height);
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
+            mAntiAliasing = 0;
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
@@ -105,8 +107,8 @@ package starling.core
             mContext = mStage3D.context3D;
             mStage3D.x = mViewPort.x;
             mStage3D.y = mViewPort.y;
-            mContext.configureBackBuffer(mViewPort.width, mViewPort.height, 1, false);
             mContext.enableErrorChecking = mEnableErrorChecking;
+            mContext.configureBackBuffer(mViewPort.width, mViewPort.height, mAntiAliasing, false);
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:" + mContext.driverInfo);
@@ -284,6 +286,14 @@ package starling.core
         { 
             mEnableErrorChecking = value;
             if (mContext) mContext.enableErrorChecking = value; 
+        }
+        
+        public function get antiAliasing():int { return mAntiAliasing; }
+        public function set antiAliasing(value:int):void
+        {
+            mAntiAliasing = value;
+            if (mContext) 
+                mContext.configureBackBuffer(mViewPort.width, mViewPort.height, value, false);
         }
         
         // static properties
