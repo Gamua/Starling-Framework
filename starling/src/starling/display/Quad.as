@@ -128,7 +128,7 @@ package starling.display
         {
             if (mIndexBuffer) mIndexBuffer.dispose();
             mIndexBuffer = Starling.context.createIndexBuffer(6);
-            mIndexBuffer.uploadFromVector(Vector.<uint>([0, 1, 2, 1, 2, 3]), 0, 6);
+            mIndexBuffer.uploadFromVector(Vector.<uint>([0, 1, 2, 1, 3, 2]), 0, 6);
         }
         
         public static function registerPrograms(target:Starling):void
