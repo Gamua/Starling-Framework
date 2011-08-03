@@ -230,10 +230,11 @@ package starling.text
         public function get color():uint { return mColor; }
         public function set color(value:uint):void
         {
-            if (color != mColor)
+            if (mColor != value)
             {
-                mColor = color;
-                (mContents as Image).color = value;
+                mColor = value;
+                if (mContents) 
+                   (mContents as Image).color = value;
             }
         }
         
