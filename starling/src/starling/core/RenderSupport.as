@@ -81,6 +81,14 @@ package starling.core
             mModelViewMatrix = mMatrixStack.pop();
         }
         
+        public function resetMatrix():void
+        {
+            if (mMatrixStack.length != 0)
+                new Vector.<Matrix3D>();
+            
+            loadIdentity();
+        }
+        
         public function get mvpMatrix():Matrix3D
         {
             var mvpMatrix:Matrix3D = new Matrix3D();

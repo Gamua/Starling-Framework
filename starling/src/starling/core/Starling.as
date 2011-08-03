@@ -155,6 +155,8 @@ package starling.core
             mContext.clear();            
             mStage.render(mSupport);            
             mContext.present();
+            
+            mSupport.resetMatrix();
         }
         
         // event handlers

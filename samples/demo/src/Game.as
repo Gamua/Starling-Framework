@@ -7,6 +7,7 @@ package
     import scenes.BenchmarkScene;
     import scenes.CustomHitTestScene;
     import scenes.MovieScene;
+    import scenes.RenderTextureScene;
     import scenes.Scene;
     import scenes.TextureScene;
     import scenes.TouchScene;
@@ -42,7 +43,8 @@ package
                 ["Animations", AnimationScene],
                 ["Custom hit-test", CustomHitTestScene],
                 ["Movie Clip", MovieScene],
-                ["Benchmark", BenchmarkScene]
+                ["Benchmark", BenchmarkScene],
+                ["Render Texture", RenderTextureScene]
             ];
             
             var buttonTexture:Texture = Assets.getTexture("ButtonBig");

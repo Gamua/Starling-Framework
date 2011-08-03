@@ -8,7 +8,9 @@ package starling.textures
     import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
+    import starling.core.RenderSupport;
     import starling.core.Starling;
+    import starling.display.DisplayObject;
     import starling.errors.AbstractClassError;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
@@ -18,6 +20,7 @@ package starling.textures
         // TODO: create mip maps
         
         private var mFrame:Rectangle;
+        private var mSupport:RenderSupport;
         
         public function Texture()
         {
@@ -28,12 +31,14 @@ package starling.textures
         public function dispose():void
         { }
         
-        public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true):Texture
+        public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
+                                          optimizeForRenderTexture:Boolean=false):Texture
         {
-            return fromBitmapData(data.bitmapData, generateMipMaps);
+            return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture);
         }
         
-        public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true):Texture
+        public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
+                                              optimizeForRenderTexture:Boolean=false):Texture
         {
             var origWidth:int = data.width;
             var origHeight:int = data.height;
@@ -41,8 +46,8 @@ package starling.textures
             var legalHeight:int = getNextPowerOfTwo(data.height);
             var format:String = Context3DTextureFormat.BGRA;
             
-            var nativeTexture:flash.display3D.textures.Texture = 
-                Starling.context.createTexture(legalWidth, legalHeight, format, false);
+            var nativeTexture:flash.display3D.textures.Texture = Starling.context.createTexture(
+                legalWidth, legalHeight, format, optimizeForRenderTexture);
             
             if (legalWidth > origWidth || legalHeight > origHeight)
             {
@@ -73,9 +78,11 @@ package starling.textures
             }            
         }
         
-        public static function empty(width:int=64, height:int=64, color:uint=0xffffffff):Texture
+        public static function empty(width:int=64, height:int=64, color:uint=0xffffffff,
+                                     optimizeForRenderTexture:Boolean=false):Texture
         {
-            return fromBitmapData(new BitmapData(width, height, true, color));
+            return fromBitmapData(new BitmapData(width, height, true, color), 
+                                  false, optimizeForRenderTexture);
         }
         
         public function adjustVertexData(vertexData:VertexData):VertexData
