@@ -6,7 +6,10 @@ package scenes
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
+    import starling.text.TextField;
     import starling.textures.RenderTexture;
+    import starling.utils.HAlign;
+    import starling.utils.VAlign;
 
     public class RenderTextureScene extends Scene
     {
@@ -15,6 +18,14 @@ package scenes
         
         public function RenderTextureScene()
         {
+            var description:String = "Touch the screen to draw eggs!";
+            
+            var infoText:TextField = new TextField(300, 50, description, "Arial", 13);
+            infoText.x = infoText.y = 10;
+            infoText.vAlign = VAlign.TOP;
+            infoText.hAlign = HAlign.CENTER;
+            addChild(infoText);
+            
             mBrush = new Image(Assets.getTexture("EggOpened"));
             mBrush.pivotX = mBrush.width / 2;
             mBrush.pivotY = mBrush.height / 2;
