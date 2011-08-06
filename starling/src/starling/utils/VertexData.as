@@ -1,11 +1,8 @@
 package starling.utils
 {
-    import flash.display3D.Context3D;
-    import flash.display3D.VertexBuffer3D;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
-    import starling.core.Starling;
     
     public class VertexData 
     {
@@ -21,6 +18,16 @@ package starling.utils
             mData = new Vector.<Number>(numVertices * ELEMENTS_PER_VERTEX, true);
         }        
         
+        public function append(data:VertexData):void
+        {
+            mData.fixed = false;
+            
+            for each (var element:Number in data.mData)
+                mData.push(element);
+                
+            mData.fixed = true;
+        }
+        
         // functions
         
         public function setPosition(vertexID:int, x:Number, y:Number, z:Number=0.0):void
@@ -32,15 +39,6 @@ package starling.utils
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             return new Vector3D(mData[offset], mData[offset+1], mData[offset+2]);
-        }
-        
-        public function translateVertex(vertexID:int, 
-                                        deltaX:Number, deltaY:Number, deltaZ:Number=0.0):void
-        {
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            mData[offset]   += deltaX;
-            mData[offset+1] += deltaY;
-            mData[offset+2] += deltaZ;
         }
         
         public function setColor(vertexID:int, color:uint):void
@@ -74,14 +72,6 @@ package starling.utils
             return new Point(mData[offset], mData[offset+1]);
         }
         
-        public function toVertexBuffer():VertexBuffer3D
-        {
-            var context:Context3D = Starling.context;
-            var buffer:VertexBuffer3D = context.createVertexBuffer(numVertices, ELEMENTS_PER_VERTEX);
-            buffer.uploadFromVector(mData, 0, numVertices);
-            return buffer;
-        }
-        
         public function clone():VertexData
         {
             var clone:VertexData = new VertexData(0);
@@ -89,9 +79,35 @@ package starling.utils
             clone.mData.fixed = true;
             return clone;
         }
-                
-        // helpers
         
+        // utility functions
+        
+        public function translateVertex(vertexID:int, 
+                                        deltaX:Number, deltaY:Number, deltaZ:Number=0.0):void
+        {
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            mData[offset]   += deltaX;
+            mData[offset+1] += deltaY;
+            mData[offset+2] += deltaZ;
+        }
+        
+        public function transformVertex(vertexID:int,
+                                        matrix:Matrix3D=null, alpha:Number=1.0):void
+        {
+            var position:Vector3D = getPosition(vertexID);
+            
+            if (matrix)
+            {
+                var transPosition:Vector3D = matrix.transformVector(position);
+                setPosition(vertexID, transPosition.x, transPosition.y, transPosition.z);
+            }
+            
+            if (alpha < 1.0)
+            {
+                setColor(vertexID, getColor(vertexID) * alpha);
+            }
+        }
+                
         private function setValues(offset:int, ...values):void
         {
             for (var i:int=0; i<values.length; ++i)

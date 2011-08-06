@@ -108,6 +108,6 @@ package starling.textures
         
         public function get width():Number { return 0; }        
         public function get height():Number { return 0; }        
-        public function get nativeTexture():TextureBase { return null; }
+        public function get base():TextureBase { return null; }
     }
 }

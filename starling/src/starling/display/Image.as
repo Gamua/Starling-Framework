@@ -51,7 +51,7 @@ package starling.display
         public function setTexCoords(vertexID:int, coords:Point):void
         {
             mVertexData.setTexCoords(vertexID, coords.x, coords.y);
-            createVertexBuffer();
+            if (mVertexBuffer) createVertexBuffer();
         }
         
         public function getTexCoords(vertexID:int):Point
@@ -59,10 +59,23 @@ package starling.display
             return mVertexData.getTexCoords(vertexID);
         }
         
-        protected override function createVertexBuffer():void
+        public override function get vertexData():VertexData
         {
-            if (mVertexBuffer) mVertexBuffer.dispose();            
-            mVertexBuffer = mTexture.adjustVertexData(mVertexData).toVertexBuffer();
+            return mTexture.adjustVertexData(mVertexData);
+        }
+        
+        public function get texture():Texture { return mTexture; }
+        public function set texture(value:Texture):void 
+        { 
+            if (value == null)
+            {
+                throw new ArgumentError("Texture cannot be null");
+            }
+            else if (value != mTexture)
+            {
+                mTexture = value;
+                if (mVertexBuffer) createVertexBuffer();
+            }
         }
         
         public override function render(support:RenderSupport):void
@@ -72,10 +85,10 @@ package starling.display
             
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();
-            if (mIndexBuffer == null) createIndexBuffer();
+            if (mIndexBuffer  == null) createIndexBuffer();
             
             context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
-            context.setTextureAt(1, mTexture.nativeTexture);
+            context.setTextureAt(1, mTexture.base);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_3);
             context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
@@ -108,20 +121,6 @@ package starling.display
             
             target.registerProgram(PROGRAM_NAME, vertexProgramAssembler.agalcode,
                                                fragmentProgramAssembler.agalcode);
-        }
-        
-        public function get texture():Texture { return mTexture; }
-        public function set texture(value:Texture):void 
-        { 
-            if (value)
-            {
-                mTexture = value;
-                
-                // force recreation of VB
-                if (mVertexBuffer) mVertexBuffer.dispose();
-                mVertexBuffer = null; 
-            }
-            else throw new ArgumentError("Texture cannot be null");
         }
     }
 }

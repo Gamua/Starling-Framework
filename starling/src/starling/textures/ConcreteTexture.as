@@ -23,6 +23,6 @@ package starling.textures
         
         public override function get width():Number  { return mWidth;  }
         public override function get height():Number { return mHeight; }
-        public override function get nativeTexture():TextureBase { return mBase; }
+        public override function get base():TextureBase { return mBase; }
     }
 }

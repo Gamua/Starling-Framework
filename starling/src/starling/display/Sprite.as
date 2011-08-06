@@ -1,5 +1,45 @@
 package starling.display
 {
+    import starling.core.RenderSupport;
+
     public class Sprite extends DisplayObjectContainer
-    {  }
+    {
+        private var mFrozenContents:Vector.<QuadGroup>;
+        
+        public function Sprite()
+        {
+            super();
+        }
+        
+        public override function dispose():void
+        {
+            unfreeze();
+            super.dispose();
+        }
+        
+        public function freeze():void
+        {
+            unfreeze();
+            mFrozenContents = QuadGroup.compile(this);
+        }
+        
+        public function unfreeze():void
+        {
+            for each (var quadGroup:QuadGroup in mFrozenContents)
+                quadGroup.dispose();
+            mFrozenContents = null;
+        }
+        
+        public function get isFrozen():Boolean { return mFrozenContents != null; }
+        
+        public override function render(support:RenderSupport):void
+        {
+            if (mFrozenContents)
+            {
+                for each (var quadGroup:QuadGroup in mFrozenContents)
+                    quadGroup.render(support, alpha);
+            }
+            else super.render(support);
+        }
+    }
 }

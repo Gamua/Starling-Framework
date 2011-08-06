@@ -65,10 +65,7 @@ package starling.core
         
         public function transformMatrix(object:DisplayObject):void
         {
-            translateMatrix(object.x, object.y);
-            rotateMatrix(object.rotation);
-            scaleMatrix(object.scaleX, object.scaleY);
-            translateMatrix(-object.pivotX, -object.pivotY);
+            transformMatrixForObject(mModelViewMatrix, object);   
         }
         
         public function pushMatrix():void
@@ -95,6 +92,14 @@ package starling.core
             mvpMatrix.append(mModelViewMatrix);
             mvpMatrix.append(mProjectionMatrix);
             return mvpMatrix;
+        }
+        
+        public static function transformMatrixForObject(matrix:Matrix3D, object:DisplayObject):void
+        {
+            matrix.prependTranslation(object.x, object.y, 0.0);
+            matrix.prependRotation(rad2deg(object.rotation), Vector3D.Z_AXIS);
+            matrix.prependScale(object.scaleX, object.scaleY, 1.0);
+            matrix.prependTranslation(-object.pivotX, -object.pivotY, 0.0);
         }
         
         // other helper methods

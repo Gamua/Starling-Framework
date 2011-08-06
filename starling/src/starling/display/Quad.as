@@ -80,22 +80,31 @@ package starling.display
             return new Rectangle(minX, minY, maxX-minX, maxY-minY);
         }
         
-        public function setVertexColor(vertexID:int, color:uint):void
-        {
-            mVertexData.setColor(vertexID, color);
-        }
-        
         public function getVertexColor(vertexID:int):uint
         {
             return mVertexData.getColor(vertexID);
         }
         
-        public function get color():uint { return mVertexData.getColor(0); }
+        public function setVertexColor(vertexID:int, color:uint):void
+        {
+            mVertexData.setColor(vertexID, color);
+            if (mVertexBuffer) createVertexBuffer();
+        }
+        
+        public function get color():uint 
+        { 
+            return mVertexData.getColor(0); 
+        }
         
         public function set color(value:uint):void 
         {
             mVertexData.setUniformColor(value);
-            createVertexBuffer();
+            if (mVertexBuffer) createVertexBuffer();
+        }
+        
+        public function get vertexData():VertexData 
+        { 
+            return mVertexData.clone(); 
         }
         
         public override function render(support:RenderSupport):void
@@ -105,7 +114,7 @@ package starling.display
             
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();
-            if (mIndexBuffer == null) createIndexBuffer();
+            if (mIndexBuffer  == null) createIndexBuffer();
             
             context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
@@ -120,14 +129,17 @@ package starling.display
         
         protected function createVertexBuffer():void
         {
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            mVertexBuffer = mVertexData.toVertexBuffer();
+            if (mVertexBuffer == null) 
+                mVertexBuffer = Starling.context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
+                
+            mVertexBuffer.uploadFromVector(vertexData.data, 0, 4);
         }
         
         protected function createIndexBuffer():void
         {
-            if (mIndexBuffer) mIndexBuffer.dispose();
-            mIndexBuffer = Starling.context.createIndexBuffer(6);
+            if (mIndexBuffer == null) 
+                mIndexBuffer = Starling.context.createIndexBuffer(6);
+            
             mIndexBuffer.uploadFromVector(Vector.<uint>([0, 1, 2, 1, 3, 2]), 0, 6);
         }
         
@@ -142,7 +154,7 @@ package starling.display
             
             var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler(); 
             fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                "mul ft0, v0, fc0  \n" +  // multiply alpha (fc0) by color (vc0)
+                "mul ft0, v0, fc0  \n" +  // multiply alpha (fc0) by color (v0)
                 "mov oc, ft0       \n"    // output color
             );
             

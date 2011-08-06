@@ -84,7 +84,7 @@ package starling.textures
                 mHelperImage.texture = mBufferTexture;
             }
             
-            Starling.context.setRenderToTexture(mActiveTexture.nativeTexture, false, antiAliasing);
+            Starling.context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             
             mSupport.setupOrthographicRendering(mNativeWidth, mNativeHeight);
             mSupport.setupDefaultBlendFactors();
@@ -113,12 +113,12 @@ package starling.textures
         
         public function clear():void
         {
-            Starling.context.setRenderToTexture(mActiveTexture.nativeTexture);
+            Starling.context.setRenderToTexture(mActiveTexture.base);
             mSupport.clear(0x0);
 
             if (isPersistent)
             {
-                Starling.context.setRenderToTexture(mActiveTexture.nativeTexture);
+                Starling.context.setRenderToTexture(mActiveTexture.base);
                 mSupport.clear(0x0);
             }
             
@@ -135,9 +135,9 @@ package starling.textures
         public override function get width():Number { return mActiveTexture.width; }        
         public override function get height():Number { return mActiveTexture.height; }        
         
-        public override function get nativeTexture():TextureBase 
+        public override function get base():TextureBase 
         { 
-            return mActiveTexture.nativeTexture; 
+            return mActiveTexture.base; 
         }
     }
 }
