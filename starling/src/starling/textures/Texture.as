@@ -4,6 +4,8 @@ package starling.textures
     import flash.display.BitmapData;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
+    import flash.geom.ColorTransform;
+    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
@@ -53,12 +55,12 @@ package starling.textures
             {
                 var potData:BitmapData = new BitmapData(legalWidth, legalHeight, true, 0);
                 potData.copyPixels(data, data.rect, new Point(0, 0));
-                nativeTexture.uploadFromBitmapData(potData);
+                uploadTexture(potData, nativeTexture, generateMipMaps);
                 potData.dispose();
             }
             else
             {
-                nativeTexture.uploadFromBitmapData(data);
+                uploadTexture(data, nativeTexture, generateMipMaps);
             }
             
             var concreteTexture:Texture = new ConcreteTexture(nativeTexture, legalWidth, legalHeight);
@@ -101,6 +103,34 @@ package starling.textures
             }
             
             return clone;
+        }
+        
+        private static function uploadTexture(data:BitmapData, 
+                                              texture:flash.display3D.textures.Texture, 
+                                              generateMipmaps:Boolean):void 
+        {
+            texture.uploadFromBitmapData(data);
+            
+            if (generateMipmaps)
+            {
+                var currentWidth:int = data.width / 2;
+                var currentHeight:int = data.height / 2;
+                var level:int = 0;
+                var canvas:BitmapData = new BitmapData(currentWidth, currentHeight);
+                var transform:Matrix = new Matrix();
+                
+                while (currentWidth >= 1 && currentHeight >= 1)
+                {
+                    canvas.draw(data, transform, null, null, null, true);
+                    texture.uploadFromBitmapData(canvas, level);
+                    transform.scale(0.5, 0.5);
+                    level++;
+                    currentWidth /= 2;
+                    currentHeight /= 2;
+                }
+                
+                canvas.dispose();
+            }
         }
         
         public function get frame():Rectangle { return mFrame; }

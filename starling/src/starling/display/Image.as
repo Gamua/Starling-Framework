@@ -114,7 +114,7 @@ package starling.display
             
             var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler(); 
             fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                "tex ft1, v1, fs1 <2d,clamp,linear> \n" + // sample texture 1
+                "tex ft1, v1, fs1 <2d,clamp,linear,mipnearest> \n" + // sample texture 1
                 "mul ft2, ft1, v0                   \n" + // multiply color with texel color
                 "mul oc, ft2, fc0                   \n"   // multiply color with alpha
             );
