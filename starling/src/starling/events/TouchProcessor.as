@@ -3,14 +3,14 @@ package starling.events
     import flash.geom.Point;
     
     import starling.display.DisplayObject;
-    import starling.display.DisplayObjectContainer;
+    import starling.display.Stage;
 
     public class TouchProcessor
     {
         private static const MULTITAP_TIME:Number = 0.3;
         private static const MULTITAP_DISTANCE:Number = 25;
         
-        private var mRoot:DisplayObjectContainer;
+        private var mStage:Stage;
         private var mElapsedTime:Number;        
         private var mTouchMarker:TouchMarker;
         
@@ -21,22 +21,22 @@ package starling.events
         private var mShiftDown:Boolean = false;
         private var mCtrlDown:Boolean = false;
         
-        public function TouchProcessor(root:DisplayObjectContainer)
+        public function TouchProcessor(stage:Stage)
         {
-            mRoot = root;
+            mStage = stage;
             mElapsedTime = 0;
             mCurrentTouches = new <Touch>[];
             mQueue = new <Array>[];
             mLastTaps = new <Touch>[];
             
-            mRoot.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
-            mRoot.addEventListener(KeyboardEvent.KEY_UP,   onKey);
+            mStage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
+            mStage.addEventListener(KeyboardEvent.KEY_UP,   onKey);
         }
 
         public function dispose():void
         {
-            mRoot.removeEventListener(KeyboardEvent.KEY_DOWN, onKey);
-            mRoot.removeEventListener(KeyboardEvent.KEY_UP,   onKey);
+            mStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey);
+            mStage.removeEventListener(KeyboardEvent.KEY_UP,   onKey);
             if (mTouchMarker) mTouchMarker.dispose();
         }
         
@@ -70,7 +70,7 @@ package starling.events
                     
                     // check if target is still connected to stage, otherwise find new target
                     if (currentTouch.target.stage == null)
-                        currentTouch.setTarget(mRoot.hitTestPoint(
+                        currentTouch.setTarget(mStage.hitTestPoint(
                             new Point(currentTouch.globalX, currentTouch.globalY), true));
                 }
                 
@@ -151,7 +151,7 @@ package starling.events
             touch.setTimestamp(mElapsedTime);
             
             if (phase == TouchPhase.HOVER || phase == TouchPhase.BEGAN)
-                touch.setTarget(mRoot.hitTestPoint(position, true));
+                touch.setTarget(mStage.hitTestPoint(position, true));
             
             if (phase == TouchPhase.BEGAN)
                 processTap(touch);
@@ -166,7 +166,7 @@ package starling.events
                 if (simulateMultitouch)
                 {
                     mTouchMarker.visible = mCtrlDown;
-                    mTouchMarker.moveCenter(mRoot.width/2, mRoot.height/2);
+                    mTouchMarker.moveCenter(mStage.stageWidth/2, mStage.stageHeight/2);
                     
                     // if currently active, end mocked touch
                     var mockedTouch:Touch = getCurrentTouch(1);
@@ -234,7 +234,7 @@ package starling.events
             {
                 mTouchMarker = new TouchMarker();
                 mTouchMarker.visible = false;
-                mRoot.addChild(mTouchMarker);
+                mStage.addChild(mTouchMarker);
             }
             else
             {                
