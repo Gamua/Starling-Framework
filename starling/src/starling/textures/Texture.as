@@ -105,28 +105,28 @@ package starling.textures
             return clone;
         }
         
-        private static function uploadTexture(data:BitmapData, 
-                                              texture:flash.display3D.textures.Texture, 
-                                              generateMipmaps:Boolean):void 
+        private static function uploadTexture(data:BitmapData,
+                                              texture:flash.display3D.textures.Texture,
+                                              generateMipmaps:Boolean):void
         {
             texture.uploadFromBitmapData(data);
             
             if (generateMipmaps)
             {
-                var currentWidth:int = data.width / 2;
-                var currentHeight:int = data.height / 2;
-                var level:int = 0;
-                var canvas:BitmapData = new BitmapData(currentWidth, currentHeight);
-                var transform:Matrix = new Matrix();
+                var currentWidth:int  = data.width  >> 1;
+                var currentHeight:int = data.height >> 1;
+                var level:int = 1;
+                var canvas:BitmapData = new BitmapData(currentWidth, currentHeight, true, 0);
+                var transform:Matrix = new Matrix(.5, 0, 0, .5);
                 
-                while (currentWidth >= 1 && currentHeight >= 1)
+                while (currentWidth >= 1 || currentHeight >= 1)
                 {
+                    canvas.fillRect(new Rectangle(0, 0, currentWidth, currentHeight), 0);
                     canvas.draw(data, transform, null, null, null, true);
-                    texture.uploadFromBitmapData(canvas, level);
+                    texture.uploadFromBitmapData(canvas, level++);
                     transform.scale(0.5, 0.5);
-                    level++;
-                    currentWidth /= 2;
-                    currentHeight /= 2;
+                    currentWidth  = currentWidth  >> 1;
+                    currentHeight = currentHeight >> 1;
                 }
                 
                 canvas.dispose();
