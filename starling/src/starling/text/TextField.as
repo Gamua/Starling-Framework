@@ -6,6 +6,7 @@ package starling.text
     import flash.text.AntiAliasType;
     import flash.text.TextField;
     import flash.text.TextFormat;
+    import flash.utils.Dictionary;
     
     import starling.core.RenderSupport;
     import starling.display.DisplayObject;
@@ -13,6 +14,7 @@ package starling.text
     import starling.display.Image;
     import starling.display.Quad;
     import starling.display.Sprite;
+    import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
@@ -29,7 +31,9 @@ package starling.text
         private var mItalic:Boolean;
         private var mUnderline:Boolean;
         private var mAutoScale:Boolean;
+        private var mKerning:Boolean;
         private var mRequiresRedraw:Boolean;
+        private var mIsRenderedText:Boolean;
         
         private var mHitArea:DisplayObject;
         private var mTextArea:DisplayObject;
@@ -38,6 +42,9 @@ package starling.text
         
         // this object will be used for text rendering
         private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
+        
+        // this is the container for bitmap fonts
+        private static var sBitmapFonts:Dictionary = new Dictionary();
         
         public function TextField(width:int, height:int, text:String, fontName:String="Arial",
                                   fontSize:Number=12, color:uint=0x0, bold:Boolean=false)
@@ -48,8 +55,8 @@ package starling.text
             mHAlign = HAlign.CENTER;
             mVAlign = VAlign.CENTER;
             mBorder = null;
-            mFontName = fontName;
-            mRequiresRedraw = true;
+            mKerning = true;
+            this.fontName = fontName;
             
             mHitArea = new Quad(width, height);
             mHitArea.alpha = 0.0;
@@ -58,6 +65,18 @@ package starling.text
             mTextArea = new Quad(width, height);
             mTextArea.visible = false;
             addChild(mTextArea);
+            
+            addEventListener(Event.FREEZE, onFreeze);
+        }
+        
+        public override function dispose():void
+        {
+            removeEventListener(Event.FREEZE, onFreeze);
+        }
+        
+        private function onFreeze(event:Event):void
+        {
+            if (mRequiresRedraw) redrawContents();
         }
         
         public override function render(support:RenderSupport):void
@@ -71,7 +90,7 @@ package starling.text
             if (mContents)
                 mContents.removeFromParent(true);
             
-            mContents = createRenderedContents(); 
+            mContents = mIsRenderedText ? createRenderedContents() : createComposedContents();
             mContents.touchable = false;
             mRequiresRedraw = false;
             
@@ -85,8 +104,10 @@ package starling.text
             var width:Number  = mHitArea.width;
             var height:Number = mHitArea.height;
             
-            var textFormat:TextFormat = new TextFormat(mFontName, mFontSize, 0xffffff, mBold, 
-                                                       mItalic, mUnderline, null, null, mHAlign);
+            var textFormat:TextFormat = new TextFormat(
+                mFontName, mFontSize, 0xffffff, mBold, mItalic, mUnderline, null, null, mHAlign);
+            textFormat.kerning = mKerning;
+            
             sNativeTextField.defaultTextFormat = textFormat;
             sNativeTextField.width = width;
             sNativeTextField.height = height;
@@ -145,6 +166,24 @@ package starling.text
                 format.size = size--;
                 textField.setTextFormat(format);
             }
+        }
+        
+        private function createComposedContents():DisplayObject
+        {
+            var bitmapFont:BitmapFont = sBitmapFonts[mFontName];
+            if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
+            
+            var contents:DisplayObject = bitmapFont.createDisplayObject(
+                mHitArea.width, mHitArea.height, mText, mFontSize, mColor, mHAlign, mVAlign,
+                mAutoScale, mKerning);
+            
+            var textBounds:Rectangle = (contents as DisplayObjectContainer).bounds;
+            mTextArea.x = textBounds.x;
+            mTextArea.y = textBounds.y;
+            mTextArea.width  = textBounds.width;
+            mTextArea.height = textBounds.height;
+            
+            return contents;
         }
         
         private function updateBorder():void
@@ -214,6 +253,7 @@ package starling.text
             {
                 mFontName = value;
                 mRequiresRedraw = true;
+                mIsRenderedText = sBitmapFonts[value] == undefined;
             }
         }
         
@@ -233,8 +273,15 @@ package starling.text
             if (mColor != value)
             {
                 mColor = value;
-                if (mContents) 
-                   (mContents as Image).color = value;
+                updateBorder();
+                
+                if (mContents)
+                {
+                   if (mIsRenderedText)
+                       (mContents as Image).color = value;
+                   else
+                       mRequiresRedraw = true;
+                }
             }
         }
         
@@ -314,6 +361,16 @@ package starling.text
             }
         }
         
+        public function get kerning():Boolean { return mKerning; }
+        public function set kerning(value:Boolean):void
+        {
+            if (mKerning != value)
+            {
+                mKerning = value;
+                mRequiresRedraw = true;
+            }
+        }
+        
         public function get autoScale():Boolean { return mAutoScale; }
         public function set autoScale(value:Boolean):void
         {
@@ -322,6 +379,19 @@ package starling.text
                 mAutoScale = value;
                 mRequiresRedraw = true;
             }
+        }
+        
+        public static function registerBitmapFont(bitmapFont:BitmapFont):void
+        {
+            sBitmapFonts[bitmapFont.name] = bitmapFont;
+        }
+        
+        public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
+        {
+            if (dispose && sBitmapFonts[name] != undefined)
+                sBitmapFonts[name].dispose();
+            
+            delete sBitmapFonts[name];
         }
     }
 }

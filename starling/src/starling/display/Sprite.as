@@ -1,6 +1,7 @@
 package starling.display
 {
     import starling.core.RenderSupport;
+    import starling.events.Event;
 
     public class Sprite extends DisplayObjectContainer
     {
@@ -20,6 +21,7 @@ package starling.display
         public function freeze():void
         {
             unfreeze();
+            dispatchEventOnChildren(new Event(Event.FREEZE));
             mFrozenContents = QuadGroup.compile(this);
         }
         

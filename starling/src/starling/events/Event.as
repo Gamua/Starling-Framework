@@ -13,6 +13,7 @@ package starling.events
         public static const REMOVED_FROM_STAGE:String = "removedFromStage";
         public static const TRIGGERED:String = "triggered";
         public static const MOVIE_COMPLETED:String = "movieCompleted";
+        public static const FREEZE:String = "freeze";
         
         private var mTarget:EventDispatcher;
         private var mCurrentTarget:EventDispatcher;

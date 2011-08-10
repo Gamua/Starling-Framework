@@ -5,6 +5,8 @@ package
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     
+    import starling.text.BitmapFont;
+    import starling.text.TextField;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
 
@@ -50,6 +52,12 @@ package
         [Embed(source="../media/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]        
         private static const UbuntuRegular:Class;
         
+        [Embed(source="../media/fonts/desyrel.fnt", mimeType="application/octet-stream")]
+        private static const DesyrelXml:Class;
+        
+        [Embed(source = "../media/fonts/desyrel.png")]
+        private static const DesyrelTexture:Class;
+        
         // Texture Atlas
         
         [Embed(source="../media/textures/atlas.xml", mimeType="application/octet-stream")]
@@ -68,6 +76,7 @@ package
         private static var sTextures:Dictionary = new Dictionary();
         private static var sSounds:Dictionary = new Dictionary();
         private static var sTextureAtlas:TextureAtlas;
+        private static var sBitmapFontsLoaded:Boolean;
         
         public static function getTexture(name:String):Texture
         {
@@ -101,6 +110,17 @@ package
             }
             
             return sTextureAtlas;
+        }
+        
+        public static function loadBitmapFonts():void
+        {
+            if (!sBitmapFontsLoaded)
+            {
+                var texture:Texture = getTexture("DesyrelTexture");
+                var xml:XML = XML(new DesyrelXml());
+                TextField.registerBitmapFont(new BitmapFont(texture, xml));
+                sBitmapFontsLoaded = true;
+            }
         }
         
         public static function prepareSounds():void

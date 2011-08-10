@@ -9,6 +9,7 @@ package
     import scenes.MovieScene;
     import scenes.RenderTextureScene;
     import scenes.Scene;
+    import scenes.TextScene;
     import scenes.TextureScene;
     import scenes.TouchScene;
     
@@ -26,7 +27,8 @@ package
         public function Game()
         {
             // sound initialization takes a moment, so we prepare them here
-            Assets.prepareSounds(); 
+            Assets.prepareSounds();
+            Assets.loadBitmapFonts();
             
             var bg:Image = new Image(Assets.getTexture("Background"));
             addChild(bg);
@@ -40,6 +42,7 @@ package
             var scenesToCreate:Array = [
                 ["Textures", TextureScene],
                 ["Multitouch", TouchScene],
+                ["TextFields", TextScene],
                 ["Animations", AnimationScene],
                 ["Custom hit-test", CustomHitTestScene],
                 ["Movie Clip", MovieScene],
@@ -57,7 +60,7 @@ package
                 
                 var button:Button = new Button(buttonTexture, sceneTitle);
                 button.x = count % 2 == 0 ? 28 : 167;
-                button.y = 150 + (count / 2) * 52 /* + (count % 2) * 26 */;
+                button.y = 150 + int(count / 2) * 52;
                 button.name = getQualifiedClassName(sceneClass);
                 button.addEventListener(Event.TRIGGERED, onButtonTriggered);
                 mMainMenu.addChild(button);
