@@ -4,31 +4,28 @@ package starling.textures
     import flash.display.BitmapData;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
-    import flash.geom.ColorTransform;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
-    import starling.core.RenderSupport;
     import starling.core.Starling;
-    import starling.display.DisplayObject;
     import starling.errors.AbstractClassError;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
     public class Texture
     {
-        // TODO: create mip maps
-        
         private var mFrame:Rectangle;
-        private var mSupport:RenderSupport;
+        private var mRepeat:Boolean;
         
         public function Texture()
         {
             if (getQualifiedClassName(this) == "starling.textures::Texture")
                 throw new AbstractClassError();
-        }        
+            
+            mRepeat = false;
+        }
         
         public function dispose():void
         { }
@@ -63,7 +60,9 @@ package starling.textures
                 uploadTexture(data, nativeTexture, generateMipMaps);
             }
             
-            var concreteTexture:Texture = new ConcreteTexture(nativeTexture, legalWidth, legalHeight);
+            var concreteTexture:Texture = 
+                new ConcreteTexture(nativeTexture, legalWidth, legalHeight, generateMipMaps);
+            
             return fromTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight));
         }
         
@@ -136,8 +135,12 @@ package starling.textures
         public function get frame():Rectangle { return mFrame; }
         public function set frame(value:Rectangle):void { mFrame = value ? value.clone() : null; }
         
+        public function get repeat():Boolean { return mRepeat; }
+        public function set repeat(value:Boolean):void { mRepeat = value; }
+        
         public function get width():Number { return 0; }        
         public function get height():Number { return 0; }        
         public function get base():TextureBase { return null; }
+        public function get mipMapping():Boolean { return false; }
     }
 }

@@ -60,8 +60,9 @@ package starling.textures
             }            
         }
         
+        public override function get base():TextureBase { return mBaseTexture.base; }
         public override function get width():Number { return mBaseTexture.width * mClipping.width; }
         public override function get height():Number { return mBaseTexture.height * mClipping.height; }
-        public override function get base():TextureBase { return mBaseTexture.base; }
+        public override function get mipMapping():Boolean { return mBaseTexture.mipMapping; }
     }
 }

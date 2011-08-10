@@ -13,14 +13,14 @@ package starling.display
     import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.textures.Texture;
+    import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
     
     public class Image extends Quad
     {
-        public static const PROGRAM_NAME:String = "ImageProgram";
-        
         private var mTexture:Texture;
-                
+        private var mSmoothing:String;
+        
         public function Image(texture:Texture)
         {
             if (texture)
@@ -36,6 +36,7 @@ package starling.display
                 mVertexData.setTexCoords(2, 0.0, 1.0);
                 mVertexData.setTexCoords(3, 1.0, 1.0);
                 mTexture = texture;
+                mSmoothing = TextureSmoothing.BILINEAR;
             }
             else
             {
@@ -78,16 +79,26 @@ package starling.display
             }
         }
         
+        public function get smoothing():String { return mSmoothing; }
+        public function set smoothing(value:String):void 
+        {
+            if (TextureSmoothing.isValid(value))
+                mSmoothing = value;
+            else
+                throw new ArgumentError("Invalid smoothing mode: " + smoothing);
+        }
+        
         public override function render(support:RenderSupport):void
         {
             var context:Context3D = Starling.context;
             var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
+            var programName:String = getProgramName(mTexture.repeat, mTexture.mipMapping, mSmoothing);
             
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();
             if (mIndexBuffer  == null) createIndexBuffer();
             
-            context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
+            context.setProgram(Starling.current.getProgram(programName));
             context.setTextureAt(1, mTexture.base);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_3);
@@ -101,26 +112,64 @@ package starling.display
             context.setVertexBufferAt(1, null);
             context.setVertexBufferAt(2, null);
         }
-        
+
         public static function registerPrograms(target:Starling):void
         {
-            // create a vertex and fragment program - from assembly
-            var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, 
+            // create a vertex and fragment programs - from assembly.
+            // each combination of repeat/mipmap/smoothing has its own fragment shader.
+            
+            var vertexProgramCode:String =
                 "m44 op, va0, vc0  \n" +  // 4x4 matrix transform to output clipspace
                 "mov v0, va1       \n" +  // pass color to fragment program
-                "mov v1, va2       \n"    // pass texture coordinates to fragment program
-            );
+                "mov v1, va2       \n";   // pass texture coordinates to fragment program
+
+            var fragmentProgramCode:String =
+                "tex ft1, v1, fs1 <???> \n" +  // sample texture 1
+                "mul ft2, ft1, v0       \n" +  // multiply color with texel color
+                "mul oc, ft2, fc0       \n";   // multiply color with alpha
+
+            var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode);
             
-            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler(); 
-            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                "tex ft1, v1, fs1 <2d,clamp,linear,mipnearest> \n" + // sample texture 1
-                "mul ft2, ft1, v0                   \n" + // multiply color with texel color
-                "mul oc, ft2, fc0                   \n"   // multiply color with alpha
-            );
+            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
             
-            target.registerProgram(PROGRAM_NAME, vertexProgramAssembler.agalcode,
-                                               fragmentProgramAssembler.agalcode);
+            var smoothingTypes:Array = [
+                TextureSmoothing.NONE,
+                TextureSmoothing.BILINEAR,
+                TextureSmoothing.TRILINEAR
+            ];
+            
+            for each (var repeat:Boolean in [true, false])
+            {
+                for each (var mipmap:Boolean in [true, false])
+                {
+                    for each (var smoothing:String in smoothingTypes)
+                    {
+                        var options:Array = ["2d", repeat ? "repeat" : "clamp"];
+                        
+                        if (smoothing == TextureSmoothing.NONE)
+                            options.push("nearest", mipmap ? "mipnearest" : "mipnone");
+                        else if (smoothing == TextureSmoothing.BILINEAR)
+                            options.push("linear", mipmap ? "mipnearest" : "mipnone");
+                        else
+                            options.push("linear", mipmap ? "miplinear" : "mipnone");
+                        
+                        fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
+                            fragmentProgramCode.replace("???", options.join())); 
+                        
+                        target.registerProgram(getProgramName(repeat, mipmap, smoothing),
+                            vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                    }
+                }
+            }
+        }
+        
+        public static function getProgramName(repeat:Boolean, mipMap:Boolean, smoothing:String):String
+        {
+            return "ImageProgram[" + 
+                (repeat ? "repeat," : "") +
+                (mipMap ? "mipmap," : "") +
+                smoothing + "]";
         }
     }
 }

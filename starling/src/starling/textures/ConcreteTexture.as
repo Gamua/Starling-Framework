@@ -4,15 +4,18 @@ package starling.textures
 
     public class ConcreteTexture extends Texture
     {
+        private var mBase:TextureBase;
         private var mWidth:int;
         private var mHeight:int;
-        private var mBase:TextureBase;
+        private var mMipMapping:Boolean;
         
-        public function ConcreteTexture(base:TextureBase, width:int, height:int)
+        public function ConcreteTexture(base:TextureBase, width:int, height:int, 
+                                        mipMapping:Boolean=false)
         {
             mBase = base;
             mWidth = width;
             mHeight = height;
+            mMipMapping = mipMapping;
         }
         
         public override function dispose():void
@@ -21,8 +24,9 @@ package starling.textures
             super.dispose();
         }
         
+        public override function get base():TextureBase { return mBase; }
         public override function get width():Number  { return mWidth;  }
         public override function get height():Number { return mHeight; }
-        public override function get base():TextureBase { return mBase; }
+        public override function get mipMapping():Boolean { return mMipMapping; }
     }
 }
