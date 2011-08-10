@@ -3,16 +3,13 @@ package starling.display
     import flash.display3D.*;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix3D;
-    import flash.geom.Vector3D;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
-    import starling.display.Image;
-    import starling.display.Quad;
     import starling.errors.MissingContextError;
+    import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
-    import starling.utils.rad2deg;
     
     internal class QuadGroup
     {
@@ -23,11 +20,19 @@ package starling.display
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexBuffer:IndexBuffer3D;
         
-        public function QuadGroup(texture:TextureBase)
+        private var mSmoothing:String;
+        private var mRepeat:Boolean;
+        private var mMipMapping:Boolean;
+        
+        public function QuadGroup(texture:TextureBase, smoothing:String, repeat:Boolean, 
+                                  mipmap:Boolean)
         {
             mVertexData = new VertexData(0);
             mIndices = new <uint>[];
             mTexture = texture;
+            mSmoothing = smoothing;
+            mRepeat = repeat;
+            mMipMapping = mipmap;
         }
         
         public function dispose():void
@@ -65,7 +70,8 @@ package starling.display
             
             if (context == null) throw new MissingContextError();
             
-            var program:String = mTexture ? Image.PROGRAM_NAME : Quad.PROGRAM_NAME;
+            var program:String = mTexture ? Image.getProgramName(mRepeat, mMipMapping, mSmoothing) : 
+                                            Quad.PROGRAM_NAME;
             
             context.setProgram(Starling.current.getProgram(program));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
@@ -88,6 +94,9 @@ package starling.display
         }
         
         public function get texture():TextureBase { return mTexture; }
+        public function get smoothing():String { return mSmoothing; }
+        public function get repeat():Boolean { return mRepeat; }
+        public function get mipMapping():Boolean { return mipMapping; }
         
         public static function compile(container:DisplayObjectContainer):Vector.<QuadGroup>
         {
@@ -143,11 +152,33 @@ package starling.display
                 for (i=0; i<vertexData.numVertices; ++i)
                     vertexData.transformVertex(i, currentMatrix, currentAlpha);
                 
+                var texture:TextureBase = null;
+                var smoothing:String = TextureSmoothing.NONE;
+                var repeat:Boolean = false;
+                var mipMapping:Boolean = false;
                 var image:Image = object as Image;
-                var texture:TextureBase = image ? image.texture.base : null;
                 
-                if (quadGroups.length == 0 || quadGroups[quadGroups.length-1].texture != texture)
-                    quadGroups.push(new QuadGroup(texture));
+                if (image)
+                {
+                    texture = image.texture.base;
+                    smoothing = image.smoothing;
+                    repeat = image.texture.repeat;
+                    mipMapping = image.texture.mipMapping;
+                }
+                
+                var requiresNewGroup:Boolean = false;
+                var isFirstGroup:Boolean = quadGroups.length == 0;
+                
+                if (!isFirstGroup)
+                {
+                    var lastGroup:QuadGroup = quadGroups[quadGroups.length-1];
+                    requiresNewGroup = lastGroup.texture != texture || 
+                                       lastGroup.smoothing != smoothing ||
+                                       lastGroup.repeat != repeat;
+                }
+                
+                if (isFirstGroup || requiresNewGroup)
+                    quadGroups.push(new QuadGroup(texture, smoothing, repeat, mipMapping));
                 
                 quadGroups[quadGroups.length-1].addQuadData(vertexData);
             }

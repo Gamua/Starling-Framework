@@ -241,6 +241,9 @@ package starling.text
         public function get hAlign():String { return mHAlign; }
         public function set hAlign(value:String):void
         {
+            if (!HAlign.isValid(value))
+                throw new ArgumentError("Invalid horizontal align: " + value);
+            
             if (mHAlign != value)
             {
                 mHAlign = value;
@@ -251,6 +254,9 @@ package starling.text
         public function get vAlign():String { return mVAlign; }
         public function set vAlign(value:String):void
         {
+            if (!VAlign.isValid(value))
+                throw new ArgumentError("Invalid vertical align: " + value);
+            
             if (mVAlign != value)
             {
                 mVAlign = value;

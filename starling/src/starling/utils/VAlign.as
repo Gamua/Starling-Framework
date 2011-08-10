@@ -9,5 +9,10 @@ package starling.utils
         public static const TOP:String    = "top";
         public static const CENTER:String = "center";
         public static const BOTTOM:String = "bottom";
+        
+        public static function isValid(vAlign:String):Boolean
+        {
+            return vAlign == TOP || vAlign == CENTER || vAlign == BOTTOM;
+        }
     }
 }
