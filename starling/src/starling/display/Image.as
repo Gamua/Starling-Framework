@@ -166,10 +166,16 @@ package starling.display
         
         public static function getProgramName(repeat:Boolean, mipMap:Boolean, smoothing:String):String
         {
-            return "ImageProgram[" + 
-                (repeat ? "repeat," : "") +
-                (mipMap ? "mipmap," : "") +
-                smoothing + "]";
+            // this method is called very often, so it should return quickly when called with 
+            // the default parameters (no-repeat, mipmap, bilinear)
+            
+            var name:String = "image|";
+            
+            if (repeat)  name += "R";
+            if (!mipMap) name += "N";
+            if (smoothing != TextureSmoothing.BILINEAR) name += smoothing.charAt(0);
+            
+            return name;
         }
     }
 }

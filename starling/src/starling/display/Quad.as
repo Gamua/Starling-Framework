@@ -19,7 +19,7 @@ package starling.display
 
     public class Quad extends DisplayObject
     {
-        public static const PROGRAM_NAME:String = "QuadProgram";
+        public static const PROGRAM_NAME:String = "quad";
         
         protected var mVertexData:VertexData;
         protected var mVertexBuffer:VertexBuffer3D;
