@@ -7,6 +7,7 @@ package starling.textures
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.Starling;
@@ -64,6 +65,25 @@ package starling.textures
                 new ConcreteTexture(nativeTexture, legalWidth, legalHeight, generateMipMaps);
             
             return fromTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight));
+        }
+        
+        public static function fromAtfData(data:ByteArray):Texture
+        {
+            var signature:String = String.fromCharCode(data[0], data[1], data[2]);
+            if (signature != "ATF") throw new ArgumentError("Invalid ATF data");
+            
+            var format:String = data[6] == 2 ? Context3DTextureFormat.COMPRESSED :
+                                               Context3DTextureFormat.BGRA;
+            var width:int = Math.pow(2, data[7]); 
+            var height:int = Math.pow(2, data[8]);
+            var textureCount:int = data[9];
+            
+            var nativeTexture:flash.display3D.textures.Texture = 
+                Starling.context.createTexture(width, height, format, false);
+            
+            nativeTexture.uploadCompressedTextureFromByteArray(data, 0);
+            
+            return new ConcreteTexture(nativeTexture, width, height, textureCount > 1);
         }
         
         public static function fromTexture(texture:Texture, region:Rectangle):Texture

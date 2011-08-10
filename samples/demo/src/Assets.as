@@ -2,6 +2,7 @@ package
 {
     import flash.display.Bitmap;
     import flash.media.Sound;
+    import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     
     import starling.textures.Texture;
@@ -38,6 +39,11 @@ package
         [Embed(source = "../media/textures/benchmark_object.png")]
         private static const BenchmarkObject:Class;
         
+        // Compressed textures
+        
+        [Embed(source = "../media/textures/compressed_texture.atf", mimeType="application/octet-stream")]
+        private static const CompressedTexture:Class;
+        
         // Fonts
         
         // The 'embedAsCFF'-part IS REQUIRED!!!!
@@ -47,15 +53,15 @@ package
         // Texture Atlas
         
         [Embed(source="../media/textures/atlas.xml", mimeType="application/octet-stream")]
-        public static const AtlasXml:Class;
+        private static const AtlasXml:Class;
         
         [Embed(source="../media/textures/atlas.png")]
-        public static const AtlasTexture:Class;
+        private static const AtlasTexture:Class;
         
         // Sounds
         
         [Embed(source="../media/audio/step.mp3")]
-        public static const StepSound:Class;
+        private static const StepSound:Class;
         
         // Texture cache
         
@@ -67,8 +73,12 @@ package
         {
             if (sTextures[name] == undefined)
             {
-                var bitmap:Bitmap = new Assets[name]();
-                sTextures[name] = Texture.fromBitmap(bitmap);
+                var data:Object = new Assets[name]();
+                
+                if (data is Bitmap)
+                    sTextures[name] = Texture.fromBitmap(data as Bitmap);
+                else if (data is ByteArray)
+                    sTextures[name] = Texture.fromAtfData(data as ByteArray);
             }
             
             return sTextures[name];

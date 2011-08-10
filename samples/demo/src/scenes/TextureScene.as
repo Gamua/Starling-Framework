@@ -1,12 +1,15 @@
 package scenes
 {
     import starling.display.Image;
+    import starling.textures.Texture;
     import starling.textures.TextureAtlas;
 
     public class TextureScene extends Scene
     {
         public function TextureScene()
         {
+            // load textures from an atlas
+            
             var atlas:TextureAtlas = Assets.getTextureAtlas();
             
             var image1:Image = new Image(atlas.getTexture("walk_00"));
@@ -28,6 +31,15 @@ package scenes
             image4.x = 210;
             image4.y = 110;
             addChild(image4);
+            
+            // display a compressed texture
+            
+            var compressedTexture:Texture = Assets.getTexture("CompressedTexture");
+            var image:Image = new Image(compressedTexture);
+            image.x = Constants.CenterX - image.width / 2;
+            image.y = 280;
+            addChild(image);
+            
         }
     }
 }
