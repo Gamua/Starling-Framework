@@ -11,7 +11,6 @@ package scenes
         public function TextScene()
         {
             init();
-            freeze();
         }
 
         private function init():void
