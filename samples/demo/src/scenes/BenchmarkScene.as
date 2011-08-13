@@ -1,5 +1,7 @@
 package scenes
 {
+    import flash.system.System;
+    
     import starling.display.Button;
     import starling.display.Image;
     import starling.display.Sprite;
@@ -80,8 +82,11 @@ package scenes
                 mElapsed = mFrameCount = 0;
             }
             
-            for (var i:int=0; i<mContainer.numChildren; ++i)
-                mContainer.getChildAt(i).rotation += Math.PI / 2 * event.passedTime;
+            var numObjects:int = mContainer.numChildren;
+            var passedTime:Number = event.passedTime;
+            
+            for (var i:int=0; i<numObjects; ++i)
+                mContainer.getChildAt(i).rotation += Math.PI / 2 * passedTime;
         }
         
         private function onStartButtonTriggered(event:Event):void
@@ -131,6 +136,7 @@ package scenes
             addChild(mResultText);
             
             mContainer.removeChildren();
+            System.pauseForGCIfCollectionImminent();
         }
         
         
