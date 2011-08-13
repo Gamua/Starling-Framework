@@ -79,7 +79,7 @@ package starling.events
                     processedTouchIDs.indexOf(mQueue[mQueue.length-1][0]) == -1)
                 {
                     var touchArgs:Array = mQueue.pop();
-                    touchID = touchArgs[0];
+                    touchID = touchArgs[0] as int;
                     touch = getCurrentTouch(touchID);
                     
                     // hovering touches need special handling (see below)

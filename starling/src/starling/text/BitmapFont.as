@@ -108,8 +108,9 @@ package starling.text
                 var lastCharID:int = -1;
                 var currentX:Number = 0;
                 var currentLine:Sprite = new Sprite();
+                var numChars:int = text.length;
                 
-                for (var i:int=0; i<text.length; ++i)
+                for (var i:int=0; i<numChars; ++i)
                 {
                     var lineFull:Boolean = false;
                     
@@ -166,7 +167,7 @@ package starling.text
                     
                     lineContainer.addChild(currentLine);
                     
-                    if (i == text.length - 1)
+                    if (i == numChars - 1)
                     {
                         contentFits = true;
                     }                    
@@ -200,7 +201,8 @@ package starling.text
             
             if (hAlign != HAlign.LEFT)
             {
-                for (var l:int=0; l<lineContainer.numChildren; ++l)
+                var numLines:int = lineContainer.numChildren;
+                for (var l:int=0; l<numLines; ++l)
                 {
                     var line:Sprite = lineContainer.getChildAt(l) as Sprite;
                     var finalChar:DisplayObject = line.getChildAt(line.numChildren-1);

@@ -105,6 +105,7 @@ package starling.display
             var alphaStack:Vector.<Number> = new <Number>[1.0];
             
             compileObject(container, quadGroups, matrixStack, alphaStack);
+            quadGroups.fixed = true;
             
             for each (var quadGroup:QuadGroup in quadGroups)
                 quadGroup.finish();
@@ -127,8 +128,9 @@ package starling.display
             if (object is DisplayObjectContainer)
             {
                 var container:DisplayObjectContainer = object as DisplayObjectContainer;
+                var numChildren:int = container.numChildren;
                 
-                for (i=0; i<container.numChildren; ++i)
+                for (i=0; i<numChildren; ++i)
                 {
                     var child:DisplayObject = container.getChildAt(i);
                     
