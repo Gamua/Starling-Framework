@@ -20,7 +20,7 @@ package starling.core
         
         public function RenderSupport()
         {
-            mMatrixStack = new Vector.<Matrix3D>();
+            mMatrixStack = new <Matrix3D>[];
             mProjectionMatrix = new Matrix3D();
             mModelViewMatrix = new Matrix3D();
             
@@ -55,7 +55,8 @@ package starling.core
         
         public function rotateMatrix(angle:Number, axis:Vector3D=null):void
         {
-            mModelViewMatrix.prependRotation(rad2deg(angle), axis == null ? Vector3D.Z_AXIS : axis);
+            mModelViewMatrix.prependRotation(angle / Math.PI * 180.0, 
+                                             axis == null ? Vector3D.Z_AXIS : axis);
         }
         
         public function scaleMatrix(sx:Number, sy:Number, sz:Number=1.0):void
@@ -81,7 +82,7 @@ package starling.core
         public function resetMatrix():void
         {
             if (mMatrixStack.length != 0)
-                new Vector.<Matrix3D>();
+                mMatrixStack = new <Matrix3D>[];
             
             loadIdentity();
         }
@@ -97,7 +98,7 @@ package starling.core
         public static function transformMatrixForObject(matrix:Matrix3D, object:DisplayObject):void
         {
             matrix.prependTranslation(object.x, object.y, 0.0);
-            matrix.prependRotation(rad2deg(object.rotation), Vector3D.Z_AXIS);
+            matrix.prependRotation(object.rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
             matrix.prependScale(object.scaleX, object.scaleY, 1.0);
             matrix.prependTranslation(-object.pivotX, -object.pivotY, 0.0);
         }
