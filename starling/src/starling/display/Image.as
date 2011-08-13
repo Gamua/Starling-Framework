@@ -88,11 +88,13 @@ package starling.display
                 throw new ArgumentError("Invalid smoothing mode: " + smoothing);
         }
         
-        public override function render(support:RenderSupport):void
+        public override function render(support:RenderSupport, alpha:Number):void
         {
-            var context:Context3D = Starling.context;
+            alpha *= this.alpha;
+            
             var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
             var programName:String = getProgramName(mTexture.repeat, mTexture.mipMapping, mSmoothing);
+            var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();

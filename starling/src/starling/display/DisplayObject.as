@@ -186,7 +186,7 @@ package starling.display
             return transformationMatrix.transformPoint(globalPoint);
         }
         
-        public function render(support:RenderSupport):void
+        public function render(support:RenderSupport, alpha:Number):void
         {
             // override in subclass
         }

@@ -153,7 +153,7 @@ package starling.core
             mSupport.setupDefaultBlendFactors();
             
             mContext.clear();            
-            mStage.render(mSupport);            
+            mStage.render(mSupport, 1.0);
             mContext.present();
             
             mSupport.resetMatrix();

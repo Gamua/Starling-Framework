@@ -79,10 +79,10 @@ package starling.text
             if (mRequiresRedraw) redrawContents();
         }
         
-        public override function render(support:RenderSupport):void
+        public override function render(support:RenderSupport, alpha:Number):void
         {
             if (mRequiresRedraw) redrawContents();
-            super.render(support);
+            super.render(support, alpha);
         }
         
         private function redrawContents():void

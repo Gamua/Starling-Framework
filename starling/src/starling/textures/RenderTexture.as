@@ -61,7 +61,7 @@ package starling.textures
             {
                 mSupport.pushMatrix();
                 mSupport.transformMatrix(object);            
-                object.render(mSupport);
+                object.render(mSupport, 1.0);
                 mSupport.popMatrix();
             }
         }
@@ -92,7 +92,7 @@ package starling.textures
             
             // draw buffer
             if (isPersistent)
-                mHelperImage.render(mSupport);            
+                mHelperImage.render(mSupport, 1.0);
                         
             try
             {

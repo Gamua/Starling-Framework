@@ -22,7 +22,7 @@ package starling.display
             if (getQualifiedClassName(this) == "starling.display::DisplayObjectContainer")
                 throw new AbstractClassError();
             
-            mChildren = new Vector.<DisplayObject>();
+            mChildren = new <DisplayObject>[];
         }
         
         public override function dispose():void
@@ -154,9 +154,15 @@ package starling.display
             var numChildren:int = mChildren.length;
             
             if (numChildren == 0)
-                return new Rectangle();
+            {
+                var matrix:Matrix = getTransformationMatrixToSpace(targetSpace);
+                var position:Point = matrix.transformPoint(new Point(x, y));
+                return new Rectangle(position.x, position.y);
+            }
             else if (numChildren == 1)
+            {
                 return mChildren[0].getBounds(targetSpace);
+            }
             else
             {
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
@@ -190,21 +196,18 @@ package starling.display
             return null;
         }
         
-        public override function render(support:RenderSupport):void
+        public override function render(support:RenderSupport, alpha:Number):void
         {
-            var alpha:Number = this.alpha;
+            alpha *= this.alpha;
             
             for each (var child:DisplayObject in mChildren)
             {
-                var childAlpha:Number = child.alpha;
-                if (childAlpha != 0.0 && child.visible && child.scaleX != 0 && child.scaleY != 0)
+                if (child.alpha != 0.0 && child.visible && child.scaleX != 0 && child.scaleY != 0)
                 {
                     support.pushMatrix();
                     
                     support.transformMatrix(child);
-                    child.alpha *= alpha;
-                    child.render(support);
-                    child.alpha = childAlpha;
+                    child.render(support, alpha);
                     
                     support.popMatrix();
                 }
@@ -231,8 +234,8 @@ package starling.display
             if (object.hasEventListener(eventType))
                 listeners.push(object);
             if (container)
-                for (var i:int=0; i<container.numChildren; ++i)
-                    getChildEventListeners(container.getChildAt(i), eventType, listeners);
+                for each (var child:DisplayObject in container.mChildren)
+                    getChildEventListeners(child, eventType, listeners);
         }
         
         // properties

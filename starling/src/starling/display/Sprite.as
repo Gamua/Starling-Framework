@@ -34,14 +34,14 @@ package starling.display
         
         public function get isFrozen():Boolean { return mFrozenContents != null; }
         
-        public override function render(support:RenderSupport):void
+        public override function render(support:RenderSupport, alpha:Number):void
         {
             if (mFrozenContents)
             {
                 for each (var quadGroup:QuadGroup in mFrozenContents)
-                    quadGroup.render(support, alpha);
+                    quadGroup.render(support, this.alpha * alpha);
             }
-            else super.render(support);
+            else super.render(support, alpha);
         }
     }
 }

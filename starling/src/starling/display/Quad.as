@@ -47,17 +47,18 @@ package starling.display
         {
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
             var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+            var position:Vector3D;
             var i:int;
             
             if (targetSpace == this) // optimization
             {
                 for (i=0; i<4; ++i)
                 {
-                    var pos:Vector3D = mVertexData.getPosition(i);
-                    minX = Math.min(minX, pos.x);
-                    maxX = Math.max(maxX, pos.x);
-                    minY = Math.min(minY, pos.y);
-                    maxY = Math.max(maxY, pos.y);
+                    position = mVertexData.getPosition(i);
+                    minX = Math.min(minX, position.x);
+                    maxX = Math.max(maxX, position.x);
+                    minY = Math.min(minY, position.y);
+                    maxY = Math.max(maxY, position.y);
                 }
             }
             else
@@ -67,8 +68,9 @@ package starling.display
                 
                 for (i=0; i<4; ++i)
                 {
-                    point.x = mVertexData.getPosition(i).x;
-                    point.y = mVertexData.getPosition(i).y;
+                    position = mVertexData.getPosition(i);
+                    point.x = position.x;
+                    point.y = position.y;
                     var transformedPoint:Point = transformationMatrix.transformPoint(point);
                     minX = Math.min(minX, transformedPoint.x);
                     maxX = Math.max(maxX, transformedPoint.x);
@@ -107,10 +109,12 @@ package starling.display
             return mVertexData.clone(); 
         }
         
-        public override function render(support:RenderSupport):void
+        public override function render(support:RenderSupport, alpha:Number):void
         {
-            var context:Context3D = Starling.context;
+            alpha *= this.alpha;
+            
             var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
+            var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();
