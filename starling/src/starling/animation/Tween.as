@@ -7,17 +7,17 @@ package starling.animation
     {        
         private var mTarget:Object;
         private var mTransition:String;
-        private var mProperties:Array = [];
-        private var mStartValues:Array = [];
-        private var mEndValues:Array = [];        
+        private var mProperties:Vector.<String>;
+        private var mStartValues:Vector.<Number>;
+        private var mEndValues:Vector.<Number>;
 
         private var mOnStart:Function;
         private var mOnUpdate:Function;
         private var mOnComplete:Function;  
         
-        private var mOnStartArgs:Array = [];
-        private var mOnUpdateArgs:Array = [];
-        private var mOnCompleteArgs:Array = [];
+        private var mOnStartArgs:Array;
+        private var mOnUpdateArgs:Array;
+        private var mOnCompleteArgs:Array;
         
         private var mTotalTime:Number;
         private var mCurrentTime:Number;
@@ -25,13 +25,16 @@ package starling.animation
         private var mRoundToInt:Boolean;        
        
         public function Tween(target:Object, time:Number, transition:String="linear")        
-        {             
+        {
              mTarget = target;
              mCurrentTime = 0;
              mTotalTime = Math.max(0.0001, time);
              mDelay = 0;
              mTransition = transition;
              mRoundToInt = false;
+             mProperties = new <String>[];
+             mStartValues = new <Number>[];
+             mEndValues = new <Number>[];
         }
 
         public function animate(property:String, targetValue:Number):void
@@ -39,7 +42,7 @@ package starling.animation
             if (mTarget == null) return; // tweening null just does nothing.
                    
             mProperties.push(property);
-            mStartValues.push(null);
+            mStartValues.push(Number.NaN);
             mEndValues.push(targetValue);
         }
         
@@ -69,10 +72,12 @@ package starling.animation
                 onStart.apply(null, mOnStartArgs);
 
             var ratio:Number = Math.min(mTotalTime, mCurrentTime) / mTotalTime;
+            var numAnimatedProperties:int = mStartValues.length;
 
-            for (var i:int=0; i<mStartValues.length; ++i)
+            for (var i:int=0; i<numAnimatedProperties; ++i)
             {                
-                if (mStartValues[i] == null) mStartValues[i] = mTarget[mProperties[i]];
+                if (isNaN(mStartValues[i])) 
+                    mStartValues[i] = mTarget[mProperties[i]] as Number;
                 
                 var startValue:Number = mStartValues[i];
                 var endValue:Number = mEndValues[i];
