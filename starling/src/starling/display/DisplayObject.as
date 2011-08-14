@@ -60,9 +60,6 @@ package starling.display
             mLastTouchTimestamp = -1;
         }
         
-        public function dispose():void
-        { }
-        
         // functions
         
         public function removeFromParent(dispose:Boolean=false):void

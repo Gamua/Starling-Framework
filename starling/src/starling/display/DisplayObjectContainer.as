@@ -66,13 +66,13 @@ package starling.display
             }
         }
         
-        public function removeChild(child:DisplayObject):void
+        public function removeChild(child:DisplayObject, dispose:Boolean=false):void
         {
             var childIndex:int = getChildIndex(child);
-            if (childIndex != -1) removeChildAt(childIndex);
+            if (childIndex != -1) removeChildAt(childIndex, dispose);
         }
         
-        public function removeChildAt(index:int):void
+        public function removeChildAt(index:int, dispose:Boolean=false):void
         {
             if (index >= 0 && index < numChildren)
             {
@@ -81,6 +81,7 @@ package starling.display
                 if (stage) child.dispatchEventOnChildren(new Event(Event.REMOVED_FROM_STAGE));
                 child.setParent(null);
                 mChildren.splice(index, 1);
+                if (dispose) child.dispose();
             }
             else
             {
@@ -88,13 +89,13 @@ package starling.display
             }
         }
         
-        public function removeChildren(beginIndex:int=0, endIndex:int=-1):void
+        public function removeChildren(beginIndex:int=0, endIndex:int=-1, dispose:Boolean=false):void
         {
             if (endIndex < 0 || endIndex >= numChildren) 
                 endIndex = numChildren - 1;
             
             for (var i:int=beginIndex; i<=endIndex; ++i)
-                removeChildAt(beginIndex);
+                removeChildAt(beginIndex, dispose);
         }
         
         public function getChildAt(index:int):DisplayObject

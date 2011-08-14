@@ -21,6 +21,11 @@ package starling.events
         public function EventDispatcher()
         {  }
         
+        public function dispose():void
+        {
+            removeEventListeners();
+        }
+        
         public function addEventListener(type:String, listener:Function):void
         {
             if (mEventListeners == null)
