@@ -14,6 +14,7 @@ package tests
     
     import starling.display.Sprite;
     import starling.events.Event;
+    import starling.events.EventDispatcher;
     
     public class EventTest
     {		
@@ -148,6 +149,57 @@ package tests
             {
                 event.stopImmediatePropagation();
                 hitCount++;
+            }
+        }
+        
+        [Test]
+        public function testRemoveEventListeners():void
+        {
+            var hitCount:int = 0;
+            
+            var dispatcher:EventDispatcher = new EventDispatcher();
+            
+            dispatcher.addEventListener("Type1", onEvent);
+            dispatcher.addEventListener("Type2", onEvent);
+            dispatcher.addEventListener("Type2", onEvent);
+            dispatcher.addEventListener("Type3", onEvent);
+            dispatcher.addEventListener("Type3", onEvent);
+            dispatcher.addEventListener("Type3", onEvent);
+            
+            hitCount = 0;
+            dispatcher.dispatchEvent(new Event("Type1"));
+            Assert.assertEquals(1, hitCount);
+            
+            hitCount = 0;
+            dispatcher.dispatchEvent(new Event("Type2"));
+            Assert.assertEquals(2, hitCount);
+            
+            hitCount = 0;
+            dispatcher.dispatchEvent(new Event("Type3"));
+            Assert.assertEquals(3, hitCount);
+            
+            hitCount = 0;
+            dispatcher.removeEventListener("Type1", onEvent);
+            dispatcher.dispatchEvent(new Event("Type1"));
+            Assert.assertEquals(0, hitCount);
+            
+            hitCount = 0;
+            dispatcher.removeEventListeners("Type2");
+            dispatcher.dispatchEvent(new Event("Type2"));
+            Assert.assertEquals(0, hitCount);
+            dispatcher.dispatchEvent(new Event("Type3"));
+            Assert.assertEquals(3, hitCount);
+            
+            hitCount = 0;
+            dispatcher.removeEventListeners();
+            dispatcher.dispatchEvent(new Event("Type1"));
+            dispatcher.dispatchEvent(new Event("Type2"));
+            dispatcher.dispatchEvent(new Event("Type3"));
+            Assert.assertEquals(0, hitCount);
+            
+            function onEvent(event:Event):void
+            {
+                ++hitCount;
             }
         }
         

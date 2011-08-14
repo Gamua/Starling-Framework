@@ -48,6 +48,14 @@ package starling.events
             }
         }
         
+        public function removeEventListeners(type:String=null):void
+        {
+            if (type)
+                delete mEventListeners[type];
+            else
+                mEventListeners = null;
+        }
+        
         public function dispatchEvent(event:Event):void
         {
             var listeners:Vector.<Function> = mEventListeners ? mEventListeners[event.type] : null;
