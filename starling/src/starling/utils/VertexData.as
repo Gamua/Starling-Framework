@@ -120,7 +120,8 @@ package starling.utils
                 
         private function setValues(offset:int, ...values):void
         {
-            for (var i:int=0; i<values.length; ++i)
+            var numValues:int = values.length;
+            for (var i:int=0; i<numValues; ++i)
                 mData[offset+i] = values[i];
         }
         

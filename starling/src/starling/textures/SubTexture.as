@@ -34,13 +34,14 @@ package starling.textures
         public override function adjustVertexData(vertexData:VertexData):VertexData
         {
             var newData:VertexData = super.adjustVertexData(vertexData);
+            var numVertices:int = vertexData.numVertices;
             
             var clipX:Number = mRootClipping.x;
             var clipY:Number = mRootClipping.y;
             var clipWidth:Number  = mRootClipping.width;
             var clipHeight:Number = mRootClipping.height;
             
-            for (var i:int=0; i<vertexData.numVertices; ++i)
+            for (var i:int=0; i<numVertices; ++i)
             {
                 var texCoords:Point = vertexData.getTexCoords(i);
                 newData.setTexCoords(i, clipX + texCoords.x * clipWidth,

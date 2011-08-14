@@ -195,7 +195,8 @@ package starling.display
             if (forTouch && (!visible || !touchable))
                 return null;
             
-            for (var i:int=mChildren.length-1; i>=0; --i) // front to back!
+            var numChildren:int = mChildren.length;
+            for (var i:int=numChildren-1; i>=0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
                 var transformationMatrix:Matrix = getTransformationMatrixToSpace(child);

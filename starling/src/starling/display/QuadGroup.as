@@ -161,7 +161,7 @@ package starling.display
                 var quad:Quad = object as Quad;
                 var vertexData:VertexData = quad.vertexData;
                 
-                for (i=0; i<vertexData.numVertices; ++i)
+                for (i=0; i<4; ++i)
                     vertexData.transformVertex(i, currentMatrix, currentAlpha);
                 
                 var texture:TextureBase = null;
