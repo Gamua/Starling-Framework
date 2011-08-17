@@ -45,7 +45,7 @@ package starling.text
         
         public function getKerning(charID:int):Number
         {
-            if (mKernings[charID] == undefined) return 0.0;
+            if (mKernings == null || mKernings[charID] == undefined) return 0.0;
             else return mKernings[charID];
         }
         
