@@ -61,7 +61,7 @@ package starling.events
                 return -1.0;
         }
         
-        public function get allTouches():Vector.<Touch> { return mTouches.concat(); }
+        public function get touches():Vector.<Touch> { return mTouches.concat(); }
         public function get shiftKey():Boolean { return mShiftKey; }
         public function get ctrlKey():Boolean { return mCtrlKey; }
     }
