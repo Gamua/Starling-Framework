@@ -1,6 +1,7 @@
 package 
 {
     import flash.display.Sprite;
+    import flash.display.StageScaleMode;
     
     import starling.core.Starling;
     
@@ -11,6 +12,7 @@ package
         
         public function Startup()
         {
+            stage.scaleMode = StageScaleMode.NO_SCALE;
             Starling.multitouchEnabled = true;
             
             mStarling = new Starling(Game, stage);

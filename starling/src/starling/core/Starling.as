@@ -90,7 +90,6 @@ package starling.core
                 stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
             // register other event handlers
-            stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
@@ -115,10 +114,8 @@ package starling.core
             if (mContext) return;            
             
             mContext = mStage3D.context3D;
-            mStage3D.x = mViewPort.x;
-            mStage3D.y = mViewPort.y;
             mContext.enableErrorChecking = mEnableErrorChecking;
-            mContext.configureBackBuffer(mViewPort.width, mViewPort.height, mAntiAliasing, false);
+            updateViewPort();
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:" + mContext.driverInfo);
@@ -137,6 +134,15 @@ package starling.core
             var rootObject:DisplayObject = new mRootClass();
             if (rootObject == null) throw new Error("Invalid root class: " + mRootClass);
             mStage.addChild(rootObject);
+        }
+        
+        private function updateViewPort():void
+        {
+            if (mContext)
+                mContext.configureBackBuffer(mViewPort.width, mViewPort.height, mAntiAliasing, false);
+            
+            mStage3D.x = mViewPort.x;
+            mStage3D.y = mViewPort.y;
         }
         
         public function makeCurrent():void
@@ -170,11 +176,6 @@ package starling.core
         }
         
         // event handlers
-        
-        private function onResize(event:Event):void
-        {
-            // TODO
-        }
         
         private function onContextCreated(event:Event):void
         {            
@@ -223,8 +224,8 @@ package starling.core
             function convertPosition(globalPos:Point):Point
             {
                 return new Point(
-                    (globalPos.x - mViewPort.x) * (mViewPort.width / mStage.stageWidth),
-                    (globalPos.y - mViewPort.y) * (mViewPort.height / mStage.stageHeight));
+                    (globalPos.x - mViewPort.x) + (mViewPort.width  / mStage.stageWidth),
+                    (globalPos.y - mViewPort.y) + (mViewPort.height / mStage.stageHeight));
             }
             
             function getPhaseFromMouseEvent(event:MouseEvent):String
@@ -304,8 +305,14 @@ package starling.core
         public function set antiAliasing(value:int):void
         {
             mAntiAliasing = value;
-            if (mContext) 
-                mContext.configureBackBuffer(mViewPort.width, mViewPort.height, value, false);
+            updateViewPort();
+        }
+        
+        public function get viewPort():Rectangle { return mViewPort.clone(); }
+        public function set viewPort(value:Rectangle):void
+        {
+            mViewPort = value.clone();
+            updateViewPort();
         }
         
         // static properties
