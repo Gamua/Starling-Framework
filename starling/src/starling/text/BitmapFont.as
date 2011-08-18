@@ -103,111 +103,117 @@ package starling.text
             if (fontSize == NATIVE_SIZE) fontSize = mSize;
             
             var lineContainer:Sprite;
-            var contentFits:Boolean = false;
+            var finished:Boolean = false;
             
-            while (!contentFits)
+            while (!finished)
             {
+                var scale:Number = fontSize / mSize;
                 lineContainer = new Sprite();
                 
-                var scale:Number = fontSize / mSize;
-                var containerWidth:Number  = width / scale;
-                var containerHeight:Number = height / scale;
-                lineContainer.scaleX = lineContainer.scaleY = scale;
-                
-                var lastWhiteSpace:int = -1;
-                var lastCharID:int = -1;
-                var currentX:Number = 0;
-                var currentLine:Sprite = new Sprite();
-                var numChars:int = text.length;
-                
-                for (var i:int=0; i<numChars; ++i)
+                if (mLineHeight * scale <= height)
                 {
-                    var lineFull:Boolean = false;
-                    
-                    var charID:int = text.charCodeAt(i);
-                    if (charID == CHAR_NEWLINE)
+                    var containerWidth:Number  = width / scale;
+                    var containerHeight:Number = height / scale;
+                    lineContainer.scaleX = lineContainer.scaleY = scale;
+                
+                    var lastWhiteSpace:int = -1;
+                    var lastCharID:int = -1;
+                    var currentX:Number = 0;
+                    var currentLine:Sprite = new Sprite();
+                    var numChars:int = text.length;
+                
+                    for (var i:int=0; i<numChars; ++i)
                     {
-                        lineFull = true;
-                    }
-                    else
-                    {
-                        var bitmapChar:BitmapChar = getChar(charID);
+                        var lineFull:Boolean = false;
                         
-                        if (bitmapChar == null)
+                        var charID:int = text.charCodeAt(i);
+                        if (charID == CHAR_NEWLINE)
                         {
-                            trace("[Starling] Missing character: " + charID);
-                            continue;
-                        }
-                        
-                        if (charID == CHAR_SPACE || charID == CHAR_TAB)
-                            lastWhiteSpace = i;
-                        
-                        var charImage:Image = bitmapChar.createImage();
-                        
-                        if (kerning)
-                            currentX += bitmapChar.getKerning(lastCharID);
-                        
-                        charImage.x = currentX + bitmapChar.xOffset;
-                        charImage.y = bitmapChar.yOffset;
-                        charImage.color = color;
-                        currentLine.addChild(charImage);
-                        
-                        currentX += bitmapChar.xAdvance;
-                        lastCharID = charID;
-                        
-                        if (currentX > containerWidth)
-                        {
-                            // remove characters and add them again to next line
-                            var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
-                            var removeIndex:int = currentLine.numChildren - numCharsToRemove;
-                            
-                            for (var r:int=0; r<numCharsToRemove; ++r)
-                                currentLine.removeChildAt(removeIndex);
-                            
-                            if (currentLine.numChildren == 0)
-                                break;
-                            
-                            var lastChar:DisplayObject = currentLine.getChildAt(currentLine.numChildren-1);
-                            currentX = lastChar.x + lastChar.width;
-                            
-                            i -= numCharsToRemove;
                             lineFull = true;
-                        }
-                    }
-                    
-                    lineContainer.addChild(currentLine);
-                    
-                    if (i == numChars - 1)
-                    {
-                        contentFits = true;
-                    }                    
-                    else if (lineFull)
-                    {
-                        var nextLineY:Number = currentLine.y + mLineHeight;
-                        
-                        if (nextLineY + mLineHeight <= containerHeight)
-                        {
-                            currentLine = new Sprite();
-                            currentLine.y = nextLineY;
-                            currentX = 0;
-                            lastWhiteSpace = -1;
-                            lastCharID = -1;
                         }
                         else
                         {
-                            contentFits = !autoScale;
+                            var bitmapChar:BitmapChar = getChar(charID);
                             
-                            if (autoScale) 
+                            if (bitmapChar == null)
                             {
-                                fontSize -= 1;
-                                lineContainer.dispose();
+                                trace("[Starling] Missing character: " + charID);
+                                continue;
                             }
                             
-                            break;
+                            if (charID == CHAR_SPACE || charID == CHAR_TAB)
+                                lastWhiteSpace = i;
+                            
+                            var charImage:Image = bitmapChar.createImage();
+                            
+                            if (kerning)
+                                currentX += bitmapChar.getKerning(lastCharID);
+                            
+                            charImage.x = currentX + bitmapChar.xOffset;
+                            charImage.y = bitmapChar.yOffset;
+                            charImage.color = color;
+                            currentLine.addChild(charImage);
+                            
+                            currentX += bitmapChar.xAdvance;
+                            lastCharID = charID;
+                            
+                            if (currentX > containerWidth)
+                            {
+                                // remove characters and add them again to next line
+                                var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
+                                var removeIndex:int = currentLine.numChildren - numCharsToRemove;
+                                
+                                for (var r:int=0; r<numCharsToRemove; ++r)
+                                    currentLine.removeChildAt(removeIndex);
+                                
+                                if (currentLine.numChildren == 0)
+                                    break;
+                                
+                                var lastChar:DisplayObject = currentLine.getChildAt(currentLine.numChildren-1);
+                                currentX = lastChar.x + lastChar.width;
+                                
+                                i -= numCharsToRemove;
+                                lineFull = true;
+                            }
                         }
-                    }
-                } // for each char
-            } // while (!contentFits)
+                        
+                        if (i == numChars - 1)
+                        {
+                            lineContainer.addChild(currentLine);
+                            finished = true;
+                        }
+                        else if (lineFull)
+                        {
+                            lineContainer.addChild(currentLine);
+                            var nextLineY:Number = currentLine.y + mLineHeight;
+                            
+                            if (nextLineY + mLineHeight <= containerHeight)
+                            {
+                                currentLine = new Sprite();
+                                currentLine.y = nextLineY;
+                                currentX = 0;
+                                lastWhiteSpace = -1;
+                                lastCharID = -1;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    } // for each char
+                } // if (mLineHeight * scale <= height)
+                
+                if (autoScale && !finished)
+                {
+                    fontSize -= 1;
+                    lineContainer.dispose();
+                }
+                else
+                {
+                    finished = true; 
+                }
+                
+            } // while (!finished)
             
             if (hAlign != HAlign.LEFT)
             {
