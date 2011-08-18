@@ -82,6 +82,7 @@ package starling.display
                 mTextField.vAlign = VAlign.CENTER;
                 mTextField.hAlign = HAlign.CENTER;
                 mTextField.touchable = false;
+                mTextField.autoScale = true;
                 mContents.addChild(mTextField);
             }
             
