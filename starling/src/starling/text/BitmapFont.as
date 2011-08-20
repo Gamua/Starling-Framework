@@ -238,7 +238,7 @@ package starling.text
                 lineContainer.y = int(vAlign == VAlign.BOTTOM ? heightDiff : heightDiff / 2);
             }
             
-            outerContainer.freeze();
+            outerContainer.flatten();
             return outerContainer;
         }
         

@@ -76,15 +76,15 @@ package starling.text
             mTextArea.visible = false;
             addChild(mTextArea);
             
-            addEventListener(Event.FREEZE, onFreeze);
+            addEventListener(Event.FLATTEN, onFlatten);
         }
         
         public override function dispose():void
         {
-            removeEventListener(Event.FREEZE, onFreeze);
+            removeEventListener(Event.FLATTEN, onFlatten);
         }
         
-        private function onFreeze(event:Event):void
+        private function onFlatten(event:Event):void
         {
             if (mRequiresRedraw) redrawContents();
         }

@@ -15,7 +15,7 @@ package starling.display
 
     public class Sprite extends DisplayObjectContainer
     {
-        private var mFrozenContents:Vector.<QuadGroup>;
+        private var mFlattenedContents:Vector.<QuadGroup>;
         
         public function Sprite()
         {
@@ -24,31 +24,31 @@ package starling.display
         
         public override function dispose():void
         {
-            unfreeze();
+            unflatten();
             super.dispose();
         }
         
-        public function freeze():void
+        public function flatten():void
         {
-            unfreeze();
-            dispatchEventOnChildren(new Event(Event.FREEZE));
-            mFrozenContents = QuadGroup.compile(this);
+            unflatten();
+            dispatchEventOnChildren(new Event(Event.FLATTEN));
+            mFlattenedContents = QuadGroup.compile(this);
         }
         
-        public function unfreeze():void
+        public function unflatten():void
         {
-            for each (var quadGroup:QuadGroup in mFrozenContents)
+            for each (var quadGroup:QuadGroup in mFlattenedContents)
                 quadGroup.dispose();
-            mFrozenContents = null;
+            mFlattenedContents = null;
         }
         
-        public function get isFrozen():Boolean { return mFrozenContents != null; }
+        public function get isFlattened():Boolean { return mFlattenedContents != null; }
         
         public override function render(support:RenderSupport, alpha:Number):void
         {
-            if (mFrozenContents)
+            if (mFlattenedContents)
             {
-                for each (var quadGroup:QuadGroup in mFrozenContents)
+                for each (var quadGroup:QuadGroup in mFlattenedContents)
                     quadGroup.render(support, this.alpha * alpha);
             }
             else super.render(support, alpha);
