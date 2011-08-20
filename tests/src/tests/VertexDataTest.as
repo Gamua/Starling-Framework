@@ -61,7 +61,13 @@ package tests
             vd.setColor(1, 0x112233);
             
             Assert.assertEquals(0xffaabb, vd.getColor(0));
-            Assert.assertEquals(0x112233, vd.getColor(1));            
+            Assert.assertEquals(0x112233, vd.getColor(1));
+            Assert.assertEquals(1.0, vd.getAlpha(0));
+            
+            vd.setColor(2, 0x445566, 0.5);
+            Assert.assertEquals(0x445566, vd.getColor(2));
+            Assert.assertEquals(1.0, vd.getAlpha(1));
+            Assert.assertEquals(0.5, vd.getAlpha(2));
         }
         
         [Test]

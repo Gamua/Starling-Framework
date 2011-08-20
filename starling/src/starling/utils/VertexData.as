@@ -16,10 +16,10 @@ package starling.utils
     
     public class VertexData 
     {
-        public static const ELEMENTS_PER_VERTEX:int = 8;
+        public static const ELEMENTS_PER_VERTEX:int = 9;
         public static const POSITION_OFFSET:int = 0;
         public static const COLOR_OFFSET:int = 3;
-        public static const TEXCOORD_OFFSET:int = 6;
+        public static const TEXCOORD_OFFSET:int = 7;
         
         private var mData:Vector.<Number>;
         
@@ -51,24 +51,31 @@ package starling.utils
             return new Vector3D(mData[offset], mData[offset+1], mData[offset+2]);
         }
         
-        public function setColor(vertexID:int, color:uint):void
+        public function setColor(vertexID:int, color:uint, alpha:Number=1.0):void
         {
             setValues(getOffset(vertexID) + COLOR_OFFSET, 
                       Color.getRed(color) / 255.0,
                       Color.getGreen(color) / 255.0,
-                      Color.getBlue(color) / 255.0);
+                      Color.getBlue(color) / 255.0,
+                      alpha);
         }
         
-        public function setUniformColor(color:uint):void
+        public function setUniformColor(color:uint, alpha:Number=1.0):void
         {
             for (var i:int=0; i<numVertices; ++i)
-                setColor(i, color);
+                setColor(i, color, alpha);
         }
         
         public function getColor(vertexID:int):uint
         {
             var offset:int = getOffset(vertexID) + COLOR_OFFSET;
             return Color.rgb(mData[offset] * 255, mData[offset+1] * 255, mData[offset+2] * 255);
+        }
+        
+        public function getAlpha(vertexID:int):Number
+        {
+            var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
+            return mData[offset];
         }
         
         public function setTexCoords(vertexID:int, u:Number, v:Number):void
@@ -114,10 +121,12 @@ package starling.utils
             
             if (alpha < 1.0)
             {
-                setColor(vertexID, getColor(vertexID) * alpha);
+                var offset:int = getOffset(vertexID) + COLOR_OFFSET;
+                for (var i:int=0; i<4; ++i)
+                    mData[offset+i] *= alpha;
             }
         }
-                
+        
         private function setValues(offset:int, ...values):void
         {
             var numValues:int = values.length;

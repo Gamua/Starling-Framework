@@ -69,6 +69,11 @@ package starling.animation
             animate("y", y);
         }
         
+        public function fadeTo(alpha:Number):void
+        {
+            animate("alpha", alpha);
+        }
+        
         public function advanceTime(time:Number):void
         {
             if (time == 0) return;
