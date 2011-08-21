@@ -60,6 +60,11 @@ package starling.display
             mLastTouchTimestamp = -1;
         }
         
+        public function dispose():void
+        {
+            removeEventListeners();
+        }
+        
         // functions
         
         public function removeFromParent(dispose:Boolean=false):void
