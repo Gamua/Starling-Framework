@@ -34,8 +34,6 @@ package starling.core
     
     public class Starling
     {
-        // TODO: clear color buffer with SWF background color
-        
         // members
         
         private var mStage3D:Stage3D;
@@ -70,7 +68,7 @@ package starling.core
             mRootClass = rootClass;
             mViewPort = viewPort;
             mStage3D = stage3D;
-            mStage = new Stage(viewPort.width, viewPort.height);
+            mStage = new Stage(viewPort.width, viewPort.height, stage.color);
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -87,6 +85,7 @@ package starling.core
             var touchEventTypes:Array = Multitouch.supportsTouchEvents ?
                 [ TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END ] :
                 [ MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP ];            
+            
             for each (var touchEventType:String in touchEventTypes)
                 stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
@@ -169,8 +168,8 @@ package starling.core
             
             mSupport.setupOrthographicRendering(mStage.stageWidth, mStage.stageHeight);
             mSupport.setupDefaultBlendFactors();
+            mSupport.clear(mStage.color);
             
-            mContext.clear();            
             mStage.render(mSupport, 1.0);
             mContext.present();
             

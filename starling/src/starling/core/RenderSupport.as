@@ -121,13 +121,13 @@ package starling.core
                                              Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
         }
         
-        public function clear(argb:uint=0):void
+        public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             Starling.context.clear(
-                Color.getRed(argb)   / 255.0, 
-                Color.getGreen(argb) / 255.0, 
-                Color.getBlue(argb)  / 255.0,
-                Color.getAlpha(argb) / 255.0);
+                Color.getRed(rgb)   / 255.0, 
+                Color.getGreen(rgb) / 255.0, 
+                Color.getBlue(rgb)  / 255.0,
+                alpha);
         }
     }
 }
