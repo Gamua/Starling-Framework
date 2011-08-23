@@ -22,10 +22,10 @@ package starling.display
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     
-    [Event(name="added", type="flash.events.Event")]
-    [Event(name="addedToStage", type="flash.events.Event")]
-    [Event(name="removed", type="flash.events.Event")]
-    [Event(name="removedFromStage", type="flash.events.Event")]
+    [Event(name="added", type="starling.events.Event")]
+    [Event(name="addedToStage", type="starling.events.Event")]
+    [Event(name="removed", type="starling.events.Event")]
+    [Event(name="removedFromStage", type="starling.events.Event")]
     [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
     [Event(name="touch", type="starling.events.TouchEvent")]
     public class DisplayObject extends EventDispatcher

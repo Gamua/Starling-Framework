@@ -21,7 +21,7 @@ package starling.display
     import starling.utils.HAlign;
     import starling.utils.VAlign;
 
-    [Event(name="triggered", type="flash.events.Event")]
+    [Event(name="triggered", type="starling.events.Event")]
     public class Button extends DisplayObjectContainer
     {
         private static const MAX_DRAG_DIST:Number = 50;

@@ -16,6 +16,9 @@ package starling.display
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     
+    [Event(name="resize", type="starling.events.ResizeEvent")]
+    [Event(name="keyUp", type="starling.events.KeyboardEvent")]
+    [Event(name="keyDown", type="starling.events.KeyboardEvent")]
     public class Stage extends DisplayObjectContainer
     {
         private var mWidth:int;
@@ -87,6 +90,9 @@ package starling.display
         }
         
         public function get stageWidth():int { return mWidth; }
+        public function set stageWidth(value:int):void { mWidth = value; }
+        
         public function get stageHeight():int { return mHeight; }
+        public function set stageHeight(value:int):void { mHeight = value; }
     }
 }

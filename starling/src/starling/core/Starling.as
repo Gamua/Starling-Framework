@@ -27,6 +27,7 @@ package starling.core
     
     import starling.animation.Juggler;
     import starling.display.*;
+    import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
     import starling.utils.*;
@@ -93,6 +94,7 @@ package starling.core
             stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
+            stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
             mStage3D.requestContext3D(renderMode);
@@ -165,7 +167,7 @@ package starling.core
             mJuggler.advanceTime(passedTime);
             mTouchProcessor.advanceTime(passedTime);
             
-            mSupport.setupOrthographicRendering(mViewPort.width, mViewPort.height);
+            mSupport.setupOrthographicRendering(mStage.stageWidth, mStage.stageHeight);
             mSupport.setupDefaultBlendFactors();
             
             mContext.clear();            
@@ -198,6 +200,12 @@ package starling.core
                 event.ctrlKey, event.altKey, event.shiftKey));
         }
         
+        private function onResize(event:flash.events.Event):void
+        {
+            var stage:flash.display.Stage = event.target as flash.display.Stage; 
+            mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stage.stageWidth, stage.stageHeight));
+        }
+
         private function onTouch(event:Event):void
         {
             var position:Point;

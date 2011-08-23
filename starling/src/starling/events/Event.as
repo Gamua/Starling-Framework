@@ -24,6 +24,7 @@ package starling.events
         public static const TRIGGERED:String = "triggered";
         public static const MOVIE_COMPLETED:String = "movieCompleted";
         public static const FLATTEN:String = "flatten";
+        public static const RESIZE:String = "resize";
         
         private var mTarget:EventDispatcher;
         private var mCurrentTarget:EventDispatcher;
