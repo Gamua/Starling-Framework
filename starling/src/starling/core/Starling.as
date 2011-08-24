@@ -322,9 +322,6 @@ package starling.core
             updateViewPort();
         }
         
-        public function get transparent():Boolean { return mStage3D.transparent; }
-        public function set transparent(value:Boolean):void { mStage3D.transparent = true; }
-        
         // static properties
         
         public static function get current():Starling { return sCurrent; }
