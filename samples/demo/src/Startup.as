@@ -1,6 +1,7 @@
 package 
 {
     import flash.display.Sprite;
+    import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     
     import starling.core.Starling;
@@ -13,6 +14,8 @@ package
         public function Startup()
         {
             stage.scaleMode = StageScaleMode.NO_SCALE;
+            stage.align = StageAlign.TOP_LEFT;
+            
             Starling.multitouchEnabled = true;
             
             mStarling = new Starling(Game, stage);

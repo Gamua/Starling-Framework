@@ -27,14 +27,13 @@ package starling.core
     
     import starling.animation.Juggler;
     import starling.display.*;
+    import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
     import starling.utils.*;
     
     public class Starling
     {
-        // TODO: clear color buffer with SWF background color
-        
         // members
         
         private var mStage3D:Stage3D;
@@ -69,7 +68,7 @@ package starling.core
             mRootClass = rootClass;
             mViewPort = viewPort;
             mStage3D = stage3D;
-            mStage = new Stage(viewPort.width, viewPort.height);
+            mStage = new Stage(viewPort.width, viewPort.height, stage.color);
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -86,6 +85,7 @@ package starling.core
             var touchEventTypes:Array = Multitouch.supportsTouchEvents ?
                 [ TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END ] :
                 [ MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP ];            
+            
             for each (var touchEventType:String in touchEventTypes)
                 stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
@@ -93,6 +93,7 @@ package starling.core
             stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
+            stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
             mStage3D.requestContext3D(renderMode);
@@ -165,10 +166,10 @@ package starling.core
             mJuggler.advanceTime(passedTime);
             mTouchProcessor.advanceTime(passedTime);
             
-            mSupport.setupOrthographicRendering(mViewPort.width, mViewPort.height);
+            mSupport.setupOrthographicRendering(mStage.stageWidth, mStage.stageHeight);
             mSupport.setupDefaultBlendFactors();
+            mSupport.clear(mStage.color);
             
-            mContext.clear();            
             mStage.render(mSupport, 1.0);
             mContext.present();
             
@@ -198,6 +199,12 @@ package starling.core
                 event.ctrlKey, event.altKey, event.shiftKey));
         }
         
+        private function onResize(event:flash.events.Event):void
+        {
+            var stage:flash.display.Stage = event.target as flash.display.Stage; 
+            mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stage.stageWidth, stage.stageHeight));
+        }
+
         private function onTouch(event:Event):void
         {
             var position:Point;

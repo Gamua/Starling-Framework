@@ -16,15 +16,20 @@ package starling.display
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     
+    [Event(name="resize", type="starling.events.ResizeEvent")]
+    [Event(name="keyUp", type="starling.events.KeyboardEvent")]
+    [Event(name="keyDown", type="starling.events.KeyboardEvent")]
     public class Stage extends DisplayObjectContainer
     {
         private var mWidth:int;
         private var mHeight:int;
+        private var mColor:uint;
         
-        public function Stage(width:int, height:int)
+        public function Stage(width:int, height:int, color:uint=0)
         {
             mWidth = width;
             mHeight = height;
+            mColor = color;
         }
         
         public function advanceTime(passedTime:Number):void
@@ -86,7 +91,13 @@ package starling.display
             throw new IllegalOperationError("Cannot rotate stage");
         }
         
+        public function get color():uint { return mColor; }
+        public function set color(value:uint):void { mColor = value; }
+        
         public function get stageWidth():int { return mWidth; }
+        public function set stageWidth(value:int):void { mWidth = value; }
+        
         public function get stageHeight():int { return mHeight; }
+        public function set stageHeight(value:int):void { mHeight = value; }
     }
 }

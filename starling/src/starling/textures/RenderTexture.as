@@ -98,7 +98,7 @@ package starling.textures
             
             mSupport.setupOrthographicRendering(mNativeWidth, mNativeHeight);
             mSupport.setupDefaultBlendFactors();
-            mSupport.clear(0x0);
+            mSupport.clear();
             
             // draw buffer
             if (isPersistent)
@@ -124,12 +124,12 @@ package starling.textures
         public function clear():void
         {
             Starling.context.setRenderToTexture(mActiveTexture.base);
-            mSupport.clear(0x0);
+            mSupport.clear();
 
             if (isPersistent)
             {
                 Starling.context.setRenderToTexture(mActiveTexture.base);
-                mSupport.clear(0x0);
+                mSupport.clear();
             }
             
             Starling.context.setRenderToBackBuffer();
