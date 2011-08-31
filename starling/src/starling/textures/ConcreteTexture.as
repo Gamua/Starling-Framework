@@ -18,14 +18,16 @@ package starling.textures
         private var mWidth:int;
         private var mHeight:int;
         private var mMipMapping:Boolean;
+        private var mPremultipliedAlpha:Boolean;
         
         public function ConcreteTexture(base:TextureBase, width:int, height:int, 
-                                        mipMapping:Boolean=false)
+                                        mipMapping:Boolean, premultipliedAlpha:Boolean)
         {
             mBase = base;
             mWidth = width;
             mHeight = height;
             mMipMapping = mipMapping;
+            mPremultipliedAlpha = premultipliedAlpha;
         }
         
         public override function dispose():void
@@ -38,5 +40,6 @@ package starling.textures
         public override function get width():Number  { return mWidth;  }
         public override function get height():Number { return mHeight; }
         public override function get mipMapping():Boolean { return mMipMapping; }
+        public override function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
     }
 }

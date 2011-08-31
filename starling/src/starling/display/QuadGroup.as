@@ -35,9 +35,9 @@ package starling.display
         private var mMipMapping:Boolean;
         
         public function QuadGroup(texture:TextureBase, smoothing:String, repeat:Boolean, 
-                                  mipmap:Boolean)
+                                  mipmap:Boolean, premultipliedAlpha:Boolean)
         {
-            mVertexData = new VertexData(0);
+            mVertexData = new VertexData(0, premultipliedAlpha);
             mIndices = new <uint>[];
             mTexture = texture;
             mSmoothing = smoothing;
@@ -55,7 +55,7 @@ package starling.display
         {
             var numVertices:int = mVertexData.numVertices;
             mIndices.push(numVertices,     numVertices + 1, numVertices + 2, 
-                numVertices + 1, numVertices + 3, numVertices + 2);
+                          numVertices + 1, numVertices + 3, numVertices + 2);
             mVertexData.append(vertexData);
         }
         
@@ -76,12 +76,15 @@ package starling.display
         public function render(support:RenderSupport, alpha:Number):void
         {
             var context:Context3D = Starling.context;
-            var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
-            
             if (context == null) throw new MissingContextError();
             
-            var program:String = mTexture ? Image.getProgramName(mRepeat, mMipMapping, mSmoothing) : 
-                                            Quad.PROGRAM_NAME;
+            var pma:Boolean = mVertexData.premultipliedAlpha;
+            var program:String = mTexture ? 
+                Image.getProgramName(mMipMapping, mRepeat, mSmoothing) : Quad.PROGRAM_NAME;
+            var alphaVector:Vector.<Number> = pma ? new <Number>[alpha, alpha, alpha, alpha] : 
+                                                    new <Number>[1.0, 1.0, 1.0, alpha];
+            
+            support.setDefaultBlendFactors(pma);
             
             context.setProgram(Starling.current.getProgram(program));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
@@ -162,12 +165,16 @@ package starling.display
                 var vertexData:VertexData = quad.vertexData;
                 
                 for (i=0; i<4; ++i)
-                    vertexData.transformVertex(i, currentMatrix, currentAlpha);
+                {
+                    vertexData.transformVertex(i, currentMatrix);
+                    vertexData.scaleAlpha(i, currentAlpha);
+                }
                 
                 var texture:TextureBase = null;
                 var smoothing:String = TextureSmoothing.NONE;
                 var repeat:Boolean = false;
                 var mipMapping:Boolean = false;
+                var pma:Boolean = true;
                 var image:Image = object as Image;
                 
                 if (image)
@@ -176,6 +183,7 @@ package starling.display
                     smoothing = image.smoothing;
                     repeat = image.texture.repeat;
                     mipMapping = image.texture.mipMapping;
+                    pma = image.texture.premultipliedAlpha;
                 }
                 
                 var requiresNewGroup:Boolean = false;
@@ -190,7 +198,7 @@ package starling.display
                 }
                 
                 if (isFirstGroup || requiresNewGroup)
-                    quadGroups.push(new QuadGroup(texture, smoothing, repeat, mipMapping));
+                    quadGroups.push(new QuadGroup(texture, smoothing, repeat, mipMapping, pma));
                 
                 quadGroups[quadGroups.length-1].addQuadData(vertexData);
             }

@@ -37,7 +37,7 @@ package starling.display
         
         public function Quad(width:Number, height:Number, color:uint=0xffffff)
         {
-            mVertexData = new VertexData(4);            
+            mVertexData = new VertexData(4, true);
             mVertexData.setPosition(0, 0.0, 0.0);
             mVertexData.setPosition(1, width, 0.0);
             mVertexData.setPosition(2, 0.0, height);
@@ -103,6 +103,17 @@ package starling.display
             if (mVertexBuffer) createVertexBuffer();
         }
         
+        public function getVertexAlpha(vertexID:int):Number
+        {
+            return mVertexData.getAlpha(vertexID);
+        }
+        
+        public function setVertexAlpha(vertexID:int, alpha:Number):void
+        {
+            mVertexData.setAlpha(vertexID, alpha);
+            if (mVertexBuffer) createVertexBuffer();
+        }
+        
         public function get color():uint 
         { 
             return mVertexData.getColor(0); 
@@ -129,6 +140,8 @@ package starling.display
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();
             if (mIndexBuffer  == null) createIndexBuffer();
+            
+            support.setDefaultBlendFactors(true);
             
             context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 

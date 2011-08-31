@@ -30,10 +30,10 @@ package tests
             var fps:Number = 4.0;
             var frameDuration:Number = 1.0 / fps;
             
-            var texture0:Texture = new ConcreteTexture(null, 16, 16);
-            var texture1:Texture = new ConcreteTexture(null, 16, 16);
-            var texture2:Texture = new ConcreteTexture(null, 16, 16);
-            var texture3:Texture = new ConcreteTexture(null, 16, 16);
+            var texture0:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture1:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture2:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture3:Texture = new ConcreteTexture(null, 16, 16, false, false);
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
             
@@ -98,10 +98,10 @@ package tests
             var fps:Number = 4.0;
             var frameDuration:Number = 1.0 / fps;
             
-            var texture0:Texture = new ConcreteTexture(null, 16, 16);
-            var texture1:Texture = new ConcreteTexture(null, 16, 16);
-            var texture2:Texture = new ConcreteTexture(null, 16, 16);
-            var texture3:Texture = new ConcreteTexture(null, 16, 16);
+            var texture0:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture1:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture2:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture3:Texture = new ConcreteTexture(null, 16, 16, false, false);
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
             movie.addFrame(texture1);
@@ -140,9 +140,9 @@ package tests
         [Test]
         public function testChangeFps():void
         {
-            var texture0:Texture = new ConcreteTexture(null, 16, 16);
-            var texture1:Texture = new ConcreteTexture(null, 16, 16);
-            var texture2:Texture = new ConcreteTexture(null, 16, 16);
+            var texture0:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture1:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture2:Texture = new ConcreteTexture(null, 16, 16, false, false);
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0, texture1, texture2], 4.0);
             assertThat(movie.fps, closeTo(4.0, E));
@@ -171,10 +171,10 @@ package tests
             var frameDuration:Number = 1.0 / fps;
             var completedCount:int = 0;
             
-            var texture0:Texture = new ConcreteTexture(null, 16, 16);
-            var texture1:Texture = new ConcreteTexture(null, 16, 16);
-            var texture2:Texture = new ConcreteTexture(null, 16, 16);
-            var texture3:Texture = new ConcreteTexture(null, 16, 16);
+            var texture0:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture1:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture2:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture3:Texture = new ConcreteTexture(null, 16, 16, false, false);
             var textures:Vector.<Texture> = new <Texture>[texture0, texture1, texture2, texture3];
             
             var movie:MovieClip = new MovieClip(textures, fps);

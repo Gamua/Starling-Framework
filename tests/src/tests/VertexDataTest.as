@@ -12,10 +12,15 @@ package tests
 {
     import flexunit.framework.Assert;
     
+    import org.flexunit.assertThat;
+    import org.hamcrest.number.closeTo;
+    
     import starling.utils.VertexData;
     
     public class VertexDataTest
     {
+        private static const E:Number = 0.001;
+        
         [Test]
         public function testGetNumVertices():void
         {
@@ -56,7 +61,10 @@ package tests
         [Test]
         public function testColor():void
         {
-            var vd:VertexData = new VertexData(3);
+            var vd:VertexData = new VertexData(3, true);
+            Assert.assertEquals(3, vd.numVertices);
+            Assert.assertTrue(vd.premultipliedAlpha);
+            
             vd.setColor(0, 0xffaabb);
             vd.setColor(1, 0x112233);
             
@@ -64,10 +72,41 @@ package tests
             Assert.assertEquals(0x112233, vd.getColor(1));
             Assert.assertEquals(1.0, vd.getAlpha(0));
             
-            vd.setColor(2, 0x445566, 0.5);
+            // check premultiplied alpha
+            
+            var alpha:Number = 0.5;
+            
+            vd.setColor(2, 0x445566, alpha);
             Assert.assertEquals(0x445566, vd.getColor(2));
             Assert.assertEquals(1.0, vd.getAlpha(1));
+            Assert.assertEquals(alpha, vd.getAlpha(2));
+            
+            var data:Vector.<Number> = vd.data;
+            var red:Number   = 0x44 / 255.0;
+            var green:Number = 0x55 / 255.0;
+            var blue:Number  = 0x66 / 255.0;
+            var offset:int = VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET;
+            
+            assertThat(data[offset  ], closeTo(red * alpha, E));
+            assertThat(data[offset+1], closeTo(green * alpha, E));
+            assertThat(data[offset+2], closeTo(blue * alpha, E));
+            
+            // changing the pma setting should update contents
+            
+            vd.premultipliedAlpha = false;
+            Assert.assertFalse(vd.premultipliedAlpha);
+            
+            Assert.assertEquals(0xffaabb, vd.getColor(0));
+            Assert.assertEquals(0x112233, vd.getColor(1));
+            Assert.assertEquals(1.0, vd.getAlpha(0));
+            
+            vd.setColor(2, 0x445566, 0.5);
+            Assert.assertEquals(0x445566, vd.getColor(2));
             Assert.assertEquals(0.5, vd.getAlpha(2));
+            
+            assertThat(data[offset  ], closeTo(red, E));
+            assertThat(data[offset+1], closeTo(green, E));
+            assertThat(data[offset+2], closeTo(blue, E));
         }
         
         [Test]

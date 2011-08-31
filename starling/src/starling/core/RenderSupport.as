@@ -35,13 +35,13 @@ package starling.core
             mModelViewMatrix = new Matrix3D();
             
             loadIdentity();
-            setupOrthographicRendering(400, 300);
+            setOrthographicProjection(400, 300);
         }
         
         // matrix manipulation
         
-        public function setupOrthographicRendering(width:Number, height:Number, 
-                                                   near:Number=-1.0, far:Number=1.0):void
+        public function setOrthographicProjection(width:Number, height:Number, 
+                                                  near:Number=-1.0, far:Number=1.0):void
         {
             var coords:Vector.<Number> = new <Number>[                
                 2.0/width, 0.0, 0.0, 0.0,
@@ -49,7 +49,7 @@ package starling.core
                 0.0, 0.0, -2.0/(far-near), 0.0,
                 -1.0, 1.0, -(far+near)/(far-near), 1.0                
             ];
-                
+            
             mProjectionMatrix.copyRawDataFrom(coords);
         }
         
@@ -115,10 +115,12 @@ package starling.core
         
         // other helper methods
         
-        public function setupDefaultBlendFactors():void
+        public function setDefaultBlendFactors(premultipliedAlpha:Boolean):void
         {
-            Starling.context.setBlendFactors(Context3DBlendFactor.ONE, 
-                                             Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
+            var destFactor:String = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
+            var sourceFactor:String = premultipliedAlpha ? Context3DBlendFactor.ONE :
+                                                           Context3DBlendFactor.SOURCE_ALPHA;
+            Starling.context.setBlendFactors(sourceFactor, destFactor);
         }
         
         public function clear(rgb:uint=0, alpha:Number=0.0):void

@@ -18,17 +18,17 @@ package starling.textures
 
     public class SubTexture extends Texture
     {
-        private var mBaseTexture:Texture;
+        private var mParent:Texture;
         private var mClipping:Rectangle;
         private var mRootClipping:Rectangle;
         
-        public function SubTexture(baseTexture:Texture, region:Rectangle)
+        public function SubTexture(parentTexture:Texture, region:Rectangle)
         {
-            mBaseTexture = baseTexture;
-            this.clipping = new Rectangle(region.x / baseTexture.width,
-                                          region.y / baseTexture.height,
-                                          region.width / baseTexture.width,
-                                          region.height / baseTexture.height);
+            mParent = parentTexture;
+            this.clipping = new Rectangle(region.x / parentTexture.width,
+                                          region.y / parentTexture.height,
+                                          region.width / parentTexture.width,
+                                          region.height / parentTexture.height);
         }
         
         public override function adjustVertexData(vertexData:VertexData):VertexData
@@ -51,7 +51,7 @@ package starling.textures
             return newData;
         }
         
-        public function get baseTexture():Texture { return mBaseTexture; }
+        public function get parent():Texture { return mParent; }
         
         public function get clipping():Rectangle { return mClipping.clone(); }
         public function set clipping(value:Rectangle):void
@@ -59,21 +59,22 @@ package starling.textures
             mClipping = value.clone();
             mRootClipping = value.clone();
             
-            var baseTexture:SubTexture = mBaseTexture as SubTexture;            
-            while (baseTexture)
+            var parentTexture:SubTexture = mParent as SubTexture;            
+            while (parentTexture)
             {
-                var baseClipping:Rectangle = baseTexture.mClipping;
-                mRootClipping.x = baseClipping.x + mRootClipping.x * baseClipping.width;
-                mRootClipping.y = baseClipping.y + mRootClipping.y * baseClipping.height;
-                mRootClipping.width  *= baseClipping.width;
-                mRootClipping.height *= baseClipping.height;
-                baseTexture = baseTexture.mBaseTexture as SubTexture;
-            }            
+                var parentClipping:Rectangle = parentTexture.mClipping;
+                mRootClipping.x = parentClipping.x + mRootClipping.x * parentClipping.width;
+                mRootClipping.y = parentClipping.y + mRootClipping.y * parentClipping.height;
+                mRootClipping.width  *= parentClipping.width;
+                mRootClipping.height *= parentClipping.height;
+                parentTexture = parentTexture.mParent as SubTexture;
+            }
         }
         
-        public override function get base():TextureBase { return mBaseTexture.base; }
-        public override function get width():Number { return mBaseTexture.width * mClipping.width; }
-        public override function get height():Number { return mBaseTexture.height * mClipping.height; }
-        public override function get mipMapping():Boolean { return mBaseTexture.mipMapping; }
+        public override function get base():TextureBase { return mParent.base; }
+        public override function get width():Number { return mParent.width * mClipping.width; }
+        public override function get height():Number { return mParent.height * mClipping.height; }
+        public override function get mipMapping():Boolean { return mParent.mipMapping; }
+        public override function get premultipliedAlpha():Boolean { return mParent.premultipliedAlpha; }
     }
 }

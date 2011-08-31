@@ -30,7 +30,7 @@ package tests
                     <SubTexture name='bob' x='16'  y='32' width='16'   height='32' />
                 </TextureAtlas>;
             
-            var texture:Texture = new ConcreteTexture(null, 64, 64);
+            var texture:Texture = new ConcreteTexture(null, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture, xml);
             
             var ann:Texture = atlas.getTexture("ann");            
@@ -56,7 +56,7 @@ package tests
         [Test]
         public function testManualCreation():void
         {
-            var texture:Texture = new ConcreteTexture(null, 64, 64);
+            var texture:Texture = new ConcreteTexture(null, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
             atlas.addRegion("ann", new Rectangle(0, 0, 55.5, 16));
@@ -75,7 +75,7 @@ package tests
         [Test]
         public function testGetTextures():void
         {
-            var texture:Texture = new ConcreteTexture(null, 64, 64);
+            var texture:Texture = new ConcreteTexture(null, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
             atlas.addRegion("ann", new Rectangle(0, 0, 8, 8));

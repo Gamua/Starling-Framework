@@ -41,6 +41,7 @@ package starling.display
                 
                 super(width, height);
                 
+                mVertexData.premultipliedAlpha = texture.premultipliedAlpha;
                 mVertexData.setTexCoords(0, 0.0, 0.0);
                 mVertexData.setTexCoords(1, 1.0, 0.0);
                 mVertexData.setTexCoords(2, 0.0, 1.0);
@@ -85,6 +86,7 @@ package starling.display
             else if (value != mTexture)
             {
                 mTexture = value;
+                mVertexData.premultipliedAlpha = mTexture.premultipliedAlpha;
                 if (mVertexBuffer) createVertexBuffer();
             }
         }
@@ -102,13 +104,17 @@ package starling.display
         {
             alpha *= this.alpha;
             
-            var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
-            var programName:String = getProgramName(mTexture.repeat, mTexture.mipMapping, mSmoothing);
+            var pma:Boolean = mTexture.premultipliedAlpha;
+            var programName:String = getProgramName(mTexture.mipMapping, mTexture.repeat, mSmoothing);
             var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
             if (mVertexBuffer == null) createVertexBuffer();
             if (mIndexBuffer  == null) createIndexBuffer();
+            
+            var alphaVector:Vector.<Number> = pma ? new <Number>[alpha, alpha, alpha, alpha] :
+                                                    new <Number>[1.0, 1.0, 1.0, alpha];
+            support.setDefaultBlendFactors(pma);
             
             context.setProgram(Starling.current.getProgram(programName));
             context.setTextureAt(1, mTexture.base);
@@ -127,7 +133,7 @@ package starling.display
 
         public static function registerPrograms(target:Starling):void
         {
-            // create a vertex and fragment programs - from assembly.
+            // create vertex and fragment programs - from assembly.
             // each combination of repeat/mipmap/smoothing has its own fragment shader.
             
             var vertexProgramCode:String =
@@ -169,22 +175,23 @@ package starling.display
                         fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
                             fragmentProgramCode.replace("???", options.join())); 
                         
-                        target.registerProgram(getProgramName(repeat, mipmap, smoothing),
+                        target.registerProgram(getProgramName(mipmap, repeat, smoothing),
                             vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
                     }
                 }
             }
         }
         
-        public static function getProgramName(repeat:Boolean, mipMap:Boolean, smoothing:String):String
+        public static function getProgramName(mipMap:Boolean=true, repeat:Boolean=false, 
+                                              smoothing:String="bilinear"):String
         {
             // this method is called very often, so it should return quickly when called with 
             // the default parameters (no-repeat, mipmap, bilinear)
             
             var name:String = "image|";
             
-            if (repeat)  name += "R";
             if (!mipMap) name += "N";
+            if (repeat)  name += "R";
             if (smoothing != TextureSmoothing.BILINEAR) name += smoothing.charAt(0);
             
             return name;

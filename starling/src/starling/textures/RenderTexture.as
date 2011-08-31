@@ -96,8 +96,8 @@ package starling.textures
             
             Starling.context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             
-            mSupport.setupOrthographicRendering(mNativeWidth, mNativeHeight);
-            mSupport.setupDefaultBlendFactors();
+            mSupport.setOrthographicProjection(mNativeWidth, mNativeHeight);
+            mSupport.setDefaultBlendFactors(true);
             mSupport.clear();
             
             // draw buffer

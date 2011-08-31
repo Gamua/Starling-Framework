@@ -96,7 +96,9 @@ package starling.core
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
-            mStage3D.requestContext3D(renderMode);
+            
+            try { mStage3D.requestContext3D(renderMode); } 
+            catch (e:Error) { trace("[Starling] Context3D error: ", e.message); }
         }
         
         public function dispose():void
@@ -166,8 +168,8 @@ package starling.core
             mJuggler.advanceTime(passedTime);
             mTouchProcessor.advanceTime(passedTime);
             
-            mSupport.setupOrthographicRendering(mStage.stageWidth, mStage.stageHeight);
-            mSupport.setupDefaultBlendFactors();
+            mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
+            mSupport.setDefaultBlendFactors(true);
             mSupport.clear(mStage.color);
             
             mStage.render(mSupport, 1.0);

@@ -72,7 +72,7 @@ package starling.textures
             }
             
             var concreteTexture:Texture = 
-                new ConcreteTexture(nativeTexture, legalWidth, legalHeight, generateMipMaps);
+                new ConcreteTexture(nativeTexture, legalWidth, legalHeight, generateMipMaps, true);
             
             return fromTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight));
         }
@@ -93,7 +93,7 @@ package starling.textures
             
             nativeTexture.uploadCompressedTextureFromByteArray(data, 0);
             
-            return new ConcreteTexture(nativeTexture, width, height, textureCount > 1);
+            return new ConcreteTexture(nativeTexture, width, height, textureCount > 1, false);
         }
         
         public static function fromTexture(texture:Texture, region:Rectangle):Texture
@@ -112,8 +112,10 @@ package starling.textures
         public static function empty(width:int=64, height:int=64, color:uint=0xffffffff,
                                      optimizeForRenderTexture:Boolean=false):Texture
         {
-            return fromBitmapData(new BitmapData(width, height, true, color), 
-                                  false, optimizeForRenderTexture);
+            var bitmapData:BitmapData = new BitmapData(width, height, true, color);
+            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture);
+            bitmapData.dispose();
+            return texture;
         }
         
         public function adjustVertexData(vertexData:VertexData):VertexData
@@ -172,5 +174,6 @@ package starling.textures
         public function get height():Number { return 0; }        
         public function get base():TextureBase { return null; }
         public function get mipMapping():Boolean { return false; }
+        public function get premultipliedAlpha():Boolean { return false; }
     }
 }
