@@ -170,7 +170,7 @@ package starling.core
             
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
             mSupport.setDefaultBlendFactors(true);
-            mSupport.clear(mStage.color);
+            mSupport.clear(mStage.color, 1.0);
             
             mStage.render(mSupport, 1.0);
             mContext.present();
