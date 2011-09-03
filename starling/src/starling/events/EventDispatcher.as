@@ -84,14 +84,13 @@ package starling.events
                 }
             }
             
-            if (!stopImmediatePropagation)
+            if (!stopImmediatePropagation && event.bubbles && !event.stopsPropagation && 
+                this is DisplayObject)
             {
                 var targetDisplayObject:DisplayObject = this as DisplayObject;
-                event.setCurrentTarget(null); // to find out later if the event was redispatched
-                
-                if (event.bubbles && !event.stopsPropagation && 
-                    targetDisplayObject != null && targetDisplayObject.parent != null)
-                {    
+                if (targetDisplayObject.parent != null)
+                {
+                    event.setCurrentTarget(null); // to find out later if the event was redispatched
                     targetDisplayObject.parent.dispatchEvent(event);
                 }
             }
