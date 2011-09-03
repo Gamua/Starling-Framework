@@ -148,7 +148,7 @@ package starling.display
             mTextField.text = value;
         }
        
-        public function get fontName():String { return mTextField ? mTextField.fontName : "Arial"; }
+        public function get fontName():String { return mTextField ? mTextField.fontName : "Verdana"; }
         public function set fontName(value:String):void
         {
             createTextField();

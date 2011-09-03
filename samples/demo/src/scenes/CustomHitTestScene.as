@@ -14,7 +14,7 @@ package scenes
                 "Pushing the egg only works when the touch occurs within a circle." + 
                 "This can be accomplished by overriding the method 'hitTestPoint:'.";
             
-            var infoText:TextField = new TextField(300, 100, description, "Arial", 13);
+            var infoText:TextField = new TextField(300, 100, description);
             infoText.x = infoText.y = 10;
             infoText.vAlign = VAlign.TOP;
             infoText.hAlign = HAlign.CENTER;

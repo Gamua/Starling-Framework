@@ -16,7 +16,7 @@ package scenes
                 "- pinch with 2 fingers to scale and rotate \n" +
                 "- double tap brings an image to the front";
             
-            var infoText:TextField = new TextField(300, 100, description, "Arial", 13);
+            var infoText:TextField = new TextField(300, 100, description);
             infoText.x = infoText.y = 10;
             infoText.vAlign = VAlign.TOP;
             infoText.hAlign = HAlign.LEFT;

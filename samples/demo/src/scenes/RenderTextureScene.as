@@ -20,7 +20,7 @@ package scenes
         {
             var description:String = "Touch the screen to draw eggs!";
             
-            var infoText:TextField = new TextField(300, 50, description, "Arial", 13);
+            var infoText:TextField = new TextField(300, 50, description);
             infoText.x = infoText.y = 10;
             infoText.vAlign = VAlign.TOP;
             infoText.hAlign = HAlign.CENTER;

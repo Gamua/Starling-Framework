@@ -56,7 +56,7 @@ package starling.text
         // this is the container for bitmap fonts
         private static var sBitmapFonts:Dictionary = new Dictionary();
         
-        public function TextField(width:int, height:int, text:String, fontName:String="Arial",
+        public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
                                   fontSize:Number=12, color:uint=0x0, bold:Boolean=false)
         {
             mText = text;

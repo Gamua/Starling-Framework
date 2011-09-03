@@ -17,7 +17,7 @@ package scenes
         public function MovieScene()
         {
             var description:String = "Animation provided by angryanimator.com";
-            var infoText:TextField = new TextField(300, 30, description, "Arial", 13);
+            var infoText:TextField = new TextField(300, 30, description);
             infoText.x = infoText.y = 10;
             infoText.vAlign = VAlign.TOP;
             infoText.hAlign = HAlign.CENTER;
