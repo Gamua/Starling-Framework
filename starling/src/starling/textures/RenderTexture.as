@@ -145,6 +145,11 @@ package starling.textures
         public override function get width():Number { return mActiveTexture.width; }        
         public override function get height():Number { return mActiveTexture.height; }        
         
+        public override function get premultipliedAlpha():Boolean 
+        { 
+            return mActiveTexture.premultipliedAlpha; 
+        }
+        
         public override function get base():TextureBase 
         { 
             return mActiveTexture.base; 
