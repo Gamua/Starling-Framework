@@ -10,15 +10,21 @@
 
 package starling.core
 {
+    import flash.display.Sprite;
     import flash.display.Stage3D;
     import flash.display3D.Context3D;
     import flash.display3D.Program3D;
+    import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.events.TouchEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.text.TextField;
+    import flash.text.TextFieldAutoSize;
+    import flash.text.TextFormat;
+    import flash.text.TextFormatAlign;
     import flash.ui.Multitouch;
     import flash.ui.MultitouchInputMode;
     import flash.utils.ByteArray;
@@ -26,11 +32,13 @@ package starling.core
     import flash.utils.getTimer;
     
     import starling.animation.Juggler;
-    import starling.display.*;
+    import starling.display.DisplayObject;
+    import starling.display.Image;
+    import starling.display.Quad;
+    import starling.display.Stage;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
-    import starling.utils.*;
     
     public class Starling
     {
@@ -48,6 +56,9 @@ package starling.core
         private var mEnableErrorChecking:Boolean;
         private var mLastFrameTimestamp:Number;
         private var mViewPort:Rectangle;
+        
+        private var mNativeStage:flash.display.Stage;
+        private var mNativeOverlay:flash.display.Sprite;
         
         private var mContext:Context3D;
         private var mPrograms:Dictionary;
@@ -69,6 +80,7 @@ package starling.core
             mViewPort = viewPort;
             mStage3D = stage3D;
             mStage = new Stage(viewPort.width, viewPort.height, stage.color);
+            mNativeStage = stage;
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -96,9 +108,10 @@ package starling.core
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
+            mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 0, true);
             
             try { mStage3D.requestContext3D(renderMode); } 
-            catch (e:Error) { trace("[Starling] Context3D error: ", e.message); }
+            catch (e:Error) { showFatalError("Context3D error: " + e.message); }
         }
         
         public function dispose():void
@@ -148,14 +161,6 @@ package starling.core
             mStage3D.y = mViewPort.y;
         }
         
-        public function makeCurrent():void
-        {
-            sCurrent = this;
-        }
-        
-        public function start():void { mStarted = true; }
-        public function stop():void { mStarted = false; }
-        
         private function render():void
         {
             if (mContext == null) return;
@@ -178,7 +183,56 @@ package starling.core
             mSupport.resetMatrix();
         }
         
+        private function updateNativeOverlay():void
+        {
+            mNativeOverlay.x = mViewPort.x;
+            mNativeOverlay.y = mViewPort.y;
+            mNativeOverlay.scaleX = mViewPort.width / mStage.stageWidth;
+            mNativeOverlay.scaleY = mViewPort.height / mStage.stageHeight;
+            
+            // Having a native overlay on top of Stage3D content can cause a performance hit on
+            // some environments. For that reason, we add it only to the stage while it's not empty.
+            
+            var numChildren:int = mNativeOverlay.numChildren;
+            var parent:flash.display.DisplayObject = mNativeOverlay.parent;
+            
+            if (numChildren != 0 && parent == null) 
+                mNativeStage.addChild(mNativeOverlay);
+            else if (numChildren == 0 && parent)
+                mNativeStage.removeChild(mNativeOverlay);
+        }
+        
+        private function showFatalError(message:String):void
+        {
+            var textField:TextField = new TextField();
+            var textFormat:TextFormat = new TextFormat("Verdana", 12, 0xFFFFFF);
+            textFormat.align = TextFormatAlign.CENTER;
+            textField.defaultTextFormat = textFormat;
+            textField.wordWrap = true;
+            textField.width = mStage.stageWidth * 0.75;
+            textField.autoSize = TextFieldAutoSize.CENTER;
+            textField.text = message;
+            textField.x = (mStage.stageWidth - textField.width) / 2;
+            textField.y = (mStage.stageHeight - textField.height) / 2;
+            textField.background = true;
+            textField.backgroundColor = 0x440000;
+            nativeOverlay.addChild(textField);
+        }
+        
+        public function makeCurrent():void
+        {
+            sCurrent = this;
+        }
+        
+        public function start():void { mStarted = true; }
+        public function stop():void { mStarted = false; }
+        
         // event handlers
+        
+        private function onStage3DError(event:ErrorEvent):void
+        {
+            showFatalError("This application is not correctly embedded (wrong wmode value)");
+        }
         
         private function onContextCreated(event:Event):void
         {            
@@ -191,6 +245,7 @@ package starling.core
         
         private function onEnterFrame(event:Event):void
         {
+            if (mNativeOverlay) updateNativeOverlay();
             if (mStarted) render();           
         }
         
@@ -322,6 +377,18 @@ package starling.core
         {
             mViewPort = value.clone();
             updateViewPort();
+        }
+        
+        public function get nativeOverlay():Sprite
+        {
+            if (mNativeOverlay == null)
+            {
+                mNativeOverlay = new Sprite();
+                mNativeStage.addChild(mNativeOverlay);
+                updateNativeOverlay();
+            }
+            
+            return mNativeOverlay;
         }
         
         // static properties
