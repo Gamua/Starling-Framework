@@ -20,6 +20,34 @@ package starling.text
     import starling.utils.HAlign;
     import starling.utils.VAlign;
 
+    /** The BitmapFont class parses bitmap font files and arranges the glyphs 
+      *   in the form of a text.
+      *
+      * The class parses the XML format as it is used in the 
+      * <a href="http://www.angelcode.com/products/bmfont/">AngelCode Bitmap Font Generator</a> or
+      * the <a href="http://glyphdesigner.71squared.com/">Glyph Designer</a>. 
+      * This is what the file format looks like:
+      *
+      * <pre> 
+	  * &lt;font&gt;
+	  *   &lt;info face="BranchingMouse" size="40" /&gt;
+	  *   &lt;common lineHeight="40" /&gt;
+	  *   &lt;pages&gt;  &lt;!-- currently, only one page is supported --&gt;
+	  *     &lt;page id="0" file="texture.png" /&gt;
+	  *   &lt;/pages&gt;
+	  *   &lt;chars&gt;
+	  *     &lt;char id="32" x="60" y="29" width="1" height="1" xoffset="0" yoffset="27" xadvance="8" /&gt;
+	  *     &lt;char id="33" x="155" y="144" width="9" height="21" xoffset="0" yoffset="6" xadvance="9" /&gt;
+	  *   &lt;/chars&gt;
+	  *   &lt;kernings&gt; &lt;!-- Kerning is optional --&gt;
+	  *     &lt;kerning first="83" second="83" amount="-4"/&gt;
+	  *   &lt;/kernings&gt;
+	  * &lt;/font&gt;
+      * </pre>
+      * 
+      * <em>You don't have to use this class directly in most cases. 
+      * The TextField class contains methods that handle bitmap fonts for you.</em>    
+      */ 
     public class BitmapFont
     {
         public static const NATIVE_SIZE:int = -1;
@@ -34,6 +62,7 @@ package starling.text
         private var mSize:Number;
         private var mLineHeight:Number;
         
+        /** Initializes a bitmap font by parsing an XML file and uses the specified texture. */
         public function BitmapFont(texture:Texture, fontXml:XML=null)
         {
             mName = "unknown";
@@ -45,6 +74,7 @@ package starling.text
                 parseFontXml(fontXml);
         }
         
+        /** Disposes the texture of the bitmap font! */
         public function dispose():void
         {
             if (mTexture)
@@ -84,16 +114,19 @@ package starling.text
             }
         }
         
+        /** Returns a single bitmap char with a certain character ID. */
         public function getChar(charID:int):BitmapChar
         {
             return mChars[charID];   
         }
         
+        /** Adds a bitmap char with a certain character ID. */
         public function addChar(charID:int, bitmapChar:BitmapChar):void
         {
             mChars[charID] = bitmapChar;
         }
         
+        /** Creates a display object that contains the given text by arranging individual chars. */
         public function createDisplayObject(width:Number, height:Number, text:String,
                                             fontSize:Number=-1, color:uint=0xffffff, 
                                             hAlign:String="center", vAlign:String="center",      
@@ -242,9 +275,13 @@ package starling.text
             return outerContainer;
         }
         
+        /** The name of the font as it was parsed from the font file. */
         public function get name():String { return mName; }
+        
+        /** The native size of the font. */
         public function get size():Number { return mSize; }
         
+        /** The height of one line in pixels. */
         public function get lineHeight():Number { return mLineHeight; }
         public function set lineHeight(value:Number):void { mLineHeight = value; }
     }

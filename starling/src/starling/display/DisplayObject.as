@@ -60,6 +60,8 @@ package starling.display
             mLastTouchTimestamp = -1;
         }
         
+        /** Releases all resources of the display object. 
+          * GPU buffers are released, event listeners are removed. */
         public function dispose():void
         {
             removeEventListeners();

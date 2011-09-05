@@ -21,7 +21,21 @@ package starling.display
     import starling.utils.HAlign;
     import starling.utils.VAlign;
 
+    /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
+    
+    /** A simple button composed of an image and, optionally, text.
+      *
+      * <p>You can pass a texture for up- and downstate of the button. If you do not provide a down 
+      * stage, the button is simply scaled a little when it is touched.
+      * In addition, you can overlay a text on the button. To customize the text, almost the 
+      * same options as those of text fields are provided. In addition, you can move the text to a 
+      * certain position with the help of the textBounds property.</p>
+      * 
+      * <p>To react on touches on a button, there is special "triggered"-event type. Use
+      * this event instead of normal touch events - that way, users can cancel button activation
+      * by moving the mouse/finger away from the button before releasing.</p> 
+      */ 
     public class Button extends DisplayObjectContainer
     {
         private static const MAX_DRAG_DIST:Number = 50;
@@ -39,6 +53,7 @@ package starling.display
         private var mEnabled:Boolean;
         private var mIsDown:Boolean;
         
+        /** Initializes a button with textures for up- and down-state or text. */
         public function Button(upState:Texture, text:String="", downState:Texture=null)
         {
             if (upState == null) throw new ArgumentError("Texture cannot be null");
@@ -58,12 +73,6 @@ package starling.display
             addEventListener(TouchEvent.TOUCH, onTouch);
             
             if (text.length != 0) this.text = text;
-        }
-        
-        public override function dispose():void
-        {
-            removeEventListener(TouchEvent.TOUCH, onTouch);
-            super.dispose();
         }
         
         private function resetContents():void
@@ -124,12 +133,16 @@ package starling.display
             }
         }
         
+        /** The scale factor of the button on touch. Per default, a button with a down state 
+          * texture won't scale. */
         public function get scaleWhenDown():Number { return mScaleWhenDown; }
         public function set scaleWhenDown(value:Number):void { mScaleWhenDown = value; }
         
+        /** The alpha value of the button when it is disabled. @default 0.5 */
         public function get alphaWhenDisabled():Number { return mAlphaWhenDisabled; }
         public function set alphaWhenDisabled(value:Number):void { mAlphaWhenDisabled = value; }
         
+        /** Indicates if the button can be triggered. */
         public function get enabled():Boolean { return mEnabled; }
         public function set enabled(value:Boolean):void
         {
@@ -141,6 +154,7 @@ package starling.display
             }
         }
         
+        /** The text that is displayed on the button. */
         public function get text():String { return mTextField ? mTextField.text : ""; }
         public function set text(value:String):void
         {
@@ -148,6 +162,8 @@ package starling.display
             mTextField.text = value;
         }
        
+        /** The name of the font displayed on the button. May be a system font or a registered 
+          * bitmap font. */
         public function get fontName():String { return mTextField ? mTextField.fontName : "Verdana"; }
         public function set fontName(value:String):void
         {
@@ -155,6 +171,7 @@ package starling.display
             mTextField.fontName = value;
         }
         
+        /** The size of the font. */
         public function get fontSize():Number { return mTextField ? mTextField.fontSize : 12; }
         public function set fontSize(value:Number):void
         {
@@ -162,6 +179,7 @@ package starling.display
             mTextField.fontSize = value;
         }
         
+        /** The color of the font. */
         public function get fontColor():uint { return mTextField ? mTextField.color : 0x0; }
         public function set fontColor(value:uint):void
         {
@@ -169,6 +187,7 @@ package starling.display
             mTextField.color = value;
         }
         
+        /** Indicates if the font should be bold. */
         public function get fontBold():Boolean { return mTextField ? mTextField.bold : false; }
         public function set fontBold(value:Boolean):void
         {
@@ -176,6 +195,7 @@ package starling.display
             mTextField.bold = value;
         }
         
+        /** The texture that is displayed when the button is not being touched. */
         public function get upState():Texture { return mUpState; }
         public function set upState(value:Texture):void
         {
@@ -186,6 +206,7 @@ package starling.display
             }
         }
         
+        /** The texture that is displayed while the button is touched. */
         public function get downState():Texture { return mDownState; }
         public function set downState(value:Texture):void
         {
@@ -196,6 +217,7 @@ package starling.display
             }
         }
         
+        /** The bounds of the textfield on the button. Allows moving the text to a custom position. */
         public function get textBounds():Rectangle { return mTextBounds.clone(); }
         public function set textBounds(value:Rectangle):void
         {

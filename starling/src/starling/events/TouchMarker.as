@@ -19,7 +19,7 @@ package starling.events
     internal class TouchMarker extends Sprite
     {
         [Embed(source = "media/textures/touch_marker.png")]
-        private const TouchMarkerBmp:Class;
+        private static var TouchMarkerBmp:Class;
         
         private var mCenter:Point;
         private var mTexture:Texture;
