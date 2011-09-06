@@ -22,12 +22,70 @@ package starling.display
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     
+    /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
+    /** Dispatched when an object is connected to the stage (directly or indirectly). */
     [Event(name="addedToStage", type="starling.events.Event")]
+    /** Dispatched when an object is removed from its parent. */
     [Event(name="removed", type="starling.events.Event")]
+    /** Dispatched when an object is removed from the stage and won't be rendered any longer. */ 
     [Event(name="removedFromStage", type="starling.events.Event")]
+    /** Dispatched once every frame on every object that is connected to the stage. */ 
     [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
+    /** Dispatched when an object is touched. Bubbles. */
     [Event(name="touch", type="starling.events.TouchEvent")]
+    
+    /**
+     *  The DisplayObject class is the base class for all objects that are rendered on the screen.
+     *   
+     *  <p>In Starling, all displayable objects are organized in a display tree. Only objects that
+     *  are part of the display tree will be displayed (rendered).</p> 
+     *   
+     *  <p>The display tree consists of leaf nodes (Image, Quad) that will be rendered directly to
+     *  the screen, and of container nodes (subclasses of 'DisplayObjectContainer', like 'Sprite').
+     *  A container is simply a display object that has child nodes -- which can, again, be either
+     *  leaf nodes or other containers.</p> 
+     *  
+     *  <p>At the root of the display tree, there is the Stage, which is a container, too. To create
+     *  a Starling application, you create a custom Sprite subclass, and Starling will add an
+     *  instance of this class to the stage.</p>
+     *  
+     *  <p>A display object has properties that define its position in relation to its parent
+     *  (x, y), as well as its rotation and scaling factors (scaleX, scaleY). Use the 'alpha' and
+     *  'visible' properties to make an object translucent or invisible.</p>
+     *  
+     *  <p>Every display object may be the target of touch events. If you don't want an object to be
+     *  touchable, you can disable the 'touchable' property. When it's disabled, neither the object
+     *  nor its children will receive any more touch events.</p>
+     *    
+     *  <strong>Transforming coordinates</strong>
+     *  
+     *  <p>Within the display tree, each object has its own local coordinate system. If you rotate
+     *  a container, you rotate that coordinate system - and thus all the children of the 
+     *  container.</p>
+     *  
+     *  <p>Sometimes you need to know where a certain point lies relative to another coordinate 
+     *  system. That's the purpose of the method 'getTransformationMatrix'. It will create a 
+     *  matrix that represents the transformation of a point in one coordinate system to 
+     *  another.</p> 
+     *  
+     *  <strong>Subclassing</strong>
+     *  
+     *  <p>Since DisplayObject is an abstract class, you cannot instantiate it directly, but have 
+     *  to use one of its subclasses instead. There are already a lot of them available, and most 
+     *  of the time they will suffice.</p> 
+     *  
+     *  <p>However, you can create custom subclasses as well. That way, you can create an object
+     *  with a custom render function. You will need to implement the following methods when you 
+     *  subclass DisplayObject:</p>
+     *  
+     *  <ul>
+     *    <li><code>function render(support:RenderSupport, alpha:Number):void</code></li>
+     *    <li><code>function getBounds(targetSpace:DisplayObject):Rectangle</code></li>
+     *  </ul>
+     *  
+     *  Have a look at the Quad and Image classes for a sample implementation of those methods. 
+     */
     public class DisplayObject extends EventDispatcher
     {
         // members
@@ -47,8 +105,7 @@ package starling.display
         private var mLastTouchTimestamp:Number;
         private var mParent:DisplayObjectContainer;        
         
-        // construction
-        
+        /** You cannot create instances of this class. Instantiate its subclasses instead.  */ 
         public function DisplayObject()
         {
             if (getQualifiedClassName(this) == "starling.display::DisplayObject")
@@ -60,22 +117,23 @@ package starling.display
             mLastTouchTimestamp = -1;
         }
         
-        /** Releases all resources of the display object. 
+        /** Disposes all resources of the display object. 
           * GPU buffers are released, event listeners are removed. */
         public function dispose():void
         {
             removeEventListeners();
         }
         
-        // functions
-        
+        /** Removes the object from its parent, if it has one. */
         public function removeFromParent(dispose:Boolean=false):void
         {
             if (mParent) mParent.removeChild(this);
             if (dispose) this.dispose();
         }
         
-        public function getTransformationMatrixToSpace(targetSpace:DisplayObject):Matrix
+        /** Creates a matrix that represents the transformation from the local coordinate system 
+         * to another. */ 
+        public function getTransformationMatrix(targetSpace:DisplayObject):Matrix
         {
             var rootMatrix:Matrix;
             var targetMatrix:Matrix;
@@ -157,12 +215,17 @@ package starling.display
             return rootMatrix;            
         }        
         
+        /** Returns a rectangle that completely encloses the object as it appears in another 
+         *  coordinate system. */ 
         public function getBounds(targetSpace:DisplayObject):Rectangle
         {
             throw new AbstractMethodError("Method needs to be implemented in subclass");
             return null;
         }
         
+        /** Returns the object that is found topmost beneath a point in local coordinates, or nil if 
+         *  the test fails. If 'forTouch' is true, untouchable and invisible objects will cause
+         *  the test to fail. */
         public function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             // on a touch test, invisible or untouchable objects cause the test to fail
@@ -173,6 +236,7 @@ package starling.display
             else return null;
         }
         
+        /** Transforms a point from the local coordinate system to global (stage) coordinates. */
         public function localToGlobal(localPoint:Point):Point
         {
             // move up  until parent is null
@@ -186,6 +250,7 @@ package starling.display
             return transformationMatrix.transformPoint(localPoint);
         }
         
+        /** Transforms a point from global (stage) coordinates to the local coordinate system. */
         public function globalToLocal(globalPoint:Point):Point
         {
             // move up until parent is null, then invert matrix
@@ -200,11 +265,16 @@ package starling.display
             return transformationMatrix.transformPoint(globalPoint);
         }
         
+        /** Renders the display object with the help of a support object. Never call this method
+         *  directly, except from within another render method.
+         *  @param support Provides utility functions for rendering.
+         *  @param alpha The accumulated alpha value from the object's parent up to the stage. */
         public function render(support:RenderSupport, alpha:Number):void
         {
             // override in subclass
         }
         
+        /** @inheritDoc */
         public override function dispatchEvent(event:Event):void
         {
             // on one given moment, there is only one set of touches -- thus, 
@@ -221,11 +291,13 @@ package starling.display
         
         // internal methods
         
+        /** @private */
         internal function setParent(value:DisplayObjectContainer):void 
         { 
             mParent = value; 
         }
         
+        /** @private */
         internal function dispatchEventOnChildren(event:Event):void 
         { 
             dispatchEvent(event); 
@@ -233,6 +305,7 @@ package starling.display
         
         // properties
         
+        /** The transformation matrix of the object relative to its parent. */
         public function get transformationMatrix():Matrix
         {
             var matrix:Matrix = new Matrix();
@@ -245,11 +318,13 @@ package starling.display
             return matrix;
         }
         
+        /** The bounds of the object relative to the local coordinates of the parent. */
         public function get bounds():Rectangle
         {
             return getBounds(mParent);
         }
         
+        /** The width of the object in pixels. */
         public function get width():Number { return getBounds(mParent).width; }        
         public function set width(value:Number):void
         {
@@ -262,6 +337,7 @@ package starling.display
             else                    scaleX = 1.0;
         }
         
+        /** The height of the object in pixels. */
         public function get height():Number { return getBounds(mParent).height; }
         public function set height(value:Number):void
         {
@@ -271,6 +347,7 @@ package starling.display
             else                     scaleY = 1.0;
         }
         
+        /** The topmost object in the display tree the object is part of. */
         public function get root():DisplayObject
         {
             var currentObject:DisplayObject = this;
@@ -278,24 +355,32 @@ package starling.display
             return currentObject;
         }
         
+        /** The x coordinate of the object relative to the local coordinates of the parent. */
         public function get x():Number { return mX; }
         public function set x(value:Number):void { mX = value; }
         
+        /** The y coordinate of the object relative to the local coordinates of the parent. */
         public function get y():Number { return mY; }
         public function set y(value:Number):void { mY = value; }
         
+        /** The x coordinate of the object's origin in its own coordinate space (default: 0). */
         public function get pivotX():Number { return mPivotX; }
         public function set pivotX(value:Number):void { mPivotX = value; }
         
+        /** The y coordinate of the object's origin in its own coordinate space (default: 0). */
         public function get pivotY():Number { return mPivotY; }
         public function set pivotY(value:Number):void { mPivotY = value; }
         
+        /** The horizontal scale factor. '1' means no scale, negative values flip the object. */
         public function get scaleX():Number { return mScaleX; }
         public function set scaleX(value:Number):void { mScaleX = value; }
         
+        /** The vertical scale factor. '1' means no scale, negative values flip the object. */
         public function get scaleY():Number { return mScaleY; }
         public function set scaleY(value:Number):void { mScaleY = value; }
         
+        /** The rotation of the object in radians. (In Starling, all angles are measured 
+         *  in radians.) */
         public function get rotation():Number { return mRotation; }
         public function set rotation(value:Number):void 
         { 
@@ -305,22 +390,31 @@ package starling.display
             mRotation = value;
         }
         
+        /** The opacity of the object. 0 = transparent, 1 = opaque. */
         public function get alpha():Number { return mAlpha; }
         public function set alpha(value:Number):void 
         { 
             mAlpha = Math.max(0.0, Math.min(1.0, value)); 
         }
         
+        /** The visibility of the object. An invisible object will be untouchable. */
         public function get visible():Boolean { return mVisible; }
         public function set visible(value:Boolean):void { mVisible = value; }
         
+        /** Indicates if this object (and its children) will receive touch events. */
         public function get touchable():Boolean { return mTouchable; }
         public function set touchable(value:Boolean):void { mTouchable = value; }
         
+        /** The name of the display object (default: null). Used by 'getChildByName()' of 
+         *  display object containers. */
         public function get name():String { return mName; }
         public function set name(value:String):void { mName = value; }        
         
+        /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return mParent; }
+        
+        /** The stage the display object is connected to, or null if it is not connected 
+         *  to a stage. */
         public function get stage():Stage { return this.root as Stage; }
     }
 }

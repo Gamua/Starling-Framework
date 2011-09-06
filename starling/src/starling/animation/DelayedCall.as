@@ -10,6 +10,11 @@
 
 package starling.animation
 {
+    /** A DelayedCall allows you to execute a method after a certain time has passed. Since it 
+     *  implements the IAnimatable interface, it can be added to a juggler. In most cases, you 
+     *  do not have to use this class directly; the juggler class contains a method to delay
+     *  calls directly. 
+     */ 
     public class DelayedCall implements IAnimatable
     {
         private var mCurrentTime:Number = 0;
@@ -18,6 +23,7 @@ package starling.animation
         private var mArgs:Array;
         private var mRepeatCount:int = 1;
         
+        /** Initializes a delayed call. */
         public function DelayedCall(call:Function, delay:Number, args:Array=null)
         {
             mCall = call;
@@ -25,6 +31,7 @@ package starling.animation
             mArgs = args;
         }
         
+        /** @inheritDoc */
         public function advanceTime(time:Number):void
         {
             var previousTime:Number = mCurrentTime;
@@ -43,10 +50,16 @@ package starling.animation
             }            
         }
         
+        /** @inheritDoc */
         public function get isComplete():Boolean { return mCurrentTime >= mTotalTime; }
-        public function get totalTime():Number { return mTotalTime; }        
+        
+        /** The time for which calls will be delayed (in seconds). */
+        public function get totalTime():Number { return mTotalTime; }
+        
+        /** The time that has already passed (in seconds). */
         public function get currentTime():Number { return mCurrentTime; }
         
+        /** The number of times the call will be repeated. */
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
     }

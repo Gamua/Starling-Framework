@@ -40,14 +40,14 @@ package starling.events
         public function getLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mGlobalX, mGlobalY);
-            var transformationMatrix:Matrix = mTarget.root.getTransformationMatrixToSpace(space);
+            var transformationMatrix:Matrix = mTarget.root.getTransformationMatrix(space);
             return transformationMatrix.transformPoint(point);
         }
         
         public function getPreviousLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
-            var transformationMatrix:Matrix = mTarget.root.getTransformationMatrixToSpace(space);
+            var transformationMatrix:Matrix = mTarget.root.getTransformationMatrix(space);
             return transformationMatrix.transformPoint(point);
         }
         

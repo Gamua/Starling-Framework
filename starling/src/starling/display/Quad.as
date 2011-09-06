@@ -73,7 +73,7 @@ package starling.display
             }
             else
             {
-                var transformationMatrix:Matrix = getTransformationMatrixToSpace(targetSpace);
+                var transformationMatrix:Matrix = getTransformationMatrix(targetSpace);
                 var point:Point = new Point();
                 
                 for (i=0; i<4; ++i)

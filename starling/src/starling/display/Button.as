@@ -25,17 +25,17 @@ package starling.display
     [Event(name="triggered", type="starling.events.Event")]
     
     /** A simple button composed of an image and, optionally, text.
-      *
-      * <p>You can pass a texture for up- and downstate of the button. If you do not provide a down 
-      * stage, the button is simply scaled a little when it is touched.
-      * In addition, you can overlay a text on the button. To customize the text, almost the 
-      * same options as those of text fields are provided. In addition, you can move the text to a 
-      * certain position with the help of the textBounds property.</p>
-      * 
-      * <p>To react on touches on a button, there is special "triggered"-event type. Use
-      * this event instead of normal touch events - that way, users can cancel button activation
-      * by moving the mouse/finger away from the button before releasing.</p> 
-      */ 
+     *  
+     *  <p>You can pass a texture for up- and downstate of the button. If you do not provide a down 
+     *  stage, the button is simply scaled a little when it is touched.
+     *  In addition, you can overlay a text on the button. To customize the text, almost the 
+     *  same options as those of text fields are provided. In addition, you can move the text to a 
+     *  certain position with the help of the textBounds property.</p>
+     *  
+     *  <p>To react on touches on a button, there is special "triggered"-event type. Use
+     *  this event instead of normal touch events - that way, users can cancel button activation
+     *  by moving the mouse/finger away from the button before releasing.</p> 
+     */ 
     public class Button extends DisplayObjectContainer
     {
         private static const MAX_DRAG_DIST:Number = 50;

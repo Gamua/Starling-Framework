@@ -19,6 +19,40 @@ package starling.display
     import starling.errors.AbstractClassError;
     import starling.events.Event;
     
+    /**
+     *  A DisplayObjectContainer represents a collection of display objects.
+     *  It is the base class of all display objects that act as a container for other objects. By 
+     *  maintaining an ordered list of children, it defines the back-to-front positioning of the 
+     *  children within the display tree.
+     *  
+     *  <p>A container does not have size in itself. The width and height properties represent the 
+     *  extents of its children. Changing those properties will scale all children accordingly.</p>
+     *  
+     *  <p>As this is an abstract class, you can't instantiate it directly, but have to 
+     *  use a subclass instead. The most lightweight container class is 'Sprite'.</p>
+     *  
+     *  <strong>Adding and removing children</strong>
+     *  
+     *  <p>The class defines methods that allow you to add or remove children. When you add a child, 
+     *  it will be added at the frontmost position, possibly occluding a child that was added 
+     *  before. You can access the children via an index. The first child will have index 0, the 
+     *  second child index 1, etc.</p> 
+     *  
+     *  Adding and removing objects from a container triggers non-bubbling events.
+     *  
+     *  <ul>
+     *   <li><code>Event.ADDED</code>: the object was added to a parent.</li>
+     *   <li><code>Event.ADDED_TO_STAGE</code>: the object was added to a parent that is 
+     *       connected to the stage, thus becoming visible now.</li>
+     *   <li><code>Event.REMOVED</code>: the object was removed from a parent.</li>
+     *   <li><code>Event.REMOVED_FROM_STAGE</code>: the object was removed from a parent that 
+     *       is connected to the stage, thus becoming invisible now.</li>
+     *  </ul>
+     *  
+     *  Especially the <code>ADDED_TO_STAGE</code> event is very helpful, as it allows you to 
+     *  automatically execute some logic (e.g. start an animation) when an object is rendered the 
+     *  first time.
+     */
     public class DisplayObjectContainer extends DisplayObject
     {
         // members
@@ -27,6 +61,8 @@ package starling.display
         
         // construction
         
+        /** You cannot create instances of this class. Instantiate its subclasses instead. 
+         *  ('Sprite' would be a good candidate.) */
         public function DisplayObjectContainer()
         {
             if (getQualifiedClassName(this) == "starling.display::DisplayObjectContainer")
@@ -35,6 +71,7 @@ package starling.display
             mChildren = new <DisplayObject>[];
         }
         
+        /** Disposes the resources of all children. */
         public override function dispose():void
         {
             for each (var child:DisplayObject in mChildren)
@@ -45,11 +82,13 @@ package starling.display
         
         // child management
         
+        /** Adds a child to the container. It will be at the frontmost position. */
         public function addChild(child:DisplayObject):void
         {
             addChildAt(child, numChildren);
         }
         
+        /** Adds a child to the container at a certain index. */
         public function addChildAt(child:DisplayObject, index:int):void
         {
             if (index >= 0 && index <= numChildren)
@@ -66,12 +105,16 @@ package starling.display
             }
         }
         
+        /** Removes a child from the container. If the object is not a child, nothing happens. 
+         *  If requested, the child will be disposed right away. */
         public function removeChild(child:DisplayObject, dispose:Boolean=false):void
         {
             var childIndex:int = getChildIndex(child);
             if (childIndex != -1) removeChildAt(childIndex, dispose);
         }
         
+        /** Removes a child at a certain index. Children above the child will move down. If
+         *  requested, the child will be disposed right away. */
         public function removeChildAt(index:int, dispose:Boolean=false):void
         {
             if (index >= 0 && index < numChildren)
@@ -89,6 +132,8 @@ package starling.display
             }
         }
         
+        /** Removes a range of children from the container (inclusive endIndex). 
+         *  If no arguments are given, all children will be removed. */
         public function removeChildren(beginIndex:int=0, endIndex:int=-1, dispose:Boolean=false):void
         {
             if (endIndex < 0 || endIndex >= numChildren) 
@@ -98,11 +143,16 @@ package starling.display
                 removeChildAt(beginIndex, dispose);
         }
         
+        /** Returns a child object at a certain index. */
         public function getChildAt(index:int):DisplayObject
         {
-            return mChildren[index];
+            if (index >= 0 && index < numChildren)
+                return mChildren[index];
+            else
+                throw new RangeError("Invalid child index");
         }
         
+        /** Returns a child object with a certain name (non-recursively). */
         public function getChildByName(name:String):DisplayObject
         {
             for each (var currentChild:DisplayObject in mChildren)
@@ -110,11 +160,13 @@ package starling.display
             return null;
         }
         
+        /** Returns the index of a child within the container, or '-1' if it is not found. */
         public function getChildIndex(child:DisplayObject):int
         {
             return mChildren.indexOf(child);
         }
         
+        /** Moves a child to a certain index. Children at and after the replaced position move up.*/
         public function setChildIndex(child:DisplayObject, index:int):void
         {
             var oldIndex:int = getChildIndex(child);
@@ -123,6 +175,7 @@ package starling.display
             mChildren.splice(index, 0, child);
         }
         
+        /** Swaps the indexes of two children. */
         public function swapChildren(child1:DisplayObject, child2:DisplayObject):void
         {
             var index1:int = getChildIndex(child1);
@@ -131,6 +184,7 @@ package starling.display
             swapChildrenAt(index1, index2);
         }
         
+        /** Swaps the indexes of two children. */
         public function swapChildrenAt(index1:int, index2:int):void
         {
             var child1:DisplayObject = getChildAt(index1);
@@ -139,6 +193,7 @@ package starling.display
             mChildren[index2] = child1;
         }
         
+        /** Determines if a certain object is a child of the container (recursively). */
         public function contains(child:DisplayObject):Boolean
         {
             if (child == this) return true;
@@ -158,15 +213,14 @@ package starling.display
             return false;
         }
         
-        // other methods
-        
+        /** @inheritDoc */ 
         public override function getBounds(targetSpace:DisplayObject):Rectangle
         {
             var numChildren:int = mChildren.length;
             
             if (numChildren == 0)
             {
-                var matrix:Matrix = getTransformationMatrixToSpace(targetSpace);
+                var matrix:Matrix = getTransformationMatrix(targetSpace);
                 var position:Point = matrix.transformPoint(new Point(x, y));
                 return new Rectangle(position.x, position.y);
             }
@@ -190,6 +244,7 @@ package starling.display
             }                
         }
         
+        /** @inheritDoc */
         public override function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable))
@@ -199,7 +254,7 @@ package starling.display
             for (var i:int=numChildren-1; i>=0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
-                var transformationMatrix:Matrix = getTransformationMatrixToSpace(child);
+                var transformationMatrix:Matrix = getTransformationMatrix(child);
                 var transformedPoint:Point = transformationMatrix.transformPoint(localPoint);
                 var target:DisplayObject = child.hitTestPoint(transformedPoint, forTouch);
                 if (target) return target;
@@ -208,6 +263,7 @@ package starling.display
             return null;
         }
         
+        /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
             alpha *= this.alpha;
@@ -226,8 +282,7 @@ package starling.display
             }
         }
         
-        // internal methods
-        
+        /** @private */
         internal override function dispatchEventOnChildren(event:Event):void 
         { 
             // the event listeners might modify the display tree, which could make the loop crash. 
@@ -250,8 +305,7 @@ package starling.display
                     getChildEventListeners(child, eventType, listeners);
         }
         
-        // properties
-        
+        /** The number of children of this container. */
         public function get numChildren():int { return mChildren.length; }        
     }
 }

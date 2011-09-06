@@ -16,8 +16,9 @@ package starling.text
     import starling.textures.Texture;
 
     /** A BitmapChar contains the information about one char of a bitmap font.  
-      * <em>You don't have to use this class directly in most cases.</em>
-      */ 
+     *  <em>You don't have to use this class directly in most cases. 
+     *  The TextField class contains methods that handle bitmap fonts for you.</em>    
+     */ 
     public class BitmapChar
     {
         private var mTexture:Texture;

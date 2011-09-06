@@ -21,33 +21,33 @@ package starling.text
     import starling.utils.VAlign;
 
     /** The BitmapFont class parses bitmap font files and arranges the glyphs 
-      *   in the form of a text.
-      *
-      * The class parses the XML format as it is used in the 
-      * <a href="http://www.angelcode.com/products/bmfont/">AngelCode Bitmap Font Generator</a> or
-      * the <a href="http://glyphdesigner.71squared.com/">Glyph Designer</a>. 
-      * This is what the file format looks like:
-      *
-      * <pre> 
-	  * &lt;font&gt;
-	  *   &lt;info face="BranchingMouse" size="40" /&gt;
-	  *   &lt;common lineHeight="40" /&gt;
-	  *   &lt;pages&gt;  &lt;!-- currently, only one page is supported --&gt;
-	  *     &lt;page id="0" file="texture.png" /&gt;
-	  *   &lt;/pages&gt;
-	  *   &lt;chars&gt;
-	  *     &lt;char id="32" x="60" y="29" width="1" height="1" xoffset="0" yoffset="27" xadvance="8" /&gt;
-	  *     &lt;char id="33" x="155" y="144" width="9" height="21" xoffset="0" yoffset="6" xadvance="9" /&gt;
-	  *   &lt;/chars&gt;
-	  *   &lt;kernings&gt; &lt;!-- Kerning is optional --&gt;
-	  *     &lt;kerning first="83" second="83" amount="-4"/&gt;
-	  *   &lt;/kernings&gt;
-	  * &lt;/font&gt;
-      * </pre>
-      * 
-      * <em>You don't have to use this class directly in most cases. 
-      * The TextField class contains methods that handle bitmap fonts for you.</em>    
-      */ 
+     *  in the form of a text.
+     *
+     *  The class parses the XML format as it is used in the 
+     *  <a href="http://www.angelcode.com/products/bmfont/">AngelCode Bitmap Font Generator</a> or
+     *  the <a href="http://glyphdesigner.71squared.com/">Glyph Designer</a>. 
+     *  This is what the file format looks like:
+     *
+     *  <pre> 
+	 *  &lt;font&gt;
+	 *    &lt;info face="BranchingMouse" size="40" /&gt;
+	 *    &lt;common lineHeight="40" /&gt;
+	 *    &lt;pages&gt;  &lt;!-- currently, only one page is supported --&gt;
+	 *      &lt;page id="0" file="texture.png" /&gt;
+	 *    &lt;/pages&gt;
+	 *    &lt;chars&gt;
+	 *      &lt;char id="32" x="60" y="29" width="1" height="1" xoffset="0" yoffset="27" xadvance="8" /&gt;
+	 *      &lt;char id="33" x="155" y="144" width="9" height="21" xoffset="0" yoffset="6" xadvance="9" /&gt;
+	 *    &lt;/chars&gt;
+	 *    &lt;kernings&gt; &lt;!-- Kerning is optional --&gt;
+	 *      &lt;kerning first="83" second="83" amount="-4"/&gt;
+	 *    &lt;/kernings&gt;
+	 *  &lt;/font&gt;
+     *  </pre>
+     *  
+     *  <em>You don't have to use this class directly in most cases. 
+     *  The TextField class contains methods that handle bitmap fonts for you.</em>    
+     */ 
     public class BitmapFont
     {
         public static const NATIVE_SIZE:int = -1;
