@@ -29,6 +29,35 @@ package starling.text
     import starling.utils.HAlign;
     import starling.utils.VAlign;
 
+    /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
+     *  
+     *  <p>You can set all properties you are used to, like the font name and size, a color, the 
+     *  horizontal and vertical alignment, etc. The border property is helpful during development, 
+     *  because it lets you see the bounds of the textfield.</p>
+     *  
+     *  <p>There are two types of fonts that can be displayed:</p>
+     *  
+     *  <ul>
+     *    <li>Standard true type fonts. This renders the text just like a conventional Flash
+     *        TextField. It is recommended to embed the font, since you cannot be sure which fonts
+     *        are available on the client system, and since this enhances rendering quality. 
+     *        Simply pass the font name to the corresponding property.</li>
+     *    <li>Bitmap fonts. If you need speed or fancy font effects, use a bitmap font instead. 
+     *        That is a font that has its glyphs rendered to a texture atlas. To use it, first 
+     *        register the font with the method <code>registerBitmapFont</code>, and then pass 
+     *        the font name to the corresponding property of the text field.</li>
+     *  </ul> 
+     *    
+     *  For bitmap fonts, we recommend one of the following tools:
+     * 
+     *  <ul>
+     *    <li>Windows: <a href="http://www.angelcode.com/products/bmfont">Bitmap Font Generator</a>
+     *       from Angel Code (free). Export the font data as an XML file and the texture as a png 
+     *       with white characters on a transparent background (32 bit).</li>
+     *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
+     *        71squared (commercial). It supports Starling natively.</li>
+     *  </ul> 
+     */
     public class TextField extends DisplayObjectContainer
     {
         private var mFontSize:Number;
@@ -56,6 +85,7 @@ package starling.text
         // this is the container for bitmap fonts
         private static var sBitmapFonts:Dictionary = new Dictionary();
         
+        /** Create a new text field with the given properties. */
         public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
                                   fontSize:Number=12, color:uint=0x0, bold:Boolean=false)
         {
@@ -79,9 +109,15 @@ package starling.text
             addEventListener(Event.FLATTEN, onFlatten);
         }
         
+        /** Disposes the underlying texture data. */
         public override function dispose():void
         {
             removeEventListener(Event.FLATTEN, onFlatten);
+            
+            if (mContents is Image)
+               (mContents as Image).texture.dispose();
+            
+            super.dispose();
         }
         
         private function onFlatten(event:Event):void
@@ -89,6 +125,7 @@ package starling.text
             if (mRequiresRedraw) redrawContents();
         }
         
+        /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
             if (mRequiresRedraw) redrawContents();
@@ -217,17 +254,20 @@ package starling.text
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }
         
+        /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
             if (mRequiresRedraw) redrawContents();
             return mTextArea.getBounds(parent);
         }
         
+        /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject):Rectangle
         {
             return mHitArea.getBounds(targetSpace);
         }
         
+        /** @inheritDoc */
         public override function set width(value:Number):void
         {
             // different to ordinary display objects, changing the size of the text field should 
@@ -239,6 +279,7 @@ package starling.text
             updateBorder();
         }
         
+        /** @inheritDoc */
         public override function set height(value:Number):void
         {
             mHitArea.height = value;
@@ -246,6 +287,7 @@ package starling.text
             updateBorder();
         }
         
+        /** The displayed text. */
         public function get text():String { return mText; }
         public function set text(value:String):void
         {
@@ -256,6 +298,7 @@ package starling.text
             }
         }
         
+        /** The name of the font (true type or bitmap font). */
         public function get fontName():String { return mFontName; }
         public function set fontName(value:String):void
         {
@@ -267,6 +310,8 @@ package starling.text
             }
         }
         
+        /** The size of the font. For bitmap fonts, use <code>BitmapFont.NATIVE_SIZE</code> for 
+         *  the original size. */
         public function get fontSize():Number { return mFontSize; }
         public function set fontSize(value:Number):void
         {
@@ -277,6 +322,8 @@ package starling.text
             }
         }
         
+        /** The color of the text. For bitmap fonts, use <code>Color.WHITE</code> to use the
+         *  original, untinted color. @default black */
         public function get color():uint { return mColor; }
         public function set color(value:uint):void
         {
@@ -295,6 +342,7 @@ package starling.text
             }
         }
         
+        /** The horizontal alignment of the text. @default center @see starling.utils.HAlign */
         public function get hAlign():String { return mHAlign; }
         public function set hAlign(value:String):void
         {
@@ -308,6 +356,7 @@ package starling.text
             }
         }
         
+        /** The vertical alignment of the text. @default center @see starling.utils.VAlign */
         public function get vAlign():String { return mVAlign; }
         public function set vAlign(value:String):void
         {
@@ -321,6 +370,8 @@ package starling.text
             }
         }
         
+        /** Draws a border around the edges of the text field. Useful for visual debugging. 
+         *  @default false */
         public function get border():Boolean { return mBorder != null; }
         public function set border(value:Boolean):void
         {
@@ -341,6 +392,7 @@ package starling.text
             }
         }
         
+        /** Indicates whether the text is bold. @default false */
         public function get bold():Boolean { return mBold; }
         public function set bold(value:Boolean):void 
         {
@@ -351,6 +403,7 @@ package starling.text
             }
         }
         
+        /** Indicates whether the text is italicized. @default false */
         public function get italic():Boolean { return mItalic; }
         public function set italic(value:Boolean):void
         {
@@ -361,6 +414,7 @@ package starling.text
             }
         }
         
+        /** Indicates whether the text is underlined. @default false */
         public function get underline():Boolean { return mUnderline; }
         public function set underline(value:Boolean):void
         {
@@ -371,6 +425,7 @@ package starling.text
             }
         }
         
+        /** Indicates whether kerning is enabled. @default true */
         public function get kerning():Boolean { return mKerning; }
         public function set kerning(value:Boolean):void
         {
@@ -381,6 +436,8 @@ package starling.text
             }
         }
         
+        /** Indicates whether the font size is scaled down so that the complete text fits
+         *  into the text field. @default false */
         public function get autoScale():Boolean { return mAutoScale; }
         public function set autoScale(value:Boolean):void
         {
@@ -391,11 +448,15 @@ package starling.text
             }
         }
         
+        /** Makes a bitmap font available at any text field. Set the <code>fontName</code> property
+         *  of a text field to the <code>name</code> value of the bitmap font to use the bitmap
+         *  font for rendering. */ 
         public static function registerBitmapFont(bitmapFont:BitmapFont):void
         {
             sBitmapFonts[bitmapFont.name] = bitmapFont;
         }
         
+        /** Unregisters the bitmap font and, optionally, disposes it. */
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
             if (dispose && sBitmapFonts[name] != undefined)

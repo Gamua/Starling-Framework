@@ -36,14 +36,17 @@ package starling.display
     [Event(name="touch", type="starling.events.TouchEvent")]
     
     /**
-     *  The DisplayObject class is the base class for all objects that are rendered on the screen.
-     *   
+     *  <p>The DisplayObject class is the base class for all objects that are rendered on the 
+     *  screen.</p>
+     *  
+     *  <strong>The Display Tree</strong> 
+     *  
      *  <p>In Starling, all displayable objects are organized in a display tree. Only objects that
      *  are part of the display tree will be displayed (rendered).</p> 
      *   
      *  <p>The display tree consists of leaf nodes (Image, Quad) that will be rendered directly to
-     *  the screen, and of container nodes (subclasses of 'DisplayObjectContainer', like 'Sprite').
-     *  A container is simply a display object that has child nodes -- which can, again, be either
+     *  the screen, and of container nodes (subclasses of "DisplayObjectContainer", like "Sprite").
+     *  A container is simply a display object that has child nodes - which can, again, be either
      *  leaf nodes or other containers.</p> 
      *  
      *  <p>At the root of the display tree, there is the Stage, which is a container, too. To create
@@ -51,11 +54,12 @@ package starling.display
      *  instance of this class to the stage.</p>
      *  
      *  <p>A display object has properties that define its position in relation to its parent
-     *  (x, y), as well as its rotation and scaling factors (scaleX, scaleY). Use the 'alpha' and
-     *  'visible' properties to make an object translucent or invisible.</p>
+     *  (x, y), as well as its rotation and scaling factors (scaleX, scaleY). Use the 
+     *  <code>alpha</code> and <code>visible</code> properties to make an object translucent or 
+     *  invisible.</p>
      *  
      *  <p>Every display object may be the target of touch events. If you don't want an object to be
-     *  touchable, you can disable the 'touchable' property. When it's disabled, neither the object
+     *  touchable, you can disable the "touchable" property. When it's disabled, neither the object
      *  nor its children will receive any more touch events.</p>
      *    
      *  <strong>Transforming coordinates</strong>
@@ -65,8 +69,8 @@ package starling.display
      *  container.</p>
      *  
      *  <p>Sometimes you need to know where a certain point lies relative to another coordinate 
-     *  system. That's the purpose of the method 'getTransformationMatrix'. It will create a 
-     *  matrix that represents the transformation of a point in one coordinate system to 
+     *  system. That's the purpose of the method <code>getTransformationMatrix</code>. It will  
+     *  create a matrix that represents the transformation of a point in one coordinate system to 
      *  another.</p> 
      *  
      *  <strong>Subclassing</strong>
@@ -84,7 +88,11 @@ package starling.display
      *    <li><code>function getBounds(targetSpace:DisplayObject):Rectangle</code></li>
      *  </ul>
      *  
-     *  Have a look at the Quad and Image classes for a sample implementation of those methods. 
+     *  Have a look at the Quad and Image classes for a sample implementation of those methods.
+     * 
+     *  @see DisplayObjectContainer
+     *  @see Sprite
+     *  @see Stage 
      */
     public class DisplayObject extends EventDispatcher
     {
@@ -105,7 +113,7 @@ package starling.display
         private var mLastTouchTimestamp:Number;
         private var mParent:DisplayObjectContainer;        
         
-        /** You cannot create instances of this class. Instantiate its subclasses instead.  */ 
+        /** @private */ 
         public function DisplayObject()
         {
             if (getQualifiedClassName(this) == "starling.display::DisplayObject")
@@ -224,7 +232,7 @@ package starling.display
         }
         
         /** Returns the object that is found topmost beneath a point in local coordinates, or nil if 
-         *  the test fails. If 'forTouch' is true, untouchable and invisible objects will cause
+         *  the test fails. If "forTouch" is true, untouchable and invisible objects will cause
          *  the test to fail. */
         public function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {

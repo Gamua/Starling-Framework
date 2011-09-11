@@ -7,6 +7,10 @@
 //	in accordance with the terms of the accompanying license agreement.
 //
 // =================================================================================================
+//
+// easing functions thankfully taken from http://dojotoolkit.org
+//                                    and http://www.robertpenner.com/easing
+//
 
 package starling.animation
 {
@@ -14,9 +18,18 @@ package starling.animation
     
     import starling.errors.AbstractClassError;
     
-    // easing functions thankfully taken from http://dojotoolkit.org
-    //                                    and http://www.robertpenner.com/easing
-    
+    /** The Transitions class contains static methods that define easing functions. 
+     *  Those functions will be used by the Tween class to execute animations.
+     * 
+     *  Find a visual representation of the transitions at this 
+     *  <a href="http://www.sparrow-framework.org/wp-content/uploads/2010/06/transitions.png">link</a>.
+     * 
+     *  <p>You can define your own transitions through the "registerTransition" function. A 
+     *  transition function must have the following signature, where <code>ratio</code> is 
+     *  in the range 0-1:</p>
+     *  
+     *  <pre>function myTransition(ratio:Number):Number</pre>
+     */
     public class Transitions
     {        
         public static const LINEAR:String = "linear";
@@ -39,14 +52,17 @@ package starling.animation
         
         private static var sTransitions:Dictionary;
         
+        /** @private */
         public function Transitions() { throw new AbstractClassError(); }
         
+        /** Returns the transition function that was registered under a certain name. */ 
         public static function getTransition(name:String):Function
         {
             if (sTransitions == null) registerDefaultTransitions();
             return sTransitions[name];
         }
         
+        /** Registers a new transition function under a certain name. */
         public static function registerTransition(name:String, func:Function):void
         {
             if (sTransitions == null) registerDefaultTransitions();

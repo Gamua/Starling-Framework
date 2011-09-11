@@ -25,11 +25,11 @@ package starling.display
      *  maintaining an ordered list of children, it defines the back-to-front positioning of the 
      *  children within the display tree.
      *  
-     *  <p>A container does not have size in itself. The width and height properties represent the 
+     *  <p>A container does not a have size in itself. The width and height properties represent the 
      *  extents of its children. Changing those properties will scale all children accordingly.</p>
      *  
      *  <p>As this is an abstract class, you can't instantiate it directly, but have to 
-     *  use a subclass instead. The most lightweight container class is 'Sprite'.</p>
+     *  use a subclass instead. The most lightweight container class is "Sprite".</p>
      *  
      *  <strong>Adding and removing children</strong>
      *  
@@ -52,6 +52,9 @@ package starling.display
      *  Especially the <code>ADDED_TO_STAGE</code> event is very helpful, as it allows you to 
      *  automatically execute some logic (e.g. start an animation) when an object is rendered the 
      *  first time.
+     *  
+     *  @see Sprite
+     *  @see DisplayObject
      */
     public class DisplayObjectContainer extends DisplayObject
     {
@@ -61,8 +64,7 @@ package starling.display
         
         // construction
         
-        /** You cannot create instances of this class. Instantiate its subclasses instead. 
-         *  ('Sprite' would be a good candidate.) */
+        /** @private */
         public function DisplayObjectContainer()
         {
             if (getQualifiedClassName(this) == "starling.display::DisplayObjectContainer")
@@ -132,7 +134,7 @@ package starling.display
             }
         }
         
-        /** Removes a range of children from the container (inclusive endIndex). 
+        /** Removes a range of children from the container (endIndex included). 
          *  If no arguments are given, all children will be removed. */
         public function removeChildren(beginIndex:int=0, endIndex:int=-1, dispose:Boolean=false):void
         {
@@ -160,7 +162,7 @@ package starling.display
             return null;
         }
         
-        /** Returns the index of a child within the container, or '-1' if it is not found. */
+        /** Returns the index of a child within the container, or "-1" if it is not found. */
         public function getChildIndex(child:DisplayObject):int
         {
             return mChildren.indexOf(child);
@@ -280,6 +282,15 @@ package starling.display
                     support.popMatrix();
                 }
             }
+        }
+        
+        /** Dispatches an event on all children (recursively). The event must not bubble. */
+        public function broadcastEvent(event:Event):void
+        {
+            if (event.bubbles) 
+                throw new ArgumentError("Broadcast of bubbling events is prohibited");
+            
+            dispatchEventOnChildren(event);
         }
         
         /** @private */

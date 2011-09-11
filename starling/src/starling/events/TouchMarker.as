@@ -16,6 +16,7 @@ package starling.events
     import starling.display.Sprite;
     import starling.textures.Texture;
     
+    /** The TouchMarker is used internally to mark touches created through "simulateMultitouch". */
     internal class TouchMarker extends Sprite
     {
         [Embed(source = "media/textures/touch_marker.png")]

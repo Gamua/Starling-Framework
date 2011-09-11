@@ -20,6 +20,32 @@ package starling.textures
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
+    /** A RenderTexture is a dynamic texture onto which you can draw any display object.
+     * 
+     *  <p>After creating a render texture, just call the <code>drawObject</code> method to render 
+     *  an object directly onto the texture. The object will be drawn onto the texture at its current
+     *  position, adhering its current rotation, scale and alpha properties.</p> 
+     *  
+     *  <p>Drawing is done very efficiently, as it is happening directly in graphics memory. After 
+     *  you have drawn objects onto the texture, the performance will be just like that of a normal 
+     *  texture - no matter how many objects you have drawn.</p>
+     *  
+     *  <p>If you draw lots of objects at once, it is recommended to bundle the drawing calls in 
+     *  a block via the <code>drawBundled</code> method, like shown below. That will speed it up 
+     *  immensely, allowing you to draw hundreds of objects very quickly.</p>
+     *  
+     * 	<pre>
+     *  renderTexture.drawBundled(function():void
+     *  {
+     *     for (var i:int=0; i&lt;numDrawings; ++i)
+     *     {
+     *         image.rotation = (2 &#42; Math.PI / numDrawings) &#42; i;
+     *         renderTexture.draw(image);
+     *     }   
+     *  });
+     *  </pre>
+     *     
+     */
     public class RenderTexture extends Texture
     {
         private var mActiveTexture:Texture;
@@ -31,6 +57,11 @@ package starling.textures
         private var mNativeHeight:int;
         private var mSupport:RenderSupport;
         
+        /** Creates a new RenderTexture with a certain size. If the texture is persistent, the
+         *  contents of the texture remains intact after each draw call, allowing you to use the
+         *  texture just like a canvas. If it is not, it will be cleared before each draw call.
+         *  Persistancy doubles the required graphics memory! Thus, if you need the texture only 
+         *  for one draw (or drawBundled) call, you should deactivate it. */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true)
         {
             mSupport = new RenderSupport();
@@ -45,6 +76,7 @@ package starling.textures
             }
         }
         
+        /** @inheritDoc */
         public override function dispose():void
         {
             mActiveTexture.dispose();
@@ -58,6 +90,8 @@ package starling.textures
             super.dispose();
         }
         
+        /** Draws an object onto the texture, adhering its properties for position, scale, rotation 
+         *  and alpha. */
         public function draw(object:DisplayObject, antiAliasing:int=0):void
         {
             if (object == null) return;
@@ -76,6 +110,8 @@ package starling.textures
             }
         }
         
+        /** Bundles several calls to <code>draw</code> together in a block. This avoids buffer 
+         *  switches and allows you to draw multiple objects into a non-persistent texture. */
         public function drawBundled(drawingBlock:Function, antiAliasing:int=0):void
         {
             // limit drawing to relevant area
@@ -121,6 +157,7 @@ package starling.textures
             }
         }
         
+        /** Clears the texture (restoring full transparency). */
         public function clear():void
         {
             Starling.context.setRenderToTexture(mActiveTexture.base);
@@ -135,21 +172,28 @@ package starling.textures
             Starling.context.setRenderToBackBuffer();
         }
         
+        /** @inheritDoc */
         public override function adjustVertexData(vertexData:VertexData):VertexData
         {
             return mActiveTexture.adjustVertexData(vertexData);   
         }
         
+        /** Indicates if the texture is persistent over multiple draw calls. */
         public function get isPersistent():Boolean { return mBufferTexture != null; }
         
+        /** @inheritDoc */
         public override function get width():Number { return mActiveTexture.width; }        
+        
+        /** @inheritDoc */
         public override function get height():Number { return mActiveTexture.height; }        
         
+        /** @inheritDoc */
         public override function get premultipliedAlpha():Boolean 
         { 
             return mActiveTexture.premultipliedAlpha; 
         }
         
+        /** @inheritDoc */
         public override function get base():TextureBase 
         { 
             return mActiveTexture.base; 

@@ -14,6 +14,8 @@ package starling.animation
      *  implements the IAnimatable interface, it can be added to a juggler. In most cases, you 
      *  do not have to use this class directly; the juggler class contains a method to delay
      *  calls directly. 
+     * 
+     *  @see Juggler
      */ 
     public class DelayedCall implements IAnimatable
     {
@@ -23,7 +25,7 @@ package starling.animation
         private var mArgs:Array;
         private var mRepeatCount:int = 1;
         
-        /** Initializes a delayed call. */
+        /** Creates a delayed call. */
         public function DelayedCall(call:Function, delay:Number, args:Array=null)
         {
             mCall = call;

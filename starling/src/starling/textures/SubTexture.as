@@ -16,12 +16,19 @@ package starling.textures
     
     import starling.utils.VertexData;
 
+    /** A SubTexture represents a section of another texture. This is achieved solely by 
+     *  manipulation of texture coordinates, making the class very efficient. 
+     *
+     *  <p><em>Note that it is OK to create subtextures of subtextures.</em></p>
+     */ 
     public class SubTexture extends Texture
     {
         private var mParent:Texture;
         private var mClipping:Rectangle;
         private var mRootClipping:Rectangle;
         
+        /** Creates a new subtexture containing the specified region (in pixels) of a parent 
+         *  texture. */
         public function SubTexture(parentTexture:Texture, region:Rectangle)
         {
             mParent = parentTexture;
@@ -31,6 +38,7 @@ package starling.textures
                                           region.height / parentTexture.height);
         }
         
+        /** @inheritDoc */
         public override function adjustVertexData(vertexData:VertexData):VertexData
         {
             var newData:VertexData = super.adjustVertexData(vertexData);
@@ -51,8 +59,11 @@ package starling.textures
             return newData;
         }
         
+        /** The texture which the subtexture is based on. */ 
         public function get parent():Texture { return mParent; }
         
+        /** The clipping rectangle, which is the region provided on initialization 
+         *  scaled into [0.0, 1.0]. */
         public function get clipping():Rectangle { return mClipping.clone(); }
         public function set clipping(value:Rectangle):void
         {
@@ -71,10 +82,19 @@ package starling.textures
             }
         }
         
+        /** @inheritDoc */
         public override function get base():TextureBase { return mParent.base; }
+        
+        /** @inheritDoc */
         public override function get width():Number { return mParent.width * mClipping.width; }
+        
+        /** @inheritDoc */
         public override function get height():Number { return mParent.height * mClipping.height; }
+        
+        /** @inheritDoc */
         public override function get mipMapping():Boolean { return mParent.mipMapping; }
+        
+        /** @inheritDoc */
         public override function get premultipliedAlpha():Boolean { return mParent.premultipliedAlpha; }
     }
 }

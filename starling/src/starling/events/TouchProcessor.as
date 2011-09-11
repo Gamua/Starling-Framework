@@ -15,6 +15,9 @@ package starling.events
     import starling.display.DisplayObject;
     import starling.display.Stage;
 
+    /** @private
+     *  The TouchProcessor is used internally to convert mouse and touch events of the conventional
+     *  Flash stage to Starling's TouchEvents. */
     public class TouchProcessor
     {
         private static const MULTITAP_TIME:Number = 0.3;

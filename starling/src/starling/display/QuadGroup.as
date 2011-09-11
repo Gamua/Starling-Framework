@@ -21,6 +21,8 @@ package starling.display
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
     
+    /** A QuadGroup contains one part of the flattened contents of a Sprite that can be rendered
+     *  in one call. */
     internal class QuadGroup
     {
         private var mVertexData:VertexData;

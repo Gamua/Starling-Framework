@@ -45,11 +45,15 @@ package starling.text
 	 *  &lt;/font&gt;
      *  </pre>
      *  
-     *  <em>You don't have to use this class directly in most cases. 
-     *  The TextField class contains methods that handle bitmap fonts for you.</em>    
+     *  Pass an instance of this class to the method <code>registerBitmapFont</code> of the
+     *  TextField class. Then, set the <code>fontName</code> property of the text field to the 
+     *  <code>name</code> value of the bitmap font. This will make the text field use the bitmap
+     *  font.  
      */ 
     public class BitmapFont
     {
+        /** Use this constant for the <code>fontSize</code> property of the TextField class to 
+         *  render the bitmap font in exactly the size it was created. */ 
         public static const NATIVE_SIZE:int = -1;
         
         private static const CHAR_SPACE:int   = 32;
@@ -62,7 +66,7 @@ package starling.text
         private var mSize:Number;
         private var mLineHeight:Number;
         
-        /** Initializes a bitmap font by parsing an XML file and uses the specified texture. */
+        /** Creates a bitmap font by parsing an XML file and uses the specified texture. */
         public function BitmapFont(texture:Texture, fontXml:XML=null)
         {
             mName = "unknown";

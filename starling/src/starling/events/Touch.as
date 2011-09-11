@@ -15,6 +15,24 @@ package starling.events
     
     import starling.display.DisplayObject;
 
+    /** A Touch object contains information about the presence or movement of a finger 
+     *  or the mouse on the screen.
+     *  
+     *  <p>You receive objects of this type from a TouchEvent. When such an event is triggered, you can 
+     *  query it for all touches that are currently present on the screen. One Touch object contains
+     *  information about a single touch. A touch object always moves through a series of
+     *  TouchPhases. Have a look at the TouchPhase class for more information.</p>
+     *  
+     *  <strong>The position of a touch</strong>
+     *  
+     *  <p>You can get the current and previous position in stage coordinates with the corresponding 
+     *  properties. However, you'll want to have the position in a different coordinate system 
+     *  most of the time. For this reason, there are methods that convert the current and previous 
+     *  touches into the local coordinate system of any object.</p>
+     * 
+     *  @see TouchEvent
+     *  @see TouchPhase
+     */  
     public class Touch
     {
         private var mID:int;
@@ -27,6 +45,7 @@ package starling.events
         private var mTarget:DisplayObject;
         private var mTimestamp:Number;
         
+        /** Creates a new Touch object. */
         public function Touch(id:int, globalX:Number, globalY:Number, phase:String, target:DisplayObject)
         {
             mID = id;
@@ -37,6 +56,8 @@ package starling.events
             mTarget = target;
         }
         
+        /** Converts the current location of a touch to the local coordinate system of a display 
+         *  object. */
         public function getLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mGlobalX, mGlobalY);
@@ -44,6 +65,8 @@ package starling.events
             return transformationMatrix.transformPoint(point);
         }
         
+        /** Converts the previous location of a touch to the local coordinate system of a display 
+         *  object. */
         public function getPreviousLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
@@ -51,6 +74,7 @@ package starling.events
             return transformationMatrix.transformPoint(point);
         }
         
+        /** Creates a clone of the Touch object. */
         public function clone():Touch
         {
             var clone:Touch = new Touch(mID, mGlobalX, mGlobalY, mPhase, mTarget);
@@ -61,18 +85,37 @@ package starling.events
             return clone;
         }
         
+        /** The identifier of a touch. '0' for mouse events, an increasing number for touches. */
         public function get id():int { return mID; }
+        
+        /** The x-position of the touch in stage coordinates. */
         public function get globalX():Number { return mGlobalX; }
+
+        /** The y-position of the touch in stage coordinates. */
         public function get globalY():Number { return mGlobalY; }
+        
+        /** The previous x-position of the touch in stage coordinates. */
         public function get previousGlobalX():Number { return mPreviousGlobalX; }
+        
+        /** The previous y-position of the touch in stage coordinates. */
         public function get previousGlobalY():Number { return mPreviousGlobalY; }
+        
+        /** The number of taps the finger made in a short amount of time. Use this to detect 
+         *  double-taps / double-clicks, etc. */ 
         public function get tapCount():int { return mTapCount; }
+        
+        /** The current phase the touch is in. @see TouchPhase */
         public function get phase():String { return mPhase; }
+        
+        /** The display object at which the touch occurred. */
         public function get target():DisplayObject { return mTarget; }
+        
+        /** The moment the touch occurred (in seconds since application start). */
         public function get timestamp():Number { return mTimestamp; }
         
         // internal methods
         
+        /** @private */
         internal function setPosition(globalX:Number, globalY:Number):void
         {
             mPreviousGlobalX = mGlobalX;
@@ -81,9 +124,16 @@ package starling.events
             mGlobalY = globalY;
         }
         
+        /** @private */
         internal function setPhase(value:String):void { mPhase = value; }
+        
+        /** @private */
         internal function setTapCount(value:int):void { mTapCount = value; }
+        
+        /** @private */
         internal function setTarget(value:DisplayObject):void { mTarget = value; }
+        
+        /** @private */
         internal function setTimestamp(value:Number):void { mTimestamp = value; }
     }
 }

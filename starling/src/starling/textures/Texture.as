@@ -25,11 +25,56 @@ package starling.textures
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
+    /** <p>A texture stores the information that represents an image. It cannot be added to the
+     *  display list directly; instead it has to be mapped onto a display object. In Starling, 
+     *  that display object is the class "Image".</p>
+     * 
+     *  <strong>Texture Formats</strong>
+     *  
+     *  <p>Since textures can be created from a "BitmapData" object, Starling supports any bitmap
+     *  format that is supported by Flash. And since you can render any Flash display object into
+     *  a BitmapData object, you can use this to display non-Starling content in Starling - e.g.
+     *  Shape objects.</p>
+     *  
+     *  <p>Starling also supports ATF textures (Adobe Texture Format), which is a container for
+     *  compressed texture formats that can be rendered very efficiently by the GPU. Refer to 
+     *  the Flash documentation for more information about this format.</p>
+     *  
+     *  <strong>Mip Mapping</strong>
+     *  
+     *  <p>MipMaps are scaled down versions of a texture. When an image is displayed smaller than
+     *  its natural size, the GPU may display the mip maps instead of the original texture. This
+     *  reduces aliasing and accelerates rendering. It does, however, also need additional memory;
+     *  for that reason, you can choose if you want to create them or not.</p>  
+     *  
+     *  <strong>Texture Frame</strong>
+     *  
+     *  <p>The frame property of a texture allows you to define the position where the texture will 
+     *  appear within an Image. The rectangle is specified in the coordinate system of the 
+     *  texture (not the image):</p>
+     *  
+     *  <listing>
+     *  texture.frame = new Rectangle(-10, -10, 30, 30);
+     *  var image:Image = new Image(texture);
+     *  </listing>
+     *  
+     *  <p>This code would create an image with a size of 30x30, with the texture placed at 
+     *  <code>x=10, y=10</code> within that image (assuming that the texture has a width and 
+     *  height of 10 pixels, it would appear in the middle of the image). 
+     *  The texture atlas makes use of this feature, as it allows to crop transparent edges
+     *  of a texture and making up for the changed size by specifying the original texture frame.
+     *  Tools like <a href="http://www.texturepacker.com/">TexturePacker</a> use this to  
+     *  optimize the atlas.</p> 
+     *  
+     *  @see starling.display.Image
+     *  @see TextureAtlas
+     */ 
     public class Texture
     {
         private var mFrame:Rectangle;
         private var mRepeat:Boolean;
         
+        /** @private */
         public function Texture()
         {
             if (getQualifiedClassName(this) == "starling.textures::Texture")
@@ -38,15 +83,18 @@ package starling.textures
             mRepeat = false;
         }
         
+        /** Disposes the underlying texture data. */
         public function dispose():void
         { }
         
+        /** Creates a texture object from a bitmap.*/
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
                                           optimizeForRenderTexture:Boolean=false):Texture
         {
             return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture);
         }
         
+        /** Creates a texture from bitmap data. */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
                                               optimizeForRenderTexture:Boolean=false):Texture
         {
@@ -77,6 +125,7 @@ package starling.textures
             return fromTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight));
         }
         
+        /** Creates a texture from the compressed ATF format. */ 
         public static function fromAtfData(data:ByteArray):Texture
         {
             var signature:String = String.fromCharCode(data[0], data[1], data[2]);
@@ -96,6 +145,8 @@ package starling.textures
             return new ConcreteTexture(nativeTexture, width, height, textureCount > 1, false);
         }
         
+        /** Creates a texture that contains a region (in pixels) of another texture. The new
+         *  texture will reference the base texture; no data is duplicated. */
         public static function fromTexture(texture:Texture, region:Rectangle):Texture
         {
             if (region.x == 0 && region.y == 0 && 
@@ -109,6 +160,8 @@ package starling.textures
             }            
         }
         
+        /** Creates an empty texture of a certain size and color. The color parameter
+         *  expects data in ARGB format. */
         public static function empty(width:int=64, height:int=64, color:uint=0xffffffff,
                                      optimizeForRenderTexture:Boolean=false):Texture
         {
@@ -118,6 +171,8 @@ package starling.textures
             return texture;
         }
         
+        /** Converts texture coordinates and vertex positions of raw vertex data into the format 
+         *  required for rendering. */
         public function adjustVertexData(vertexData:VertexData):VertexData
         {
             var clone:VertexData = vertexData.clone();
@@ -164,16 +219,29 @@ package starling.textures
             }
         }
         
+        /** The texture frame (see class description). @default null */
         public function get frame():Rectangle { return mFrame; }
         public function set frame(value:Rectangle):void { mFrame = value ? value.clone() : null; }
         
+        /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
+         *  Note: this makes sense only in textures with sidelengths that are powers of two and 
+         *  that are not loaded from a texture atlas (i.e. no subtextures). @default false */
         public function get repeat():Boolean { return mRepeat; }
         public function set repeat(value:Boolean):void { mRepeat = value; }
         
-        public function get width():Number { return 0; }        
-        public function get height():Number { return 0; }        
+        /** The width of the texture in pixels. */
+        public function get width():Number { return 0; }
+        
+        /** The height of the texture in pixels. */
+        public function get height():Number { return 0; }
+        
+        /** The Stage3D texture object the texture is based on. */
         public function get base():TextureBase { return null; }
+        
+        /** Indicates if the texture contains mip maps. */ 
         public function get mipMapping():Boolean { return false; }
+        
+        /** Indicates if the alpha values are premultiplied into the RGB values. */
         public function get premultipliedAlpha():Boolean { return false; }
     }
 }

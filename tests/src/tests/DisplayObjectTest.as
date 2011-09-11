@@ -44,7 +44,7 @@ package tests
         }
         
         [Test]
-        public function testGetTransformationMatrixToSpace():void
+        public function testGetTransformationMatrix():void
         {
             var sprite:Sprite = new Sprite();
             var child:Sprite = new Sprite();
@@ -55,12 +55,12 @@ package tests
             child.rotation = Math.PI / 4.0;
             sprite.addChild(child);
             
-            var matrix:Matrix = sprite.getTransformationMatrixToSpace(child);
+            var matrix:Matrix = sprite.getTransformationMatrix(child);
             var expectedMatrix:Matrix = child.transformationMatrix;
             expectedMatrix.invert();            
             Assert.assertObjectEquals(expectedMatrix, matrix);
             
-            matrix = child.getTransformationMatrixToSpace(sprite);
+            matrix = child.getTransformationMatrix(sprite);
             Assert.assertObjectEquals(child.transformationMatrix, matrix);
                         
             // more is tested indirectly via 'testBoundsInSpace' in DisplayObjectContainerTest            

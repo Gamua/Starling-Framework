@@ -26,11 +26,28 @@ package starling.display
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
     
+    /** An Image is a quad with a texture mapped onto it.
+     *  
+     *  <p>The Image class is the Starling equivalent of Flash's Bitmap class. Instead of 
+     *  BitmapData, Starling uses textures to represent the pixels of an image. To display a 
+     *  texture, you have to map it onto a quad - and that's what the Image class is for.</p>
+     *  
+     *  <p>As "Image" inherits from "Quad", you can give it a color. For each pixel, the resulting  
+     *  color will be the result of the multiplication of the color of the texture with the color of 
+     *  the quad. That way, you can easily tint textures with a certain color. Furthermore, images 
+     *  allow the manipulation of texture coordinates. That way, you can move a texture inside an 
+     *  image without changing any vertex coordinates of the quad. You can also use this feature
+     *  as a very efficient way to create a rectangular mask.</p> 
+     *  
+     *  @see starling.textures.Texture
+     *  @see Quad
+     */ 
     public class Image extends Quad
     {
         private var mTexture:Texture;
         private var mSmoothing:String;
         
+        /** Creates a quad with a texture mapped onto it. */
         public function Image(texture:Texture)
         {
             if (texture)
@@ -55,27 +72,39 @@ package starling.display
             }
         }
         
+        /** Disposes vertex- and index-buffer, but does NOT dispose the texture! */
+        public override function dispose():void
+        {
+            super.dispose();
+        }
+        
+        /** Creates an Image with a texture that is created from a bitmap object. */
         public static function fromBitmap(bitmap:Bitmap):Image
         {
             return new Image(Texture.fromBitmap(bitmap));
         }
         
+        /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
         public function setTexCoords(vertexID:int, coords:Point):void
         {
             mVertexData.setTexCoords(vertexID, coords.x, coords.y);
             if (mVertexBuffer) createVertexBuffer();
         }
         
+        /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
         public function getTexCoords(vertexID:int):Point
         {
             return mVertexData.getTexCoords(vertexID);
         }
         
+        /** Returns a 'VertexData' object with the raw data of the object required for rendering.
+         *  The texture coordinates are already in their refined format. */ 
         public override function get vertexData():VertexData
         {
             return mTexture.adjustVertexData(mVertexData);
         }
         
+        /** The texture that is displayed on the quad. */
         public function get texture():Texture { return mTexture; }
         public function set texture(value:Texture):void 
         { 
@@ -91,6 +120,9 @@ package starling.display
             }
         }
         
+        /** The smoothing filter that is used for the texture. 
+        *   @default bilinear
+        *   @see starling.textures.TextureSmoothing */ 
         public function get smoothing():String { return mSmoothing; }
         public function set smoothing(value:String):void 
         {
@@ -100,6 +132,7 @@ package starling.display
                 throw new ArgumentError("Invalid smoothing mode: " + smoothing);
         }
         
+        /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
             alpha *= this.alpha;
@@ -131,6 +164,8 @@ package starling.display
             context.setVertexBufferAt(2, null);
         }
 
+        /** Registers the vertex and fragment programs required in the 'render' method at a 
+         *  Starling object. You don't have to call this method manually. */
         public static function registerPrograms(target:Starling):void
         {
             // create vertex and fragment programs - from assembly.
@@ -182,6 +217,8 @@ package starling.display
             }
         }
         
+        /** Get the name of the Shader program that is used for rendering. 
+         *  The program is registered under that name at the current Starling object. */
         public static function getProgramName(mipMap:Boolean=true, repeat:Boolean=false, 
                                               smoothing:String="bilinear"):String
         {

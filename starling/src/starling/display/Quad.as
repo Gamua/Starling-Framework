@@ -27,14 +27,38 @@ package starling.display
     import starling.errors.MissingContextError;
     import starling.utils.VertexData;
 
+    /** A Quad represents a rectangle with a uniform color or a color gradient.
+     *  
+     *  <p>You can set one color per vertex. The colors will smoothly fade into each other over the area
+     *  of the quad. To display a simple linear color gradient, assign one color to vertices 0 and 1 and 
+     *  another color to vertices 2 and 3. </p> 
+     *
+     *  <p>The indices of the vertices are arranged like this:</p>
+     *  
+     *  <pre>
+     *  0 - 1
+     *  | / |
+     *  2 - 3
+     *  </pre>
+     * 
+     *  @see Image
+     */
     public class Quad extends DisplayObject
     {
+        /** The name of the shader program used when a quad is rendered. The program is registered
+         *  under this name at the Starling object. */
         public static const PROGRAM_NAME:String = "quad";
         
+        /** The raw vertex data of the quad. */
         protected var mVertexData:VertexData;
+        
+        /** The vertex buffer object containing the vertex data of the quad. */
         protected var mVertexBuffer:VertexBuffer3D;
+        
+        /** The index buffer object used to render the quad. */
         protected var mIndexBuffer:IndexBuffer3D;
         
+        /** Creates a quad with a certain size and color. */
         public function Quad(width:Number, height:Number, color:uint=0xffffff)
         {
             mVertexData = new VertexData(4, true);
@@ -45,6 +69,7 @@ package starling.display
             mVertexData.setUniformColor(color);
         }
         
+        /** Disposes vertex- and index-buffer of the quad. */
         public override function dispose():void
         {
             if (mVertexBuffer) mVertexBuffer.dispose();
@@ -53,6 +78,7 @@ package starling.display
             super.dispose();
         }
         
+        /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject):Rectangle
         {
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
@@ -92,44 +118,52 @@ package starling.display
             return new Rectangle(minX, minY, maxX-minX, maxY-minY);
         }
         
+        /** Returns the color of a vertex at a certain index. */
         public function getVertexColor(vertexID:int):uint
         {
             return mVertexData.getColor(vertexID);
         }
         
+        /** Sets the color of a vertex at a certain index. */
         public function setVertexColor(vertexID:int, color:uint):void
         {
             mVertexData.setColor(vertexID, color);
             if (mVertexBuffer) createVertexBuffer();
         }
         
+        /** Returns the alpha value of a vertex at a certain index. */
         public function getVertexAlpha(vertexID:int):Number
         {
             return mVertexData.getAlpha(vertexID);
         }
         
+        /** Sets the alpha value of a vertex at a certain index. */
         public function setVertexAlpha(vertexID:int, alpha:Number):void
         {
             mVertexData.setAlpha(vertexID, alpha);
             if (mVertexBuffer) createVertexBuffer();
         }
         
+        /** Returns the color of the quad, or of vertex 0 if vertices have different colors. */
         public function get color():uint 
         { 
             return mVertexData.getColor(0); 
         }
         
+        /** Sets the colors of all vertices to a certain value. */
         public function set color(value:uint):void 
         {
             mVertexData.setUniformColor(value);
             if (mVertexBuffer) createVertexBuffer();
         }
         
+        /** Returns a clone of the raw vertex data. */
         public function get vertexData():VertexData 
         { 
             return mVertexData.clone(); 
         }
         
+        /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
             alpha *= this.alpha;
@@ -154,6 +188,7 @@ package starling.display
             context.setVertexBufferAt(1, null);
         }
         
+        /** Creates the vertex buffer from the raw vertex data at the current render context. */
         protected function createVertexBuffer():void
         {
             if (mVertexBuffer == null) 
@@ -162,6 +197,7 @@ package starling.display
             mVertexBuffer.uploadFromVector(vertexData.data, 0, 4);
         }
         
+        /** Creates the index buffer at the current render context. */
         protected function createIndexBuffer():void
         {
             if (mIndexBuffer == null) 
@@ -170,6 +206,8 @@ package starling.display
             mIndexBuffer.uploadFromVector(Vector.<uint>([0, 1, 2, 1, 3, 2]), 0, 6);
         }
         
+        /** Registers the vertex and fragment program required in the 'render' method at a 
+         *  Starling object. You don't have to call this method manually. */
         public static function registerPrograms(target:Starling):void
         {
             // create a vertex and fragment program - from assembly

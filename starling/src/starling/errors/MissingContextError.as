@@ -10,8 +10,11 @@
 
 package starling.errors
 {
+    /** A MissingContextError is thrown when a Context3D object is required but not (yet) 
+     *  available. */
     public class MissingContextError extends Error
     {
+        /** Creates a new MissingContextError object. */
         public function MissingContextError(message:*="", id:*=0)
         {
             super(message, id);
