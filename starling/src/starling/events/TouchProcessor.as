@@ -174,17 +174,25 @@ package starling.events
         {
             if (event.keyCode == 17) // ctrl key
             {
+                var wasCtrlDown:Boolean = mCtrlDown;
                 mCtrlDown = event.type == KeyboardEvent.KEY_DOWN;
                 
-                if (simulateMultitouch)
+                if (simulateMultitouch && wasCtrlDown != mCtrlDown)
                 {
                     mTouchMarker.visible = mCtrlDown;
                     mTouchMarker.moveCenter(mStage.stageWidth/2, mStage.stageHeight/2);
                     
-                    // if currently active, end mocked touch
+                    var mouseTouch:Touch = getCurrentTouch(0);
                     var mockedTouch:Touch = getCurrentTouch(1);
-                    if (mockedTouch && mockedTouch.phase != TouchPhase.ENDED) 
-                        enqueue(1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY);
+                    
+                    if (mouseTouch)
+                        mTouchMarker.moveMarker(mouseTouch.globalX, mouseTouch.globalY);
+                    
+                    // end active touch or start new one
+                    if (wasCtrlDown && mockedTouch && mockedTouch.phase != TouchPhase.ENDED)
+                        mQueue.unshift([1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
+                    else if (mCtrlDown && mouseTouch && (mouseTouch.phase != TouchPhase.ENDED || mouseTouch.phase != TouchPhase.HOVER))
+                        mQueue.unshift([1, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
                 }
             }
             else if (event.keyCode == 16) // shift key 
