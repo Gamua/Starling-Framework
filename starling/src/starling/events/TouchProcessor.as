@@ -83,7 +83,7 @@ package starling.events
                     
                     // check if target is still connected to stage, otherwise find new target
                     if (currentTouch.target.stage == null)
-                        currentTouch.setTarget(mStage.hitTestPoint(
+                        currentTouch.setTarget(mStage.hitTest(
                             new Point(currentTouch.globalX, currentTouch.globalY), true));
                 }
                 
@@ -164,7 +164,7 @@ package starling.events
             touch.setTimestamp(mElapsedTime);
             
             if (phase == TouchPhase.HOVER || phase == TouchPhase.BEGAN)
-                touch.setTarget(mStage.hitTestPoint(position, true));
+                touch.setTarget(mStage.hitTest(position, true));
             
             if (phase == TouchPhase.BEGAN)
                 processTap(touch);

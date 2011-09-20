@@ -14,7 +14,7 @@ package utils
             super(upState, text, downState);
         }
         
-        public override function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             // When the user touches the screen, this method is used to find out if an object was 
             // hit. By default, this method uses the bounding box, but by overriding it, 

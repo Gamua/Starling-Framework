@@ -234,7 +234,7 @@ package starling.display
         /** Returns the object that is found topmost beneath a point in local coordinates, or nil if 
          *  the test fails. If "forTouch" is true, untouchable and invisible objects will cause
          *  the test to fail. */
-        public function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             // on a touch test, invisible or untouchable objects cause the test to fail
             if (forTouch && (!mVisible || !mTouchable)) return null;

@@ -247,7 +247,7 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable))
                 return null;
@@ -258,7 +258,7 @@ package starling.display
                 var child:DisplayObject = mChildren[i];
                 var transformationMatrix:Matrix = getTransformationMatrix(child);
                 var transformedPoint:Point = transformationMatrix.transformPoint(localPoint);
-                var target:DisplayObject = child.hitTestPoint(transformedPoint, forTouch);
+                var target:DisplayObject = child.hitTest(transformedPoint, forTouch);
                 if (target) return target;
             }
             

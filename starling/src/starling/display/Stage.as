@@ -73,13 +73,13 @@ package starling.display
 
         /** Returns the object that is found topmost beneath a point in stage coordinates, or  
          *  the stage itself if nothing else is found. */
-        public override function hitTestPoint(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable))
                 return null;
             
             // if nothing else is hit, the stage returns itself as target
-            var target:DisplayObject = super.hitTestPoint(localPoint, forTouch);
+            var target:DisplayObject = super.hitTest(localPoint, forTouch);
             if (target == null) target = this;
             return target;
         }

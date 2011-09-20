@@ -154,24 +154,24 @@ package tests
         public function testHitTestPoint():void
         {
             var quad:Quad = new Quad(25, 10);            
-            Assert.assertNotNull(quad.hitTestPoint(new Point(15, 5), true));
-            Assert.assertNotNull(quad.hitTestPoint(new Point(0, 0), true));
-            Assert.assertNotNull(quad.hitTestPoint(new Point(24.99, 0), true));
-            Assert.assertNotNull(quad.hitTestPoint(new Point(24.99, 9.99), true));
-            Assert.assertNotNull(quad.hitTestPoint(new Point(0, 9.99), true));
-            Assert.assertNull(quad.hitTestPoint(new Point(-1, -1), true));
-            Assert.assertNull(quad.hitTestPoint(new Point(25.01, 10.01), true));
+            Assert.assertNotNull(quad.hitTest(new Point(15, 5), true));
+            Assert.assertNotNull(quad.hitTest(new Point(0, 0), true));
+            Assert.assertNotNull(quad.hitTest(new Point(24.99, 0), true));
+            Assert.assertNotNull(quad.hitTest(new Point(24.99, 9.99), true));
+            Assert.assertNotNull(quad.hitTest(new Point(0, 9.99), true));
+            Assert.assertNull(quad.hitTest(new Point(-1, -1), true));
+            Assert.assertNull(quad.hitTest(new Point(25.01, 10.01), true));
             
             quad.visible = false;
-            Assert.assertNull(quad.hitTestPoint(new Point(15, 5), true));
+            Assert.assertNull(quad.hitTest(new Point(15, 5), true));
             
             quad.visible = true;
             quad.touchable = false;
-            Assert.assertNull(quad.hitTestPoint(new Point(10, 5), true));
+            Assert.assertNull(quad.hitTest(new Point(10, 5), true));
             
             quad.visible = false;
             quad.touchable = false;
-            Assert.assertNull(quad.hitTestPoint(new Point(10, 5), true));
+            Assert.assertNull(quad.hitTest(new Point(10, 5), true));
         }
         
         [Test]
