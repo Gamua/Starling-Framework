@@ -14,9 +14,10 @@ package scenes
             var description:String = 
                 "- touch and drag to move the images \n" +
                 "- pinch with 2 fingers to scale and rotate \n" +
-                "- double tap brings an image to the front";
+                "- double tap brings an image to the front \n" +
+                "- use Ctrl/Cmd & Shift to simulate multi-touch";
             
-            var infoText:TextField = new TextField(300, 100, description);
+            var infoText:TextField = new TextField(300, 75, description);
             infoText.x = infoText.y = 10;
             infoText.vAlign = VAlign.TOP;
             infoText.hAlign = HAlign.LEFT;

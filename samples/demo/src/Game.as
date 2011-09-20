@@ -37,6 +37,8 @@ package
             addChild(mMainMenu);
             
             var logo:Image = new Image(Assets.getTexture("Logo"));
+            logo.x = int((bg.width - logo.width) / 2);
+            logo.y = 50;
             mMainMenu.addChild(logo);
             
             var scenesToCreate:Array = [
@@ -60,7 +62,7 @@ package
                 
                 var button:Button = new Button(buttonTexture, sceneTitle);
                 button.x = count % 2 == 0 ? 28 : 167;
-                button.y = 150 + int(count / 2) * 52;
+                button.y = 180 + int(count / 2) * 52;
                 button.name = getQualifiedClassName(sceneClass);
                 button.addEventListener(Event.TRIGGERED, onButtonTriggered);
                 mMainMenu.addChild(button);
