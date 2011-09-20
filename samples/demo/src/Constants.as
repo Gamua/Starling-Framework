@@ -8,6 +8,6 @@ package
         public static const CenterX:int = GameWidth / 2;
         public static const CenterY:int = GameHeight / 2;
         
-        public static const FPS:int = 30;
+        public static const FPS:int = 60;
     }
 }
