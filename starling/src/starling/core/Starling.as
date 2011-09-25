@@ -485,6 +485,12 @@ package starling.core
             return mNativeOverlay;
         }
         
+        /** The Flash (2D) stage Starling renders beneath. */
+        public function get nativeStage():flash.display.Stage
+        {
+            return mNativeStage;
+        }
+        
         // static properties
         
         /** The currently active Starling instance. */
