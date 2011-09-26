@@ -485,6 +485,12 @@ package starling.core
             return mNativeOverlay;
         }
         
+        /** The Starling stage object, which is the root of the display tree that is rendered. */
+        public function get stage():Stage
+        {
+            return mStage;
+        }
+        
         /** The Flash (2D) stage Starling renders beneath. */
         public function get nativeStage():flash.display.Stage
         {
