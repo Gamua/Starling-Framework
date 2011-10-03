@@ -1,5 +1,5 @@
-Starling Framework: the Hardware accelerated 2D Engine for Flash
-================================================================
+Starling Framework: the GPU powered 2D Flash API
+================================================
 
 What is Starling?
 -----------------
@@ -17,7 +17,7 @@ Here are a few starting points:
 
 * [Official Homepage](http://www.starling-framework.org)
 * [API Reference](http://doc.starling-framework.org)
-* [Support Forum](http://forum.strling-framework.org)
+* [Support Forum](http://forum.starling-framework.org)
 * [Tutorial Book](http://www.bytearray.org/?p=3371)
 
 
