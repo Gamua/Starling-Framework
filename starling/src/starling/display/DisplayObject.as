@@ -279,7 +279,7 @@ package starling.display
          *  @param alpha The accumulated alpha value from the object's parent up to the stage. */
         public function render(support:RenderSupport, alpha:Number):void
         {
-            // override in subclass
+            throw new AbstractMethodError("Method needs to be implemented in subclass");
         }
         
         /** @inheritDoc */
