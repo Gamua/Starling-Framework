@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<application xmlns="http://ns.adobe.com/air/application/3.0">
+	<id>DeviceStartup</id>
+	<filename>DeviceStartup</filename>
+	<name>DeviceStartup</name>
+	
+	<versionNumber>0.0.0</versionNumber>
+	<initialWindow>
+		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
+		<autoOrients>false</autoOrients>
+        <fullScreen>false</fullScreen>
+        <visible>true</visible>
+        <renderMode>direct</renderMode>
+    </initialWindow>
+</application>
