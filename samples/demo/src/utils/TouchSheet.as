@@ -7,7 +7,7 @@ package utils
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
-    
+
     public class TouchSheet extends Sprite
     {
         public function TouchSheet(contents:DisplayObject=null)
@@ -53,7 +53,18 @@ package utils
                 var previousAngle:Number = Math.atan2(previousVector.y, previousVector.x);
                 var deltaAngle:Number = currentAngle - previousAngle;
                 
-                // rotate
+				
+				// update pivot point based on previous center
+				var previousLocalA:Point  = touchA.getPreviousLocation(this);
+				var previousLocalB:Point  = touchB.getPreviousLocation(this);
+				pivotX = (previousLocalA.x + previousLocalB.x)*.5;
+				pivotY = (previousLocalA.y + previousLocalB.y)*.5;
+				
+				// update location based on the current center
+				x = (currentPosA.x + currentPosB.x)*.5;
+				y = (currentPosA.y + currentPosB.y)*.5;
+				
+				// rotate
                 rotation += deltaAngle;
 
                 // scale
