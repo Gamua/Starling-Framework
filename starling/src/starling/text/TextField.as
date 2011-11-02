@@ -464,5 +464,11 @@ package starling.text
             
             delete sBitmapFonts[name];
         }
+        
+        /** Check if a bitmap font is available. */
+        public static function hasBitmapFont(name:String):Boolean 
+        {
+            return name in sBitmapFonts;
+        }
     }
 }

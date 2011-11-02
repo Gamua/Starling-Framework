@@ -184,8 +184,15 @@ package starling.core
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
             mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 0, true);
             
-            try { mStage3D.requestContext3D(renderMode); } 
-            catch (e:Error) { showFatalError("Context3D error: " + e.message); }
+            if (mStage3D.context3D == null)
+            {
+                try { mStage3D.requestContext3D(renderMode); } 
+                catch (e:Error) { showFatalError("Context3D error: " + e.message); }
+            }
+            else 
+            {
+                initialize();
+            }
         }
         
         /** Disposes Shader programs and render context. */
@@ -199,6 +206,15 @@ package starling.core
         }
         
         // functions
+        
+        private function initialize():void 
+        {
+            initializeGraphicsAPI();
+            initializePrograms();
+            initializeRoot();
+            
+            mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
+        }
         
         private function initializeGraphicsAPI():void
         {
@@ -315,11 +331,7 @@ package starling.core
         
         private function onContextCreated(event:Event):void
         {            
-            initializeGraphicsAPI();
-            initializePrograms();
-            initializeRoot();
-            
-            mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
+            initialize();
         }
         
         private function onEnterFrame(event:Event):void
