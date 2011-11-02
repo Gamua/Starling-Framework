@@ -111,7 +111,7 @@ package starling.display
         public function get texture():TextureBase { return mTexture; }
         public function get smoothing():String { return mSmoothing; }
         public function get repeat():Boolean { return mRepeat; }
-        public function get mipMapping():Boolean { return mipMapping; }
+        public function get mipMapping():Boolean { return mMipMapping; }
         
         public static function compile(container:DisplayObjectContainer):Vector.<QuadGroup>
         {
