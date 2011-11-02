@@ -28,6 +28,7 @@ package utils
             
             if (touches.length == 1)
             {
+                // one finger touching -> move
                 var touch:Touch = touches[0];
                 var currentPos:Point = touch.getLocation(parent);
                 var previousPos:Point = touch.getPreviousLocation(parent);
@@ -38,6 +39,7 @@ package utils
             }            
             else if (touches.length == 2)
             {
+                // two fingers touching -> rotate and scale
                 var touchA:Touch = touches[0];
                 var touchB:Touch = touches[1];
                 
@@ -53,16 +55,15 @@ package utils
                 var previousAngle:Number = Math.atan2(previousVector.y, previousVector.x);
                 var deltaAngle:Number = currentAngle - previousAngle;
                 
-				
 				// update pivot point based on previous center
 				var previousLocalA:Point  = touchA.getPreviousLocation(this);
 				var previousLocalB:Point  = touchB.getPreviousLocation(this);
-				pivotX = (previousLocalA.x + previousLocalB.x)*.5;
-				pivotY = (previousLocalA.y + previousLocalB.y)*.5;
+				pivotX = (previousLocalA.x + previousLocalB.x) * 0.5;
+				pivotY = (previousLocalA.y + previousLocalB.y) * 0.5;
 				
 				// update location based on the current center
-				x = (currentPosA.x + currentPosB.x)*.5;
-				y = (currentPosA.y + currentPosB.y)*.5;
+				x = (currentPosA.x + currentPosB.x) * 0.5;
+				y = (currentPosA.y + currentPosB.y) * 0.5;
 				
 				// rotate
                 rotation += deltaAngle;
