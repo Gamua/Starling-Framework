@@ -28,13 +28,16 @@ package tests
         
         private var mAdded:int;
         private var mAddedToStage:int;
+        private var mAddedChild:int;
         private var mRemoved:int;
         private var mRemovedFromStage:int;
+        private var mRemovedChild:int;
         
         [Before]
         public function setUp():void 
         {
-            mAdded = mAddedToStage = mRemoved = mRemovedFromStage = 0;
+            mAdded = mAddedToStage = mAddedChild = 
+            mRemoved = mRemovedFromStage = mRemovedChild = 0;
         }
         
         [After]
@@ -358,29 +361,40 @@ package tests
             quad.addEventListener(Event.REMOVED, onRemoved);
             quad.addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
             
+            stage.addEventListener(Event.ADDED, onAddedChild);
+            stage.addEventListener(Event.REMOVED, onRemovedChild);
+            
             sprite.addChild(quad);            
             Assert.assertEquals(1, mAdded);
             Assert.assertEquals(0, mRemoved);
             Assert.assertEquals(0, mAddedToStage);
             Assert.assertEquals(0, mRemovedFromStage);
+            Assert.assertEquals(0, mAddedChild);
+            Assert.assertEquals(0, mRemovedChild);
             
             stage.addChild(sprite);
             Assert.assertEquals(1, mAdded);
             Assert.assertEquals(0, mRemoved);
             Assert.assertEquals(1, mAddedToStage);
             Assert.assertEquals(0, mRemovedFromStage);
+            Assert.assertEquals(1, mAddedChild);
+            Assert.assertEquals(0, mRemovedChild);
             
             stage.removeChild(sprite);
             Assert.assertEquals(1, mAdded);
             Assert.assertEquals(0, mRemoved);
             Assert.assertEquals(1, mAddedToStage);
             Assert.assertEquals(1, mRemovedFromStage);
+            Assert.assertEquals(1, mAddedChild);
+            Assert.assertEquals(1, mRemovedChild);
             
             sprite.removeChild(quad);
             Assert.assertEquals(1, mAdded);
             Assert.assertEquals(1, mRemoved);
             Assert.assertEquals(1, mAddedToStage);
             Assert.assertEquals(1, mRemovedFromStage);
+            Assert.assertEquals(1, mAddedChild);
+            Assert.assertEquals(1, mRemovedChild);
         }
         
         [Test]
@@ -402,8 +416,11 @@ package tests
         }
         
         private function onAdded(event:Event):void { mAdded++; }
-        private function onRemoved(event:Event):void { mRemoved++; }
         private function onAddedToStage(event:Event):void { mAddedToStage++; }
-        private function onRemovedFromStage(event:Event):void { mRemovedFromStage++; }        
+        private function onAddedChild(event:Event):void { mAddedChild++; }
+        
+        private function onRemoved(event:Event):void { mRemoved++; }
+        private function onRemovedFromStage(event:Event):void { mRemovedFromStage++; }
+        private function onRemovedChild(event:Event):void { mRemovedChild++; }
     }
 }
