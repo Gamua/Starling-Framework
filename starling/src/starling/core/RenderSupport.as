@@ -31,15 +31,17 @@ package starling.core
         private var mProjectionMatrix:Matrix3D;
         private var mModelViewMatrix:Matrix3D;        
         private var mMatrixStack:Vector.<Matrix3D>;
+        private var mMatrixStackSize:int;
         
         // construction
         
         /** Creates a new RenderSupport object with an empty matrix stack. */
         public function RenderSupport()
         {
-            mMatrixStack = new <Matrix3D>[];
             mProjectionMatrix = new Matrix3D();
             mModelViewMatrix = new Matrix3D();
+            mMatrixStack = new <Matrix3D>[];
+            mMatrixStackSize = 0;
             
             loadIdentity();
             setOrthographicProjection(400, 300);
@@ -95,21 +97,22 @@ package starling.core
         /** Pushes the current modelview matrix to a stack from which it can be restored later. */
         public function pushMatrix():void
         {
-            mMatrixStack.push(mModelViewMatrix.clone());
+            if (mMatrixStack.length < mMatrixStackSize + 1)
+                mMatrixStack.push(new Matrix3D());
+            
+            mMatrixStack[mMatrixStackSize++].copyFrom(mModelViewMatrix);
         }
         
         /** Restores the modelview matrix that was last pushed to the stack. */
         public function popMatrix():void
         {
-            mModelViewMatrix = mMatrixStack.pop();
+            mModelViewMatrix.copyFrom(mMatrixStack[--mMatrixStackSize]);
         }
         
         /** Empties the matrix stack, resets the modelview matrox to the identity matrix. */
         public function resetMatrix():void
         {
-            if (mMatrixStack.length != 0)
-                mMatrixStack = new <Matrix3D>[];
-            
+            mMatrixStackSize = 0;
             loadIdentity();
         }
         
