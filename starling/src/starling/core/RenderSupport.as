@@ -29,7 +29,8 @@ package starling.core
         // members        
         
         private var mProjectionMatrix:Matrix3D;
-        private var mModelViewMatrix:Matrix3D;        
+        private var mModelViewMatrix:Matrix3D;
+        private var mMvpMatrix:Matrix3D;
         private var mMatrixStack:Vector.<Matrix3D>;
         private var mMatrixStackSize:int;
         
@@ -40,6 +41,7 @@ package starling.core
         {
             mProjectionMatrix = new Matrix3D();
             mModelViewMatrix = new Matrix3D();
+            mMvpMatrix = new Matrix3D();
             mMatrixStack = new <Matrix3D>[];
             mMatrixStackSize = 0;
             
@@ -109,20 +111,21 @@ package starling.core
             mModelViewMatrix.copyFrom(mMatrixStack[--mMatrixStackSize]);
         }
         
-        /** Empties the matrix stack, resets the modelview matrox to the identity matrix. */
+        /** Empties the matrix stack, resets the modelview matrix to the identity matrix. */
         public function resetMatrix():void
         {
             mMatrixStackSize = 0;
             loadIdentity();
         }
         
-        /** Calculates the product of modelview and projection matrix. */
+        /** Calculates the product of modelview and projection matrix. 
+         *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
         public function get mvpMatrix():Matrix3D
         {
-            var mvpMatrix:Matrix3D = new Matrix3D();
-            mvpMatrix.append(mModelViewMatrix);
-            mvpMatrix.append(mProjectionMatrix);
-            return mvpMatrix;
+            mMvpMatrix.identity();
+            mMvpMatrix.append(mModelViewMatrix);
+            mMvpMatrix.append(mProjectionMatrix);
+            return mMvpMatrix;
         }
         
         /** Prepends translation, scale and rotation of an object to a custom matrix. */
