@@ -58,6 +58,9 @@ package starling.display
         /** The index buffer object used to render the quad. */
         protected var mIndexBuffer:IndexBuffer3D;
         
+        /** A helper object for the render method. **/
+        protected static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
+        
         /** Creates a quad with a certain size and color. */
         public function Quad(width:Number, height:Number, color:uint=0xffffff)
         {
@@ -167,8 +170,8 @@ package starling.display
         public override function render(support:RenderSupport, alpha:Number):void
         {
             alpha *= this.alpha;
+            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = alpha;
             
-            var alphaVector:Vector.<Number> = new <Number>[alpha, alpha, alpha, alpha];
             var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
@@ -181,7 +184,7 @@ package starling.display
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix, true);            
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, alphaVector, 1);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
             context.drawTriangles(mIndexBuffer, 0, 2);
             
             context.setVertexBufferAt(0, null);
