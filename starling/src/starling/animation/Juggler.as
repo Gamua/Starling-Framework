@@ -47,7 +47,7 @@ package starling.animation
      */
     public class Juggler implements IAnimatable
     {
-        private var mObjects:Array;
+        private var mObjects:Vector.<Object>;
         private var mElapsedTime:Number;        
         private var mDisplayObject:DisplayObject;
         
@@ -55,7 +55,7 @@ package starling.animation
         public function Juggler()
         {
             mElapsedTime = 0;
-            mObjects = [];
+            mObjects = new <Object>[];
         }
 
         /** Adds an object to the juggler. */
@@ -68,7 +68,7 @@ package starling.animation
         public function remove(object:IAnimatable):void
         {
             mObjects = mObjects.filter(
-                function(currentObject:Object, index:int, array:Array):Boolean
+                function(currentObject:Object, index:int, vector:Vector.<Object>):Boolean
                 {
                     return object != currentObject;
                 });
@@ -80,7 +80,7 @@ package starling.animation
             if (target == null) return;
             
             mObjects = mObjects.filter(
-                function(currentObject:Object, index:int, array:Array):Boolean
+                function(currentObject:Object, index:int, vector:Vector.<Object>):Boolean
                 {
                     var tween:Tween = currentObject as Tween;
                     if (tween && tween.target == target) return false;
@@ -91,7 +91,7 @@ package starling.animation
         /** Removes all objects at once. */
         public function purge():void
         {
-            mObjects = [];
+            mObjects = new <Object>[];
         }
         
         /** Delays the execution of a function until a certain time has passed. Creates an
@@ -111,7 +111,7 @@ package starling.animation
         public function advanceTime(time:Number):void
         {                        
             mElapsedTime += time;
-            var objectCopy:Array = mObjects.concat();
+            var objectCopy:Vector.<Object> = mObjects.concat();
             
             // since 'advanceTime' could modify the juggler (through a callback), we split
             // the logic in two loops.
@@ -120,7 +120,7 @@ package starling.animation
                 currentObject.advanceTime(time);  
             
             mObjects = mObjects.filter(
-                function(object:IAnimatable, index:int, array:Array):Boolean
+                function(object:IAnimatable, index:int, vector:Vector.<Object>):Boolean
                 {
                     return !object.isComplete;
                 });
