@@ -116,10 +116,8 @@ package starling.display
         public static function compile(container:DisplayObjectContainer):Vector.<QuadGroup>
         {
             var quadGroups:Vector.<QuadGroup> = new <QuadGroup>[];
-            var matrixStack:Vector.<Matrix3D> = new <Matrix3D>[new Matrix3D()];
-            var alphaStack:Vector.<Number> = new <Number>[1.0];
             
-            compileObject(container, quadGroups, matrixStack, alphaStack);
+            compileObject(container, quadGroups, new Matrix3D());
             quadGroups.fixed = true;
             
             for each (var quadGroup:QuadGroup in quadGroups)
@@ -130,35 +128,25 @@ package starling.display
         
         private static function compileObject(object:DisplayObject, 
                                               quadGroups:Vector.<QuadGroup>,
-                                              matrixStack:Vector.<Matrix3D>, 
-                                              alphaStack:Vector.<Number>):void
+                                              transformationMatrix:Matrix3D):void
         {
             // ignore transparent objects, except root
             if (quadGroups.length != 0 && (object.alpha == 0.0 || !object.visible)) return;
             
-            var currentMatrix:Matrix3D = matrixStack[matrixStack.length-1];
-            var currentAlpha:Number = alphaStack[alphaStack.length-1];
             var i:int;
             
             if (object is DisplayObjectContainer)
             {
                 var container:DisplayObjectContainer = object as DisplayObjectContainer;
                 var numChildren:int = container.numChildren;
+                var childMatrix:Matrix3D = new Matrix3D();
                 
                 for (i=0; i<numChildren; ++i)
                 {
                     var child:DisplayObject = container.getChildAt(i);
-                    
-                    var childMatrix:Matrix3D = currentMatrix.clone();
+                    childMatrix.copyFrom(transformationMatrix);
                     RenderSupport.transformMatrixForObject(childMatrix, child);
-                    
-                    matrixStack.push(childMatrix);
-                    alphaStack.push(child.alpha);
-                    
-                    compileObject(child, quadGroups, matrixStack, alphaStack);
-                    
-                    matrixStack.pop();
-                    alphaStack.pop();
+                    compileObject(child, quadGroups, childMatrix);
                 }
             }
             else if (object is Quad)
@@ -168,8 +156,8 @@ package starling.display
                 
                 for (i=0; i<4; ++i)
                 {
-                    vertexData.transformVertex(i, currentMatrix);
-                    vertexData.scaleAlpha(i, currentAlpha);
+                    vertexData.transformVertex(i, transformationMatrix);
+                    vertexData.scaleAlpha(i, object.alpha);
                 }
                 
                 var texture:TextureBase = null;
