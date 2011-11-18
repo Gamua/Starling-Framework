@@ -350,25 +350,25 @@ package starling.core
             if (event is MouseEvent)
             {
                 var mouseEvent:MouseEvent = event as MouseEvent;
-                position = convertPosition(new Point(mouseEvent.stageX, mouseEvent.stageY));
+                position = convertPosition(mouseEvent.stageX, mouseEvent.stageY);
                 phase = getPhaseFromMouseEvent(mouseEvent);
                 touchID = 0;
             }
             else
             {
                 var touchEvent:TouchEvent = event as TouchEvent;
-                position = convertPosition(new Point(touchEvent.stageX, touchEvent.stageY));
+                position = convertPosition(touchEvent.stageX, touchEvent.stageY);
                 phase = getPhaseFromTouchEvent(touchEvent);
                 touchID = touchEvent.touchPointID;
             }
             
             mTouchProcessor.enqueue(touchID, phase, position.x, position.y);
             
-            function convertPosition(globalPos:Point):Point
+            function convertPosition(globalX:Number, globalY:Number):Point
             {
                 return new Point(
-                    (globalPos.x - mViewPort.x) + (mViewPort.width  / mStage.stageWidth),
-                    (globalPos.y - mViewPort.y) + (mViewPort.height / mStage.stageHeight));
+                    mStage.stageWidth  * (globalX - mViewPort.x) / mViewPort.width,
+                    mStage.stageHeight * (globalY - mViewPort.y) / mViewPort.height);
             }
             
             function getPhaseFromMouseEvent(event:MouseEvent):String
