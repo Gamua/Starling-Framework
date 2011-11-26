@@ -58,13 +58,15 @@ package starling.utils
         
         private var mRawData:Vector.<Number>;
         private var mPremultipliedAlpha:Boolean;
+        private var mNumVertices:int;
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
         {            
             mRawData = new Vector.<Number>(numVertices * ELEMENTS_PER_VERTEX);
             mPremultipliedAlpha = premultipliedAlpha;
-        }        
+            mNumVertices = numVertices;
+        }
 
         /** Creates a duplicate of the vertex data object. */
         public function clone():VertexData
@@ -81,7 +83,7 @@ package starling.utils
             // todo: check/convert pma
             
             var targetRawData:Vector.<Number> = targetData.mRawData;
-            var dataLength:int = mRawData.length;
+            var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
             var targetStartIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
             
             for (var i:int=0; i<dataLength; ++i)
@@ -92,7 +94,7 @@ package starling.utils
         public function append(data:VertexData):void
         {
             for each (var element:Number in data.mRawData)
-            mRawData.push(element);
+                mRawData.push(element);
         }
         
         // functions
@@ -195,7 +197,7 @@ package starling.utils
         /** Sets all vertices of the object to the same color and alpha values. */
         public function setUniformColor(color:uint, alpha:Number=1.0):void
         {
-            for (var i:int=0; i<numVertices; ++i)
+            for (var i:int=0; i<mNumVertices; ++i)
                 setColor(i, color, alpha);
         }
         
@@ -228,7 +230,7 @@ package starling.utils
         public function set premultipliedAlpha(value:Boolean):void
         {
             if (value == mPremultipliedAlpha) return;            
-            var dataLength:int = mRawData.length;
+            var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
             
             for (var i:int=COLOR_OFFSET; i<dataLength; i += ELEMENTS_PER_VERTEX)
             {
@@ -247,11 +249,31 @@ package starling.utils
             mPremultipliedAlpha = value;
         }
         
+        /** Trims rawData by removing obsolete elements. */
+        public function trim():void
+        {
+            var elementsToRemove:int = mNumVertices * ELEMENTS_PER_VERTEX - mRawData.length;
+            for (var i:int=0; i<elementsToRemove; ++i)
+                mRawData.pop();
+        }
+        
         /** Indicates if the rgb values are stored premultiplied with the alpha value. */
         public function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
         
         /** The total number of vertices. */
-        public function get numVertices():int { return mRawData.length / ELEMENTS_PER_VERTEX; }
+        public function get numVertices():int { return mNumVertices; }
+        
+        public function set numVertices(value:int):void
+        {
+            if (value > mNumVertices)
+            {
+                var elementsToAdd:int = (value - mNumVertices) * ELEMENTS_PER_VERTEX;
+                for (var i:int = 0; i<elementsToAdd; ++i)
+                    mRawData.push(0.0);
+            }
+            
+            mNumVertices = value;
+        }
         
         /** The raw vertex data; not a copy! */
         public function get rawData():Vector.<Number> { return mRawData; }

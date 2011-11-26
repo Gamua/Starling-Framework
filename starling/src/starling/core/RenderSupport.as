@@ -138,6 +138,21 @@ package starling.core
             matrix.prependTranslation(-object.pivotX, -object.pivotY, 0.0);
         }
         
+        // optimized quad rendering
+        
+        private var mQuadBuffer:QuadBuffer;
+        
+        public function renderQuad(quad:Quad, texture:Texture):void
+        {
+            if (mQuadBuffer == null) 
+                mQuadBuffer = new QuadBuffer();
+            
+            
+            
+        }
+        
+        
+        
         // other helper methods
         
         /** Sets up the default blending factors, depending on the premultiplied alpha status. */
