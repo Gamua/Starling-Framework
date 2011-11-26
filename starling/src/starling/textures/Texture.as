@@ -173,22 +173,21 @@ package starling.textures
         
         /** Converts texture coordinates and vertex positions of raw vertex data into the format 
          *  required for rendering. */
-        public function adjustVertexData(vertexData:VertexData):VertexData
+        public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
-            var clone:VertexData = vertexData.clone();
-            
             if (frame)
             {
+                if (count != 4) 
+                    throw new ArgumentError("Textures with a frame can only be used on quads");
+                
                 var deltaRight:Number  = mFrame.width  + mFrame.x - width;
                 var deltaBottom:Number = mFrame.height + mFrame.y - height;
                 
-                clone.translateVertex(0, -mFrame.x, -mFrame.y);
-                clone.translateVertex(1, -deltaRight, -mFrame.y);
-                clone.translateVertex(2, -mFrame.x, -deltaBottom);
-                clone.translateVertex(3, -deltaRight, -deltaBottom);
+                vertexData.translateVertex(vertexID,     -mFrame.x, -mFrame.y);
+                vertexData.translateVertex(vertexID + 1, -deltaRight, -mFrame.y);
+                vertexData.translateVertex(vertexID + 2, -mFrame.x, -deltaBottom);
+                vertexData.translateVertex(vertexID + 3, -deltaRight, -deltaBottom);
             }
-            
-            return clone;
         }
         
         private static function uploadTexture(data:BitmapData,

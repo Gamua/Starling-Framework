@@ -39,24 +39,22 @@ package starling.textures
         }
         
         /** @inheritDoc */
-        public override function adjustVertexData(vertexData:VertexData):VertexData
+        public override function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
-            var newData:VertexData = super.adjustVertexData(vertexData);
-            var numVertices:int = vertexData.numVertices;
+            super.adjustVertexData(vertexData, vertexID, count);
             
             var clipX:Number = mRootClipping.x;
             var clipY:Number = mRootClipping.y;
             var clipWidth:Number  = mRootClipping.width;
             var clipHeight:Number = mRootClipping.height;
+            var endIndex:int = vertexID + count;
             
-            for (var i:int=0; i<numVertices; ++i)
+            for (var i:int=vertexID; i<endIndex; ++i)
             {
                 var texCoords:Point = vertexData.getTexCoords(i);
-                newData.setTexCoords(i, clipX + texCoords.x * clipWidth,
-                                        clipY + texCoords.y * clipHeight);
+                vertexData.setTexCoords(i, clipX + texCoords.x * clipWidth,
+                                           clipY + texCoords.y * clipHeight);
             }
-            
-            return newData;
         }
         
         /** The texture which the subtexture is based on. */ 

@@ -97,11 +97,12 @@ package starling.display
             return mVertexData.getTexCoords(vertexID);
         }
         
-        /** Returns a 'VertexData' object with the raw data of the object required for rendering.
-         *  The texture coordinates are already in their refined format. */ 
-        public override function get vertexData():VertexData
+        /** Copies the raw vertex data to a VertexData instance.
+         *  The texture coordinates are already in the format required for rendering. */ 
+        public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
-            return mTexture.adjustVertexData(mVertexData);
+            mVertexData.copyTo(targetData, targetVertexID);
+            mTexture.adjustVertexData(targetData, targetVertexID, 4);
         }
         
         /** The texture that is displayed on the quad. */
@@ -165,6 +166,18 @@ package starling.display
             context.setVertexBufferAt(2, null);
         }
 
+        /** @inheritDoc */
+        protected override function createVertexBuffer():void
+        {
+            if (mVertexBuffer == null) 
+                mVertexBuffer = Starling.context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
+            
+            // 'copyVertexDataTo' adjusts vertex data according to texture coordinates
+            var vertexData:VertexData = new VertexData(4, mTexture.premultipliedAlpha);
+            copyVertexDataTo(vertexData);
+            mVertexBuffer.uploadFromVector(vertexData.rawData, 0, 4);
+        }
+        
         /** Registers the vertex and fragment programs required in the 'render' method at a 
          *  Starling object. You don't have to call this method manually. */
         public static function registerPrograms(target:Starling):void

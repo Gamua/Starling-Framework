@@ -173,9 +173,9 @@ package starling.textures
         }
         
         /** @inheritDoc */
-        public override function adjustVertexData(vertexData:VertexData):VertexData
+        public override function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
-            return mActiveTexture.adjustVertexData(vertexData);   
+            return mActiveTexture.adjustVertexData(vertexData, vertexID, count);   
         }
         
         /** Indicates if the texture is persistent over multiple draw calls. */

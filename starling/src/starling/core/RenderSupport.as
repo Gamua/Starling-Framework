@@ -16,6 +16,7 @@ package starling.core
     
     import starling.display.*;
     import starling.errors.*;
+    import starling.textures.Texture;
     import starling.utils.*;
 
     /** A class that contains helper methods simplifying Stage3D rendering.

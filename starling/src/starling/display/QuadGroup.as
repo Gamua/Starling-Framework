@@ -69,7 +69,7 @@ package starling.display
             mIndices.fixed = true; // no more changes allowed
             
             mVertexBuffer = context.createVertexBuffer(mVertexData.numVertices, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.data, 0, mVertexData.numVertices);
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
             
             mIndexBuffer = context.createIndexBuffer(mIndices.length);
             mIndexBuffer.uploadFromVector(mIndices, 0, mIndices.length);
@@ -128,7 +128,8 @@ package starling.display
         
         private static function compileObject(object:DisplayObject, 
                                               quadGroups:Vector.<QuadGroup>,
-                                              transformationMatrix:Matrix3D):void
+                                              transformationMatrix:Matrix3D,
+                                              alpha:Number=1.0):void
         {
             // ignore transparent objects, except root
             if (quadGroups.length != 0 && (object.alpha == 0.0 || !object.visible)) return;
@@ -146,20 +147,12 @@ package starling.display
                     var child:DisplayObject = container.getChildAt(i);
                     childMatrix.copyFrom(transformationMatrix);
                     RenderSupport.transformMatrixForObject(childMatrix, child);
-                    compileObject(child, quadGroups, childMatrix);
+                    compileObject(child, quadGroups, childMatrix, alpha * child.alpha);
                 }
             }
             else if (object is Quad)
             {
                 var quad:Quad = object as Quad;
-                var vertexData:VertexData = quad.vertexData;
-                
-                for (i=0; i<4; ++i)
-                {
-                    vertexData.transformVertex(i, transformationMatrix);
-                    vertexData.scaleAlpha(i, object.alpha);
-                }
-                
                 var texture:TextureBase = null;
                 var smoothing:String = TextureSmoothing.NONE;
                 var repeat:Boolean = false;
@@ -174,6 +167,15 @@ package starling.display
                     repeat = image.texture.repeat;
                     mipMapping = image.texture.mipMapping;
                     pma = image.texture.premultipliedAlpha;
+                }
+                
+                var vertexData:VertexData = new VertexData(0, pma);
+                quad.copyVertexDataTo(vertexData);
+                
+                for (i=0; i<4; ++i)
+                {
+                    vertexData.transformVertex(i, transformationMatrix);
+                    vertexData.scaleAlpha(i, alpha);
                 }
                 
                 var requiresNewGroup:Boolean = false;

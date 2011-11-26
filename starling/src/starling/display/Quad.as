@@ -160,10 +160,10 @@ package starling.display
             if (mVertexBuffer) createVertexBuffer();
         }
         
-        /** Returns a clone of the raw vertex data. */
-        public function get vertexData():VertexData 
-        { 
-            return mVertexData.clone(); 
+        /** Copies the raw vertex data to a VertexData instance. */
+        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
+        {
+            mVertexData.copyTo(targetData, targetVertexID);
         }
         
         /** @inheritDoc */
@@ -197,7 +197,7 @@ package starling.display
             if (mVertexBuffer == null) 
                 mVertexBuffer = Starling.context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
                 
-            mVertexBuffer.uploadFromVector(vertexData.data, 0, 4);
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, 4);
         }
         
         /** Creates the index buffer at the current render context. */
