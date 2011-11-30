@@ -127,7 +127,7 @@ package starling.events
         /** Returns if there are listeners registered for a certain event type. */
         public function hasEventListener(type:String):Boolean
         {
-            return mEventListeners != null && mEventListeners[type] != null;
+            return mEventListeners != null && type in mEventListeners;
         }
     }
 }

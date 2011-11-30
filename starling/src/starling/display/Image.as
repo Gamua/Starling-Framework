@@ -10,18 +10,11 @@
 
 package starling.display
 {
-    import com.adobe.utils.AGALMiniAssembler;
-    
     import flash.display.Bitmap;
-    import flash.display3D.Context3D;
-    import flash.display3D.Context3DProgramType;
-    import flash.display3D.Context3DVertexBufferFormat;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
-    import starling.core.Starling;
-    import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
@@ -47,6 +40,8 @@ package starling.display
         private var mTexture:Texture;
         private var mSmoothing:String;
         
+        private var mVertexDataCache:VertexData;
+        
         /** Creates a quad with a texture mapped onto it. */
         public function Image(texture:Texture)
         {
@@ -58,24 +53,22 @@ package starling.display
                 
                 super(width, height);
                 
-                mVertexData.premultipliedAlpha = texture.premultipliedAlpha;
+                mSmoothing = TextureSmoothing.BILINEAR;
+                mTexture = texture;
+                mVertexDataCache = new VertexData(4, texture.premultipliedAlpha);
+                
+                mVertexData.setPremultipliedAlpha(texture.premultipliedAlpha);
                 mVertexData.setTexCoords(0, 0.0, 0.0);
                 mVertexData.setTexCoords(1, 1.0, 0.0);
                 mVertexData.setTexCoords(2, 0.0, 1.0);
                 mVertexData.setTexCoords(3, 1.0, 1.0);
-                mTexture = texture;
-                mSmoothing = TextureSmoothing.BILINEAR;
+                
+                updateVertexDataCache();
             }
             else
             {
                 throw new ArgumentError("Texture cannot be null");                
             }
-        }
-        
-        /** Disposes vertex- and index-buffer, but does NOT dispose the texture! */
-        public override function dispose():void
-        {
-            super.dispose();
         }
         
         /** Creates an Image with a texture that is created from a bitmap object. */
@@ -88,7 +81,7 @@ package starling.display
         public function setTexCoords(vertexID:int, coords:Point):void
         {
             mVertexData.setTexCoords(vertexID, coords.x, coords.y);
-            if (mVertexBuffer) createVertexBuffer();
+            updateVertexDataCache();
         }
         
         /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
@@ -101,8 +94,7 @@ package starling.display
          *  The texture coordinates are already in the format required for rendering. */ 
         public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
-            mVertexData.copyTo(targetData, targetVertexID);
-            mTexture.adjustVertexData(targetData, targetVertexID, 4);
+            mVertexDataCache.copyTo(targetData, targetVertexID);
         }
         
         /** The texture that is displayed on the quad. */
@@ -116,8 +108,8 @@ package starling.display
             else if (value != mTexture)
             {
                 mTexture = value;
-                mVertexData.premultipliedAlpha = mTexture.premultipliedAlpha;
-                if (mVertexBuffer) createVertexBuffer();
+                mVertexData.setPremultipliedAlpha(mTexture.premultipliedAlpha);
+                updateVertexDataCache();
             }
         }
         
@@ -134,118 +126,29 @@ package starling.display
         }
         
         /** @inheritDoc */
+        public override function setVertexColor(vertexID:int, color:uint):void
+        {
+            super.setVertexColor(vertexID, color);
+            updateVertexDataCache();
+        }
+        
+        /** @inheritDoc */
+        public override function setVertexAlpha(vertexID:int, alpha:Number):void
+        {
+            super.setVertexAlpha(vertexID, alpha);
+            updateVertexDataCache();
+        }
+        
+        private function updateVertexDataCache():void
+        {
+            mVertexData.copyTo(mVertexDataCache);
+            mTexture.adjustVertexData(mVertexDataCache, 0, 4);
+        }
+        
+        /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
-            alpha *= this.alpha;
-            
-            var pma:Boolean = mTexture.premultipliedAlpha;
-            var programName:String = getProgramName(mTexture.mipMapping, mTexture.repeat, mSmoothing);
-            var context:Context3D = Starling.context;
-            
-            if (context == null) throw new MissingContextError();
-            if (mVertexBuffer == null) createVertexBuffer();
-            if (mIndexBuffer  == null) createIndexBuffer();
-            
-            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
-            sRenderAlpha[3] = alpha;
-            
-            support.setDefaultBlendFactors(pma);
-            
-            context.setProgram(Starling.current.getProgram(programName));
-            context.setTextureAt(1, mTexture.base);
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
-            context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
-            context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix, true);            
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
-            context.drawTriangles(mIndexBuffer, 0, 2);
-            
-            context.setTextureAt(1, null);
-            context.setVertexBufferAt(0, null);
-            context.setVertexBufferAt(1, null);
-            context.setVertexBufferAt(2, null);
-        }
-
-        /** @inheritDoc */
-        protected override function createVertexBuffer():void
-        {
-            if (mVertexBuffer == null) 
-                mVertexBuffer = Starling.context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
-            
-            // 'copyVertexDataTo' adjusts vertex data according to texture coordinates
-            var vertexData:VertexData = new VertexData(4, mTexture.premultipliedAlpha);
-            copyVertexDataTo(vertexData);
-            mVertexBuffer.uploadFromVector(vertexData.rawData, 0, 4);
-        }
-        
-        /** Registers the vertex and fragment programs required in the 'render' method at a 
-         *  Starling object. You don't have to call this method manually. */
-        public static function registerPrograms(target:Starling):void
-        {
-            // create vertex and fragment programs - from assembly.
-            // each combination of repeat/mipmap/smoothing has its own fragment shader.
-            
-            var vertexProgramCode:String =
-                "m44 op, va0, vc0  \n" +  // 4x4 matrix transform to output clipspace
-                "mov v0, va1       \n" +  // pass color to fragment program
-                "mov v1, va2       \n";   // pass texture coordinates to fragment program
-
-            var fragmentProgramCode:String =
-                "tex ft1, v1, fs1 <???> \n" +  // sample texture 1
-                "mul ft2, ft1, v0       \n" +  // multiply color with texel color
-                "mul oc, ft2, fc0       \n";   // multiply color with alpha
-
-            var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode);
-            
-            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            
-            var smoothingTypes:Array = [
-                TextureSmoothing.NONE,
-                TextureSmoothing.BILINEAR,
-                TextureSmoothing.TRILINEAR
-            ];
-            
-            for each (var repeat:Boolean in [true, false])
-            {
-                for each (var mipmap:Boolean in [true, false])
-                {
-                    for each (var smoothing:String in smoothingTypes)
-                    {
-                        var options:Array = ["2d", repeat ? "repeat" : "clamp"];
-                        
-                        if (smoothing == TextureSmoothing.NONE)
-                            options.push("nearest", mipmap ? "mipnearest" : "mipnone");
-                        else if (smoothing == TextureSmoothing.BILINEAR)
-                            options.push("linear", mipmap ? "mipnearest" : "mipnone");
-                        else
-                            options.push("linear", mipmap ? "miplinear" : "mipnone");
-                        
-                        fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                            fragmentProgramCode.replace("???", options.join())); 
-                        
-                        target.registerProgram(getProgramName(mipmap, repeat, smoothing),
-                            vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
-                    }
-                }
-            }
-        }
-        
-        /** Get the name of the Shader program that is used for rendering. 
-         *  The program is registered under that name at the current Starling object. */
-        public static function getProgramName(mipMap:Boolean=true, repeat:Boolean=false, 
-                                              smoothing:String="bilinear"):String
-        {
-            // this method is called very often, so it should return quickly when called with 
-            // the default parameters (no-repeat, mipmap, bilinear)
-            
-            var name:String = "image|";
-            
-            if (!mipMap) name += "N";
-            if (repeat)  name += "R";
-            if (smoothing != TextureSmoothing.BILINEAR) name += smoothing.charAt(0);
-            
-            return name;
+            support.renderQuad(this, alpha, mTexture, mSmoothing);
         }
     }
 }

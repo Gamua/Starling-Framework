@@ -131,9 +131,9 @@ package starling.textures
             }
             
             Starling.context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
-            
+            RenderSupport.setDefaultBlendFactors(true);
+
             mSupport.setOrthographicProjection(mNativeWidth, mNativeHeight);
-            mSupport.setDefaultBlendFactors(true);
             mSupport.clear();
             
             // draw buffer
@@ -149,8 +149,9 @@ package starling.textures
                     drawingBlock();
             }
             finally
-            { 
+            {
                 mDrawing = false;
+                mSupport.finishQuadBatch();
                 mSupport.resetMatrix();
                 Starling.context.setScissorRectangle(null);
                 Starling.context.setRenderToBackBuffer();

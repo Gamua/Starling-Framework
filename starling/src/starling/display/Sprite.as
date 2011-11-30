@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import starling.core.QuadBatch;
     import starling.core.RenderSupport;
     import starling.events.Event;
 
@@ -36,7 +37,7 @@ package starling.display
      */  
     public class Sprite extends DisplayObjectContainer
     {
-        private var mFlattenedContents:Vector.<QuadGroup>;
+        private var mFlattenedContents:Vector.<QuadBatch>;
         
         /** Creates an empty sprite. */
         public function Sprite()
@@ -56,17 +57,18 @@ package starling.display
          *  either call <code>flatten</code> again, or <code>unflatten</code> the sprite. */
         public function flatten():void
         {
-            unflatten();
             dispatchEventOnChildren(new Event(Event.FLATTEN));
-            mFlattenedContents = QuadGroup.compile(this);
+            
+            if (mFlattenedContents == null) mFlattenedContents = new <QuadBatch>[];
+            QuadBatch.compile(this, mFlattenedContents);
         }
         
         /** Removes the rendering optimizations that were created when flattening the sprite.
          *  Changes to the sprite's children will become immediately visible again. */ 
         public function unflatten():void
         {
-            for each (var quadGroup:QuadGroup in mFlattenedContents)
-                quadGroup.dispose();
+            for each (var quadBatch:QuadBatch in mFlattenedContents)
+                quadBatch.dispose();
             mFlattenedContents = null;
         }
         
@@ -76,10 +78,12 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
+            support.finishQuadBatch();
+            
             if (mFlattenedContents)
             {
-                for each (var quadGroup:QuadGroup in mFlattenedContents)
-                    quadGroup.render(support, this.alpha * alpha);
+                for each (var quadBatch:QuadBatch in mFlattenedContents)
+                    quadBatch.render(support.mvpMatrix, this.alpha * alpha);
             }
             else super.render(support, alpha);
         }

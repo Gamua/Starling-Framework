@@ -63,7 +63,7 @@ package starling.utils
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
         {            
-            mRawData = new Vector.<Number>(numVertices * ELEMENTS_PER_VERTEX);
+            mRawData = new Vector.<Number>(numVertices * ELEMENTS_PER_VERTEX, true);
             mPremultipliedAlpha = premultipliedAlpha;
             mNumVertices = numVertices;
         }
@@ -73,6 +73,8 @@ package starling.utils
         {
             var clone:VertexData = new VertexData(0, mPremultipliedAlpha);
             clone.mRawData = mRawData.concat();
+            clone.mRawData.fixed = true;
+            clone.mNumVertices = mNumVertices;
             return clone;
         }
         
@@ -93,8 +95,13 @@ package starling.utils
         /** Appends the vertices from another VertexData object. */
         public function append(data:VertexData):void
         {
+            mRawData.fixed = false;
+            
             for each (var element:Number in data.mRawData)
                 mRawData.push(element);
+                
+            mNumVertices += data.numVertices;
+            mRawData.fixed = true;
         }
         
         // functions
@@ -204,7 +211,8 @@ package starling.utils
         /** Multiplies the alpha value of a vertex with a certain delta. */
         public function scaleAlpha(vertexID:int, alpha:Number):void
         {
-            if (mPremultipliedAlpha) setAlpha(vertexID, getAlpha(vertexID) * alpha);
+            if (alpha == 1.0) return;
+            else if (mPremultipliedAlpha) setAlpha(vertexID, getAlpha(vertexID) * alpha);
             else
             {
                 var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
@@ -227,34 +235,30 @@ package starling.utils
         // properties
         
         /** Changes the way alpha and color values are stored. Updates all exisiting vertices. */
-        public function set premultipliedAlpha(value:Boolean):void
+        public function setPremultipliedAlpha(value:Boolean, updateData:Boolean=true):void
         {
-            if (value == mPremultipliedAlpha) return;            
-            var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
+            if (value == mPremultipliedAlpha) return;
             
-            for (var i:int=COLOR_OFFSET; i<dataLength; i += ELEMENTS_PER_VERTEX)
+            if (updateData)
             {
-                var alpha:Number = mRawData[i+3];
-                var divisor:Number = mPremultipliedAlpha ? alpha : 1.0;
-                var multiplier:Number = value ? alpha : 1.0;
+                var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
                 
-                if (divisor != 0)
+                for (var i:int=COLOR_OFFSET; i<dataLength; i += ELEMENTS_PER_VERTEX)
                 {
-                    mRawData[i  ] = mRawData[i  ] / divisor * multiplier;
-                    mRawData[i+1] = mRawData[i+1] / divisor * multiplier;
-                    mRawData[i+2] = mRawData[i+2] / divisor * multiplier;
+                    var alpha:Number = mRawData[i+3];
+                    var divisor:Number = mPremultipliedAlpha ? alpha : 1.0;
+                    var multiplier:Number = value ? alpha : 1.0;
+                    
+                    if (divisor != 0)
+                    {
+                        mRawData[i  ] = mRawData[i  ] / divisor * multiplier;
+                        mRawData[i+1] = mRawData[i+1] / divisor * multiplier;
+                        mRawData[i+2] = mRawData[i+2] / divisor * multiplier;
+                    }
                 }
             }
             
             mPremultipliedAlpha = value;
-        }
-        
-        /** Trims rawData by removing obsolete elements. */
-        public function trim():void
-        {
-            var elementsToRemove:int = mNumVertices * ELEMENTS_PER_VERTEX - mRawData.length;
-            for (var i:int=0; i<elementsToRemove; ++i)
-                mRawData.pop();
         }
         
         /** Indicates if the rgb values are stored premultiplied with the alpha value. */
@@ -265,14 +269,16 @@ package starling.utils
         
         public function set numVertices(value:int):void
         {
-            if (value > mNumVertices)
-            {
-                var elementsToAdd:int = (value - mNumVertices) * ELEMENTS_PER_VERTEX;
-                for (var i:int = 0; i<elementsToAdd; ++i)
-                    mRawData.push(0.0);
-            }
+            mRawData.fixed = false;
+            
+            var delta:int = value * ELEMENTS_PER_VERTEX - mRawData.length;
+            var i:int;
+            
+            for (i=0; i<delta; ++i) mRawData.push(0.0);
+            for (i=delta; i<0; ++i) mRawData.pop();
             
             mNumVertices = value;
+            mRawData.fixed = true;
         }
         
         /** The raw vertex data; not a copy! */

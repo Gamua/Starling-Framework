@@ -272,13 +272,14 @@ package starling.display
             
             for each (var child:DisplayObject in mChildren)
             {
-                if (child.alpha != 0.0 && child.visible && child.scaleX != 0 && child.scaleY != 0)
+                if (child.alpha != 0.0 && child.visible)
                 {
-                    support.pushMatrix();
+                    if (!(child is Quad)) 
+                        support.finishQuadBatch();
                     
+                    support.pushMatrix();
                     support.transformMatrix(child);
                     child.render(support, alpha);
-                    
                     support.popMatrix();
                 }
             }

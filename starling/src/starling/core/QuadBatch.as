@@ -1,0 +1,365 @@
+package starling.core
+{
+    import com.adobe.utils.AGALMiniAssembler;
+    
+    import flash.display3D.Context3D;
+    import flash.display3D.Context3DProgramType;
+    import flash.display3D.Context3DVertexBufferFormat;
+    import flash.display3D.IndexBuffer3D;
+    import flash.display3D.VertexBuffer3D;
+    import flash.geom.Matrix3D;
+    import flash.utils.getQualifiedClassName;
+    
+    import starling.display.DisplayObject;
+    import starling.display.DisplayObjectContainer;
+    import starling.display.Image;
+    import starling.display.Quad;
+    import starling.errors.MissingContextError;
+    import starling.textures.Texture;
+    import starling.textures.TextureSmoothing;
+    import starling.utils.VertexData;
+    
+    public class QuadBatch
+    {
+        private var mNumQuads:int;
+        private var mCurrentTexture:Texture;
+        private var mCurrentSmoothing:String;
+        
+        private var mVertexData:VertexData;
+        private var mVertexBuffer:VertexBuffer3D;
+        private var mIndexData:Vector.<uint>;
+        private var mIndexBuffer:IndexBuffer3D;
+
+        private var mRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
+        
+        public function QuadBatch()
+        {
+            registerPrograms();
+            
+            mVertexData = new VertexData(0, true);
+            mIndexData = new <uint>[];
+            mNumQuads = 0;
+            
+            expand();
+        }
+        
+        public function dispose():void
+        {
+            mVertexBuffer.dispose();
+            mIndexBuffer.dispose();
+        }
+        
+        private function expand():void
+        {   
+            var oldCapacity:int = mVertexData.numVertices / 4;
+            var newCapacity:int = oldCapacity == 0 ? 16 : oldCapacity * 2;
+            mVertexData.numVertices = newCapacity * 4;
+            
+            for (var i:int=oldCapacity; i<newCapacity; ++i)
+            {
+                mIndexData[i*6  ] = i*4;
+                mIndexData[i*6+1] = i*4 + 1;
+                mIndexData[i*6+2] = i*4 + 2;
+                mIndexData[i*6+3] = i*4 + 1;
+                mIndexData[i*6+4] = i*4 + 3;
+                mIndexData[i*6+5] = i*4 + 2;
+            }
+            
+            if (mVertexBuffer) mVertexBuffer.dispose();
+            if (mIndexBuffer)  mIndexBuffer.dispose();
+            
+            var context:Context3D = Starling.context;
+            if (context == null) throw new MissingContextError();
+            
+            mVertexBuffer = context.createVertexBuffer(newCapacity * 4, VertexData.ELEMENTS_PER_VERTEX);
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, newCapacity * 4);
+            
+            mIndexBuffer = context.createIndexBuffer(newCapacity * 6);
+            mIndexBuffer.uploadFromVector(mIndexData, 0, newCapacity * 6);
+        }
+        
+        public function syncBuffers():void
+        {
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mNumQuads * 4);
+        }
+        
+        public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
+        {
+            if (mNumQuads == 0) return;
+            
+            var pma:Boolean = mVertexData.premultipliedAlpha;
+            var context:Context3D = Starling.context;
+            var dynamicAlpha:Boolean = alpha != 1.0;
+            
+            var program:String = mCurrentTexture ? 
+                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
+                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
+                getQuadProgramName(dynamicAlpha);
+            
+            RenderSupport.setDefaultBlendFactors(pma);
+            
+            context.setProgram(Starling.current.getProgram(program));
+            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
+            context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, projectionMatrix, true);            
+            
+            if (dynamicAlpha)
+            {
+                mRenderAlpha[0] = mRenderAlpha[1] = mRenderAlpha[2] = pma ? alpha : 1.0;
+                mRenderAlpha[3] = alpha;
+                context.setProgramConstantsFromVector(
+                    Context3DProgramType.FRAGMENT, 0, mRenderAlpha, 1);
+            }
+            
+            if (mCurrentTexture)
+            {
+                context.setTextureAt(0, mCurrentTexture.base);
+                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+            }
+            
+            context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
+            
+            if (mCurrentTexture)
+            {
+                context.setTextureAt(0, null);
+                context.setVertexBufferAt(2, null);
+            }
+            
+            context.setVertexBufferAt(1, null);
+            context.setVertexBufferAt(0, null);
+        }
+        
+        public function reset():void
+        {
+            mNumQuads = 0;
+            mCurrentTexture = null;
+            mCurrentSmoothing = null;
+        }
+        
+        public function addQuad(quad:Quad, alpha:Number, texture:Texture, smoothing:String,
+                                modelViewMatrix:Matrix3D):void
+        {
+            if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
+            if (mNumQuads == 0) 
+            {
+                mCurrentTexture = texture;
+                mCurrentSmoothing = smoothing;
+                mVertexData.setPremultipliedAlpha(
+                    texture ? texture.premultipliedAlpha : true, false); 
+            }
+            
+            var vertexID:int = mNumQuads * 4;
+            
+            quad.copyVertexDataTo(mVertexData, vertexID);
+            alpha *= quad.alpha;
+            
+            for (var i:int = 0; i<4; ++i)
+            {
+                mVertexData.scaleAlpha(vertexID+i, alpha);
+                mVertexData.transformVertex(vertexID+i, modelViewMatrix);
+            }
+            
+            ++mNumQuads;
+        }
+        
+        
+        public function isStateChange(quad:Quad, texture:Texture, smoothing:String):Boolean
+        {
+            if (mNumQuads == 0) return false;
+            else if (mNumQuads == 8192) return true; // maximum buffer size
+            else if (mCurrentTexture == null && texture == null) return false;
+            else if (mCurrentTexture != null && texture != null)
+                return mCurrentTexture.base != texture.base ||
+                    mCurrentTexture.repeat != texture.repeat ||
+                    mCurrentSmoothing != smoothing;
+            else return true;
+        }
+        
+        // compilation (for flattened sprites)
+        
+        public static function compile(container:DisplayObjectContainer, 
+                                       quadBatches:Vector.<QuadBatch>):void
+        {
+            compileObject(container, quadBatches, -1, new Matrix3D());
+        }
+        
+        private static function compileObject(object:DisplayObject, 
+                                              quadBatches:Vector.<QuadBatch>,
+                                              quadBatchID:int,
+                                              transformationMatrix:Matrix3D,
+                                              alpha:Number=1.0):int
+        {
+            var i:int;
+            var isRootObject:Boolean = false
+            
+            if (quadBatchID == -1)
+            {
+                isRootObject = true;
+                quadBatchID = 0;
+                if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
+                else quadBatches[0].reset();
+            }
+            else if (object.alpha == 0.0 || !object.visible)
+            {
+                return quadBatchID; // ignore transparent objects, except root
+            }
+            
+            if (object is DisplayObjectContainer)
+            {
+                var container:DisplayObjectContainer = object as DisplayObjectContainer;
+                var numChildren:int = container.numChildren;
+                var childMatrix:Matrix3D = new Matrix3D();
+                
+                for (i=0; i<numChildren; ++i)
+                {
+                    var child:DisplayObject = container.getChildAt(i);
+                    childMatrix.copyFrom(transformationMatrix);
+                    RenderSupport.transformMatrixForObject(childMatrix, child);
+                    quadBatchID = compileObject(child, quadBatches, quadBatchID, 
+                                                childMatrix, alpha * child.alpha);
+                }
+            }
+            else if (object is Quad)
+            {
+                var quad:Quad = object as Quad;
+                var image:Image = quad as Image;
+                var texture:Texture = image ? image.texture : null;
+                var smoothing:String = image ? image.smoothing : null;
+                var quadBatch:QuadBatch = quadBatches[quadBatchID];
+                
+                if (quadBatch.isStateChange(quad, texture, smoothing))
+                {
+                    quadBatch.syncBuffers();
+                    quadBatchID++;
+                    if (quadBatches.length <= quadBatchID) 
+                        quadBatches.push(new QuadBatch());
+                    quadBatch = quadBatches[quadBatchID];
+                    quadBatch.reset();
+                }
+                
+                quadBatch.addQuad(quad, alpha, texture, smoothing, transformationMatrix);
+            }
+            else
+            {
+                throw new Error("Unsupported display object: " + getQualifiedClassName(object));
+            }
+            
+            if (isRootObject)
+            {
+                quadBatches[quadBatchID].syncBuffers();
+                
+                for (i=quadBatches.length-1; i>quadBatchID; --i)
+                {
+                    quadBatches[i].dispose();
+                    delete quadBatches[i];
+                }
+            }
+            
+            return quadBatchID;
+        }
+        
+        // program management
+        
+        private static function registerPrograms():void
+        {
+            var target:Starling = Starling.current;
+            if (target.hasProgram(getQuadProgramName(true))) return; // already registered
+            
+            // create vertex and fragment programs from assembly
+            var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler(); 
+            
+            var vertexProgramCode:String;
+            var fragmentProgramCode:String;
+            
+            // Each combination of alpha/repeat/mipmap/smoothing has its own fragment shader.
+            for each (var dynamicAlpha:Boolean in [true, false])
+            {            
+                // Quad:
+                
+                vertexProgramCode = 
+                    "m44 op, va0, vc0  \n" +        // 4x4 matrix transform to output clipspace
+                    "mov v0, va1       \n";         // pass color to fragment program 
+                
+                fragmentProgramCode = dynamicAlpha ? 
+                    "mul ft0, v0, fc0  \n" +        // multiply alpha (fc0) by color (v0)
+                    "mov oc, ft0       \n"          // output color
+                  : 
+                    "mov oc, v0        \n";         // output color
+                                    
+                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode); 
+                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode);
+                
+                target.registerProgram(getQuadProgramName(dynamicAlpha), 
+                    vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                
+                // Image:                
+                
+                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX,
+                    "m44 op, va0, vc0  \n" +        // 4x4 matrix transform to output clipspace
+                    "mov v0, va1       \n" +        // pass color to fragment program
+                    "mov v1, va2       \n");        // pass texture coordinates to fragment program
+                    
+                fragmentProgramCode = dynamicAlpha ?
+                    "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
+                    "mul ft2, ft1, v0        \n" +  // multiply color with texel color
+                    "mul oc, ft2, fc0        \n"    // multiply color with alpha
+                  :
+                    "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
+                    "mul oc, ft1, v0         \n";   // multiply color with texel color
+                
+                var smoothingTypes:Array = [
+                    TextureSmoothing.NONE,
+                    TextureSmoothing.BILINEAR,
+                    TextureSmoothing.TRILINEAR
+                ];
+                
+                for each (var repeat:Boolean in [true, false])
+                {
+                    for each (var mipmap:Boolean in [true, false])
+                    {
+                        for each (var smoothing:String in smoothingTypes)
+                        {
+                            var options:Array = ["2d", repeat ? "repeat" : "clamp"];
+                            
+                            if (smoothing == TextureSmoothing.NONE)
+                                options.push("nearest", mipmap ? "mipnearest" : "mipnone");
+                            else if (smoothing == TextureSmoothing.BILINEAR)
+                                options.push("linear", mipmap ? "mipnearest" : "mipnone");
+                            else
+                                options.push("linear", mipmap ? "miplinear" : "mipnone");
+                            
+                            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
+                                fragmentProgramCode.replace("???", options.join())); 
+                            
+                            target.registerProgram(
+                                getImageProgramName(dynamicAlpha, mipmap, repeat, smoothing),
+                                vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                        }
+                    }
+                }
+            }
+        }
+        
+        private static function getQuadProgramName(dynamicAlpha:Boolean):String
+        {
+            return dynamicAlpha ? "QB_q*" : "QB_q'";
+        }
+        
+        private static function getImageProgramName(dynamicAlpha:Boolean,
+                                                    mipMap:Boolean=true, repeat:Boolean=false, 
+                                                    smoothing:String="bilinear"):String
+        {
+            // this method is designed to return most quickly when called with 
+            // the default parameters (no-repeat, mipmap, bilinear)
+            
+            var name:String = dynamicAlpha ? "QB_i*" : "QB_i'";
+            
+            if (!mipMap) name += "N";
+            if (repeat)  name += "R";
+            if (smoothing != TextureSmoothing.BILINEAR) name += smoothing.charAt(0);
+            
+            return name;
+        }
+    }
+}

@@ -13,6 +13,7 @@ package starling.textures
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display3D.Context3DTextureFormat;
+    import flash.display3D.textures.Texture;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Point;
@@ -49,22 +50,32 @@ package starling.textures
      *  
      *  <strong>Texture Frame</strong>
      *  
-     *  <p>The frame property of a texture allows you to define the position where the texture will 
-     *  appear within an Image. The rectangle is specified in the coordinate system of the 
-     *  texture (not the image):</p>
+     *  <p>The frame property of a texture allows you let a texture appear inside the bounds of an
+     *  image, leaving a transparent space around the texture. The frame rectangle is specified in 
+     *  the coordinate system of the texture (not the image):</p>
      *  
      *  <listing>
-     *  texture.frame = new Rectangle(-10, -10, 30, 30);
+     *  var frame:Rectangle = new Rectangle(-10, -10, 30, 30); 
+     *  var texture:Texture = Texture.fromTexture(anotherTexture, null, frame);
      *  var image:Image = new Image(texture);
      *  </listing>
      *  
      *  <p>This code would create an image with a size of 30x30, with the texture placed at 
-     *  <code>x=10, y=10</code> within that image (assuming that the texture has a width and 
-     *  height of 10 pixels, it would appear in the middle of the image). 
-     *  The texture atlas makes use of this feature, as it allows to crop transparent edges
+     *  <code>x=10, y=10</code> within that image (assuming that 'anotherTexture' has a width and 
+     *  height of 10 pixels, it would appear in the middle of the image).</p>
+     *  
+     *  <p>The texture atlas makes use of this feature, as it allows to crop transparent edges
      *  of a texture and making up for the changed size by specifying the original texture frame.
      *  Tools like <a href="http://www.texturepacker.com/">TexturePacker</a> use this to  
-     *  optimize the atlas.</p> 
+     *  optimize the atlas.</p>
+     * 
+     *  <strong>Texture Coordinates</strong>
+     *  
+     *  <p>If, on the other hand, you want to show only a part of the texture in an image
+     *  (i.e. to crop the the texture), you can either create a subtexture (with the method 
+     *  'Texture.fromTexture()' and specifying a rectangle for the region), or you can manipulate 
+     *  the texture coordinates of the image object. The method 'image.setTexCoords' allows you 
+     *  to do that.</p>
      *  
      *  @see starling.display.Image
      *  @see TextureAtlas
@@ -147,17 +158,11 @@ package starling.textures
         
         /** Creates a texture that contains a region (in pixels) of another texture. The new
          *  texture will reference the base texture; no data is duplicated. */
-        public static function fromTexture(texture:Texture, region:Rectangle):Texture
+        public static function fromTexture(texture:Texture, region:Rectangle=null, frame:Rectangle=null):Texture
         {
-            if (region.x == 0 && region.y == 0 && 
-                region.width == texture.width && region.height == texture.height)
-            {
-                return texture;
-            }
-            else
-            {
-                return new SubTexture(texture, region);   
-            }            
+            var subTexture:Texture = new SubTexture(texture, region);   
+            subTexture.mFrame = frame;
+            return subTexture;
         }
         
         /** Creates an empty texture of a certain size and color. The color parameter
@@ -175,7 +180,7 @@ package starling.textures
          *  required for rendering. */
         public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
-            if (frame)
+            if (mFrame)
             {
                 if (count != 4) 
                     throw new ArgumentError("Textures with a frame can only be used on quads");
@@ -219,8 +224,15 @@ package starling.textures
         }
         
         /** The texture frame (see class description). @default null */
-        public function get frame():Rectangle { return mFrame; }
-        public function set frame(value:Rectangle):void { mFrame = value ? value.clone() : null; }
+        public function get frame():Rectangle 
+        { 
+            return mFrame ? mFrame.clone() : new Rectangle(0, 0, width, height);
+            
+            // the frame property is readonly - set the frame in the 'fromTexture' method.
+            // why is it readonly? To be able to efficiently cache the texture coordinates on
+            // rendering, textures need to be immutable (except 'repeat', which is not cached,
+            // anyway).
+        }
         
         /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
          *  Note: this makes sense only in textures with sidelengths that are powers of two and 

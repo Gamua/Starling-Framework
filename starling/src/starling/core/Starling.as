@@ -33,8 +33,6 @@ package starling.core
     
     import starling.animation.Juggler;
     import starling.display.DisplayObject;
-    import starling.display.Image;
-    import starling.display.Quad;
     import starling.display.Stage;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
@@ -162,7 +160,6 @@ package starling.core
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mPrograms = new Dictionary();
-            mSupport = new RenderSupport();
             
             if (sCurrent == null)
                 makeCurrent();
@@ -208,14 +205,10 @@ package starling.core
             mContext.enableErrorChecking = mEnableErrorChecking;
             updateViewPort();
             
+            mSupport = new RenderSupport();
+            
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:" + mContext.driverInfo);
-        }
-        
-        private function initializePrograms():void
-        {
-            Quad.registerPrograms(this);
-            Image.registerPrograms(this);
         }
         
         private function initializeRoot():void
@@ -249,13 +242,14 @@ package starling.core
             mTouchProcessor.advanceTime(passedTime);
             
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
-            mSupport.setDefaultBlendFactors(true);
             mSupport.clear(mStage.color, 1.0);
             
             mStage.render(mSupport, 1.0);
-            mContext.present();
-            
+
+            mSupport.finishQuadBatch();
             mSupport.resetMatrix();
+            
+            mContext.present();
         }
         
         private function updateNativeOverlay():void
@@ -316,7 +310,6 @@ package starling.core
         private function onContextCreated(event:Event):void
         {            
             initializeGraphicsAPI();
-            initializePrograms();
             initializeRoot();
             
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
@@ -401,7 +394,7 @@ package starling.core
         /** Registers a vertex- and fragment-program under a certain name. */
         public function registerProgram(name:String, vertexProgram:ByteArray, fragmentProgram:ByteArray):void
         {
-            if (mPrograms.hasOwnProperty(name))
+            if (name in mPrograms)
                 throw new Error("Another program with this name is already registered");
             
             var program:Program3D = mContext.createProgram();
@@ -424,6 +417,12 @@ package starling.core
         public function getProgram(name:String):Program3D
         {
             return mPrograms[name] as Program3D;
+        }
+        
+        /** Indicates if a set of vertex- and fragment-programs is registered under a certain name. */
+        public function hasProgram(name:String):Boolean
+        {
+            return name in mPrograms;
         }
         
         // properties

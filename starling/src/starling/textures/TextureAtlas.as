@@ -104,12 +104,7 @@ package starling.textures
             var region:Rectangle = mTextureRegions[name];
             
             if (region == null) return null;
-            else
-            {
-                var texture:Texture = Texture.fromTexture(mAtlasTexture, region);
-                texture.frame = mTextureFrames[name];
-                return texture;
-            }
+            else return Texture.fromTexture(mAtlasTexture, region, mTextureFrames[name]);
         }
         
         /** Returns all textures that start with a certain string, sorted alphabetically

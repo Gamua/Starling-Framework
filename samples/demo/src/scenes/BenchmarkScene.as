@@ -65,7 +65,7 @@ package scenes
                 if (Math.ceil(fps) >= Constants.FPS)
                 {
                     mFailCount = 0;
-                    addTestObject();
+                    addTestObjects();
                 }
                 else
                 {
@@ -96,7 +96,7 @@ package scenes
             mStartButton.visible = false;
             mStarted = true;
             mFailCount = 0;
-            mWaitFrames = 1;
+            mWaitFrames = 2;
             mFrameCount = 0;
             
             if (mResultText) 
@@ -105,16 +105,21 @@ package scenes
                 mResultText = null;
             }
             
-            addTestObject();
+            addTestObjects();
         }
         
-        private function addTestObject():void
+        private function addTestObjects():void
         {
             var padding:int = 15;
-            var egg:Image = new Image(Assets.getTexture("BenchmarkObject"));
-            egg.x = padding + Math.random() * (Constants.GameWidth - 2 * padding);
-            egg.y = padding + Math.random() * (Constants.GameHeight - 2 * padding);
-            mContainer.addChild(egg);
+            var numObjects:int = mFailCount > 20 ? 2 : 10;
+            
+            for (var i:int = 0; i<numObjects; ++i)
+            {
+                var egg:Image = new Image(Assets.getTexture("BenchmarkObject"));
+                egg.x = padding + Math.random() * (Constants.GameWidth - 2 * padding);
+                egg.y = padding + Math.random() * (Constants.GameHeight - 2 * padding);
+                mContainer.addChild(egg);
+            }
         }
         
         private function benchmarkComplete():void

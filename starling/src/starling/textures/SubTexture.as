@@ -32,10 +32,29 @@ package starling.textures
         public function SubTexture(parentTexture:Texture, region:Rectangle)
         {
             mParent = parentTexture;
-            this.clipping = new Rectangle(region.x / parentTexture.width,
-                                          region.y / parentTexture.height,
-                                          region.width / parentTexture.width,
-                                          region.height / parentTexture.height);
+            
+            if (region == null) setClipping(new Rectangle(0, 0, 1, 1));
+            else setClipping(new Rectangle(region.x / parentTexture.width,
+                                           region.y / parentTexture.height,
+                                           region.width / parentTexture.width,
+                                           region.height / parentTexture.height));
+        }
+        
+        private function setClipping(value:Rectangle):void
+        {
+            mClipping = value;
+            mRootClipping = value.clone();
+            
+            var parentTexture:SubTexture = mParent as SubTexture;
+            while (parentTexture)
+            {
+                var parentClipping:Rectangle = parentTexture.mClipping;
+                mRootClipping.x = parentClipping.x + mRootClipping.x * parentClipping.width;
+                mRootClipping.y = parentClipping.y + mRootClipping.y * parentClipping.height;
+                mRootClipping.width  *= parentClipping.width;
+                mRootClipping.height *= parentClipping.height;
+                parentTexture = parentTexture.mParent as SubTexture;
+            }
         }
         
         /** @inheritDoc */
@@ -63,22 +82,6 @@ package starling.textures
         /** The clipping rectangle, which is the region provided on initialization 
          *  scaled into [0.0, 1.0]. */
         public function get clipping():Rectangle { return mClipping.clone(); }
-        public function set clipping(value:Rectangle):void
-        {
-            mClipping = value.clone();
-            mRootClipping = value.clone();
-            
-            var parentTexture:SubTexture = mParent as SubTexture;            
-            while (parentTexture)
-            {
-                var parentClipping:Rectangle = parentTexture.mClipping;
-                mRootClipping.x = parentClipping.x + mRootClipping.x * parentClipping.width;
-                mRootClipping.y = parentClipping.y + mRootClipping.y * parentClipping.height;
-                mRootClipping.width  *= parentClipping.width;
-                mRootClipping.height *= parentClipping.height;
-                parentTexture = parentTexture.mParent as SubTexture;
-            }
-        }
         
         /** @inheritDoc */
         public override function get base():TextureBase { return mParent.base; }

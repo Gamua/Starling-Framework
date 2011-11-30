@@ -34,6 +34,7 @@ package starling.core
         private var mMvpMatrix:Matrix3D;
         private var mMatrixStack:Vector.<Matrix3D>;
         private var mMatrixStackSize:int;
+        private var mQuadBatch:QuadBatch;
         
         // construction
         
@@ -45,6 +46,7 @@ package starling.core
             mMvpMatrix = new Matrix3D();
             mMatrixStack = new <Matrix3D>[];
             mMatrixStackSize = 0;
+            mQuadBatch = new QuadBatch();
             
             loadIdentity();
             setOrthographicProjection(400, 300);
@@ -140,23 +142,29 @@ package starling.core
         
         // optimized quad rendering
         
-        private var mQuadBuffer:QuadBuffer;
-        
-        public function renderQuad(quad:Quad, texture:Texture):void
+        /** Adds a quad to the current batch of unrendered quads. If there is a state change,
+         *  all previous quads are rendered at once, and the batch is reset. */
+        public function renderQuad(quad:Quad, alpha:Number, 
+                                   texture:Texture=null, smoothing:String=null):void
         {
-            if (mQuadBuffer == null) 
-                mQuadBuffer = new QuadBuffer();
+            if (mQuadBatch.isStateChange(quad, texture, smoothing))
+                finishQuadBatch();
             
-            
-            
+            mQuadBatch.addQuad(quad, alpha, texture, smoothing, mModelViewMatrix);
         }
         
-        
+        /** Renders the current quad batch and resets it. */
+        public function finishQuadBatch():void
+        {
+            mQuadBatch.syncBuffers();
+            mQuadBatch.render(mProjectionMatrix);
+            mQuadBatch.reset();
+        }
         
         // other helper methods
         
         /** Sets up the default blending factors, depending on the premultiplied alpha status. */
-        public function setDefaultBlendFactors(premultipliedAlpha:Boolean):void
+        public static function setDefaultBlendFactors(premultipliedAlpha:Boolean):void
         {
             var destFactor:String = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
             var sourceFactor:String = premultipliedAlpha ? Context3DBlendFactor.ONE :
