@@ -92,9 +92,9 @@ package starling.events
             if (previousTarget == null || event.currentTarget != null) event.setTarget(this);
             
             var stopImmediatePropagation:Boolean = false;
-            var numListeners:int = listeners.length;
+            var numListeners:int = listeners == null ? 0 : listeners.length;
             
-            if (listeners != null && numListeners != 0)
+            if (numListeners != 0)
             {
                 event.setCurrentTarget(this);
                 
