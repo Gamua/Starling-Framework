@@ -58,12 +58,12 @@ package starling.core
             
             for (var i:int=oldCapacity; i<newCapacity; ++i)
             {
-                mIndexData[i*6  ] = i*4;
-                mIndexData[i*6+1] = i*4 + 1;
-                mIndexData[i*6+2] = i*4 + 2;
-                mIndexData[i*6+3] = i*4 + 1;
-                mIndexData[i*6+4] = i*4 + 3;
-                mIndexData[i*6+5] = i*4 + 2;
+                mIndexData[int(i*6  )] = i*4;
+                mIndexData[int(i*6+1)] = i*4 + 1;
+                mIndexData[int(i*6+2)] = i*4 + 2;
+                mIndexData[int(i*6+3)] = i*4 + 1;
+                mIndexData[int(i*6+4)] = i*4 + 3;
+                mIndexData[int(i*6+5)] = i*4 + 2;
             }
             
             if (mVertexBuffer) mVertexBuffer.dispose();
