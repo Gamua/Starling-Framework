@@ -100,8 +100,11 @@ package starling.utils
         {
             mRawData.fixed = false;
             
-            for each (var element:Number in data.mRawData)
-                mRawData.push(element);
+            var rawData:Vector.<Number> = data.mRawData;
+            var rawDataLength:int = rawData.length;
+            
+            for (var i:int=0; i<rawDataLength; ++i)
+                mRawData.push(rawData[i]);
                 
             mNumVertices += data.numVertices;
             mRawData.fixed = true;

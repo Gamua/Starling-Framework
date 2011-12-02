@@ -114,16 +114,17 @@ package starling.animation
             mElapsedTime += time;
             if (mObjects.length == 0) return;
             
+            var i:int;
             var numObjects:int = mObjects.length;
             var objectCopy:Vector.<IAnimatable> = mObjects.concat();
             
             // since 'advanceTime' could modify the juggler (through a callback), we split
             // the logic in two loops.
             
-            for each (var currentObject:IAnimatable in objectCopy)            
-                currentObject.advanceTime(time);  
+            for (i=0; i<numObjects; ++i)
+                objectCopy[i].advanceTime(time);
             
-            for (var i:int=numObjects-1; i>=0; --i)
+            for (i=numObjects-1; i>=0; --i)
                 if (mObjects[i].isComplete) 
                     mObjects.splice(i, 1);
         }

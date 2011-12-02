@@ -73,8 +73,11 @@ package starling.events
         public function getTouches(target:DisplayObject, phase:String=null):Vector.<Touch>
         {
             var touchesFound:Vector.<Touch> = new <Touch>[];
-            for each (var touch:Touch in mTouches)
+            var numTouches:int = mTouches.length;
+            
+            for (var i:int=0; i<numTouches; ++i)
             {
+                var touch:Touch = mTouches[i];
                 var correctTarget:Boolean = (touch.target == target) ||
                     ((target is DisplayObjectContainer) && 
                      (target as DisplayObjectContainer).contains(touch.target));

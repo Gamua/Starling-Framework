@@ -67,9 +67,15 @@ package starling.display
          *  Changes to the sprite's children will become immediately visible again. */ 
         public function unflatten():void
         {
-            for each (var quadBatch:QuadBatch in mFlattenedContents)
-                quadBatch.dispose();
-            mFlattenedContents = null;
+            if (mFlattenedContents)
+            {
+                var numBatches:int = mFlattenedContents.length;
+                
+                for (var i:int=0; i<numBatches; ++i)
+                    mFlattenedContents[i].dispose();
+                
+                mFlattenedContents = null;
+            }
         }
         
         /** Indicates if the sprite was flattened. */
@@ -82,8 +88,11 @@ package starling.display
             {
                 support.finishQuadBatch();
                 
-                for each (var quadBatch:QuadBatch in mFlattenedContents)
-                    quadBatch.render(support.mvpMatrix, this.alpha * alpha);
+                alpha *= this.alpha;
+                var numBatches:int = mFlattenedContents.length;
+                
+                for (var i:int=0; i<numBatches; ++i)
+                    mFlattenedContents[i].render(support.mvpMatrix, alpha);
             }
             else super.render(support, alpha);
         }

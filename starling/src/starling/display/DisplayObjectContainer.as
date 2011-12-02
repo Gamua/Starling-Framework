@@ -76,8 +76,10 @@ package starling.display
         /** Disposes the resources of all children. */
         public override function dispose():void
         {
-            for each (var child:DisplayObject in mChildren)
-                child.dispose();
+            var numChildren:int = mChildren.length;
+            
+            for (var i:int=0; i<numChildren; ++i)
+                mChildren[i].dispose();
                 
             super.dispose();
         }
@@ -157,8 +159,10 @@ package starling.display
         /** Returns a child object with a certain name (non-recursively). */
         public function getChildByName(name:String):DisplayObject
         {
-            for each (var currentChild:DisplayObject in mChildren)
-                if (currentChild.name == name) return currentChild;
+            var numChildren:int = mChildren.length;
+            for (var i:int=0; i<numChildren; ++i)
+                if (mChildren[i].name == name) return mChildren[i];
+
             return null;
         }
         
@@ -200,16 +204,14 @@ package starling.display
         {
             if (child == this) return true;
             
-            for each (var currentChild:DisplayObject in mChildren)
+            var numChildren:int = mChildren.length;
+            for (var i:int=0; i<numChildren; ++i)
             {
-                if (currentChild is DisplayObjectContainer)
-                {
-                    if ((currentChild as DisplayObjectContainer).contains(child)) return true;
-                }
-                else
-                {
-                    if (currentChild == child) return true;
-                }
+                var currentChild:DisplayObject = mChildren[i];
+                var currentChildContainer:DisplayObjectContainer = currentChild as DisplayObjectContainer;
+                
+                if (currentChildContainer && currentChildContainer.contains(child)) return true;
+                else if (currentChild == child) return true;
             }
             
             return false;
@@ -234,9 +236,10 @@ package starling.display
             {
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-                for each (var child:DisplayObject in mChildren)
+                
+                for (var i:int=0; i<numChildren; ++i)
                 {
-                    var childBounds:Rectangle = child.getBounds(targetSpace);
+                    var childBounds:Rectangle = mChildren[i].getBounds(targetSpace);
                     minX = Math.min(minX, childBounds.x);
                     maxX = Math.max(maxX, childBounds.x + childBounds.width);
                     minY = Math.min(minY, childBounds.y);
@@ -269,9 +272,11 @@ package starling.display
         public override function render(support:RenderSupport, alpha:Number):void
         {
             alpha *= this.alpha;
+            var numChildren:int = mChildren.length;
             
-            for each (var child:DisplayObject in mChildren)
+            for (var i:int=0; i<numChildren; ++i)
             {
+                var child:DisplayObject = mChildren[i];
                 if (child.alpha != 0.0 && child.visible)
                 {
                     support.pushMatrix();
@@ -299,19 +304,28 @@ package starling.display
             
             var listeners:Vector.<DisplayObject> = new <DisplayObject>[];
             getChildEventListeners(this, event.type, listeners);
-            for each (var listener:DisplayObject in listeners)
-                listener.dispatchEvent(event);
+            var numListeners:int = listeners.length;
+            
+            for (var i:int=0; i<numListeners; ++i)
+                listeners[i].dispatchEvent(event);
         }
         
         private function getChildEventListeners(object:DisplayObject, eventType:String, 
                                                 listeners:Vector.<DisplayObject>):void
         {
-            var container:DisplayObjectContainer = object as DisplayObjectContainer;                
+            var container:DisplayObjectContainer = object as DisplayObjectContainer;
+            
             if (object.hasEventListener(eventType))
                 listeners.push(object);
+            
             if (container)
-                for each (var child:DisplayObject in container.mChildren)
-                    getChildEventListeners(child, eventType, listeners);
+            {
+                var children:Vector.<DisplayObject> = container.mChildren;
+                var numChildren:int = children.length;
+                
+                for (var i:int=0; i<numChildren; ++i)
+                    getChildEventListeners(children[i], eventType, listeners);
+            }
         }
         
         /** The number of children of this container. */

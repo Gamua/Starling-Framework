@@ -30,7 +30,8 @@ package starling.core
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
 
-        private var mRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
+        /** Helper object. */
+        private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         
         public function QuadBatch()
         {
@@ -105,10 +106,10 @@ package starling.core
             
             if (dynamicAlpha)
             {
-                mRenderAlpha[0] = mRenderAlpha[1] = mRenderAlpha[2] = pma ? alpha : 1.0;
-                mRenderAlpha[3] = alpha;
+                sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
+                sRenderAlpha[3] = alpha;
                 context.setProgramConstantsFromVector(
-                    Context3DProgramType.FRAGMENT, 0, mRenderAlpha, 1);
+                    Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
             }
             
             if (mCurrentTexture)

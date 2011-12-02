@@ -196,16 +196,18 @@ package starling.display
             if (mLoop && mCurrentTime == mTotalTime) mCurrentTime = 0.0;
             if (!mPlaying || passedTime == 0.0 || mCurrentTime == mTotalTime) return;
             
-            var i:int = 0;
+            var numFrames:int = mTextures.length;
             var durationSum:Number = 0.0;
             var previousTime:Number = mCurrentTime;
             var restTime:Number = mTotalTime - mCurrentTime;
             var carryOverTime:Number = passedTime > restTime ? passedTime - restTime : 0.0;
             mCurrentTime = Math.min(mTotalTime, mCurrentTime + passedTime);
             
-            for each (var duration:Number in mDurations)
+            for (var i:int=0; i<numFrames; ++i)
             {
-                if (durationSum + duration >= mCurrentTime)
+                var frameDuration:Number = mDurations[i];
+                
+                if (durationSum + frameDuration >= mCurrentTime)
                 {
                     if (mCurrentFrame != i)
                     {
@@ -216,8 +218,7 @@ package starling.display
                     break;
                 }
                 
-                ++i;
-                durationSum += duration;
+                durationSum += frameDuration;
             }
             
             if (previousTime < mTotalTime && mCurrentTime == mTotalTime &&

@@ -92,15 +92,19 @@ package starling.events
             if (previousTarget == null || event.currentTarget != null) event.setTarget(this);
             
             var stopImmediatePropagation:Boolean = false;
-            if (listeners != null && listeners.length != 0)
+            var numListeners:int = listeners.length;
+            
+            if (listeners != null && numListeners != 0)
             {
                 event.setCurrentTarget(this);
                 
                 // we can enumerate directly over the vector, since "add"- and "removeEventListener" 
                 // won't change it, but instead always create a new vector.
-                for each (var listener:Function in listeners)
+                
+                for (var i:int=0; i<numListeners; ++i)
                 {
-                    listener(event);
+                    listeners[i](event);
+                    
                     if (event.stopsImmediatePropagation)
                     {
                         stopImmediatePropagation = true;
