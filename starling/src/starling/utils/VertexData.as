@@ -59,6 +59,9 @@ package starling.utils
         private var mRawData:Vector.<Number>;
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
+
+        /** Helper object. */
+        private static var sPositions:Vector.<Number> = new Vector.<Number>(12, true);
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
@@ -89,7 +92,7 @@ package starling.utils
             var targetStartIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
             
             for (var i:int=0; i<dataLength; ++i)
-                targetRawData[targetStartIndex+i] = mRawData[i];
+                targetRawData[int(targetStartIndex+i)] = mRawData[i];
         }
         
         /** Appends the vertices from another VertexData object. */
@@ -109,25 +112,30 @@ package starling.utils
         /** Updates the position values of a vertex. */
         public function setPosition(vertexID:int, x:Number, y:Number, z:Number=0.0):void
         {
-            setValues(getOffset(vertexID) + POSITION_OFFSET, x, y, z);
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            mRawData[offset] = x;
+            mRawData[int(offset+1)] = y;
+            mRawData[int(offset+2)] = z;
         }
         
         /** Returns the position of a vertex. */
-        public function getPosition(vertexID:int):Vector3D
+        public function getPosition(vertexID:int, position:Vector3D):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            return new Vector3D(mRawData[offset], mRawData[offset+1], mRawData[offset+2]);
+            position.x = mRawData[offset];
+            position.y = mRawData[int(offset+1)];
+            position.z = mRawData[int(offset+2)];
         }
         
         /** Updates the color and alpha values of a vertex. */ 
         public function setColor(vertexID:int, color:uint, alpha:Number=1.0):void
         {
             var multiplier:Number = mPremultipliedAlpha ? alpha : 1.0;
-            setValues(getOffset(vertexID) + COLOR_OFFSET, 
-                      Color.getRed(color)   / 255.0 * multiplier,
-                      Color.getGreen(color) / 255.0 * multiplier,
-                      Color.getBlue(color)  / 255.0 * multiplier,
-                      alpha);
+            var offset:int = getOffset(vertexID) + COLOR_OFFSET;
+            mRawData[offset]        = Color.getRed(color)   / 255.0 * multiplier;
+            mRawData[int(offset+1)] = Color.getGreen(color) / 255.0 * multiplier;
+            mRawData[int(offset+2)] = Color.getBlue(color)  / 255.0 * multiplier;
+            mRawData[int(offset+3)] = alpha;
         }
         
         /** Returns the RGB color of a vertex (no alpha). */
@@ -139,9 +147,9 @@ package starling.utils
             if (divisor == 0) return 0;
             else
             {
-                var red:Number   = mRawData[offset  ] / divisor;
-                var green:Number = mRawData[offset+1] / divisor;
-                var blue:Number  = mRawData[offset+2] / divisor;
+                var red:Number   = mRawData[offset]        / divisor;
+                var green:Number = mRawData[int(offset+1)] / divisor;
+                var blue:Number  = mRawData[int(offset+2)] / divisor;
                 return Color.rgb(red * 255, green * 255, blue * 255);
             }
         }
@@ -167,14 +175,17 @@ package starling.utils
         /** Updates the texture coordinates of a vertex (range 0-1). */
         public function setTexCoords(vertexID:int, u:Number, v:Number):void
         {
-            setValues(getOffset(vertexID) + TEXCOORD_OFFSET, u, v);
+            var offset:int = getOffset(vertexID) + TEXCOORD_OFFSET;
+            mRawData[offset]        = u;
+            mRawData[int(offset+1)] = v;
         }
         
         /** Returns the texture coordinates of a vertex in the range 0-1. */
-        public function getTexCoords(vertexID:int):Point
+        public function getTexCoords(vertexID:int, texCoords:Point):void
         {
             var offset:int = getOffset(vertexID) + TEXCOORD_OFFSET;
-            return new Point(mRawData[offset], mRawData[offset+1]);
+            texCoords.x = mRawData[offset];
+            texCoords.y = mRawData[int(offset+1)];
         }
         
         // utility functions
@@ -184,20 +195,48 @@ package starling.utils
                                         deltaX:Number, deltaY:Number, deltaZ:Number=0.0):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            mRawData[offset]   += deltaX;
-            mRawData[offset+1] += deltaY;
-            mRawData[offset+2] += deltaZ;
+            mRawData[offset]        += deltaX;
+            mRawData[int(offset+1)] += deltaY;
+            mRawData[int(offset+2)] += deltaZ;
         }
         
         /** Transforms the position of a vertex by multiplication with a transformation matrix. */
-        public function transformVertex(vertexID:int, matrix:Matrix3D=null):void
+        public function transformVertex(vertexID:int, matrix:Matrix3D):void
         {
-            var position:Vector3D = getPosition(vertexID);
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            sPositions[0] = mRawData[offset];
+            sPositions[1] = mRawData[int(offset+1)];
+            sPositions[2] = mRawData[int(offset+2)];
             
-            if (matrix)
+            matrix.transformVectors(sPositions, sPositions);
+            mRawData[offset]        = sPositions[0];
+            mRawData[int(offset+1)] = sPositions[1];
+            mRawData[int(offset+2)] = sPositions[2];
+        }
+
+        /** Transforms the position of a vertex by multiplication with a transformation matrix. */
+        public function transformQuad(vertexID:int, matrix:Matrix3D):void
+        {
+            var i:int;
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            
+            for (i=0; i<4; ++i)
             {
-                var transPosition:Vector3D = matrix.transformVector(position);
-                setPosition(vertexID, transPosition.x, transPosition.y, transPosition.z);
+                sPositions[int(3*i    )] = mRawData[offset];
+                sPositions[int(3*i + 1)] = mRawData[int(offset+1)];
+                sPositions[int(3*i + 2)] = mRawData[int(offset+2)];
+                offset += ELEMENTS_PER_VERTEX;
+            }
+            
+            matrix.transformVectors(sPositions, sPositions);
+            offset -= ELEMENTS_PER_VERTEX * 4;
+            
+            for (i=0; i<4; ++i)
+            {
+                mRawData[offset]        = sPositions[int(3*i    )];
+                mRawData[int(offset+1)] = sPositions[int(3*i + 1)];
+                mRawData[int(offset+2)] = sPositions[int(3*i + 2)];
+                offset += ELEMENTS_PER_VERTEX;
             }
         }
         
@@ -218,13 +257,6 @@ package starling.utils
                 var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
                 mRawData[offset] *= alpha;
             }
-        }
-        
-        private function setValues(offset:int, ...values):void
-        {
-            var numValues:int = values.length;
-            for (var i:int=0; i<numValues; ++i)
-                mRawData[offset+i] = values[i];
         }
         
         private function getOffset(vertexID:int):int
@@ -251,9 +283,9 @@ package starling.utils
                     
                     if (divisor != 0)
                     {
-                        mRawData[i  ] = mRawData[i  ] / divisor * multiplier;
-                        mRawData[i+1] = mRawData[i+1] / divisor * multiplier;
-                        mRawData[i+2] = mRawData[i+2] / divisor * multiplier;
+                        mRawData[i]        = mRawData[i]        / divisor * multiplier;
+                        mRawData[int(i+1)] = mRawData[int(i+1)] / divisor * multiplier;
+                        mRawData[int(i+2)] = mRawData[int(i+2)] / divisor * multiplier;
                     }
                 }
             }

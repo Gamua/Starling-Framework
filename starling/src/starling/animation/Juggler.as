@@ -47,7 +47,7 @@ package starling.animation
      */
     public class Juggler implements IAnimatable
     {
-        private var mObjects:Vector.<Object>;
+        private var mObjects:Vector.<IAnimatable>;
         private var mElapsedTime:Number;        
         private var mDisplayObject:DisplayObject;
         
@@ -55,7 +55,7 @@ package starling.animation
         public function Juggler()
         {
             mElapsedTime = 0;
-            mObjects = new <Object>[];
+            mObjects = new <IAnimatable>[];
         }
 
         /** Adds an object to the juggler. */
@@ -67,11 +67,11 @@ package starling.animation
         /** Removes an object from the juggler. */
         public function remove(object:IAnimatable):void
         {
-            mObjects = mObjects.filter(
-                function(currentObject:Object, index:int, vector:Vector.<Object>):Boolean
-                {
-                    return object != currentObject;
-                });
+            var numObjects:int = mObjects.length;
+            
+            for (var i:int=numObjects-1; i>=0; --i)
+                if (mObjects[i] == object) 
+                    mObjects.splice(i, 1);
         }
         
         /** Removes all tweens with a certain target. */
@@ -91,7 +91,7 @@ package starling.animation
         /** Removes all objects at once. */
         public function purge():void
         {
-            mObjects = new <Object>[];
+            mObjects = new <IAnimatable>[];
         }
         
         /** Delays the execution of a function until a certain time has passed. Creates an
@@ -106,12 +106,15 @@ package starling.animation
             return delayedCall;
         }
         
-        /** Advanced all objects by a certain time (in seconds). Objects with a positive 
+        /** Advances all objects by a certain time (in seconds). Objects with a positive
          *  'isComplete'-property will be removed. */
         public function advanceTime(time:Number):void
         {                        
             mElapsedTime += time;
-            var objectCopy:Vector.<Object> = mObjects.concat();
+            if (mObjects.length == 0) return;
+            
+            var numObjects:int = mObjects.length;
+            var objectCopy:Vector.<IAnimatable> = mObjects.concat();
             
             // since 'advanceTime' could modify the juggler (through a callback), we split
             // the logic in two loops.
@@ -119,11 +122,9 @@ package starling.animation
             for each (var currentObject:IAnimatable in objectCopy)            
                 currentObject.advanceTime(time);  
             
-            mObjects = mObjects.filter(
-                function(object:IAnimatable, index:int, vector:Vector.<Object>):Boolean
-                {
-                    return !object.isComplete;
-                });
+            for (var i:int=numObjects-1; i>=0; --i)
+                if (mObjects[i].isComplete) 
+                    mObjects.splice(i, 1);
         }
         
         /** Always returns 'false'. */

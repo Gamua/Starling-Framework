@@ -78,10 +78,10 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
-            support.finishQuadBatch();
-            
             if (mFlattenedContents)
             {
+                support.finishQuadBatch();
+                
                 for each (var quadBatch:QuadBatch in mFlattenedContents)
                     quadBatch.render(support.mvpMatrix, this.alpha * alpha);
             }

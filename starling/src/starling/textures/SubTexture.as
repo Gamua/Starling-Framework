@@ -27,6 +27,9 @@ package starling.textures
         private var mClipping:Rectangle;
         private var mRootClipping:Rectangle;
         
+        /** Helper object. */
+        private static var sTexCoords:Point = new Point();
+        
         /** Creates a new subtexture containing the specified region (in pixels) of a parent 
          *  texture. */
         public function SubTexture(parentTexture:Texture, region:Rectangle)
@@ -70,9 +73,9 @@ package starling.textures
             
             for (var i:int=vertexID; i<endIndex; ++i)
             {
-                var texCoords:Point = vertexData.getTexCoords(i);
-                vertexData.setTexCoords(i, clipX + texCoords.x * clipWidth,
-                                           clipY + texCoords.y * clipHeight);
+                vertexData.getTexCoords(i, sTexCoords);
+                vertexData.setTexCoords(i, clipX + sTexCoords.x * clipWidth,
+                                           clipY + sTexCoords.y * clipHeight);
             }
         }
         

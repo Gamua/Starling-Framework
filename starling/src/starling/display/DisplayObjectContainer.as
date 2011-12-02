@@ -274,9 +274,6 @@ package starling.display
             {
                 if (child.alpha != 0.0 && child.visible)
                 {
-                    if (!(child is Quad)) 
-                        support.finishQuadBatch();
-                    
                     support.pushMatrix();
                     support.transformMatrix(child);
                     child.render(support, alpha);

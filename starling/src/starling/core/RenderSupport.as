@@ -144,8 +144,8 @@ package starling.core
         
         /** Adds a quad to the current batch of unrendered quads. If there is a state change,
          *  all previous quads are rendered at once, and the batch is reset. */
-        public function renderQuad(quad:Quad, alpha:Number, 
-                                   texture:Texture=null, smoothing:String=null):void
+        public function addToQuadBatch(quad:Quad, alpha:Number, 
+                                       texture:Texture=null, smoothing:String=null):void
         {
             if (mQuadBatch.isStateChange(quad, texture, smoothing))
                 finishQuadBatch();

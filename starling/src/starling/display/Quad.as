@@ -39,6 +39,9 @@ package starling.display
         /** The raw vertex data of the quad. */
         protected var mVertexData:VertexData;
         
+        /** Helper object. */
+        private static var sPosition:Vector3D = new Vector3D();
+        
         /** Creates a quad with a certain size and color. */
         public function Quad(width:Number, height:Number, color:uint=0xffffff)
         {
@@ -55,18 +58,17 @@ package starling.display
         {
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
             var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-            var position:Vector3D;
             var i:int;
             
             if (targetSpace == this) // optimization
             {
                 for (i=0; i<4; ++i)
                 {
-                    position = mVertexData.getPosition(i);
-                    minX = Math.min(minX, position.x);
-                    maxX = Math.max(maxX, position.x);
-                    minY = Math.min(minY, position.y);
-                    maxY = Math.max(maxY, position.y);
+                    mVertexData.getPosition(i, sPosition);
+                    minX = Math.min(minX, sPosition.x);
+                    maxX = Math.max(maxX, sPosition.x);
+                    minY = Math.min(minY, sPosition.y);
+                    maxY = Math.max(maxY, sPosition.y);
                 }
             }
             else
@@ -76,9 +78,9 @@ package starling.display
                 
                 for (i=0; i<4; ++i)
                 {
-                    position = mVertexData.getPosition(i);
-                    point.x = position.x;
-                    point.y = position.y;
+                    mVertexData.getPosition(i, sPosition);
+                    point.x = sPosition.x;
+                    point.y = sPosition.y;
                     var transformedPoint:Point = transformationMatrix.transformPoint(point);
                     minX = Math.min(minX, transformedPoint.x);
                     maxX = Math.max(maxX, transformedPoint.x);
@@ -136,7 +138,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
-            support.renderQuad(this, alpha);
+            support.addToQuadBatch(this, alpha);
         }
     }
 }

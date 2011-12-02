@@ -153,11 +153,11 @@ package starling.core
             quad.copyVertexDataTo(mVertexData, vertexID);
             alpha *= quad.alpha;
             
-            for (var i:int = 0; i<4; ++i)
-            {
-                mVertexData.scaleAlpha(vertexID+i, alpha);
-                mVertexData.transformVertex(vertexID+i, modelViewMatrix);
-            }
+            if (alpha != 1.0)
+                for (var i:int = 0; i<4; ++i)
+                    mVertexData.scaleAlpha(vertexID+i, alpha);
+            
+            mVertexData.transformQuad(vertexID, modelViewMatrix);
             
             ++mNumQuads;
         }
