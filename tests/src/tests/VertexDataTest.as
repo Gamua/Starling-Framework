@@ -10,6 +10,9 @@
 
 package tests
 {
+    import flash.geom.Point;
+    import flash.geom.Vector3D;
+    
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
@@ -49,13 +52,17 @@ package tests
             vd.setPosition(0, 1, 2, 3);
             vd.setPosition(1, 4, 5, 6);
             
-            Assert.assertEquals(1, vd.getPosition(0).x);
-            Assert.assertEquals(2, vd.getPosition(0).y);
-            Assert.assertEquals(3, vd.getPosition(0).z);
+            var position:Vector3D = new Vector3D();
             
-            Assert.assertEquals(4, vd.getPosition(1).x);
-            Assert.assertEquals(5, vd.getPosition(1).y);
-            Assert.assertEquals(6, vd.getPosition(1).z);
+            vd.getPosition(0, position);
+            Assert.assertEquals(1, position.x);
+            Assert.assertEquals(2, position.y);
+            Assert.assertEquals(3, position.z);
+            
+            vd.getPosition(1, position);            
+            Assert.assertEquals(4, position.x);
+            Assert.assertEquals(5, position.y);
+            Assert.assertEquals(6, position.z);
         }
         
         [Test]
@@ -81,7 +88,7 @@ package tests
             Assert.assertEquals(1.0, vd.getAlpha(1));
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            var data:Vector.<Number> = vd.data;
+            var data:Vector.<Number> = vd.rawData;
             var red:Number   = 0x44 / 255.0;
             var green:Number = 0x55 / 255.0;
             var blue:Number  = 0x66 / 255.0;
@@ -93,7 +100,7 @@ package tests
             
             // changing the pma setting should update contents
             
-            vd.premultipliedAlpha = false;
+            vd.setPremultipliedAlpha(false, true);
             Assert.assertFalse(vd.premultipliedAlpha);
             
             Assert.assertEquals(0xffaabb, vd.getColor(0));
@@ -116,10 +123,15 @@ package tests
             vd.setTexCoords(0, 0.25, 0.75);
             vd.setTexCoords(1, 0.33, 0.66);
             
-            Assert.assertEquals(0.25, vd.getTexCoords(0).x);
-            Assert.assertEquals(0.75, vd.getTexCoords(0).y);
-            Assert.assertEquals(0.33, vd.getTexCoords(1).x);
-            Assert.assertEquals(0.66, vd.getTexCoords(1).y);
+            var texCoords:Point = new Point();
+            
+            vd.getTexCoords(0, texCoords);
+            Assert.assertEquals(0.25, texCoords.x);
+            Assert.assertEquals(0.75, texCoords.y);
+            
+            vd.getTexCoords(1, texCoords);
+            Assert.assertEquals(0.33, texCoords.x);
+            Assert.assertEquals(0.66, texCoords.y);
         }
     }
 }

@@ -38,38 +38,58 @@ package tests
             var vertexData:VertexData = createStandardVertexData();
             var adjustedVertexData:VertexData;            
             var texture:ConcreteTexture = new ConcreteTexture(null, rootWidth, rootHeight, false, false);
+            var texCoords:Point = new Point();
             
             // test subtexture filling the whole base texture
             subTexture = new SubTexture(texture, new Rectangle(0, 0, rootWidth, rootHeight));            
-            adjustedVertexData = subTexture.adjustVertexData(vertexData);
-            Assert.assertObjectEquals(vertexData.data, adjustedVertexData.data);
+            adjustedVertexData = vertexData.clone(); 
+            subTexture.adjustVertexData(adjustedVertexData, 0, 4);
+            Assert.assertObjectEquals(vertexData.rawData, adjustedVertexData.rawData);
             
             // test subtexture with 50% of the size of the base texture
             subTexture = new SubTexture(texture,
                 new Rectangle(rootWidth/4, rootHeight/4, rootWidth/2, rootHeight/2));
-            adjustedVertexData = subTexture.adjustVertexData(vertexData);
-            Assert.assertObjectEquals(new Point(0.25, 0.25), adjustedVertexData.getTexCoords(0));
-            Assert.assertObjectEquals(new Point(0.75, 0.25), adjustedVertexData.getTexCoords(1));
-            Assert.assertObjectEquals(new Point(0.25, 0.75), adjustedVertexData.getTexCoords(2));
-            Assert.assertObjectEquals(new Point(0.75, 0.75), adjustedVertexData.getTexCoords(3));
+            adjustedVertexData = vertexData.clone();
+            subTexture.adjustVertexData(adjustedVertexData, 0, 4);
+            
+            adjustedVertexData.getTexCoords(0, texCoords);
+            Assert.assertObjectEquals(new Point(0.25, 0.25), texCoords);
+            adjustedVertexData.getTexCoords(1, texCoords);
+            Assert.assertObjectEquals(new Point(0.75, 0.25), texCoords);
+            adjustedVertexData.getTexCoords(2, texCoords);
+            Assert.assertObjectEquals(new Point(0.25, 0.75), texCoords);            
+            adjustedVertexData.getTexCoords(3, texCoords);
+            Assert.assertObjectEquals(new Point(0.75, 0.75), texCoords);
             
             // test subtexture of subtexture
             subSubTexture = new SubTexture(subTexture,
                 new Rectangle(subTexture.width/4, subTexture.height/4, 
                               subTexture.width/2, subTexture.height/2));
-            adjustedVertexData = subSubTexture.adjustVertexData(vertexData);
-            Assert.assertObjectEquals(new Point(0.375, 0.375), adjustedVertexData.getTexCoords(0));
-            Assert.assertObjectEquals(new Point(0.625, 0.375), adjustedVertexData.getTexCoords(1));
-            Assert.assertObjectEquals(new Point(0.375, 0.625), adjustedVertexData.getTexCoords(2));
-            Assert.assertObjectEquals(new Point(0.625, 0.625), adjustedVertexData.getTexCoords(3));
+            adjustedVertexData = vertexData.clone();
+            subSubTexture.adjustVertexData(adjustedVertexData, 0, 4);
+            
+            adjustedVertexData.getTexCoords(0, texCoords);
+            Assert.assertObjectEquals(new Point(0.375, 0.375), texCoords);
+            adjustedVertexData.getTexCoords(1, texCoords);
+            Assert.assertObjectEquals(new Point(0.625, 0.375), texCoords);
+            adjustedVertexData.getTexCoords(2, texCoords);
+            Assert.assertObjectEquals(new Point(0.375, 0.625), texCoords);            
+            adjustedVertexData.getTexCoords(3, texCoords);
+            Assert.assertObjectEquals(new Point(0.625, 0.625), texCoords);
             
             // test subtexture over moved texture coords (same effect as above)
             vertexData = createVertexDataWithMovedTexCoords();
-            adjustedVertexData = subTexture.adjustVertexData(vertexData);
-            Assert.assertObjectEquals(new Point(0.375, 0.375), adjustedVertexData.getTexCoords(0));
-            Assert.assertObjectEquals(new Point(0.625, 0.375), adjustedVertexData.getTexCoords(1));
-            Assert.assertObjectEquals(new Point(0.375, 0.625), adjustedVertexData.getTexCoords(2));
-            Assert.assertObjectEquals(new Point(0.625, 0.625), adjustedVertexData.getTexCoords(3));            
+            adjustedVertexData = vertexData.clone(); 
+            subTexture.adjustVertexData(adjustedVertexData, 0, 4);
+            
+            adjustedVertexData.getTexCoords(0, texCoords);
+            Assert.assertObjectEquals(new Point(0.375, 0.375), texCoords);
+            adjustedVertexData.getTexCoords(1, texCoords);
+            Assert.assertObjectEquals(new Point(0.625, 0.375), texCoords);
+            adjustedVertexData.getTexCoords(2, texCoords);
+            Assert.assertObjectEquals(new Point(0.375, 0.625), texCoords);            
+            adjustedVertexData.getTexCoords(3, texCoords);
+            Assert.assertObjectEquals(new Point(0.625, 0.625), texCoords);
         }
         
         private function createStandardVertexData():VertexData
