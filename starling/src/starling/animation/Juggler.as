@@ -67,6 +67,7 @@ package starling.animation
         /** Removes an object from the juggler. */
         public function remove(object:IAnimatable):void
         {
+            if (object == null) return;
             var numObjects:int = mObjects.length;
             
             for (var i:int=numObjects-1; i>=0; --i)
@@ -78,20 +79,20 @@ package starling.animation
         public function removeTweens(target:Object):void
         {
             if (target == null) return;
+            var numObjects:int = mObjects.length;
             
-            mObjects = mObjects.filter(
-                function(currentObject:Object, index:int, vector:Vector.<Object>):Boolean
-                {
-                    var tween:Tween = currentObject as Tween;
-                    if (tween && tween.target == target) return false;
-                    else return true;
-                });
+            for (var i:int=numObjects-1; i>=0; --i)
+            {
+                var tween:Tween = mObjects[i] as Tween;
+                if (tween && tween.target == target)
+                    mObjects.splice(i, 1);
+            }
         }
         
         /** Removes all objects at once. */
         public function purge():void
         {
-            mObjects = new <IAnimatable>[];
+            mObjects.length = 0;
         }
         
         /** Delays the execution of a function until a certain time has passed. Creates an
