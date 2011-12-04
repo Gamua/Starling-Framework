@@ -84,11 +84,12 @@ package starling.display
             updateVertexDataCache();
         }
         
-        /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. 
-         *  To avoid allocations, the output is saved into a parameter. */
-        public function getTexCoords(vertexID:int, coords:Point):void
+        /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
+        public function getTexCoords(vertexID:int):Point
         {
+            var coords:Point = new Point();
             mVertexData.getTexCoords(vertexID, coords);
+            return coords;
         }
         
         /** Copies the raw vertex data to a VertexData instance.
@@ -149,7 +150,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
-            support.addToQuadBatch(this, alpha, mTexture, mSmoothing);
+            support.batchQuad(this, alpha, mTexture, mSmoothing);
         }
     }
 }

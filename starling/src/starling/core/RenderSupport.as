@@ -13,7 +13,7 @@ package starling.core
     import flash.display3D.*;
     import flash.geom.*;
     import flash.utils.*;
-    
+
     import starling.display.*;
     import starling.errors.*;
     import starling.textures.Texture;
@@ -34,7 +34,12 @@ package starling.core
         private var mMvpMatrix:Matrix3D;
         private var mMatrixStack:Vector.<Matrix3D>;
         private var mMatrixStackSize:int;
-        private var mQuadBatch:QuadBatch;
+        
+        private var mQuadBatches:Vector.<QuadBatch>;
+        private var mCurrentQuadBatchID:int;
+        
+        /** Helper object. */
+        private static var sMatrixCoords:Vector.<Number> = new Vector.<Number>(16, true);
         
         // construction
         
@@ -46,10 +51,18 @@ package starling.core
             mMvpMatrix = new Matrix3D();
             mMatrixStack = new <Matrix3D>[];
             mMatrixStackSize = 0;
-            mQuadBatch = new QuadBatch();
+            
+            mCurrentQuadBatchID = 0;
+            mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
             setOrthographicProjection(400, 300);
+        }
+        
+        public function dispose():void
+        {
+            for each (var quadBatch:QuadBatch in mQuadBatches)
+                quadBatch.dispose();
         }
         
         // matrix manipulation
@@ -58,14 +71,18 @@ package starling.core
         public function setOrthographicProjection(width:Number, height:Number, 
                                                   near:Number=-1.0, far:Number=1.0):void
         {
-            var coords:Vector.<Number> = new <Number>[                
-                2.0/width, 0.0, 0.0, 0.0,
-                0.0, -2.0/height, 0.0, 0.0,
-                0.0, 0.0, -2.0/(far-near), 0.0,
-                -1.0, 1.0, -(far+near)/(far-near), 1.0                
-            ];
+            sMatrixCoords[0] = 2.0 / width;
+            sMatrixCoords[1] = sMatrixCoords[2] = sMatrixCoords[3] = sMatrixCoords[4] = 0.0;
+            sMatrixCoords[5] = -2.0 / height;
+            sMatrixCoords[6] = sMatrixCoords[7] = sMatrixCoords[8] = sMatrixCoords[9] = 0.0;
+            sMatrixCoords[10] = -2.0 / (far - near);
+            sMatrixCoords[11] = 0.0;
+            sMatrixCoords[12] = -1.0;
+            sMatrixCoords[13] = 1.0;
+            sMatrixCoords[14] = -(far+near) / (far-near);
+            sMatrixCoords[15] = 1.0;
             
-            mProjectionMatrix.copyRawDataFrom(coords);
+            mProjectionMatrix.copyRawDataFrom(sMatrixCoords);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
@@ -144,21 +161,38 @@ package starling.core
         
         /** Adds a quad to the current batch of unrendered quads. If there is a state change,
          *  all previous quads are rendered at once, and the batch is reset. */
-        public function addToQuadBatch(quad:Quad, alpha:Number, 
-                                       texture:Texture=null, smoothing:String=null):void
+        public function batchQuad(quad:Quad, alpha:Number, 
+                                  texture:Texture=null, smoothing:String=null):void
         {
-            if (mQuadBatch.isStateChange(quad, texture, smoothing))
+            if (currentQuadBatch.isStateChange(quad, texture, smoothing))
                 finishQuadBatch();
             
-            mQuadBatch.addQuad(quad, alpha, texture, smoothing, mModelViewMatrix);
+            currentQuadBatch.addQuad(quad, alpha, texture, smoothing, mModelViewMatrix);
         }
         
         /** Renders the current quad batch and resets it. */
         public function finishQuadBatch():void
         {
-            mQuadBatch.syncBuffers();
-            mQuadBatch.render(mProjectionMatrix);
-            mQuadBatch.reset();
+            currentQuadBatch.syncBuffers();
+            currentQuadBatch.render(mProjectionMatrix);
+            currentQuadBatch.reset();
+            
+            ++mCurrentQuadBatchID;
+            
+            if (mQuadBatches.length <= mCurrentQuadBatchID)
+                mQuadBatches.push(new QuadBatch());
+        }
+        
+        /** Resets the matrix stack and the quad batch index. */
+        public function nextFrame():void
+        {
+            resetMatrix();
+            mCurrentQuadBatchID = 0;
+        }
+        
+        private function get currentQuadBatch():QuadBatch
+        {
+            return mQuadBatches[mCurrentQuadBatchID];
         }
         
         // other helper methods

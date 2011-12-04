@@ -10,6 +10,7 @@
 
 package starling.textures
 {
+    import flash.display3D.Context3D;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Rectangle;
     
@@ -17,6 +18,7 @@ package starling.textures
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.Image;
+    import starling.errors.MissingContextError;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
@@ -114,8 +116,11 @@ package starling.textures
          *  switches and allows you to draw multiple objects into a non-persistent texture. */
         public function drawBundled(drawingBlock:Function, antiAliasing:int=0):void
         {
+            var context:Context3D = Starling.context;
+            if (context == null) throw new MissingContextError();
+            
             // limit drawing to relevant area
-            Starling.context.setScissorRectangle(
+            context.setScissorRectangle(
                 new Rectangle(0, 0, mActiveTexture.width, mActiveTexture.height));
             
             // persistent drawing uses double buffering, as Molehill forces us to call 'clear'
@@ -130,7 +135,7 @@ package starling.textures
                 mHelperImage.texture = mBufferTexture;
             }
             
-            Starling.context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
+            context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             RenderSupport.setDefaultBlendFactors(true);
 
             mSupport.setOrthographicProjection(mNativeWidth, mNativeHeight);
@@ -152,25 +157,28 @@ package starling.textures
             {
                 mDrawing = false;
                 mSupport.finishQuadBatch();
-                mSupport.resetMatrix();
-                Starling.context.setScissorRectangle(null);
-                Starling.context.setRenderToBackBuffer();
+                mSupport.nextFrame();
+                context.setScissorRectangle(null);
+                context.setRenderToBackBuffer();
             }
         }
         
         /** Clears the texture (restoring full transparency). */
         public function clear():void
         {
-            Starling.context.setRenderToTexture(mActiveTexture.base);
+            var context:Context3D = Starling.context;
+            if (context == null) throw new MissingContextError();
+            
+            context.setRenderToTexture(mActiveTexture.base);
             mSupport.clear();
 
             if (isPersistent)
             {
-                Starling.context.setRenderToTexture(mActiveTexture.base);
+                context.setRenderToTexture(mActiveTexture.base);
                 mSupport.clear();
             }
             
-            Starling.context.setRenderToBackBuffer();
+            context.setRenderToBackBuffer();
         }
         
         /** @inheritDoc */

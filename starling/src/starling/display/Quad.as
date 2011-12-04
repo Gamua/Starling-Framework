@@ -138,7 +138,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
-            support.addToQuadBatch(this, alpha);
+            support.batchQuad(this, alpha);
         }
     }
 }

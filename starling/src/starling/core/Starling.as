@@ -193,6 +193,7 @@ package starling.core
             
             if (mContext) mContext.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
+            if (mSupport) mSupport.dispose();
         }
         
         // functions
@@ -247,7 +248,7 @@ package starling.core
             mStage.render(mSupport, 1.0);
 
             mSupport.finishQuadBatch();
-            mSupport.resetMatrix();
+            mSupport.nextFrame();
             
             mContext.present();
         }
