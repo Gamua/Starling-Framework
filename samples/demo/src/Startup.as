@@ -3,6 +3,8 @@ package
     import flash.display.Sprite;
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
+    import flash.display3D.Context3D;
+    import flash.events.Event;
     
     import starling.core.Starling;
     
@@ -22,6 +24,17 @@ package
             mStarling.simulateMultitouch = true;
             mStarling.enableErrorChecking = false;
             mStarling.start();
+            
+            // this event is dispatched when stage3D is set up
+            stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            // set framerate to 30 in software mode
+            
+            if (Starling.context.driverInfo.toLowerCase().indexOf("software") != -1)
+                Starling.current.nativeStage.frameRate = 30;
         }
     }
 }

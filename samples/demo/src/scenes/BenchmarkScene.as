@@ -2,6 +2,7 @@ package scenes
 {
     import flash.system.System;
     
+    import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
     import starling.display.Sprite;
@@ -61,8 +62,9 @@ package scenes
             if (mFrameCount % mWaitFrames == 0)
             {
                 var fps:Number = mWaitFrames / mElapsed;
+                var targetFps:int = Starling.current.nativeStage.frameRate;
                 
-                if (Math.ceil(fps) >= Constants.FPS)
+                if (Math.ceil(fps) >= targetFps)
                 {
                     mFailCount = 0;
                     addTestObjects();
@@ -127,12 +129,14 @@ package scenes
             mStarted = false;
             mStartButton.visible = true;
             
+            var fps:int = Starling.current.nativeStage.frameRate;
+            
             trace("Benchmark complete!");
-            trace("FPS: " + Constants.FPS);
+            trace("FPS: " + fps);
             trace("Number of objects: " + mContainer.numChildren);
             
             var resultString:String = formatString("Result:\n{0} objects\nwith {1} fps",
-                                                   mContainer.numChildren, Constants.FPS);
+                                                   mContainer.numChildren, fps);
             mResultText = new TextField(240, 200, resultString);
             mResultText.fontSize = 30;
             mResultText.x = Constants.CenterX - mResultText.width / 2;
