@@ -59,6 +59,7 @@ package starling.core
             setOrthographicProjection(400, 300);
         }
         
+        /** Disposes all quad batches. */
         public function dispose():void
         {
             for each (var quadBatch:QuadBatch in mQuadBatches)
