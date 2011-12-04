@@ -102,7 +102,7 @@ package starling.core
     public class Starling
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "0.9";
+        public static const VERSION:String = "0.9.1";
         
         // members
         
