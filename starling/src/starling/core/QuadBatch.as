@@ -19,6 +19,14 @@ package starling.core
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
     
+    /** Optimizes rendering of a number of quads with an identical state.
+     * 
+     *  <p>The majority of all rendered objects in Starling are quads. In fact, all the default
+     *  leaf nodes of Starling are quads. The rendering of those quads can be accelerated by 
+     *  a big factor if all quads with an identical state (i.e. same texture, same smoothing and
+     *  mipmapping settings) are sent to the GPU in just one call. That's what the QuadBatch
+     *  class can do.
+     */ 
     public class QuadBatch
     {
         private var mNumQuads:int;
@@ -33,6 +41,7 @@ package starling.core
         /** Helper object. */
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         
+        /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
         {
             registerPrograms();
@@ -44,10 +53,11 @@ package starling.core
             expand();
         }
         
+        /** Disposes vertex- and index-buffer. */
         public function dispose():void
         {
-            mVertexBuffer.dispose();
-            mIndexBuffer.dispose();
+            if (mVertexBuffer) mVertexBuffer.dispose();
+            if (mIndexBuffer)  mIndexBuffer.dispose();
         }
         
         private function expand():void
@@ -79,11 +89,13 @@ package starling.core
             mIndexBuffer.uploadFromVector(mIndexData, 0, newCapacity * 6);
         }
         
+        /** Uploads the raw data of all batched quads to the vertex buffer. */
         public function syncBuffers():void
         {
             mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mNumQuads * 4);
         }
         
+        /** Renders the current batch. Don't forget to call 'syncBuffers' before rendering. */
         public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
         {
             if (mNumQuads == 0) return;
@@ -130,6 +142,8 @@ package starling.core
             context.setVertexBufferAt(0, null);
         }
         
+        /** Resets the batch. The vertex- and index-buffers remain their size, so that they
+         *  can be reused quickly. */  
         public function reset():void
         {
             mNumQuads = 0;
@@ -137,6 +151,8 @@ package starling.core
             mCurrentSmoothing = null;
         }
         
+        /** Adds a quad to the current batch. Before adding a quad, you should check for a state
+         *  change (with the 'isStateChange' method) and, in case of a change, render the batch. */
         public function addQuad(quad:Quad, alpha:Number, texture:Texture, smoothing:String,
                                 modelViewMatrix:Matrix3D):void
         {
@@ -163,7 +179,9 @@ package starling.core
             ++mNumQuads;
         }
         
-        
+        /** Indicates if a quad can be added to the batch without causing a state change. 
+         *  A state change occurs if the quad uses a different base texture or has a different 
+         *  'smoothing' or 'repeat' setting. */
         public function isStateChange(quad:Quad, texture:Texture, smoothing:String):Boolean
         {
             if (mNumQuads == 0) return false;
@@ -178,6 +196,10 @@ package starling.core
         
         // compilation (for flattened sprites)
         
+        /** Analyses a container object that is made up exclusively of quads (or other containers)
+         *  and creates a vector of QuadBatch objects representing the container. This can be
+         *  used to render the container very efficiently. The 'flatten'-method of the Sprite 
+         *  class uses this method internally. */
         public static function compile(container:DisplayObjectContainer, 
                                        quadBatches:Vector.<QuadBatch>):void
         {
