@@ -277,7 +277,7 @@ package starling.display
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = mChildren[i];
-                if (child.alpha != 0.0 && child.visible)
+                if (child.alpha != 0.0 && child.visible && child.scaleX != 0.0 && child.scaleY != 0.0)
                 {
                     support.pushMatrix();
                     support.transformMatrix(child);
