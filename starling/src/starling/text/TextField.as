@@ -96,6 +96,7 @@ package starling.text
             mVAlign = VAlign.CENTER;
             mBorder = null;
             mKerning = true;
+            mBold = bold;
             this.fontName = fontName;
             
             mHitArea = new Quad(width, height);
