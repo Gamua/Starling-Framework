@@ -124,7 +124,7 @@ package starling.animation
             for (i=0; i<numObjects; ++i)
                 objectCopy[i].advanceTime(time);
             
-            for (i=numObjects-1; i>=0; --i)
+            for (i=mObjects.length-1; i>=0; --i)
                 if (mObjects[i].isComplete) 
                     mObjects.splice(i, 1);
         }
