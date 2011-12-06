@@ -47,8 +47,8 @@ package tests
             tween.moveTo(endX, endY);
             tween.animate("alpha", endAlpha);
             tween.onStart    = function():void { startCount++; };
-            tween.onUpdate   = function():void { updateCount++ };
-            tween.onComplete = function():void { completeCount++ };
+            tween.onUpdate   = function():void { updateCount++; };
+            tween.onComplete = function():void { completeCount++; };
             
             tween.advanceTime(totalTime / 3.0);
             assertThat(quad.x, closeTo(startX + (endX-startX)/3.0, E));
