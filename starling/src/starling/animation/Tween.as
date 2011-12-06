@@ -11,9 +11,6 @@
 
 package starling.animation
 {
-    import flash.events.Event;
-    import flash.events.EventDispatcher;
-    
     /** A Tween animates numeric properties of objects. It uses different transition functions 
      *  to give the animations various styles.
      *  

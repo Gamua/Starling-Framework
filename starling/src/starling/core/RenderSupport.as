@@ -12,10 +12,8 @@ package starling.core
 {
     import flash.display3D.*;
     import flash.geom.*;
-    import flash.utils.*;
 
     import starling.display.*;
-    import starling.errors.*;
     import starling.textures.Texture;
     import starling.utils.*;
 

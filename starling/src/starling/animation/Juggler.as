@@ -10,11 +10,6 @@
 
 package starling.animation
 {
-    import flash.display.DisplayObject;
-    import flash.display.Sprite;
-    import flash.events.Event;
-    import flash.utils.getTimer;
-    
     /** The Juggler takes objects that implement IAnimatable (like Tweens) and executes them.
      * 
      *  <p>A juggler is a simple object. It does no more than saving a list of objects implementing 
@@ -48,8 +43,7 @@ package starling.animation
     public class Juggler implements IAnimatable
     {
         private var mObjects:Vector.<IAnimatable>;
-        private var mElapsedTime:Number;        
-        private var mDisplayObject:DisplayObject;
+        private var mElapsedTime:Number;
         
         /** Create an empty juggler. */
         public function Juggler()

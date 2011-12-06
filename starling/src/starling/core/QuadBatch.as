@@ -213,7 +213,7 @@ package starling.core
                                               alpha:Number=1.0):int
         {
             var i:int;
-            var isRootObject:Boolean = false
+            var isRootObject:Boolean = false;
             
             if (quadBatchID == -1)
             {

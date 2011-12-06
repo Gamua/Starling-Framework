@@ -79,7 +79,7 @@ package scenes
             tween.animate("rotation", deg2rad(90)); // conventional 'animate' call
             tween.moveTo(300, 360);                 // convenience method for animating 'x' and 'y'
             tween.scaleTo(0.5);                     // convenience method for 'scaleX' and 'scaleY'
-            tween.onComplete = function():void { mStartButton.enabled = true; }
+            tween.onComplete = function():void { mStartButton.enabled = true; };
             
             // the tween alone is useless -- for an animation to be carried out, it has to be 
             // advance once in every frame.            

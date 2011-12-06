@@ -60,7 +60,7 @@ package com.adobe.utils
 			var isFrag:Boolean = false;
 			
 			if ( mode == FRAGMENT )
-				isFrag = true
+				isFrag = true;
 			else if ( mode != VERTEX )
 				_error = 'ERROR: mode needs to be "' + FRAGMENT + '" or "' + VERTEX + '" but is "' + mode + '".';
 			
@@ -258,7 +258,7 @@ package com.adobe.utils
 						}
 						if ( !isDest )
 							for ( ; k <= 4; k++ )
-								regmask |= cv << ( ( k - 1 ) << 1 ) // repeat last								
+								regmask |= cv << ( ( k - 1 ) << 1 ); // repeat last								
 					}
 					else
 					{
@@ -516,7 +516,7 @@ package com.adobe.utils
 		private static const OP_SPECIAL_TEX:uint				= 0x8;
 		private static const OP_SPECIAL_MATRIX:uint				= 0x10;
 		private static const OP_FRAG_ONLY:uint					= 0x20;
-		private static const OP_VERT_ONLY:uint					= 0x40;
+		// private static const OP_VERT_ONLY:uint					= 0x40; // not used, thus removed to shut down FDT compiler warning
 		private static const OP_NO_DEST:uint					= 0x80;
 		
 		// opcodes
