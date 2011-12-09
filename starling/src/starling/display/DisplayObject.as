@@ -402,7 +402,7 @@ package starling.display
         public function get alpha():Number { return mAlpha; }
         public function set alpha(value:Number):void 
         { 
-            mAlpha = Math.max(0.0, Math.min(1.0, value)); 
+            mAlpha = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value); 
         }
         
         /** The visibility of the object. An invisible object will be untouchable. */

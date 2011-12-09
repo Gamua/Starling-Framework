@@ -201,7 +201,9 @@ package starling.display
             var previousTime:Number = mCurrentTime;
             var restTime:Number = mTotalTime - mCurrentTime;
             var carryOverTime:Number = passedTime > restTime ? passedTime - restTime : 0.0;
-            mCurrentTime = Math.min(mTotalTime, mCurrentTime + passedTime);
+            
+            mCurrentTime += passedTime;
+            if (mCurrentTime > mTotalTime) mCurrentTime = mTotalTime;
             
             for (var i:int=0; i<numFrames; ++i)
             {
