@@ -25,7 +25,7 @@ package starling.core
      *  leaf nodes of Starling are quads. The rendering of those quads can be accelerated by 
      *  a big factor if all quads with an identical state (i.e. same texture, same smoothing and
      *  mipmapping settings) are sent to the GPU in just one call. That's what the QuadBatch
-     *  class can do.
+     *  class can do.</p>
      */ 
     public class QuadBatch
     {

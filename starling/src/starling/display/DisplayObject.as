@@ -88,7 +88,15 @@ package starling.display
      *    <li><code>function getBounds(targetSpace:DisplayObject):Rectangle</code></li>
      *  </ul>
      *  
-     *  Have a look at the Quad and Image classes for a sample implementation of those methods.
+     *  <p>Have a look at the Quad class for a sample implementation of the 'getBounds' method.
+     *  For a sample on how to write a custom render function, you can have a look at the
+     *  <a href="https://github.com/PrimaryFeather/Starling-Extension-Particle-System">particle
+     *  system extension</a>.</p> 
+     * 
+     *  <p>A common pitfull of custom render functions is that you have to call the 
+     *  'finishQuadBatch' method of the render support class to make Starling render the 
+     *  quads that it accumulates for performance reasons. Otherwise, the z-ordering
+     *  will be incorrect.</p> 
      * 
      *  @see DisplayObjectContainer
      *  @see Sprite

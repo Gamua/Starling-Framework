@@ -5,7 +5,7 @@
 # Adapt the ASDOC variable below so that it points to the correct path.
 
 ASDOC="/Applications/Adobe Flash Builder 4.5/sdks/4.5.1/bin/asdoc"
-MOLEHILL_PLAYERGLOBAL="/Users/redge/Incognitek/molehill/drop10/bin/playerglobal.swc"
+MOLEHILL_PLAYERGLOBAL="/Users/redge/Incognitek/molehill/files/playerglobal.swc"
 
 "${ASDOC}" \
   -doc-sources ../src \
