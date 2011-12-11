@@ -42,10 +42,21 @@ package starling.display
         /** Helper object. */
         private static var sPosition:Vector3D = new Vector3D();
         
-        /** Creates a quad with a certain size and color. */
-        public function Quad(width:Number, height:Number, color:uint=0xffffff)
+        /** Creates a quad with a certain size and color. The last parameter controls if the 
+         *  alpha value should be premultiplied into the color values on rendering, which can
+         *  influence blending output. You can use the default value in most cases.  */
+        public function Quad(width:Number, height:Number, color:uint=0xffffff,
+                             premultipliedAlpha:Boolean=true)
         {
-            mVertexData = new VertexData(4, true);
+            mVertexData = new VertexData(4, premultipliedAlpha);
+            updateVertexData(width, height, color, premultipliedAlpha);    
+        }
+        
+        /** Updates the vertex data with specific values for dimensions and color. */
+        protected function updateVertexData(width:Number, height:Number, color:uint,
+                                            premultipliedAlpha:Boolean):void
+        {
+            mVertexData.setPremultipliedAlpha(premultipliedAlpha);
             mVertexData.setPosition(0, 0.0, 0.0);
             mVertexData.setPosition(1, width, 0.0);
             mVertexData.setPosition(2, 0.0, height);

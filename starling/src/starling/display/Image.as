@@ -50,18 +50,13 @@ package starling.display
                 var frame:Rectangle = texture.frame;
                 var width:Number  = frame ? frame.width  : texture.width;
                 var height:Number = frame ? frame.height : texture.height;
+                var pma:Boolean = texture.premultipliedAlpha;
                 
-                super(width, height);
+                super(width, height, 0xffffff, pma);
                 
-                mSmoothing = TextureSmoothing.BILINEAR;
                 mTexture = texture;
-                mVertexDataCache = new VertexData(4, texture.premultipliedAlpha);
-                
-                mVertexData.setPremultipliedAlpha(texture.premultipliedAlpha);
-                mVertexData.setTexCoords(0, 0.0, 0.0);
-                mVertexData.setTexCoords(1, 1.0, 0.0);
-                mVertexData.setTexCoords(2, 0.0, 1.0);
-                mVertexData.setTexCoords(3, 1.0, 1.0);
+                mSmoothing = TextureSmoothing.BILINEAR;
+                mVertexDataCache = new VertexData(4, pma);
                 
                 updateVertexDataCache();
             }
@@ -75,6 +70,40 @@ package starling.display
         public static function fromBitmap(bitmap:Bitmap):Image
         {
             return new Image(Texture.fromBitmap(bitmap));
+        }
+        
+        /** @inheritDoc */
+        protected override function updateVertexData(width:Number, height:Number, color:uint,
+                                                     premultipliedAlpha:Boolean):void
+        {
+            super.updateVertexData(width, height, color, premultipliedAlpha);
+            
+            mVertexData.setTexCoords(0, 0.0, 0.0);
+            mVertexData.setTexCoords(1, 1.0, 0.0);
+            mVertexData.setTexCoords(2, 0.0, 1.0);
+            mVertexData.setTexCoords(3, 1.0, 1.0);
+        }
+        
+        private function updateVertexDataCache():void
+        {
+            mVertexData.copyTo(mVertexDataCache);
+            mTexture.adjustVertexData(mVertexDataCache, 0, 4);
+        }
+        
+        /** Readjusts the dimensions of the image according to its current texture. Call this method 
+         *  to synchronize image and texture size after assigning a texture with a different size.*/
+        public function readjustSize():void
+        {
+            var frame:Rectangle = texture.frame;
+            var width:Number  = frame ? frame.width  : texture.width;
+            var height:Number = frame ? frame.height : texture.height;
+            
+            mVertexData.setPosition(0, 0.0, 0.0);
+            mVertexData.setPosition(1, width, 0.0);
+            mVertexData.setPosition(2, 0.0, height);
+            mVertexData.setPosition(3, width, height); 
+            
+            updateVertexDataCache();
         }
         
         /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
@@ -139,12 +168,6 @@ package starling.display
         {
             super.setVertexAlpha(vertexID, alpha);
             updateVertexDataCache();
-        }
-        
-        private function updateVertexDataCache():void
-        {
-            mVertexData.copyTo(mVertexDataCache);
-            mTexture.adjustVertexData(mVertexDataCache, 0, 4);
         }
         
         /** @inheritDoc */
