@@ -1,7 +1,6 @@
 # Build and Release Folders
 bin-debug/
 bin-release/
-bin/
 starling/doc/html/
 
 # Project property files

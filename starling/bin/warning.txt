@@ -1,0 +1,3 @@
+Warning: the "Starling.swc" file represents the latest *stable* build, which is not necessarily
+the same file that you get when you compile the source manually (e.g if you downloaded the latest
+development version from the GitHub repository).

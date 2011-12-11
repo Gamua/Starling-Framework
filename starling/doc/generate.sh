@@ -4,13 +4,16 @@
 # It uses the "ASDoc" tool that comes with the Flex SDK.
 # Adapt the ASDOC variable below so that it points to the correct path.
 
+echo "Please enter the version number (like '1.0'), followed by [ENTER]:"
+read version
+
 ASDOC="/Applications/Adobe Flash Builder 4.5/sdks/4.5.1/bin/asdoc"
 MOLEHILL_PLAYERGLOBAL="/Users/redge/Incognitek/molehill/files/playerglobal.swc"
 
 "${ASDOC}" \
   -doc-sources ../src \
   -exclude-classes com.adobe.utils.AGALMiniAssembler \
-  -main-title "Starling Framework Reference" \
+  -main-title "Starling Framework Reference (v$version)" \
   -window-title "Starling Framework Reference" \
   -external-library-path "$MOLEHILL_PLAYERGLOBAL" \
   -package starling.animation "The components of Starlings animation system." \
