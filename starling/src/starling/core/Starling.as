@@ -130,14 +130,15 @@ package starling.core
         // construction
         
         /** Creates a new Starling instance. 
-         *  @param rootClass  A subclass of a Starling display object. Its contents will represent
-         *                    the root of the display tree.
+         *  @param rootClass  A subclass of a Starling display object. It will be created as soon as
+         *                    initialization is finished and will become the first child of the
+         *                    Starling stage.
          *  @param stage      The Flash (2D) stage.
          *  @param viewPort   A rectangle describing the area into which the content will be 
          *                    rendered. @default stage size
          *  @param stage3D    The Stage3D object into which the content will be rendered.
          *                    @default the first available Stage3D.
-         *  @param renderMode Use this parameter to force software rendering. 
+         *  @param renderMode Use this parameter to force "software" rendering. 
          */
         public function Starling(rootClass:Class, stage:flash.display.Stage, 
                                  viewPort:Rectangle=null, stage3D:Stage3D=null,
