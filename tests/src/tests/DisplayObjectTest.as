@@ -38,9 +38,9 @@ package tests
             object1.addChild(object2);
             object2.addChild(object3);
             
-            Assert.assertObjectEquals(object1, object1.root);
-            Assert.assertObjectEquals(object1, object2.root);
-            Assert.assertObjectEquals(object1, object3.root);
+            Assert.assertEquals(object1, object1.root);
+            Assert.assertEquals(object1, object2.root);
+            Assert.assertEquals(object1, object3.root);
         }
         
         [Test]
@@ -58,10 +58,10 @@ package tests
             var matrix:Matrix = sprite.getTransformationMatrix(child);
             var expectedMatrix:Matrix = child.transformationMatrix;
             expectedMatrix.invert();            
-            Assert.assertObjectEquals(expectedMatrix, matrix);
+            Helpers.compareMatrices(expectedMatrix, matrix);
             
             matrix = child.getTransformationMatrix(sprite);
-            Assert.assertObjectEquals(child.transformationMatrix, matrix);
+            Helpers.compareMatrices(child.transformationMatrix, matrix);
                         
             // more is tested indirectly via 'testBoundsInSpace' in DisplayObjectContainerTest            
         }

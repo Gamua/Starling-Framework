@@ -55,29 +55,29 @@ package tests
             
             parent.addChild(child1);
             Assert.assertEquals(1, parent.numChildren);
-            Assert.assertObjectEquals(parent, child1.parent);
+            Assert.assertEquals(parent, child1.parent);
             
             parent.addChild(child2);
             Assert.assertEquals(2, parent.numChildren);
-            Assert.assertObjectEquals(parent, child2.parent);
-            Assert.assertObjectEquals(child1, parent.getChildAt(0));
-            Assert.assertObjectEquals(child2, parent.getChildAt(1));
+            Assert.assertEquals(parent, child2.parent);
+            Assert.assertEquals(child1, parent.getChildAt(0));
+            Assert.assertEquals(child2, parent.getChildAt(1));
             
             parent.removeChild(child1);
             Assert.assertNull(child1.parent);
-            Assert.assertObjectEquals(child2, parent.getChildAt(0));
+            Assert.assertEquals(child2, parent.getChildAt(0));
             child1.removeFromParent(); // should *not* throw an exception
             
             child2.addChild(child1);
             Assert.assertTrue(parent.contains(child1));
             Assert.assertTrue(parent.contains(child2));
-            Assert.assertObjectEquals(child2, child1.parent);
+            Assert.assertEquals(child2, child1.parent);
             
             parent.addChildAt(child1, 0);
-            Assert.assertObjectEquals(parent, child1.parent);
+            Assert.assertEquals(parent, child1.parent);
             Assert.assertFalse(child2.contains(child1));
-            Assert.assertObjectEquals(child1, parent.getChildAt(0));
-            Assert.assertObjectEquals(child2, parent.getChildAt(1));
+            Assert.assertEquals(child1, parent.getChildAt(0));
+            Assert.assertEquals(child2, parent.getChildAt(1));
         }
         
         [Test]
@@ -141,7 +141,7 @@ package tests
             Assert.assertEquals(child1, parent.getChildByName("child1"));
             Assert.assertEquals(child2, parent.getChildByName("child2"));
             Assert.assertEquals(child3, parent.getChildByName("child3"));
-            Assert.assertEquals(null, parent.getChildByName("non-existing"));
+            Assert.assertNull(parent.getChildByName("non-existing"));
             
             child2.name = "child3";
             Assert.assertEquals(child2, parent.getChildByName("child3"));
@@ -160,19 +160,19 @@ package tests
             parent.addChild(childC);
             
             parent.setChildIndex(childB, 0);
-            Assert.assertObjectEquals(parent.getChildAt(0), childB);
-            Assert.assertObjectEquals(parent.getChildAt(1), childA);
-            Assert.assertObjectEquals(parent.getChildAt(2), childC);
+            Assert.assertEquals(parent.getChildAt(0), childB);
+            Assert.assertEquals(parent.getChildAt(1), childA);
+            Assert.assertEquals(parent.getChildAt(2), childC);
             
             parent.setChildIndex(childB, 1);
-            Assert.assertObjectEquals(parent.getChildAt(0), childA);
-            Assert.assertObjectEquals(parent.getChildAt(1), childB);
-            Assert.assertObjectEquals(parent.getChildAt(2), childC);
+            Assert.assertEquals(parent.getChildAt(0), childA);
+            Assert.assertEquals(parent.getChildAt(1), childB);
+            Assert.assertEquals(parent.getChildAt(2), childC);
             
             parent.setChildIndex(childB, 2);
-            Assert.assertObjectEquals(parent.getChildAt(0), childA);
-            Assert.assertObjectEquals(parent.getChildAt(1), childC);
-            Assert.assertObjectEquals(parent.getChildAt(2), childB);
+            Assert.assertEquals(parent.getChildAt(0), childA);
+            Assert.assertEquals(parent.getChildAt(1), childC);
+            Assert.assertEquals(parent.getChildAt(2), childB);
             
             Assert.assertEquals(3, parent.numChildren);
         }
@@ -190,14 +190,14 @@ package tests
             parent.addChild(childC);
             
             parent.swapChildren(childA, childC);            
-            Assert.assertObjectEquals(parent.getChildAt(0), childC);
-            Assert.assertObjectEquals(parent.getChildAt(1), childB);
-            Assert.assertObjectEquals(parent.getChildAt(2), childA);
+            Assert.assertEquals(parent.getChildAt(0), childC);
+            Assert.assertEquals(parent.getChildAt(1), childB);
+            Assert.assertEquals(parent.getChildAt(2), childA);
             
             parent.swapChildren(childB, childB); // should change nothing
-            Assert.assertObjectEquals(parent.getChildAt(0), childC);
-            Assert.assertObjectEquals(parent.getChildAt(1), childB);
-            Assert.assertObjectEquals(parent.getChildAt(2), childA);
+            Assert.assertEquals(parent.getChildAt(0), childC);
+            Assert.assertEquals(parent.getChildAt(1), childB);
+            Assert.assertEquals(parent.getChildAt(2), childA);
             
             Assert.assertEquals(3, parent.numChildren);
         }

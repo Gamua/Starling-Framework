@@ -10,10 +10,12 @@
 
 package tests
 {
+    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
 
     internal class Helpers
@@ -31,6 +33,25 @@ package tests
         {
             assertThat(point1.x, closeTo(point2.x, e));
             assertThat(point1.y, closeTo(point2.y, e));
+        }
+        
+        public static function compareVectors(vector1:Vector.<Number>, vector2:Vector.<Number>,
+                                              e:Number=0.0001):void
+        {
+            assertEquals(vector1.length, vector2.length);
+            
+            for (var i:int=0; i<vector1.length; ++i)
+                assertThat(vector1[i], closeTo(vector2[i], e));
+        }
+        
+        public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void
+        {
+            assertThat(matrix1.a,  closeTo(matrix2.a,  e));
+            assertThat(matrix1.b,  closeTo(matrix2.b,  e));
+            assertThat(matrix1.c,  closeTo(matrix2.c,  e));
+            assertThat(matrix1.d,  closeTo(matrix2.d,  e));
+            assertThat(matrix1.tx, closeTo(matrix2.tx, e));
+            assertThat(matrix1.ty, closeTo(matrix2.ty, e));
         }
     }
 }

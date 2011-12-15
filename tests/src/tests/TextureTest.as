@@ -44,7 +44,7 @@ package tests
             subTexture = new SubTexture(texture, new Rectangle(0, 0, rootWidth, rootHeight));            
             adjustedVertexData = vertexData.clone(); 
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            Assert.assertObjectEquals(vertexData.rawData, adjustedVertexData.rawData);
+            Helpers.compareVectors(vertexData.rawData, adjustedVertexData.rawData);
             
             // test subtexture with 50% of the size of the base texture
             subTexture = new SubTexture(texture,
@@ -53,13 +53,13 @@ package tests
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
             
             adjustedVertexData.getTexCoords(0, texCoords);
-            Assert.assertObjectEquals(new Point(0.25, 0.25), texCoords);
+            Helpers.comparePoints(new Point(0.25, 0.25), texCoords);
             adjustedVertexData.getTexCoords(1, texCoords);
-            Assert.assertObjectEquals(new Point(0.75, 0.25), texCoords);
+            Helpers.comparePoints(new Point(0.75, 0.25), texCoords);
             adjustedVertexData.getTexCoords(2, texCoords);
-            Assert.assertObjectEquals(new Point(0.25, 0.75), texCoords);            
+            Helpers.comparePoints(new Point(0.25, 0.75), texCoords);            
             adjustedVertexData.getTexCoords(3, texCoords);
-            Assert.assertObjectEquals(new Point(0.75, 0.75), texCoords);
+            Helpers.comparePoints(new Point(0.75, 0.75), texCoords);
             
             // test subtexture of subtexture
             subSubTexture = new SubTexture(subTexture,
@@ -69,13 +69,13 @@ package tests
             subSubTexture.adjustVertexData(adjustedVertexData, 0, 4);
             
             adjustedVertexData.getTexCoords(0, texCoords);
-            Assert.assertObjectEquals(new Point(0.375, 0.375), texCoords);
+            Helpers.comparePoints(new Point(0.375, 0.375), texCoords);
             adjustedVertexData.getTexCoords(1, texCoords);
-            Assert.assertObjectEquals(new Point(0.625, 0.375), texCoords);
+            Helpers.comparePoints(new Point(0.625, 0.375), texCoords);
             adjustedVertexData.getTexCoords(2, texCoords);
-            Assert.assertObjectEquals(new Point(0.375, 0.625), texCoords);            
+            Helpers.comparePoints(new Point(0.375, 0.625), texCoords);            
             adjustedVertexData.getTexCoords(3, texCoords);
-            Assert.assertObjectEquals(new Point(0.625, 0.625), texCoords);
+            Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
             
             // test subtexture over moved texture coords (same effect as above)
             vertexData = createVertexDataWithMovedTexCoords();
@@ -83,13 +83,13 @@ package tests
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
             
             adjustedVertexData.getTexCoords(0, texCoords);
-            Assert.assertObjectEquals(new Point(0.375, 0.375), texCoords);
+            Helpers.comparePoints(new Point(0.375, 0.375), texCoords);
             adjustedVertexData.getTexCoords(1, texCoords);
-            Assert.assertObjectEquals(new Point(0.625, 0.375), texCoords);
+            Helpers.comparePoints(new Point(0.625, 0.375), texCoords);
             adjustedVertexData.getTexCoords(2, texCoords);
-            Assert.assertObjectEquals(new Point(0.375, 0.625), texCoords);            
+            Helpers.comparePoints(new Point(0.375, 0.625), texCoords);            
             adjustedVertexData.getTexCoords(3, texCoords);
-            Assert.assertObjectEquals(new Point(0.625, 0.625), texCoords);
+            Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
         }
         
         private function createStandardVertexData():VertexData

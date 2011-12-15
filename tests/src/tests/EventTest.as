@@ -75,8 +75,8 @@ package tests
             function onGrandParentEvent(event:Event):void
             {
                 grandParentEventHandlerHit = true;                
-                Assert.assertObjectEquals(child, event.target);
-                Assert.assertObjectEquals(grandParent, event.currentTarget);
+                Assert.assertEquals(child, event.target);
+                Assert.assertEquals(grandParent, event.currentTarget);
                 hitCount++;
             }
             
