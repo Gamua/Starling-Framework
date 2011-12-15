@@ -212,5 +212,28 @@ package tests
             }
         }
         
+        [Test]
+        public function testRemoveAllFrames():void
+        {
+            var texture0:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var texture1:Texture = new ConcreteTexture(null, 16, 16, false, false);
+            var movie:MovieClip = new MovieClip(new <Texture>[texture0, texture1]);
+            
+            // it must not be allowed to remove the last frame 
+            movie.removeFrameAt(0);
+            var throwsError:Boolean = false;
+            
+            try
+            {
+                movie.removeFrameAt(0);
+            }
+            catch (error:Error)
+            {
+                throwsError = true;
+            }
+            
+            Assert.assertTrue(throwsError);
+        }
+        
     }
 }
