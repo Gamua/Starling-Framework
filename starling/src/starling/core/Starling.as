@@ -118,6 +118,7 @@ package starling.core
         private var mEnableErrorChecking:Boolean;
         private var mLastFrameTimestamp:Number;
         private var mViewPort:Rectangle;
+        private var mLeftMouseDown:Boolean;
         
         private var mNativeStage:flash.display.Stage;
         private var mNativeOverlay:flash.display.Sprite;
@@ -348,6 +349,12 @@ package starling.core
                 position = convertPosition(mouseEvent.stageX, mouseEvent.stageY);
                 phase = getPhaseFromMouseEvent(mouseEvent);
                 touchID = 0;
+                
+                // MouseEvent.buttonDown returns true for both left and right button (AIR supports
+                // the right mouse button). We only want to react on the left button for now,
+                // so we have to save the state for the left button manually.
+                if (event.type == MouseEvent.MOUSE_DOWN)    mLeftMouseDown = true;
+                else if (event.type == MouseEvent.MOUSE_UP) mLeftMouseDown = false;
             }
             else
             {
@@ -373,7 +380,7 @@ package starling.core
                     case MouseEvent.MOUSE_DOWN: return TouchPhase.BEGAN; break;
                     case MouseEvent.MOUSE_UP:   return TouchPhase.ENDED; break;
                     case MouseEvent.MOUSE_MOVE: 
-                        return mouseEvent.buttonDown ? TouchPhase.MOVED : TouchPhase.HOVER; 
+                        return mLeftMouseDown ? TouchPhase.MOVED : TouchPhase.HOVER; 
                         break;
                     default: return null;
                 }

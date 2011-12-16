@@ -172,7 +172,7 @@ package starling.events
         
         private function onKey(event:KeyboardEvent):void
         {
-            if (event.keyCode == 17) // ctrl key
+            if (event.keyCode == 17 || event.keyCode == 15) // ctrl or cmd key
             {
                 var wasCtrlDown:Boolean = mCtrlDown;
                 mCtrlDown = event.type == KeyboardEvent.KEY_DOWN;
