@@ -26,21 +26,32 @@ package starling.textures
         private var mParent:Texture;
         private var mClipping:Rectangle;
         private var mRootClipping:Rectangle;
+        private var mOwnsParent:Boolean;
         
         /** Helper object. */
         private static var sTexCoords:Point = new Point();
         
         /** Creates a new subtexture containing the specified region (in pixels) of a parent 
-         *  texture. */
-        public function SubTexture(parentTexture:Texture, region:Rectangle)
+         *  texture. If 'ownsParent' is true, the parent texture will be disposed automatically
+         *  when the subtexture is disposed. */
+        public function SubTexture(parentTexture:Texture, region:Rectangle,
+                                   ownsParent:Boolean=false)
         {
             mParent = parentTexture;
+            mOwnsParent = ownsParent;
             
             if (region == null) setClipping(new Rectangle(0, 0, 1, 1));
             else setClipping(new Rectangle(region.x / parentTexture.width,
                                            region.y / parentTexture.height,
                                            region.width / parentTexture.width,
                                            region.height / parentTexture.height));
+        }
+        
+        /** Disposes the parent texture if this texture owns it. */
+        public override function dispose():void
+        {
+            if (mOwnsParent) mParent.dispose();
+            super.dispose();
         }
         
         private function setClipping(value:Rectangle):void
@@ -81,6 +92,9 @@ package starling.textures
         
         /** The texture which the subtexture is based on. */ 
         public function get parent():Texture { return mParent; }
+        
+        /** Indicates if the parent texture is disposed when this object is disposed. */
+        public function get ownsParent():Boolean { return mOwnsParent; }
         
         /** The clipping rectangle, which is the region provided on initialization 
          *  scaled into [0.0, 1.0]. */
