@@ -45,6 +45,9 @@ package starling.events
         private var mTarget:DisplayObject;
         private var mTimestamp:Number;
         
+        /** Helper object. */
+        private static var sHelperMatrix:Matrix = new Matrix();
+        
         /** Creates a new Touch object. */
         public function Touch(id:int, globalX:Number, globalY:Number, phase:String, target:DisplayObject)
         {
@@ -61,8 +64,8 @@ package starling.events
         public function getLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mGlobalX, mGlobalY);
-            var transformationMatrix:Matrix = mTarget.root.getTransformationMatrix(space);
-            return transformationMatrix.transformPoint(point);
+            mTarget.root.getTransformationMatrix(space, sHelperMatrix);
+            return sHelperMatrix.transformPoint(point);
         }
         
         /** Converts the previous location of a touch to the local coordinate system of a display 
@@ -70,8 +73,8 @@ package starling.events
         public function getPreviousLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
-            var transformationMatrix:Matrix = mTarget.root.getTransformationMatrix(space);
-            return transformationMatrix.transformPoint(point);
+            mTarget.root.getTransformationMatrix(space, sHelperMatrix);
+            return sHelperMatrix.transformPoint(point);
         }
         
         /** Creates a clone of the Touch object. */

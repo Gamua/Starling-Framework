@@ -62,6 +62,9 @@ package starling.display
         
         private var mChildren:Vector.<DisplayObject>;
         
+        /** Helper object. */
+        private static var sHelperMatrix:Matrix = new Matrix();
+        
         // construction
         
         /** @private */
@@ -224,8 +227,8 @@ package starling.display
             
             if (numChildren == 0)
             {
-                var matrix:Matrix = getTransformationMatrix(targetSpace);
-                var position:Point = matrix.transformPoint(new Point(x, y));
+                getTransformationMatrix(targetSpace, sHelperMatrix);
+                var position:Point = sHelperMatrix.transformPoint(new Point(x, y));
                 return new Rectangle(position.x, position.y);
             }
             else if (numChildren == 1)
@@ -259,8 +262,8 @@ package starling.display
             for (var i:int=numChildren-1; i>=0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
-                var transformationMatrix:Matrix = getTransformationMatrix(child);
-                var transformedPoint:Point = transformationMatrix.transformPoint(localPoint);
+                getTransformationMatrix(child, sHelperMatrix);
+                var transformedPoint:Point = sHelperMatrix.transformPoint(localPoint);
                 var target:DisplayObject = child.hitTest(transformedPoint, forTouch);
                 if (target) return target;
             }

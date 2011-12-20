@@ -39,8 +39,10 @@ package starling.display
         /** The raw vertex data of the quad. */
         protected var mVertexData:VertexData;
         
-        /** Helper object. */
+        /** Helper objects. */
         private static var sPosition:Vector3D = new Vector3D();
+        private static var sPoint:Point = new Point();
+        private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
          *  alpha value should be premultiplied into the color values on rendering, which can
@@ -84,15 +86,14 @@ package starling.display
             }
             else
             {
-                var transformationMatrix:Matrix = getTransformationMatrix(targetSpace);
-                var point:Point = new Point();
+                getTransformationMatrix(targetSpace, sHelperMatrix);
                 
                 for (i=0; i<4; ++i)
                 {
                     mVertexData.getPosition(i, sPosition);
-                    point.x = sPosition.x;
-                    point.y = sPosition.y;
-                    var transformedPoint:Point = transformationMatrix.transformPoint(point);
+                    sPoint.x = sPosition.x;
+                    sPoint.y = sPosition.y;
+                    var transformedPoint:Point = sHelperMatrix.transformPoint(sPoint);
                     minX = Math.min(minX, transformedPoint.x);
                     maxX = Math.max(maxX, transformedPoint.x);
                     minY = Math.min(minY, transformedPoint.y);
