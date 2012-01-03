@@ -133,7 +133,11 @@ package starling.textures
             var concreteTexture:Texture = 
                 new ConcreteTexture(nativeTexture, legalWidth, legalHeight, generateMipMaps, true);
             
-            return fromTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight));
+            if (origWidth == legalWidth && origHeight == legalHeight)
+                return concreteTexture;
+            else
+                return new SubTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight), 
+                                      true);
         }
         
         /** Creates a texture from the compressed ATF format. */ 
