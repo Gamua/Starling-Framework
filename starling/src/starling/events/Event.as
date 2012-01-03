@@ -52,6 +52,8 @@ package starling.events
         public static const FLATTEN:String = "flatten";
         /** Event type for a resized Flash Player. */
         public static const RESIZE:String = "resize";
+        /** Event type that may be used whenever something finishes. */
+        public static const COMPLETE:String = "complete";
         
         private var mTarget:EventDispatcher;
         private var mCurrentTarget:EventDispatcher;
