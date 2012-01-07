@@ -55,7 +55,8 @@ package starling.text
      *       from Angel Code (free). Export the font data as an XML file and the texture as a png 
      *       with white characters on a transparent background (32 bit).</li>
      *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
-     *        71squared (commercial). It supports Starling natively.</li>
+     *        71squared or <a href="http://http://www.bmglyph.com">bmGlyph</a> (both commercial). 
+     *        They support Starling natively.</li>
      *  </ul> 
      */
     public class TextField extends DisplayObjectContainer
