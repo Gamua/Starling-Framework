@@ -203,5 +203,21 @@ package tests
             }
         }
         
+        [Test]
+        public function testBlankEventDispatcher():void
+        {
+            var dispatcher:EventDispatcher = new EventDispatcher();
+            
+            Helpers.assertDoesNotThrow(function():void
+            {
+                dispatcher.removeEventListener("Test", null);
+            });
+            
+            Helpers.assertDoesNotThrow(function():void
+            {
+                dispatcher.removeEventListeners("Test");
+            });
+        }
+        
     }
 }

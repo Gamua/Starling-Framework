@@ -14,6 +14,7 @@ package tests
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
+    import org.flexunit.Assert;
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
@@ -52,6 +53,18 @@ package tests
             assertThat(matrix1.d,  closeTo(matrix2.d,  e));
             assertThat(matrix1.tx, closeTo(matrix2.tx, e));
             assertThat(matrix1.ty, closeTo(matrix2.ty, e));
+        }
+        
+        public static function assertDoesNotThrow(block:Function):void
+        {
+            try
+            {
+                block();
+            }
+            catch (e:Error)
+            {
+                Assert.fail("Error thrown: " + e.message);
+            }
         }
     }
 }
