@@ -1,0 +1,21 @@
+<?xml version="1.0" standalone="yes"?>
+<project name="starling" default="dist" basedir=".">
+  <property name="asrc.dir" location="src"/>
+  <property name="deploy.dir" location="dist"/>
+
+  <property name="ooo-build.vers" value="2.5"/>
+  <ant antfile="etc/bootstrap.xml"/>
+  <import file="${user.home}/.m2/ooo-build/${ooo-build.vers}/ooo-build.xml"/>
+
+  <target name="clean" description="Removes all generated files and directories">
+    <delete dir="${deploy.dir}"/>
+  </target>
+
+  <target name="dist" depends="-init-ooo" description="Builds the library (.swc file)">
+    <mkdir dir="${deploy.dir}"/>
+    <maventaskdef groupId="com.threerings.ant" artifactId="actionscript" version="1.4"/>
+    <compc srcdir="${asrc.dir}" dest="${deploy.dir}/${ant.project.name}.swc">
+      <arg value="-swf-version=13"/>
+    </compc>
+  </target>
+</project>
