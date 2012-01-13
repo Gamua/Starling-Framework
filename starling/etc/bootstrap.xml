@@ -1,0 +1,36 @@
+<project name="bootstrap" default="-extract-ooo-build">
+  <!--
+       Pulls in ooo-build from our maven repository to make our base build system available.
+       From http://ooo-build.googlecode.com/hg/etc/bootstrap.xml
+
+       To use, copy this file into your project's directory and add
+
+       <property name="ooo-build.vers" value="2.1"/>
+       <ant antfile="bootstrap.xml"/>
+       <import file="${user.home}/.m2/ooo-build/${ooo-build.vers}/ooo-build.xml"/>
+
+       to the top level of your build.xml.  Then you can depend on -init-ooo in your lowest level
+       target to expose ooo-build's maven macros, javac macros, and antcontrib.
+  -->
+
+  <property name="maven.dir" value="${user.home}/.m2"/>
+  <property name="ooo-build.path"
+    value="com/threerings/ooo-build/${ooo-build.vers}"/>
+  <property name="ooo-build.jar"
+    value="ooo-build-${ooo-build.vers}.jar"/>
+  <property name="ooo-build.local.dir" value="${maven.dir}/repository/${ooo-build.path}"/>
+  <property name="ooo-build.local.file" value="${ooo-build.local.dir}/${ooo-build.jar}"/>
+  <condition property="ooo-build.exists"><available file="${ooo-build.local.file}"/></condition>
+  <target name="-download-ooo-build" unless="ooo-build.exists">
+    <mkdir dir="${ooo-build.local.dir}"/>
+    <get src="http://ooo-maven.googlecode.com/hg/repository/${ooo-build.path}/${ooo-build.jar}"
+      dest="${ooo-build.local.file}" usetimestamp="true"/>
+  </target>
+
+  <property name="ooo-build.dir" value="${maven.dir}/ooo-build/${ooo-build.vers}"/>
+  <condition property="extracted.exists"><available file="${ooo-build.dir}/ooo-build.xml"/></condition>
+  <target name="-extract-ooo-build" depends="-download-ooo-build" unless="extracted.exists">
+    <mkdir dir="${ooo-build.dir}"/>
+    <unjar src="${ooo-build.local.file}" dest="${ooo-build.dir}"/>
+  </target>
+</project>
