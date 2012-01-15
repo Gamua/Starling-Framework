@@ -228,7 +228,7 @@ package starling.display
             if (numChildren == 0)
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
-                var position:Point = sHelperMatrix.transformPoint(new Point(x, y));
+                var position:Point = sHelperMatrix.transformPoint(new Point());
                 return new Rectangle(position.x, position.y);
             }
             else if (numChildren == 1)
