@@ -118,8 +118,10 @@ package starling.events
                 for each (touchID in processedTouchIDs)
                 {
                     touch = getCurrentTouch(touchID);
-                    touch.target.dispatchEvent(new TouchEvent(TouchEvent.TOUCH, mCurrentTouches,
-                                                              mShiftDown, mCtrlDown));
+                    
+                    if (touch.target)
+                        touch.target.dispatchEvent(new TouchEvent(TouchEvent.TOUCH, mCurrentTouches,
+                                                                  mShiftDown, mCtrlDown));
                 }
                 
                 // remove ended touches
