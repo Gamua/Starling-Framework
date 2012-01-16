@@ -315,6 +315,20 @@ package tests
         }
         
         [Test]
+        public function testBoundsOfEmptyContainer():void
+        {
+            var sprite:Sprite = new Sprite();
+            sprite.x = 100;
+            sprite.y = 200;
+            
+            var bounds:Rectangle = sprite.bounds;
+            assertThat(bounds.x, closeTo(100, E));
+            assertThat(bounds.y, closeTo(200, E));
+            assertThat(bounds.width, closeTo(0, E));
+            assertThat(bounds.height, closeTo(0, E));            
+        }
+        
+        [Test]
         public function testSize():void
         {
             var quad1:Quad = new Quad(100, 100);
