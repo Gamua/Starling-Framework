@@ -264,9 +264,9 @@ package starling.text
         }
         
         /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            return mHitArea.getBounds(targetSpace);
+            return mHitArea.getBounds(targetSpace, resultRect);
         }
         
         /** @inheritDoc */

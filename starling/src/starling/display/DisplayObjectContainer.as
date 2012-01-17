@@ -18,6 +18,7 @@ package starling.display
     import starling.core.RenderSupport;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
+    import starling.utils.transformCoords;
     
     /**
      *  A DisplayObjectContainer represents a collection of display objects.
@@ -62,8 +63,9 @@ package starling.display
         
         private var mChildren:Vector.<DisplayObject>;
         
-        /** Helper object. */
+        /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperPoint:Point = new Point();
         
         // construction
         
@@ -221,19 +223,26 @@ package starling.display
         }
         
         /** @inheritDoc */ 
-        public override function getBounds(targetSpace:DisplayObject):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
+            if (resultRect == null) resultRect = new Rectangle();
+            
             var numChildren:int = mChildren.length;
             
             if (numChildren == 0)
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
-                var position:Point = sHelperMatrix.transformPoint(new Point());
-                return new Rectangle(position.x, position.y);
+                transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
+                
+                resultRect.x = sHelperPoint.x;
+                resultRect.y = sHelperPoint.y;
+                resultRect.width = resultRect.height = 0;
+                
+                return resultRect;
             }
             else if (numChildren == 1)
             {
-                return mChildren[0].getBounds(targetSpace);
+                return mChildren[0].getBounds(targetSpace, resultRect);
             }
             else
             {
@@ -242,13 +251,19 @@ package starling.display
                 
                 for (var i:int=0; i<numChildren; ++i)
                 {
-                    var childBounds:Rectangle = mChildren[i].getBounds(targetSpace);
-                    minX = Math.min(minX, childBounds.x);
-                    maxX = Math.max(maxX, childBounds.x + childBounds.width);
-                    minY = Math.min(minY, childBounds.y);
-                    maxY = Math.max(maxY, childBounds.y + childBounds.height);                    
+                    mChildren[i].getBounds(targetSpace, resultRect);
+                    minX = minX < resultRect.x ? minX : resultRect.x;
+                    maxX = maxX > resultRect.right ? maxX : resultRect.right;
+                    minY = minY < resultRect.y ? minY : resultRect.y;
+                    maxY = maxY > resultRect.bottom ? maxY : resultRect.bottom;
                 }
-                return new Rectangle(minX, minY, maxX-minX, maxY-minY);
+                
+                resultRect.x = minX;
+                resultRect.y = minY;
+                resultRect.width  = maxX - minX;
+                resultRect.height = maxY - minY;
+                
+                return resultRect;
             }                
         }
         
@@ -258,13 +273,18 @@ package starling.display
             if (forTouch && (!visible || !touchable))
                 return null;
             
+            var localX:Number = localPoint.x;
+            var localY:Number = localPoint.y;
+            
             var numChildren:int = mChildren.length;
             for (var i:int=numChildren-1; i>=0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
                 getTransformationMatrix(child, sHelperMatrix);
-                var transformedPoint:Point = sHelperMatrix.transformPoint(localPoint);
-                var target:DisplayObject = child.hitTest(transformedPoint, forTouch);
+                
+                transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
+                var target:DisplayObject = child.hitTest(sHelperPoint, forTouch);
+                
                 if (target) return target;
             }
             
