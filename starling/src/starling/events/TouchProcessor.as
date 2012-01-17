@@ -55,15 +55,16 @@ package starling.events
         
         public function advanceTime(passedTime:Number):void
         {
+            var i:int;
+            
             mElapsedTime += passedTime;
             
             // remove old taps
             if (mLastTaps.length > 0)
             {
-                mLastTaps = mLastTaps.filter(function(touch:Touch, ...rest):Boolean
-                {
-                    return mElapsedTime - touch.timestamp <= MULTITAP_TIME;
-                });
+                for (i=mLastTaps.length-1; i>=0; --i)
+                    if (mElapsedTime - mLastTaps[i].timestamp > MULTITAP_TIME)
+                        mLastTaps.splice(i, 1);
             }
             
             while (mQueue.length > 0)
@@ -125,10 +126,9 @@ package starling.events
                 }
                 
                 // remove ended touches
-                mCurrentTouches = mCurrentTouches.filter(function(currentTouch:Touch, ...rest):Boolean
-                {
-                    return currentTouch.phase != TouchPhase.ENDED;
-                });
+                for (i=mCurrentTouches.length-1; i>=0; --i)
+                    if (mCurrentTouches[i].phase == TouchPhase.ENDED)
+                        mCurrentTouches.splice(i, 1);
                 
                 // timestamps must differ for remaining touches
                 if (mQueue.length != 0) mElapsedTime += 0.00001;
@@ -234,10 +234,9 @@ package starling.events
         
         private function addCurrentTouch(touch:Touch):void
         {
-            mCurrentTouches = mCurrentTouches.filter(function(existingTouch:Touch, ...rest):Boolean
-            {
-                return existingTouch.id != touch.id;
-            });
+            for (var i:int=mCurrentTouches.length-1; i>=0; --i)
+                if (mCurrentTouches[i].id == touch.id)
+                    mCurrentTouches.splice(i, 1);
             
             mCurrentTouches.push(touch);
         }
