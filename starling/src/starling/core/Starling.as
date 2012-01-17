@@ -150,6 +150,8 @@ package starling.core
             if (viewPort == null) viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
             if (stage3D == null) stage3D = stage.stage3Ds[0];
             
+            makeCurrent();
+            
             mRootClass = rootClass;
             mViewPort = viewPort;
             mStage3D = stage3D;
@@ -163,14 +165,7 @@ package starling.core
             mLastFrameTimestamp = getTimer() / 1000.0;
             mPrograms = new Dictionary();
             
-            if (sCurrent == null)
-                makeCurrent();
-            
             // register touch/mouse event handlers            
-            var touchEventTypes:Array = Multitouch.supportsTouchEvents ?
-                [ TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END ] :
-                [ MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP ];            
-            
             for each (var touchEventType:String in touchEventTypes)
                 stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
@@ -180,8 +175,8 @@ package starling.core
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
-            mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
-            mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 0, true);
+            mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 1, true);
+            mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 1, true);
             
             try { mStage3D.requestContext3D(renderMode); } 
             catch (e:Error) { showFatalError("Context3D error: " + e.message); }
@@ -190,19 +185,31 @@ package starling.core
         /** Disposes Shader programs and render context. */
         public function dispose():void
         {
+            mNativeStage.removeEventListener(Event.ENTER_FRAME, onEnterFrame, false);
+            mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
+            mNativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
+            mNativeStage.removeEventListener(Event.RESIZE, onResize, false);
+            
+            mStage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false);
+            mStage3D.removeEventListener(ErrorEvent.ERROR, onStage3DError, false);
+            
+            for each (var touchEventType:String in touchEventTypes)
+                mNativeStage.removeEventListener(touchEventType, onTouch, false);
+            
             for each (var program:Program3D in mPrograms)
                 program.dispose();
             
             if (mContext) mContext.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
             if (mSupport) mSupport.dispose();
+            if (sCurrent == this) sCurrent = null;
         }
         
         // functions
         
         private function initializeGraphicsAPI():void
         {
-            if (mContext) return;            
+            if (mContext) return;
             
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
@@ -311,7 +318,9 @@ package starling.core
         }
         
         private function onContextCreated(event:Event):void
-        {            
+        {
+            makeCurrent();
+            
             initializeGraphicsAPI();
             initializeRoot();
             
@@ -320,12 +329,16 @@ package starling.core
         
         private function onEnterFrame(event:Event):void
         {
+            makeCurrent();
+            
             if (mNativeOverlay) updateNativeOverlay();
             if (mStarted) render();           
         }
         
         private function onKey(event:KeyboardEvent):void
         {
+            makeCurrent();
+            
             mStage.dispatchEvent(new starling.events.KeyboardEvent(
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey));
@@ -384,6 +397,13 @@ package starling.core
             
             // enqueue touch in touch processor
             mTouchProcessor.enqueue(touchID, phase, globalX, globalY);
+        }
+        
+        private function get touchEventTypes():Array
+        {
+            return Multitouch.supportsTouchEvents ?
+                [ TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END ] :
+                [ MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP ];  
         }
         
         // program management
@@ -499,10 +519,10 @@ package starling.core
         public static function get current():Starling { return sCurrent; }
         
         /** The render context of the currently active Starling instance. */
-        public static function get context():Context3D { return sCurrent.context; }
+        public static function get context():Context3D { return sCurrent ? sCurrent.context : null; }
         
         /** The default juggler of the currently active Starling instance. */
-        public static function get juggler():Juggler { return sCurrent.juggler; }
+        public static function get juggler():Juggler { return sCurrent ? sCurrent.juggler : null; }
         
         /** Indicates if multitouch input should be supported. */
         public static function get multitouchEnabled():Boolean 
