@@ -339,14 +339,16 @@ package starling.core
 
         private function onTouch(event:Event):void
         {
-            var position:Point;
+            var globalX:Number;
+            var globalY:Number;
             var phase:String;
             var touchID:int;
             
             if (event is MouseEvent)
             {
                 var mouseEvent:MouseEvent = event as MouseEvent;
-                position = convertPosition(mouseEvent.stageX, mouseEvent.stageY);
+                globalX = mouseEvent.stageX;
+                globalY = mouseEvent.stageY;
                 phase = getPhaseFromMouseEvent(mouseEvent);
                 touchID = 0;
                 
@@ -359,19 +361,17 @@ package starling.core
             else
             {
                 var touchEvent:TouchEvent = event as TouchEvent;
-                position = convertPosition(touchEvent.stageX, touchEvent.stageY);
+                globalX = touchEvent.stageX;
+                globalY = touchEvent.stageY;
                 phase = getPhaseFromTouchEvent(touchEvent);
                 touchID = touchEvent.touchPointID;
             }
             
-            mTouchProcessor.enqueue(touchID, phase, position.x, position.y);
+            // move position into viewport bounds
+            globalX = mStage.stageWidth  * (globalX - mViewPort.x) / mViewPort.width;
+            globalY = mStage.stageHeight * (globalY - mViewPort.y) / mViewPort.height;
             
-            function convertPosition(globalX:Number, globalY:Number):Point
-            {
-                return new Point(
-                    mStage.stageWidth  * (globalX - mViewPort.x) / mViewPort.width,
-                    mStage.stageHeight * (globalY - mViewPort.y) / mViewPort.height);
-            }
+            mTouchProcessor.enqueue(touchID, phase, globalX, globalY);
             
             function getPhaseFromMouseEvent(event:MouseEvent):String
             {
