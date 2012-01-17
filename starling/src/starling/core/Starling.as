@@ -341,15 +341,15 @@ package starling.core
         {
             var globalX:Number;
             var globalY:Number;
-            var phase:String;
             var touchID:int;
+            var phase:String;
             
+            // figure out general touch properties
             if (event is MouseEvent)
             {
                 var mouseEvent:MouseEvent = event as MouseEvent;
                 globalX = mouseEvent.stageX;
                 globalY = mouseEvent.stageY;
-                phase = getPhaseFromMouseEvent(mouseEvent);
                 touchID = 0;
                 
                 // MouseEvent.buttonDown returns true for both left and right button (AIR supports
@@ -363,39 +363,27 @@ package starling.core
                 var touchEvent:TouchEvent = event as TouchEvent;
                 globalX = touchEvent.stageX;
                 globalY = touchEvent.stageY;
-                phase = getPhaseFromTouchEvent(touchEvent);
                 touchID = touchEvent.touchPointID;
+            }
+            
+            // figure out touch phase
+            switch (event.type)
+            {
+                case TouchEvent.TOUCH_BEGIN: phase = TouchPhase.BEGAN; break;
+                case TouchEvent.TOUCH_MOVE:  phase = TouchPhase.MOVED; break;
+                case TouchEvent.TOUCH_END:   phase = TouchPhase.ENDED; break;
+                case MouseEvent.MOUSE_DOWN:  phase = TouchPhase.BEGAN; break;
+                case MouseEvent.MOUSE_UP:    phase = TouchPhase.ENDED; break;
+                case MouseEvent.MOUSE_MOVE: 
+                    phase = (mLeftMouseDown ? TouchPhase.MOVED : TouchPhase.HOVER); break;
             }
             
             // move position into viewport bounds
             globalX = mStage.stageWidth  * (globalX - mViewPort.x) / mViewPort.width;
             globalY = mStage.stageHeight * (globalY - mViewPort.y) / mViewPort.height;
             
+            // enqueue touch in touch processor
             mTouchProcessor.enqueue(touchID, phase, globalX, globalY);
-            
-            function getPhaseFromMouseEvent(event:MouseEvent):String
-            {
-                switch (event.type)
-                {
-                    case MouseEvent.MOUSE_DOWN: return TouchPhase.BEGAN; break;
-                    case MouseEvent.MOUSE_UP:   return TouchPhase.ENDED; break;
-                    case MouseEvent.MOUSE_MOVE: 
-                        return mLeftMouseDown ? TouchPhase.MOVED : TouchPhase.HOVER; 
-                        break;
-                    default: return null;
-                }
-            }
-             
-            function getPhaseFromTouchEvent(event:TouchEvent):String
-            {
-                switch (event.type)
-                {
-                    case TouchEvent.TOUCH_BEGIN: return TouchPhase.BEGAN; break;
-                    case TouchEvent.TOUCH_MOVE:  return TouchPhase.MOVED; break;
-                    case TouchEvent.TOUCH_END:   return TouchPhase.ENDED; break;
-                    default: return null;
-                }
-            }
         }
         
         // program management
