@@ -12,6 +12,7 @@ package starling.textures
 {
     import flash.display.Bitmap;
     import flash.display.BitmapData;
+    import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.Texture;
     import flash.display3D.textures.TextureBase;
@@ -23,6 +24,7 @@ package starling.textures
     
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
+    import starling.errors.MissingContextError;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
@@ -114,8 +116,11 @@ package starling.textures
             var legalWidth:int  = getNextPowerOfTwo(data.width);
             var legalHeight:int = getNextPowerOfTwo(data.height);
             var format:String = Context3DTextureFormat.BGRA;
+            var context:Context3D = Starling.context;
             
-            var nativeTexture:flash.display3D.textures.Texture = Starling.context.createTexture(
+            if (context == null) throw new MissingContextError();
+            
+            var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                 legalWidth, legalHeight, format, optimizeForRenderTexture);
             
             if (legalWidth > origWidth || legalHeight > origHeight)
@@ -151,9 +156,12 @@ package starling.textures
             var width:int = Math.pow(2, data[7]); 
             var height:int = Math.pow(2, data[8]);
             var textureCount:int = data[9];
+            var context:Context3D = Starling.context;
+            
+            if (context == null) throw new MissingContextError();
             
             var nativeTexture:flash.display3D.textures.Texture = 
-                Starling.context.createTexture(width, height, format, false);
+                context.createTexture(width, height, format, false);
             
             nativeTexture.uploadCompressedTextureFromByteArray(data, 0);
             
