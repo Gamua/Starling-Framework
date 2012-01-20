@@ -80,8 +80,8 @@ package starling.events
                 // update existing touches
                 for each (var currentTouch:Touch in mCurrentTouches)
                 {
-                    // set touches that were moving to phase 'stationary'
-                    if (currentTouch.phase == TouchPhase.MOVED)
+                    // set touches that were new or moving to phase 'stationary'
+                    if (currentTouch.phase == TouchPhase.BEGAN || currentTouch.phase == TouchPhase.MOVED)
                         currentTouch.setPhase(TouchPhase.STATIONARY);
                     
                     // check if target is still connected to stage, otherwise find new target
@@ -185,11 +185,17 @@ package starling.events
                     if (mouseTouch)
                         mTouchMarker.moveMarker(mouseTouch.globalX, mouseTouch.globalY);
                     
-                    // end active touch or start new one
+                    // end active touch ...
                     if (wasCtrlDown && mockedTouch && mockedTouch.phase != TouchPhase.ENDED)
                         mQueue.unshift([1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
-                    else if (mCtrlDown && mouseTouch && (mouseTouch.phase != TouchPhase.ENDED || mouseTouch.phase != TouchPhase.HOVER))
-                        mQueue.unshift([1, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
+                    // ... or start new one
+                    else if (mCtrlDown && mouseTouch)
+                    {
+                        if (mouseTouch.phase == TouchPhase.BEGAN || mouseTouch.phase == TouchPhase.MOVED)
+                            mQueue.unshift([1, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
+                        else
+                            mQueue.unshift([1, TouchPhase.HOVER, mTouchMarker.mockX, mTouchMarker.mockY]);
+                    }
                 }
             }
             else if (event.keyCode == 16) // shift key 
