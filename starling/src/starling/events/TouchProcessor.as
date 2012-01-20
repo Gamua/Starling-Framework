@@ -34,6 +34,10 @@ package starling.events
         private var mShiftDown:Boolean = false;
         private var mCtrlDown:Boolean = false;
         
+        /** Helper objects. */
+        private static var sProcessedTouchIDs:Vector.<int> = new <int>[];
+        private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
+        
         public function TouchProcessor(stage:Stage)
         {
             mStage = stage;
@@ -56,6 +60,8 @@ package starling.events
         public function advanceTime(passedTime:Number):void
         {
             var i:int;
+            var touchID:int;
+            var touch:Touch;
             
             mElapsedTime += passedTime;
             
@@ -69,11 +75,7 @@ package starling.events
             
             while (mQueue.length > 0)
             {
-                var processedTouchIDs:Vector.<int> = new <int>[];
-                var touchID:int;
-                var touch:Touch;
-                var hoverTouch:Touch = null;
-                var hoverTarget:DisplayObject = null;
+                sProcessedTouchIDs.length = sHoveringTouchData.length = 0;
                 
                 // update existing touches
                 for each (var currentTouch:Touch in mCurrentTouches)
@@ -90,33 +92,29 @@ package starling.events
                 
                 // process new touches, but each ID only once
                 while (mQueue.length > 0 && 
-                    processedTouchIDs.indexOf(mQueue[mQueue.length-1][0]) == -1)
+                    sProcessedTouchIDs.indexOf(mQueue[mQueue.length-1][0]) == -1)
                 {
                     var touchArgs:Array = mQueue.pop();
                     touchID = touchArgs[0] as int;
                     touch = getCurrentTouch(touchID);
                     
                     // hovering touches need special handling (see below)
-                    if (touch && touch.phase == TouchPhase.HOVER)
-                    {
-                        hoverTouch = touch;
-                        hoverTarget = touch.target;
-                    }
+                    if (touch && touch.phase == TouchPhase.HOVER && touch.target)
+                        sHoveringTouchData.push({ touch: touch, target: touch.target });
                     
                     processTouch.apply(this, touchArgs);
-                    processedTouchIDs.push(touchID);
+                    sProcessedTouchIDs.push(touchID);
                 }
                 
                 // if the target of a hovering touch changed, we dispatch an event to the previous
                 // target to notify it that it's no longer being hovered over.
-                if (hoverTarget && hoverTouch.target != hoverTarget)
-                {
-                    hoverTarget.dispatchEvent(new TouchEvent(TouchEvent.TOUCH, mCurrentTouches,
-                                                             mShiftDown, mCtrlDown));
-                }
+                for each (var touchData:Object in sHoveringTouchData)
+                    if (touchData.touch.target != touchData.target)
+                        touchData.target.dispatchEvent(new TouchEvent(
+                            TouchEvent.TOUCH, mCurrentTouches, mShiftDown, mCtrlDown));
                 
                 // dispatch events
-                for each (touchID in processedTouchIDs)
+                for each (touchID in sProcessedTouchIDs)
                 {
                     touch = getCurrentTouch(touchID);
                     
@@ -143,10 +141,7 @@ package starling.events
             if (mCtrlDown && simulateMultitouch && touchID == 0) 
             {
                 mTouchMarker.moveMarker(globalX, globalY, mShiftDown);
-                
-                // only mouse can hover
-                if (phase != TouchPhase.HOVER)
-                    mQueue.unshift([1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
+                mQueue.unshift([1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
             }
         }
         
