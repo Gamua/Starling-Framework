@@ -17,6 +17,7 @@ package tests
     import org.flexunit.assertThat;
     import org.hamcrest.number.closeTo;
     
+    import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
@@ -350,6 +351,38 @@ package tests
             
             assertThat(sprite.width, closeTo(400, E));
             assertThat(sprite.height, closeTo(400, E));
+        }
+        
+        [Test]
+        public function testSort():void
+        {
+            var s1:Sprite = new Sprite(); s1.y = 8;
+            var s2:Sprite = new Sprite(); s2.y = 3;
+            var s3:Sprite = new Sprite(); s3.y = 6;
+            var s4:Sprite = new Sprite(); s4.y = 1;
+            
+            var parent:Sprite = new Sprite();
+            parent.addChild(s1);
+            parent.addChild(s2);
+            parent.addChild(s3);
+            parent.addChild(s4);
+            
+            Assert.assertEquals(s1, parent.getChildAt(0));
+            Assert.assertEquals(s2, parent.getChildAt(1));
+            Assert.assertEquals(s3, parent.getChildAt(2));
+            Assert.assertEquals(s4, parent.getChildAt(3));
+            
+            parent.sortChildren(function(child1:DisplayObject, child2:DisplayObject):int
+            {
+                if (child1.y < child2.y) return -1;
+                else if (child1.y > child2.y) return 1;
+                else return 0;
+            });
+            
+            Assert.assertEquals(s4, parent.getChildAt(0));
+            Assert.assertEquals(s2, parent.getChildAt(1));
+            Assert.assertEquals(s3, parent.getChildAt(2));
+            Assert.assertEquals(s1, parent.getChildAt(3));
         }
         
         [Test]

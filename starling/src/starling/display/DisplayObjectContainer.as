@@ -204,6 +204,13 @@ package starling.display
             mChildren[index2] = child1;
         }
         
+        /** Sorts the children according to a given function (that works just like the sort function
+         *  of the Vector class). */
+        public function sortChildren(compareFunction:Function):void
+        {
+            mChildren = mChildren.sort(compareFunction);
+        }
+        
         /** Determines if a certain object is a child of the container (recursively). */
         public function contains(child:DisplayObject):Boolean
         {
