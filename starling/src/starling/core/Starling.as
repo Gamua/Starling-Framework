@@ -14,6 +14,7 @@ package starling.core
     import flash.display.Stage3D;
     import flash.display3D.Context3D;
     import flash.display3D.Program3D;
+    import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
@@ -34,6 +35,7 @@ package starling.core
     import starling.animation.Juggler;
     import starling.display.DisplayObject;
     import starling.display.Stage;
+    import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
@@ -99,7 +101,7 @@ package starling.core
      *  this feature by enabling the <code>simulateMultitouch</code> property.</p>
      *
      */ 
-    public class Starling
+    public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
         public static const VERSION:String = "0.9.1";
@@ -127,6 +129,7 @@ package starling.core
         private var mPrograms:Dictionary;
         
         private static var sCurrent:Starling;
+        private static var sHandleLostContext:Boolean;
         
         // construction
         
@@ -209,13 +212,12 @@ package starling.core
         
         private function initializeGraphicsAPI():void
         {
-            if (mContext) return;
-            
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
             updateViewPort();
             
-            mSupport = new RenderSupport();
+            mPrograms = new Dictionary();
+            mSupport  = new RenderSupport();
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:" + mContext.driverInfo);
@@ -241,7 +243,8 @@ package starling.core
         
         private function render():void
         {
-            if (mContext == null) return;
+            if (mContext == null || mContext.driverInfo == "Disposed") 
+                return;
             
             var now:Number = getTimer() / 1000.0;
             var passedTime:Number = now - mLastFrameTimestamp;
@@ -325,6 +328,7 @@ package starling.core
             initializeRoot();
             
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
+            dispatchEvent(new starling.events.Event(starling.events.Event.CONTEXT3D_CREATE));
         }
         
         private function onEnterFrame(event:Event):void
@@ -540,6 +544,19 @@ package starling.core
         {            
             Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
                                            MultitouchInputMode.NONE;
+        }
+        
+        /** Indicates if Starling should automatically recover from a lost device context.
+         *  On some systems, an upcoming screensaver or entering sleep mode may invalidate the
+         *  render context. This setting indicates if Starling should recover from such incidents.
+         *  Beware that this has a huge impact on memory consumption! @default false */
+        public static function get handleLostContext():Boolean { return sHandleLostContext; }
+        public static function set handleLostContext(value:Boolean):void 
+        {
+            if (sCurrent != null) throw new IllegalOperationError(
+                "Setting must be changed before Starling instance is created");
+            else
+                sHandleLostContext = value;
         }
     }
 }
