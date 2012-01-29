@@ -10,9 +10,13 @@
 
 package starling.display
 {
+    import flash.ui.Mouse;
+    import flash.ui.MouseCursor;
+    
     import starling.core.QuadBatch;
     import starling.core.RenderSupport;
     import starling.events.Event;
+    import starling.events.TouchEvent;
 
     /** Dispatched on all children when the object is flattened. */
     [Event(name="flatten", type="starling.events.Event")]
@@ -38,6 +42,7 @@ package starling.display
     public class Sprite extends DisplayObjectContainer
     {
         private var mFlattenedContents:Vector.<QuadBatch>;
+        private var mUseHandCursor:Boolean;
         
         /** Creates an empty sprite. */
         public function Sprite()
@@ -50,6 +55,25 @@ package starling.display
         {
             unflatten();
             super.dispose();
+        }
+        
+        /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
+         *  @default false */
+        public function get useHandCursor():Boolean { return mUseHandCursor; }
+        public function set useHandCursor(value:Boolean):void
+        {
+            if (value == mUseHandCursor) return;
+            mUseHandCursor = value;
+            
+            if (mUseHandCursor)
+                addEventListener(TouchEvent.TOUCH, onTouch);
+            else
+                removeEventListener(TouchEvent.TOUCH, onTouch);
+        }
+        
+        private function onTouch(event:TouchEvent):void
+        {
+            Mouse.cursor = event.interactsWith(this) ? MouseCursor.BUTTON : MouseCursor.ARROW;
         }
         
         /** Optimizes the sprite for optimal rendering performance. Changes in the

@@ -104,6 +104,23 @@ package starling.events
             if (touchesFound.length > 0) return touchesFound[0];
             else return null;
         }
+        
+        /** Indicates if a target is currently being touched or hovered over. */
+        public function interactsWith(target:DisplayObject):Boolean
+        {
+            if (getTouch(target) == null)
+                return false;
+            else
+            {
+                var touches:Vector.<Touch> = getTouches(target);
+                
+                for (var i:int=touches.length-1; i>=0; --i)
+                    if (touches[i].phase != TouchPhase.ENDED)
+                        return true;
+                
+                return false;
+            }
+        }
 
         /** The time the event occurred (in seconds since application launch). */
         public function get timestamp():Number { return mTimestamp; }

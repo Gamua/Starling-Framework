@@ -24,7 +24,8 @@ package starling.events
         private static const MULTITAP_DISTANCE:Number = 25;
         
         private var mStage:Stage;
-        private var mElapsedTime:Number;        
+        private var mElapsedTime:Number;
+        private var mOffsetTime:Number;
         private var mTouchMarker:TouchMarker;
         
         private var mCurrentTouches:Vector.<Touch>;
@@ -41,7 +42,7 @@ package starling.events
         public function TouchProcessor(stage:Stage)
         {
             mStage = stage;
-            mElapsedTime = 0;
+            mElapsedTime = mOffsetTime = 0.0;
             mCurrentTouches = new <Touch>[];
             mQueue = new <Array>[];
             mLastTaps = new <Touch>[];
@@ -64,6 +65,7 @@ package starling.events
             var touch:Touch;
             
             mElapsedTime += passedTime;
+            mOffsetTime = 0.0;
             
             // remove old taps
             if (mLastTaps.length > 0)
@@ -83,11 +85,6 @@ package starling.events
                     // set touches that were new or moving to phase 'stationary'
                     if (currentTouch.phase == TouchPhase.BEGAN || currentTouch.phase == TouchPhase.MOVED)
                         currentTouch.setPhase(TouchPhase.STATIONARY);
-                    
-                    // check if target is still connected to stage, otherwise find new target
-                    if (currentTouch.target.stage == null)
-                        currentTouch.setTarget(mStage.hitTest(
-                            new Point(currentTouch.globalX, currentTouch.globalY), true));
                 }
                 
                 // process new touches, but each ID only once
@@ -129,7 +126,7 @@ package starling.events
                         mCurrentTouches.splice(i, 1);
                 
                 // timestamps must differ for remaining touches
-                if (mQueue.length != 0) mElapsedTime += 0.00001;
+                mOffsetTime += 0.00001;
             }
         }
         
@@ -158,7 +155,7 @@ package starling.events
             
             touch.setPosition(globalX, globalY);
             touch.setPhase(phase);
-            touch.setTimestamp(mElapsedTime);
+            touch.setTimestamp(mElapsedTime + mOffsetTime);
             
             if (phase == TouchPhase.HOVER || phase == TouchPhase.BEGAN)
                 touch.setTarget(mStage.hitTest(position, true));
