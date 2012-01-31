@@ -46,6 +46,9 @@ package starling.textures
      *     }   
      *  });
      *  </pre>
+     *  
+     *  <p>Beware that render textures can't be restored when the Starling's render context is lost.
+     *  </p>
      *     
      */
     public class RenderTexture extends Texture

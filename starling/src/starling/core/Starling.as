@@ -99,7 +99,18 @@ package starling.core
      *  where most of us are working with a conventional mouse and keyboard, Starling can simulate 
      *  multitouch events with the help of the "Shift" and "Ctrl" (Mac: "Cmd") keys. Activate
      *  this feature by enabling the <code>simulateMultitouch</code> property.</p>
-     *
+     *  
+     *  <strong>Handling a lost render context</strong>
+     *  
+     *  <p>On some operating systems and under certain conditions (e.g. returning from system
+     *  sleep), Starling's stage3D render context may be lost. Starling can recover from a lost
+     *  context if the class property "handleLostContext" is set to "true". Keep in mind, however, 
+     *  that this comes at the price of increased memory consumption; Starling will cache textures 
+     *  in RAM to be able to restore them when the context is lost.</p> 
+     *  
+     *  <p>In case you want to react to a context loss, Starling dispatches an event with
+     *  the type "Event.CONTEXT3D_CREATE" when the context is restored. You can recreate any 
+     *  invalid resources in a corresponding event listener.</p>
      */ 
     public class Starling extends EventDispatcher
     {
