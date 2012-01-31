@@ -17,7 +17,8 @@ package
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
             
-            Starling.multitouchEnabled = true;
+            Starling.multitouchEnabled = true; // useful on mobile devices
+            Starling.handleLostContext = true; // deactivate on mobile devices (to save memory)
             
             mStarling = new Starling(Game, stage);
             mStarling.simulateMultitouch = true;

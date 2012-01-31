@@ -12,8 +12,9 @@ package starling.core
 {
     import flash.display3D.*;
     import flash.geom.*;
-
+    
     import starling.display.*;
+    import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.*;
 
@@ -55,6 +56,8 @@ package starling.core
             
             loadIdentity();
             setOrthographicProjection(400, 300);
+            
+            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         /** Disposes all quad batches. */
@@ -62,6 +65,13 @@ package starling.core
         {
             for each (var quadBatch:QuadBatch in mQuadBatches)
                 quadBatch.dispose();
+            
+            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            mQuadBatches = new <QuadBatch>[new QuadBatch()];
         }
         
         // matrix manipulation
@@ -206,7 +216,7 @@ package starling.core
         }
         
         /** Clears the render context with a certain color and alpha value. */
-        public function clear(rgb:uint=0, alpha:Number=0.0):void
+        public static function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             Starling.context.clear(
                 Color.getRed(rgb)   / 255.0, 

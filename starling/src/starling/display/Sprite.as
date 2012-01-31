@@ -12,6 +12,7 @@ package starling.display
 {
     import starling.core.QuadBatch;
     import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.events.Event;
 
     /** Dispatched on all children when the object is flattened. */
@@ -59,7 +60,12 @@ package starling.display
         {
             dispatchEventOnChildren(new Event(Event.FLATTEN));
             
-            if (mFlattenedContents == null) mFlattenedContents = new <QuadBatch>[];
+            if (mFlattenedContents == null)
+            {
+                mFlattenedContents = new <QuadBatch>[];
+                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            }
+            
             QuadBatch.compile(this, mFlattenedContents);
         }
         
@@ -69,12 +75,22 @@ package starling.display
         {
             if (mFlattenedContents)
             {
+                Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
                 var numBatches:int = mFlattenedContents.length;
                 
                 for (var i:int=0; i<numBatches; ++i)
                     mFlattenedContents[i].dispose();
                 
                 mFlattenedContents = null;
+            }
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            if (mFlattenedContents)
+            {
+                mFlattenedContents = new <QuadBatch>[];
+                flatten();
             }
         }
         

@@ -167,6 +167,7 @@ package starling.core
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mPrograms = new Dictionary();
+            mSupport  = new RenderSupport();
             
             // register touch/mouse event handlers            
             for each (var touchEventType:String in touchEventTypes)
@@ -214,10 +215,9 @@ package starling.core
         {
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
-            updateViewPort();
-            
             mPrograms = new Dictionary();
-            mSupport  = new RenderSupport();
+            
+            updateViewPort();
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:" + mContext.driverInfo);
@@ -243,7 +243,7 @@ package starling.core
         
         private function render():void
         {
-            if (mContext == null || mContext.driverInfo == "Disposed") 
+            if (mContext == null || mContext.driverInfo == "Disposed")
                 return;
             
             var now:Number = getTimer() / 1000.0;
@@ -254,8 +254,8 @@ package starling.core
             mJuggler.advanceTime(passedTime);
             mTouchProcessor.advanceTime(passedTime);
             
+            RenderSupport.clear(mStage.color, 1.0);
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
-            mSupport.clear(mStage.color, 1.0);
             
             mStage.render(mSupport, 1.0);
 
@@ -322,6 +322,13 @@ package starling.core
         
         private function onContextCreated(event:Event):void
         {
+            if (!Starling.handleLostContext && mContext)
+            {
+                showFatalError("Fatal error: The application lost the device context!");
+                stop();
+                return;
+            }
+            
             makeCurrent();
             
             initializeGraphicsAPI();
