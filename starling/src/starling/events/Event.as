@@ -54,6 +54,8 @@ package starling.events
         public static const RESIZE:String = "resize";
         /** Event type that may be used whenever something finishes. */
         public static const COMPLETE:String = "complete";
+        /** Event type for a (re)created stage3D rendering context. */
+        public static const CONTEXT3D_CREATE:String = "context3DCreate"
         
         private var mTarget:EventDispatcher;
         private var mCurrentTarget:EventDispatcher;

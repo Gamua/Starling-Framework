@@ -137,9 +137,9 @@ package starling.textures
             
             context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             RenderSupport.setDefaultBlendFactors(true);
+            RenderSupport.clear();
 
             mSupport.setOrthographicProjection(mNativeWidth, mNativeHeight);
-            mSupport.clear();
             
             // draw buffer
             if (isPersistent)
@@ -170,12 +170,12 @@ package starling.textures
             if (context == null) throw new MissingContextError();
             
             context.setRenderToTexture(mActiveTexture.base);
-            mSupport.clear();
+            RenderSupport.clear();
 
             if (isPersistent)
             {
                 context.setRenderToTexture(mActiveTexture.base);
-                mSupport.clear();
+                RenderSupport.clear();
             }
             
             context.setRenderToBackBuffer();

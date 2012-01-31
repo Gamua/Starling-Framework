@@ -20,17 +20,20 @@ package starling.textures
         private var mHeight:int;
         private var mMipMapping:Boolean;
         private var mPremultipliedAlpha:Boolean;
+        private var mOptimizedForRenderTexture:Boolean;
         
         /** Creates a ConcreteTexture object from a TextureBase, storing information about size,
          *  mip-mapping, and if the channels contain premultiplied alpha values. */
         public function ConcreteTexture(base:TextureBase, width:int, height:int, 
-                                        mipMapping:Boolean, premultipliedAlpha:Boolean)
+                                        mipMapping:Boolean, premultipliedAlpha:Boolean,
+                                        optimizedForRenderTexture:Boolean=false)
         {
             mBase = base;
             mWidth = width;
             mHeight = height;
             mMipMapping = mipMapping;
             mPremultipliedAlpha = premultipliedAlpha;
+            mOptimizedForRenderTexture = optimizedForRenderTexture;
         }
         
         /** Disposes the TextureBase object. */
@@ -40,8 +43,12 @@ package starling.textures
             super.dispose();
         }
         
+        /** Indicates if the base texture was optimized for being used in a render texture. */
+        public function get optimizedForRenderTexture():Boolean { return mOptimizedForRenderTexture; }
+        
         /** @inheritDoc */
         public override function get base():TextureBase { return mBase; }
+        public          function set base(value:TextureBase):void { mBase = value; }
         
         /** @inheritDoc */
         public override function get width():Number  { return mWidth;  }

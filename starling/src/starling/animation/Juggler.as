@@ -62,9 +62,8 @@ package starling.animation
         public function remove(object:IAnimatable):void
         {
             if (object == null) return;
-            var numObjects:int = mObjects.length;
             
-            for (var i:int=numObjects-1; i>=0; --i)
+            for (var i:int=mObjects.length-1; i>=0; --i)
                 if (mObjects[i] == object) 
                     mObjects.splice(i, 1);
         }
