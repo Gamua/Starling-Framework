@@ -172,10 +172,9 @@ package starling.core
             alpha *= quad.alpha;
             
             if (alpha != 1.0)
-                for (var i:int = 0; i<4; ++i)
-                    mVertexData.scaleAlpha(vertexID+i, alpha);
+                mVertexData.scaleAlpha(vertexID, alpha, 4);
             
-            mVertexData.transformQuad(vertexID, modelViewMatrix);
+            mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
             
             ++mNumQuads;
         }
