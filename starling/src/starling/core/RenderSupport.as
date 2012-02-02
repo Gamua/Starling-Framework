@@ -160,10 +160,15 @@ package starling.core
         /** Prepends translation, scale and rotation of an object to a custom matrix. */
         public static function transformMatrixForObject(matrix:Matrix3D, object:DisplayObject):void
         {
-            matrix.prependTranslation(object.x, object.y, 0.0);
-            matrix.prependRotation(object.rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
-            matrix.prependScale(object.scaleX, object.scaleY, 1.0);
-            matrix.prependTranslation(-object.pivotX, -object.pivotY, 0.0);
+            var x:Number = object.x; var y:Number = object.y;
+            var rotation:Number = object.rotation;
+            var scaleX:Number = object.scaleX; var scaleY:Number = object.scaleY;
+            var pivotX:Number = object.pivotX; var pivotY:Number = object.pivotY;
+            
+            if (x != 0 || y != 0)           matrix.prependTranslation(x, y, 0.0);
+            if (rotation != 0)              matrix.prependRotation(rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
+            if (scaleX != 1 || scaleY != 1) matrix.prependScale(scaleX, scaleY, 1.0);
+            if (pivotX != 0 || pivotY != 0) matrix.prependTranslation(-pivotX, -pivotY, 0.0);
         }
         
         // optimized quad rendering
