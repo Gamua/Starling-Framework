@@ -10,7 +10,14 @@
 
 package starling.textures
 {
+    import flash.display.BitmapData;
+    import flash.display3D.Context3D;
+    import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
+    import flash.utils.ByteArray;
+    
+    import starling.core.Starling;
+    import starling.events.Event;
 
     /** A ConcreteTexture wraps a Stage3D texture object, storing the properties of the texture. */
     public class ConcreteTexture extends Texture
@@ -21,6 +28,7 @@ package starling.textures
         private var mMipMapping:Boolean;
         private var mPremultipliedAlpha:Boolean;
         private var mOptimizedForRenderTexture:Boolean;
+        private var mData:Object;
         
         /** Creates a ConcreteTexture object from a TextureBase, storing information about size,
          *  mip-mapping, and if the channels contain premultiplied alpha values. */
@@ -40,15 +48,57 @@ package starling.textures
         public override function dispose():void
         {
             if (mBase) mBase.dispose();
+            restoreOnLostContext(null); // removes event listener & data reference 
             super.dispose();
         }
+        
+        // texture backup (context lost)
+        
+        /** Instructs this instance to restore its base texture when the context is lost. 'data' 
+         *  can be either BitmapData or a ByteArray with ATF data. */ 
+        public function restoreOnLostContext(data:Object):void
+        {
+            if (mData == null && data != null)
+                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            if (data == null)
+                Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            
+            mData = data;
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            var context:Context3D = Starling.context;
+            var bitmapData:BitmapData = mData as BitmapData;
+            var byteData:ByteArray = mData as ByteArray;
+            var nativeTexture:flash.display3D.textures.Texture;
+            
+            if (bitmapData)
+            {
+                nativeTexture = context.createTexture(mWidth, mHeight, 
+                    Context3DTextureFormat.BGRA, mOptimizedForRenderTexture);
+                Texture.uploadBitmapData(nativeTexture, bitmapData, mMipMapping);
+            }
+            else if (byteData)
+            {
+                var format:String = byteData[6] == 2 ? Context3DTextureFormat.COMPRESSED :
+                    Context3DTextureFormat.BGRA;
+                
+                nativeTexture = context.createTexture(mWidth, mHeight, 
+                    format, mOptimizedForRenderTexture);
+                Texture.uploadAtfData(nativeTexture, byteData);
+            }
+                
+            mBase = nativeTexture;
+        }
+        
+        // properties
         
         /** Indicates if the base texture was optimized for being used in a render texture. */
         public function get optimizedForRenderTexture():Boolean { return mOptimizedForRenderTexture; }
         
         /** @inheritDoc */
         public override function get base():TextureBase { return mBase; }
-        public          function set base(value:TextureBase):void { mBase = value; }
         
         /** @inheritDoc */
         public override function get width():Number  { return mWidth;  }
