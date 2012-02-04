@@ -108,7 +108,7 @@ package starling.display
         private function onTouch(event:TouchEvent):void
         {
             Mouse.cursor = (mUseHandCursor && mEnabled && event.interactsWith(this)) ? 
-                MouseCursor.BUTTON : MouseCursor.ARROW;
+                MouseCursor.BUTTON : MouseCursor.AUTO;
             
             var touch:Touch = event.getTouch(this);
             if (!mEnabled || touch == null) return;

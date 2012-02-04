@@ -74,7 +74,7 @@ package starling.display
         
         private function onTouch(event:TouchEvent):void
         {
-            Mouse.cursor = event.interactsWith(this) ? MouseCursor.BUTTON : MouseCursor.ARROW;
+            Mouse.cursor = event.interactsWith(this) ? MouseCursor.BUTTON : MouseCursor.AUTO;
         }
         
         /** Optimizes the sprite for optimal rendering performance. Changes in the
