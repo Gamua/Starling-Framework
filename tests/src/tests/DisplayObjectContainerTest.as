@@ -396,6 +396,27 @@ package tests
             Assert.assertEquals(0, sprite.getChildIndex(quad));
         }
         
+        [Test(expects="ArgumentError")]
+        public function testIllegalRecursion():void
+        {
+            var sprite1:Sprite = new Sprite();
+            var sprite2:Sprite = new Sprite();
+            var sprite3:Sprite = new Sprite();
+            
+            sprite1.addChild(sprite2);
+            sprite2.addChild(sprite3);
+            
+            // this should throw an error
+            sprite3.addChild(sprite1);
+        }
+        
+        [Test(expects="ArgumentError")]
+        public function testAddAsChildToSelf():void
+        {
+            var sprite:Sprite = new Sprite();
+            sprite.addChild(sprite);
+        }
+        
         [Test]
         public function testDisplayListEvents():void
         {

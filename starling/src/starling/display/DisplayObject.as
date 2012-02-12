@@ -333,8 +333,17 @@ package starling.display
         
         /** @private */
         internal function setParent(value:DisplayObjectContainer):void 
-        { 
-            mParent = value; 
+        {
+            // check for a recursion
+            var ancestor:DisplayObject = value;
+            while (ancestor != this && ancestor != null)
+                ancestor = ancestor.mParent;
+            
+            if (ancestor == this)
+                throw new ArgumentError("An object cannot be added as a child to itself or one " +
+                                        "of its children (or children's children, etc.)");
+            else
+                mParent = value; 
         }
         
         /** @private */
