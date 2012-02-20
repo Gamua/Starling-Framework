@@ -57,6 +57,7 @@ package tests
             Assert.assertEquals(1, startCount);
             Assert.assertEquals(1, updateCount);
             Assert.assertEquals(0, completeCount);
+            Assert.assertFalse(tween.isComplete);
             
             tween.advanceTime(totalTime / 3.0);
             assertThat(quad.x, closeTo(startX + 2*(endX-startX)/3.0, E));
@@ -65,6 +66,7 @@ package tests
             Assert.assertEquals(1, startCount);
             Assert.assertEquals(2, updateCount);
             Assert.assertEquals(0, completeCount);
+            Assert.assertFalse(tween.isComplete);
             
             tween.advanceTime(totalTime / 3.0);
             assertThat(quad.x, closeTo(endX, E));
@@ -73,6 +75,7 @@ package tests
             Assert.assertEquals(1, startCount);
             Assert.assertEquals(3, updateCount);
             Assert.assertEquals(1, completeCount);
+            Assert.assertTrue(tween.isComplete);
         }
         
         [Test]

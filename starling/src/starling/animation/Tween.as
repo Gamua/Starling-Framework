@@ -11,6 +11,9 @@
 
 package starling.animation
 {
+    import starling.events.Event;
+    import starling.events.EventDispatcher;
+
     /** A Tween animates numeric properties of objects. It uses different transition functions 
      *  to give the animations various styles.
      *  
@@ -29,15 +32,15 @@ package starling.animation
      *  tween.fadeTo(0);    // equivalent to 'animate("alpha", 0)'
      *  Starling.juggler.add(tween); 
      *  </pre> 
-     * 
-     *  Note that the object is added to a juggler at the end. A tween will only be executed if its
-     *  "advanceTime" method is executed regularly - the juggler will do that for you, and will 
-     *  release the tween when it is finished.
-     * 
+     *  
+     *  <p>Note that the object is added to a juggler at the end of this sample. That's because a 
+     *  tween will only be executed if its "advanceTime" method is executed regularly - the 
+     *  juggler will do that for you, and will remove the tween when it is finished.</p>
+     *  
      *  @see Juggler
      *  @see Transitions
      */ 
-    public class Tween implements IAnimatable
+    public class Tween extends EventDispatcher implements IAnimatable
     {
         private var mTarget:Object;
         private var mTransition:String;
@@ -138,11 +141,14 @@ package starling.animation
             if (onUpdate != null) 
                 onUpdate.apply(null, mOnUpdateArgs);
             
-            if (onComplete != null && previousTime < mTotalTime && mCurrentTime >= mTotalTime)
-                onComplete.apply(null, mOnCompleteArgs);
+            if (previousTime < mTotalTime && mCurrentTime >= mTotalTime)
+            {
+                dispatchEvent(new Event(Event.REMOVE_FROM_JUGGLER));
+                if (onComplete != null) onComplete.apply(null, mOnCompleteArgs);
+            }
         }
         
-        /** @inheritDoc */
+        /** Indicates if the tween is finished. */
         public function get isComplete():Boolean { return mCurrentTime >= mTotalTime; }        
         
         /** The target object that is animated. */
