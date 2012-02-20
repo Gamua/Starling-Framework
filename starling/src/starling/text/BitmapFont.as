@@ -120,7 +120,7 @@ package starling.text
                 var first:int = parseInt(kerningElement.attribute("first"));
                 var second:int = parseInt(kerningElement.attribute("second"));
                 var amount:Number = parseFloat(kerningElement.attribute("amount"));
-                getChar(second).addKerning(first, amount);
+                if (second in mChars) getChar(second).addKerning(first, amount);
             }
         }
         
