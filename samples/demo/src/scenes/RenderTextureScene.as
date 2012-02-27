@@ -18,7 +18,7 @@ package scenes
         
         public function RenderTextureScene()
         {
-            var description:String = "Touch the screen to draw eggs!";
+            var description:String = "Touch the screen to draw Starlings!";
             
             var infoText:TextField = new TextField(300, 50, description);
             infoText.x = infoText.y = 10;
@@ -26,7 +26,7 @@ package scenes
             infoText.hAlign = HAlign.CENTER;
             addChild(infoText);
             
-            mBrush = new Image(Assets.getTexture("EggOpened"));
+            mBrush = new Image(Assets.getTexture("StarlingFront"));
             mBrush.pivotX = mBrush.width / 2;
             mBrush.pivotY = mBrush.height / 2;
             mBrush.scaleX = mBrush.scaleY = 0.5;

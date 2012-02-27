@@ -40,8 +40,6 @@ package
             addChild(mMainMenu);
             
             var logo:Image = new Image(Assets.getTexture("Logo"));
-            logo.x = int((bg.width - logo.width) / 2);
-            logo.y = 50;
             mMainMenu.addChild(logo);
             
             var scenesToCreate:Array = [

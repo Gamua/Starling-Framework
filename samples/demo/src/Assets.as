@@ -17,11 +17,14 @@ package
         [Embed(source = "../media/textures/background.png")]
         private static const Background:Class;
         
-        [Embed(source = "../media/textures/egg_closed.png")]
-        private static const EggClosed:Class;
+        [Embed(source = "../media/textures/starling_sheet.png")]
+        private static const StarlingSheet:Class;
         
-        [Embed(source = "../media/textures/egg_opened.png")]
-        private static const EggOpened:Class;
+        [Embed(source = "../media/textures/flash_egg.png")]
+        private static const FlashEgg:Class;
+        
+        [Embed(source = "../media/textures/starling_front.png")]
+        private static const StarlingFront:Class;
         
         [Embed(source = "../media/textures/logo.png")]
         private static const Logo:Class;
@@ -68,7 +71,7 @@ package
         
         // Sounds
         
-        [Embed(source="../media/audio/step.mp3")]
+        [Embed(source="../media/audio/wing_flap.mp3")]
         private static const StepSound:Class;
         
         // Texture cache

@@ -12,25 +12,20 @@ package scenes
             
             var atlas:TextureAtlas = Assets.getTextureAtlas();
             
-            var image1:Image = new Image(atlas.getTexture("walk_00"));
-            image1.x = 30;
-            image1.y = 20;
+            var image1:Image = new Image(atlas.getTexture("flight_00"));
+            image1.x = -20;
+            image1.y = 0;
             addChild(image1);
             
-            var image2:Image = new Image(atlas.getTexture("walk_01"));
-            image2.x = 90;
-            image2.y = 50;
+            var image2:Image = new Image(atlas.getTexture("flight_04"));
+            image2.x = 80;
+            image2.y = 90;
             addChild(image2);
             
-            var image3:Image = new Image(atlas.getTexture("walk_03"));
-            image3.x = 150;
-            image3.y = 80;
+            var image3:Image = new Image(atlas.getTexture("flight_08"));
+            image3.x = 120;
+            image3.y = -45;
             addChild(image3);
-            
-            var image4:Image = new Image(atlas.getTexture("walk_05"));
-            image4.x = 210;
-            image4.y = 110;
-            addChild(image4);
             
             // display a compressed texture
             

@@ -16,8 +16,8 @@ package utils
             
             if (contents)
             {
-                contents.x = contents.width / -2;
-                contents.y = contents.height / -2;
+                contents.x = int(contents.width / -2);
+                contents.y = int(contents.height / -2);
                 addChild(contents);
             }
         }
