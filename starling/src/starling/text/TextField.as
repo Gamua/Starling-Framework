@@ -90,7 +90,7 @@ package starling.text
         public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
                                   fontSize:Number=12, color:uint=0x0, bold:Boolean=false)
         {
-            mText = text;
+            mText = text ? text : "";
             mFontSize = fontSize;
             mColor = color;
             mHAlign = HAlign.CENTER;
