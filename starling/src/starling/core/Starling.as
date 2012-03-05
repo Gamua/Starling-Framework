@@ -343,10 +343,10 @@ package starling.core
             makeCurrent();
             
             initializeGraphicsAPI();
-            initializeRoot();
-            
-            mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
             dispatchEvent(new starling.events.Event(starling.events.Event.CONTEXT3D_CREATE));
+            
+            initializeRoot();
+            mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
         }
         
         private function onEnterFrame(event:Event):void
