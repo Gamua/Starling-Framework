@@ -75,6 +75,7 @@ package starling.core
         private function onContextCreated(event:Event):void
         {
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
+			sBlendFactorsInitialized = false;
         }
         
         // matrix manipulation
