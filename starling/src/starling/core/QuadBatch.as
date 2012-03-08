@@ -147,12 +147,6 @@ package starling.core
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
-            
-            if (mCurrentTexture)
-            {
-                context.setTextureAt(0, null);
-                context.setVertexBufferAt(2, null);
-            }
         }
 		
 		private function rebuildProgram(programName:String):void
