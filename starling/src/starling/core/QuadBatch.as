@@ -110,12 +110,11 @@ package starling.core
         }
         
         /** Renders the current batch. Don't forget to call 'syncBuffers' before rendering. */
-        public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
+        public function render(projectionMatrix:Matrix3D, context:Context3D, alpha:Number=1.0):void
         {
             if (mNumQuads == 0) return;
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
-            var context:Context3D = Starling.context;
             var dynamicAlpha:Boolean = alpha != 1.0;
             
             var programName:String = mCurrentTexture ? 

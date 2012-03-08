@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.display3D.Context3D;
     import flash.geom.Matrix3D;
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
@@ -133,8 +134,9 @@ package starling.display
                 var numBatches:int = mFlattenedContents.length;
                 
 				var mvpMatrix:Matrix3D = support.mvpMatrix;
+				var context:Context3D = Starling.context;
                 for (var i:int=0; i<numBatches; ++i)
-                    mFlattenedContents[i].render(mvpMatrix, alpha);
+                    mFlattenedContents[i].render(mvpMatrix, context, alpha);
             }
             else super.render(support, alpha);
         }

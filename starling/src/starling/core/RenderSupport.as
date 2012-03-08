@@ -190,7 +190,7 @@ package starling.core
         public function finishQuadBatch():void
         {
             currentQuadBatch.syncBuffers();
-            currentQuadBatch.render(mProjectionMatrix);
+            currentQuadBatch.render(mProjectionMatrix, Starling.context);
             currentQuadBatch.reset();
             
             ++mCurrentQuadBatchID;
