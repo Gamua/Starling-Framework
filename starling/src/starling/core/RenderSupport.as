@@ -39,6 +39,9 @@ package starling.core
         
         /** Helper object. */
         private static var sMatrixCoords:Vector.<Number> = new Vector.<Number>(16, true);
+		
+		private static var sBlendFactorsInitialized:Boolean = false;
+		private static var sUsingPMA:Boolean = false;
         
         // construction
         
@@ -214,10 +217,15 @@ package starling.core
         /** Sets up the default blending factors, depending on the premultiplied alpha status. */
         public static function setDefaultBlendFactors(premultipliedAlpha:Boolean):void
         {
+			if (sBlendFactorsInitialized && sUsingPMA == premultipliedAlpha) return;
+			
             var destFactor:String = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
             var sourceFactor:String = premultipliedAlpha ? Context3DBlendFactor.ONE :
                                                            Context3DBlendFactor.SOURCE_ALPHA;
             Starling.context.setBlendFactors(sourceFactor, destFactor);
+			
+			sBlendFactorsInitialized = true;
+			sUsingPMA = premultipliedAlpha;
         }
         
         /** Clears the render context with a certain color and alpha value. */
