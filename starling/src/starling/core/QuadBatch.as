@@ -153,9 +153,6 @@ package starling.core
                 context.setTextureAt(0, null);
                 context.setVertexBufferAt(2, null);
             }
-            
-            context.setVertexBufferAt(1, null);
-            context.setVertexBufferAt(0, null);
         }
 		
 		private function rebuildProgram(programName:String):void
