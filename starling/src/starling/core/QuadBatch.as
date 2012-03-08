@@ -50,7 +50,7 @@ package starling.core
         private var mIndexBuffer:IndexBuffer3D;
 		
 		private var mProgram:Program3D;
-		private var mProgramName:String;
+		private var mProgramID:uint;
 
         /** Helper object. */
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
@@ -117,12 +117,8 @@ package starling.core
             var pma:Boolean = mVertexData.premultipliedAlpha;
             var dynamicAlpha:Boolean = alpha != 1.0;
             
-            var programName:String = mCurrentTexture ? 
-                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
-                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
-                getQuadProgramName(dynamicAlpha);
-            
-			if (programName != mProgramName) rebuildProgram(programName);
+			var programID:uint = getProgramID(dynamicAlpha);
+			if (programID != mProgramID) rebuildProgram(programID, dynamicAlpha);
 			
             RenderSupport.setDefaultBlendFactors(pma);
             
@@ -148,9 +144,27 @@ package starling.core
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
         }
 		
-		private function rebuildProgram(programName:String):void
+		private function getProgramID(dynamicAlpha:Boolean):uint
+		{				
+				var id:uint;
+				if (!dynamicAlpha)									id += 0x10000000;
+				if (!mCurrentTexture) { 							id += 0x01000000; return id;}	// quad program
+																	id += 0x00100000;				// image program
+				if (!mCurrentTexture.mipMapping)					id += 0x00010000;
+				if (mCurrentTexture.repeat)							id += 0x00001000;
+				if (mCurrentSmoothing != TextureSmoothing.BILINEAR) id += mCurrentSmoothing.charCodeAt(0);
+				
+				return id;
+		}
+		
+		private function rebuildProgram(programID:uint, dynamicAlpha:Boolean):void
 		{	
-			mProgramName = programName;
+            var programName:String = mCurrentTexture ? 
+                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
+                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
+                getQuadProgramName(dynamicAlpha);
+			
+			mProgramID = programID;
 			registerPrograms();
 			mProgram = Starling.current.getProgram(programName);
 		}
