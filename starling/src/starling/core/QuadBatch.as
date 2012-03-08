@@ -16,6 +16,7 @@ package starling.core
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
+    import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix3D;
     import flash.utils.getQualifiedClassName;
@@ -47,6 +48,9 @@ package starling.core
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
+		
+		private var mProgram:Program3D;
+		private var mProgramName:String;
 
         /** Helper object. */
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
@@ -114,15 +118,16 @@ package starling.core
             var context:Context3D = Starling.context;
             var dynamicAlpha:Boolean = alpha != 1.0;
             
-            var program:String = mCurrentTexture ? 
+            var programName:String = mCurrentTexture ? 
                 getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
                                     mCurrentTexture.repeat, mCurrentSmoothing) : 
                 getQuadProgramName(dynamicAlpha);
             
+			if (programName != mProgramName) rebuildProgram(programName);
+			
             RenderSupport.setDefaultBlendFactors(pma);
-            registerPrograms();
             
-            context.setProgram(Starling.current.getProgram(program));
+            context.setProgram(mProgram);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, projectionMatrix, true);            
@@ -152,6 +157,13 @@ package starling.core
             context.setVertexBufferAt(1, null);
             context.setVertexBufferAt(0, null);
         }
+		
+		private function rebuildProgram(programName:String):void
+		{	
+			mProgramName = programName;
+			registerPrograms();
+			mProgram = Starling.current.getProgram(programName);
+		}
         
         /** Resets the batch. The vertex- and index-buffers remain their size, so that they
          *  can be reused quickly. */  
