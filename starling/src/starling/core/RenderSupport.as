@@ -154,8 +154,7 @@ package starling.core
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
         public function get mvpMatrix():Matrix3D
         {
-            mMvpMatrix.identity();
-            mMvpMatrix.append(mModelViewMatrix);
+			mMvpMatrix.copyFrom(mModelViewMatrix);
             mMvpMatrix.append(mProjectionMatrix);
             return mMvpMatrix;
         }
