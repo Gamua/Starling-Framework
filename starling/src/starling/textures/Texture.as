@@ -89,6 +89,7 @@ package starling.textures
         private var mRepeat:Boolean;
         
         private static var sConcreteTextures:Dictionary = new Dictionary();
+        private static var sScaleRegExp:RegExp = /_(\d+)x/;
         
         /** @private */
         public function Texture()
@@ -108,15 +109,25 @@ package starling.textures
         /** Creates a texture object from a bitmap.
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
-                                          optimizeForRenderTexture:Boolean=false):Texture
+                                          optimizeForRenderTexture:Boolean=false,
+                                          scale:Number=-1):Texture
         {
-            return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture);
+            // if the class name of "data" contains "_2x", the scale factor will 
+            // automatically be set to "2"
+            if (scale <= 0)
+            {
+                var matches:Array = getQualifiedClassName(data).match(sScaleRegExp);
+                if (matches && matches.length >= 2) scale = parseFloat(matches[1]);
+            }
+            
+            return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture, scale);
         }
         
         /** Creates a texture from bitmap data. 
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
-                                              optimizeForRenderTexture:Boolean=false):Texture
+                                              optimizeForRenderTexture:Boolean=false,
+                                              scale:Number=-1):Texture
         {
             var origWidth:int = data.width;
             var origHeight:int = data.height;
@@ -140,7 +151,8 @@ package starling.textures
             uploadBitmapData(nativeTexture, data, generateMipMaps);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, legalWidth, legalHeight, generateMipMaps, true, optimizeForRenderTexture);
+                nativeTexture, legalWidth, legalHeight, generateMipMaps, true, 
+                optimizeForRenderTexture, scale);
             
             if (Starling.handleLostContext)
                 concreteTexture.restoreOnLostContext(data);
@@ -150,13 +162,14 @@ package starling.textures
             if (origWidth == legalWidth && origHeight == legalHeight)
                 return concreteTexture;
             else
-                return new SubTexture(concreteTexture, new Rectangle(0, 0, origWidth, origHeight), 
+                return new SubTexture(concreteTexture, 
+                                      new Rectangle(0, 0, origWidth/scale, origHeight/scale), 
                                       true);
         }
         
         /** Creates a texture from the compressed ATF format. 
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */ 
-        public static function fromAtfData(data:ByteArray):Texture
+        public static function fromAtfData(data:ByteArray, scale:Number=-1):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -195,10 +208,12 @@ package starling.textures
         /** Creates an empty texture of a certain size and color. The color parameter
          *  expects data in ARGB format. */
         public static function empty(width:int=64, height:int=64, color:uint=0xffffffff,
-                                     optimizeForRenderTexture:Boolean=false):Texture
+                                     optimizeForRenderTexture:Boolean=false, scale:Number=-1):Texture
         {
-            var bitmapData:BitmapData = new BitmapData(width, height, true, color);
-            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture);
+            if (scale <= 0) scale = Starling.contentScaleFactor;
+            
+            var bitmapData:BitmapData = new BitmapData(width*scale, height*scale, true, color);
+            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
             
             if (!Starling.handleLostContext)
                 bitmapData.dispose();
@@ -286,6 +301,9 @@ package starling.textures
         
         /** The height of the texture in pixels. */
         public function get height():Number { return 0; }
+
+        /** The scale factor, which influences width and height properties. */
+        public function get scale():Number { return 1.0; }
         
         /** The Stage3D texture object the texture is based on. */
         public function get base():TextureBase { return null; }

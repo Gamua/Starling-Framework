@@ -29,6 +29,14 @@ package
         
         public function Game()
         {
+            // the following settings are for mobile development (iOS): you develop your game
+            // in a coordinate system of 320x480; the game might then run on a retina device
+            // (640x960), in which case the "Assets" class will provide high resolution textures.
+            
+            Starling.current.stage.stageWidth  = 320;
+            Starling.current.stage.stageHeight = 480;
+            Assets.contentScaleFactor = Starling.current.contentScaleFactor;
+            
             // sound initialization takes a moment, so we prepare them here
             Assets.prepareSounds();
             Assets.loadBitmapFonts();

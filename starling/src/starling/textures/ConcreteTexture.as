@@ -29,13 +29,16 @@ package starling.textures
         private var mPremultipliedAlpha:Boolean;
         private var mOptimizedForRenderTexture:Boolean;
         private var mData:Object;
+        private var mScale:Number;
         
         /** Creates a ConcreteTexture object from a TextureBase, storing information about size,
          *  mip-mapping, and if the channels contain premultiplied alpha values. */
         public function ConcreteTexture(base:TextureBase, width:int, height:int, 
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
-                                        optimizedForRenderTexture:Boolean=false)
+                                        optimizedForRenderTexture:Boolean=false,
+                                        scale:Number=-1)
         {
+            mScale = scale <= 0 ? Starling.contentScaleFactor : scale;
             mBase = base;
             mWidth = width;
             mHeight = height;
@@ -101,10 +104,13 @@ package starling.textures
         public override function get base():TextureBase { return mBase; }
         
         /** @inheritDoc */
-        public override function get width():Number  { return mWidth;  }
+        public override function get width():Number  { return mWidth / mScale;  }
         
         /** @inheritDoc */
-        public override function get height():Number { return mHeight; }
+        public override function get height():Number { return mHeight / mScale; }
+        
+        /** The scale factor, which influences width and height properties. */
+        public override function get scale():Number { return mScale; }
         
         /** @inheritDoc */
         public override function get mipMapping():Boolean { return mMipMapping; }

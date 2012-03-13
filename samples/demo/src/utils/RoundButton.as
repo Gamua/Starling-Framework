@@ -37,7 +37,7 @@ package utils
             
             // when the squared distance is smaller than the squared radius, 
             // the point is inside the circle
-            var radius:Number = bounds.width / 2;
+            var radius:Number = bounds.width / 2 - 8;
             if (sqDist < Math.pow(radius, 2)) return this;
             else return null;
         }

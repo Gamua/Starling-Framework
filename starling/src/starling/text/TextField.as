@@ -19,6 +19,7 @@ package starling.text
     import flash.utils.Dictionary;
     
     import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
     import starling.display.Image;
@@ -150,11 +151,12 @@ package starling.text
         {
             if (mText.length == 0) return new Sprite();
             
-            var width:Number  = mHitArea.width;
-            var height:Number = mHitArea.height;
+            var scale:Number  = Starling.contentScaleFactor;
+            var width:Number  = mHitArea.width  * scale;
+            var height:Number = mHitArea.height * scale;
             
-            var textFormat:TextFormat = new TextFormat(
-                mFontName, mFontSize, 0xffffff, mBold, mItalic, mUnderline, null, null, mHAlign);
+            var textFormat:TextFormat = new TextFormat(mFontName, 
+                mFontSize * scale, 0xffffff, mBold, mItalic, mUnderline, null, null, mHAlign);
             textFormat.kerning = mKerning;
             
             sNativeTextField.defaultTextFormat = textFormat;
@@ -190,12 +192,12 @@ package starling.text
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             bitmapData.draw(sNativeTextField, new Matrix(1, 0, 0, 1, 0, int(yOffset)-2));
             
-            mTextArea.x = xOffset;
-            mTextArea.y = yOffset;
-            mTextArea.width = textWidth;
-            mTextArea.height = textHeight;
+            mTextArea.x = xOffset / scale;
+            mTextArea.y = yOffset / scale;
+            mTextArea.width = textWidth / scale;
+            mTextArea.height = textHeight / scale;
             
-            var contents:Image = new Image(Texture.fromBitmapData(bitmapData));
+            var contents:Image = new Image(Texture.fromBitmapData(bitmapData, true, false, scale));
             contents.color = mColor;
             
             return contents;
