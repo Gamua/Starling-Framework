@@ -38,7 +38,7 @@ package starling.textures
                                         optimizedForRenderTexture:Boolean=false,
                                         scale:Number=-1)
         {
-            mScale = scale <= 0 ? Starling.contentScaleFactor : scale;
+            mScale = scale <= 0 ? 1.0 : scale;
             mBase = base;
             mWidth = width;
             mHeight = height;

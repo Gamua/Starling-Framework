@@ -18,7 +18,7 @@ package scenes
         
         public function RenderTextureScene()
         {
-            var description:String = "Touch the screen to draw Starlings!";
+            var description:String = "Touch the screen to draw!";
             
             var infoText:TextField = new TextField(300, 50, description);
             infoText.x = infoText.y = 10;

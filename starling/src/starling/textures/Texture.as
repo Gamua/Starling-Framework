@@ -114,12 +114,7 @@ package starling.textures
         {
             // if the class name of "data" contains "_2x", the scale factor will 
             // automatically be set to "2"
-            if (scale <= 0)
-            {
-                var matches:Array = getQualifiedClassName(data).match(sScaleRegExp);
-                if (matches && matches.length >= 2) scale = parseFloat(matches[1]);
-            }
-            
+            if (scale <= 0) scale = getScaleFromClassName(data);
             return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture, scale);
         }
         
@@ -137,6 +132,7 @@ package starling.textures
             var potData:BitmapData;
             
             if (context == null) throw new MissingContextError();
+            if (scale <= 0) scale = getScaleFromClassName(data);
             
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                 legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderTexture);
@@ -173,6 +169,7 @@ package starling.textures
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
+            if (scale <= 0) scale = getScaleFromClassName(data);
             
             var signature:String = String.fromCharCode(data[0], data[1], data[2]);
             if (signature != "ATF") throw new ArgumentError("Invalid ATF data");
@@ -188,7 +185,7 @@ package starling.textures
             uploadAtfData(nativeTexture, data);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, width, height, textureCount > 1, false);
+                nativeTexture, width, height, textureCount > 1, false, false, scale);
             
             if (Starling.handleLostContext) 
                 concreteTexture.restoreOnLostContext(data);
@@ -275,6 +272,15 @@ package starling.textures
                                                data:ByteArray, offset:int=0):void
         {
             nativeTexture.uploadCompressedTextureFromByteArray(data, offset);
+        }
+        
+        /** Looks for the string "_[factor]x" in the class name of the given object (like "_2x")
+         *  and returns that factor (or 1, if that string is not found). */ 
+        internal static function getScaleFromClassName(object:Object):Number
+        {
+            var matches:Array = getQualifiedClassName(object).match(sScaleRegExp);
+            if (matches && matches.length >= 2) return parseFloat(matches[1]);
+            else return 1.0;
         }
 
         // properties

@@ -34,7 +34,6 @@ package scenes
             image.x = Constants.CenterX - image.width / 2;
             image.y = 280;
             addChild(image);
-            
         }
     }
 }
