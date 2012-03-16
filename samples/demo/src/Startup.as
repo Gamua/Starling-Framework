@@ -26,7 +26,7 @@ package
             mStarling.start();
             
             // this event is dispatched when stage3D is set up
-            stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            mStarling.stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         private function onContextCreated(event:Event):void
