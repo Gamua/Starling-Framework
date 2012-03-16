@@ -85,6 +85,11 @@ package starling.events
                     // set touches that were new or moving to phase 'stationary'
                     if (currentTouch.phase == TouchPhase.BEGAN || currentTouch.phase == TouchPhase.MOVED)
                         currentTouch.setPhase(TouchPhase.STATIONARY);
+                    
+                    // check if target is still connected to stage, otherwise find new target
+                    if (currentTouch.target.stage == null)
+                        currentTouch.setTarget(mStage.hitTest(
+                            new Point(currentTouch.globalX, currentTouch.globalY), true));
                 }
                 
                 // process new touches, but each ID only once
