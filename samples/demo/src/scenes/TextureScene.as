@@ -18,13 +18,13 @@ package scenes
             addChild(image1);
             
             var image2:Image = new Image(atlas.getTexture("flight_04"));
-            image2.x = 80;
-            image2.y = 90;
+            image2.x = 90;
+            image2.y = 85;
             addChild(image2);
             
             var image3:Image = new Image(atlas.getTexture("flight_08"));
-            image3.x = 120;
-            image3.y = -45;
+            image3.x = 100;
+            image3.y = -60;
             addChild(image3);
             
             // display a compressed texture
