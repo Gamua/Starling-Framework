@@ -319,10 +319,17 @@ package starling.core
         }
         
         /** Starts rendering and dispatching of <code>ENTER_FRAME</code> events. */
-        public function start():void { mStarted = true; }
+        public function start():void 
+        { 
+            mStarted = true; 
+            mLastFrameTimestamp = getTimer() / 1000.0; 
+        }
         
         /** Stops rendering. */
-        public function stop():void { mStarted = false; }
+        public function stop():void 
+        { 
+            mStarted = false; 
+        }
         
         // event handlers
         
@@ -347,6 +354,7 @@ package starling.core
             
             initializeRoot();
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
+            mLastFrameTimestamp = getTimer() / 1000.0;
         }
         
         private function onEnterFrame(event:Event):void
