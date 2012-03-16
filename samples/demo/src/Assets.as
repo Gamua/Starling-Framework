@@ -50,9 +50,9 @@ package
                 // will be set automatically.
                 
                 if (data is Bitmap)
-                    sTextures[name] = Texture.fromBitmap(data as Bitmap);
+                    sTextures[name] = Texture.fromBitmap(data as Bitmap, true, false, sContentScaleFactor);
                 else if (data is ByteArray)
-                    sTextures[name] = Texture.fromAtfData(data as ByteArray);
+                    sTextures[name] = Texture.fromAtfData(data as ByteArray, sContentScaleFactor);
             }
             
             return sTextures[name];
