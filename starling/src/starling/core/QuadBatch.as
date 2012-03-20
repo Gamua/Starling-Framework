@@ -16,6 +16,7 @@ package starling.core
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
+    import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix3D;
     import flash.utils.getQualifiedClassName;
@@ -47,6 +48,9 @@ package starling.core
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
+		
+		private var mProgram:Program3D;
+		private var mProgramID:uint;
 
         /** Helper object. */
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
@@ -106,23 +110,19 @@ package starling.core
         }
         
         /** Renders the current batch. Don't forget to call 'syncBuffers' before rendering. */
-        public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
+        public function render(projectionMatrix:Matrix3D, context:Context3D, alpha:Number=1.0):void
         {
             if (mNumQuads == 0) return;
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
-            var context:Context3D = Starling.context;
             var dynamicAlpha:Boolean = alpha != 1.0;
             
-            var program:String = mCurrentTexture ? 
-                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
-                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
-                getQuadProgramName(dynamicAlpha);
-            
+			var programID:uint = getProgramID(dynamicAlpha);
+			if (programID != mProgramID) rebuildProgram(programID, dynamicAlpha);
+			
             RenderSupport.setDefaultBlendFactors(pma);
-            registerPrograms();
             
-            context.setProgram(Starling.current.getProgram(program));
+            context.setProgram(mProgram);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, projectionMatrix, true);            
@@ -142,16 +142,32 @@ package starling.core
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
-            
-            if (mCurrentTexture)
-            {
-                context.setTextureAt(0, null);
-                context.setVertexBufferAt(2, null);
-            }
-            
-            context.setVertexBufferAt(1, null);
-            context.setVertexBufferAt(0, null);
         }
+		
+		private function getProgramID(dynamicAlpha:Boolean):uint
+		{				
+				var id:uint;
+				if (!dynamicAlpha)									id += 0x10000000;
+				if (!mCurrentTexture) { 							id += 0x01000000; return id;}	// quad program
+																	id += 0x00100000;				// image program
+				if (!mCurrentTexture.mipMapping)					id += 0x00010000;
+				if (mCurrentTexture.repeat)							id += 0x00001000;
+				if (mCurrentSmoothing != TextureSmoothing.BILINEAR) id += mCurrentSmoothing.charCodeAt(0);
+				
+				return id;
+		}
+		
+		private function rebuildProgram(programID:uint, dynamicAlpha:Boolean):void
+		{	
+            var programName:String = mCurrentTexture ? 
+                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
+                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
+                getQuadProgramName(dynamicAlpha);
+			
+			mProgramID = programID;
+			registerPrograms();
+			mProgram = Starling.current.getProgram(programName);
+		}
         
         /** Resets the batch. The vertex- and index-buffers remain their size, so that they
          *  can be reused quickly. */  
