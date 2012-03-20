@@ -142,6 +142,15 @@ package starling.core
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
+            
+            if (mCurrentTexture)
+            {
+                context.setTextureAt(0, null);
+                context.setVertexBufferAt(2, null);
+            }
+            
+            context.setVertexBufferAt(1, null);
+            context.setVertexBufferAt(0, null);
         }
         
         /** Resets the batch. The vertex- and index-buffers remain their size, so that they
