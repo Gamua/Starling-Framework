@@ -138,7 +138,10 @@ package starling.text
         private function redrawContents():void
         {
             if (mContents)
+            {
+                if (mIsRenderedText) (mContents as Image).texture.dispose();
                 mContents.removeFromParent(true);
+            }
             
             mContents = mIsRenderedText ? createRenderedContents() : createComposedContents();
             mContents.touchable = false;
