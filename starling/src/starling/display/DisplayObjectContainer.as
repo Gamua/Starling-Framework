@@ -214,10 +214,10 @@ package starling.display
         /** Determines if a certain object is a child of the container (recursively). */
         public function contains(child:DisplayObject):Boolean
         {
-            while(child)
+            while (child)
             {
-                if(child == this) return true;
-                child = child.parent;
+                if (child == this) return true;
+                else child = child.parent;
             }
             return false;
         }
