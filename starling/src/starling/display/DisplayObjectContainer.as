@@ -303,9 +303,14 @@ package starling.display
                 if (child.alpha != 0.0 && child.visible && child.scaleX != 0.0 && child.scaleY != 0.0)
                 {
                     support.pushMatrix();
+                    support.pushBlendMode();
+                    
+                    support.blendMode = child.blendMode;
                     support.transformMatrix(child);
                     child.render(support, alpha);
+                    
                     support.popMatrix();
+                    support.popBlendMode();
                 }
             }
         }

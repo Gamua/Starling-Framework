@@ -111,9 +111,14 @@ package starling.textures
             function render():void
             {
                 mSupport.pushMatrix();
+                mSupport.pushBlendMode();
+                
+                mSupport.blendMode = object.blendMode;
                 mSupport.transformMatrix(object);            
                 object.render(mSupport, 1.0);
+                
                 mSupport.popMatrix();
+                mSupport.popBlendMode();
             }
         }
         
@@ -142,15 +147,15 @@ package starling.textures
             }
             
             context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
-            RenderSupport.setDefaultBlendFactors(true);
             RenderSupport.clear();
             
             mSupport.setOrthographicProjection(mNativeWidth, mNativeHeight);
+            mSupport.applyBlendMode(true);
             
             // draw buffer
             if (isPersistent)
                 mHelperImage.render(mSupport, 1.0);
-                        
+            
             try
             {
                 mDrawing = true;

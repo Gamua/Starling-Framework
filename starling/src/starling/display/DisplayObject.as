@@ -117,7 +117,7 @@ package starling.display
         private var mAlpha:Number;
         private var mVisible:Boolean;
         private var mTouchable:Boolean;
-        
+        private var mBlendMode:String;
         private var mName:String;
         private var mLastTouchTimestamp:Number;
         private var mParent:DisplayObjectContainer;        
@@ -140,6 +140,7 @@ package starling.display
             mScaleX = mScaleY = mAlpha = 1.0;            
             mVisible = mTouchable = true;
             mLastTouchTimestamp = -1;
+            mBlendMode = BlendMode.AUTO;
         }
         
         /** Disposes all resources of the display object. 
@@ -446,6 +447,18 @@ package starling.display
         /** Indicates if this object (and its children) will receive touch events. */
         public function get touchable():Boolean { return mTouchable; }
         public function set touchable(value:Boolean):void { mTouchable = value; }
+        
+        /** The blend mode determines how the object is blended with the objects underneath. 
+         *   @default auto
+         *   @see starling.display.BlendMode */ 
+        public function get blendMode():String { return mBlendMode; }
+        public function set blendMode(value:String):void 
+        {
+            if (BlendMode.isValid(value))
+                mBlendMode = value;
+            else
+                throw new ArgumentError("Invalid blend mode: " + value);
+        }
         
         /** The name of the display object (default: null). Used by 'getChildByName()' of 
          *  display object containers. */
