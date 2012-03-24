@@ -38,10 +38,10 @@ package starling.display
         public static const SCREEN:String = "screen";
         
         /** Determines whether a blending value is valid. */
-        public static function isValid(smoothing:String):Boolean
+        public static function isValid(mode:String):Boolean
         {
-            return smoothing == AUTO || smoothing == NORMAL || smoothing == ADD ||
-                   smoothing == MULTIPLY || smoothing == NONE || smoothing == SCREEN;
+            return mode == AUTO || mode == NORMAL || mode == ADD ||
+                   mode == MULTIPLY || mode == NONE || mode == SCREEN;
         }
     }
 }
