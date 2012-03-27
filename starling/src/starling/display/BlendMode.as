@@ -98,8 +98,8 @@ package starling.display
         /** Registeres a blending mode under a certain name and for a certain premultiplied alpha
          *  (pma) value. If the mode for the other pma value was not yet registered, the factors are
          *  used for both pma settings. */
-        public static function registerMode(name:String, sourceFactor:String, destFactor:String,
-                                            premultipliedAlpha:Boolean=true):void
+        public static function register(name:String, sourceFactor:String, destFactor:String,
+                                        premultipliedAlpha:Boolean=true):void
         {
             var modes:Object = sBlendFactors[int(premultipliedAlpha)];
             modes[name] = [sourceFactor, destFactor];
