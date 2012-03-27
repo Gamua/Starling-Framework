@@ -452,13 +452,7 @@ package starling.display
          *   @default auto
          *   @see starling.display.BlendMode */ 
         public function get blendMode():String { return mBlendMode; }
-        public function set blendMode(value:String):void 
-        {
-            if (BlendMode.isValid(value))
-                mBlendMode = value;
-            else
-                throw new ArgumentError("Invalid blend mode: " + value);
-        }
+        public function set blendMode(value:String):void { mBlendMode = value; }
         
         /** The name of the display object (default: null). Used by 'getChildByName()' of 
          *  display object containers. */

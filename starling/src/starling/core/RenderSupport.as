@@ -40,27 +40,6 @@ package starling.core
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
         
-        private static var sBlendFactors:Array = [ 
-            // no premultiplied alpha
-            { 
-                "none"     : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO ],
-                "normal"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
-                "add"      : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ],
-                "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ZERO ],
-                "screen"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE ],
-                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ]
-            },
-            // premultiplied alpha
-            { 
-                "none"     : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO ],
-                "normal"   : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
-                "add"      : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE ],
-                "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
-                "screen"   : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_COLOR ],
-                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ]
-            }
-        ];
-        
         /** Helper object. */
         private static var sMatrixCoords:Vector.<Number> = new Vector.<Number>(16, true);
         
@@ -281,7 +260,7 @@ package starling.core
         /** Sets up the blending factors that correspond with a certain blend mode. */
         public static function setBlendFactors(premultipliedAlpha:Boolean, blendMode:String="normal"):void
         {
-            var blendFactors:Array = sBlendFactors[int(premultipliedAlpha)][blendMode];
+            var blendFactors:Array = BlendMode.getBlendFactors(blendMode, premultipliedAlpha); 
             Starling.context.setBlendFactors(blendFactors[0], blendFactors[1]);
         }
         

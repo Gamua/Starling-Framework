@@ -10,11 +10,55 @@
 
 package starling.display
 {
+    import flash.display3D.Context3DBlendFactor;
+    
     import starling.errors.AbstractClassError;
     
-    /** A class that provides constant values for visual blend mode effects. */
+    /** A class that provides constant values for visual blend mode effects. 
+     *   
+     *  <p>A blend mode is always defined by two 'Context3DBlendFactor' values. A blend factor 
+     *  represents a particular four-value vector that is multiplied with the source or destination
+     *  color in the blending formula. The blending formula is:</p>
+     * 
+     *  <pre>result = source × sourceFactor + destination × destinationFactor</pre>
+     * 
+     *  <p>In the formula, the source color is the output color of the pixel shader program. The 
+     *  destination color is the color that currently exists in the color buffer, as set by 
+     *  previous clear and draw operations.</p>
+     *  
+     *  <p>Beware that blending factors produce different output depending on the texture type.
+     *  Textures may contain 'premultiplied alpha' (pma), which means that their RGB values were 
+     *  multiplied with their color value (to save processing time). Textures based on 'BitmapData'
+     *  objects have premultiplied alpha values, while ATF textures haven't. For this reason, 
+     *  a blending mode may have different factors depending on the pma value.</p>
+     *  
+     *  @see flash.display3D.Context3DBlendFactor
+     */
     public class BlendMode
     {
+        private static var sBlendFactors:Array = [ 
+            // no premultiplied alpha
+            { 
+                "none"     : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO ],
+                "normal"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "add"      : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ],
+                "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ZERO ],
+                "screen"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE ],
+                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ]
+            },
+            // premultiplied alpha
+            { 
+                "none"     : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO ],
+                "normal"   : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "add"      : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE ],
+                "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "screen"   : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_COLOR ],
+                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ]
+            }
+        ];
+        
+        // predifined modes
+        
         /** @private */
         public function BlendMode() { throw new AbstractClassError(); }
         
@@ -40,11 +84,28 @@ package starling.display
         /** Erases the background when drawn on a RenderTexture. */
         public static const ERASE:String = "erase";
         
-        /** Determines whether a blending value is valid. */
-        public static function isValid(mode:String):Boolean
+        // accessing modes
+        
+        /** Returns the blend factors that correspond with a certain mode and premultiplied alpha
+         *  value. Throws an ArgumentError if the mode does not exist. */
+        public static function getBlendFactors(mode:String, premultipliedAlpha:Boolean=true):Array
         {
-            return mode == AUTO || mode == NORMAL || mode == ADD ||
-                   mode == MULTIPLY || mode == NONE || mode == SCREEN || mode == ERASE;
+            var modes:Object = sBlendFactors[int(premultipliedAlpha)];
+            if (mode in modes) return modes[mode];
+            else throw new ArgumentError("Invalid blend mode");
+        }
+        
+        /** Registeres a blending mode under a certain name and for a certain premultiplied alpha
+         *  (pma) value. If the mode for the other pma value was not yet registered, the factors are
+         *  used for both pma settings. */
+        public static function registerMode(name:String, sourceFactor:String, destFactor:String,
+                                            premultipliedAlpha:Boolean=true):void
+        {
+            var modes:Object = sBlendFactors[int(premultipliedAlpha)];
+            modes[name] = [sourceFactor, destFactor];
+            
+            var otherModes:Object = sBlendFactors[int(!premultipliedAlpha)];
+            if (!(name in otherModes)) otherModes[name] = [sourceFactor, destFactor];
         }
     }
 }
