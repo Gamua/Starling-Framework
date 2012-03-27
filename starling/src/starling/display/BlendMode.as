@@ -37,11 +37,14 @@ package starling.display
           * the background color, resulting in a bleaching effect. */
         public static const SCREEN:String = "screen";
         
+        /** Erases the background when drawn on a RenderTexture. */
+        public static const ERASE:String = "erase";
+        
         /** Determines whether a blending value is valid. */
         public static function isValid(mode:String):Boolean
         {
             return mode == AUTO || mode == NORMAL || mode == ADD ||
-                   mode == MULTIPLY || mode == NONE || mode == SCREEN;
+                   mode == MULTIPLY || mode == NONE || mode == SCREEN || mode == ERASE;
         }
     }
 }

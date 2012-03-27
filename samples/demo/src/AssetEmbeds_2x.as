@@ -36,6 +36,9 @@ package
         [Embed(source = "../media/textures/2x/benchmark_object.png")]
         public static const BenchmarkObject:Class;
         
+        [Embed(source = "../media/textures/2x/brush.png")]
+        public static const Brush:Class;
+        
         // Compressed textures
         
         [Embed(source = "../media/textures/2x/compressed_texture.atf", mimeType="application/octet-stream")]
