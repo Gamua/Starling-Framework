@@ -29,10 +29,10 @@ package
             addChild(startupBitmap);
             
             Starling.multitouchEnabled = true;  // useful on mobile devices
-            Starling.handleLostContext = false; // deactivate on mobile devices (to save memory)
+            Starling.handleLostContext = false; // not necessary on iOS. Saves a lot of memory!
             
             mStarling = new Starling(Game, stage);
-            mStarling.simulateMultitouch = true;
+            mStarling.simulateMultitouch  = false;
             mStarling.enableErrorChecking = false;
             
             mStarling.stage3D.addEventListener(Event.CONTEXT3D_CREATE, function(e:Event):void 
