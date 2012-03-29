@@ -139,7 +139,9 @@ package starling.text
         {
             if (mContents)
             {
-                if (mIsRenderedText) (mContents as Image).texture.dispose();
+                if (mContents is Image) 
+                   (mContents as Image).texture.dispose();
+                
                 mContents.removeFromParent(true);
             }
             
@@ -339,13 +341,10 @@ package starling.text
                 mColor = value;
                 updateBorder();
                 
-                if (mContents)
-                {
-                   if (mIsRenderedText)
-                       (mContents as Image).color = value;
-                   else
-                       mRequiresRedraw = true;
-                }
+                if (mContents is Image && mIsRenderedText)
+                   (mContents as Image).color = value;
+                else
+                    mRequiresRedraw = true;
             }
         }
         
