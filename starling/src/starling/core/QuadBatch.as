@@ -240,10 +240,6 @@ package starling.core
                 if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
                 else quadBatches[0].reset();
             }
-            else if (object.alpha == 0.0 || !object.visible)
-            {
-                return quadBatchID; // ignore transparent objects, except root
-            }
             
             if (object is DisplayObjectContainer)
             {
@@ -254,12 +250,17 @@ package starling.core
                 for (i=0; i<numChildren; ++i)
                 {
                     var child:DisplayObject = container.getChildAt(i);
-                    var childBlendMode:String = child.blendMode == BlendMode.AUTO ?
-                                                blendMode : child.blendMode;
-                    childMatrix.copyFrom(transformationMatrix);
-                    RenderSupport.transformMatrixForObject(childMatrix, child);
-                    quadBatchID = compileObject(child, quadBatches, quadBatchID, childMatrix, 
-                                                alpha * child.alpha, childBlendMode);
+                    var childVisible:Boolean = child.alpha  != 0.0 && child.visible && 
+                                               child.scaleX != 0.0 && child.scaleY != 0.0;
+                    if (childVisible)
+                    {
+                        var childBlendMode:String = child.blendMode == BlendMode.AUTO ?
+                                                    blendMode : child.blendMode;
+                        childMatrix.copyFrom(transformationMatrix);
+                        RenderSupport.transformMatrixForObject(childMatrix, child);
+                        quadBatchID = compileObject(child, quadBatches, quadBatchID, childMatrix, 
+                                                    alpha * child.alpha, childBlendMode);
+                    }
                 }
             }
             else if (object is Quad)
