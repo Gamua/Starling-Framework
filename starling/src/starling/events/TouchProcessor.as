@@ -12,7 +12,6 @@ package starling.events
 {
     import flash.geom.Point;
     
-    import starling.display.DisplayObject;
     import starling.display.Stage;
 
     /** @private
