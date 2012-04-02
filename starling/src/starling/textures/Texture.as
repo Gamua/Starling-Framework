@@ -20,7 +20,6 @@ package starling.textures
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
-    import flash.utils.Dictionary;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.Starling;
@@ -87,9 +86,6 @@ package starling.textures
     {
         private var mFrame:Rectangle;
         private var mRepeat:Boolean;
-        
-        private static var sConcreteTextures:Dictionary = new Dictionary();
-        private static var sScaleRegExp:RegExp = /_(\d+)x/;
         
         /** @private */
         public function Texture()

@@ -10,7 +10,6 @@
 
 package starling.core
 {
-    import flash.display3D.*;
     import flash.geom.*;
     
     import starling.display.*;
