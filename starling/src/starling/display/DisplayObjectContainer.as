@@ -129,10 +129,10 @@ package starling.display
             if (index >= 0 && index < numChildren)
             {
                 var child:DisplayObject = mChildren[index];
+                mChildren.splice(index, 1);
                 child.dispatchEvent(new Event(Event.REMOVED, true));
                 if (stage) child.dispatchEventOnChildren(new Event(Event.REMOVED_FROM_STAGE));
                 child.setParent(null);
-                mChildren.splice(index, 1);
                 if (dispose) child.dispose();
             }
             else
