@@ -241,6 +241,7 @@ package starling.core
             var rootObject:DisplayObject = new mRootClass();
             if (rootObject == null) throw new Error("Invalid root class: " + mRootClass);
             mStage.addChild(rootObject);
+            dispatchEvent(new starling.events.Event(starling.events.Event.ROOT_CREATED));
         }
         
         private function updateViewPort():void
