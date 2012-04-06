@@ -234,7 +234,7 @@ package starling.textures
         {
             nativeTexture.uploadFromBitmapData(data);
             
-            if (generateMipmaps)
+            if (generateMipmaps && data.width > 1 && data.height > 1)
             {
                 var currentWidth:int  = data.width  >> 1;
                 var currentHeight:int = data.height >> 1;
