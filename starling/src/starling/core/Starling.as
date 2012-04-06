@@ -252,11 +252,8 @@ package starling.core
             mStage3D.y = mViewPort.y;
         }
         
-        private function render():void
+        private function advanceTime():void
         {
-            if (mContext == null || mContext.driverInfo == "Disposed")
-                return;
-            
             var now:Number = getTimer() / 1000.0;
             var passedTime:Number = now - mLastFrameTimestamp;
             mLastFrameTimestamp = now;
@@ -264,6 +261,12 @@ package starling.core
             mStage.advanceTime(passedTime);
             mJuggler.advanceTime(passedTime);
             mTouchProcessor.advanceTime(passedTime);
+        }
+        
+        private function render():void
+        {
+            if (mContext == null || mContext.driverInfo == "Disposed")
+                return;
             
             RenderSupport.clear(mStage.color, 1.0);
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
@@ -362,7 +365,11 @@ package starling.core
             makeCurrent();
             
             if (mNativeOverlay) updateNativeOverlay();
-            if (mStarted) render();           
+            if (mStarted) 
+            {
+                advanceTime();
+                render();
+            }
         }
         
         private function onKey(event:KeyboardEvent):void
