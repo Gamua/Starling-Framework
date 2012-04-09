@@ -10,8 +10,10 @@
 
 package starling.utils
 {
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
@@ -60,8 +62,9 @@ package starling.utils
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
 
-        /** Helper object. */
+        /** Helper objects. */
         private static var sPositions:Vector.<Number> = new Vector.<Number>(12, true);
+        private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
@@ -260,6 +263,57 @@ package starling.utils
         private function getOffset(vertexID:int):int
         {
             return vertexID * ELEMENTS_PER_VERTEX;
+        }
+        
+        /** Calculates the bounds of the vertices, which are optionally transformed by a matrix. 
+         *  If you pass a 'resultRect', the result will be stored in this rectangle 
+         *  instead of creating a new object. */
+        public function getBounds(transformationMatrix:Matrix=null, 
+                                  resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+            var offset:int = POSITION_OFFSET;
+            var x:Number, y:Number, i:int;
+            
+            if (transformationMatrix == null)
+            {
+                for (i=0; i<mNumVertices; ++i)
+                {
+                    x = mRawData[offset];
+                    y = mRawData[int(offset+1)];
+                    offset += ELEMENTS_PER_VERTEX;
+                    
+                    minX = minX < x ? minX : x;
+                    maxX = maxX > x ? maxX : x;
+                    minY = minY < y ? minY : y;
+                    maxY = maxY > y ? maxY : y;
+                }
+            }
+            else
+            {
+                for (i=0; i<4; ++i)
+                {
+                    x = mRawData[offset];
+                    y = mRawData[int(offset+1)];
+                    offset += ELEMENTS_PER_VERTEX;
+                    
+                    transformCoords(transformationMatrix, x, y, sHelperPoint);
+                    minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
+                    maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
+                    minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
+                    maxY = maxY > sHelperPoint.y ? maxY : sHelperPoint.y;
+                }
+            }
+            
+            resultRect.x = minX;
+            resultRect.y = minY;
+            resultRect.width  = maxX - minX;
+            resultRect.height = maxY - minY;
+            
+            return resultRect;
         }
         
         // properties
