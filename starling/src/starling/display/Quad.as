@@ -11,8 +11,8 @@
 package starling.display
 {
     import flash.geom.Matrix;
-    import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
     import starling.utils.VertexData;
@@ -39,7 +39,7 @@ package starling.display
         protected var mVertexData:VertexData;
         
         /** Helper objects. */
-        private static var sHelperPoint:Point = new Point();
+        private static var sHelperVector:Vector3D = new Vector3D();
         private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
@@ -69,10 +69,31 @@ package starling.display
         {
             if (resultRect == null) resultRect = new Rectangle();
             
-            var transformationMatrix:Matrix = targetSpace == this ? 
-                null : getTransformationMatrix(targetSpace, sHelperMatrix);
+            if (targetSpace == this) // optimization
+            {
+                mVertexData.getPosition(3, sHelperVector);
+                resultRect.width  = sHelperVector.x;
+                resultRect.height = sHelperVector.y;
+            }
+            else if (targetSpace == parent && rotation == 0.0) // optimization
+            {
+                var scaleX:Number = this.scaleX;
+                var scaleY:Number = this.scaleY;
+                mVertexData.getPosition(3, sHelperVector);
+                resultRect.x = -pivotX * scaleX;
+                resultRect.y = -pivotY * scaleY;
+                resultRect.width  = sHelperVector.x * scaleX;
+                resultRect.height = sHelperVector.y * scaleY;
+            }
+            else
+            {
+                var transformationMatrix:Matrix = targetSpace == this ? 
+                    null : getTransformationMatrix(targetSpace, sHelperMatrix);
+                
+                mVertexData.getBounds(transformationMatrix, resultRect);
+            }
             
-            return mVertexData.getBounds(transformationMatrix, resultRect);
+            return resultRect;
         }
         
         /** Returns the color of a vertex at a certain index. */
