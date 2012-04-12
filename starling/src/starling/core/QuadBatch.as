@@ -41,6 +41,8 @@ package starling.core
     public class QuadBatch
     {
         private var mNumQuads:int;
+        private var mSyncRequired:Boolean;
+        
         private var mTexture:Texture;
         private var mSmoothing:String;
         private var mBlendMode:String;
@@ -59,6 +61,7 @@ package starling.core
             mVertexData = new VertexData(0, true);
             mIndexData = new <uint>[];
             mNumQuads = 0;
+            mSyncRequired = false;
         }
         
         /** Disposes vertex- and index-buffer. */
@@ -98,19 +101,22 @@ package starling.core
         }
         
         /** Uploads the raw data of all batched quads to the vertex buffer. */
-        public function syncBuffers():void
+        private function syncBuffers():void
         {
             // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
             // this is slower than updating the complete buffer.
             
             if (mVertexBuffer)
                 mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+            
+            mSyncRequired = false;
         }
         
-        /** Renders the current batch. Don't forget to call 'syncBuffers' before rendering. */
+        /** Renders the current batch. */
         public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
         {
             if (mNumQuads == 0) return;
+            if (mSyncRequired) syncBuffers();
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
             var context:Context3D = Starling.context;
@@ -161,6 +167,7 @@ package starling.core
             mTexture = null;
             mSmoothing = null;
             mBlendMode = null;
+            mSyncRequired = true;
         }
         
         /** Adds a quad to the current batch. Before adding a quad, you should check for a state
@@ -187,8 +194,9 @@ package starling.core
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
             
             mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
-            
-            ++mNumQuads;
+
+            mSyncRequired = true;
+            mNumQuads++;
         }
         
         /** Indicates if a quad can be added to the batch without causing a state change. 
@@ -271,7 +279,6 @@ package starling.core
                 
                 if (quadBatch.isStateChange(quad, texture, smoothing, blendMode))
                 {
-                    quadBatch.syncBuffers();
                     quadBatchID++;
                     if (quadBatches.length <= quadBatchID) 
                         quadBatches.push(new QuadBatch());
@@ -288,8 +295,6 @@ package starling.core
             
             if (isRootObject)
             {
-                quadBatches[quadBatchID].syncBuffers();
-                
                 for (i=quadBatches.length-1; i>quadBatchID; --i)
                 {
                     quadBatches[i].dispose();
