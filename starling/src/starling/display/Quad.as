@@ -80,17 +80,15 @@ package starling.display
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
                 mVertexData.getPosition(3, sHelperVector);
-                resultRect.x = -pivotX * scaleX;
-                resultRect.y = -pivotY * scaleY;
+                resultRect.x = x - pivotX * scaleX;
+                resultRect.y = y - pivotY * scaleY;
                 resultRect.width  = sHelperVector.x * scaleX;
                 resultRect.height = sHelperVector.y * scaleY;
             }
             else
             {
-                var transformationMatrix:Matrix = targetSpace == this ? 
-                    null : getTransformationMatrix(targetSpace, sHelperMatrix);
-                
-                mVertexData.getBounds(transformationMatrix, resultRect);
+                var matrix:Matrix = getTransformationMatrix(targetSpace, sHelperMatrix);
+                mVertexData.getBounds(matrix, resultRect);
             }
             
             return resultRect;

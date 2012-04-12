@@ -60,6 +60,12 @@ package tests
             quad.scaleY = 0.5;
             Helpers.compareRectangles(new Rectangle(-100, -30, 200, 100), quad.bounds);
             
+            quad.x = 10;
+            Helpers.compareRectangles(new Rectangle(-90, -30, 200, 100), quad.bounds);
+            
+            quad.y = 20;
+            Helpers.compareRectangles(new Rectangle(-90, -10, 200, 100), quad.bounds);
+            
             var parent:Sprite = new Sprite();
             parent.addChild(quad);
             
