@@ -153,7 +153,7 @@ package starling.display
             if (TextureSmoothing.isValid(value))
                 mSmoothing = value;
             else
-                throw new ArgumentError("Invalid smoothing mode: " + smoothing);
+                throw new ArgumentError("Invalid smoothing mode: " + value);
         }
         
         /** @inheritDoc */

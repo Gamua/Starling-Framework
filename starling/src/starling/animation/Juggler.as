@@ -10,6 +10,9 @@
 
 package starling.animation
 {
+    import starling.events.Event;
+    import starling.events.EventDispatcher;
+
     /** The Juggler takes objects that implement IAnimatable (like Tweens) and executes them.
      * 
      *  <p>A juggler is a simple object. It does no more than saving a list of objects implementing 
@@ -56,15 +59,20 @@ package starling.animation
         public function add(object:IAnimatable):void
         {
             if (object != null) mObjects.push(object);
+            
+            var dispatcher:EventDispatcher = object as EventDispatcher;
+            if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
         }
         
         /** Removes an object from the juggler. */
         public function remove(object:IAnimatable):void
         {
             if (object == null) return;
-            var numObjects:int = mObjects.length;
             
-            for (var i:int=numObjects-1; i>=0; --i)
+            var dispatcher:EventDispatcher = object as EventDispatcher;
+            if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+            
+            for (var i:int=mObjects.length-1; i>=0; --i)
                 if (mObjects[i] == object) 
                     mObjects.splice(i, 1);
         }
@@ -101,30 +109,26 @@ package starling.animation
             return delayedCall;
         }
         
-        /** Advances all objects by a certain time (in seconds). Objects with a positive
-         *  'isComplete'-property will be removed. */
+        /** Advances all objects by a certain time (in seconds). */
         public function advanceTime(time:Number):void
-        {                        
+        {   
             mElapsedTime += time;
             if (mObjects.length == 0) return;
             
-            var i:int;
+            // since 'advanceTime' could modify the juggler (through a callback), we iterate
+            // over a copy of 'mObjects'.
+            
             var numObjects:int = mObjects.length;
             var objectCopy:Vector.<IAnimatable> = mObjects.concat();
             
-            // since 'advanceTime' could modify the juggler (through a callback), we split
-            // the logic in two loops.
-            
-            for (i=0; i<numObjects; ++i)
+            for (var i:int=0; i<numObjects; ++i)
                 objectCopy[i].advanceTime(time);
-            
-            for (i=mObjects.length-1; i>=0; --i)
-                if (mObjects[i].isComplete) 
-                    mObjects.splice(i, 1);
         }
         
-        /** Always returns 'false'. */
-        public function get isComplete():Boolean  { return false; }        
+        private function onRemove(event:Event):void
+        {
+            remove(event.target as IAnimatable);
+        }
         
         /** The total life time of the juggler. */
         public function get elapsedTime():Number { return mElapsedTime; }        

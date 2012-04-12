@@ -7,15 +7,13 @@
 echo "Please enter the version number (like '1.0'), followed by [ENTER]:"
 read version
 
-ASDOC="/Applications/Adobe Flash Builder 4.5/sdks/4.5.1/bin/asdoc"
-MOLEHILL_PLAYERGLOBAL="/Users/redge/Incognitek/molehill/files/playerglobal.swc"
+ASDOC="/Applications/Adobe Flash Builder 4.6/sdks/4.6.0/bin/asdoc"
 
 "${ASDOC}" \
   -doc-sources ../src \
   -exclude-classes com.adobe.utils.AGALMiniAssembler \
   -main-title "Starling Framework Reference (v$version)" \
   -window-title "Starling Framework Reference" \
-  -external-library-path "$MOLEHILL_PLAYERGLOBAL" \
   -package starling.animation "The components of Starlings animation system." \
   -package starling.core "Contains the core class of the framework and a rendering utility class." \
   -package starling.display "The main classes from which to build anything that is displayed on the screen." \

@@ -11,7 +11,6 @@
 package starling.display
 {
     import flash.geom.Matrix;
-    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     
@@ -40,8 +39,7 @@ package starling.display
         protected var mVertexData:VertexData;
         
         /** Helper objects. */
-        private static var sPosition:Vector3D = new Vector3D();
-        private static var sPoint:Point = new Point();
+        private static var sHelperVector:Vector3D = new Vector3D();
         private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
@@ -67,41 +65,34 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
-            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-            var i:int;
+            if (resultRect == null) resultRect = new Rectangle();
             
             if (targetSpace == this) // optimization
             {
-                for (i=0; i<4; ++i)
-                {
-                    mVertexData.getPosition(i, sPosition);
-                    minX = Math.min(minX, sPosition.x);
-                    maxX = Math.max(maxX, sPosition.x);
-                    minY = Math.min(minY, sPosition.y);
-                    maxY = Math.max(maxY, sPosition.y);
-                }
+                mVertexData.getPosition(3, sHelperVector);
+                resultRect.x = resultRect.y = 0.0;
+                resultRect.width  = sHelperVector.x;
+                resultRect.height = sHelperVector.y;
+            }
+            else if (targetSpace == parent && rotation == 0.0) // optimization
+            {
+                var scaleX:Number = this.scaleX;
+                var scaleY:Number = this.scaleY;
+                mVertexData.getPosition(3, sHelperVector);
+                resultRect.x = x - pivotX * scaleX;
+                resultRect.y = y - pivotY * scaleY;
+                resultRect.width  = sHelperVector.x * scaleX;
+                resultRect.height = sHelperVector.y * scaleY;
             }
             else
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
-                
-                for (i=0; i<4; ++i)
-                {
-                    mVertexData.getPosition(i, sPosition);
-                    sPoint.x = sPosition.x;
-                    sPoint.y = sPosition.y;
-                    var transformedPoint:Point = sHelperMatrix.transformPoint(sPoint);
-                    minX = Math.min(minX, transformedPoint.x);
-                    maxX = Math.max(maxX, transformedPoint.x);
-                    minY = Math.min(minY, transformedPoint.y);
-                    maxY = Math.max(maxY, transformedPoint.y);                    
-                }
+                mVertexData.getBounds(sHelperMatrix, resultRect);
             }
             
-            return new Rectangle(minX, minY, maxX-minX, maxY-minY);
+            return resultRect;
         }
         
         /** Returns the color of a vertex at a certain index. */

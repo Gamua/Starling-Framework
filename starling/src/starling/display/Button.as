@@ -11,6 +11,8 @@
 package starling.display
 {
     import flash.geom.Rectangle;
+    import flash.ui.Mouse;
+    import flash.ui.MouseCursor;
     
     import starling.events.Event;
     import starling.events.Touch;
@@ -52,6 +54,7 @@ package starling.display
         private var mAlphaWhenDisabled:Number;
         private var mEnabled:Boolean;
         private var mIsDown:Boolean;
+        private var mUseHandCursor:Boolean;
         
         /** Creates a button with textures for up- and down-state or text. */
         public function Button(upState:Texture, text:String="", downState:Texture=null)
@@ -65,6 +68,7 @@ package starling.display
             mAlphaWhenDisabled = 0.5;
             mEnabled = true;
             mIsDown = false;
+            mUseHandCursor = true;
             mTextBounds = new Rectangle(0, 0, upState.width, upState.height);            
             
             mContents = new Sprite();
@@ -103,6 +107,9 @@ package starling.display
         
         private function onTouch(event:TouchEvent):void
         {
+            Mouse.cursor = (mUseHandCursor && mEnabled && event.interactsWith(this)) ? 
+                MouseCursor.BUTTON : MouseCursor.AUTO;
+            
             var touch:Touch = event.getTouch(this);
             if (!mEnabled || touch == null) return;
             
@@ -147,7 +154,7 @@ package starling.display
         public function set enabled(value:Boolean):void
         {
             if (mEnabled != value)
-            {            
+            {
                 mEnabled = value;
                 mContents.alpha = value ? 1.0 : mAlphaWhenDisabled;
                 resetContents();
@@ -224,5 +231,10 @@ package starling.display
             mTextBounds = value.clone();
             createTextField();
         }
+        
+        /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
+         *  @default true */
+        public function get useHandCursor():Boolean { return mUseHandCursor; }
+        public function set useHandCursor(value:Boolean):void { mUseHandCursor = value; }
     }
 }

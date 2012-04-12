@@ -78,17 +78,19 @@ package starling.textures
         
         private function parseAtlasXml(atlasXml:XML):void
         {
+            var scale:Number = mAtlasTexture.scale;
+            
             for each (var subTexture:XML in atlasXml.SubTexture)
-            {                
+            {
                 var name:String        = subTexture.attribute("name");
-                var x:Number           = parseFloat(subTexture.attribute("x"));
-                var y:Number           = parseFloat(subTexture.attribute("y"));
-                var width:Number       = parseFloat(subTexture.attribute("width"));
-                var height:Number      = parseFloat(subTexture.attribute("height"));
-                var frameX:Number      = parseFloat(subTexture.attribute("frameX"));
-                var frameY:Number      = parseFloat(subTexture.attribute("frameY"));
-                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth"));
-                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight"));
+                var x:Number           = parseFloat(subTexture.attribute("x")) / scale;
+                var y:Number           = parseFloat(subTexture.attribute("y")) / scale;
+                var width:Number       = parseFloat(subTexture.attribute("width")) / scale;
+                var height:Number      = parseFloat(subTexture.attribute("height")) / scale;
+                var frameX:Number      = parseFloat(subTexture.attribute("frameX")) / scale;
+                var frameY:Number      = parseFloat(subTexture.attribute("frameY")) / scale;
+                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth")) / scale;
+                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) / scale;
                 
                 var region:Rectangle = new Rectangle(x, y, width, height);
                 var frame:Rectangle  = frameWidth > 0 && frameHeight > 0 ?

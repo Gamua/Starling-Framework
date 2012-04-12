@@ -87,22 +87,31 @@ package starling.text
         
         private function parseFontXml(fontXml:XML):void
         {
+            var scale:Number = mTexture.scale;
+            var frame:Rectangle = mTexture.frame;
+            
             mName = fontXml.info.attribute("face");
-            mSize = parseFloat(fontXml.info.attribute("size"));
-            mLineHeight = parseFloat(fontXml.common.attribute("lineHeight"));
+            mSize = parseFloat(fontXml.info.attribute("size")) / scale;
+            mLineHeight = parseFloat(fontXml.common.attribute("lineHeight")) / scale;
+            
+            if (mSize <= 0)
+            {
+                trace("[Starling] Warning: invalid font size in '" + mName + "' font.");
+                mSize = (mSize == 0.0 ? 16.0 : mSize * -1.0);
+            }
             
             for each (var charElement:XML in fontXml.chars.char)
             {
                 var id:int = parseInt(charElement.attribute("id"));
-                var xOffset:Number = parseFloat(charElement.attribute("xoffset"));
-                var yOffset:Number = parseFloat(charElement.attribute("yoffset"));
-                var xAdvance:Number = parseFloat(charElement.attribute("xadvance"));
+                var xOffset:Number = parseFloat(charElement.attribute("xoffset")) / scale;
+                var yOffset:Number = parseFloat(charElement.attribute("yoffset")) / scale;
+                var xAdvance:Number = parseFloat(charElement.attribute("xadvance")) / scale;
                 
                 var region:Rectangle = new Rectangle();
-                region.x = parseFloat(charElement.attribute("x"));
-                region.y = parseFloat(charElement.attribute("y"));
-                region.width  = parseFloat(charElement.attribute("width"));
-                region.height = parseFloat(charElement.attribute("height"));
+                region.x = parseFloat(charElement.attribute("x")) / scale + frame.x;
+                region.y = parseFloat(charElement.attribute("y")) / scale + frame.y;
+                region.width  = parseFloat(charElement.attribute("width")) / scale;
+                region.height = parseFloat(charElement.attribute("height")) / scale;
                 
                 var texture:Texture = Texture.fromTexture(mTexture, region);
                 var bitmapChar:BitmapChar = new BitmapChar(id, texture, xOffset, yOffset, xAdvance); 
@@ -113,8 +122,8 @@ package starling.text
             {
                 var first:int = parseInt(kerningElement.attribute("first"));
                 var second:int = parseInt(kerningElement.attribute("second"));
-                var amount:Number = parseFloat(kerningElement.attribute("amount"));
-                getChar(second).addKerning(first, amount);
+                var amount:Number = parseFloat(kerningElement.attribute("amount")) / scale;
+                if (second in mChars) getChar(second).addKerning(first, amount);
             }
         }
         

@@ -10,8 +10,10 @@
 
 package starling.utils
 {
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
@@ -60,8 +62,9 @@ package starling.utils
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
 
-        /** Helper object. */
+        /** Helper objects. */
         private static var sPositions:Vector.<Number> = new Vector.<Number>(12, true);
+        private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
@@ -135,9 +138,9 @@ package starling.utils
         {
             var multiplier:Number = mPremultipliedAlpha ? alpha : 1.0;
             var offset:int = getOffset(vertexID) + COLOR_OFFSET;
-            mRawData[offset]        = Color.getRed(color)   / 255.0 * multiplier;
-            mRawData[int(offset+1)] = Color.getGreen(color) / 255.0 * multiplier;
-            mRawData[int(offset+2)] = Color.getBlue(color)  / 255.0 * multiplier;
+            mRawData[offset]        = ((color >> 16) & 0xff) / 255.0 * multiplier;
+            mRawData[int(offset+1)] = ((color >>  8) & 0xff) / 255.0 * multiplier;
+            mRawData[int(offset+2)] = ( color        & 0xff) / 255.0 * multiplier;
             mRawData[int(offset+3)] = alpha;
         }
         
@@ -153,7 +156,8 @@ package starling.utils
                 var red:Number   = mRawData[offset]        / divisor;
                 var green:Number = mRawData[int(offset+1)] / divisor;
                 var blue:Number  = mRawData[int(offset+2)] / divisor;
-                return Color.rgb(red * 255, green * 255, blue * 255);
+                
+                return (int(red*255) << 16) | (int(green*255) << 8) | int(blue*255);
             }
         }
         
@@ -202,28 +206,15 @@ package starling.utils
             mRawData[int(offset+1)] += deltaY;
             mRawData[int(offset+2)] += deltaZ;
         }
-        
-        /** Transforms the position of a vertex by multiplication with a transformation matrix. */
-        public function transformVertex(vertexID:int, matrix:Matrix3D):void
-        {
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            sPositions[0] = mRawData[offset];
-            sPositions[1] = mRawData[int(offset+1)];
-            sPositions[2] = mRawData[int(offset+2)];
-            
-            matrix.transformVectors(sPositions, sPositions);
-            mRawData[offset]        = sPositions[0];
-            mRawData[int(offset+1)] = sPositions[1];
-            mRawData[int(offset+2)] = sPositions[2];
-        }
 
-        /** Transforms the position of a vertex by multiplication with a transformation matrix. */
-        public function transformQuad(vertexID:int, matrix:Matrix3D):void
+        /** Transforms the position of subsequent vertices by multiplication with a 
+         *  transformation matrix. */
+        public function transformVertex(vertexID:int, matrix:Matrix3D, numVertices:int=1):void
         {
             var i:int;
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             
-            for (i=0; i<4; ++i)
+            for (i=0; i<numVertices; ++i)
             {
                 sPositions[int(3*i    )] = mRawData[offset];
                 sPositions[int(3*i + 1)] = mRawData[int(offset+1)];
@@ -232,9 +223,9 @@ package starling.utils
             }
             
             matrix.transformVectors(sPositions, sPositions);
-            offset -= ELEMENTS_PER_VERTEX * 4;
+            offset -= ELEMENTS_PER_VERTEX * numVertices;
             
-            for (i=0; i<4; ++i)
+            for (i=0; i<numVertices; ++i)
             {
                 mRawData[offset]        = sPositions[int(3*i    )];
                 mRawData[int(offset+1)] = sPositions[int(3*i + 1)];
@@ -250,21 +241,79 @@ package starling.utils
                 setColor(i, color, alpha);
         }
         
-        /** Multiplies the alpha value of a vertex with a certain delta. */
-        public function scaleAlpha(vertexID:int, alpha:Number):void
+        /** Multiplies the alpha value of subsequent vertices with a certain delta. */
+        public function scaleAlpha(vertexID:int, alpha:Number, numVertices:int=1):void
         {
+            var i:int;
+            
             if (alpha == 1.0) return;
-            else if (mPremultipliedAlpha) setAlpha(vertexID, getAlpha(vertexID) * alpha);
+            else if (mPremultipliedAlpha)
+            {
+                for (i=0; i<numVertices; ++i)
+                    setColor(vertexID+i, getColor(vertexID+i), getAlpha(vertexID+i) * alpha);
+            }
             else
             {
                 var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
-                mRawData[offset] *= alpha;
+                for (i=0; i<numVertices; ++i)
+                    mRawData[int(offset + i*ELEMENTS_PER_VERTEX)] *= alpha;
             }
         }
         
         private function getOffset(vertexID:int):int
         {
             return vertexID * ELEMENTS_PER_VERTEX;
+        }
+        
+        /** Calculates the bounds of the vertices, which are optionally transformed by a matrix. 
+         *  If you pass a 'resultRect', the result will be stored in this rectangle 
+         *  instead of creating a new object. */
+        public function getBounds(transformationMatrix:Matrix=null, 
+                                  resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+            var offset:int = POSITION_OFFSET;
+            var x:Number, y:Number, i:int;
+            
+            if (transformationMatrix == null)
+            {
+                for (i=0; i<mNumVertices; ++i)
+                {
+                    x = mRawData[offset];
+                    y = mRawData[int(offset+1)];
+                    offset += ELEMENTS_PER_VERTEX;
+                    
+                    minX = minX < x ? minX : x;
+                    maxX = maxX > x ? maxX : x;
+                    minY = minY < y ? minY : y;
+                    maxY = maxY > y ? maxY : y;
+                }
+            }
+            else
+            {
+                for (i=0; i<4; ++i)
+                {
+                    x = mRawData[offset];
+                    y = mRawData[int(offset+1)];
+                    offset += ELEMENTS_PER_VERTEX;
+                    
+                    transformCoords(transformationMatrix, x, y, sHelperPoint);
+                    minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
+                    maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
+                    minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
+                    maxY = maxY > sHelperPoint.y ? maxY : sHelperPoint.y;
+                }
+            }
+            
+            resultRect.x = minX;
+            resultRect.y = minY;
+            resultRect.width  = maxX - minX;
+            resultRect.height = maxY - minY;
+            
+            return resultRect;
         }
         
         // properties

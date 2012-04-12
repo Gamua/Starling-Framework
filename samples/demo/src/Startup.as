@@ -17,7 +17,8 @@ package
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
             
-            Starling.multitouchEnabled = true;
+            Starling.multitouchEnabled = true; // useful on mobile devices
+            Starling.handleLostContext = true; // deactivate on mobile devices (to save memory)
             
             mStarling = new Starling(Game, stage);
             mStarling.simulateMultitouch = true;
@@ -25,7 +26,7 @@ package
             mStarling.start();
             
             // this event is dispatched when stage3D is set up
-            stage.stage3Ds[0].addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            mStarling.stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         private function onContextCreated(event:Event):void

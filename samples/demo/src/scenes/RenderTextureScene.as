@@ -1,57 +1,93 @@
 package scenes
 {
     import flash.geom.Point;
+    import flash.utils.Dictionary;
     
+    import starling.display.BlendMode;
+    import starling.display.Button;
     import starling.display.Image;
+    import starling.events.Event;
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
     import starling.text.TextField;
     import starling.textures.RenderTexture;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
 
     public class RenderTextureScene extends Scene
     {
         private var mRenderTexture:RenderTexture;
+        private var mCanvas:Image;
         private var mBrush:Image;
+        private var mButton:Button;
+        private var mColors:Dictionary;
         
         public function RenderTextureScene()
         {
-            var description:String = "Touch the screen to draw eggs!";
+            mColors = new Dictionary();
+            mRenderTexture = new RenderTexture(320, 435);
             
-            var infoText:TextField = new TextField(300, 50, description);
-            infoText.x = infoText.y = 10;
-            infoText.vAlign = VAlign.TOP;
-            infoText.hAlign = HAlign.CENTER;
-            addChild(infoText);
+            mCanvas = new Image(mRenderTexture);
+            mCanvas.addEventListener(TouchEvent.TOUCH, onTouch);
+            addChild(mCanvas);
             
-            mBrush = new Image(Assets.getTexture("EggOpened"));
+            mBrush = new Image(Assets.getTexture("Brush"));
             mBrush.pivotX = mBrush.width / 2;
             mBrush.pivotY = mBrush.height / 2;
-            mBrush.scaleX = mBrush.scaleY = 0.5;
+            mBrush.blendMode = BlendMode.NORMAL;
             
-            mRenderTexture = new RenderTexture(320, 435); 
+            var infoText:TextField = new TextField(256, 128, "Touch the screen\nto draw!");
+            infoText.fontSize = 24;
+            infoText.x = Constants.CenterX - infoText.width / 2;
+            infoText.y = Constants.CenterY - infoText.height / 2;
+            mRenderTexture.draw(infoText);
             
-            var canvas:Image = new Image(mRenderTexture);
-            canvas.addEventListener(TouchEvent.TOUCH, onTouch);
-            addChild(canvas);
+            mButton = new Button(Assets.getTexture("ButtonNormal"), "Mode: Draw");
+            mButton.x = int(Constants.CenterX - mButton.width / 2);
+            mButton.y = 15;
+            mButton.addEventListener(Event.TRIGGERED, onButtonTriggered);
+            addChild(mButton);
         }
         
         private function onTouch(event:TouchEvent):void
         {
-            var touches:Vector.<Touch> = event.getTouches(this);
+            // touching the canvas will draw a brush texture. The 'drawBundled' method is not
+            // strictly necessary, but it's faster when you are drawing with several fingers
+            // simultaneously.
             
-            for each (var touch:Touch in touches)
+            mRenderTexture.drawBundled(function():void
             {
-                if (touch.phase == TouchPhase.HOVER || touch.phase == TouchPhase.ENDED)
-                    continue;
-                
-                var location:Point = touch.getLocation(this);
-                mBrush.x = location.x;
-                mBrush.y = location.y;
-                
-                mRenderTexture.draw(mBrush);
+                var touches:Vector.<Touch> = event.getTouches(mCanvas);
+            
+                for each (var touch:Touch in touches)
+                {
+                    if (touch.phase == TouchPhase.BEGAN)
+                        mColors[touch.id] = Math.random() * uint.MAX_VALUE;
+                    
+                    if (touch.phase == TouchPhase.HOVER || touch.phase == TouchPhase.ENDED)
+                        continue;
+                    
+                    var location:Point = touch.getLocation(mCanvas);
+                    mBrush.x = location.x;
+                    mBrush.y = location.y;
+                    mBrush.color = mColors[touch.id];
+                    mBrush.rotation = Math.random() * Math.PI * 2.0;
+                    
+                    mRenderTexture.draw(mBrush);
+                }
+            });
+        }
+        
+        private function onButtonTriggered(event:Event):void
+        {
+            if (mBrush.blendMode == BlendMode.NORMAL)
+            {
+                mBrush.blendMode = BlendMode.ERASE;
+                mButton.text = "Mode: Erase";
+            }
+            else
+            {
+                mBrush.blendMode = BlendMode.NORMAL;
+                mButton.text = "Mode: Draw";
             }
         }
         

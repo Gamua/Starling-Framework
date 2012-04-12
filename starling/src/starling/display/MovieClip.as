@@ -18,7 +18,7 @@ package starling.display
     import starling.textures.Texture;
     
     /** Dispatched whenever the movie has displayed its last frame. */
-    [Event(name="movieCompleted", type="starling.events.Event")]
+    [Event(name="complete", type="starling.events.Event")]
     
     /** A MovieClip is a simple way to display an animation depicted by a list of textures.
      *  
@@ -36,7 +36,8 @@ package starling.display
      *  playback. If the movie is looping, the event is dispatched once per loop.</p>
      *  
      *  <p>As any animated object, a movie clip has to be added to a juggler (or have its 
-     *  <code>advanceTime</code> method called regularly) to run.</p>
+     *  <code>advanceTime</code> method called regularly) to run. The movie will dispatch 
+     *  an event of type "Event.COMPLETE" whenever it has displayed its last frame.</p>
      *  
      *  @see starling.textures.TextureAtlas
      */    
@@ -217,9 +218,9 @@ package starling.display
             {
                 if (++mCurrentFrame == numFrames)
                 {
-                    if (hasEventListener(Event.MOVIE_COMPLETED))
+                    if (hasEventListener(Event.COMPLETE))
                     {
-                        dispatchEvent(new Event(Event.MOVIE_COMPLETED));
+                        dispatchEvent(new Event(Event.COMPLETE));
                         
                         // user might have stopped movie in event handler
                         if (!mPlaying)
@@ -245,16 +246,16 @@ package starling.display
             }
             
             if (mCurrentFrame != previousFrame)
-            {                
+            {
                 texture = mTextures[mCurrentFrame];
                 if (mSounds[mCurrentFrame]) mSounds[mCurrentFrame].play();
             }
         }
         
-        /** Always returns <code>false</code>. */
+        /** Indicates if a (non-looping) movie has come to its end. */
         public function get isComplete():Boolean 
         {
-            return false;
+            return !mLoop && mCurrentTime >= mTotalTime;
         }
         
         // properties  

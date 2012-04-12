@@ -41,8 +41,8 @@ package scenes
             mDelayButton.y = mStartButton.y + 40;
             addChild(mDelayButton);
             
-            // the egg will be tweened
-            mEgg = new Image(Assets.getTexture("EggOpened"));
+            // the Starling will be tweened
+            mEgg = new Image(Assets.getTexture("StarlingFront"));
             addChild(mEgg);
             resetEgg();
             
@@ -112,7 +112,7 @@ package scenes
         
         private function colorizeEgg(colorize:Boolean):void
         {
-            mEgg.color = colorize ? Color.PURPLE : Color.WHITE;
+            mEgg.color = colorize ? Color.RED : Color.WHITE;
         }
         
         public override function dispose():void

@@ -121,11 +121,13 @@ package tests
             Assert.assertEquals(3, movie.currentFrame);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(0, movie.currentFrame);
+            Assert.assertFalse(movie.isComplete);
             
             movie.loop = false;
             movie.advanceTime(movie.totalTime + frameDuration);
             Assert.assertEquals(3, movie.currentFrame);
             Assert.assertFalse(movie.isPlaying);
+            Assert.assertTrue(movie.isComplete);
             
             movie.currentFrame = 0;
             Assert.assertEquals(0, movie.currentFrame);
@@ -134,6 +136,7 @@ package tests
             
             movie.stop();
             Assert.assertFalse(movie.isPlaying);
+            Assert.assertFalse(movie.isComplete);
             Assert.assertEquals(0, movie.currentFrame);
         }
             
@@ -178,9 +181,10 @@ package tests
             var textures:Vector.<Texture> = new <Texture>[texture0, texture1, texture2, texture3];
             
             var movie:MovieClip = new MovieClip(textures, fps);
-            movie.addEventListener(Event.MOVIE_COMPLETED, onMovieCompleted);
+            movie.addEventListener(Event.COMPLETE, onMovieCompleted);
             movie.loop = false;
             
+            Assert.assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
@@ -189,12 +193,15 @@ package tests
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(1, completedCount);
+            Assert.assertTrue(movie.isComplete);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
             Assert.assertEquals(1, completedCount);
+            Assert.assertTrue(movie.isComplete);
             
             movie.loop = true;
             completedCount = 0;
             
+            Assert.assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);

@@ -17,6 +17,7 @@ package tests
     import org.flexunit.assertThat;
     import org.hamcrest.number.closeTo;
     
+    import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
@@ -315,6 +316,20 @@ package tests
         }
         
         [Test]
+        public function testBoundsOfEmptyContainer():void
+        {
+            var sprite:Sprite = new Sprite();
+            sprite.x = 100;
+            sprite.y = 200;
+            
+            var bounds:Rectangle = sprite.bounds;
+            assertThat(bounds.x, closeTo(100, E));
+            assertThat(bounds.y, closeTo(200, E));
+            assertThat(bounds.width, closeTo(0, E));
+            assertThat(bounds.height, closeTo(0, E));            
+        }
+        
+        [Test]
         public function testSize():void
         {
             var quad1:Quad = new Quad(100, 100);
@@ -339,6 +354,38 @@ package tests
         }
         
         [Test]
+        public function testSort():void
+        {
+            var s1:Sprite = new Sprite(); s1.y = 8;
+            var s2:Sprite = new Sprite(); s2.y = 3;
+            var s3:Sprite = new Sprite(); s3.y = 6;
+            var s4:Sprite = new Sprite(); s4.y = 1;
+            
+            var parent:Sprite = new Sprite();
+            parent.addChild(s1);
+            parent.addChild(s2);
+            parent.addChild(s3);
+            parent.addChild(s4);
+            
+            Assert.assertEquals(s1, parent.getChildAt(0));
+            Assert.assertEquals(s2, parent.getChildAt(1));
+            Assert.assertEquals(s3, parent.getChildAt(2));
+            Assert.assertEquals(s4, parent.getChildAt(3));
+            
+            parent.sortChildren(function(child1:DisplayObject, child2:DisplayObject):int
+            {
+                if (child1.y < child2.y) return -1;
+                else if (child1.y > child2.y) return 1;
+                else return 0;
+            });
+            
+            Assert.assertEquals(s4, parent.getChildAt(0));
+            Assert.assertEquals(s2, parent.getChildAt(1));
+            Assert.assertEquals(s3, parent.getChildAt(2));
+            Assert.assertEquals(s1, parent.getChildAt(3));
+        }
+        
+        [Test]
         public function testAddExistingChild():void
         {
             var sprite:Sprite = new Sprite();
@@ -347,6 +394,27 @@ package tests
             sprite.addChild(quad);
             Assert.assertEquals(1, sprite.numChildren);
             Assert.assertEquals(0, sprite.getChildIndex(quad));
+        }
+        
+        [Test(expects="ArgumentError")]
+        public function testIllegalRecursion():void
+        {
+            var sprite1:Sprite = new Sprite();
+            var sprite2:Sprite = new Sprite();
+            var sprite3:Sprite = new Sprite();
+            
+            sprite1.addChild(sprite2);
+            sprite2.addChild(sprite3);
+            
+            // this should throw an error
+            sprite3.addChild(sprite1);
+        }
+        
+        [Test(expects="ArgumentError")]
+        public function testAddAsChildToSelf():void
+        {
+            var sprite:Sprite = new Sprite();
+            sprite.addChild(sprite);
         }
         
         [Test]

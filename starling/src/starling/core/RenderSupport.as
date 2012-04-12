@@ -10,10 +10,10 @@
 
 package starling.core
 {
-    import flash.display3D.*;
     import flash.geom.*;
-
+    
     import starling.display.*;
+    import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.*;
 
@@ -33,6 +33,9 @@ package starling.core
         private var mMatrixStack:Vector.<Matrix3D>;
         private var mMatrixStackSize:int;
         
+        private var mBlendMode:String;
+        private var mBlendModeStack:Vector.<String>;
+        
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
         
@@ -50,11 +53,16 @@ package starling.core
             mMatrixStack = new <Matrix3D>[];
             mMatrixStackSize = 0;
             
+            mBlendMode = BlendMode.NORMAL;
+            mBlendModeStack = new <String>[];
+            
             mCurrentQuadBatchID = 0;
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
             setOrthographicProjection(400, 300);
+            
+            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         /** Disposes all quad batches. */
@@ -62,6 +70,13 @@ package starling.core
         {
             for each (var quadBatch:QuadBatch in mQuadBatches)
                 quadBatch.dispose();
+            
+            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            mQuadBatches = new <QuadBatch>[new QuadBatch()];
         }
         
         // matrix manipulation
@@ -141,8 +156,7 @@ package starling.core
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
         public function get mvpMatrix():Matrix3D
         {
-            mMvpMatrix.identity();
-            mMvpMatrix.append(mModelViewMatrix);
+			mMvpMatrix.copyFrom(mModelViewMatrix);
             mMvpMatrix.append(mProjectionMatrix);
             return mMvpMatrix;
         }
@@ -150,10 +164,49 @@ package starling.core
         /** Prepends translation, scale and rotation of an object to a custom matrix. */
         public static function transformMatrixForObject(matrix:Matrix3D, object:DisplayObject):void
         {
-            matrix.prependTranslation(object.x, object.y, 0.0);
-            matrix.prependRotation(object.rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
-            matrix.prependScale(object.scaleX, object.scaleY, 1.0);
-            matrix.prependTranslation(-object.pivotX, -object.pivotY, 0.0);
+            var x:Number = object.x; var y:Number = object.y;
+            var rotation:Number = object.rotation;
+            var scaleX:Number = object.scaleX; var scaleY:Number = object.scaleY;
+            var pivotX:Number = object.pivotX; var pivotY:Number = object.pivotY;
+            
+            if (x != 0 || y != 0)           matrix.prependTranslation(x, y, 0.0);
+            if (rotation != 0)              matrix.prependRotation(rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
+            if (scaleX != 1 || scaleY != 1) matrix.prependScale(scaleX, scaleY, 1.0);
+            if (pivotX != 0 || pivotY != 0) matrix.prependTranslation(-pivotX, -pivotY, 0.0);
+        }
+        
+        // blending
+        
+        /** Pushes the current blend mode to a stack from which it can be restored later. */
+        public function pushBlendMode():void
+        {
+            mBlendModeStack.push(mBlendMode);
+        }
+        
+        /** Restores the blend mode that was last pushed to the stack. */
+        public function popBlendMode():void
+        {
+            mBlendMode = mBlendModeStack.pop();
+        }
+        
+        /** Clears the blend mode stack and restores NORMAL blend mode. */
+        public function resetBlendMode():void
+        {
+            mBlendModeStack.length = 0;
+            mBlendMode = BlendMode.NORMAL;
+        }
+        
+        /** Activates the appropriate blend factors on the current rendering context. */
+        public function applyBlendMode(premultipliedAlpha:Boolean):void
+        {
+            setBlendFactors(premultipliedAlpha, mBlendMode);
+        }
+        
+        /** The blend mode to be used on rendering. */
+        public function get blendMode():String { return mBlendMode; }
+        public function set blendMode(value:String):void
+        {
+            if (value != BlendMode.AUTO) mBlendMode = value;
         }
         
         // optimized quad rendering
@@ -163,10 +216,10 @@ package starling.core
         public function batchQuad(quad:Quad, alpha:Number, 
                                   texture:Texture=null, smoothing:String=null):void
         {
-            if (currentQuadBatch.isStateChange(quad, texture, smoothing))
+            if (currentQuadBatch.isStateChange(quad, texture, smoothing, mBlendMode))
                 finishQuadBatch();
             
-            currentQuadBatch.addQuad(quad, alpha, texture, smoothing, mModelViewMatrix);
+            currentQuadBatch.addQuad(quad, alpha, texture, smoothing, mModelViewMatrix, mBlendMode);
         }
         
         /** Renders the current quad batch and resets it. */
@@ -182,10 +235,11 @@ package starling.core
                 mQuadBatches.push(new QuadBatch());
         }
         
-        /** Resets the matrix stack and the quad batch index. */
+        /** Resets the matrix and blend mode stacks, and the quad batch index. */
         public function nextFrame():void
         {
             resetMatrix();
+            resetBlendMode();
             mCurrentQuadBatchID = 0;
         }
         
@@ -196,17 +250,21 @@ package starling.core
         
         // other helper methods
         
-        /** Sets up the default blending factors, depending on the premultiplied alpha status. */
+        /** Deprecated. Call 'setBlendFactors' instead. */
         public static function setDefaultBlendFactors(premultipliedAlpha:Boolean):void
         {
-            var destFactor:String = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
-            var sourceFactor:String = premultipliedAlpha ? Context3DBlendFactor.ONE :
-                                                           Context3DBlendFactor.SOURCE_ALPHA;
-            Starling.context.setBlendFactors(sourceFactor, destFactor);
+            setBlendFactors(premultipliedAlpha);
+        }
+        
+        /** Sets up the blending factors that correspond with a certain blend mode. */
+        public static function setBlendFactors(premultipliedAlpha:Boolean, blendMode:String="normal"):void
+        {
+            var blendFactors:Array = BlendMode.getBlendFactors(blendMode, premultipliedAlpha); 
+            Starling.context.setBlendFactors(blendFactors[0], blendFactors[1]);
         }
         
         /** Clears the render context with a certain color and alpha value. */
-        public function clear(rgb:uint=0, alpha:Number=0.0):void
+        public static function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             Starling.context.clear(
                 Color.getRed(rgb)   / 255.0, 

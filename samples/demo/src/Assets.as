@@ -12,67 +12,28 @@ package
 
     public class Assets
     {
-        // Bitmaps
+        // If you're developing a game for the Flash Player / browser plugin, you can directly
+        // embed all textures directly in this class. This demo, however, provides two sets of
+        // textures for different resolutions. That's useful especially for iOS development,
+        // where you have to support devices with and without a retina display.
+        //
+        // For that reason, the actual embed statements are in separate files; one for each
+        // resolution. The correct set is chosen depending on the "contentScaleFactor".
         
-        [Embed(source = "../media/textures/background.png")]
-        private static const Background:Class;
-        
-        [Embed(source = "../media/textures/egg_closed.png")]
-        private static const EggClosed:Class;
-        
-        [Embed(source = "../media/textures/egg_opened.png")]
-        private static const EggOpened:Class;
-        
-        [Embed(source = "../media/textures/logo.png")]
-        private static const Logo:Class;
-        
-        [Embed(source = "../media/textures/button_back.png")]
-        private static const ButtonBack:Class;
-        
-        [Embed(source = "../media/textures/button_big.png")]
-        private static const ButtonBig:Class;
-        
-        [Embed(source = "../media/textures/button_normal.png")]
-        private static const ButtonNormal:Class;
-        
-        [Embed(source = "../media/textures/button_square.png")]
-        private static const ButtonSquare:Class;
-        
-        [Embed(source = "../media/textures/benchmark_object.png")]
-        private static const BenchmarkObject:Class;
-        
-        // Compressed textures
-        
-        [Embed(source = "../media/textures/compressed_texture.atf", mimeType="application/octet-stream")]
-        private static const CompressedTexture:Class;
-        
-        // Fonts
+        // TTF-Fonts
         
         // The 'embedAsCFF'-part IS REQUIRED!!!!
         [Embed(source="../media/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]        
         private static const UbuntuRegular:Class;
         
-        [Embed(source="../media/fonts/desyrel.fnt", mimeType="application/octet-stream")]
-        private static const DesyrelXml:Class;
-        
-        [Embed(source = "../media/fonts/desyrel.png")]
-        private static const DesyrelTexture:Class;
-        
-        // Texture Atlas
-        
-        [Embed(source="../media/textures/atlas.xml", mimeType="application/octet-stream")]
-        private static const AtlasXml:Class;
-        
-        [Embed(source="../media/textures/atlas.png")]
-        private static const AtlasTexture:Class;
-        
         // Sounds
         
-        [Embed(source="../media/audio/step.mp3")]
+        [Embed(source="../media/audio/wing_flap.mp3")]
         private static const StepSound:Class;
         
         // Texture cache
         
+        private static var sContentScaleFactor:int = 1;
         private static var sTextures:Dictionary = new Dictionary();
         private static var sSounds:Dictionary = new Dictionary();
         private static var sTextureAtlas:TextureAtlas;
@@ -82,12 +43,16 @@ package
         {
             if (sTextures[name] == undefined)
             {
-                var data:Object = new Assets[name]();
+                var data:Object = create(name);
+                
+                // The Texture class will check the class name of the embedded objects.
+                // Since the class name contains "_2x" or "_1x", the correct scale factor
+                // will be set automatically.
                 
                 if (data is Bitmap)
-                    sTextures[name] = Texture.fromBitmap(data as Bitmap);
+                    sTextures[name] = Texture.fromBitmap(data as Bitmap, true, false, sContentScaleFactor);
                 else if (data is ByteArray)
-                    sTextures[name] = Texture.fromAtfData(data as ByteArray);
+                    sTextures[name] = Texture.fromAtfData(data as ByteArray, sContentScaleFactor);
             }
             
             return sTextures[name];
@@ -105,7 +70,7 @@ package
             if (sTextureAtlas == null)
             {
                 var texture:Texture = getTexture("AtlasTexture");
-                var xml:XML = XML(new AtlasXml());
+                var xml:XML = XML(create("AtlasXml"));
                 sTextureAtlas = new TextureAtlas(texture, xml);
             }
             
@@ -117,7 +82,7 @@ package
             if (!sBitmapFontsLoaded)
             {
                 var texture:Texture = getTexture("DesyrelTexture");
-                var xml:XML = XML(new DesyrelXml());
+                var xml:XML = XML(create("DesyrelXml"));
                 TextField.registerBitmapFont(new BitmapFont(texture, xml));
                 sBitmapFontsLoaded = true;
             }
@@ -126,6 +91,22 @@ package
         public static function prepareSounds():void
         {
             sSounds["Step"] = new StepSound();   
+        }
+        
+        private static function create(name:String):Object
+        {
+            var textureClass:Class = sContentScaleFactor == 1 ? AssetEmbeds_1x : AssetEmbeds_2x;
+            return new textureClass[name];
+        }
+        
+        public static function get contentScaleFactor():Number { return sContentScaleFactor; }
+        public static function set contentScaleFactor(value:Number):void 
+        {
+            for each (var texture:Texture in sTextures)
+                texture.dispose();
+            
+            sTextures = new Dictionary();            
+            sContentScaleFactor = value; 
         }
     }
 }

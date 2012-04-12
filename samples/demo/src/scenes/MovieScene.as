@@ -16,20 +16,12 @@ package scenes
         
         public function MovieScene()
         {
-            var description:String = "Animation provided by angryanimator.com";
-            var infoText:TextField = new TextField(300, 30, description);
-            infoText.x = infoText.y = 10;
-            infoText.vAlign = VAlign.TOP;
-            infoText.hAlign = HAlign.CENTER;
-            addChild(infoText);
-            
-            var frames:Vector.<Texture> = Assets.getTextureAtlas().getTextures("walk_");
-            mMovie = new MovieClip(frames, 12);
+            var frames:Vector.<Texture> = Assets.getTextureAtlas().getTextures("flight");
+            mMovie = new MovieClip(frames, 15);
             
             // add sounds
             var stepSound:Sound = Assets.getSound("Step");
-            mMovie.setFrameSound(1, stepSound);
-            mMovie.setFrameSound(7, stepSound);
+            mMovie.setFrameSound(2, stepSound);
             
             // move the clip to the center and add it to the stage
             mMovie.x = Constants.CenterX - int(mMovie.width / 2);

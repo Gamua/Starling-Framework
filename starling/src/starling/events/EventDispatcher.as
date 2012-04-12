@@ -56,16 +56,19 @@ package starling.events
         /** Removes an event listener from the object. */
         public function removeEventListener(type:String, listener:Function):void
         {
-            var listeners:Vector.<Function> = mEventListeners[type];
-            if (listeners)
+            if (mEventListeners)
             {
-                listeners = listeners.filter(
-                    function(item:Function, ...rest):Boolean { return item != listener; });
-                
-                if (listeners.length == 0)
-                    delete mEventListeners[type];
-                else
-                    mEventListeners[type] = listeners;
+                var listeners:Vector.<Function> = mEventListeners[type];
+                if (listeners)
+                {
+                    listeners = listeners.filter(
+                        function(item:Function, ...rest):Boolean { return item != listener; });
+                    
+                    if (listeners.length == 0)
+                        delete mEventListeners[type];
+                    else
+                        mEventListeners[type] = listeners;
+                }
             }
         }
         
@@ -73,7 +76,7 @@ package starling.events
          *  Be careful when removing all event listeners: you never know who else was listening. */
         public function removeEventListeners(type:String=null):void
         {
-            if (type)
+            if (type && mEventListeners)
                 delete mEventListeners[type];
             else
                 mEventListeners = null;

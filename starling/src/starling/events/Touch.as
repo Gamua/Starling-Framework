@@ -14,6 +14,7 @@ package starling.events
     import flash.geom.Point;
     
     import starling.display.DisplayObject;
+    import starling.utils.formatString;
 
     /** A Touch object contains information about the presence or movement of a finger 
      *  or the mouse on the screen.
@@ -75,6 +76,13 @@ package starling.events
             var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
             mTarget.root.getTransformationMatrix(space, sHelperMatrix);
             return sHelperMatrix.transformPoint(point);
+        }
+        
+        /** Returns a description of the object. */
+        public function toString():String
+        {
+            return formatString("Touch {0}: globalX={1}, globalY={2}, phase={3}",
+                                mID, mGlobalX, mGlobalY, mPhase);
         }
         
         /** Creates a clone of the Touch object. */

@@ -58,15 +58,23 @@ package starling.events
         private var mTouches:Vector.<Touch>;
         private var mShiftKey:Boolean;
         private var mCtrlKey:Boolean;
+        private var mTimestamp:Number;
         
         /** Creates a new TouchEvent instance. */
         public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
         {
             super(type, bubbles);
-            mTouches = touches;
+            
+            mTouches = touches ? touches : new <Touch>[];
             mShiftKey = shiftKey;
             mCtrlKey = ctrlKey;
+            mTimestamp = -1.0;
+            
+            var numTouches:int=touches.length;
+            for (var i:int=0; i<numTouches; ++i)
+                if (touches[i].timestamp > mTimestamp)
+                    mTimestamp = touches[i].timestamp;
         }
         
         /** Returns a list of touches that originated over a certain target. */
@@ -96,15 +104,26 @@ package starling.events
             if (touchesFound.length > 0) return touchesFound[0];
             else return null;
         }
+        
+        /** Indicates if a target is currently being touched or hovered over. */
+        public function interactsWith(target:DisplayObject):Boolean
+        {
+            if (getTouch(target) == null)
+                return false;
+            else
+            {
+                var touches:Vector.<Touch> = getTouches(target);
+                
+                for (var i:int=touches.length-1; i>=0; --i)
+                    if (touches[i].phase != TouchPhase.ENDED)
+                        return true;
+                
+                return false;
+            }
+        }
 
         /** The time the event occurred (in seconds since application launch). */
-        public function get timestamp():Number
-        {
-            if (mTouches != null && mTouches.length != 0)
-                return mTouches[0].timestamp;
-            else 
-                return -1.0;
-        }
+        public function get timestamp():Number { return mTimestamp; }
         
         /** All touches that are currently available. */
         public function get touches():Vector.<Touch> { return mTouches.concat(); }
