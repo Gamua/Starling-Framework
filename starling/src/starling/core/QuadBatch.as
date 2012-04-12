@@ -41,9 +41,9 @@ package starling.core
     public class QuadBatch
     {
         private var mNumQuads:int;
-        private var mCurrentTexture:Texture;
-        private var mCurrentSmoothing:String;
-        private var mCurrentBlendMode:String;
+        private var mTexture:Texture;
+        private var mSmoothing:String;
+        private var mBlendMode:String;
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
@@ -116,12 +116,11 @@ package starling.core
             var context:Context3D = Starling.context;
             var dynamicAlpha:Boolean = alpha != 1.0;
             
-            var program:String = mCurrentTexture ? 
-                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
-                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
+            var program:String = mTexture ? 
+                getImageProgramName(dynamicAlpha, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
                 getQuadProgramName(dynamicAlpha);
             
-            RenderSupport.setBlendFactors(pma, mCurrentBlendMode);
+            RenderSupport.setBlendFactors(pma, mBlendMode);
             registerPrograms();
             
             context.setProgram(Starling.current.getProgram(program));
@@ -133,19 +132,18 @@ package starling.core
             {
                 sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
                 sRenderAlpha[3] = alpha;
-                context.setProgramConstantsFromVector(
-                    Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
+                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
             }
             
-            if (mCurrentTexture)
+            if (mTexture)
             {
-                context.setTextureAt(0, mCurrentTexture.base);
+                context.setTextureAt(0, mTexture.base);
                 context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
             
-            if (mCurrentTexture)
+            if (mTexture)
             {
                 context.setTextureAt(0, null);
                 context.setVertexBufferAt(2, null);
@@ -160,9 +158,9 @@ package starling.core
         public function reset():void
         {
             mNumQuads = 0;
-            mCurrentTexture = null;
-            mCurrentSmoothing = null;
-            mCurrentBlendMode = null;
+            mTexture = null;
+            mSmoothing = null;
+            mBlendMode = null;
         }
         
         /** Adds a quad to the current batch. Before adding a quad, you should check for a state
@@ -173,9 +171,9 @@ package starling.core
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 
             {
-                mCurrentTexture = texture;
-                mCurrentSmoothing = smoothing;
-                mCurrentBlendMode = blendMode;
+                mTexture = texture;
+                mSmoothing = smoothing;
+                mBlendMode = blendMode;
                 mVertexData.setPremultipliedAlpha(
                     texture ? texture.premultipliedAlpha : true, false); 
             }
@@ -201,12 +199,12 @@ package starling.core
         {
             if (mNumQuads == 0) return false;
             else if (mNumQuads == 8192) return true; // maximum buffer size
-            else if (mCurrentTexture == null && texture == null) return false;
-            else if (mCurrentTexture != null && texture != null)
-                return mCurrentTexture.base != texture.base ||
-                    mCurrentTexture.repeat != texture.repeat ||
-                    mCurrentSmoothing != smoothing ||
-                    mCurrentBlendMode != blendMode;
+            else if (mTexture == null && texture == null) return false;
+            else if (mTexture != null && texture != null)
+                return mTexture.base != texture.base ||
+                       mTexture.repeat != texture.repeat ||
+                       mSmoothing != smoothing ||
+                       mBlendMode != blendMode;
             else return true;
         }
         
