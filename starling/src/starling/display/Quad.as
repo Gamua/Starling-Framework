@@ -69,29 +69,10 @@ package starling.display
         {
             if (resultRect == null) resultRect = new Rectangle();
             
-            if (targetSpace == this) // optimization
-            {
-                mVertexData.getPosition(3, sHelperVector);
-                resultRect.width  = sHelperVector.x;
-                resultRect.height = sHelperVector.y;
-            }
-            else if (targetSpace == parent && rotation == 0.0) // optimization
-            {
-                var scaleX:Number = this.scaleX;
-                var scaleY:Number = this.scaleY;
-                mVertexData.getPosition(3, sHelperVector);
-                resultRect.x = x - pivotX * scaleX;
-                resultRect.y = y - pivotY * scaleY;
-                resultRect.width  = sHelperVector.x * scaleX;
-                resultRect.height = sHelperVector.y * scaleY;
-            }
-            else
-            {
-                var matrix:Matrix = getTransformationMatrix(targetSpace, sHelperMatrix);
-                mVertexData.getBounds(matrix, resultRect);
-            }
+            var transformationMatrix:Matrix = targetSpace == this ?
+                null : getTransformationMatrix(targetSpace, sHelperMatrix);
             
-            return resultRect;
+            return mVertexData.getBounds(transformationMatrix, resultRect);
         }
         
         /** Returns the color of a vertex at a certain index. */
