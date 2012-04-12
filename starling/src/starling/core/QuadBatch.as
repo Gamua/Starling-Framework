@@ -17,7 +17,10 @@ package starling.core
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
     import starling.display.BlendMode;
@@ -29,6 +32,7 @@ package starling.core
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
+    import starling.utils.transformCoords;
     
     /** Optimizes rendering of a number of quads with an identical state.
      * 
@@ -38,7 +42,7 @@ package starling.core
      *  mipmapping settings) are sent to the GPU in just one call. That's what the QuadBatch
      *  class can do.</p>
      */ 
-    public class QuadBatch
+    public class QuadBatch extends DisplayObject
     {
         private var mNumQuads:int;
         private var mSyncRequired:Boolean;
@@ -52,7 +56,10 @@ package starling.core
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
 
-        /** Helper object. */
+        /** Helper objects. */
+        private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
+        private static var sHelperPoint:Point = new Point();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         
         /** Creates a new QuadBatch instance with empty batch data. */
@@ -62,13 +69,16 @@ package starling.core
             mIndexData = new <uint>[];
             mNumQuads = 0;
             mSyncRequired = false;
+            touchable = false;
         }
         
         /** Disposes vertex- and index-buffer. */
-        public function dispose():void
+        public override function dispose():void
         {
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
+            
+            super.dispose();
         }
         
         private function expand():void
@@ -112,8 +122,10 @@ package starling.core
             mSyncRequired = false;
         }
         
-        /** Renders the current batch. */
-        public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
+        /** Renders the current batch with custom settings for projection matrix, alpha and blend 
+         *  mode. This makes it possible to render batches that are not part of the display list. */ 
+        public function renderCustom(projectionMatrix:Matrix3D, alpha:Number=1.0,
+                                     blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
             if (mSyncRequired) syncBuffers();
@@ -126,7 +138,7 @@ package starling.core
                 getImageProgramName(dynamicAlpha, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
                 getQuadProgramName(dynamicAlpha);
             
-            RenderSupport.setBlendFactors(pma, mBlendMode);
+            RenderSupport.setBlendFactors(pma, blendMode ? blendMode : mBlendMode);
             registerPrograms();
             
             context.setProgram(Starling.current.getProgram(program));
@@ -170,11 +182,31 @@ package starling.core
             mSyncRequired = true;
         }
         
-        /** Adds a quad to the current batch. Before adding a quad, you should check for a state
-         *  change (with the 'isStateChange' method) and, in case of a change, render the batch. */
-        public function addQuad(quad:Quad, alpha:Number, texture:Texture, smoothing:String,
-                                modelViewMatrix:Matrix3D, blendMode:String="normal"):void
+        /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
+         *  parameters for 'texture' and 'smoothing'. */ 
+        public function addImage(image:Image, alpha:Number=1.0, modelViewMatrix:Matrix3D=null,
+                                 blendMode:String="normal"):void
         {
+            addQuad(image, alpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
+        }
+        
+        /** Adds a quad to the batch. The first quad determines the state of the batch,
+         *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
+         *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
+         *  the batch. 
+         *  @param blendMode Supply a concrete (i.e. not "auto") blend mode. 
+         *                   The corresponding property of the quad is ignored. */
+        public function addQuad(quad:Quad, alpha:Number=1.0, texture:Texture=null, 
+                                smoothing:String=null, modelViewMatrix:Matrix3D=null, 
+                                blendMode:String="normal"):void
+        {
+            if (modelViewMatrix == null)
+            {
+                modelViewMatrix = sHelperMatrix3D;
+                modelViewMatrix.identity();
+                RenderSupport.transformMatrixForObject(modelViewMatrix, quad);
+            }
+            
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 
             {
@@ -214,6 +246,31 @@ package starling.core
                        mSmoothing != smoothing ||
                        mBlendMode != blendMode;
             else return true;
+        }
+        
+        // display object methods
+        
+        /** Returns an empty rectangle at the particle system's position. This class is all about
+         *  speed, and calculating the actual bounds would be rather expensive. */
+        public override function getBounds(targetSpace:DisplayObject, 
+                                           resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            getTransformationMatrix(targetSpace, sHelperMatrix);
+            transformCoords(sHelperMatrix, 0, 0, sHelperPoint);
+            
+            resultRect.x = sHelperPoint.x;
+            resultRect.y = sHelperPoint.y;
+            resultRect.width = resultRect.height = 0;
+            
+            return resultRect;
+        }
+        
+        /** @inheritDoc */
+        public override function render(support:RenderSupport, alpha:Number):void
+        {
+            renderCustom(support.mvpMatrix, this.alpha * alpha, support.blendMode);
         }
         
         // compilation (for flattened sprites)

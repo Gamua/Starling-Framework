@@ -128,8 +128,6 @@ package starling.display
         private static var sHelperMatrix:Matrix  = new Matrix();
         private static var sTargetMatrix:Matrix  = new Matrix();
         
-        protected static var sRectCount:int = 0;
-        
         /** @private */ 
         public function DisplayObject()
         {
