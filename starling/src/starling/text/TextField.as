@@ -146,8 +146,11 @@ package starling.text
         
         private function createRenderedContents():void
         {
-            if (mQuadBatch)        { mQuadBatch.removeFromParent(true); mQuadBatch = null; }
-            if (mText.length == 0) { mImage.removeFromParent(true); mImage = null; return; }
+            if (mQuadBatch)
+            { 
+                mQuadBatch.removeFromParent(true); 
+                mQuadBatch = null; 
+            }
             
             var scale:Number  = Starling.contentScaleFactor;
             var width:Number  = mHitArea.width  * scale;
@@ -200,6 +203,7 @@ package starling.text
             if (mImage == null) 
             {
                 mImage = new Image(texture);
+                mImage.touchable = false;
                 addChild(mImage);
             }
             else 
@@ -229,11 +233,20 @@ package starling.text
         
         private function createComposedContents():void
         {
-            if (mImage)             { mImage.removeFromParent(true); mImage = null; }
-            if (mQuadBatch == null) { mQuadBatch = new QuadBatch(); addChild(mQuadBatch); }
-            else                      mQuadBatch.reset();
+            if (mImage) 
+            { 
+                mImage.removeFromParent(true); 
+                mImage = null; 
+            }
             
-            if (mText.length == 0) return;
+            if (mQuadBatch == null) 
+            { 
+                mQuadBatch = new QuadBatch(); 
+                mQuadBatch.touchable = false;
+                addChild(mQuadBatch); 
+            }
+            else
+                mQuadBatch.reset();
             
             var bitmapFont:BitmapFont = sBitmapFonts[mFontName];
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
