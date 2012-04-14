@@ -69,7 +69,6 @@ package starling.core
             mIndexData = new <uint>[];
             mNumQuads = 0;
             mSyncRequired = false;
-            touchable = false;
         }
         
         /** Disposes vertex- and index-buffer. */
