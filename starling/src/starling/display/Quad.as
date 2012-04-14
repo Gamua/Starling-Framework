@@ -89,7 +89,7 @@ package starling.display
             else
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
-                mVertexData.getBounds(sHelperMatrix, resultRect);
+                mVertexData.getBounds(sHelperMatrix, 0, 4, resultRect);
             }
             
             return resultRect;

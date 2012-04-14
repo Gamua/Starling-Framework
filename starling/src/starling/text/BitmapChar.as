@@ -65,16 +65,22 @@ package starling.text
         /** The unicode ID of the char. */
         public function get charID():int { return mCharID; }
         
-        /** The number of pixels to move the char in x direction on character arrangement. */
+        /** The number of points to move the char in x direction on character arrangement. */
         public function get xOffset():Number { return mXOffset; }
         
-        /** The number of pixels to move the char in y direction on character arrangement. */
+        /** The number of points to move the char in y direction on character arrangement. */
         public function get yOffset():Number { return mYOffset; }
         
-        /** The number of pixels the cursor has to be moved to the right for the next char. */
+        /** The number of points the cursor has to be moved to the right for the next char. */
         public function get xAdvance():Number { return mXAdvance; }
         
         /** The texture of the character. */
         public function get texture():Texture { return mTexture; }
+        
+        /** The width of the character in points. */
+        public function get width():Number { return mTexture.width; }
+        
+        /** The height of the character in points. */
+        public function get height():Number { return mTexture.height; }
     }
 }

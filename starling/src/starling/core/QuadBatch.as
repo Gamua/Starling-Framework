@@ -249,22 +249,15 @@ package starling.core
         }
         
         // display object methods
-        
-        /** Returns an empty rectangle at the particle system's position. This class is all about
-         *  speed, and calculating the actual bounds would be rather expensive. */
-        public override function getBounds(targetSpace:DisplayObject, 
-                                           resultRect:Rectangle=null):Rectangle
+        /** @inheritDoc */
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             if (resultRect == null) resultRect = new Rectangle();
             
-            getTransformationMatrix(targetSpace, sHelperMatrix);
-            transformCoords(sHelperMatrix, 0, 0, sHelperPoint);
+            var transformationMatrix:Matrix = targetSpace == this ?
+                null : getTransformationMatrix(targetSpace, sHelperMatrix);
             
-            resultRect.x = sHelperPoint.x;
-            resultRect.y = sHelperPoint.y;
-            resultRect.width = resultRect.height = 0;
-            
-            return resultRect;
+            return mVertexData.getBounds(transformationMatrix, 0, mNumQuads*4, resultRect);
         }
         
         /** @inheritDoc */
@@ -361,6 +354,10 @@ package starling.core
             
             return quadBatchID;
         }
+        
+        // properties
+        
+        public function get numQuads():int { return mNumQuads; }
         
         // program management
         

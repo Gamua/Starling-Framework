@@ -269,18 +269,20 @@ package starling.utils
          *  If you pass a 'resultRect', the result will be stored in this rectangle 
          *  instead of creating a new object. */
         public function getBounds(transformationMatrix:Matrix=null, 
+                                  vertexID:int=0, numVertices:int=-1,
                                   resultRect:Rectangle=null):Rectangle
         {
             if (resultRect == null) resultRect = new Rectangle();
+            if (numVertices < 0)    numVertices = mNumVertices;
             
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
             var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-            var offset:int = POSITION_OFFSET;
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             var x:Number, y:Number, i:int;
             
             if (transformationMatrix == null)
             {
-                for (i=0; i<mNumVertices; ++i)
+                for (i=vertexID; i<numVertices; ++i)
                 {
                     x = mRawData[offset];
                     y = mRawData[int(offset+1)];
@@ -294,7 +296,7 @@ package starling.utils
             }
             else
             {
-                for (i=0; i<4; ++i)
+                for (i=vertexID; i<numVertices; ++i)
                 {
                     x = mRawData[offset];
                     y = mRawData[int(offset+1)];
