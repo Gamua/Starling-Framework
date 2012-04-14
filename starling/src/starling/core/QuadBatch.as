@@ -263,6 +263,7 @@ package starling.core
         /** @inheritDoc */
         public override function render(support:RenderSupport, alpha:Number):void
         {
+            support.finishQuadBatch();
             renderCustom(support.mvpMatrix, this.alpha * alpha, support.blendMode);
         }
         
