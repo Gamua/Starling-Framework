@@ -76,9 +76,9 @@ package starling.text
         private var mKerning:Boolean;
         private var mRequiresRedraw:Boolean;
         private var mIsRenderedText:Boolean;
+        private var mTextBounds:Rectangle;
         
         private var mHitArea:DisplayObject;
-        private var mTextArea:DisplayObject;
         private var mBorder:DisplayObjectContainer;
         
         private var mImage:Image;
@@ -107,10 +107,6 @@ package starling.text
             mHitArea = new Quad(width, height);
             mHitArea.alpha = 0.0;
             addChild(mHitArea);
-            
-            mTextArea = new Quad(width, height);
-            mTextArea.visible = false;
-            addChild(mTextArea);
             
             addEventListener(Event.FLATTEN, onFlatten);
         }
@@ -193,10 +189,12 @@ package starling.text
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             bitmapData.draw(sNativeTextField, new Matrix(1, 0, 0, 1, 0, int(yOffset)-2));
             
-            mTextArea.x = xOffset / scale;
-            mTextArea.y = yOffset / scale;
-            mTextArea.width = textWidth / scale;
-            mTextArea.height = textHeight / scale;
+            // update textBounds rectangle
+            if (mTextBounds == null) mTextBounds = new Rectangle();
+            mTextBounds.x = xOffset / scale;
+            mTextBounds.y = yOffset / scale;
+            mTextBounds.width = textWidth / scale;
+            mTextBounds.height = textHeight / scale;
             
             var texture:Texture = Texture.fromBitmapData(bitmapData, true, false, scale);
             
@@ -255,11 +253,7 @@ package starling.text
                 mHitArea.width, mHitArea.height, mText, mFontSize, mColor, mHAlign, mVAlign,
                 mAutoScale, mKerning);
             
-            var textBounds:Rectangle = mQuadBatch.bounds;
-            mTextArea.x = textBounds.x;
-            mTextArea.y = textBounds.y;
-            mTextArea.width  = textBounds.width;
-            mTextArea.height = textBounds.height;
+            mTextBounds = null; // will be created on demand
         }
         
         private function updateBorder():void
@@ -287,7 +281,8 @@ package starling.text
         public function get textBounds():Rectangle
         {
             if (mRequiresRedraw) redrawContents();
-            return mTextArea.getBounds(parent);
+            if (mTextBounds == null) mTextBounds = mQuadBatch.bounds;
+            return mTextBounds.clone();
         }
         
         /** @inheritDoc */

@@ -162,7 +162,7 @@ package starling.text
                 sHelperImage.readjustSize();
                 sHelperImage.x = charLocation.x;
                 sHelperImage.y = charLocation.y;
-                sHelperImage.scaleX = sHelperImage.scaleY = charLocation.scale;;
+                sHelperImage.scaleX = sHelperImage.scaleY = charLocation.scale;
                 sHelperImage.color = color;
                 quadBatch.addImage(sHelperImage);
             }
