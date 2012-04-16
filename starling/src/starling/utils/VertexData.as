@@ -63,7 +63,7 @@ package starling.utils
         private var mNumVertices:int;
 
         /** Helper objects. */
-        private static var sPositions:Vector.<Number> = new Vector.<Number>(12, true);
+        private static var sPositions:Vector.<Number> = new Vector.<Number>(12);
         private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */
@@ -74,13 +74,17 @@ package starling.utils
             mNumVertices = numVertices;
         }
 
-        /** Creates a duplicate of the vertex data object. */
-        public function clone():VertexData
+        /** Creates a duplicate of either the complete vertex data object, or of a subset. */
+        public function clone(vertexID:int=0, numVertices:int=-1):VertexData
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
             var clone:VertexData = new VertexData(0, mPremultipliedAlpha);
-            clone.mRawData = mRawData.concat();
+            clone.mNumVertices = numVertices; 
+            clone.mRawData = mRawData.slice(vertexID * ELEMENTS_PER_VERTEX, 
+                                            numVertices * ELEMENTS_PER_VERTEX); 
             clone.mRawData.fixed = true;
-            clone.mNumVertices = mNumVertices;
             return clone;
         }
         
@@ -211,6 +215,9 @@ package starling.utils
          *  transformation matrix. */
         public function transformVertex(vertexID:int, matrix:Matrix3D, numVertices:int=1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
             var i:int;
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             
@@ -244,6 +251,9 @@ package starling.utils
         /** Multiplies the alpha value of subsequent vertices with a certain delta. */
         public function scaleAlpha(vertexID:int, alpha:Number, numVertices:int=1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+             
             var i:int;
             
             if (alpha == 1.0) return;
@@ -273,7 +283,8 @@ package starling.utils
                                   resultRect:Rectangle=null):Rectangle
         {
             if (resultRect == null) resultRect = new Rectangle();
-            if (numVertices < 0)    numVertices = mNumVertices;
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
             
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
             var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;

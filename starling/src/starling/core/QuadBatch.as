@@ -80,8 +80,20 @@ package starling.core
             super.dispose();
         }
         
+        public function clone():QuadBatch
+        {
+            var clone:QuadBatch = new QuadBatch();
+            clone.mVertexData = mVertexData.clone(0, mNumQuads * 4);
+            clone.mIndexData = mIndexData.slice(0, mNumQuads * 6);
+            clone.mNumQuads = mNumQuads;
+            clone.mTexture = mTexture;
+            clone.mSmoothing = mSmoothing;
+            clone.mBlendMode = mBlendMode;
+            return clone;
+        }
+        
         private function expand():void
-        {   
+        {
             var oldCapacity:int = mVertexData.numVertices / 4;
             var newCapacity:int = oldCapacity == 0 ? 16 : oldCapacity * 2;
             mVertexData.numVertices = newCapacity * 4;
@@ -96,17 +108,27 @@ package starling.core
                 mIndexData[int(i*6+5)] = i*4 + 2;
             }
             
+            createBuffers();
+        }
+        
+        private function createBuffers():void
+        {
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
             
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            mVertexBuffer = context.createVertexBuffer(newCapacity * 4, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, newCapacity * 4);
+            var numVertices:int = mVertexData.numVertices;
+            var numIndices:int = mIndexData.length;
             
-            mIndexBuffer = context.createIndexBuffer(newCapacity * 6);
-            mIndexBuffer.uploadFromVector(mIndexData, 0, newCapacity * 6);
+            mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
+            
+            mIndexBuffer = context.createIndexBuffer(numIndices);
+            mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
+            
+            mSyncRequired = false;
         }
         
         /** Uploads the raw data of all batched quads to the vertex buffer. */
@@ -127,6 +149,7 @@ package starling.core
                                      blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
+            if (mVertexBuffer == null) createBuffers();
             if (mSyncRequired) syncBuffers();
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
@@ -286,6 +309,7 @@ package starling.core
                                               blendMode:String=null):int
         {
             var i:int;
+            var quadBatch:QuadBatch;
             var isRootObject:Boolean = false;
             
             if (quadBatchID == -1)
@@ -325,7 +349,8 @@ package starling.core
                 var image:Image = quad as Image;
                 var texture:Texture = image ? image.texture : null;
                 var smoothing:String = image ? image.smoothing : null;
-                var quadBatch:QuadBatch = quadBatches[quadBatchID];
+                
+                quadBatch = quadBatches[quadBatchID];
                 
                 if (quadBatch.isStateChange(quad, texture, smoothing, blendMode))
                 {
@@ -337,6 +362,13 @@ package starling.core
                 }
                 
                 quadBatch.addQuad(quad, alpha, texture, smoothing, transformationMatrix, blendMode);
+            }
+            else if (object is QuadBatch)
+            {
+                quadBatchID++;
+                quadBatch = (object as QuadBatch).clone();
+                quadBatch.mVertexData.transformVertex(0, transformationMatrix, -1);
+                quadBatches.splice(quadBatchID, 0, quadBatch); 
             }
             else
             {
