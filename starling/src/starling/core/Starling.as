@@ -554,6 +554,7 @@ package starling.core
             if (value && mStatsDisplay == null)
             {
                 mStatsDisplay = new StatsDisplay();
+                mStatsDisplay.touchable = false;
                 mStage.addChild(mStatsDisplay);
             }
             else if (!value && mStatsDisplay)
