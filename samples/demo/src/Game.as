@@ -1,5 +1,6 @@
 package 
 {
+    import flash.ui.Keyboard;
     import flash.utils.getDefinitionByName;
     import flash.utils.getQualifiedClassName;
     
@@ -18,6 +19,7 @@ package
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Event;
+    import starling.events.KeyboardEvent;
     import starling.text.TextField;
     import starling.textures.Texture;
     import starling.utils.VAlign;
@@ -79,6 +81,8 @@ package
             }
             
             addEventListener(Scene.CLOSING, onSceneClosing);
+            addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+            addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
             
             // show information about rendering method (hardware/software)
             var driverInfo:String = Starling.context.driverInfo;
@@ -88,6 +92,22 @@ package
             infoText.vAlign = VAlign.BOTTOM;
             infoText.touchable = false;
             mMainMenu.addChild(infoText);
+        }
+        
+        private function onAddedToStage(event:Event):void
+        {
+            stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
+        }
+        
+        private function onRemovedFromStage(event:Event):void
+        {
+            stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey);
+        }
+        
+        private function onKey(event:KeyboardEvent):void
+        {
+            if (event.keyCode == Keyboard.SPACE)
+                Starling.current.showStats = !Starling.current.showStats;
         }
         
         private function onButtonTriggered(event:Event):void
