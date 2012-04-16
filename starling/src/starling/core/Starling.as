@@ -39,6 +39,7 @@ package starling.core
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
+    import starling.utils.StatsDisplay;
     
     /** The Starling class represents the core of the Starling framework.
      *
@@ -132,6 +133,7 @@ package starling.core
         private var mLastFrameTimestamp:Number;
         private var mViewPort:Rectangle;
         private var mLeftMouseDown:Boolean;
+        private var mStatsDisplay:StatsDisplay;
         
         private var mNativeStage:flash.display.Stage;
         private var mNativeOverlay:flash.display.Sprite;
@@ -240,7 +242,7 @@ package starling.core
             
             var rootObject:DisplayObject = new mRootClass();
             if (rootObject == null) throw new Error("Invalid root class: " + mRootClass);
-            mStage.addChild(rootObject);
+            mStage.addChildAt(rootObject, 0);
         }
         
         private function updateViewPort():void
@@ -543,6 +545,22 @@ package starling.core
             }
             
             return mNativeOverlay;
+        }
+        
+        /** Indicates if a small statistics box (with FPS and memory usage) is displayed. */
+        public function get showStats():Boolean { return mStatsDisplay != null; }
+        public function set showStats(value:Boolean):void
+        {
+            if (value && mStatsDisplay == null)
+            {
+                mStatsDisplay = new StatsDisplay();
+                mStage.addChild(mStatsDisplay);
+            }
+            else if (!value && mStatsDisplay)
+            {
+                mStatsDisplay.removeFromParent(true);
+                mStatsDisplay = null;
+            }
         }
         
         /** The Starling stage object, which is the root of the display tree that is rendered. */
