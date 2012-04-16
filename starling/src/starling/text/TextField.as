@@ -328,6 +328,9 @@ package starling.text
         {
             if (mFontName != value)
             {
+                if (value == BitmapFont.MINI && sBitmapFonts[value] == undefined)
+                    TextField.registerBitmapFont(new BitmapFont());
+                
                 mFontName = value;
                 mRequiresRedraw = true;
                 mIsRenderedText = sBitmapFonts[value] == undefined;

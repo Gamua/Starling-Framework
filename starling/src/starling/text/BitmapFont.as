@@ -16,6 +16,7 @@ package starling.text
     import starling.core.QuadBatch;
     import starling.display.Image;
     import starling.textures.Texture;
+    import starling.textures.TextureSmoothing;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
 
@@ -51,9 +52,19 @@ package starling.text
      */ 
     public class BitmapFont
     {
+        // embed minimal font
+        [Embed(source="../../assets/mini.fnt", mimeType="application/octet-stream")]
+        private static const MiniXml:Class;
+        
+        [Embed(source = "../../assets/mini.png")]
+        private static const MiniTexture:Class;
+        
         /** Use this constant for the <code>fontSize</code> property of the TextField class to 
          *  render the bitmap font in exactly the size it was created. */ 
         public static const NATIVE_SIZE:int = -1;
+        
+        /** The font name of the embedded minimal bitmap font. Use this e.g. for debug output. */
+        public static const MINI:String = "mini";
         
         private static const CHAR_SPACE:int   = 32;
         private static const CHAR_TAB:int     =  9;
@@ -64,22 +75,26 @@ package starling.text
         private var mName:String;
         private var mSize:Number;
         private var mLineHeight:Number;
+        private var mHelperImage:Image;
         
-        /** Helper object. */
-        private static var sHelperImage:Image;
-        
-        /** Creates a bitmap font by parsing an XML file and uses the specified texture. */
-        public function BitmapFont(texture:Texture, fontXml:XML=null)
+        /** Creates a bitmap font by parsing an XML file and uses the specified texture. 
+         *  If you don't pass any data, the "mini" font will be created. */
+        public function BitmapFont(texture:Texture=null, fontXml:XML=null)
         {
+            // if no texture is passed in, we create the minimal, embedded font
+            if (texture == null && fontXml == null)
+            {
+                texture = Texture.fromBitmap(new MiniTexture());
+                fontXml = XML(new MiniXml());
+            }
+            
             mName = "unknown";
             mLineHeight = mSize = 14;
             mTexture = texture;
             mChars = new Dictionary();
+            mHelperImage = new Image(texture);
             
             if (fontXml) parseFontXml(fontXml);
-            
-            // the actual texture does not matter, we just need to have an image at hand.
-            if (sHelperImage == null) sHelperImage = new Image(texture);
         }
         
         /** Disposes the texture of the bitmap font! */
@@ -97,6 +112,9 @@ package starling.text
             mName = fontXml.info.attribute("face");
             mSize = parseFloat(fontXml.info.attribute("size")) / scale;
             mLineHeight = parseFloat(fontXml.common.attribute("lineHeight")) / scale;
+            
+            if (fontXml.info.attribute("smooth").toString() == "0")
+                smoothing = TextureSmoothing.NONE;
             
             if (mSize <= 0)
             {
@@ -158,13 +176,13 @@ package starling.text
             {
                 var charLocation:CharLocation = charLocations[i];
                 var char:BitmapChar = charLocation.char;
-                sHelperImage.texture = char.texture;
-                sHelperImage.readjustSize();
-                sHelperImage.x = charLocation.x;
-                sHelperImage.y = charLocation.y;
-                sHelperImage.scaleX = sHelperImage.scaleY = charLocation.scale;
-                sHelperImage.color = color;
-                quadBatch.addImage(sHelperImage);
+                mHelperImage.texture = char.texture;
+                mHelperImage.readjustSize();
+                mHelperImage.x = charLocation.x;
+                mHelperImage.y = charLocation.y;
+                mHelperImage.scaleX = mHelperImage.scaleY = charLocation.scale;
+                mHelperImage.color = color;
+                quadBatch.addImage(mHelperImage);
             }
         }
         
@@ -333,6 +351,10 @@ package starling.text
         /** The height of one line in pixels. */
         public function get lineHeight():Number { return mLineHeight; }
         public function set lineHeight(value:Number):void { mLineHeight = value; }
+        
+        /** The smoothing filter that is used for the texture. */ 
+        public function get smoothing():String { return mHelperImage.smoothing; }
+        public function set smoothing(value:String):void { mHelperImage.smoothing = value; } 
     }
 }
 
