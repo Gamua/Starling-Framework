@@ -56,6 +56,8 @@ package starling.events
         public static const CONTEXT3D_CREATE:String = "context3DCreate";
         /** Event type for an animated object that requests to be removed from the juggler. */
         public static const REMOVE_FROM_JUGGLER:String = "removeFromJuggler";
+        /** Event type that indicates that the root DisplayObject has been created. */
+        public static const ROOT_CREATED:String = "rootCreated";
         
         private var mTarget:EventDispatcher;
         private var mCurrentTarget:EventDispatcher;
