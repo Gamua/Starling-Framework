@@ -39,7 +39,6 @@ package starling.core
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
-    import starling.utils.StatsDisplay;
     
     /** The Starling class represents the core of the Starling framework.
      *
@@ -555,6 +554,7 @@ package starling.core
             {
                 mStatsDisplay = new StatsDisplay();
                 mStatsDisplay.touchable = false;
+                mStatsDisplay.scaleX = mStatsDisplay.scaleY = 1.0 / contentScaleFactor;
                 mStage.addChild(mStatsDisplay);
             }
             else if (!value && mStatsDisplay)

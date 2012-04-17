@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.utils
+package starling.core
 {
     import flash.system.System;
     
@@ -19,8 +19,11 @@ package starling.utils
     import starling.events.Event;
     import starling.text.BitmapFont;
     import starling.text.TextField;
+    import starling.utils.HAlign;
+    import starling.utils.VAlign;
     
-    public class StatsDisplay extends Sprite
+    /** A small, lightweight box that displays the current framerate and memory consumption. */
+    internal class StatsDisplay extends Sprite
     {
         private var mBackground:Quad;
         private var mTextField:TextField;
@@ -28,6 +31,7 @@ package starling.utils
         private var mFrameCount:int = 0;
         private var mTotalTime:Number = 0;
         
+        /** Creates a new Statistics Box. */
         public function StatsDisplay()
         {
             mBackground = new Quad(128, 32, 0x0);
@@ -53,7 +57,7 @@ package starling.utils
         
         private function getMemory():Number
         {
-            return System.totalMemory * 0.000000954;
+            return System.totalMemory * 0.000000954; // 1 / (1024*1024) to convert to MB
         }
         
         private function onEnterFrame(event:EnterFrameEvent):void
