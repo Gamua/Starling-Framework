@@ -29,11 +29,7 @@ package utils
             if (touches.length == 1)
             {
                 // one finger touching -> move
-                var touch:Touch = touches[0];
-                var currentPos:Point = touch.getLocation(parent);
-                var previousPos:Point = touch.getPreviousLocation(parent);
-                var delta:Point = currentPos.subtract(previousPos);
-                
+                var delta:Point = touches[0].getMovement(parent);
                 x += delta.x;
                 y += delta.y;
             }            
@@ -74,7 +70,7 @@ package utils
                 scaleY *= sizeDiff;
             }
             
-            touch = event.getTouch(this, TouchPhase.ENDED);
+            var touch:Touch = event.getTouch(this, TouchPhase.ENDED);
             
             if (touch && touch.tapCount == 2)
                 parent.addChild(this); // bring self to front

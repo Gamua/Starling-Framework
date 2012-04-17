@@ -78,6 +78,12 @@ package starling.events
             return sHelperMatrix.transformPoint(point);
         }
         
+        /** Returns the movement of the touch between the current and previous location. */ 
+        public function getMovement(space:DisplayObject):Point
+        {
+            return getLocation(space).subtract(getPreviousLocation(space));
+        }
+        
         /** Returns a description of the object. */
         public function toString():String
         {
