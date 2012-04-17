@@ -281,7 +281,7 @@ package starling.text
         public function get textBounds():Rectangle
         {
             if (mRequiresRedraw) redrawContents();
-            if (mTextBounds == null) mTextBounds = mQuadBatch.bounds;
+            if (mTextBounds == null) mTextBounds = mQuadBatch.getBounds(mQuadBatch);
             return mTextBounds.clone();
         }
         
