@@ -29,6 +29,7 @@ package starling.core
     import starling.display.Image;
     import starling.display.Quad;
     import starling.errors.MissingContextError;
+    import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
@@ -69,6 +70,7 @@ package starling.core
             mIndexData = new <uint>[];
             mNumQuads = 0;
             mSyncRequired = false;
+            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         /** Disposes vertex- and index-buffer. */
@@ -78,6 +80,11 @@ package starling.core
             if (mIndexBuffer)  mIndexBuffer.dispose();
             
             super.dispose();
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            createBuffers();
         }
         
         public function clone():QuadBatch
@@ -113,14 +120,14 @@ package starling.core
         
         private function createBuffers():void
         {
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            if (mIndexBuffer)  mIndexBuffer.dispose();
-            
-            var context:Context3D = Starling.context;
-            if (context == null) throw new MissingContextError();
-            
             var numVertices:int = mVertexData.numVertices;
             var numIndices:int = mIndexData.length;
+            var context:Context3D = Starling.context;
+
+            if (mVertexBuffer)    mVertexBuffer.dispose();
+            if (mIndexBuffer)     mIndexBuffer.dispose();
+            if (numVertices == 0) return;
+            if (context == null)  throw new MissingContextError();
             
             mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
             mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
@@ -271,6 +278,7 @@ package starling.core
         }
         
         // display object methods
+        
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {

@@ -108,6 +108,8 @@ package
         {
             if (event.keyCode == Keyboard.SPACE)
                 Starling.current.showStats = !Starling.current.showStats;
+            else if (event.keyCode == Keyboard.X)
+                Starling.context.dispose();
         }
         
         private function onButtonTriggered(event:Event):void
