@@ -38,10 +38,15 @@ package starling.core
     /** Optimizes rendering of a number of quads with an identical state.
      * 
      *  <p>The majority of all rendered objects in Starling are quads. In fact, all the default
-     *  leaf nodes of Starling are quads. The rendering of those quads can be accelerated by 
-     *  a big factor if all quads with an identical state (i.e. same texture, same smoothing and
-     *  mipmapping settings) are sent to the GPU in just one call. That's what the QuadBatch
-     *  class can do.</p>
+     *  leaf nodes of Starling are quads (the Image and Quad classes). The rendering of those 
+     *  quads can be accelerated by a big factor if all quads with an identical state (i.e. same 
+     *  texture, same smoothing and mipmapping settings) are sent to the GPU in just one call. 
+     *  That's what the QuadBatch class can do.</p>
+     *  
+     *  <p>The class extends DisplayObject, but you can use it even without adding it to the
+     *  display tree. Just call the 'renderCustom' method from within another render method,
+     *  and pass appropriate values for transformation matrix, alpha and blend mode.</p>
+     *  
      */ 
     public class QuadBatch extends DisplayObject
     {
@@ -70,12 +75,16 @@ package starling.core
             mIndexData = new <uint>[];
             mNumQuads = 0;
             mSyncRequired = false;
+            
+            // handle lost context
             Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         /** Disposes vertex- and index-buffer. */
         public override function dispose():void
         {
+            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
             
@@ -85,6 +94,7 @@ package starling.core
         private function onContextCreated(event:Event):void
         {
             createBuffers();
+            registerPrograms();
         }
         
         public function clone():QuadBatch
@@ -116,6 +126,7 @@ package starling.core
             }
             
             createBuffers();
+            registerPrograms();
         }
         
         private function createBuffers():void
@@ -126,7 +137,7 @@ package starling.core
 
             if (mVertexBuffer)    mVertexBuffer.dispose();
             if (mIndexBuffer)     mIndexBuffer.dispose();
-            if (numVertices == 0) return;
+            if (mNumQuads == 0)   return;
             if (context == null)  throw new MissingContextError();
             
             mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
@@ -144,19 +155,20 @@ package starling.core
             // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
             // this is slower than updating the complete buffer.
             
-            if (mVertexBuffer)
-                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+            if (mVertexBuffer == null)
+                createBuffers();
             
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
             mSyncRequired = false;
         }
         
-        /** Renders the current batch with custom settings for projection matrix, alpha and blend 
-         *  mode. This makes it possible to render batches that are not part of the display list. */ 
-        public function renderCustom(projectionMatrix:Matrix3D, alpha:Number=1.0,
+        /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
+         *  and blend mode. This makes it possible to render batches that are not part of the 
+         *  display list. */ 
+        public function renderCustom(mvpMatrix:Matrix3D, alpha:Number=1.0,
                                      blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
-            if (mVertexBuffer == null) createBuffers();
             if (mSyncRequired) syncBuffers();
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
@@ -168,12 +180,11 @@ package starling.core
                 getQuadProgramName(dynamicAlpha);
             
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : mBlendMode);
-            registerPrograms();
             
             context.setProgram(Starling.current.getProgram(program));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, projectionMatrix, true);            
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);            
             
             if (dynamicAlpha)
             {
