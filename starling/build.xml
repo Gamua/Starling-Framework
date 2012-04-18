@@ -18,4 +18,9 @@
       <arg value="-swf-version=13"/>
     </compc>
   </target>
+
+  <target name="maven-deploy" depends="dist"
+    description="Deploys build artifacts to a Maven repository.">
+    <mavendeploy file="${deploy.dir}/${ant.project.name}.swc" pom="pom.xml" srcdir="${asrc.dir}"/>
+  </target>
 </project>
