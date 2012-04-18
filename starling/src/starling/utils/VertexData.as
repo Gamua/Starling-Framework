@@ -74,7 +74,8 @@ package starling.utils
             mNumVertices = numVertices;
         }
 
-        /** Creates a duplicate of either the complete vertex data object, or of a subset. */
+        /** Creates a duplicate of either the complete vertex data object, or of a subset. 
+         *  To clone all vertices, set 'numVertices' to '-1'. */
         public function clone(vertexID:int=0, numVertices:int=-1):VertexData
         {
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
@@ -277,7 +278,8 @@ package starling.utils
         
         /** Calculates the bounds of the vertices, which are optionally transformed by a matrix. 
          *  If you pass a 'resultRect', the result will be stored in this rectangle 
-         *  instead of creating a new object. */
+         *  instead of creating a new object. To use all vertices for the calculation, set
+         *  'numVertices' to '-1'. */
         public function getBounds(transformationMatrix:Matrix=null, 
                                   vertexID:int=0, numVertices:int=-1,
                                   resultRect:Rectangle=null):Rectangle
