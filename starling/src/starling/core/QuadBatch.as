@@ -106,6 +106,7 @@ package starling.core
             clone.mTexture = mTexture;
             clone.mSmoothing = mSmoothing;
             clone.mBlendMode = mBlendMode;
+            clone.mSyncRequired = true;
             return clone;
         }
         
@@ -384,7 +385,9 @@ package starling.core
             }
             else if (object is QuadBatch)
             {
-                quadBatchID++;
+                if (quadBatches[quadBatchID].mNumQuads > 0)
+                    quadBatchID++;
+                
                 quadBatch = (object as QuadBatch).clone();
                 quadBatch.mVertexData.transformVertex(0, transformationMatrix, -1);
                 quadBatches.splice(quadBatchID, 0, quadBatch); 
@@ -396,11 +399,13 @@ package starling.core
             
             if (isRootObject)
             {
+                // remove unused batches
                 for (i=quadBatches.length-1; i>quadBatchID; --i)
-                {
-                    quadBatches[i].dispose();
-                    delete quadBatches[i];
-                }
+                    quadBatches.pop().dispose();
+                
+                // last quadbatch could be empty
+                if (quadBatches[quadBatches.length-1].mNumQuads == 0)
+                    quadBatches.pop().dispose();
             }
             
             return quadBatchID;
