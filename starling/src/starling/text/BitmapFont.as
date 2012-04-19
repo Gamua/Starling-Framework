@@ -75,6 +75,7 @@ package starling.text
         private var mName:String;
         private var mSize:Number;
         private var mLineHeight:Number;
+        private var mBaseline:Number;
         private var mHelperImage:Image;
         
         /** Creates a bitmap font by parsing an XML file and uses the specified texture. 
@@ -89,7 +90,7 @@ package starling.text
             }
             
             mName = "unknown";
-            mLineHeight = mSize = 14;
+            mLineHeight = mSize = mBaseline = 14;
             mTexture = texture;
             mChars = new Dictionary();
             mHelperImage = new Image(texture);
@@ -112,6 +113,7 @@ package starling.text
             mName = fontXml.info.attribute("face");
             mSize = parseFloat(fontXml.info.attribute("size")) / scale;
             mLineHeight = parseFloat(fontXml.common.attribute("lineHeight")) / scale;
+            mBaseline = parseFloat(fontXml.common.attribute("base")) / scale;
             
             if (fontXml.info.attribute("smooth").toString() == "0")
                 smoothing = TextureSmoothing.NONE;
@@ -355,6 +357,9 @@ package starling.text
         /** The smoothing filter that is used for the texture. */ 
         public function get smoothing():String { return mHelperImage.smoothing; }
         public function set smoothing(value:String):void { mHelperImage.smoothing = value; } 
+        
+        /** The baseline of the font. */
+        public function get baseline():Number { return mBaseline; }
     }
 }
 
