@@ -169,7 +169,8 @@ package starling.utils
         /** Updates the alpha value of a vertex (range 0-1). */
         public function setAlpha(vertexID:int, alpha:Number):void
         {
-            if (mPremultipliedAlpha) setColor(vertexID, getColor(vertexID), alpha);
+            if (mPremultipliedAlpha)                // zero alpha would wipe out all color data 
+                setColor(vertexID, getColor(vertexID), alpha < 0.001 ? 0.001 : alpha);
             else 
             {
                 var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
