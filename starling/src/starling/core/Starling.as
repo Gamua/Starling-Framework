@@ -357,6 +357,8 @@ package starling.core
             dispatchEvent(new starling.events.Event(starling.events.Event.CONTEXT3D_CREATE));
             
             initializeRoot();
+            dispatchEvent(new starling.events.Event(starling.events.Event.ROOT_CREATED));
+            
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
             mLastFrameTimestamp = getTimer() / 1000.0;
         }
