@@ -315,6 +315,7 @@ package starling.text
         public function get text():String { return mText; }
         public function set text(value:String):void
         {
+            if (value == null) value = "";
             if (mText != value)
             {
                 mText = value;
