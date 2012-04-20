@@ -49,6 +49,7 @@ package starling.events
      *  <code>var touch:Touch = touchEvent.getTouch(this);</code>
      *  
      *  @see Touch
+     *  @see TouchPhase
      */ 
     public class TouchEvent extends Event
     {
