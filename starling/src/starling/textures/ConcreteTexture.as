@@ -36,7 +36,7 @@ package starling.textures
         public function ConcreteTexture(base:TextureBase, width:int, height:int, 
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
                                         optimizedForRenderTexture:Boolean=false,
-                                        scale:Number=-1)
+                                        scale:Number=1)
         {
             mScale = scale <= 0 ? 1.0 : scale;
             mBase = base;
