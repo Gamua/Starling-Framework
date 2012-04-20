@@ -59,22 +59,31 @@ package starling.animation
         private var mTotalTime:Number;
         private var mCurrentTime:Number;
         private var mDelay:Number;
-        private var mRoundToInt:Boolean;        
+        private var mRoundToInt:Boolean;
        
         /** Creates a tween with a target, duration (in seconds) and a transition function. */
         public function Tween(target:Object, time:Number, transition:String="linear")        
         {
-             mTarget = target;
-             mCurrentTime = 0;
-             mTotalTime = Math.max(0.0001, time);
-             mDelay = 0;
-             mTransition = transition;
-             mRoundToInt = false;
-             mProperties = new <String>[];
-             mStartValues = new <Number>[];
-             mEndValues = new <Number>[];
+             reset(target, time, transition);
         }
 
+        /** Resets the tween to its default values. Useful for pooling tweens. */
+        public function reset(target:Object, time:Number, transition:String="linear"):void
+        {
+            mTarget = target;
+            mCurrentTime = 0;
+            mTotalTime = Math.max(0.0001, time);
+            mDelay = 0;
+            mTransition = transition;
+            mRoundToInt = false;
+            mOnStart = mOnUpdate = mOnComplete = null;
+            mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null; 
+            
+            if (mProperties)  mProperties.length  = 0; else mProperties  = new <String>[];
+            if (mStartValues) mStartValues.length = 0; else mStartValues = new <Number>[];
+            if (mEndValues)   mEndValues.length   = 0; else mEndValues   = new <Number>[];
+        }
+        
         /** Animates the property of an object to a target value. You can call this method multiple
          *  times on one tween. */
         public function animate(property:String, targetValue:Number):void

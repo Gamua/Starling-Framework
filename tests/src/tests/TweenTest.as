@@ -126,6 +126,24 @@ package tests
         }
         
         [Test]
+        public function testResetTween():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.animate("x", 100);
+            
+            tween.advanceTime(0.5);
+            assertThat(quad.x, closeTo(50, E));
+            
+            tween.reset(this, 1.0);
+            tween.advanceTime(0.5);
+            
+            // tween should no longer change quad.x
+            assertThat(quad.x, closeTo(50, E));
+        }
+        
+        [Test]
         public function testShortTween():void
         {
             executeTween(0.1, 0.1);
