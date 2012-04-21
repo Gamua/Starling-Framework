@@ -206,6 +206,7 @@ package starling.text
             }
             else 
             { 
+                mImage.texture.dispose();
                 mImage.texture = texture; 
                 mImage.readjustSize(); 
             }
