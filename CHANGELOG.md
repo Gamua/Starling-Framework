@@ -18,6 +18,7 @@ version 1.1 - 2012-04-24
 - added 'Touch.getMovement' property
 - added 'Transport Chief' script to deploy iOS apps via the terminal
 - added reset method to tween class to support instance pooling (thanks to pchertok!)
+- added 'Event.ROOT_CREATED', dispatched when the root object is ready (thanks to fogAndWhisky!)
 - optimized vertex buffer uploading for faster iPad 1 performance
 - optimized 'Quad.getBounds' method
 - optimized Bitmap Font rendering greatly
