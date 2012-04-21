@@ -59,7 +59,7 @@ package starling.core
      *  The second parameter is the conventional (Flash) stage object. Per default, Starling will
      *  display its contents directly below the stage.</p>
      *  
-     *  <p>It is recommended to store the starling instance as a member variable, to make sure
+     *  <p>It is recommended to store the Starling instance as a member variable, to make sure
      *  that the Garbage Collector does not destroy it. After creating the Starling object, you 
      *  have to start it up like this:</p>
      * 
@@ -111,6 +111,21 @@ package starling.core
      *  <p>In case you want to react to a context loss, Starling dispatches an event with
      *  the type "Event.CONTEXT3D_CREATE" when the context is restored. You can recreate any 
      *  invalid resources in a corresponding event listener.</p>
+	 * 
+	 *  <strong>Events Dispatched by the Starling instance</strong>
+	 * 
+	 *  <p>Starling dispatches several kinds on events in its lifetime:</p>
+	 * 
+     *  <ul>
+     *    <li><code>Event.CONTEXT3D_CREATE</code>: whenever a new render context is created</li>
+     *    <li><code>Event.ROOT_CREATED</code>: when the root class has been is created</li>
+	 *    <li><code>Event.ENTER_FRAME</code>: dispatched on all display objects in each frame</li>
+	 *    <li><code>TouchEvent.TOUCH</code>: dispatched on a display object that has been touched 
+	 *              or is manipulated with the mouse cursor (bubbling event).</li>
+	 *    <li><code>KeyboardEvent.KEY_UP/KEY_DOWN</code>: dispatched on the Starling instance (not
+	 *              on display objects!) when a key has been hit.</li>
+     *  </ul>
+	 *  
      */ 
     public class Starling extends EventDispatcher
     {
