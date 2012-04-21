@@ -45,10 +45,6 @@ package
             {
                 var data:Object = create(name);
                 
-                // The Texture class will check the class name of the embedded objects.
-                // Since the class name contains "_2x" or "_1x", the correct scale factor
-                // will be set automatically.
-                
                 if (data is Bitmap)
                     sTextures[name] = Texture.fromBitmap(data as Bitmap, true, false, sContentScaleFactor);
                 else if (data is ByteArray)
