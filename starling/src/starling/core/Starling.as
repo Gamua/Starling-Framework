@@ -40,6 +40,12 @@ package starling.core
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
     
+    /** Dispatched when a new render context is created. */
+    [Event(name="context3DCreate", type="starling.events.Event")]
+    
+    /** Dispatched when the root class has been created. */
+    [Event(name="rootCreated", type="starling.events.Event")]
+    
     /** The Starling class represents the core of the Starling framework.
      *
      *  <p>The Starling framework makes it possible to create 2D applications and games that make
@@ -112,20 +118,6 @@ package starling.core
      *  the type "Event.CONTEXT3D_CREATE" when the context is restored. You can recreate any 
      *  invalid resources in a corresponding event listener.</p>
 	 * 
-	 *  <strong>Events Dispatched by the Starling instance</strong>
-	 * 
-	 *  <p>Starling dispatches several kinds on events in its lifetime:</p>
-	 * 
-     *  <ul>
-     *    <li><code>Event.CONTEXT3D_CREATE</code>: whenever a new render context is created</li>
-     *    <li><code>Event.ROOT_CREATED</code>: when the root class has been is created</li>
-	 *    <li><code>Event.ENTER_FRAME</code>: dispatched on all display objects in each frame</li>
-	 *    <li><code>TouchEvent.TOUCH</code>: dispatched on a display object that has been touched 
-	 *              or is manipulated with the mouse cursor (bubbling event).</li>
-	 *    <li><code>KeyboardEvent.KEY_UP/KEY_DOWN</code>: dispatched on the Starling instance (not
-	 *              on display objects!) when a key has been hit.</li>
-     *  </ul>
-	 *  
      */ 
     public class Starling extends EventDispatcher
     {
