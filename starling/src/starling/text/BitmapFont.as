@@ -174,6 +174,9 @@ package starling.text
                                                                    hAlign, vAlign, autoScale, kerning);
             var numChars:int = charLocations.length;
             
+            if (numChars > 8192)
+                throw new ArgumentError("Bitmap Font text is limited to 8192 characters.");
+            
             for (var i:int=0; i<numChars; ++i)
             {
                 var charLocation:CharLocation = charLocations[i];
