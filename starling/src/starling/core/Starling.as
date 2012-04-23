@@ -559,17 +559,29 @@ package starling.core
         public function get showStats():Boolean { return mStatsDisplay != null; }
         public function set showStats(value:Boolean):void
         {
-            if (value && mStatsDisplay == null)
+            if (mContext == null)
             {
-                mStatsDisplay = new StatsDisplay();
-                mStatsDisplay.touchable = false;
-                mStatsDisplay.scaleX = mStatsDisplay.scaleY = 1.0 / contentScaleFactor;
-                mStage.addChild(mStatsDisplay);
+                // Starling is not yet ready - we postpone this until it's initialized.
+                addEventListener(starling.events.Event.ROOT_CREATED, function onRC(event:Object):void
+                {
+                    showStats = value;
+                    removeEventListener(starling.events.Event.ROOT_CREATED, onRC);
+                });
             }
-            else if (!value && mStatsDisplay)
+            else
             {
-                mStatsDisplay.removeFromParent(true);
-                mStatsDisplay = null;
+                if (value && mStatsDisplay == null)
+                {
+                    mStatsDisplay = new StatsDisplay();
+                    mStatsDisplay.touchable = false;
+                    mStatsDisplay.scaleX = mStatsDisplay.scaleY = 1.0 / contentScaleFactor;
+                    mStage.addChild(mStatsDisplay);
+                }
+                else if (!value && mStatsDisplay)
+                {
+                    mStatsDisplay.removeFromParent(true);
+                    mStatsDisplay = null;
+                }
             }
         }
         
