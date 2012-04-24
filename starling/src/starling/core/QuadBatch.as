@@ -360,7 +360,7 @@ package starling.core
                         childMatrix.copyFrom(transformationMatrix);
                         RenderSupport.transformMatrixForObject(childMatrix, child);
                         quadBatchID = compileObject(child, quadBatches, quadBatchID, childMatrix, 
-                                                    alpha * child.alpha, childBlendMode);
+                                                    alpha * object.alpha, childBlendMode);
                     }
                 }
             }
