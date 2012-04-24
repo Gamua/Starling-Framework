@@ -132,10 +132,14 @@ package starling.display
                 alpha *= this.alpha;
                 var numBatches:int = mFlattenedContents.length;
                 var mvpMatrix:Matrix3D = support.mvpMatrix;
-                var blendMode:String = support.blendMode;
                 
                 for (var i:int=0; i<numBatches; ++i)
-                    mFlattenedContents[i].renderCustom(mvpMatrix, alpha, blendMode);
+                {
+                    var quadBatch:QuadBatch = mFlattenedContents[i];
+                    var blendMode:String = quadBatch.blendMode == BlendMode.AUTO ?
+                                           support.blendMode : quadBatch.blendMode;
+                    quadBatch.renderCustom(mvpMatrix, alpha, blendMode);
+                }
             }
             else super.render(support, alpha);
         }

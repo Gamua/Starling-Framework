@@ -56,7 +56,6 @@ package starling.core
         private var mTinted:Boolean;
         private var mTexture:Texture;
         private var mSmoothing:String;
-        private var mBlendMode:String;
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
@@ -106,8 +105,8 @@ package starling.core
             clone.mNumQuads = mNumQuads;
             clone.mTexture = mTexture;
             clone.mSmoothing = mSmoothing;
-            clone.mBlendMode = mBlendMode;
             clone.mSyncRequired = true;
+            clone.blendMode = this.blendMode;
             return clone;
         }
         
@@ -183,7 +182,7 @@ package starling.core
                 getImageProgramName(dynamicAlpha, mTinted, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
                 getQuadProgramName(dynamicAlpha);
             
-            RenderSupport.setBlendFactors(pma, blendMode ? blendMode : mBlendMode);
+            RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
             context.setProgram(Starling.current.getProgram(program));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
@@ -222,14 +221,13 @@ package starling.core
             mNumQuads = 0;
             mTexture = null;
             mSmoothing = null;
-            mBlendMode = null;
             mSyncRequired = true;
         }
         
         /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
          *  parameters for 'texture' and 'smoothing'. */ 
         public function addImage(image:Image, alpha:Number=1.0, modelViewMatrix:Matrix3D=null,
-                                 blendMode:String="normal"):void
+                                 blendMode:String=null):void
         {
             addQuad(image, alpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
         }
@@ -237,12 +235,10 @@ package starling.core
         /** Adds a quad to the batch. The first quad determines the state of the batch,
          *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
          *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
-         *  the batch. 
-         *  @param blendMode Supply a concrete (i.e. not "auto") blend mode. 
-         *                   The corresponding property of the quad is ignored. */
+         *  the batch. */ 
         public function addQuad(quad:Quad, alpha:Number=1.0, texture:Texture=null, 
                                 smoothing:String=null, modelViewMatrix:Matrix3D=null, 
-                                blendMode:String="normal"):void
+                                blendMode:String=null):void
         {
             if (modelViewMatrix == null)
             {
@@ -254,10 +250,10 @@ package starling.core
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 
             {
+                this.blendMode = blendMode ? blendMode : quad.blendMode;
                 mTinted = quad.tinted;
                 mTexture = texture;
                 mSmoothing = smoothing;
-                mBlendMode = blendMode;
                 mVertexData.setPremultipliedAlpha(
                     texture ? texture.premultipliedAlpha : true, false); 
             }
@@ -290,7 +286,7 @@ package starling.core
                        mTexture.base != texture.base ||
                        mTexture.repeat != texture.repeat ||
                        mSmoothing != smoothing ||
-                       mBlendMode != blendMode;
+                       this.blendMode != blendMode;
             else return true;
         }
         
@@ -341,7 +337,7 @@ package starling.core
             {
                 isRootObject = true;
                 quadBatchID = 0;
-                blendMode = object.blendMode == BlendMode.AUTO ? BlendMode.NORMAL : object.blendMode;
+                blendMode = object.blendMode;
                 if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
                 else quadBatches[0].reset();
             }
@@ -394,6 +390,7 @@ package starling.core
                     quadBatchID++;
                 
                 quadBatch = (object as QuadBatch).clone();
+                quadBatch.blendMode = blendMode;
                 quadBatch.mVertexData.transformVertex(0, transformationMatrix, -1);
                 quadBatches.splice(quadBatchID, 0, quadBatch); 
             }
