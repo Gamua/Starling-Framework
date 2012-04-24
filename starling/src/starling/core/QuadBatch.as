@@ -52,7 +52,8 @@ package starling.core
     {
         private var mNumQuads:int;
         private var mSyncRequired:Boolean;
-        
+
+        private var mTinted:Boolean;
         private var mTexture:Texture;
         private var mSmoothing:String;
         private var mBlendMode:String;
@@ -153,14 +154,16 @@ package starling.core
         /** Uploads the raw data of all batched quads to the vertex buffer. */
         private function syncBuffers():void
         {
-            // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
-            // this is slower than updating the complete buffer.
-            
             if (mVertexBuffer == null)
                 createBuffers();
-            
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
-            mSyncRequired = false;
+            else
+            {
+                // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
+                // this is slower than updating the complete buffer.
+                
+                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+                mSyncRequired = false;
+            }
         }
         
         /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
@@ -177,7 +180,7 @@ package starling.core
             var dynamicAlpha:Boolean = alpha != 1.0;
             
             var program:String = mTexture ? 
-                getImageProgramName(dynamicAlpha, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
+                getImageProgramName(dynamicAlpha, mTinted, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
                 getQuadProgramName(dynamicAlpha);
             
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : mBlendMode);
@@ -251,6 +254,7 @@ package starling.core
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 
             {
+                mTinted = quad.tinted;
                 mTexture = texture;
                 mSmoothing = smoothing;
                 mBlendMode = blendMode;
@@ -282,7 +286,8 @@ package starling.core
             else if (mNumQuads == 8192) return true; // maximum buffer size
             else if (mTexture == null && texture == null) return false;
             else if (mTexture != null && texture != null)
-                return mTexture.base != texture.base ||
+                return mTinted != quad.tinted ||
+                       mTexture.base != texture.base ||
                        mTexture.repeat != texture.repeat ||
                        mSmoothing != smoothing ||
                        mBlendMode != blendMode;
@@ -431,7 +436,7 @@ package starling.core
             
             // Each combination of alpha/repeat/mipmap/smoothing has its own fragment shader.
             for each (var dynamicAlpha:Boolean in [true, false])
-            {            
+            {
                 // Quad:
                 
                 vertexProgramCode = 
@@ -443,55 +448,73 @@ package starling.core
                     "mov oc, ft0       \n"          // output color
                   : 
                     "mov oc, v0        \n";         // output color
-                                    
+                
                 vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode); 
                 fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode);
                 
                 target.registerProgram(getQuadProgramName(dynamicAlpha), 
                     vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
                 
-                // Image:                
-                
-                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX,
-                    "m44 op, va0, vc0  \n" +        // 4x4 matrix transform to output clipspace
-                    "mov v0, va1       \n" +        // pass color to fragment program
-                    "mov v1, va2       \n");        // pass texture coordinates to fragment program
-                    
-                fragmentProgramCode = dynamicAlpha ?
-                    "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
-                    "mul ft2, ft1, v0        \n" +  // multiply color with texel color
-                    "mul oc, ft2, fc0        \n"    // multiply color with alpha
-                  :
-                    "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
-                    "mul oc, ft1, v0         \n";   // multiply color with texel color
-                
-                var smoothingTypes:Array = [
-                    TextureSmoothing.NONE,
-                    TextureSmoothing.BILINEAR,
-                    TextureSmoothing.TRILINEAR
-                ];
-                
-                for each (var repeat:Boolean in [true, false])
+                for each (var dynamicColor:Boolean in [true, false])
                 {
-                    for each (var mipmap:Boolean in [true, false])
+                    // Image:
+                    
+                    vertexProgramAssembler.assemble(Context3DProgramType.VERTEX,
+                        "m44 op, va0, vc0  \n" +        // 4x4 matrix transform to output clipspace
+                        "mov v0, va1       \n" +        // pass color to fragment program
+                        "mov v1, va2       \n");        // pass texture coordinates to fragment program
+                    
+                    if (dynamicAlpha)
                     {
-                        for each (var smoothing:String in smoothingTypes)
+                        if (dynamicColor)
+                            fragmentProgramCode = 
+                                "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
+                                "mul ft2, ft1, v0        \n" +  // multiply color with texel color
+                                "mul oc, ft2, fc0        \n";   // multiply color with alpha
+                        else
+                            fragmentProgramCode = 
+                                "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
+                                "mul oc, ft1, fc0        \n";   // multiply texel color with alpha
+                    }
+                    else
+                    {
+                        if (dynamicColor)
+                            fragmentProgramCode =
+                                "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
+                                "mul oc, ft1, v0         \n";   // multiply color with texel color
+                        else
+                            fragmentProgramCode = 
+                                "tex oc, v1, fs0 <???>  \n";    // sample texture 0
+                    }
+                    
+                    var smoothingTypes:Array = [
+                        TextureSmoothing.NONE,
+                        TextureSmoothing.BILINEAR,
+                        TextureSmoothing.TRILINEAR
+                    ];
+                    
+                    for each (var repeat:Boolean in [true, false])
+                    {
+                        for each (var mipmap:Boolean in [true, false])
                         {
-                            var options:Array = ["2d", repeat ? "repeat" : "clamp"];
-                            
-                            if (smoothing == TextureSmoothing.NONE)
-                                options.push("nearest", mipmap ? "mipnearest" : "mipnone");
-                            else if (smoothing == TextureSmoothing.BILINEAR)
-                                options.push("linear", mipmap ? "mipnearest" : "mipnone");
-                            else
-                                options.push("linear", mipmap ? "miplinear" : "mipnone");
-                            
-                            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                                fragmentProgramCode.replace("???", options.join())); 
-                            
-                            target.registerProgram(
-                                getImageProgramName(dynamicAlpha, mipmap, repeat, smoothing),
-                                vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                            for each (var smoothing:String in smoothingTypes)
+                            {
+                                var options:Array = ["2d", repeat ? "repeat" : "clamp"];
+                                
+                                if (smoothing == TextureSmoothing.NONE)
+                                    options.push("nearest", mipmap ? "mipnearest" : "mipnone");
+                                else if (smoothing == TextureSmoothing.BILINEAR)
+                                    options.push("linear", mipmap ? "mipnearest" : "mipnone");
+                                else
+                                    options.push("linear", mipmap ? "miplinear" : "mipnone");
+                                
+                                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
+                                    fragmentProgramCode.replace("???", options.join())); 
+                                
+                                target.registerProgram(
+                                    getImageProgramName(dynamicAlpha, dynamicColor, mipmap, repeat, smoothing),
+                                    vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                            }
                         }
                     }
                 }
@@ -500,17 +523,18 @@ package starling.core
         
         private static function getQuadProgramName(dynamicAlpha:Boolean):String
         {
-            return dynamicAlpha ? "QB_q*" : "QB_q'";
+            return dynamicAlpha ? "QB_qa" : "QB_q";
         }
         
-        private static function getImageProgramName(dynamicAlpha:Boolean,
+        private static function getImageProgramName(dynamicAlpha:Boolean, dynamicColor:Boolean=false,
                                                     mipMap:Boolean=true, repeat:Boolean=false, 
                                                     smoothing:String="bilinear"):String
         {
             // this method is designed to return most quickly when called with 
             // the default parameters (no-repeat, mipmap, bilinear)
             
-            var name:String = dynamicAlpha ? "QB_i*" : "QB_i'";
+            var name:String = dynamicAlpha ? (dynamicColor ? "QB_iac" : "QB_ia") :
+                                             (dynamicColor ? "QB_ic"  : "QB_i" );
             
             if (!mipMap) name += "N";
             if (repeat)  name += "R";

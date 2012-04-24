@@ -153,7 +153,7 @@ package starling.text
             var height:Number = mHitArea.height * scale;
             
             var textFormat:TextFormat = new TextFormat(mFontName, 
-                mFontSize * scale, 0xffffff, mBold, mItalic, mUnderline, null, null, mHAlign);
+                mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, mHAlign);
             textFormat.kerning = mKerning;
             
             sNativeTextField.defaultTextFormat = textFormat;
@@ -210,8 +210,6 @@ package starling.text
                 mImage.texture = texture; 
                 mImage.readjustSize(); 
             }
-            
-            mImage.color = mColor;
         }
         
         private function autoScaleNativeTextField(textField:flash.text.TextField):void
@@ -360,9 +358,7 @@ package starling.text
             {
                 mColor = value;
                 updateBorder();
-                
-                if (mImage) mImage.color = value;
-                else        mRequiresRedraw = true;
+                mRequiresRedraw = true;
             }
         }
         

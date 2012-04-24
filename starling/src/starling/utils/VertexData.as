@@ -69,9 +69,9 @@ package starling.utils
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
         {            
-            mRawData = new Vector.<Number>(numVertices * ELEMENTS_PER_VERTEX, true);
+            mRawData = new <Number>[];
             mPremultipliedAlpha = premultipliedAlpha;
-            mNumVertices = numVertices;
+            this.numVertices = numVertices;
         }
 
         /** Creates a duplicate of either the complete vertex data object, or of a subset. 
@@ -138,15 +138,14 @@ package starling.utils
             position.z = mRawData[int(offset+2)];
         }
         
-        /** Updates the color and alpha values of a vertex. */ 
-        public function setColor(vertexID:int, color:uint, alpha:Number=1.0):void
-        {
-            var multiplier:Number = mPremultipliedAlpha ? alpha : 1.0;
+        /** Updates the RGB color values of a vertex. */ 
+        public function setColor(vertexID:int, color:uint):void
+        {   
             var offset:int = getOffset(vertexID) + COLOR_OFFSET;
+            var multiplier:Number = mPremultipliedAlpha ? mRawData[int(offset+3)] : 1.0;
             mRawData[offset]        = ((color >> 16) & 0xff) / 255.0 * multiplier;
             mRawData[int(offset+1)] = ((color >>  8) & 0xff) / 255.0 * multiplier;
             mRawData[int(offset+2)] = ( color        & 0xff) / 255.0 * multiplier;
-            mRawData[int(offset+3)] = alpha;
         }
         
         /** Returns the RGB color of a vertex (no alpha). */
@@ -169,11 +168,17 @@ package starling.utils
         /** Updates the alpha value of a vertex (range 0-1). */
         public function setAlpha(vertexID:int, alpha:Number):void
         {
-            if (mPremultipliedAlpha)                // zero alpha would wipe out all color data 
-                setColor(vertexID, getColor(vertexID), alpha < 0.001 ? 0.001 : alpha);
-            else 
+            var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
+            
+            if (mPremultipliedAlpha)
             {
-                var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
+                if (alpha < 0.001) alpha = 0.001; // zero alpha would wipe out all color data
+                var color:uint = getColor(vertexID);
+                mRawData[offset] = alpha;
+                setColor(vertexID, color);
+            }
+            else
+            {
                 mRawData[offset] = alpha;
             }
         }
@@ -243,11 +248,18 @@ package starling.utils
             }
         }
         
-        /** Sets all vertices of the object to the same color and alpha values. */
-        public function setUniformColor(color:uint, alpha:Number=1.0):void
+        /** Sets all vertices of the object to the same color values. */
+        public function setUniformColor(color:uint):void
         {
             for (var i:int=0; i<mNumVertices; ++i)
-                setColor(i, color, alpha);
+                setColor(i, color);
+        }
+        
+        /** Sets all vertices of the object to the same alpha values. */
+        public function setUniformAlpha(alpha:Number):void
+        {
+            for (var i:int=0; i<mNumVertices; ++i)
+                setAlpha(i, alpha);
         }
         
         /** Multiplies the alpha value of subsequent vertices with a certain delta. */
@@ -262,7 +274,7 @@ package starling.utils
             else if (mPremultipliedAlpha)
             {
                 for (i=0; i<numVertices; ++i)
-                    setColor(vertexID+i, getColor(vertexID+i), getAlpha(vertexID+i) * alpha);
+                    setAlpha(vertexID+i, getAlpha(vertexID+i) * alpha);
             }
             else
             {
@@ -334,6 +346,22 @@ package starling.utils
         
         // properties
         
+        /** Indicates if any vertices have a non-white color or are not fully opaque. */
+        public function get tinted():Boolean
+        {
+            var offset:int = COLOR_OFFSET;
+            
+            for (var i:int=0; i<mNumVertices; ++i)
+            {
+                for (var j:int=0; j<4; ++j)
+                    if (mRawData[int(offset+j)] != 1.0) return true;
+
+                offset += ELEMENTS_PER_VERTEX;
+            }
+            
+            return false;
+        }
+        
         /** Changes the way alpha and color values are stored. Updates all exisiting vertices. */
         public function setPremultipliedAlpha(value:Boolean, updateData:Boolean=true):void
         {
@@ -366,16 +394,18 @@ package starling.utils
         
         /** The total number of vertices. */
         public function get numVertices():int { return mNumVertices; }
-        
         public function set numVertices(value:int):void
         {
             mRawData.fixed = false;
             
-            var delta:int = value * ELEMENTS_PER_VERTEX - mRawData.length;
             var i:int;
+            var delta:int = value - mNumVertices;
             
-            for (i=0; i<delta; ++i) mRawData.push(0.0);
-            for (i=delta; i<0; ++i) mRawData.pop();
+            for (i=0; i<delta; ++i)
+                mRawData.push(0, 0, 0,  0, 0, 0, 1,  0, 0); // alpha should be '1' per default
+            
+            for (i=0; i<-(delta*ELEMENTS_PER_VERTEX); ++i)
+                mRawData.pop();
             
             mNumVertices = value;
             mRawData.fixed = true;
