@@ -172,7 +172,7 @@ package starling.core
         /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
          *  and blend mode. This makes it possible to render batches that are not part of the 
          *  display list. */ 
-        public function renderCustom(mvpMatrix:Matrix3D, alpha:Number=1.0,
+        public function renderCustom(mvpMatrix:Matrix3D, parentAlpha:Number=1.0,
                                      blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
@@ -180,13 +180,13 @@ package starling.core
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
             var context:Context3D = Starling.context;
-            var tinted:Boolean = mTinted || (alpha != 1.0);
+            var tinted:Boolean = mTinted || (parentAlpha != 1.0);
             var programName:String = mTexture ? 
                 getImageProgramName(tinted, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
                 QUAD_PROGRAM_NAME;
             
-            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
-            sRenderAlpha[3] = alpha;
+            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
+            sRenderAlpha[3] = parentAlpha;
             
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
@@ -231,17 +231,17 @@ package starling.core
         
         /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
          *  parameters for 'texture' and 'smoothing'. */ 
-        public function addImage(image:Image, alpha:Number=1.0, modelViewMatrix:Matrix3D=null,
+        public function addImage(image:Image, parentAlpha:Number=1.0, modelViewMatrix:Matrix3D=null,
                                  blendMode:String=null):void
         {
-            addQuad(image, alpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
+            addQuad(image, parentAlpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
         }
         
         /** Adds a quad to the batch. The first quad determines the state of the batch,
          *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
          *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
          *  the batch. */ 
-        public function addQuad(quad:Quad, alpha:Number=1.0, texture:Texture=null, 
+        public function addQuad(quad:Quad, parentAlpha:Number=1.0, texture:Texture=null, 
                                 smoothing:String=null, modelViewMatrix:Matrix3D=null, 
                                 blendMode:String=null):void
         {
@@ -252,8 +252,7 @@ package starling.core
                 RenderSupport.transformMatrixForObject(modelViewMatrix, quad);
             }
             
-            alpha *= quad.alpha;
-            
+            var alpha:Number = parentAlpha * quad.alpha;
             var vertexID:int = mNumQuads * 4;
             var tinted:Boolean = texture ? (quad.tinted || alpha != 1.0) : false;
             
@@ -282,8 +281,8 @@ package starling.core
         /** Indicates if a quad can be added to the batch without causing a state change. 
          *  A state change occurs if the quad uses a different base texture or has a different 
          *  'smoothing', 'repeat' or 'blendMode' setting. */
-        public function isStateChange(quad:Quad, alpha:Number, texture:Texture, smoothing:String,
-                                      blendMode:String):Boolean
+        public function isStateChange(quad:Quad, parentAlpha:Number, texture:Texture, 
+                                      smoothing:String, blendMode:String):Boolean
         {
             if (mNumQuads == 0) return false;
             else if (mNumQuads == 8192) return true; // maximum buffer size
@@ -292,7 +291,7 @@ package starling.core
                 return mTexture.base != texture.base ||
                        mTexture.repeat != texture.repeat ||
                        mSmoothing != smoothing ||
-                       mTinted != (quad.tinted || alpha != 1.0) ||
+                       mTinted != (quad.tinted || parentAlpha != 1.0) ||
                        this.blendMode != blendMode;
             else return true;
         }
@@ -311,10 +310,10 @@ package starling.core
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, alpha:Number):void
+        public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             support.finishQuadBatch();
-            renderCustom(support.mvpMatrix, this.alpha * alpha, support.blendMode);
+            renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
         }
         
         // compilation (for flattened sprites)

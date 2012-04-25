@@ -126,10 +126,10 @@ package starling.text
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, alpha:Number):void
+        public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             if (mRequiresRedraw) redrawContents();
-            super.render(support, alpha);
+            super.render(support, parentAlpha);
         }
         
         private function redrawContents():void

@@ -154,9 +154,9 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, alpha:Number):void
+        public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            support.batchQuad(this, alpha);
+            support.batchQuad(this, parentAlpha);
         }
     }
 }
