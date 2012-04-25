@@ -79,16 +79,24 @@ package starling.events
                 sProcessedTouchIDs.length = sHoveringTouchData.length = 0;
                 
                 // update existing touches
-                for each (var currentTouch:Touch in mCurrentTouches)
+                for (i=mCurrentTouches.length-1; i>=0; --i)
                 {
-                    // set touches that were new or moving to phase 'stationary'
-                    if (currentTouch.phase == TouchPhase.BEGAN || currentTouch.phase == TouchPhase.MOVED)
-                        currentTouch.setPhase(TouchPhase.STATIONARY);
+                    touch = mCurrentTouches[i];
                     
-                    // check if target is still connected to stage, otherwise find new target
-                    if (currentTouch.target.stage == null)
-                        currentTouch.setTarget(mStage.hitTest(
-                            new Point(currentTouch.globalX, currentTouch.globalY), true));
+                    if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED)
+                    {
+                        if (touch.target.stage)
+                        {
+                            // set touches that were new or moving to phase 'stationary'
+                            touch.setPhase(TouchPhase.STATIONARY);
+                        }
+                        else
+                        {
+                            // target was removed from stage, initiate a new touch
+                            mCurrentTouches.splice(i, 1);
+                            mQueue.push([touch.id, TouchPhase.BEGAN, touch.globalX, touch.globalY]);
+                        }
+                    }
                 }
                 
                 // process new touches, but each ID only once

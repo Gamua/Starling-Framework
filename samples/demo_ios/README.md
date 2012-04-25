@@ -15,4 +15,4 @@ Then exchange the source files that were created by the Flash Builder project wi
 Known Issues:
 -------------
 
-* The AIR 3.2 Release Candidate causes problems when you try to run/debug the app in the device simulator: you need to set "fullscreen" to "false" in the app's configuration file to see any rendering output.
+* AIR 3.2 causes problems when you try to run/debug the app in the device simulator: you need to set "fullscreen" to "false" in the app's configuration file to see any rendering output. This is fixed in AIR 3.3.

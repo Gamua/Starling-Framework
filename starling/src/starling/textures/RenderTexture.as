@@ -72,8 +72,8 @@ package starling.textures
             if (scale <= 0) scale = Starling.contentScaleFactor; 
             
             mSupport = new RenderSupport();
-            mNativeWidth  = getNextPowerOfTwo(width);
-            mNativeHeight = getNextPowerOfTwo(height);
+            mNativeWidth  = getNextPowerOfTwo(width  * scale);
+            mNativeHeight = getNextPowerOfTwo(height * scale);
             mActiveTexture = Texture.empty(width, height, 0x0, true, scale);
             
             if (persistent)
@@ -149,7 +149,7 @@ package starling.textures
             context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             RenderSupport.clear();
             
-            mSupport.setOrthographicProjection(mNativeWidth, mNativeHeight);
+            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
             mSupport.applyBlendMode(true);
             
             // draw buffer

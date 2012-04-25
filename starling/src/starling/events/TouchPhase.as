@@ -18,8 +18,11 @@ package starling.events
      *  
      *  <code>BEGAN -> MOVED -> ENDED</code>
      *  
-     *  <p>Furthermore, a touch can enter a <code>STATIONARY</code> phase. That phase will not 
-     *  trigger an event itself, but you might receive it when another touch does so.</p> 
+     *  <p>Furthermore, a touch can enter a <code>STATIONARY</code> phase. That phase does not
+     *  trigger a touch event itself, and it can only occur in multitouch environments. Picture a 
+     *  situation where one finger is moving and the other is stationary. A touch event will
+     *  be dispatched only to the object under the <em>moving</em> finger. In the list of touches
+     *  of that event, you will find the second touch in the stationary phase.</p>
      *  
      *  <p>Finally, there's the <code>HOVER</code> phase, which is exclusive to mouse input. It is
      *  the equivalent of a <code>MouseOver</code> event in Flash when the mouse button is

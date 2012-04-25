@@ -10,8 +10,10 @@
 
 package starling.utils
 {
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
@@ -60,8 +62,9 @@ package starling.utils
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
 
-        /** Helper object. */
-        private static var sPositions:Vector.<Number> = new Vector.<Number>(12, true);
+        /** Helper objects. */
+        private static var sPositions:Vector.<Number> = new Vector.<Number>(12);
+        private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
@@ -71,13 +74,18 @@ package starling.utils
             mNumVertices = numVertices;
         }
 
-        /** Creates a duplicate of the vertex data object. */
-        public function clone():VertexData
+        /** Creates a duplicate of either the complete vertex data object, or of a subset. 
+         *  To clone all vertices, set 'numVertices' to '-1'. */
+        public function clone(vertexID:int=0, numVertices:int=-1):VertexData
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
             var clone:VertexData = new VertexData(0, mPremultipliedAlpha);
-            clone.mRawData = mRawData.concat();
+            clone.mNumVertices = numVertices; 
+            clone.mRawData = mRawData.slice(vertexID * ELEMENTS_PER_VERTEX, 
+                                            numVertices * ELEMENTS_PER_VERTEX); 
             clone.mRawData.fixed = true;
-            clone.mNumVertices = mNumVertices;
             return clone;
         }
         
@@ -161,7 +169,8 @@ package starling.utils
         /** Updates the alpha value of a vertex (range 0-1). */
         public function setAlpha(vertexID:int, alpha:Number):void
         {
-            if (mPremultipliedAlpha) setColor(vertexID, getColor(vertexID), alpha);
+            if (mPremultipliedAlpha)                // zero alpha would wipe out all color data 
+                setColor(vertexID, getColor(vertexID), alpha < 0.001 ? 0.001 : alpha);
             else 
             {
                 var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
@@ -208,6 +217,9 @@ package starling.utils
          *  transformation matrix. */
         public function transformVertex(vertexID:int, matrix:Matrix3D, numVertices:int=1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
             var i:int;
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             
@@ -241,6 +253,9 @@ package starling.utils
         /** Multiplies the alpha value of subsequent vertices with a certain delta. */
         public function scaleAlpha(vertexID:int, alpha:Number, numVertices:int=1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+             
             var i:int;
             
             if (alpha == 1.0) return;
@@ -260,6 +275,61 @@ package starling.utils
         private function getOffset(vertexID:int):int
         {
             return vertexID * ELEMENTS_PER_VERTEX;
+        }
+        
+        /** Calculates the bounds of the vertices, which are optionally transformed by a matrix. 
+         *  If you pass a 'resultRect', the result will be stored in this rectangle 
+         *  instead of creating a new object. To use all vertices for the calculation, set
+         *  'numVertices' to '-1'. */
+        public function getBounds(transformationMatrix:Matrix=null, 
+                                  vertexID:int=0, numVertices:int=-1,
+                                  resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
+            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            var x:Number, y:Number, i:int;
+            
+            if (transformationMatrix == null)
+            {
+                for (i=vertexID; i<numVertices; ++i)
+                {
+                    x = mRawData[offset];
+                    y = mRawData[int(offset+1)];
+                    offset += ELEMENTS_PER_VERTEX;
+                    
+                    minX = minX < x ? minX : x;
+                    maxX = maxX > x ? maxX : x;
+                    minY = minY < y ? minY : y;
+                    maxY = maxY > y ? maxY : y;
+                }
+            }
+            else
+            {
+                for (i=vertexID; i<numVertices; ++i)
+                {
+                    x = mRawData[offset];
+                    y = mRawData[int(offset+1)];
+                    offset += ELEMENTS_PER_VERTEX;
+                    
+                    transformCoords(transformationMatrix, x, y, sHelperPoint);
+                    minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
+                    maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
+                    minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
+                    maxY = maxY > sHelperPoint.y ? maxY : sHelperPoint.y;
+                }
+            }
+            
+            resultRect.x = minX;
+            resultRect.y = minY;
+            resultRect.width  = maxX - minX;
+            resultRect.height = maxY - minY;
+            
+            return resultRect;
         }
         
         // properties

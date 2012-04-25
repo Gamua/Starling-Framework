@@ -1,6 +1,37 @@
 Starling: Changelog
 ===================
 
+version 1.1 - 2012-04-24
+------------------------
+
+- added support for multi-resolution development through 'contentScaleFactor'
+- added demo project for iOS (supporting iPhones with and without retina display)
+- added blend modes
+- added ability to erase content from a render texture (through 'BlendMode.ERASE')
+- added 'toString' method to Touch class
+- added 'getBounds' utility method to VertexData class and using it in Quad class
+- added ability to use 'QuadBatch' class as a display object
+- added 'Starling.showStats' method for FPS and MEM monitoring
+- added minimal Bitmap Font 'mini'
+- added 'baseline' property to BitmapFont class
+- added ability to use multiples of 'BitmapFont.NATIVE_SIZE'
+- added 'Touch.getMovement' property
+- added 'Transport Chief' script to deploy iOS apps via the terminal
+- added reset method to tween class to support instance pooling (thanks to pchertok!)
+- added 'Event.ROOT_CREATED', dispatched when the root object is ready (thanks to fogAndWhisky!)
+- optimized vertex buffer uploading for faster iPad 1 performance
+- optimized 'Quad.getBounds' method
+- optimized Bitmap Font rendering greatly
+- optimized 'DisplayObjectContainer.contains' method greatly (thanks to joshtynjala!)
+- optimized some matrix and rendering code (thanks to jSandhu!)
+- fixed error when TextField text property was set to 'null'
+- fixed wrong error output in 'Image.smoothing' setter
+- fixed: pausing and restarting Starling now resets passed time 
+- fixed exception when child of flattened sprite had zero scaleX- or scaleY-value
+- fixed exception on mipmap creation when texture was only one pixel high/wide
+- fixed lost color data when pma vertex data was set to 'alpha=0' (thanks to Tomyail!)
+- fixed: making sure a touch always starts in HOVER or BEGAN phase (thanks to fljot!)
+
 version 1.0 - 2012-02-24
 ------------------------
 

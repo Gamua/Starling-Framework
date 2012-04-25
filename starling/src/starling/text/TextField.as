@@ -18,6 +18,7 @@ package starling.text
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
     
+    import starling.core.QuadBatch;
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
@@ -75,11 +76,13 @@ package starling.text
         private var mKerning:Boolean;
         private var mRequiresRedraw:Boolean;
         private var mIsRenderedText:Boolean;
+        private var mTextBounds:Rectangle;
         
         private var mHitArea:DisplayObject;
-        private var mTextArea:DisplayObject;
-        private var mContents:DisplayObject;
         private var mBorder:DisplayObjectContainer;
+        
+        private var mImage:Image;
+        private var mQuadBatch:QuadBatch;
         
         // this object will be used for text rendering
         private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
@@ -105,10 +108,6 @@ package starling.text
             mHitArea.alpha = 0.0;
             addChild(mHitArea);
             
-            mTextArea = new Quad(width, height);
-            mTextArea.visible = false;
-            addChild(mTextArea);
-            
             addEventListener(Event.FLATTEN, onFlatten);
         }
         
@@ -116,10 +115,8 @@ package starling.text
         public override function dispose():void
         {
             removeEventListener(Event.FLATTEN, onFlatten);
-            
-            if (mContents is Image)
-               (mContents as Image).texture.dispose();
-            
+            if (mImage) mImage.texture.dispose();
+            if (mQuadBatch) mQuadBatch.dispose();
             super.dispose();
         }
         
@@ -137,24 +134,19 @@ package starling.text
         
         private function redrawContents():void
         {
-            if (mContents)
-            {
-                if (mContents is Image) 
-                   (mContents as Image).texture.dispose();
-                
-                mContents.removeFromParent(true);
-            }
+            if (mIsRenderedText) createRenderedContents();
+            else                 createComposedContents();
             
-            mContents = mIsRenderedText ? createRenderedContents() : createComposedContents();
-            mContents.touchable = false;
             mRequiresRedraw = false;
-            
-            addChild(mContents);
         }
         
-        private function createRenderedContents():DisplayObject
+        private function createRenderedContents():void
         {
-            if (mText.length == 0) return new Sprite();
+            if (mQuadBatch)
+            { 
+                mQuadBatch.removeFromParent(true); 
+                mQuadBatch = null; 
+            }
             
             var scale:Number  = Starling.contentScaleFactor;
             var width:Number  = mHitArea.width  * scale;
@@ -197,15 +189,29 @@ package starling.text
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             bitmapData.draw(sNativeTextField, new Matrix(1, 0, 0, 1, 0, int(yOffset)-2));
             
-            mTextArea.x = xOffset / scale;
-            mTextArea.y = yOffset / scale;
-            mTextArea.width = textWidth / scale;
-            mTextArea.height = textHeight / scale;
+            // update textBounds rectangle
+            if (mTextBounds == null) mTextBounds = new Rectangle();
+            mTextBounds.x = xOffset / scale;
+            mTextBounds.y = yOffset / scale;
+            mTextBounds.width = textWidth / scale;
+            mTextBounds.height = textHeight / scale;
             
-            var contents:Image = new Image(Texture.fromBitmapData(bitmapData, true, false, scale));
-            contents.color = mColor;
+            var texture:Texture = Texture.fromBitmapData(bitmapData, true, false, scale);
             
-            return contents;
+            if (mImage == null) 
+            {
+                mImage = new Image(texture);
+                mImage.touchable = false;
+                addChild(mImage);
+            }
+            else 
+            { 
+                mImage.texture.dispose();
+                mImage.texture = texture; 
+                mImage.readjustSize(); 
+            }
+            
+            mImage.color = mColor;
         }
         
         private function autoScaleNativeTextField(textField:flash.text.TextField):void
@@ -224,22 +230,31 @@ package starling.text
             }
         }
         
-        private function createComposedContents():DisplayObject
+        private function createComposedContents():void
         {
+            if (mImage) 
+            { 
+                mImage.removeFromParent(true); 
+                mImage = null; 
+            }
+            
+            if (mQuadBatch == null) 
+            { 
+                mQuadBatch = new QuadBatch(); 
+                mQuadBatch.touchable = false;
+                addChild(mQuadBatch); 
+            }
+            else
+                mQuadBatch.reset();
+            
             var bitmapFont:BitmapFont = sBitmapFonts[mFontName];
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
             
-            var contents:DisplayObject = bitmapFont.createDisplayObject(
+            bitmapFont.fillQuadBatch(mQuadBatch,
                 mHitArea.width, mHitArea.height, mText, mFontSize, mColor, mHAlign, mVAlign,
                 mAutoScale, mKerning);
             
-            var textBounds:Rectangle = (contents as DisplayObjectContainer).bounds;
-            mTextArea.x = textBounds.x;
-            mTextArea.y = textBounds.y;
-            mTextArea.width  = textBounds.width;
-            mTextArea.height = textBounds.height;
-            
-            return contents;
+            mTextBounds = null; // will be created on demand
         }
         
         private function updateBorder():void
@@ -267,7 +282,8 @@ package starling.text
         public function get textBounds():Rectangle
         {
             if (mRequiresRedraw) redrawContents();
-            return mTextArea.getBounds(parent);
+            if (mTextBounds == null) mTextBounds = mQuadBatch.getBounds(mQuadBatch);
+            return mTextBounds.clone();
         }
         
         /** @inheritDoc */
@@ -300,6 +316,7 @@ package starling.text
         public function get text():String { return mText; }
         public function set text(value:String):void
         {
+            if (value == null) value = "";
             if (mText != value)
             {
                 mText = value;
@@ -313,6 +330,9 @@ package starling.text
         {
             if (mFontName != value)
             {
+                if (value == BitmapFont.MINI && sBitmapFonts[value] == undefined)
+                    TextField.registerBitmapFont(new BitmapFont());
+                
                 mFontName = value;
                 mRequiresRedraw = true;
                 mIsRenderedText = sBitmapFonts[value] == undefined;
@@ -341,10 +361,8 @@ package starling.text
                 mColor = value;
                 updateBorder();
                 
-                if (mContents is Image && mIsRenderedText)
-                   (mContents as Image).color = value;
-                else
-                    mRequiresRedraw = true;
+                if (mImage) mImage.color = value;
+                else        mRequiresRedraw = true;
             }
         }
         

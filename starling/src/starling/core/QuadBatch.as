@@ -17,7 +17,10 @@ package starling.core
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
     import starling.display.BlendMode;
@@ -26,31 +29,43 @@ package starling.core
     import starling.display.Image;
     import starling.display.Quad;
     import starling.errors.MissingContextError;
+    import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
+    import starling.utils.transformCoords;
     
     /** Optimizes rendering of a number of quads with an identical state.
      * 
      *  <p>The majority of all rendered objects in Starling are quads. In fact, all the default
-     *  leaf nodes of Starling are quads. The rendering of those quads can be accelerated by 
-     *  a big factor if all quads with an identical state (i.e. same texture, same smoothing and
-     *  mipmapping settings) are sent to the GPU in just one call. That's what the QuadBatch
-     *  class can do.</p>
+     *  leaf nodes of Starling are quads (the Image and Quad classes). The rendering of those 
+     *  quads can be accelerated by a big factor if all quads with an identical state (i.e. same 
+     *  texture, same smoothing and mipmapping settings) are sent to the GPU in just one call. 
+     *  That's what the QuadBatch class can do.</p>
+     *  
+     *  <p>The class extends DisplayObject, but you can use it even without adding it to the
+     *  display tree. Just call the 'renderCustom' method from within another render method,
+     *  and pass appropriate values for transformation matrix, alpha and blend mode.</p>
+     *  
      */ 
-    public class QuadBatch
+    public class QuadBatch extends DisplayObject
     {
         private var mNumQuads:int;
-        private var mCurrentTexture:Texture;
-        private var mCurrentSmoothing:String;
-        private var mCurrentBlendMode:String;
+        private var mSyncRequired:Boolean;
+        
+        private var mTexture:Texture;
+        private var mSmoothing:String;
+        private var mBlendMode:String;
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
 
-        /** Helper object. */
+        /** Helper objects. */
+        private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
+        private static var sHelperPoint:Point = new Point();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         
         /** Creates a new QuadBatch instance with empty batch data. */
@@ -59,17 +74,44 @@ package starling.core
             mVertexData = new VertexData(0, true);
             mIndexData = new <uint>[];
             mNumQuads = 0;
+            mSyncRequired = false;
+            
+            // handle lost context
+            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         /** Disposes vertex- and index-buffer. */
-        public function dispose():void
+        public override function dispose():void
         {
+            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
+            
+            super.dispose();
+        }
+        
+        private function onContextCreated(event:Event):void
+        {
+            createBuffers();
+            registerPrograms();
+        }
+        
+        public function clone():QuadBatch
+        {
+            var clone:QuadBatch = new QuadBatch();
+            clone.mVertexData = mVertexData.clone(0, mNumQuads * 4);
+            clone.mIndexData = mIndexData.slice(0, mNumQuads * 6);
+            clone.mNumQuads = mNumQuads;
+            clone.mTexture = mTexture;
+            clone.mSmoothing = mSmoothing;
+            clone.mBlendMode = mBlendMode;
+            clone.mSyncRequired = true;
+            return clone;
         }
         
         private function expand():void
-        {   
+        {
             var oldCapacity:int = mVertexData.numVertices / 4;
             var newCapacity:int = oldCapacity == 0 ? 16 : oldCapacity * 2;
             mVertexData.numVertices = newCapacity * 4;
@@ -84,68 +126,83 @@ package starling.core
                 mIndexData[int(i*6+5)] = i*4 + 2;
             }
             
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            if (mIndexBuffer)  mIndexBuffer.dispose();
-            
+            createBuffers();
+            registerPrograms();
+        }
+        
+        private function createBuffers():void
+        {
+            var numVertices:int = mVertexData.numVertices;
+            var numIndices:int = mIndexData.length;
             var context:Context3D = Starling.context;
-            if (context == null) throw new MissingContextError();
+
+            if (mVertexBuffer)    mVertexBuffer.dispose();
+            if (mIndexBuffer)     mIndexBuffer.dispose();
+            if (mNumQuads == 0)   return;
+            if (context == null)  throw new MissingContextError();
             
-            mVertexBuffer = context.createVertexBuffer(newCapacity * 4, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, newCapacity * 4);
+            mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
             
-            mIndexBuffer = context.createIndexBuffer(newCapacity * 6);
-            mIndexBuffer.uploadFromVector(mIndexData, 0, newCapacity * 6);
+            mIndexBuffer = context.createIndexBuffer(numIndices);
+            mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
+            
+            mSyncRequired = false;
         }
         
         /** Uploads the raw data of all batched quads to the vertex buffer. */
-        public function syncBuffers():void
+        private function syncBuffers():void
         {
             // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
             // this is slower than updating the complete buffer.
             
-            if (mVertexBuffer)
-                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+            if (mVertexBuffer == null)
+                createBuffers();
+            
+            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+            mSyncRequired = false;
         }
         
-        /** Renders the current batch. Don't forget to call 'syncBuffers' before rendering. */
-        public function render(projectionMatrix:Matrix3D, alpha:Number=1.0):void
+        /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
+         *  and blend mode. This makes it possible to render batches that are not part of the 
+         *  display list. */ 
+        public function renderCustom(mvpMatrix:Matrix3D, alpha:Number=1.0,
+                                     blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
+            if (mSyncRequired) syncBuffers();
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
             var context:Context3D = Starling.context;
             var dynamicAlpha:Boolean = alpha != 1.0;
             
-            var program:String = mCurrentTexture ? 
-                getImageProgramName(dynamicAlpha, mCurrentTexture.mipMapping, 
-                                    mCurrentTexture.repeat, mCurrentSmoothing) : 
+            var program:String = mTexture ? 
+                getImageProgramName(dynamicAlpha, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
                 getQuadProgramName(dynamicAlpha);
             
-            RenderSupport.setBlendFactors(pma, mCurrentBlendMode);
-            registerPrograms();
+            RenderSupport.setBlendFactors(pma, blendMode ? blendMode : mBlendMode);
             
             context.setProgram(Starling.current.getProgram(program));
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, projectionMatrix, true);            
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);            
             
             if (dynamicAlpha)
             {
                 sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
                 sRenderAlpha[3] = alpha;
-                context.setProgramConstantsFromVector(
-                    Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
+                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
             }
             
-            if (mCurrentTexture)
+            if (mTexture)
             {
-                context.setTextureAt(0, mCurrentTexture.base);
+                context.setTextureAt(0, mTexture.base);
                 context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
             
-            if (mCurrentTexture)
+            if (mTexture)
             {
                 context.setTextureAt(0, null);
                 context.setVertexBufferAt(2, null);
@@ -160,22 +217,43 @@ package starling.core
         public function reset():void
         {
             mNumQuads = 0;
-            mCurrentTexture = null;
-            mCurrentSmoothing = null;
-            mCurrentBlendMode = null;
+            mTexture = null;
+            mSmoothing = null;
+            mBlendMode = null;
+            mSyncRequired = true;
         }
         
-        /** Adds a quad to the current batch. Before adding a quad, you should check for a state
-         *  change (with the 'isStateChange' method) and, in case of a change, render the batch. */
-        public function addQuad(quad:Quad, alpha:Number, texture:Texture, smoothing:String,
-                                modelViewMatrix:Matrix3D, blendMode:String="normal"):void
+        /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
+         *  parameters for 'texture' and 'smoothing'. */ 
+        public function addImage(image:Image, alpha:Number=1.0, modelViewMatrix:Matrix3D=null,
+                                 blendMode:String="normal"):void
         {
+            addQuad(image, alpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
+        }
+        
+        /** Adds a quad to the batch. The first quad determines the state of the batch,
+         *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
+         *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
+         *  the batch. 
+         *  @param blendMode Supply a concrete (i.e. not "auto") blend mode. 
+         *                   The corresponding property of the quad is ignored. */
+        public function addQuad(quad:Quad, alpha:Number=1.0, texture:Texture=null, 
+                                smoothing:String=null, modelViewMatrix:Matrix3D=null, 
+                                blendMode:String="normal"):void
+        {
+            if (modelViewMatrix == null)
+            {
+                modelViewMatrix = sHelperMatrix3D;
+                modelViewMatrix.identity();
+                RenderSupport.transformMatrixForObject(modelViewMatrix, quad);
+            }
+            
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 
             {
-                mCurrentTexture = texture;
-                mCurrentSmoothing = smoothing;
-                mCurrentBlendMode = blendMode;
+                mTexture = texture;
+                mSmoothing = smoothing;
+                mBlendMode = blendMode;
                 mVertexData.setPremultipliedAlpha(
                     texture ? texture.premultipliedAlpha : true, false); 
             }
@@ -189,8 +267,9 @@ package starling.core
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
             
             mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
-            
-            ++mNumQuads;
+
+            mSyncRequired = true;
+            mNumQuads++;
         }
         
         /** Indicates if a quad can be added to the batch without causing a state change. 
@@ -201,13 +280,33 @@ package starling.core
         {
             if (mNumQuads == 0) return false;
             else if (mNumQuads == 8192) return true; // maximum buffer size
-            else if (mCurrentTexture == null && texture == null) return false;
-            else if (mCurrentTexture != null && texture != null)
-                return mCurrentTexture.base != texture.base ||
-                    mCurrentTexture.repeat != texture.repeat ||
-                    mCurrentSmoothing != smoothing ||
-                    mCurrentBlendMode != blendMode;
+            else if (mTexture == null && texture == null) return false;
+            else if (mTexture != null && texture != null)
+                return mTexture.base != texture.base ||
+                       mTexture.repeat != texture.repeat ||
+                       mSmoothing != smoothing ||
+                       mBlendMode != blendMode;
             else return true;
+        }
+        
+        // display object methods
+        
+        /** @inheritDoc */
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            var transformationMatrix:Matrix = targetSpace == this ?
+                null : getTransformationMatrix(targetSpace, sHelperMatrix);
+            
+            return mVertexData.getBounds(transformationMatrix, 0, mNumQuads*4, resultRect);
+        }
+        
+        /** @inheritDoc */
+        public override function render(support:RenderSupport, alpha:Number):void
+        {
+            support.finishQuadBatch();
+            renderCustom(support.mvpMatrix, this.alpha * alpha, support.blendMode);
         }
         
         // compilation (for flattened sprites)
@@ -230,6 +329,7 @@ package starling.core
                                               blendMode:String=null):int
         {
             var i:int;
+            var quadBatch:QuadBatch;
             var isRootObject:Boolean = false;
             
             if (quadBatchID == -1)
@@ -269,11 +369,11 @@ package starling.core
                 var image:Image = quad as Image;
                 var texture:Texture = image ? image.texture : null;
                 var smoothing:String = image ? image.smoothing : null;
-                var quadBatch:QuadBatch = quadBatches[quadBatchID];
+                
+                quadBatch = quadBatches[quadBatchID];
                 
                 if (quadBatch.isStateChange(quad, texture, smoothing, blendMode))
                 {
-                    quadBatch.syncBuffers();
                     quadBatchID++;
                     if (quadBatches.length <= quadBatchID) 
                         quadBatches.push(new QuadBatch());
@@ -283,6 +383,15 @@ package starling.core
                 
                 quadBatch.addQuad(quad, alpha, texture, smoothing, transformationMatrix, blendMode);
             }
+            else if (object is QuadBatch)
+            {
+                if (quadBatches[quadBatchID].mNumQuads > 0)
+                    quadBatchID++;
+                
+                quadBatch = (object as QuadBatch).clone();
+                quadBatch.mVertexData.transformVertex(0, transformationMatrix, -1);
+                quadBatches.splice(quadBatchID, 0, quadBatch); 
+            }
             else
             {
                 throw new Error("Unsupported display object: " + getQualifiedClassName(object));
@@ -290,17 +399,21 @@ package starling.core
             
             if (isRootObject)
             {
-                quadBatches[quadBatchID].syncBuffers();
-                
+                // remove unused batches
                 for (i=quadBatches.length-1; i>quadBatchID; --i)
-                {
-                    quadBatches[i].dispose();
-                    delete quadBatches[i];
-                }
+                    quadBatches.pop().dispose();
+                
+                // last quadbatch could be empty
+                if (quadBatches[quadBatches.length-1].mNumQuads == 0)
+                    quadBatches.pop().dispose();
             }
             
             return quadBatchID;
         }
+        
+        // properties
+        
+        public function get numQuads():int { return mNumQuads; }
         
         // program management
         
