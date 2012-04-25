@@ -216,7 +216,7 @@ package starling.core
         public function batchQuad(quad:Quad, alpha:Number, 
                                   texture:Texture=null, smoothing:String=null):void
         {
-            if (currentQuadBatch.isStateChange(quad, texture, smoothing, mBlendMode))
+            if (currentQuadBatch.isStateChange(quad, alpha, texture, smoothing, mBlendMode))
                 finishQuadBatch();
             
             currentQuadBatch.addQuad(quad, alpha, texture, smoothing, mModelViewMatrix, mBlendMode);
