@@ -561,12 +561,13 @@ package starling.core
         {
             if (mContext == null)
             {
-                // Starling is not yet ready - we postpone this until it's initialized.
-                addEventListener(starling.events.Event.ROOT_CREATED, function onRC(event:Object):void
+				var onRC:Function = function (event:Object):void
                 {
                     showStats = value;
                     removeEventListener(starling.events.Event.ROOT_CREATED, onRC);
-                });
+                };
+                // Starling is not yet ready - we postpone this until it's initialized.
+                addEventListener(starling.events.Event.ROOT_CREATED, onRC);
             }
             else
             {

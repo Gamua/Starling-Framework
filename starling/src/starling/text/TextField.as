@@ -331,7 +331,7 @@ package starling.text
             if (mFontName != value)
             {
                 if (value == BitmapFont.MINI && sBitmapFonts[value] == undefined)
-                    TextField.registerBitmapFont(new BitmapFont());
+                    starling.text.TextField.registerBitmapFont(new starling.text.BitmapFont());
                 
                 mFontName = value;
                 mRequiresRedraw = true;
