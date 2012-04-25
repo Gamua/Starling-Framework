@@ -176,7 +176,11 @@ package starling.display
             {
                 if (mPivotX != 0.0 || mPivotY != 0.0) resultMatrix.translate(-mPivotX, -mPivotY);
                 if (mScaleX != 1.0 || mScaleY != 1.0) resultMatrix.scale(mScaleX, mScaleY);
-                if (mSkewX != 0.0 || mSkewY != 0.0)   skew(resultMatrix, mSkewX, mSkewY);
+                if (mSkewX != 0.0 || mSkewY != 0.0)
+                {
+                    if (mSkewX == mSkewY) resultMatrix.rotate(mSkewX);
+                    else skew(resultMatrix, mSkewX, mSkewY);
+                }
                 if (mX != 0.0 || mY != 0.0)           resultMatrix.translate(mX, mY);
                 
                 return resultMatrix;

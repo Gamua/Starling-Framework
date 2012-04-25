@@ -176,7 +176,11 @@ package starling.core
             var pivotX:Number = object.pivotX; var pivotY:Number = object.pivotY;
             
             if (x != 0 || y != 0)           matrix.prependTranslation(x, y, 0.0);
-            if (skewX != 0 || skewY != 0)   prependSkew(matrix, skewX, skewY);
+            if (skewX != 0 || skewY != 0)
+            {
+                if (skewX == skewY) matrix.prependRotation(skewX / Math.PI * 180.0, Vector3D.Z_AXIS);
+                else prependSkew(matrix, skewX, skewY);
+            }
             if (scaleX != 1 || scaleY != 1) matrix.prependScale(scaleX, scaleY, 1.0);
             if (pivotX != 0 || pivotY != 0) matrix.prependTranslation(-pivotX, -pivotY, 0.0);
         }
@@ -281,32 +285,22 @@ package starling.core
 
         private static function prependSkew (matrix:Matrix3D, skewX:Number, skewY:Number):void
         {
-            // TODO(bruno): Enable this optimized version once things stabilize
-            // var rawData:Vector.<Number> = matrix.rawData;
-            // var a:Number = rawData[0];
-            // var b:Number = rawData[1];
-            // var c:Number = rawData[4];
-            // var d:Number = rawData[5];
-            //
-            // var sinX:Number = Math.sin(skewX);
-            // var cosX:Number = Math.cos(skewX);
-            // var sinY:Number = Math.sin(skewY);
-            // var cosY:Number = Math.cos(skewY);
-            //
-            // rawData[0] = a*cosY + c*sinY;
-            // rawData[1] = b*cosY + d*sinY;
-            // rawData[4] = c*cosX - a*sinX;
-            // rawData[5] = d*cosX - b*sinX;
-            // matrix.rawData = rawData;
+            var rawData:Vector.<Number> = matrix.rawData;
+            var a:Number = rawData[0];
+            var b:Number = rawData[1];
+            var c:Number = rawData[4];
+            var d:Number = rawData[5];
 
-            var skewMatrix :Matrix3D = new Matrix3D();
-            var rawData :Vector.<Number> = skewMatrix.rawData;
-            rawData[0] = Math.cos(skewY);
-            rawData[1] = Math.sin(skewY);
-            rawData[4] = -Math.sin(skewX);
-            rawData[5] = Math.cos(skewX);
-            skewMatrix.rawData = rawData;
-            matrix.prepend(skewMatrix);
+            var sinX:Number = Math.sin(skewX);
+            var cosX:Number = Math.cos(skewX);
+            var sinY:Number = Math.sin(skewY);
+            var cosY:Number = Math.cos(skewY);
+
+            rawData[0] = a*cosY + c*sinY;
+            rawData[1] = b*cosY + d*sinY;
+            rawData[4] = c*cosX - a*sinX;
+            rawData[5] = d*cosX - b*sinX;
+            matrix.rawData = rawData;
         }
     }
 }
