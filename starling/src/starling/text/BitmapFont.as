@@ -335,7 +335,7 @@ package starling.text
                 for (var c:int=0; c<numChars; ++c)
                 {
                     charLocation = line[c];
-                    charLocation.x = scale * (charLocation.x + xOffset)
+                    charLocation.x = scale * (charLocation.x + xOffset);
                     charLocation.y = scale * (charLocation.y + yOffset);
                     charLocation.scale = scale;
                     
@@ -366,14 +366,16 @@ package starling.text
     }
 }
 
+import starling.text.BitmapChar;
+
 class CharLocation
 {
-    public var char:starling.text.BitmapChar;
+    public var char:BitmapChar;
     public var scale:Number;
     public var x:Number;
     public var y:Number;
     
-    public function CharLocation(char:starling.text.BitmapChar)
+    public function CharLocation(char:BitmapChar)
     {
         this.char = char;
     }

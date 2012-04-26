@@ -561,11 +561,7 @@ package starling.core
             if (mContext == null)
             {
                 // Starling is not yet ready - we postpone this until it's initialized.
-                addEventListener(starling.events.Event.ROOT_CREATED, function onRC(event:Object):void
-                {
-                    showStats = value;
-                    removeEventListener(starling.events.Event.ROOT_CREATED, onRC);
-                });
+                addEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
             else
             {
@@ -581,6 +577,12 @@ package starling.core
                     mStatsDisplay.removeFromParent(true);
                     mStatsDisplay = null;
                 }
+            }
+            
+            function onRootCreated(event:Object):void
+            {
+                showStats = value;
+                removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
         
