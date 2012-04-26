@@ -8,16 +8,22 @@
 //
 // =================================================================================================
 
-package starling.events
+package starling.core
 {
     import flash.geom.Point;
     
     import starling.display.Stage;
+    import starling.events.KeyboardEvent;
+    import starling.events.Touch;
+    import starling.events.TouchEvent;
+    import starling.events.TouchPhase;
 
+    use namespace starling_internal;
+    
     /** @private
      *  The TouchProcessor is used internally to convert mouse and touch events of the conventional
      *  Flash stage to Starling's TouchEvents. */
-    public class TouchProcessor
+    internal class TouchProcessor
     {
         private static const MULTITAP_TIME:Number = 0.3;
         private static const MULTITAP_DISTANCE:Number = 25;

@@ -18,13 +18,13 @@ package starling.text
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
     
-    import starling.core.QuadBatch;
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
     import starling.display.Image;
     import starling.display.Quad;
+    import starling.display.QuadBatch;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.textures.Texture;

@@ -13,8 +13,8 @@ package starling.text
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
     
-    import starling.core.QuadBatch;
     import starling.display.Image;
+    import starling.display.QuadBatch;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.HAlign;

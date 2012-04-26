@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.core
+package starling.display
 {
     import com.adobe.utils.AGALMiniAssembler;
     
@@ -23,17 +23,13 @@ package starling.core
     import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
-    import starling.display.BlendMode;
-    import starling.display.DisplayObject;
-    import starling.display.DisplayObjectContainer;
-    import starling.display.Image;
-    import starling.display.Quad;
+    import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
-    import starling.utils.transformCoords;
     
     /** Optimizes rendering of a number of quads with an identical state.
      * 
@@ -41,6 +37,14 @@ package starling.core
      *  leaf nodes of Starling are quads (the Image and Quad classes). The rendering of those 
      *  quads can be accelerated by a big factor if all quads with an identical state are sent 
      *  to the GPU in just one call. That's what the QuadBatch class can do.</p>
+     *  
+     *  <p>The 'flatten' method of the Sprite class uses this class internally to optimize its 
+     *  rendering performance. In most situations, it is recommended to stick with flattened
+     *  sprites, because they are easier to use. Sometimes, however, it makes sense
+     *  to use the QuadBatch class directly: e.g. you can add one quad multiple times to 
+     *  a quad batch, whereas you can only add it once to a sprite. Furthermore, this class
+     *  does not dispatch <code>ADDED</code> or <code>ADDED_TO_STAGE</code> events when a quad
+     *  is added, which makes it more lightweight.</p>
      *  
      *  <p>One QuadBatch object is bound to a specific render state. The first object you add to a 
      *  batch will decide on the QuadBatch's state, that is: its texture, its settings for 
@@ -50,7 +54,8 @@ package starling.core
      *  <p>The class extends DisplayObject, but you can use it even without adding it to the
      *  display tree. Just call the 'renderCustom' method from within another render method,
      *  and pass appropriate values for transformation matrix, alpha and blend mode.</p>
-     *  
+     *
+     *  @see Sprite  
      */ 
     public class QuadBatch extends DisplayObject
     {

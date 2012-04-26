@@ -14,7 +14,6 @@ package starling.display
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
     
-    import starling.core.QuadBatch;
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.events.Event;
