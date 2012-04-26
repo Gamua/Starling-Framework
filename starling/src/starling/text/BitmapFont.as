@@ -54,10 +54,10 @@ package starling.text
     {
         // embed minimal font
         [Embed(source="../../assets/mini.fnt", mimeType="application/octet-stream")]
-        private static const MiniXml:Class;
+        private static var MiniXml:Class;
         
         [Embed(source = "../../assets/mini.png")]
-        private static const MiniTexture:Class;
+        private static var MiniTexture:Class;
         
         /** Use this constant for the <code>fontSize</code> property of the TextField class to 
          *  render the bitmap font in exactly the size it was created. */ 

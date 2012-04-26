@@ -47,6 +47,9 @@ package starling.textures
      *  });
      *  </pre>
      *  
+     *  <p>To erase parts of a render texture, you can use any display object like a "rubber" by
+     *  setting its blending mode to "BlendMode.ERASE".</p>
+     * 
      *  <p>Beware that render textures can't be restored when the Starling's render context is lost.
      *  </p>
      *     

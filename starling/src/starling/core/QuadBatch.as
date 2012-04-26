@@ -39,9 +39,13 @@ package starling.core
      * 
      *  <p>The majority of all rendered objects in Starling are quads. In fact, all the default
      *  leaf nodes of Starling are quads (the Image and Quad classes). The rendering of those 
-     *  quads can be accelerated by a big factor if all quads with an identical state (i.e. same 
-     *  texture, same smoothing and mipmapping settings) are sent to the GPU in just one call. 
-     *  That's what the QuadBatch class can do.</p>
+     *  quads can be accelerated by a big factor if all quads with an identical state are sent 
+     *  to the GPU in just one call. That's what the QuadBatch class can do.</p>
+     *  
+     *  <p>One QuadBatch object is bound to a specific render state. The first object you add to a 
+     *  batch will decide on the QuadBatch's state, that is: its texture, its settings for 
+     *  smoothing and blending, and if it's tinted (colored vertices and/or transparency). 
+     *  When you reset the batch, it will accept a new state on the next added quad.</p> 
      *  
      *  <p>The class extends DisplayObject, but you can use it even without adding it to the
      *  display tree. Just call the 'renderCustom' method from within another render method,
@@ -100,6 +104,7 @@ package starling.core
             registerPrograms();
         }
         
+        /** Creates a duplicate of the QuadBatch object. */
         public function clone():QuadBatch
         {
             var clone:QuadBatch = new QuadBatch();
