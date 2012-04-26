@@ -260,9 +260,9 @@ package starling.display
                 RenderSupport.transformMatrixForObject(modelViewMatrix, quad);
             }
             
+            var tinted:Boolean = texture ? (quad.tinted || parentAlpha != 1.0) : false;
             var alpha:Number = parentAlpha * quad.alpha;
             var vertexID:int = mNumQuads * 4;
-            var tinted:Boolean = texture ? (quad.tinted || alpha != 1.0) : false;
             
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 

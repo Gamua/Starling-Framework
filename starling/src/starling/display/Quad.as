@@ -144,7 +144,16 @@ package starling.display
             else mTinted = mVertexData.tinted;
         }
         
-        /** Returns true if any vertices of the object are non-white or non-opaque. */
+        /** @inheritDoc **/
+        public override function set alpha(value:Number):void
+        {
+            super.alpha = value;
+            
+            if (alpha != 1.0) mTinted = true;
+            else mTinted = mVertexData.tinted;
+        }
+        
+        /** Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
         public function get tinted():Boolean { return mTinted; }
         
         /** Copies the raw vertex data to a VertexData instance. */
