@@ -83,6 +83,7 @@ package starling.textures
             {
                 mBufferTexture = Texture.empty(width, height, 0x0, true, scale);
                 mHelperImage = new Image(mBufferTexture);
+                mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
         }
         
