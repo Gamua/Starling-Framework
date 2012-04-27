@@ -197,6 +197,7 @@ package starling.text
                                       hAlign:String="center", vAlign:String="center",
                                       autoScale:Boolean=true, kerning:Boolean=true):Vector.<CharLocation>
         {
+            if (text == null || text.length == 0) return new <CharLocation>[];
             if (fontSize < 0) fontSize *= -mSize;
             
             var lines:Vector.<Vector.<CharLocation>>;
