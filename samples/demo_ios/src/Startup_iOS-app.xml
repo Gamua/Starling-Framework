@@ -34,13 +34,15 @@
 	<!-- Languages supported by application. Only these languages can be specified. -->
 	<!-- <supportedLanguages>en de cs es fr it ja ko nl pl pt ru sv tr zh</supportedLanguages> -->
 
-	<!-- The icon the system uses for the application. Optional. -->
-	<!-- Place the icons in a 'source path' (e.g. in the 'src' directory). -->
-	<!-- iPhone: 57x57, iPhone HD: 114x114, iPad: 72x72 -->
+    <!-- The icon the system uses for the application. Optional. -->
+    <!-- Place the icons in a 'source path' (e.g. in the 'src' directory). -->
+    <!-- iPhone: 57x57, iPhone HD: 114x114, iPad: 72x72, iPad HD: 144x144 -->
     <icon>
         <image57x57>icon57.png</image57x57>
         <image72x72>icon72.png</image72x72>
         <image114x114>icon114.png</image114x114>
+        <!--  144x144 is available beginning with AIR 3.3: -->
+        <!--  <image144x144>icon144.png</image144x144>     -->
     </icon>
 
     <!-- iOS specific capabilities -->
