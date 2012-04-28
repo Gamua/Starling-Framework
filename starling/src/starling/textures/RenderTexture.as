@@ -47,6 +47,9 @@ package starling.textures
      *  });
      *  </pre>
      *  
+     *  <p>To erase parts of a render texture, you can use any display object like a "rubber" by
+     *  setting its blending mode to "BlendMode.ERASE".</p>
+     * 
      *  <p>Beware that render textures can't be restored when the Starling's render context is lost.
      *  </p>
      *     
@@ -80,6 +83,7 @@ package starling.textures
             {
                 mBufferTexture = Texture.empty(width, height, 0x0, true, scale);
                 mHelperImage = new Image(mBufferTexture);
+                mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
         }
         

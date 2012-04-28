@@ -18,13 +18,13 @@ package starling.text
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
     
-    import starling.core.QuadBatch;
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
     import starling.display.Image;
     import starling.display.Quad;
+    import starling.display.QuadBatch;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.textures.Texture;
@@ -126,10 +126,10 @@ package starling.text
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, alpha:Number):void
+        public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             if (mRequiresRedraw) redrawContents();
-            super.render(support, alpha);
+            super.render(support, parentAlpha);
         }
         
         private function redrawContents():void
@@ -153,7 +153,7 @@ package starling.text
             var height:Number = mHitArea.height * scale;
             
             var textFormat:TextFormat = new TextFormat(mFontName, 
-                mFontSize * scale, 0xffffff, mBold, mItalic, mUnderline, null, null, mHAlign);
+                mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, mHAlign);
             textFormat.kerning = mKerning;
             
             sNativeTextField.defaultTextFormat = textFormat;
@@ -210,8 +210,6 @@ package starling.text
                 mImage.texture = texture; 
                 mImage.readjustSize(); 
             }
-            
-            mImage.color = mColor;
         }
         
         private function autoScaleNativeTextField(textField:flash.text.TextField):void
@@ -331,7 +329,7 @@ package starling.text
             if (mFontName != value)
             {
                 if (value == BitmapFont.MINI && sBitmapFonts[value] == undefined)
-                    starling.text.TextField.registerBitmapFont(new starling.text.BitmapFont());
+                    registerBitmapFont(new BitmapFont());
                 
                 mFontName = value;
                 mRequiresRedraw = true;
@@ -360,9 +358,7 @@ package starling.text
             {
                 mColor = value;
                 updateBorder();
-                
-                if (mImage) mImage.color = value;
-                else        mRequiresRedraw = true;
+                mRequiresRedraw = true;
             }
         }
         

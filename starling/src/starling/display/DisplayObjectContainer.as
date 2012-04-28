@@ -292,9 +292,9 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, alpha:Number):void
+        public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            alpha *= this.alpha;
+            var alpha:Number = parentAlpha * this.alpha;
             var numChildren:int = mChildren.length;
             
             for (var i:int=0; i<numChildren; ++i)

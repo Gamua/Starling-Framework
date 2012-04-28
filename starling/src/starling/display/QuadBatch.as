@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.core
+package starling.display
 {
     import com.adobe.utils.AGALMiniAssembler;
     
@@ -19,43 +19,53 @@ package starling.core
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
-    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
-    import starling.display.BlendMode;
-    import starling.display.DisplayObject;
-    import starling.display.DisplayObjectContainer;
-    import starling.display.Image;
-    import starling.display.Quad;
+    import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
-    import starling.utils.transformCoords;
     
     /** Optimizes rendering of a number of quads with an identical state.
      * 
      *  <p>The majority of all rendered objects in Starling are quads. In fact, all the default
      *  leaf nodes of Starling are quads (the Image and Quad classes). The rendering of those 
-     *  quads can be accelerated by a big factor if all quads with an identical state (i.e. same 
-     *  texture, same smoothing and mipmapping settings) are sent to the GPU in just one call. 
-     *  That's what the QuadBatch class can do.</p>
+     *  quads can be accelerated by a big factor if all quads with an identical state are sent 
+     *  to the GPU in just one call. That's what the QuadBatch class can do.</p>
+     *  
+     *  <p>The 'flatten' method of the Sprite class uses this class internally to optimize its 
+     *  rendering performance. In most situations, it is recommended to stick with flattened
+     *  sprites, because they are easier to use. Sometimes, however, it makes sense
+     *  to use the QuadBatch class directly: e.g. you can add one quad multiple times to 
+     *  a quad batch, whereas you can only add it once to a sprite. Furthermore, this class
+     *  does not dispatch <code>ADDED</code> or <code>ADDED_TO_STAGE</code> events when a quad
+     *  is added, which makes it more lightweight.</p>
+     *  
+     *  <p>One QuadBatch object is bound to a specific render state. The first object you add to a 
+     *  batch will decide on the QuadBatch's state, that is: its texture, its settings for 
+     *  smoothing and blending, and if it's tinted (colored vertices and/or transparency). 
+     *  When you reset the batch, it will accept a new state on the next added quad.</p> 
      *  
      *  <p>The class extends DisplayObject, but you can use it even without adding it to the
      *  display tree. Just call the 'renderCustom' method from within another render method,
      *  and pass appropriate values for transformation matrix, alpha and blend mode.</p>
-     *  
+     *
+     *  @see Sprite  
      */ 
     public class QuadBatch extends DisplayObject
     {
+        private static const QUAD_PROGRAM_NAME:String = "QB_q";
+        
         private var mNumQuads:int;
         private var mSyncRequired:Boolean;
-        
+
+        private var mTinted:Boolean;
         private var mTexture:Texture;
         private var mSmoothing:String;
-        private var mBlendMode:String;
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
@@ -65,7 +75,6 @@ package starling.core
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
-        private static var sHelperPoint:Point = new Point();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         
         /** Creates a new QuadBatch instance with empty batch data. */
@@ -74,6 +83,7 @@ package starling.core
             mVertexData = new VertexData(0, true);
             mIndexData = new <uint>[];
             mNumQuads = 0;
+            mTinted = false;
             mSyncRequired = false;
             
             // handle lost context
@@ -97,16 +107,18 @@ package starling.core
             registerPrograms();
         }
         
+        /** Creates a duplicate of the QuadBatch object. */
         public function clone():QuadBatch
         {
             var clone:QuadBatch = new QuadBatch();
             clone.mVertexData = mVertexData.clone(0, mNumQuads * 4);
             clone.mIndexData = mIndexData.slice(0, mNumQuads * 6);
             clone.mNumQuads = mNumQuads;
+            clone.mTinted = mTinted;
             clone.mTexture = mTexture;
             clone.mSmoothing = mSmoothing;
-            clone.mBlendMode = mBlendMode;
             clone.mSyncRequired = true;
+            clone.blendMode = this.blendMode;
             return clone;
         }
         
@@ -153,20 +165,22 @@ package starling.core
         /** Uploads the raw data of all batched quads to the vertex buffer. */
         private function syncBuffers():void
         {
-            // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
-            // this is slower than updating the complete buffer.
-            
             if (mVertexBuffer == null)
                 createBuffers();
-            
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
-            mSyncRequired = false;
+            else
+            {
+                // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
+                // this is slower than updating the complete buffer.
+                
+                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+                mSyncRequired = false;
+            }
         }
         
         /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
          *  and blend mode. This makes it possible to render batches that are not part of the 
          *  display list. */ 
-        public function renderCustom(mvpMatrix:Matrix3D, alpha:Number=1.0,
+        public function renderCustom(mvpMatrix:Matrix3D, parentAlpha:Number=1.0,
                                      blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
@@ -174,30 +188,31 @@ package starling.core
             
             var pma:Boolean = mVertexData.premultipliedAlpha;
             var context:Context3D = Starling.context;
-            var dynamicAlpha:Boolean = alpha != 1.0;
+            var tinted:Boolean = mTinted || (parentAlpha != 1.0);
+            var programName:String = mTexture ? 
+                getImageProgramName(tinted, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
+                QUAD_PROGRAM_NAME;
             
-            var program:String = mTexture ? 
-                getImageProgramName(dynamicAlpha, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
-                getQuadProgramName(dynamicAlpha);
+            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
+            sRenderAlpha[3] = parentAlpha;
             
-            RenderSupport.setBlendFactors(pma, blendMode ? blendMode : mBlendMode);
+            RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
-            context.setProgram(Starling.current.getProgram(program));
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_3); 
-            context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,    Context3DVertexBufferFormat.FLOAT_4);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);            
+            context.setProgram(Starling.current.getProgram(programName));
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
+            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
+                                      Context3DVertexBufferFormat.FLOAT_3); 
             
-            if (dynamicAlpha)
-            {
-                sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
-                sRenderAlpha[3] = alpha;
-                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sRenderAlpha, 1);
-            }
+            if (mTexture == null || tinted)
+                context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
+                                          Context3DVertexBufferFormat.FLOAT_4);
             
             if (mTexture)
             {
                 context.setTextureAt(0, mTexture.base);
-                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, 
+                                          Context3DVertexBufferFormat.FLOAT_2);
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
@@ -219,27 +234,24 @@ package starling.core
             mNumQuads = 0;
             mTexture = null;
             mSmoothing = null;
-            mBlendMode = null;
             mSyncRequired = true;
         }
         
         /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
          *  parameters for 'texture' and 'smoothing'. */ 
-        public function addImage(image:Image, alpha:Number=1.0, modelViewMatrix:Matrix3D=null,
-                                 blendMode:String="normal"):void
+        public function addImage(image:Image, parentAlpha:Number=1.0, modelViewMatrix:Matrix3D=null,
+                                 blendMode:String=null):void
         {
-            addQuad(image, alpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
+            addQuad(image, parentAlpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
         }
         
         /** Adds a quad to the batch. The first quad determines the state of the batch,
          *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
          *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
-         *  the batch. 
-         *  @param blendMode Supply a concrete (i.e. not "auto") blend mode. 
-         *                   The corresponding property of the quad is ignored. */
-        public function addQuad(quad:Quad, alpha:Number=1.0, texture:Texture=null, 
+         *  the batch. */ 
+        public function addQuad(quad:Quad, parentAlpha:Number=1.0, texture:Texture=null, 
                                 smoothing:String=null, modelViewMatrix:Matrix3D=null, 
-                                blendMode:String="normal"):void
+                                blendMode:String=null):void
         {
             if (modelViewMatrix == null)
             {
@@ -248,20 +260,22 @@ package starling.core
                 RenderSupport.transformMatrixForObject(modelViewMatrix, quad);
             }
             
+            var tinted:Boolean = texture ? (quad.tinted || parentAlpha != 1.0) : false;
+            var alpha:Number = parentAlpha * quad.alpha;
+            var vertexID:int = mNumQuads * 4;
+            
             if (mNumQuads + 1 > mVertexData.numVertices / 4) expand();
             if (mNumQuads == 0) 
             {
+                this.blendMode = blendMode ? blendMode : quad.blendMode;
                 mTexture = texture;
+                mTinted = tinted;
                 mSmoothing = smoothing;
-                mBlendMode = blendMode;
                 mVertexData.setPremultipliedAlpha(
                     texture ? texture.premultipliedAlpha : true, false); 
             }
             
-            var vertexID:int = mNumQuads * 4;
-            
             quad.copyVertexDataTo(mVertexData, vertexID);
-            alpha *= quad.alpha;
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
@@ -275,8 +289,8 @@ package starling.core
         /** Indicates if a quad can be added to the batch without causing a state change. 
          *  A state change occurs if the quad uses a different base texture or has a different 
          *  'smoothing', 'repeat' or 'blendMode' setting. */
-        public function isStateChange(quad:Quad, texture:Texture, smoothing:String,
-                                      blendMode:String):Boolean
+        public function isStateChange(quad:Quad, parentAlpha:Number, texture:Texture, 
+                                      smoothing:String, blendMode:String):Boolean
         {
             if (mNumQuads == 0) return false;
             else if (mNumQuads == 8192) return true; // maximum buffer size
@@ -285,7 +299,8 @@ package starling.core
                 return mTexture.base != texture.base ||
                        mTexture.repeat != texture.repeat ||
                        mSmoothing != smoothing ||
-                       mBlendMode != blendMode;
+                       mTinted != (quad.tinted || parentAlpha != 1.0) ||
+                       this.blendMode != blendMode;
             else return true;
         }
         
@@ -303,10 +318,10 @@ package starling.core
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, alpha:Number):void
+        public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             support.finishQuadBatch();
-            renderCustom(support.mvpMatrix, this.alpha * alpha, support.blendMode);
+            renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
         }
         
         // compilation (for flattened sprites)
@@ -331,12 +346,14 @@ package starling.core
             var i:int;
             var quadBatch:QuadBatch;
             var isRootObject:Boolean = false;
+            var objectAlpha:Number = object.alpha;
             
             if (quadBatchID == -1)
             {
                 isRootObject = true;
                 quadBatchID = 0;
-                blendMode = object.blendMode == BlendMode.AUTO ? BlendMode.NORMAL : object.blendMode;
+                objectAlpha = 1.0;
+                blendMode = object.blendMode;
                 if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
                 else quadBatches[0].reset();
             }
@@ -359,7 +376,7 @@ package starling.core
                         childMatrix.copyFrom(transformationMatrix);
                         RenderSupport.transformMatrixForObject(childMatrix, child);
                         quadBatchID = compileObject(child, quadBatches, quadBatchID, childMatrix, 
-                                                    alpha * child.alpha, childBlendMode);
+                                                    alpha*objectAlpha, childBlendMode);
                     }
                 }
             }
@@ -372,7 +389,7 @@ package starling.core
                 
                 quadBatch = quadBatches[quadBatchID];
                 
-                if (quadBatch.isStateChange(quad, texture, smoothing, blendMode))
+                if (quadBatch.isStateChange(quad, alpha*objectAlpha, texture, smoothing, blendMode))
                 {
                     quadBatchID++;
                     if (quadBatches.length <= quadBatchID) 
@@ -389,6 +406,7 @@ package starling.core
                     quadBatchID++;
                 
                 quadBatch = (object as QuadBatch).clone();
+                quadBatch.blendMode = blendMode;
                 quadBatch.mVertexData.transformVertex(0, transformationMatrix, -1);
                 quadBatches.splice(quadBatchID, 0, quadBatch); 
             }
@@ -420,50 +438,59 @@ package starling.core
         private static function registerPrograms():void
         {
             var target:Starling = Starling.current;
-            if (target.hasProgram(getQuadProgramName(true))) return; // already registered
+            if (target.hasProgram(QUAD_PROGRAM_NAME)) return; // already registered
             
             // create vertex and fragment programs from assembly
             var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler(); 
+            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
             
             var vertexProgramCode:String;
             var fragmentProgramCode:String;
             
-            // Each combination of alpha/repeat/mipmap/smoothing has its own fragment shader.
-            for each (var dynamicAlpha:Boolean in [true, false])
-            {            
-                // Quad:
-                
-                vertexProgramCode = 
-                    "m44 op, va0, vc0  \n" +        // 4x4 matrix transform to output clipspace
-                    "mov v0, va1       \n";         // pass color to fragment program 
-                
-                fragmentProgramCode = dynamicAlpha ? 
-                    "mul ft0, v0, fc0  \n" +        // multiply alpha (fc0) by color (v0)
-                    "mov oc, ft0       \n"          // output color
-                  : 
-                    "mov oc, v0        \n";         // output color
-                                    
-                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode); 
-                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode);
-                
-                target.registerProgram(getQuadProgramName(dynamicAlpha), 
-                    vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
-                
-                // Image:                
-                
-                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX,
-                    "m44 op, va0, vc0  \n" +        // 4x4 matrix transform to output clipspace
-                    "mov v0, va1       \n" +        // pass color to fragment program
-                    "mov v1, va2       \n");        // pass texture coordinates to fragment program
-                    
-                fragmentProgramCode = dynamicAlpha ?
-                    "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
-                    "mul ft2, ft1, v0        \n" +  // multiply color with texel color
-                    "mul oc, ft2, fc0        \n"    // multiply color with alpha
+            // this is the input data we'll pass to the shaders:
+            // 
+            // va0 -> position
+            // va1 -> color
+            // va2 -> texCoords
+            // vc0 -> alpha
+            // vc1 -> mvpMatrix
+            // fs0 -> texture
+            
+            // Quad:
+            
+            vertexProgramCode =
+                "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
+                "mul v0, va1, vc0 \n";  // multiply alpha (vc0) with color (va1)
+            
+            fragmentProgramCode =
+                "mov oc, v0       \n";  // output color
+            
+            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode);
+            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode);
+            
+            target.registerProgram(QUAD_PROGRAM_NAME,
+                vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+            
+            // Image:
+            // Each combination of tinted/repeat/mipmap/smoothing has its own fragment shader.
+            
+            for each (var tinted:Boolean in [true, false])
+            {
+                vertexProgramCode = tinted ?
+                    "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
+                    "mul v0, va1, vc0 \n" + // multiply alpha (vc0) with color (va1)
+                    "mov v1, va2      \n"   // pass texture coordinates to fragment program
                   :
-                    "tex ft1, v1, fs0 <???>  \n" +  // sample texture 0
-                    "mul oc, ft1, v0         \n";   // multiply color with texel color
+                    "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
+                    "mov v1, va2      \n";  // pass texture coordinates to fragment program
+                    
+                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode);
+                
+                fragmentProgramCode = tinted ?
+                    "tex ft1,  v1, fs0 <???> \n" + // sample texture 0
+                    "mul  oc, ft1,  v0       \n"   // multiply color with texel color
+                  :
+                    "tex  oc,  v1, fs0 <???> \n";  // sample texture 0
                 
                 var smoothingTypes:Array = [
                     TextureSmoothing.NONE,
@@ -487,10 +514,10 @@ package starling.core
                                 options.push("linear", mipmap ? "miplinear" : "mipnone");
                             
                             fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                                fragmentProgramCode.replace("???", options.join())); 
+                                fragmentProgramCode.replace("???", options.join()));
                             
                             target.registerProgram(
-                                getImageProgramName(dynamicAlpha, mipmap, repeat, smoothing),
+                                getImageProgramName(tinted, mipmap, repeat, smoothing),
                                 vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
                         }
                     }
@@ -498,19 +525,14 @@ package starling.core
             }
         }
         
-        private static function getQuadProgramName(dynamicAlpha:Boolean):String
-        {
-            return dynamicAlpha ? "QB_q*" : "QB_q'";
-        }
-        
-        private static function getImageProgramName(dynamicAlpha:Boolean,
-                                                    mipMap:Boolean=true, repeat:Boolean=false, 
+        private static function getImageProgramName(tinted:Boolean,
+                                                    mipMap:Boolean=true, repeat:Boolean=false,
                                                     smoothing:String="bilinear"):String
         {
-            // this method is designed to return most quickly when called with 
+            // this method is designed to return most quickly when called with
             // the default parameters (no-repeat, mipmap, bilinear)
             
-            var name:String = dynamicAlpha ? "QB_i*" : "QB_i'";
+            var name:String = tinted ? "QB_i*" : "QB_i'";
             
             if (!mipMap) name += "N";
             if (repeat)  name += "R";

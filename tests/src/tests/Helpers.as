@@ -13,6 +13,7 @@ package tests
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     
     import org.flexunit.Assert;
     import org.flexunit.assertThat;
@@ -34,6 +35,14 @@ package tests
         {
             assertThat(point1.x, closeTo(point2.x, e));
             assertThat(point1.y, closeTo(point2.y, e));
+        }
+        
+        public static function compareVector3Ds(v1:Vector3D, v2:Vector3D, e:Number=0.0001):void
+        {
+            assertThat(v1.x, closeTo(v2.x, e));
+            assertThat(v1.y, closeTo(v2.y, e));
+            assertThat(v1.z, closeTo(v2.z, e));
+            assertThat(v1.w, closeTo(v2.w, e));
         }
         
         public static function compareVectors(vector1:Vector.<Number>, vector2:Vector.<Number>,

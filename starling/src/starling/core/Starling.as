@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright 2012 Gamua OG. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -38,7 +38,6 @@ package starling.core
     import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
-    import starling.events.TouchProcessor;
     
     /** Dispatched when a new render context is created. */
     [Event(name="context3DCreate", type="starling.events.Event")]
@@ -561,13 +560,8 @@ package starling.core
         {
             if (mContext == null)
             {
-				var onRC:Function = function (event:Object):void
-                {
-                    showStats = value;
-                    removeEventListener(starling.events.Event.ROOT_CREATED, onRC);
-                };
                 // Starling is not yet ready - we postpone this until it's initialized.
-                addEventListener(starling.events.Event.ROOT_CREATED, onRC);
+                addEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
             else
             {
@@ -583,6 +577,12 @@ package starling.core
                     mStatsDisplay.removeFromParent(true);
                     mStatsDisplay = null;
                 }
+            }
+            
+            function onRootCreated(event:Object):void
+            {
+                showStats = value;
+                removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
         

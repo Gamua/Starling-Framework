@@ -13,8 +13,8 @@ package starling.text
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
     
-    import starling.core.QuadBatch;
     import starling.display.Image;
+    import starling.display.QuadBatch;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.HAlign;
@@ -55,10 +55,10 @@ package starling.text
     {
         // embed minimal font
         [Embed(source="../../assets/mini.fnt", mimeType="application/octet-stream")]
-        private static const MiniXml:Class;
+        private static var MiniXml:Class;
         
         [Embed(source = "../../assets/mini.png")]
-        private static const MiniTexture:Class;
+        private static var MiniTexture:Class;
         
         /** Use this constant for the <code>fontSize</code> property of the TextField class to 
          *  render the bitmap font in exactly the size it was created. */ 
@@ -198,6 +198,7 @@ package starling.text
                                       hAlign:String="center", vAlign:String="center",
                                       autoScale:Boolean=true, kerning:Boolean=true):Vector.<CharLocation>
         {
+            if (text == null || text.length == 0) return new <CharLocation>[];
             if (fontSize < 0) fontSize *= -mSize;
             
             var lines:Vector.<Vector.<CharLocation>>;
@@ -336,7 +337,7 @@ package starling.text
                 for (var c:int=0; c<numChars; ++c)
                 {
                     charLocation = line[c];
-                    charLocation.x = scale * (charLocation.x + xOffset)
+                    charLocation.x = scale * (charLocation.x + xOffset);
                     charLocation.y = scale * (charLocation.y + yOffset);
                     charLocation.scale = scale;
                     
@@ -367,13 +368,16 @@ package starling.text
     }
 }
 
-class CharLocation {
-	public var char : starling.text.BitmapChar;
+import starling.text.BitmapChar;
+
+class CharLocation
+{
+    public var char:BitmapChar;
     public var scale:Number;
     public var x:Number;
     public var y:Number;
     
-    public function CharLocation(char:starling.text.BitmapChar)
+    public function CharLocation(char:BitmapChar)
     {
         this.char = char;
     }

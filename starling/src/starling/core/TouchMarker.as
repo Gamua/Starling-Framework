@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.events
+package starling.core
 {
     import flash.geom.Point;
     
