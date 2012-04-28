@@ -73,6 +73,9 @@ package tests
             Assert.assertFalse(quad.tinted);
             
             quad.alpha = 0.5;
+            Assert.assertTrue(quad.tinted);
+            
+            quad.alpha = 1.0;
             Assert.assertFalse(quad.tinted);
             
             quad.color = 0xff0000;
