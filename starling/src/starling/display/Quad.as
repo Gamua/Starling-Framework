@@ -75,19 +75,17 @@ package starling.display
             if (targetSpace == this) // optimization
             {
                 mVertexData.getPosition(3, sHelperVector);
-                resultRect.x = resultRect.y = 0.0;
-                resultRect.width  = sHelperVector.x;
-                resultRect.height = sHelperVector.y;
+                resultRect.setTo(0.0, 0.0, sHelperVector.x, sHelperVector.y);
             }
             else if (targetSpace == parent && rotation == 0.0) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
                 mVertexData.getPosition(3, sHelperVector);
-                resultRect.x = x - pivotX * scaleX;
-                resultRect.y = y - pivotY * scaleY;
-                resultRect.width  = sHelperVector.x * scaleX;
-                resultRect.height = sHelperVector.y * scaleY;
+                resultRect.setTo(x - pivotX * scaleX, y - pivotY * scaleY,
+                                 sHelperVector.x * scaleX, sHelperVector.y * scaleY);
+                if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
+                if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
             }
             else
             {

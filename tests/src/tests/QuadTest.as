@@ -132,5 +132,28 @@ package tests
             
             Helpers.compareRectangles(parent.bounds, quad.bounds);
         }
+        
+        [Test]
+        public function testWidthAndHeight():void
+        {
+            var quad:Quad = new Quad(100, 50);
+            Assert.assertEquals(100, quad.width);
+            Assert.assertEquals(50,  quad.height);
+            
+            quad.scaleX = -1;
+            Assert.assertEquals(100, quad.width);
+            
+            quad.pivotX = 100;
+            Assert.assertEquals(100, quad.width);
+            
+            quad.pivotX = -10;
+            Assert.assertEquals(100, quad.width);
+            
+            quad.scaleY = -1;
+            Assert.assertEquals(50, quad.height);
+            
+            quad.pivotY = 20;
+            Assert.assertEquals(50, quad.height);
+        }
     }
 }
