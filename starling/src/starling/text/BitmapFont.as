@@ -325,6 +325,10 @@ package starling.text
             for (var lineID:int=0; lineID<numLines; ++lineID)
             {
                 var line:Vector.<CharLocation> = lines[lineID];
+                numChars = line.length;
+                
+                if (numChars == 0) continue;
+                
                 var lastLocation:CharLocation = line[line.length-1];
                 var right:Number = lastLocation.x + lastLocation.char.width;
                 var xOffset:int = 0;
@@ -332,7 +336,6 @@ package starling.text
                 if (hAlign == HAlign.RIGHT)       xOffset =  containerWidth - right;
                 else if (hAlign == HAlign.CENTER) xOffset = (containerWidth - right) / 2;
                 
-                numChars = line.length;
                 for (var c:int=0; c<numChars; ++c)
                 {
                     charLocation = line[c];
