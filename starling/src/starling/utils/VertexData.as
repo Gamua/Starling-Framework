@@ -334,11 +334,7 @@ package starling.utils
                 }
             }
             
-            resultRect.x = minX;
-            resultRect.y = minY;
-            resultRect.width  = maxX - minX;
-            resultRect.height = maxY - minY;
-            
+            resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             return resultRect;
         }
         
