@@ -384,8 +384,9 @@ package starling.core
         
         private function onKey(event:KeyboardEvent):void
         {
-            makeCurrent();
+            if (!mStarted) return;
             
+            makeCurrent();
             mStage.dispatchEvent(new starling.events.KeyboardEvent(
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey));
@@ -399,6 +400,8 @@ package starling.core
 
         private function onTouch(event:Event):void
         {
+            if (!mStarted) return;
+            
             var globalX:Number;
             var globalY:Number;
             var touchID:int;
