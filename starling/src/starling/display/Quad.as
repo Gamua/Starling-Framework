@@ -15,7 +15,10 @@ package starling.display
     import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
+    import starling.core.starling_internal;
     import starling.utils.VertexData;
+    
+    use namespace starling_internal;
 
     /** A Quad represents a rectangle with a uniform color or a color gradient.
      *  
@@ -151,9 +154,6 @@ package starling.display
             else mTinted = mVertexData.tinted;
         }
         
-        /** Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
-        public function get tinted():Boolean { return mTinted; }
-        
         /** Copies the raw vertex data to a VertexData instance. */
         public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
@@ -165,5 +165,9 @@ package starling.display
         {
             support.batchQuad(this, parentAlpha);
         }
+        
+        /** @private 
+         *  Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
+        starling_internal function get tinted():Boolean { return mTinted; }
     }
 }

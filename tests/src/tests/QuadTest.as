@@ -14,9 +14,12 @@ package tests
     
     import flexunit.framework.Assert;
     
+    import starling.core.starling_internal;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.utils.Color;
+    
+    use namespace starling_internal;
 
     public class QuadTest
     {		
