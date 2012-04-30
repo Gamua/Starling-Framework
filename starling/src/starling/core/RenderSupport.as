@@ -118,6 +118,12 @@ package starling.core
                                              axis == null ? Vector3D.Z_AXIS : axis);
         }
         
+        /** Prepends a skew (angles in radians) to the modelview matrix. */
+        public function skewMatrix(skewX:Number, skewY:Number):void
+        {
+            prependSkew(mModelViewMatrix, skewX, skewY);
+        }
+
         /** Prepends an incremental scale change to the modelview matrix. */
         public function scaleMatrix(sx:Number, sy:Number, sz:Number=1.0):void
         {
@@ -165,12 +171,16 @@ package starling.core
         public static function transformMatrixForObject(matrix:Matrix3D, object:DisplayObject):void
         {
             var x:Number = object.x; var y:Number = object.y;
-            var rotation:Number = object.rotation;
+            var skewX:Number = object.skewX; var skewY:Number = object.skewY;
             var scaleX:Number = object.scaleX; var scaleY:Number = object.scaleY;
             var pivotX:Number = object.pivotX; var pivotY:Number = object.pivotY;
             
             if (x != 0 || y != 0)           matrix.prependTranslation(x, y, 0.0);
-            if (rotation != 0)              matrix.prependRotation(rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
+            if (skewX != 0 || skewY != 0)
+            {
+                if (skewX == skewY) matrix.prependRotation(skewX / Math.PI * 180.0, Vector3D.Z_AXIS);
+                else prependSkew(matrix, skewX, skewY);
+            }
             if (scaleX != 1 || scaleY != 1) matrix.prependScale(scaleX, scaleY, 1.0);
             if (pivotX != 0 || pivotY != 0) matrix.prependTranslation(-pivotX, -pivotY, 0.0);
         }
@@ -270,6 +280,25 @@ package starling.core
                 Color.getGreen(rgb) / 255.0, 
                 Color.getBlue(rgb)  / 255.0,
                 alpha);
+        }
+
+        private static function prependSkew (matrix:Matrix3D, skewX:Number, skewY:Number):void
+        {
+            var rawData:Vector.<Number> = matrix.rawData;
+            var a:Number = rawData[0];
+            var b:Number = rawData[1];
+            var c:Number = rawData[4];
+            var d:Number = rawData[5];
+            var sinX:Number = Math.sin(skewX);
+            var cosX:Number = Math.cos(skewX);
+            var sinY:Number = Math.sin(skewY);
+            var cosY:Number = Math.cos(skewY);
+
+            rawData[0] = a*cosY + c*sinY;
+            rawData[1] = b*cosY + d*sinY;
+            rawData[4] = c*cosX - a*sinX;
+            rawData[5] = d*cosX - b*sinX;
+            matrix.rawData = rawData;
         }
     }
 }
