@@ -178,6 +178,7 @@ package starling.core
             mStage3D = stage3D;
             mStage = new Stage(viewPort.width, viewPort.height, stage.color);
             mNativeStage = stage;
+            mNativeOverlay = new Sprite();
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -372,13 +373,13 @@ package starling.core
         private function onEnterFrame(event:Event):void
         {
             makeCurrent();
+            updateNativeOverlay();
             
-            if (mNativeOverlay) updateNativeOverlay();
-            if (mStarted) 
-            {
-                advanceTime();
-                render();
-            }
+            // When there's a native overlay, we have to call 'render' even if Starling is 
+            // paused -- because the native stage is only updated on calls to 'context.present()'.
+            
+            if (mStarted) advanceTime();
+            if (mStarted || mNativeOverlay.parent) render();
         }
         
         private function onKey(event:KeyboardEvent):void
@@ -542,17 +543,7 @@ package starling.core
         
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
          *  Flash components. */ 
-        public function get nativeOverlay():Sprite
-        {
-            if (mNativeOverlay == null)
-            {
-                mNativeOverlay = new Sprite();
-                mNativeStage.addChild(mNativeOverlay);
-                updateNativeOverlay();
-            }
-            
-            return mNativeOverlay;
-        }
+        public function get nativeOverlay():Sprite { return mNativeOverlay; }
         
         /** Indicates if a small statistics box (with FPS and memory usage) is displayed. */
         public function get showStats():Boolean { return mStatsDisplay != null; }
