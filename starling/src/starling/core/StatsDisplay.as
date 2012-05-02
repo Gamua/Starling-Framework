@@ -34,8 +34,8 @@ package starling.core
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
         {
-            mBackground = new Quad(128, 32, 0x0);
-            mTextField = new TextField(128, 32, "", BitmapFont.MINI, BitmapFont.NATIVE_SIZE, 0xffffff);
+            mBackground = new Quad(49, 18, 0x0);
+            mTextField = new TextField(60, 18, "", BitmapFont.MINI, BitmapFont.NATIVE_SIZE, 0xffffff);
             mTextField.x = 2;
             mTextField.hAlign = HAlign.LEFT;
             mTextField.vAlign = VAlign.TOP;
@@ -50,9 +50,8 @@ package starling.core
         
         private function updateText(fps:Number, memory:Number):void
         {
-            mTextField.text = "FPS: " + fps.toFixed(2) + "\nMEM: " + memory.toFixed(2);
-            mBackground.width  = mTextField.textBounds.width  + 5;
-            mBackground.height = mTextField.textBounds.height + 5;
+            mTextField.text = "FPS: " + fps.toFixed(1) + "\nMEM: " + memory.toFixed(1);
+            mBackground.width  = (fps >= 100 || memory >= 100) ? 55 : 49; 
         }
         
         private function getMemory():Number
