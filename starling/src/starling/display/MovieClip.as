@@ -98,15 +98,15 @@ package starling.display
             if (frameID < 0 || frameID > numFrames) throw new ArgumentError("Invalid frame id");
             if (duration < 0) duration = mDefaultFrameDuration;
             
-            if (frameID > 0 && frameID == numFrames) 
-                mStartTimes[frameID] = mStartTimes[frameID-1] + mDurations[frameID-1];
-            else
-                updateStartTimes();
-            
             mTextures.splice(frameID, 0, texture);
             mSounds.splice(frameID, 0, sound);
             mDurations.splice(frameID, 0, duration);
             mTotalTime += duration;
+            
+            if (frameID > 0 && frameID == numFrames) 
+                mStartTimes[frameID] = mStartTimes[frameID-1] + mDurations[frameID-1];
+            else
+                updateStartTimes();
         }
         
         /** Removes the frame at a certain ID. The successors will move down. */
@@ -114,10 +114,12 @@ package starling.display
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             if (numFrames == 1) throw new IllegalOperationError("Movie clip must not be empty");
+            
             mTotalTime -= getFrameDuration(frameID);
             mTextures.splice(frameID, 1);
             mSounds.splice(frameID, 1);
             mDurations.splice(frameID, 1);
+            
             updateStartTimes();
         }
         
