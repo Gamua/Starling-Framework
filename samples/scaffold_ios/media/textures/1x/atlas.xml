@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with TexturePacker http://texturepacker.com-->
+<!-- $TexturePacker:SmartUpdate:f3dc6f4e709dba464d16de9c1c09c2a8$ -->
+<TextureAtlas imagePath="atlas.png">
+    <SubTexture name="logo" x="0" y="0" width="320" height="143"/>
+</TextureAtlas>
