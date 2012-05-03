@@ -104,9 +104,9 @@ package tests
             var texture3:Texture = new ConcreteTexture(null, 16, 16, false, false);
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
-            movie.addFrame(texture1);
             movie.addFrame(texture2, null, 0.5);
             movie.addFrame(texture3);
+            movie.addFrameAt(0, texture1);
             
             Assert.assertEquals(0, movie.currentFrame);
             movie.advanceTime(frameDuration / 2.0);
