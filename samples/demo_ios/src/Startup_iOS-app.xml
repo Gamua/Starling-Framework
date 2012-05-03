@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<application xmlns="http://ns.adobe.com/air/application/3.2">
+<application xmlns="http://ns.adobe.com/air/application/3.3">
 
 	<id>com.gamua.starling.demo</id> <!-- Bundle Identifier. Required. -->
 	<filename>Starling-Demo</filename> <!-- Used as the filename for the application. Required. -->
@@ -54,10 +54,12 @@
 			<key>UIDeviceFamily</key>
 			<array>
 				<string>1</string>
+				<string>2</string>
 			</array>
 		]]></InfoAdditions>
 		
 		<!-- Display Resolution for the app ("standard" or "high"). Optional. Default "standard" -->
         <requestedDisplayResolution>high</requestedDisplayResolution>
-    </iPhone>
+    </iPhone>   
+
 </application>

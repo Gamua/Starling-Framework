@@ -6,32 +6,50 @@ package
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.events.Event;
+    import flash.geom.Rectangle;
     import flash.system.Capabilities;
     
     import starling.core.Starling;
     
-    [SWF(width="320", height="480", frameRate="30", backgroundColor="#222222")]
+    [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
     public class Startup_iOS extends Sprite
     {
         private var mStarling:Starling;
         
         public function Startup_iOS()
         {
+            // set general properties
+            
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
-            
-            // While Stage3D is initializing, the screen will be blank. To avoid any flickering, 
-            // we display the background image for now, but will remove it below, when Starling
-            // is ready to go.
-            
-            var startupBitmap:Bitmap = Capabilities.screenResolutionX <= 320 ?
-                new AssetEmbeds_1x.Background() : new AssetEmbeds_2x.Background();
-            addChild(startupBitmap);
             
             Starling.multitouchEnabled = true;  // useful on mobile devices
             Starling.handleLostContext = false; // not necessary on iOS. Saves a lot of memory!
             
-            mStarling = new Starling(Game, stage);
+            // create a suitable viewport for the screen size
+            
+            var viewPort:Rectangle =  new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight);
+            
+            if (viewPort.width == 768) // iPad 1+2
+                viewPort.setTo(64, 32, 640, 960);
+            else if (viewPort.width == 1536) // iPad 3
+                viewPort.setTo(128, 64, 1280, 1920);
+                
+            // While Stage3D is initializing, the screen will be blank. To avoid any flickering, 
+            // we display a startup image now and remove it below, when Starling is ready to go.
+            
+            var startupBitmap:Bitmap = Capabilities.screenResolutionX <= 320 ?
+                new AssetEmbeds_1x.Background() : new AssetEmbeds_2x.Background();
+            startupBitmap.x = viewPort.x;
+            startupBitmap.y = viewPort.y;
+            startupBitmap.width  = viewPort.width;
+            startupBitmap.height = viewPort.height;
+            startupBitmap.smoothing = true;
+            addChild(startupBitmap);
+            
+            // launch Starling
+            
+            mStarling = new Starling(Game, stage, viewPort);
             mStarling.simulateMultitouch  = false;
             mStarling.enableErrorChecking = false;
             

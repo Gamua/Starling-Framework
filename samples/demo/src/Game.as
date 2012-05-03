@@ -31,17 +31,22 @@ package
         
         public function Game()
         {
-            // the following settings are for mobile development (iOS): you develop your game
-            // in a coordinate system of 320x480; the game might then run on a retina device
-            // (640x960), in which case the "Assets" class will provide high resolution textures.
+            // The following settings are for mobile development (iOS, Android):
+            //
+            // You develop your game in a *fixed* coordinate system of 320x480; the game might 
+            // then run on a device with a different resolution, and the assets class will
+            // provide textures in the most suitable format.
             
             Starling.current.stage.stageWidth  = 320;
             Starling.current.stage.stageHeight = 480;
             Assets.contentScaleFactor = Starling.current.contentScaleFactor;
             
-            // sound initialization takes a moment, so we prepare them here
+            // load general assets
+            
             Assets.prepareSounds();
             Assets.loadBitmapFonts();
+            
+            // create and show menu screen
             
             var bg:Image = new Image(Assets.getTexture("Background"));
             addChild(bg);
@@ -85,6 +90,7 @@ package
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
             
             // show information about rendering method (hardware/software)
+            
             var driverInfo:String = Starling.context.driverInfo;
             var infoText:TextField = new TextField(310, 64, driverInfo, "Verdana", 10);
             infoText.x = 5;

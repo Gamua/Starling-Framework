@@ -101,8 +101,8 @@ package
             for each (var texture:Texture in sTextures)
                 texture.dispose();
             
-            sTextures = new Dictionary();            
-            sContentScaleFactor = value; 
+            sTextures = new Dictionary();
+            sContentScaleFactor = value < 1.5 ? 1 : 2; // assets are available for factor 1 and 2 
         }
     }
 }
