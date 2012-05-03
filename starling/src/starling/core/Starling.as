@@ -622,9 +622,12 @@ package starling.core
         }
         
         public static function set multitouchEnabled(value:Boolean):void
-        {            
-            Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
-                                           MultitouchInputMode.NONE;
+        {
+            if (sCurrent) throw new IllegalOperationError(
+                "'multitouchEnabled' must be set before Starling instance is created");
+            else 
+                Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
+                                               MultitouchInputMode.NONE;
         }
         
         /** Indicates if Starling should automatically recover from a lost device context.
@@ -634,8 +637,8 @@ package starling.core
         public static function get handleLostContext():Boolean { return sHandleLostContext; }
         public static function set handleLostContext(value:Boolean):void 
         {
-            if (sCurrent != null) throw new IllegalOperationError(
-                "Setting must be changed before Starling instance is created");
+            if (sCurrent) throw new IllegalOperationError(
+                "'handleLostContext' must be set before Starling instance is created");
             else
                 sHandleLostContext = value;
         }
