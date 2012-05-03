@@ -41,8 +41,6 @@
         <image57x57>icon57.png</image57x57>
         <image72x72>icon72.png</image72x72>
         <image114x114>icon114.png</image114x114>
-        <!--  144x144 is available beginning with AIR 3.3: -->
-        <!--  <image144x144>icon144.png</image144x144>     -->
     </icon>
     
     <!-- Android specific capabilities -->
