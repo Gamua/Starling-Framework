@@ -24,11 +24,14 @@ package starling.display
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
+    
+    use namespace starling_internal;
     
     /** Optimizes rendering of a number of quads with an identical state.
      * 

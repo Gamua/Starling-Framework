@@ -98,15 +98,15 @@ package starling.display
             if (frameID < 0 || frameID > numFrames) throw new ArgumentError("Invalid frame id");
             if (duration < 0) duration = mDefaultFrameDuration;
             
-            if (frameID > 0 && frameID == numFrames) 
-                mStartTimes[frameID] = mStartTimes[frameID-1] + mDurations[frameID-1];
-            else
-                updateStartTimes();
-            
             mTextures.splice(frameID, 0, texture);
             mSounds.splice(frameID, 0, sound);
             mDurations.splice(frameID, 0, duration);
             mTotalTime += duration;
+            
+            if (frameID > 0 && frameID == numFrames) 
+                mStartTimes[frameID] = mStartTimes[frameID-1] + mDurations[frameID-1];
+            else
+                updateStartTimes();
         }
         
         /** Removes the frame at a certain ID. The successors will move down. */
@@ -114,10 +114,12 @@ package starling.display
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             if (numFrames == 1) throw new IllegalOperationError("Movie clip must not be empty");
+            
             mTotalTime -= getFrameDuration(frameID);
             mTextures.splice(frameID, 1);
             mSounds.splice(frameID, 1);
             mDurations.splice(frameID, 1);
+            
             updateStartTimes();
         }
         
@@ -216,19 +218,17 @@ package starling.display
             
             while (mCurrentTime >= mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
             {
-                if (++mCurrentFrame == numFrames)
+                if (mCurrentFrame == numFrames - 1)
                 {
                     if (hasEventListener(Event.COMPLETE))
                     {
+                        var restTime:Number = mCurrentTime - mTotalTime;
+                        mCurrentTime = mTotalTime;
                         dispatchEvent(new Event(Event.COMPLETE));
                         
-                        // user might have stopped movie in event handler
-                        if (!mPlaying)
-                        {
-                            mCurrentTime = mTotalTime;
-                            mCurrentFrame = numFrames - 1;
-                            break;
-                        }
+                        // user might have changed movie clip settings, so we restart the method
+                        advanceTime(restTime);
+                        return;
                     }
                     
                     if (mLoop)
@@ -239,17 +239,20 @@ package starling.display
                     else
                     {
                         mCurrentTime = mTotalTime;
-                        mCurrentFrame = numFrames - 1;
                         break;
                     }
+                }
+                else
+                {
+                    mCurrentFrame++;
+                    
+                    var sound:Sound = mSounds[mCurrentFrame];
+                    if (sound) sound.play();
                 }
             }
             
             if (mCurrentFrame != previousFrame)
-            {
                 texture = mTextures[mCurrentFrame];
-                if (mSounds[mCurrentFrame]) mSounds[mCurrentFrame].play();
-            }
         }
         
         /** Indicates if a (non-looping) movie has come to its end. */

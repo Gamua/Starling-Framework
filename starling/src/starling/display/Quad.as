@@ -15,7 +15,10 @@ package starling.display
     import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
+    import starling.core.starling_internal;
     import starling.utils.VertexData;
+    
+    use namespace starling_internal;
 
     /** A Quad represents a rectangle with a uniform color or a color gradient.
      *  
@@ -51,20 +54,21 @@ package starling.display
                              premultipliedAlpha:Boolean=true)
         {
             mTinted = color != 0xffffff;
+            
             mVertexData = new VertexData(4, premultipliedAlpha);
-            updateVertexData(width, height, color, premultipliedAlpha);    
-        }
-        
-        /** Updates the vertex data with specific values for dimensions and color. */
-        protected function updateVertexData(width:Number, height:Number, color:uint,
-                                            premultipliedAlpha:Boolean):void
-        {
-            mVertexData.setPremultipliedAlpha(premultipliedAlpha);
             mVertexData.setPosition(0, 0.0, 0.0);
             mVertexData.setPosition(1, width, 0.0);
             mVertexData.setPosition(2, 0.0, height);
             mVertexData.setPosition(3, width, height);            
             mVertexData.setUniformColor(color);
+            
+            onVertexDataChanged();
+        }
+        
+        /** Call this method after manually changing the contents of 'mVertexData'. */
+        protected function onVertexDataChanged():void
+        {
+            // override in subclasses, if necessary
         }
         
         /** @inheritDoc */
@@ -75,19 +79,17 @@ package starling.display
             if (targetSpace == this) // optimization
             {
                 mVertexData.getPosition(3, sHelperVector);
-                resultRect.x = resultRect.y = 0.0;
-                resultRect.width  = sHelperVector.x;
-                resultRect.height = sHelperVector.y;
+                resultRect.setTo(0.0, 0.0, sHelperVector.x, sHelperVector.y);
             }
             else if (targetSpace == parent && rotation == 0.0) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
                 mVertexData.getPosition(3, sHelperVector);
-                resultRect.x = x - pivotX * scaleX;
-                resultRect.y = y - pivotY * scaleY;
-                resultRect.width  = sHelperVector.x * scaleX;
-                resultRect.height = sHelperVector.y * scaleY;
+                resultRect.setTo(x - pivotX * scaleX,      y - pivotY * scaleY,
+                                 sHelperVector.x * scaleX, sHelperVector.y * scaleY);
+                if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
+                if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
             }
             else
             {
@@ -108,6 +110,7 @@ package starling.display
         public function setVertexColor(vertexID:int, color:uint):void
         {
             mVertexData.setColor(vertexID, color);
+            onVertexDataChanged();
             
             if (color != 0xffffff) mTinted = true;
             else mTinted = mVertexData.tinted;
@@ -123,6 +126,7 @@ package starling.display
         public function setVertexAlpha(vertexID:int, alpha:Number):void
         {
             mVertexData.setAlpha(vertexID, alpha);
+            onVertexDataChanged();
             
             if (alpha != 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;
@@ -153,9 +157,6 @@ package starling.display
             else mTinted = mVertexData.tinted;
         }
         
-        /** Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
-        public function get tinted():Boolean { return mTinted; }
-        
         /** Copies the raw vertex data to a VertexData instance. */
         public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
@@ -167,5 +168,9 @@ package starling.display
         {
             support.batchQuad(this, parentAlpha);
         }
+        
+        /** @private 
+         *  Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
+        starling_internal function get tinted():Boolean { return mTinted; }
     }
 }

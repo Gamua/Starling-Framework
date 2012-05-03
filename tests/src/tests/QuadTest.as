@@ -14,9 +14,12 @@ package tests
     
     import flexunit.framework.Assert;
     
+    import starling.core.starling_internal;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.utils.Color;
+    
+    use namespace starling_internal;
 
     public class QuadTest
     {		
@@ -73,6 +76,9 @@ package tests
             Assert.assertFalse(quad.tinted);
             
             quad.alpha = 0.5;
+            Assert.assertTrue(quad.tinted);
+            
+            quad.alpha = 1.0;
             Assert.assertFalse(quad.tinted);
             
             quad.color = 0xff0000;
@@ -128,6 +134,29 @@ package tests
             parent.addChild(quad);
             
             Helpers.compareRectangles(parent.bounds, quad.bounds);
+        }
+        
+        [Test]
+        public function testWidthAndHeight():void
+        {
+            var quad:Quad = new Quad(100, 50);
+            Assert.assertEquals(100, quad.width);
+            Assert.assertEquals(50,  quad.height);
+            
+            quad.scaleX = -1;
+            Assert.assertEquals(100, quad.width);
+            
+            quad.pivotX = 100;
+            Assert.assertEquals(100, quad.width);
+            
+            quad.pivotX = -10;
+            Assert.assertEquals(100, quad.width);
+            
+            quad.scaleY = -1;
+            Assert.assertEquals(50, quad.height);
+            
+            quad.pivotY = 20;
+            Assert.assertEquals(50, quad.height);
         }
     }
 }

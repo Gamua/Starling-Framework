@@ -41,6 +41,7 @@ package starling.display
         private var mSmoothing:String;
         
         private var mVertexDataCache:VertexData;
+        private var mVertexDataCacheInvalid:Boolean;
         
         /** Creates a quad with a texture mapped onto it. */
         public function Image(texture:Texture)
@@ -54,15 +55,19 @@ package starling.display
                 
                 super(width, height, 0xffffff, pma);
                 
+                mVertexData.setTexCoords(0, 0.0, 0.0);
+                mVertexData.setTexCoords(1, 1.0, 0.0);
+                mVertexData.setTexCoords(2, 0.0, 1.0);
+                mVertexData.setTexCoords(3, 1.0, 1.0);
+                
                 mTexture = texture;
                 mSmoothing = TextureSmoothing.BILINEAR;
                 mVertexDataCache = new VertexData(4, pma);
-                
-                updateVertexDataCache();
+                mVertexDataCacheInvalid = true;
             }
             else
             {
-                throw new ArgumentError("Texture cannot be null");                
+                throw new ArgumentError("Texture cannot be null");
             }
         }
         
@@ -73,21 +78,9 @@ package starling.display
         }
         
         /** @inheritDoc */
-        protected override function updateVertexData(width:Number, height:Number, color:uint,
-                                                     premultipliedAlpha:Boolean):void
+        protected override function onVertexDataChanged():void
         {
-            super.updateVertexData(width, height, color, premultipliedAlpha);
-            
-            mVertexData.setTexCoords(0, 0.0, 0.0);
-            mVertexData.setTexCoords(1, 1.0, 0.0);
-            mVertexData.setTexCoords(2, 0.0, 1.0);
-            mVertexData.setTexCoords(3, 1.0, 1.0);
-        }
-        
-        private function updateVertexDataCache():void
-        {
-            mVertexData.copyTo(mVertexDataCache);
-            mTexture.adjustVertexData(mVertexDataCache, 0, 4);
+            mVertexDataCacheInvalid = true;
         }
         
         /** Readjusts the dimensions of the image according to its current texture. Call this method 
@@ -103,14 +96,14 @@ package starling.display
             mVertexData.setPosition(2, 0.0, height);
             mVertexData.setPosition(3, width, height); 
             
-            updateVertexDataCache();
+            onVertexDataChanged();
         }
         
         /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
         public function setTexCoords(vertexID:int, coords:Point):void
         {
             mVertexData.setTexCoords(vertexID, coords.x, coords.y);
-            updateVertexDataCache();
+            onVertexDataChanged();
         }
         
         /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
@@ -125,6 +118,13 @@ package starling.display
          *  The texture coordinates are already in the format required for rendering. */ 
         public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
+            if (mVertexDataCacheInvalid)
+            {
+                mVertexDataCacheInvalid = false;
+                mVertexData.copyTo(mVertexDataCache);
+                mTexture.adjustVertexData(mVertexDataCache, 0, 4);
+            }
+            
             mVertexDataCache.copyTo(targetData, targetVertexID);
         }
         
@@ -140,7 +140,7 @@ package starling.display
             {
                 mTexture = value;
                 mVertexData.setPremultipliedAlpha(mTexture.premultipliedAlpha);
-                updateVertexDataCache();
+                onVertexDataChanged();
             }
         }
         
@@ -154,20 +154,6 @@ package starling.display
                 mSmoothing = value;
             else
                 throw new ArgumentError("Invalid smoothing mode: " + value);
-        }
-        
-        /** @inheritDoc */
-        public override function setVertexColor(vertexID:int, color:uint):void
-        {
-            super.setVertexColor(vertexID, color);
-            updateVertexDataCache();
-        }
-        
-        /** @inheritDoc */
-        public override function setVertexAlpha(vertexID:int, alpha:Number):void
-        {
-            super.setVertexAlpha(vertexID, alpha);
-            updateVertexDataCache();
         }
         
         /** @inheritDoc */

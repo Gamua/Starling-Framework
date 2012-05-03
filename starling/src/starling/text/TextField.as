@@ -191,10 +191,8 @@ package starling.text
             
             // update textBounds rectangle
             if (mTextBounds == null) mTextBounds = new Rectangle();
-            mTextBounds.x = xOffset / scale;
-            mTextBounds.y = yOffset / scale;
-            mTextBounds.width = textWidth / scale;
-            mTextBounds.height = textHeight / scale;
+            mTextBounds.setTo(xOffset   / scale, yOffset    / scale,
+                              textWidth / scale, textHeight / scale);
             
             var texture:Texture = Texture.fromBitmapData(bitmapData, true, false, scale);
             
@@ -271,7 +269,7 @@ package starling.text
             bottomLine.width = width; bottomLine.height = 1;
             leftLine.width   = 1;     leftLine.height   = height;
             rightLine.width  = 1;     rightLine.height  = height;
-            rightLine.x  = width - 1;
+            rightLine.x  = width  - 1;
             bottomLine.y = height - 1;
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }

@@ -233,11 +233,7 @@ package starling.display
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
                 transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
-                
-                resultRect.x = sHelperPoint.x;
-                resultRect.y = sHelperPoint.y;
-                resultRect.width = resultRect.height = 0;
-                
+                resultRect.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
                 return resultRect;
             }
             else if (numChildren == 1)
@@ -258,11 +254,7 @@ package starling.display
                     maxY = maxY > resultRect.bottom ? maxY : resultRect.bottom;
                 }
                 
-                resultRect.x = minX;
-                resultRect.y = minY;
-                resultRect.width  = maxX - minX;
-                resultRect.height = maxY - minY;
-                
+                resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
                 return resultRect;
             }                
         }
