@@ -14,11 +14,11 @@ package
     {
         // If you're developing a game for the Flash Player / browser plugin, you can directly
         // embed all textures directly in this class. This demo, however, provides two sets of
-        // textures for different resolutions. That's useful especially for iOS development,
-        // where you have to support devices with and without a retina display.
+        // textures for different resolutions. That's useful especially for mobile development,
+        // where you have to support devices with different resolutions.
         //
         // For that reason, the actual embed statements are in separate files; one for each
-        // resolution. The correct set is chosen depending on the "contentScaleFactor".
+        // set of textures. The correct set is chosen depending on the "contentScaleFactor".
         
         // TTF-Fonts
         

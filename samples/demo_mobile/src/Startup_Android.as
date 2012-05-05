@@ -19,6 +19,11 @@ package
         
         public function Startup_Android()
         {
+            // This project requires that you add the "src" path of the normal Starling demo to 
+            // this project, either by referencing it via a "source path", or by copying the 
+            // files. The "media" folder of this project has to be added as a "source path" as
+            // well, to make sure that the icon and startup images are added to the .apk package.
+            
             // set general properties
             
             stage.scaleMode = StageScaleMode.NO_SCALE;

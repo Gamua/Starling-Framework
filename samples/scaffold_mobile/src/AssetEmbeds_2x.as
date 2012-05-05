@@ -6,7 +6,10 @@ package
         
         [Embed(source = "../media/textures/2x/background.jpg")]
         public static const Background:Class;
-                
+        
+        [Embed(source = "../media/textures/2x/loading.png")]
+        public static const Loading:Class;
+        
         // Texture Atlas
         
         [Embed(source="../media/textures/2x/atlas.xml", mimeType="application/octet-stream")]

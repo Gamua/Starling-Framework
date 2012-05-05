@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/3.2">
+<application xmlns="http://ns.adobe.com/air/application/3.3">
 
 	<id>com.gamua.starling.scaffold</id> <!-- Bundle Identifier. Required. -->
 	<filename>Scaffold</filename> <!-- Used as the filename for the application. Required. -->
@@ -15,7 +15,7 @@
         <aspectRatio>portrait</aspectRatio>
 
         <!-- Whether the app will begin auto-orienting on launch. Optional. Default false -->
-        <autoOrients>true</autoOrients>
+        <autoOrients>false</autoOrients>
 
         <!-- Whether the app launches in full screen. Optional. Mobile only. Default false -->
         <!-- (On iOS, this decides if the StatusBar is visible or not.) -->

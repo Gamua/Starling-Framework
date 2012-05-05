@@ -7,6 +7,9 @@ package
         [Embed(source = "../media/textures/1x/background.jpg")]
         public static const Background:Class;
         
+        [Embed(source = "../media/textures/1x/loading.png")]
+        public static const Loading:Class;
+        
         // Texture Atlas
         
         [Embed(source="../media/textures/1x/atlas.xml", mimeType="application/octet-stream")]

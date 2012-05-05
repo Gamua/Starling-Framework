@@ -18,6 +18,11 @@ package
         
         public function Startup_iOS()
         {
+            // This project requires the sources of the "demo" project. Add them either by 
+            // referencing the "demo/src" directory as a "source path", or by copying the files.
+            // The "media" folder of this project has to be added to its "source paths" as well, 
+            // to make sure the icon and startup images are added to the compiled mobile app.
+            
             // set general properties
             
             stage.scaleMode = StageScaleMode.NO_SCALE;
