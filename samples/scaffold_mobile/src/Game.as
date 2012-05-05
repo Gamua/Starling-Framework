@@ -35,9 +35,6 @@ package
             // the contentScaleFactor is calculated from stage size and viewport size
             Assets.contentScaleFactor = Starling.current.contentScaleFactor;
             
-            trace("csf: " + Starling.current.contentScaleFactor);
-            trace("asf: " + Assets.contentScaleFactor);
-            
             // prepare assets
             Assets.prepareSounds();
             Assets.loadBitmapFonts();
