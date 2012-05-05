@@ -19,10 +19,10 @@ package
         
         public function Startup_Android()
         {
-            // This project requires that you add the "src" path of the normal Starling demo to 
-            // this project, either by referencing it via a "source path", or by copying the 
-            // files. The "media" folder of this project has to be added as a "source path" as
-            // well, to make sure that the icon and startup images are added to the .apk package.
+            // This project requires the sources of the "demo" project. Add them either by 
+            // referencing the "demo/src" directory as a "source path", or by copying the files.
+            // The "media" folder of this project has to be added to its "source paths" as well, 
+            // to make sure the icon and startup images are added to the compiled mobile app.
             
             // set general properties
             
