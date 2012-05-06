@@ -38,10 +38,12 @@ package starling.core
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
-        
-        /** Helper object. */
+
+        /** Helper objects. */
         private static var sMatrixCoords:Vector.<Number> = new Vector.<Number>(16, true);
-        
+        private static var sSkewVector:Vector.<Number> =new <Number>[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+        private static var sSkewMatrix:Matrix3D = new Matrix3D(sSkewVector);
+
         // construction
         
         /** Creates a new RenderSupport object with an empty matrix stack. */
@@ -284,21 +286,12 @@ package starling.core
 
         private static function prependSkew (matrix:Matrix3D, skewX:Number, skewY:Number):void
         {
-            var rawData:Vector.<Number> = matrix.rawData;
-            var a:Number = rawData[0];
-            var b:Number = rawData[1];
-            var c:Number = rawData[4];
-            var d:Number = rawData[5];
-            var sinX:Number = Math.sin(skewX);
-            var cosX:Number = Math.cos(skewX);
-            var sinY:Number = Math.sin(skewY);
-            var cosY:Number = Math.cos(skewY);
-
-            rawData[0] = a*cosY + c*sinY;
-            rawData[1] = b*cosY + d*sinY;
-            rawData[4] = c*cosX - a*sinX;
-            rawData[5] = d*cosX - b*sinX;
-            matrix.rawData = rawData;
+            sSkewVector[0] = Math.cos(skewY);
+            sSkewVector[1] = Math.sin(skewY);
+            sSkewVector[4] = -Math.sin(skewX);
+            sSkewVector[5] = Math.cos(skewX);
+            sSkewMatrix.copyRawDataFrom(sSkewVector);
+            matrix.prepend(sSkewMatrix);
         }
     }
 }
