@@ -202,8 +202,6 @@ package starling.display
             
             // 1. find a common parent of this and the target space
             
-            sAncestors.length = 0;
-            
             var commonParent:DisplayObject = null;
             var currentObject:DisplayObject = this;            
             while (currentObject)
@@ -216,10 +214,10 @@ package starling.display
             while (currentObject && sAncestors.indexOf(currentObject) == -1)
                 currentObject = currentObject.mParent;
             
-            if (currentObject == null)
-                throw new ArgumentError("Object not connected to target");
-            else
-                commonParent = currentObject;
+            sAncestors.length = 0;
+            
+            if (currentObject) commonParent = currentObject;
+            else throw new ArgumentError("Object not connected to target");
             
             // 2. move up from this to common parent
             
