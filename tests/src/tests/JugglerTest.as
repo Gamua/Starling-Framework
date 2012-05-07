@@ -13,11 +13,13 @@ package tests
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
     import starling.animation.Juggler;
     import starling.animation.Tween;
     import starling.display.Quad;
+    import starling.events.Event;
 
     public class JugglerTest
     {
@@ -48,6 +50,35 @@ package tests
             juggler.advanceTime(0.4); // -> 1.6 (start of new tween)
             
             Assert.assertTrue(startReached);
+        }
+        
+        [Test]
+        public function testPurge():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+            
+            var tween1:Tween = new Tween(quad, 1.0);
+            var tween2:Tween = new Tween(quad, 2.0);
+            
+            juggler.add(tween1);
+            juggler.add(tween2);
+            
+            tween1.animate("x", 100);
+            tween2.animate("y", 100);
+            
+            Assert.assertTrue(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            Assert.assertTrue(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            
+            juggler.purge();
+            
+            Assert.assertFalse(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            Assert.assertFalse(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            
+            juggler.advanceTime(10);
+            
+            Assert.assertEquals(0, quad.x);
+            Assert.assertEquals(0, quad.y);
         }
         
         [Test]
