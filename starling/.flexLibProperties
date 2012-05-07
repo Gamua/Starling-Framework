@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.adobe.utils.AGALMiniAssembler"/>
+    <classEntry path="starling.animation.DelayedCall"/>
+    <classEntry path="starling.animation.IAnimatable"/>
+    <classEntry path="starling.animation.Juggler"/>
+    <classEntry path="starling.animation.Transitions"/>
+    <classEntry path="starling.animation.Tween"/>
+    <classEntry path="starling.core.RenderSupport"/>
+    <classEntry path="starling.core.Starling"/>
+    <classEntry path="starling.core.StatsDisplay"/>
+    <classEntry path="starling.core.TouchMarker"/>
+    <classEntry path="starling.core.TouchProcessor"/>
+    <classEntry path="starling.core.starling_internal"/>
+    <classEntry path="starling.display.BlendMode"/>
+    <classEntry path="starling.display.Button"/>
+    <classEntry path="starling.display.DisplayObject"/>
+    <classEntry path="starling.display.DisplayObjectContainer"/>
+    <classEntry path="starling.display.Image"/>
+    <classEntry path="starling.display.MovieClip"/>
+    <classEntry path="starling.display.Quad"/>
+    <classEntry path="starling.display.QuadBatch"/>
+    <classEntry path="starling.display.Sprite"/>
+    <classEntry path="starling.display.Stage"/>
+    <classEntry path="starling.errors.AbstractClassError"/>
+    <classEntry path="starling.errors.AbstractMethodError"/>
+    <classEntry path="starling.errors.MissingContextError"/>
+    <classEntry path="starling.events.EnterFrameEvent"/>
+    <classEntry path="starling.events.Event"/>
+    <classEntry path="starling.events.EventDispatcher"/>
+    <classEntry path="starling.events.KeyboardEvent"/>
+    <classEntry path="starling.events.ResizeEvent"/>
+    <classEntry path="starling.events.Touch"/>
+    <classEntry path="starling.events.TouchEvent"/>
+    <classEntry path="starling.events.TouchPhase"/>
+    <classEntry path="starling.text.BitmapChar"/>
+    <classEntry path="starling.text.BitmapFont"/>
+    <classEntry path="starling.text.TextField"/>
+    <classEntry path="starling.textures.ConcreteTexture"/>
+    <classEntry path="starling.textures.RenderTexture"/>
+    <classEntry path="starling.textures.SubTexture"/>
+    <classEntry path="starling.textures.Texture"/>
+    <classEntry path="starling.textures.TextureAtlas"/>
+    <classEntry path="starling.textures.TextureSmoothing"/>
+    <classEntry path="starling.utils.Color"/>
+    <classEntry path="starling.utils.HAlign"/>
+    <classEntry path="starling.utils.VAlign"/>
+    <classEntry path="starling.utils.VertexData"/>
+    <classEntry path="starling.utils.deg2rad"/>
+    <classEntry path="starling.utils.formatString"/>
+    <classEntry path="starling.utils.getNextPowerOfTwo"/>
+    <classEntry path="starling.utils.rad2deg"/>
+    <classEntry path="starling.utils.transformCoords"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

@@ -208,17 +208,18 @@ package starling.display
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
-            if (mLoop && mCurrentTime == mTotalTime) mCurrentTime = 0.0;
+            var finalFrame:int;
+            var previousFrame:int = mCurrentFrame;
+            
+            if (mLoop && mCurrentTime == mTotalTime) { mCurrentTime = 0.0; mCurrentFrame = 0; }
             if (!mPlaying || passedTime == 0.0 || mCurrentTime == mTotalTime) return;
             
             mCurrentTime += passedTime;
-            
-            var numFrames:int = mTextures.length;
-            var previousFrame:int = mCurrentFrame;
+            finalFrame = mTextures.length - 1;
             
             while (mCurrentTime >= mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
             {
-                if (mCurrentFrame == numFrames - 1)
+                if (mCurrentFrame == finalFrame)
                 {
                     if (hasEventListener(Event.COMPLETE))
                     {

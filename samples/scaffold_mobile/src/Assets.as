@@ -20,18 +20,17 @@ package
         // For that reason, the actual embed statements are in separate files; one for each
         // set of textures. The correct set is chosen depending on the "contentScaleFactor".
         
-        // TTF-Fonts
+        // true type fonts
         
-        // The 'embedAsCFF'-part IS REQUIRED!!!!
         [Embed(source="../media/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]        
         private static const UbuntuRegular:Class;
         
-        // Sounds
+        // sounds
         
-        [Embed(source="../media/audio/wing_flap.mp3")]
-        private static const StepSound:Class;
+        [Embed(source="../media/audio/click.mp3")]
+        private static const Click:Class;
         
-        // Texture cache
+        // static members
         
         private static var sContentScaleFactor:int = 1;
         private static var sTextures:Dictionary = new Dictionary();
@@ -54,23 +53,23 @@ package
             return sTextures[name];
         }
         
+        public static function getAtlasTexture(name:String):Texture
+        {
+            prepareAtlas();
+            return sTextureAtlas.getTexture(name);
+        }
+        
+        public static function getAtlasTextures(prefix:String):Vector.<Texture>
+        {
+            prepareAtlas();
+            return sTextureAtlas.getTextures(prefix);
+        }
+        
         public static function getSound(name:String):Sound
         {
             var sound:Sound = sSounds[name] as Sound;
             if (sound) return sound;
             else throw new ArgumentError("Sound not found: " + name);
-        }
-        
-        public static function getTextureAtlas():TextureAtlas
-        {
-            if (sTextureAtlas == null)
-            {
-                var texture:Texture = getTexture("AtlasTexture");
-                var xml:XML = XML(create("AtlasXml"));
-                sTextureAtlas = new TextureAtlas(texture, xml);
-            }
-            
-            return sTextureAtlas;
         }
         
         public static function loadBitmapFonts():void
@@ -86,7 +85,17 @@ package
         
         public static function prepareSounds():void
         {
-            sSounds["Step"] = new StepSound();   
+            sSounds["Click"] = new Click();   
+        }
+        
+        private static function prepareAtlas():void
+        {
+            if (sTextureAtlas == null)
+            {
+                var texture:Texture = getTexture("AtlasTexture");
+                var xml:XML = XML(create("AtlasXml"));
+                sTextureAtlas = new TextureAtlas(texture, xml);
+            }
         }
         
         private static function create(name:String):Object

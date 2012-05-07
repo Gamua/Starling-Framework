@@ -179,15 +179,20 @@ package tests
             
             Assert.assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(1, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(2, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(3, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(3, movie.currentFrame);
             Assert.assertEquals(1, completedCount);
             Assert.assertTrue(movie.isComplete);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
+            Assert.assertEquals(3, movie.currentFrame);
             Assert.assertEquals(1, completedCount);
             Assert.assertTrue(movie.isComplete);
             
@@ -196,12 +201,16 @@ package tests
             
             Assert.assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(1, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(2, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(3, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(0, movie.currentFrame);
             Assert.assertEquals(1, completedCount);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
             Assert.assertEquals(3, completedCount);
