@@ -27,6 +27,7 @@ package starling.animation
     {
         private var mCurrentTime:Number = 0;
         private var mTotalTime:Number;
+		private var mTotalCalls:Number;
         private var mCall:Function;
         private var mArgs:Array;
         private var mRepeatCount:int = 1;
@@ -49,19 +50,32 @@ package starling.animation
             {                
                 mCall.apply(null, mArgs);
                 
+				mTotalCalls += 1;
+				
                 if (mRepeatCount > 1)
                 {
                     mRepeatCount -= 1;
                     mCurrentTime = 0;
                     advanceTime((previousTime + time) - mTotalTime);
                 }
-                else
+                else if (mRepeatCount < 1)
+				{
+					mCurrentTime = 0;
+                    advanceTime((previousTime + time) - mTotalTime);
+				}
+				else
                 {
                     dispatchEvent(new Event(Event.REMOVE_FROM_JUGGLER));
                 }
             }
         }
         
+		/** Forcefully stops the Delayed Call (useful when repeatCount = 0)*/
+		public function stop():void
+		{
+			dispatchEvent(new Event(Event.REMOVE_FROM_JUGGLER));
+		}
+		
         /** Indicates if enough time has passed, and the call has already been executed. */
         public function get isComplete():Boolean 
         { 
@@ -71,11 +85,17 @@ package starling.animation
         /** The time for which calls will be delayed (in seconds). */
         public function get totalTime():Number { return mTotalTime; }
         
+		/** The amount of calls that have already been made */
+		public function get totalCalls():Number { return mTotalCalls; }
+		
         /** The time that has already passed (in seconds). */
         public function get currentTime():Number { return mCurrentTime; }
         
-        /** The number of times the call will be repeated. */
+        /** The number of times the call will be repeated. 
+		 * If you set this number to 0, the call will be repeated an infinite amount of times. */
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
+		
+		
     }
 }
