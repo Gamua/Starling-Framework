@@ -94,7 +94,11 @@ package starling.animation
         /** Removes all objects at once. */
         public function purge():void
         {
-            mObjects.length = 0;
+            for (var i:int=mObjects.length-1; i>=0; --i)
+            {
+                var dispatcher:EventDispatcher = mObjects.pop() as EventDispatcher;
+                if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+            }
         }
         
         /** Delays the execution of a function until a certain time has passed. Creates an
