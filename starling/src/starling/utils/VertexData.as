@@ -87,17 +87,22 @@ package starling.utils
             return clone;
         }
         
-        /** Copies the vertex data of this instance to another vertex data object,
-         *  starting at a certain index. */
-        public function copyTo(targetData:VertexData, targetVertexID:int=0):void
+        /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices') 
+         *  of this instance to another vertex data object, starting at a certain index. */
+        public function copyTo(targetData:VertexData, targetVertexID:int=0,
+                               vertexID:int=0, numVertices:int=-1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
             // todo: check/convert pma
             
             var targetRawData:Vector.<Number> = targetData.mRawData;
-            var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
             var targetStartIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
+            var startIndex:int = vertexID * ELEMENTS_PER_VERTEX;
+            var dataLength:int = numVertices * ELEMENTS_PER_VERTEX;
             
-            for (var i:int=0; i<dataLength; ++i)
+            for (var i:int=startIndex; i<dataLength; ++i)
                 targetRawData[int(targetStartIndex+i)] = mRawData[i];
         }
         
@@ -263,13 +268,13 @@ package starling.utils
         /** Multiplies the alpha value of subsequent vertices with a certain delta. */
         public function scaleAlpha(vertexID:int, alpha:Number, numVertices:int=1):void
         {
+            if (alpha == 1.0) return;
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
              
             var i:int;
             
-            if (alpha == 1.0) return;
-            else if (mPremultipliedAlpha)
+            if (mPremultipliedAlpha)
             {
                 for (i=0; i<numVertices; ++i)
                     setAlpha(vertexID+i, getAlpha(vertexID+i) * alpha);
