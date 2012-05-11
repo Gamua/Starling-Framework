@@ -121,14 +121,19 @@ package starling.display
             clone.mTexture = mTexture;
             clone.mSmoothing = mSmoothing;
             clone.mSyncRequired = true;
-            clone.blendMode = this.blendMode;
+            clone.blendMode = blendMode;
+            clone.alpha = alpha;
             return clone;
         }
         
-        private function expand():void
+        private function expand(newCapacity:int=-1):void
         {
-            var oldCapacity:int = mVertexData.numVertices / 4;
-            var newCapacity:int = oldCapacity == 0 ? 16 : oldCapacity * 2;
+            var oldCapacity:int = capacity;
+            
+            if (newCapacity <  0) newCapacity = oldCapacity * 2;
+            if (newCapacity == 0) newCapacity = 16;
+            if (newCapacity <= oldCapacity) return;
+            
             mVertexData.numVertices = newCapacity * 4;
             
             for (var i:int=oldCapacity; i<newCapacity; ++i)
@@ -257,11 +262,7 @@ package starling.display
                                 blendMode:String=null):void
         {
             if (modelViewMatrix == null)
-            {
-                modelViewMatrix = sHelperMatrix3D;
-                modelViewMatrix.identity();
-                RenderSupport.transformMatrixForObject(modelViewMatrix, quad);
-            }
+                modelViewMatrix = getHelperModelViewMatrix(quad);
             
             var tinted:Boolean = texture ? (quad.tinted || parentAlpha != 1.0) : false;
             var alpha:Number = parentAlpha * quad.alpha;
@@ -279,20 +280,57 @@ package starling.display
             }
             
             quad.copyVertexDataTo(mVertexData, vertexID);
+            mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
-            
-            mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
 
             mSyncRequired = true;
             mNumQuads++;
         }
         
+        public function addQuadBatch(quadBatch:QuadBatch, parentAlpha:Number=1.0, 
+                                     modelViewMatrix:Matrix3D=null, blendMode:String=null):void
+        {
+            if (modelViewMatrix == null)
+                modelViewMatrix = getHelperModelViewMatrix(quadBatch);
+            
+            var tinted:Boolean = quadBatch.mTinted || parentAlpha != 1.0;
+            var alpha:Number = parentAlpha * quadBatch.alpha;
+            var vertexID:int = mNumQuads * 4;
+            var numQuads:int = quadBatch.numQuads;
+            
+            if (mNumQuads + numQuads > capacity) expand(mNumQuads + numQuads);
+            if (mNumQuads == 0) 
+            {
+                this.blendMode = blendMode ? blendMode : quadBatch.blendMode;
+                mTexture = quadBatch.mTexture;
+                mTinted = tinted;
+                mSmoothing = quadBatch.mSmoothing;
+                mVertexData.setPremultipliedAlpha(quadBatch.mVertexData.premultipliedAlpha, false);
+            }
+            
+            quadBatch.mVertexData.copyTo(mVertexData, vertexID, 0, numQuads*4);
+            mVertexData.transformVertex(vertexID, modelViewMatrix, numQuads*4);
+            
+            if (alpha != 1.0)
+                mVertexData.scaleAlpha(vertexID, alpha, numQuads*4);
+            
+            mSyncRequired = true;
+            mNumQuads += numQuads;
+        }
+        
+        private function getHelperModelViewMatrix(object:DisplayObject):Matrix3D
+        {
+            sHelperMatrix3D.identity();
+            RenderSupport.transformMatrixForObject(sHelperMatrix3D, object);
+            return sHelperMatrix3D;
+        }
+        
         /** Indicates if a quad can be added to the batch without causing a state change. 
          *  A state change occurs if the quad uses a different base texture or has a different 
-         *  'smoothing', 'repeat' or 'blendMode' setting. */
-        public function isStateChange(quad:Quad, parentAlpha:Number, texture:Texture, 
+         *  'tinted', 'smoothing', 'repeat' or 'blendMode' setting. */
+        public function isStateChange(tinted:Boolean, parentAlpha:Number, texture:Texture, 
                                       smoothing:String, blendMode:String):Boolean
         {
             if (mNumQuads == 0) return false;
@@ -302,7 +340,7 @@ package starling.display
                 return mTexture.base != texture.base ||
                        mTexture.repeat != texture.repeat ||
                        mSmoothing != smoothing ||
-                       mTinted != (quad.tinted || parentAlpha != 1.0) ||
+                       mTinted != (tinted || parentAlpha != 1.0) ||
                        this.blendMode != blendMode;
             else return true;
         }
@@ -351,6 +389,10 @@ package starling.display
             var isRootObject:Boolean = false;
             var objectAlpha:Number = object.alpha;
             
+            var container:DisplayObjectContainer = object as DisplayObjectContainer;
+            var quad:Quad = object as Quad;
+            var batch:QuadBatch = object as QuadBatch;
+            
             if (quadBatchID == -1)
             {
                 isRootObject = true;
@@ -361,9 +403,8 @@ package starling.display
                 else quadBatches[0].reset();
             }
             
-            if (object is DisplayObjectContainer)
+            if (container)
             {
-                var container:DisplayObjectContainer = object as DisplayObjectContainer;
                 var numChildren:int = container.numChildren;
                 var childMatrix:Matrix3D = new Matrix3D();
                 
@@ -383,35 +424,40 @@ package starling.display
                     }
                 }
             }
-            else if (object is Quad)
+            else if (quad || batch)
             {
-                var quad:Quad = object as Quad;
-                var image:Image = quad as Image;
-                var texture:Texture = image ? image.texture : null;
-                var smoothing:String = image ? image.smoothing : null;
+                var texture:Texture;
+                var smoothing:String;
+                var tinted:Boolean;
+                
+                if (quad)
+                {
+                    var image:Image = quad as Image;
+                    texture = image ? image.texture : null;
+                    smoothing = image ? image.smoothing : null;
+                    tinted = quad.tinted;
+                }
+                else
+                {
+                    texture = batch.mTexture;
+                    smoothing = batch.mSmoothing;
+                    tinted = batch.mTinted;
+                }
                 
                 quadBatch = quadBatches[quadBatchID];
                 
-                if (quadBatch.isStateChange(quad, alpha*objectAlpha, texture, smoothing, blendMode))
+                if (quadBatch.isStateChange(tinted, alpha*objectAlpha, texture, smoothing, blendMode))
                 {
                     quadBatchID++;
-                    if (quadBatches.length <= quadBatchID) 
-                        quadBatches.push(new QuadBatch());
+                    if (quadBatches.length <= quadBatchID) quadBatches.push(new QuadBatch());
                     quadBatch = quadBatches[quadBatchID];
                     quadBatch.reset();
                 }
                 
-                quadBatch.addQuad(quad, alpha, texture, smoothing, transformationMatrix, blendMode);
-            }
-            else if (object is QuadBatch)
-            {
-                if (quadBatches[quadBatchID].mNumQuads > 0)
-                    quadBatchID++;
-                
-                quadBatch = (object as QuadBatch).clone();
-                quadBatch.blendMode = blendMode;
-                quadBatch.mVertexData.transformVertex(0, transformationMatrix, -1);
-                quadBatches.splice(quadBatchID, 0, quadBatch); 
+                if (quad)
+                    quadBatch.addQuad(quad, alpha, texture, smoothing, transformationMatrix, blendMode);
+                else
+                    quadBatch.addQuadBatch(batch, alpha, transformationMatrix, blendMode);
             }
             else
             {
@@ -423,10 +469,6 @@ package starling.display
                 // remove unused batches
                 for (i=quadBatches.length-1; i>quadBatchID; --i)
                     quadBatches.pop().dispose();
-                
-                // last quadbatch could be empty
-                if (quadBatches[quadBatches.length-1].mNumQuads == 0)
-                    quadBatches.pop().dispose();
             }
             
             return quadBatchID;
@@ -435,6 +477,8 @@ package starling.display
         // properties
         
         public function get numQuads():int { return mNumQuads; }
+        
+        private function get capacity():int { return mVertexData.numVertices / 4; }
         
         // program management
         
