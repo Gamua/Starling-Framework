@@ -13,6 +13,7 @@ package starling.display
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
@@ -131,8 +132,11 @@ package starling.display
         /** @private */ 
         public function DisplayObject()
         {
-            if (getQualifiedClassName(this) == "starling.display::DisplayObject")
+            if (Capabilities.isDebugger && 
+                getQualifiedClassName(this) == "starling.display::DisplayObject")
+            {
                 throw new AbstractClassError();
+            }
             
             mX = mY = mPivotX = mPivotY = mRotation = 0.0;
             mScaleX = mScaleY = mAlpha = 1.0;            
