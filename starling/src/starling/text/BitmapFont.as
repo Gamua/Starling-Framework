@@ -288,15 +288,15 @@ package starling.text
                         else if (lineFull)
                         {
                             lines.push(currentLine);
-                            currentY += mLineHeight;
                             
                             if (lastWhiteSpace == i)
                                 currentLine.pop();
                             
-                            if (currentY + mLineHeight <= containerHeight)
+                            if (currentY + 2*mLineHeight <= containerHeight)
                             {
                                 currentLine = new <CharLocation>[];
                                 currentX = 0;
+                                currentY += mLineHeight;
                                 lastWhiteSpace = -1;
                                 lastCharID = -1;
                             }
