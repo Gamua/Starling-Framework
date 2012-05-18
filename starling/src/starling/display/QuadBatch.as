@@ -158,7 +158,7 @@ package starling.display
 
             if (mVertexBuffer)    mVertexBuffer.dispose();
             if (mIndexBuffer)     mIndexBuffer.dispose();
-            if (mNumQuads == 0)   return;
+            if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
             
             mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
@@ -361,8 +361,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            support.finishQuadBatch();
-            renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
+            support.batchQuads(this, parentAlpha);
         }
         
         // compilation (for flattened sprites)
@@ -477,6 +476,9 @@ package starling.display
         // properties
         
         public function get numQuads():int { return mNumQuads; }
+        public function get tinted():Boolean { return mTinted; }
+        public function get texture():Texture { return mTexture; }
+        public function get smoothing():String { return mSmoothing; }
         
         private function get capacity():int { return mVertexData.numVertices / 4; }
         
