@@ -25,7 +25,7 @@ package starling.core
      */
     public class RenderSupport
     {
-        // members        
+        // members
         
         private var mProjectionMatrix:Matrix3D;
         private var mModelViewMatrix:Matrix3D;
@@ -220,6 +220,15 @@ package starling.core
                 finishQuadBatch();
             
             currentQuadBatch.addQuad(quad, parentAlpha, texture, smoothing, mModelViewMatrix, mBlendMode);
+        }
+        
+        public function batchQuads(quadBatch:QuadBatch, parentAlpha:Number):void
+        {
+            if (currentQuadBatch.isStateChange(quadBatch.tinted, parentAlpha, quadBatch.texture,
+                                               quadBatch.smoothing, mBlendMode))
+                finishQuadBatch();
+            
+            currentQuadBatch.addQuadBatch(quadBatch, parentAlpha, mModelViewMatrix, mBlendMode);
         }
         
         /** Renders the current quad batch and resets it. */

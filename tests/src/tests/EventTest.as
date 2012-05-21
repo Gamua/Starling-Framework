@@ -156,25 +156,19 @@ package tests
         public function testRemoveEventListeners():void
         {
             var hitCount:int = 0;
-            
             var dispatcher:EventDispatcher = new EventDispatcher();
             
             dispatcher.addEventListener("Type1", onEvent);
             dispatcher.addEventListener("Type2", onEvent);
-            dispatcher.addEventListener("Type2", onEvent);
-            dispatcher.addEventListener("Type3", onEvent);
-            dispatcher.addEventListener("Type3", onEvent);
             dispatcher.addEventListener("Type3", onEvent);
             
             hitCount = 0;
             dispatcher.dispatchEvent(new Event("Type1"));
             Assert.assertEquals(1, hitCount);
             
-            hitCount = 0;
             dispatcher.dispatchEvent(new Event("Type2"));
             Assert.assertEquals(2, hitCount);
             
-            hitCount = 0;
             dispatcher.dispatchEvent(new Event("Type3"));
             Assert.assertEquals(3, hitCount);
             
@@ -183,12 +177,8 @@ package tests
             dispatcher.dispatchEvent(new Event("Type1"));
             Assert.assertEquals(0, hitCount);
             
-            hitCount = 0;
-            dispatcher.removeEventListeners("Type2");
-            dispatcher.dispatchEvent(new Event("Type2"));
-            Assert.assertEquals(0, hitCount);
             dispatcher.dispatchEvent(new Event("Type3"));
-            Assert.assertEquals(3, hitCount);
+            Assert.assertEquals(1, hitCount);
             
             hitCount = 0;
             dispatcher.removeEventListeners();
@@ -219,5 +209,22 @@ package tests
             });
         }
         
+        [Test]
+        public function testDuplicateEventHandler():void
+        {
+            var dispatcher:EventDispatcher = new EventDispatcher();
+            var callCount:int = 0;
+            
+            dispatcher.addEventListener("test", onEvent);
+            dispatcher.addEventListener("test", onEvent);
+            
+            dispatcher.dispatchEvent(new Event("test"));
+            Assert.assertEquals(1, callCount);
+            
+            function onEvent(event:Event):void
+            {
+                callCount++;
+            }
+        }
     }
 }

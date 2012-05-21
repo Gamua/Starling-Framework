@@ -160,9 +160,6 @@ package tests
             movie.fps = 6.0;
             assertThat(movie.getFrameDuration(1), closeTo(0.5, E));
             assertThat(movie.getFrameDuration(0), closeTo(1.0 / 6.0, E));
-            
-            movie.fps = 0.0;
-            assertThat(movie.fps, closeTo(0.0, E));
         }
         
         [Test]

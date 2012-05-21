@@ -13,6 +13,7 @@ package starling.display
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
@@ -131,8 +132,11 @@ package starling.display
         /** @private */ 
         public function DisplayObject()
         {
-            if (getQualifiedClassName(this) == "starling.display::DisplayObject")
+            if (Capabilities.isDebugger && 
+                getQualifiedClassName(this) == "starling.display::DisplayObject")
+            {
                 throw new AbstractClassError();
+            }
             
             mX = mY = mPivotX = mPivotY = mRotation = 0.0;
             mScaleX = mScaleY = mAlpha = 1.0;            
@@ -177,13 +181,13 @@ package starling.display
                 
                 return resultMatrix;
             }
-            else if (targetSpace == null)
+            else if (targetSpace == null || targetSpace == root)
             {
                 // targetCoordinateSpace 'null' represents the target space of the root object.
                 // -> move up from this to root
                 
                 currentObject = this;
-                while (currentObject)
+                while (currentObject != targetSpace)
                 {
                     currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
                     resultMatrix.concat(sHelperMatrix);
@@ -222,13 +226,15 @@ package starling.display
             // 2. move up from this to common parent
             
             currentObject = this;
-            
             while (currentObject != commonParent)
             {
                 currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
                 resultMatrix.concat(sHelperMatrix);
                 currentObject = currentObject.mParent;
             }
+            
+            if (commonParent == targetSpace)
+                return resultMatrix;
             
             // 3. now move up from target until we reach the common parent
             
@@ -274,30 +280,14 @@ package starling.display
         /** Transforms a point from the local coordinate system to global (stage) coordinates. */
         public function localToGlobal(localPoint:Point):Point
         {
-            // move up  until parent is null
-            sTargetMatrix.identity();
-            var currentObject:DisplayObject = this;
-            while (currentObject)
-            {
-                currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                sTargetMatrix.concat(sHelperMatrix);
-                currentObject = currentObject.mParent;
-            }            
+            getTransformationMatrix(root, sTargetMatrix);
             return sTargetMatrix.transformPoint(localPoint);
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system. */
         public function globalToLocal(globalPoint:Point):Point
         {
-            // move up until parent is null, then invert matrix
-            sTargetMatrix.identity();
-            var currentObject:DisplayObject = this;
-            while (currentObject)
-            {
-                currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                sTargetMatrix.concat(sHelperMatrix);
-                currentObject = currentObject.mParent;
-            }
+            getTransformationMatrix(root, sTargetMatrix);
             sTargetMatrix.invert();
             return sTargetMatrix.transformPoint(globalPoint);
         }

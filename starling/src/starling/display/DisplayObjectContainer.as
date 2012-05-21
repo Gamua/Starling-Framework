@@ -13,6 +13,7 @@ package starling.display
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
@@ -72,8 +73,11 @@ package starling.display
         /** @private */
         public function DisplayObjectContainer()
         {
-            if (getQualifiedClassName(this) == "starling.display::DisplayObjectContainer")
+            if (Capabilities.isDebugger && 
+                getQualifiedClassName(this) == "starling.display::DisplayObjectContainer")
+            {
                 throw new AbstractClassError();
+            }
             
             mChildren = new <DisplayObject>[];
         }

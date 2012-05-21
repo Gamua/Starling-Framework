@@ -119,9 +119,11 @@ package tests
         [Test]
         public function testLocalToGlobal():void
         {
+            var root:Sprite = new Sprite();
             var sprite:Sprite = new Sprite();
             sprite.x = 10;
             sprite.y = 20;
+            root.addChild(sprite);
             var sprite2:Sprite = new Sprite();
             sprite2.x = 150;
             sprite2.y = 200;
@@ -131,14 +133,22 @@ package tests
             var globalPoint:Point = sprite2.localToGlobal(localPoint);
             var expectedPoint:Point = new Point(160, 220);
             Helpers.comparePoints(expectedPoint, globalPoint);
-        }        
+            
+            // the position of the root object should be irrelevant -- we want the coordinates
+            // *within* the root coordinate system!
+            root.x = 50;
+            globalPoint = sprite2.localToGlobal(localPoint);
+            Helpers.comparePoints(expectedPoint, globalPoint);
+        }
          
         [Test]
         public function testGlobalToLocal():void
         {
+            var root:Sprite = new Sprite();
             var sprite:Sprite = new Sprite();
             sprite.x = 10;
             sprite.y = 20;
+            root.addChild(sprite);
             var sprite2:Sprite = new Sprite();
             sprite2.x = 150;
             sprite2.y = 200;
@@ -147,6 +157,12 @@ package tests
             var globalPoint:Point = new Point(160, 220);
             var localPoint:Point = sprite2.globalToLocal(globalPoint);
             var expectedPoint:Point = new Point();
+            Helpers.comparePoints(expectedPoint, localPoint);
+            
+            // the position of the root object should be irrelevant -- we want the coordinates
+            // *within* the root coordinate system!
+            root.x = 50;
+            localPoint = sprite2.globalToLocal(globalPoint);
             Helpers.comparePoints(expectedPoint, localPoint);
         }
         

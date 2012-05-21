@@ -598,6 +598,13 @@ package starling.core
             return mNativeStage;
         }
         
+        /** The instance of the root class provided in the constructor. Available as soon as 
+         *  the event 'ROOT_CREATED' has been dispatched. */
+        public function get root():DisplayObject
+        {
+            return mStage.getChildAt(0);
+        }
+        
         // static properties
         
         /** The currently active Starling instance. */
