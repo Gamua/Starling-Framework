@@ -49,7 +49,7 @@ package starling.events
             var listeners:Vector.<Function> = mEventListeners[type];
             if (listeners == null)
                 mEventListeners[type] = new <Function>[listener];
-            else
+            else if (listeners.indexOf(listener) == -1) // check for duplicates
                 mEventListeners[type] = listeners.concat(new <Function>[listener]);
         }
         
