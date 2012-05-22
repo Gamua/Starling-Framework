@@ -126,16 +126,18 @@ package starling.display
         {
             if (mFlattenedContents)
             {
+                support.finishQuadBatch();
+                
                 var alpha:Number = parentAlpha * this.alpha;
                 var numBatches:int = mFlattenedContents.length;
+                var mvpMatrix:Matrix3D = support.mvpMatrix;
                 
                 for (var i:int=0; i<numBatches; ++i)
                 {
                     var quadBatch:QuadBatch = mFlattenedContents[i];
-                    support.pushBlendMode();
-                    support.blendMode = quadBatch.blendMode;
-                    support.batchQuads(quadBatch, alpha);
-                    support.popBlendMode();
+                    var blendMode:String = quadBatch.blendMode == BlendMode.AUTO ?
+                        support.blendMode : quadBatch.blendMode;
+                    quadBatch.renderCustom(mvpMatrix, alpha, blendMode);
                 }
             }
             else super.render(support, parentAlpha);

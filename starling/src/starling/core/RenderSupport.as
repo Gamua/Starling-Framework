@@ -222,15 +222,6 @@ package starling.core
             currentQuadBatch.addQuad(quad, parentAlpha, texture, smoothing, mModelViewMatrix, mBlendMode);
         }
         
-        public function batchQuads(quadBatch:QuadBatch, parentAlpha:Number):void
-        {
-            if (currentQuadBatch.isStateChange(quadBatch.tinted, parentAlpha, quadBatch.texture,
-                                               quadBatch.smoothing, mBlendMode))
-                finishQuadBatch();
-            
-            currentQuadBatch.addQuadBatch(quadBatch, parentAlpha, mModelViewMatrix, mBlendMode);
-        }
-        
         /** Renders the current quad batch and resets it. */
         public function finishQuadBatch():void
         {
