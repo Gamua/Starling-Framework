@@ -136,7 +136,7 @@ package starling.display
             else if (touch.phase == TouchPhase.ENDED && mIsDown)
             {
                 resetContents();
-                dispatchEvent(new Event(Event.TRIGGERED, true));
+                dispatchEventWith(Event.TRIGGERED, true);
             }
         }
         

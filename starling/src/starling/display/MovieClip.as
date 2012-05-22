@@ -227,7 +227,7 @@ package starling.display
                     {
                         var restTime:Number = mCurrentTime - mTotalTime;
                         mCurrentTime = mTotalTime;
-                        dispatchEvent(new Event(Event.COMPLETE));
+                        dispatchEventWith(Event.COMPLETE);
                         
                         // user might have changed movie clip settings, so we restart the method
                         advanceTime(restTime);
