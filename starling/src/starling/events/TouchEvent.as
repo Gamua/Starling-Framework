@@ -65,9 +65,9 @@ package starling.events
         public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
         {
-            super(type, bubbles);
+            super(type, bubbles, touches);
             
-            mTouches = touches ? touches : new <Touch>[];
+            mTouches = touches;
             mShiftKey = shiftKey;
             mCtrlKey = ctrlKey;
             mTimestamp = -1.0;

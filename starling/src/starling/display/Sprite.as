@@ -82,7 +82,7 @@ package starling.display
          *  either call <code>flatten</code> again, or <code>unflatten</code> the sprite. */
         public function flatten():void
         {
-            dispatchEventOnChildren(new Event(Event.FLATTEN));
+            broadcastEventWith(Event.FLATTEN);
             
             if (mFlattenedContents == null)
             {

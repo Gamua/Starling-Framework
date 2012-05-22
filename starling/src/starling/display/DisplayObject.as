@@ -333,12 +333,6 @@ package starling.display
                 mParent = value; 
         }
         
-        /** @private */
-        internal function dispatchEventOnChildren(event:Event):void 
-        { 
-            dispatchEvent(event); 
-        }
-        
         // properties
         
         /** The transformation matrix of the object relative to its parent. */

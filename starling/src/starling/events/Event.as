@@ -12,7 +12,10 @@ package starling.events
 {
     import flash.utils.getQualifiedClassName;
     
+    import starling.core.starling_internal;
     import starling.utils.formatString;
+    
+    use namespace starling_internal;
 
     /** Event objects are passed as parameters to event listeners when an event occurs.  
      *  This is Starling's version of the Flash Event class. 
@@ -59,18 +62,22 @@ package starling.events
         /** Event type for an animated object that requests to be removed from the juggler. */
         public static const REMOVE_FROM_JUGGLER:String = "removeFromJuggler";
         
+        private static var sEventPool:Vector.<Event> = new <Event>[];
+        
         private var mTarget:EventDispatcher;
         private var mCurrentTarget:EventDispatcher;
         private var mType:String;
         private var mBubbles:Boolean;
         private var mStopsPropagation:Boolean;
         private var mStopsImmediatePropagation:Boolean;
+        private var mData:Object;
         
         /** Creates an event object that can be passed to listeners. */
-        public function Event(type:String, bubbles:Boolean=false)
+        public function Event(type:String, bubbles:Boolean=false, data:Object=null)
         {
             mType = type;
             mBubbles = bubbles;
+            mData = data;
         }
         
         /** Prevents listeners at the next bubble stage from receiving the event. */
@@ -92,24 +99,6 @@ package starling.events
                 getQualifiedClassName(this).split("::").pop(), mType, mBubbles);
         }
         
-        /** @private */
-        internal function setTarget(target:EventDispatcher):void 
-        { 
-            mTarget = target; 
-        }
-        
-        /** @private */
-        internal function setCurrentTarget(currentTarget:EventDispatcher):void 
-        { 
-            mCurrentTarget = currentTarget; 
-        }
-        
-        /** @private */
-        internal function get stopsPropagation():Boolean { return mStopsPropagation; }
-        
-        /** @private */
-        internal function get stopsImmediatePropagation():Boolean { return mStopsImmediatePropagation; }
-        
         /** Indicates if event will bubble. */
         public function get bubbles():Boolean { return mBubbles; }
         
@@ -121,5 +110,48 @@ package starling.events
         
         /** A string that identifies the event. */
         public function get type():String { return mType; }
+        
+        /** Arbitrary data that is attached to the event. */
+        public function get data():Object { return mData; }
+        
+        // properties for internal use
+        
+        /** @private */
+        internal function setTarget(value:EventDispatcher):void { mTarget = value; }
+        
+        /** @private */
+        internal function setCurrentTarget(value:EventDispatcher):void { mCurrentTarget = value; } 
+        
+        /** @private */
+        internal function get stopsPropagation():Boolean { return mStopsPropagation; }
+        
+        /** @private */
+        internal function get stopsImmediatePropagation():Boolean { return mStopsImmediatePropagation; }
+        
+        // event pooling
+        
+        /** @private */
+        starling_internal static function fromPool(type:String, bubbles:Boolean=false, data:Object=null):Event
+        {
+            if (sEventPool.length) return sEventPool.pop().reset(type, bubbles, data);
+            else return new Event(type, bubbles, data);
+        }
+        
+        /** @private */
+        starling_internal static function toPool(event:Event):void
+        {
+            sEventPool.push(event);
+        }
+        
+        /** @private */
+        starling_internal function reset(type:String, bubbles:Boolean=false, data:Object=null):Event
+        {
+            mType = type;
+            mBubbles = bubbles;
+            mData = data;
+            mTarget = mCurrentTarget = null;
+            mStopsPropagation = mStopsImmediatePropagation = false;
+            return this;
+        }
     }
 }
