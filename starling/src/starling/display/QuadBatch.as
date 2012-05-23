@@ -579,16 +579,59 @@ package starling.display
                                                     mipMap:Boolean=true, repeat:Boolean=false,
                                                     smoothing:String="bilinear"):String
         {
-            // this method is designed to return most quickly when called with
-            // the default parameters (no-repeat, mipmap, bilinear)
+            // to avoid temporary string creation, the program name is not built dynamically;
+            // instead, we use a generated code that returns a string constant.
             
-            var name:String = tinted ? "QB_i*" : "QB_i'";
+            if      (!tinted &&  mipMap && !repeat && smoothing == 'bilinear') return "QB_i'MB";
+            else if ( tinted &&  mipMap && !repeat && smoothing == 'bilinear') return "QB_i*MB";
+            else if (!tinted &&  mipMap && !repeat && smoothing == 'none') return "QB_i'MN";
+            else if ( tinted &&  mipMap && !repeat && smoothing == 'none') return "QB_i*MN";
+            else if (!tinted &&  mipMap && !repeat && smoothing == 'trilinear') return "QB_i'MT";
+            else if ( tinted &&  mipMap && !repeat && smoothing == 'trilinear') return "QB_i*MT";
+            else if (!tinted && !mipMap && !repeat && smoothing == 'bilinear') return "QB_i'B";
+            else if ( tinted && !mipMap && !repeat && smoothing == 'bilinear') return "QB_i*B";
+            else if (!tinted && !mipMap && !repeat && smoothing == 'none') return "QB_i'N";
+            else if ( tinted && !mipMap && !repeat && smoothing == 'none') return "QB_i*N";
+            else if (!tinted && !mipMap && !repeat && smoothing == 'trilinear') return "QB_i'T";
+            else if ( tinted && !mipMap && !repeat && smoothing == 'trilinear') return "QB_i*T";
+            else if (!tinted &&  mipMap &&  repeat && smoothing == 'bilinear') return "QB_i'MRB";
+            else if ( tinted &&  mipMap &&  repeat && smoothing == 'bilinear') return "QB_i*MRB";
+            else if (!tinted &&  mipMap &&  repeat && smoothing == 'none') return "QB_i'MRN";
+            else if ( tinted &&  mipMap &&  repeat && smoothing == 'none') return "QB_i*MRN";
+            else if (!tinted &&  mipMap &&  repeat && smoothing == 'trilinear') return "QB_i'MRT";
+            else if ( tinted &&  mipMap &&  repeat && smoothing == 'trilinear') return "QB_i*MRT";
+            else if (!tinted && !mipMap &&  repeat && smoothing == 'bilinear') return "QB_i'RB";
+            else if ( tinted && !mipMap &&  repeat && smoothing == 'bilinear') return "QB_i*RB";
+            else if (!tinted && !mipMap &&  repeat && smoothing == 'none') return "QB_i'RN";
+            else if ( tinted && !mipMap &&  repeat && smoothing == 'none') return "QB_i*RN";
+            else if (!tinted && !mipMap &&  repeat && smoothing == 'trilinear') return "QB_i'RT";
+            else return "QB_i*RT";
             
-            if (!mipMap) name += "N";
-            if (repeat)  name += "R";
-            if (smoothing != TextureSmoothing.BILINEAR) name += smoothing.charAt(0);
+            // the method is designed to return most quickly when called with the default 
+            // parameters (no-repeat, mipmap, bilinear)
             
-            return name;
+            /* --- Code-Generator: ----------------------------------------------------------------
+            
+            for each (var repeat:Boolean in [false, true])
+            for each (var mipMap:Boolean in [true, false])
+            for each (var smoothing:String in ["bilinear", "none", "trilinear"])
+            for each (var tinted:Boolean in [false, true])
+            {
+                var ifHead:String = 
+                    "else if (" + (tinted ? " tinted" : "!tinted") + " && " +
+                             (mipMap ? " mipMap" : "!mipMap") + " && " +
+                             (repeat ? " repeat" : "!repeat") + " && " +
+                             "smoothing == '" + smoothing + "')";
+                
+                var name:String = tinted ? "QB_i*" : "QB_i'";
+                if (mipMap) name += "M";
+                if (repeat) name += "R";
+                name += smoothing.charAt(0).toUpperCase();   
+                
+                trace(ifHead + " return \"" + name + "\";");
+            }
+            
+            -------------------------------------------------------------------------------------*/
         }
     }
 }
