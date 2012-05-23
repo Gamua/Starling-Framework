@@ -70,6 +70,7 @@ package starling.display
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperPoint:Point = new Point();
+        private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         
         // construction
         
@@ -333,15 +334,19 @@ package starling.display
             if (event.bubbles)
                 throw new ArgumentError("Broadcast of bubbling events is prohibited");
             
-            // the event listeners might modify the display tree, which could make the loop crash. 
-            // thus, we collect them in a list and iterate over that list instead.
+            // The event listeners might modify the display tree, which could make the loop crash. 
+            // Thus, we collect them in a list and iterate over that list instead.
+            // And since another listener could call this method internally, we have to take 
+            // care that the static helper vector does not get currupted.
             
-            var listeners:Vector.<DisplayObject> = new <DisplayObject>[];
-            getChildEventListeners(this, event.type, listeners);
-            var numListeners:int = listeners.length;
+            var fromIndex:int = sBroadcastListeners.length;
+            getChildEventListeners(this, event.type, sBroadcastListeners);
+            var toIndex:int = sBroadcastListeners.length;
             
-            for (var i:int=0; i<numListeners; ++i)
-                listeners[i].dispatchEvent(event);
+            for (var i:int=fromIndex; i<toIndex; ++i)
+                sBroadcastListeners[i].dispatchEvent(event);
+            
+            sBroadcastListeners.length = fromIndex;
         }
         
         /** Dispatches an event with the given parameters on all children (recursively). 
