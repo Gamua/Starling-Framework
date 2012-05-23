@@ -581,57 +581,77 @@ package starling.display
         {
             // to avoid temporary string creation, the program name is not built dynamically;
             // instead, we use a generated code that returns a string constant.
+            // code generator: https://gist.github.com/2774587
             
-            if      (!tinted &&  mipMap && !repeat && smoothing == 'bilinear') return "QB_i'MB";
-            else if ( tinted &&  mipMap && !repeat && smoothing == 'bilinear') return "QB_i*MB";
-            else if (!tinted &&  mipMap && !repeat && smoothing == 'none') return "QB_i'MN";
-            else if ( tinted &&  mipMap && !repeat && smoothing == 'none') return "QB_i*MN";
-            else if (!tinted &&  mipMap && !repeat && smoothing == 'trilinear') return "QB_i'MT";
-            else if ( tinted &&  mipMap && !repeat && smoothing == 'trilinear') return "QB_i*MT";
-            else if (!tinted && !mipMap && !repeat && smoothing == 'bilinear') return "QB_i'B";
-            else if ( tinted && !mipMap && !repeat && smoothing == 'bilinear') return "QB_i*B";
-            else if (!tinted && !mipMap && !repeat && smoothing == 'none') return "QB_i'N";
-            else if ( tinted && !mipMap && !repeat && smoothing == 'none') return "QB_i*N";
-            else if (!tinted && !mipMap && !repeat && smoothing == 'trilinear') return "QB_i'T";
-            else if ( tinted && !mipMap && !repeat && smoothing == 'trilinear') return "QB_i*T";
-            else if (!tinted &&  mipMap &&  repeat && smoothing == 'bilinear') return "QB_i'MRB";
-            else if ( tinted &&  mipMap &&  repeat && smoothing == 'bilinear') return "QB_i*MRB";
-            else if (!tinted &&  mipMap &&  repeat && smoothing == 'none') return "QB_i'MRN";
-            else if ( tinted &&  mipMap &&  repeat && smoothing == 'none') return "QB_i*MRN";
-            else if (!tinted &&  mipMap &&  repeat && smoothing == 'trilinear') return "QB_i'MRT";
-            else if ( tinted &&  mipMap &&  repeat && smoothing == 'trilinear') return "QB_i*MRT";
-            else if (!tinted && !mipMap &&  repeat && smoothing == 'bilinear') return "QB_i'RB";
-            else if ( tinted && !mipMap &&  repeat && smoothing == 'bilinear') return "QB_i*RB";
-            else if (!tinted && !mipMap &&  repeat && smoothing == 'none') return "QB_i'RN";
-            else if ( tinted && !mipMap &&  repeat && smoothing == 'none') return "QB_i*RN";
-            else if (!tinted && !mipMap &&  repeat && smoothing == 'trilinear') return "QB_i'RT";
-            else return "QB_i*RT";
-            
-            // the method is designed to return most quickly when called with the default 
-            // parameters (no-repeat, mipmap, bilinear)
-            
-            /* --- Code-Generator: ----------------------------------------------------------------
-            
-            for each (var repeat:Boolean in [false, true])
-            for each (var mipMap:Boolean in [true, false])
-            for each (var smoothing:String in ["bilinear", "none", "trilinear"])
-            for each (var tinted:Boolean in [false, true])
+            if (tinted)
             {
-                var ifHead:String = 
-                    "else if (" + (tinted ? " tinted" : "!tinted") + " && " +
-                             (mipMap ? " mipMap" : "!mipMap") + " && " +
-                             (repeat ? " repeat" : "!repeat") + " && " +
-                             "smoothing == '" + smoothing + "')";
-                
-                var name:String = tinted ? "QB_i*" : "QB_i'";
-                if (mipMap) name += "M";
-                if (repeat) name += "R";
-                name += smoothing.charAt(0).toUpperCase();   
-                
-                trace(ifHead + " return \"" + name + "\";");
+                if (mipMap)
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*MRB";
+                        else if (smoothing == 'trilinear') return "QB_i*MRT";
+                        else return "QB_i*MRN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*MB";
+                        else if (smoothing == 'trilinear') return "QB_i*MT";
+                        else return "QB_i*MN";
+                    }
+                }
+                else
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*RB";
+                        else if (smoothing == 'trilinear') return "QB_i*RT";
+                        else return "QB_i*RN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*B";
+                        else if (smoothing == 'trilinear') return "QB_i*T";
+                        else return "QB_i*N";
+                    }
+                }
+            }
+            else
+            {
+                if (mipMap)
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'MRB";
+                        else if (smoothing == 'trilinear') return "QB_i'MRT";
+                        else return "QB_i'MRN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'MB";
+                        else if (smoothing == 'trilinear') return "QB_i'MT";
+                        else return "QB_i'MN";
+                    }
+                }
+                else
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'RB";
+                        else if (smoothing == 'trilinear') return "QB_i'RT";
+                        else return "QB_i'RN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'B";
+                        else if (smoothing == 'trilinear') return "QB_i'T";
+                        else return "QB_i'N";
+                    }
+                }
             }
             
-            -------------------------------------------------------------------------------------*/
+            // end of generated code
         }
+        
     }
 }
