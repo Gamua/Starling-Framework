@@ -120,6 +120,7 @@ package scenes
                 var egg:Image = new Image(Assets.getTexture("BenchmarkObject"));
                 egg.x = padding + Math.random() * (Constants.GameWidth - 2 * padding);
                 egg.y = padding + Math.random() * (Constants.GameHeight - 2 * padding);
+                egg.blendMode = "none";
                 mContainer.addChild(egg);
             }
         }

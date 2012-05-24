@@ -130,13 +130,12 @@ package starling.core
             return mMvpMatrix;
         }
         
-        
-        
         /** Prepends translation, scale and rotation of an object to a custom matrix. */
         public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
         {
             sHelperMatrix.copyFrom(object.transformationMatrix);
             sHelperMatrix.concat(matrix);
+            matrix.copyFrom(sHelperMatrix);
         }
         
         // blending
@@ -224,27 +223,6 @@ package starling.core
         {
             var blendFactors:Array = BlendMode.getBlendFactors(blendMode, premultipliedAlpha); 
             Starling.context.setBlendFactors(blendFactors[0], blendFactors[1]);
-        }
-        
-        public static function saveMatrixToVector(matrix:Matrix, vector:Vector.<Number>):void
-        {
-            vector.length = 16;
-            
-            vector[0] = matrix.a;
-            vector[1] = matrix.b;
-            vector[2] = vector[3] = 0.0;
-            
-            vector[4] = matrix.c;
-            vector[5] = matrix.d;
-            vector[6] = vector[7] = 0.0;
-            
-            vector[8] = matrix.tx;
-            vector[9] = matrix.ty;
-            vector[10] = 1.0; 
-            vector[11] = 0.0;
-            
-            vector[12] = vector[13] = vector[14] = 0.0;
-            vector[15] = 1.0;
         }
         
         /** Clears the render context with a certain color and alpha value. */
