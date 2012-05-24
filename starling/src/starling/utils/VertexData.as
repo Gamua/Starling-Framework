@@ -11,7 +11,6 @@
 package starling.utils
 {
     import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
@@ -51,10 +50,10 @@ package starling.utils
         public static const POSITION_OFFSET:int = 0;
         
         /** The offset of color data (r, g, b, a) within a vertex. */ 
-        public static const COLOR_OFFSET:int = 3;
+        public static const COLOR_OFFSET:int = 2;
         
         /** The offset of texture coordinate (u, v) within a vertex. */
-        public static const TEXCOORD_OFFSET:int = 7;
+        public static const TEXCOORD_OFFSET:int = 6;
         
         private var mRawData:Vector.<Number>;
         private var mPremultipliedAlpha:Boolean;
@@ -124,12 +123,11 @@ package starling.utils
         // functions
         
         /** Updates the position values of a vertex. */
-        public function setPosition(vertexID:int, x:Number, y:Number, z:Number=0.0):void
+        public function setPosition(vertexID:int, x:Number, y:Number):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             mRawData[offset] = x;
             mRawData[int(offset+1)] = y;
-            mRawData[int(offset+2)] = z;
         }
         
         /** Returns the position of a vertex. */
@@ -138,7 +136,7 @@ package starling.utils
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             position.x = mRawData[offset];
             position.y = mRawData[int(offset+1)];
-            position.z = mRawData[int(offset+2)];
+            position.z = 0;
         }
         
         /** Updates the RGB color values of a vertex. */ 
@@ -212,41 +210,27 @@ package starling.utils
         // utility functions
         
         /** Translate the position of a vertex by a certain offset. */
-        public function translateVertex(vertexID:int, 
-                                        deltaX:Number, deltaY:Number, deltaZ:Number=0.0):void
+        public function translateVertex(vertexID:int, deltaX:Number, deltaY:Number):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             mRawData[offset]        += deltaX;
             mRawData[int(offset+1)] += deltaY;
-            mRawData[int(offset+2)] += deltaZ;
         }
 
         /** Transforms the position of subsequent vertices by multiplication with a 
          *  transformation matrix. */
-        public function transformVertex(vertexID:int, matrix:Matrix3D, numVertices:int=1):void
+        public function transformVertex(vertexID:int, matrix:Matrix, numVertices:int=1):void
         {
-            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
-                numVertices = mNumVertices - vertexID;
-            
-            var i:int;
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             
-            for (i=0; i<numVertices; ++i)
+            for (var i:int=0; i<numVertices; ++i)
             {
-                sPositions[int(3*i    )] = mRawData[offset];
-                sPositions[int(3*i + 1)] = mRawData[int(offset+1)];
-                sPositions[int(3*i + 2)] = mRawData[int(offset+2)];
-                offset += ELEMENTS_PER_VERTEX;
-            }
-            
-            matrix.transformVectors(sPositions, sPositions);
-            offset -= ELEMENTS_PER_VERTEX * numVertices;
-            
-            for (i=0; i<numVertices; ++i)
-            {
-                mRawData[offset]        = sPositions[int(3*i    )];
-                mRawData[int(offset+1)] = sPositions[int(3*i + 1)];
-                mRawData[int(offset+2)] = sPositions[int(3*i + 2)];
+                var x:Number = mRawData[offset];
+                var y:Number = mRawData[int(offset+1)];
+                
+                mRawData[offset]        = matrix.a * x + matrix.c * y + matrix.tx;
+                mRawData[int(offset+1)] = matrix.d * y + matrix.b * x + matrix.ty;
+                
                 offset += ELEMENTS_PER_VERTEX;
             }
         }

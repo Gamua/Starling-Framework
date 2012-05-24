@@ -18,7 +18,6 @@ package starling.display
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
     import flash.utils.getQualifiedClassName;
     
@@ -77,8 +76,8 @@ package starling.display
 
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
+        private static var sMatrixVector:Vector.<Number> = new <Number>[];
         
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
@@ -188,7 +187,7 @@ package starling.display
         /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
          *  and blend mode. This makes it possible to render batches that are not part of the 
          *  display list. */ 
-        public function renderCustom(mvpMatrix:Matrix3D, parentAlpha:Number=1.0,
+        public function renderCustom(mvpMatrix:Matrix, parentAlpha:Number=1.0,
                                      blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
@@ -204,13 +203,14 @@ package starling.display
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
             sRenderAlpha[3] = parentAlpha;
             
+            RenderSupport.saveMatrixToVector(mvpMatrix, sMatrixVector);
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
             context.setProgram(Starling.current.getProgram(programName));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 1, sMatrixVector, 4);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
-                                      Context3DVertexBufferFormat.FLOAT_3); 
+                                      Context3DVertexBufferFormat.FLOAT_2); 
             
             if (mTexture == null || tinted)
                 context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
@@ -247,7 +247,7 @@ package starling.display
         
         /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
          *  parameters for 'texture' and 'smoothing'. */ 
-        public function addImage(image:Image, parentAlpha:Number=1.0, modelViewMatrix:Matrix3D=null,
+        public function addImage(image:Image, parentAlpha:Number=1.0, modelViewMatrix:Matrix=null,
                                  blendMode:String=null):void
         {
             addQuad(image, parentAlpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
@@ -258,7 +258,7 @@ package starling.display
          *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
          *  the batch. */ 
         public function addQuad(quad:Quad, parentAlpha:Number=1.0, texture:Texture=null, 
-                                smoothing:String=null, modelViewMatrix:Matrix3D=null, 
+                                smoothing:String=null, modelViewMatrix:Matrix=null, 
                                 blendMode:String=null):void
         {
             if (modelViewMatrix == null)
@@ -290,7 +290,7 @@ package starling.display
         }
         
         public function addQuadBatch(quadBatch:QuadBatch, parentAlpha:Number=1.0, 
-                                     modelViewMatrix:Matrix3D=null, blendMode:String=null):void
+                                     modelViewMatrix:Matrix=null, blendMode:String=null):void
         {
             if (modelViewMatrix == null)
                 modelViewMatrix = getHelperModelViewMatrix(quadBatch);
@@ -320,11 +320,11 @@ package starling.display
             mNumQuads += numQuads;
         }
         
-        private function getHelperModelViewMatrix(object:DisplayObject):Matrix3D
+        private function getHelperModelViewMatrix(object:DisplayObject):Matrix
         {
-            sHelperMatrix3D.identity();
-            RenderSupport.transformMatrixForObject(sHelperMatrix3D, object);
-            return sHelperMatrix3D;
+            sHelperMatrix.identity();
+            RenderSupport.transformMatrixForObject(sHelperMatrix, object);
+            return sHelperMatrix;
         }
         
         /** Indicates if a quad can be added to the batch without causing a state change. 
@@ -374,13 +374,13 @@ package starling.display
         public static function compile(container:DisplayObjectContainer, 
                                        quadBatches:Vector.<QuadBatch>):void
         {
-            compileObject(container, quadBatches, -1, new Matrix3D());
+            compileObject(container, quadBatches, -1, new Matrix());
         }
         
         private static function compileObject(object:DisplayObject, 
                                               quadBatches:Vector.<QuadBatch>,
                                               quadBatchID:int,
-                                              transformationMatrix:Matrix3D,
+                                              transformationMatrix:Matrix,
                                               alpha:Number=1.0,
                                               blendMode:String=null):int
         {
@@ -406,7 +406,7 @@ package starling.display
             if (container)
             {
                 var numChildren:int = container.numChildren;
-                var childMatrix:Matrix3D = new Matrix3D();
+                var childMatrix:Matrix = new Matrix();
                 
                 for (i=0; i<numChildren; ++i)
                 {

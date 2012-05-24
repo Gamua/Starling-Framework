@@ -10,7 +10,7 @@
 
 package starling.display
 {
-    import flash.geom.Matrix3D;
+    import flash.geom.Matrix;
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
     
@@ -130,7 +130,7 @@ package starling.display
                 
                 var alpha:Number = parentAlpha * this.alpha;
                 var numBatches:int = mFlattenedContents.length;
-                var mvpMatrix:Matrix3D = support.mvpMatrix;
+                var mvpMatrix:Matrix = support.mvpMatrix;
                 
                 for (var i:int=0; i<numBatches; ++i)
                 {
