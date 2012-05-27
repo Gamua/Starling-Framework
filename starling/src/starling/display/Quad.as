@@ -11,8 +11,8 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
     import starling.utils.VertexData;
@@ -41,7 +41,7 @@ package starling.display
         protected var mVertexData:VertexData;
         
         /** Helper objects. */
-        private static var sHelperVector:Vector3D = new Vector3D();
+        private static var sHelperPoint:Point = new Point();
         private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
@@ -75,16 +75,16 @@ package starling.display
             
             if (targetSpace == this) // optimization
             {
-                mVertexData.getPosition(3, sHelperVector);
-                resultRect.setTo(0.0, 0.0, sHelperVector.x, sHelperVector.y);
+                mVertexData.getPosition(3, sHelperPoint);
+                resultRect.setTo(0.0, 0.0, sHelperPoint.x, sHelperPoint.y);
             }
             else if (targetSpace == parent && rotation == 0.0) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
-                mVertexData.getPosition(3, sHelperVector);
+                mVertexData.getPosition(3, sHelperPoint);
                 resultRect.setTo(x - pivotX * scaleX,      y - pivotY * scaleY,
-                                 sHelperVector.x * scaleX, sHelperVector.y * scaleY);
+                                 sHelperPoint.x * scaleX, sHelperPoint.y * scaleY);
                 if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
                 if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
             }

@@ -30,6 +30,7 @@ package starling.display
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
+    import starling.utils.convertMatrix;
     
     use namespace starling_internal;
     
@@ -78,8 +79,7 @@ package starling.display
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
-        private static var sRenderMatrix:Vector.<Number> = new <Number>[
-            0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1];
+        private static var sRenderMatrix:Matrix3D = new Matrix3D();
         
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
@@ -205,18 +205,12 @@ package starling.display
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
             sRenderAlpha[3] = parentAlpha;
             
-            sRenderMatrix[0] = mvpMatrix.a;
-            sRenderMatrix[1] = mvpMatrix.c;
-            sRenderMatrix[3] = mvpMatrix.tx;
-            sRenderMatrix[4] = mvpMatrix.b;
-            sRenderMatrix[5] = mvpMatrix.d;
-            sRenderMatrix[7] = mvpMatrix.ty;
-            
+            convertMatrix(mvpMatrix, sRenderMatrix);
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
             context.setProgram(Starling.current.getProgram(programName));
-            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha,  1);
-            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 1, sRenderMatrix, 4);
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, sRenderMatrix);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
                                       Context3DVertexBufferFormat.FLOAT_2); 
             
