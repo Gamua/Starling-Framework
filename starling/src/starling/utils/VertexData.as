@@ -97,12 +97,12 @@ package starling.utils
             // todo: check/convert pma
             
             var targetRawData:Vector.<Number> = targetData.mRawData;
-            var targetStartIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
-            var startIndex:int = vertexID * ELEMENTS_PER_VERTEX;
+            var targetIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
+            var sourceIndex:int = vertexID * ELEMENTS_PER_VERTEX;
             var dataLength:int = numVertices * ELEMENTS_PER_VERTEX;
             
-            for (var i:int=startIndex; i<dataLength; ++i)
-                targetRawData[int(targetStartIndex+i)] = mRawData[i];
+            for (var i:int=sourceIndex; i<dataLength; ++i)
+                targetRawData[targetIndex++] = mRawData[i];
         }
         
         /** Appends the vertices from another VertexData object. */
