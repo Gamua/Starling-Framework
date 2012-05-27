@@ -129,7 +129,6 @@ package starling.display
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
-        private static var sTargetMatrix:Matrix  = new Matrix();
         
         /** @private */ 
         public function DisplayObject()
@@ -169,6 +168,9 @@ package starling.display
         public function getTransformationMatrix(targetSpace:DisplayObject, 
                                                 resultMatrix:Matrix=null):Matrix
         {
+            var commonParent:DisplayObject;
+            var currentObject:DisplayObject;
+            
             if (resultMatrix) resultMatrix.identity();
             else resultMatrix = new Matrix();
             
@@ -189,8 +191,7 @@ package starling.display
                 currentObject = this;
                 while (currentObject != targetSpace)
                 {
-                    currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                    resultMatrix.concat(sHelperMatrix);
+                    resultMatrix.concat(currentObject.transformationMatrix);
                     currentObject = currentObject.mParent;
                 }
                 
@@ -206,8 +207,9 @@ package starling.display
             
             // 1. find a common parent of this and the target space
             
-            var commonParent:DisplayObject = null;
-            var currentObject:DisplayObject = this;            
+            commonParent = null;
+            currentObject = this;
+            
             while (currentObject)
             {
                 sAncestors.push(currentObject);
@@ -228,8 +230,7 @@ package starling.display
             currentObject = this;
             while (currentObject != commonParent)
             {
-                currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                resultMatrix.concat(sHelperMatrix);
+                resultMatrix.concat(currentObject.transformationMatrix);
                 currentObject = currentObject.mParent;
             }
             
@@ -238,19 +239,18 @@ package starling.display
             
             // 3. now move up from target until we reach the common parent
             
-            sTargetMatrix.identity();
+            sHelperMatrix.identity();
             currentObject = targetSpace;
             while (currentObject != commonParent)
             {
-                currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                sTargetMatrix.concat(sHelperMatrix);
+                sHelperMatrix.concat(currentObject.transformationMatrix);
                 currentObject = currentObject.mParent;
             }
             
             // 4. now combine the two matrices
             
-            sTargetMatrix.invert();
-            resultMatrix.concat(sTargetMatrix);
+            sHelperMatrix.invert();
+            resultMatrix.concat(sHelperMatrix);
             
             return resultMatrix;
         }        
@@ -280,16 +280,16 @@ package starling.display
         /** Transforms a point from the local coordinate system to global (stage) coordinates. */
         public function localToGlobal(localPoint:Point):Point
         {
-            getTransformationMatrix(root, sTargetMatrix);
-            return sTargetMatrix.transformPoint(localPoint);
+            getTransformationMatrix(root, sHelperMatrix);
+            return sHelperMatrix.transformPoint(localPoint);
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system. */
         public function globalToLocal(globalPoint:Point):Point
         {
-            getTransformationMatrix(root, sTargetMatrix);
-            sTargetMatrix.invert();
-            return sTargetMatrix.transformPoint(globalPoint);
+            getTransformationMatrix(root, sHelperMatrix);
+            sHelperMatrix.invert();
+            return sHelperMatrix.transformPoint(globalPoint);
         }
         
         /** Renders the display object with the help of a support object. Never call this method
