@@ -29,7 +29,7 @@ package tests
         {
             var numVertices:int = 3;
             var vd:VertexData = new VertexData(numVertices);
-            var position:Vector3D = new Vector3D();
+            var position:Point = new Point();
             var texCoords:Point = new Point();
             
             for (var i:int=0; i<numVertices; ++i)
@@ -37,7 +37,7 @@ package tests
                 vd.getPosition(i, position);
                 vd.getTexCoords(i, texCoords);
                 
-                Helpers.compareVector3Ds(position, new Vector3D());
+                Helpers.comparePoints(position, new Point());
                 Helpers.comparePoints(texCoords, new Point());
                 Assert.assertEquals(0x0, vd.getColor(i));
                 Assert.assertEquals(1.0, vd.getAlpha(i));
@@ -69,20 +69,18 @@ package tests
         public function testPosition():void
         {
             var vd:VertexData = new VertexData(4);            
-            vd.setPosition(0, 1, 2, 3);
-            vd.setPosition(1, 4, 5, 6);
+            vd.setPosition(0, 1, 2);
+            vd.setPosition(1, 4, 5);
             
-            var position:Vector3D = new Vector3D();
+            var position:Point = new Point();
             
             vd.getPosition(0, position);
             Assert.assertEquals(1, position.x);
             Assert.assertEquals(2, position.y);
-            Assert.assertEquals(3, position.z);
             
             vd.getPosition(1, position);            
             Assert.assertEquals(4, position.x);
             Assert.assertEquals(5, position.y);
-            Assert.assertEquals(6, position.z);
         }
         
         [Test]
