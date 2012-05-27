@@ -44,7 +44,7 @@ package starling.utils
     public class VertexData 
     {
         /** The total number of elements (Numbers) stored per vertex. */
-        public static const ELEMENTS_PER_VERTEX:int = 9;
+        public static const ELEMENTS_PER_VERTEX:int = 8;
         
         /** The offset of position data (x, y) within a vertex. */
         public static const POSITION_OFFSET:int = 0;
@@ -60,12 +60,12 @@ package starling.utils
         private var mNumVertices:int;
 
         /** Helper objects. */
-        private static var sPositions:Vector.<Number> = new Vector.<Number>(12);
+        private static var sPositions:Vector.<Number> = new Vector.<Number>(8);
         private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
-        {            
+        {
             mRawData = new <Number>[];
             mPremultipliedAlpha = premultipliedAlpha;
             this.numVertices = numVertices;
@@ -131,12 +131,11 @@ package starling.utils
         }
         
         /** Returns the position of a vertex. */
-        public function getPosition(vertexID:int, position:Vector3D):void
+        public function getPosition(vertexID:int, position:Point):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             position.x = mRawData[offset];
             position.y = mRawData[int(offset+1)];
-            position.z = 0;
         }
         
         /** Updates the RGB color values of a vertex. */ 
@@ -385,7 +384,7 @@ package starling.utils
             var delta:int = value - mNumVertices;
             
             for (i=0; i<delta; ++i)
-                mRawData.push(0, 0, 0,  0, 0, 0, 1,  0, 0); // alpha should be '1' per default
+                mRawData.push(0, 0,  0, 0, 0, 1,  0, 0); // alpha should be '1' per default
             
             for (i=0; i<-(delta*ELEMENTS_PER_VERTEX); ++i)
                 mRawData.pop();
