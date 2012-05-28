@@ -20,11 +20,11 @@ package starling.utils
         if (resultMatrix == null) resultMatrix = new Matrix3D();
         
         rawData[0] = matrix.a;
-        rawData[1] = matrix.c;
-        rawData[3] = matrix.tx;
-        rawData[4] = matrix.b;
+        rawData[1] = matrix.b;
+        rawData[4] = matrix.c;
         rawData[5] = matrix.d;
-        rawData[7] = matrix.ty;
+        rawData[12] = matrix.tx;
+        rawData[13] = matrix.ty;
         
         resultMatrix.copyRawDataFrom(rawData);
         return resultMatrix;

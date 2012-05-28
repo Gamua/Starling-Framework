@@ -30,6 +30,7 @@ package starling.core
         private var mProjectionMatrix:Matrix;
         private var mModelViewMatrix:Matrix;
         private var mMvpMatrix:Matrix;
+        private var mMvpMatrix3D:Matrix3D;
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         
@@ -50,6 +51,7 @@ package starling.core
             mProjectionMatrix = new Matrix();
             mModelViewMatrix = new Matrix();
             mMvpMatrix = new Matrix();
+            mMvpMatrix3D = new Matrix3D();
             mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
             
@@ -128,6 +130,13 @@ package starling.core
 			mMvpMatrix.copyFrom(mModelViewMatrix);
             mMvpMatrix.concat(mProjectionMatrix);
             return mMvpMatrix;
+        }
+        
+        /** Calculates the product of modelview and projection matrix and saves it in a 3D matrix. 
+         *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
+        public function get mvpMatrix3D():Matrix3D
+        {
+            return convertMatrix(mvpMatrix, mMvpMatrix3D);
         }
         
         /** Prepends translation, scale and rotation of an object to a custom matrix. */
