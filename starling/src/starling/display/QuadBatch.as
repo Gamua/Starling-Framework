@@ -264,7 +264,7 @@ package starling.display
                                 blendMode:String=null):void
         {
             if (modelViewMatrix == null)
-                modelViewMatrix = getHelperModelViewMatrix(quad);
+                modelViewMatrix = quad.transformationMatrix;
             
             var tinted:Boolean = texture ? (quad.tinted || parentAlpha != 1.0) : false;
             var alpha:Number = parentAlpha * quad.alpha;
@@ -295,7 +295,7 @@ package starling.display
                                      modelViewMatrix:Matrix=null, blendMode:String=null):void
         {
             if (modelViewMatrix == null)
-                modelViewMatrix = getHelperModelViewMatrix(quadBatch);
+                modelViewMatrix = quadBatch.transformationMatrix;
             
             var tinted:Boolean = quadBatch.mTinted || parentAlpha != 1.0;
             var alpha:Number = parentAlpha * quadBatch.alpha;
@@ -320,13 +320,6 @@ package starling.display
             
             mSyncRequired = true;
             mNumQuads += numQuads;
-        }
-        
-        private function getHelperModelViewMatrix(object:DisplayObject):Matrix
-        {
-            sHelperMatrix.identity();
-            RenderSupport.transformMatrixForObject(sHelperMatrix, object);
-            return sHelperMatrix;
         }
         
         /** Indicates if a quad can be added to the batch without causing a state change. 
