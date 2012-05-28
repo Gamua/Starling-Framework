@@ -95,19 +95,19 @@ package starling.core
             mModelViewMatrix.identity();
         }
         
-        /** Prepends a translation to the modelview matrix. */
+        /** Appends a translation to the modelview matrix. */
         public function translateMatrix(dx:Number, dy:Number):void
         {
             mModelViewMatrix.translate(dx, dy);
         }
         
-        /** Prepends a rotation (angle in radians) to the modelview matrix. */
+        /** Appends a rotation (angle in radians) to the modelview matrix. */
         public function rotateMatrix(angle:Number):void
         {
             mModelViewMatrix.rotate(angle);
         }
         
-        /** Prepends an incremental scale change to the modelview matrix. */
+        /** Appends an incremental scale change to the modelview matrix. */
         public function scaleMatrix(sx:Number, sy:Number):void
         {
             mModelViewMatrix.scale(sx, sy);
