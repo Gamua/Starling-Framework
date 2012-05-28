@@ -335,7 +335,8 @@ package starling.display
         
         // properties
         
-        /** The transformation matrix of the object relative to its parent. */
+        /** The transformation matrix of the object relative to its parent. 
+         *  CAUTION: Returns not a copy, but the actual object! Do not change or reuse. */
         public function get transformationMatrix():Matrix
         {
             if (mOrientationChanged)
