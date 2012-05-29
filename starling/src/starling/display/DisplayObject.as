@@ -366,7 +366,7 @@ package starling.display
             // this method calls 'this.scaleX' instead of changing mScaleX directly.
             // that way, subclasses reacting on size changes need to override only the scaleX method.
             
-            mScaleX = 1.0;
+            scaleX = 1.0;
             var actualWidth:Number = width;
             if (actualWidth != 0.0) scaleX = value / actualWidth;
             else                    scaleX = 1.0;
@@ -376,7 +376,7 @@ package starling.display
         public function get height():Number { return getBounds(mParent, sHelperRect).height; }
         public function set height(value:Number):void
         {
-            mScaleY = 1.0;
+            scaleY = 1.0;
             var actualHeight:Number = height;
             if (actualHeight != 0.0) scaleY = value / actualHeight;
             else                     scaleY = 1.0;
