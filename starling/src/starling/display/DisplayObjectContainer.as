@@ -20,7 +20,7 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
-    import starling.utils.transformCoords;
+    import starling.utils.MatrixUtil;
     
     use namespace starling_internal;
     
@@ -253,7 +253,7 @@ package starling.display
             if (numChildren == 0)
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
-                transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
+                MatrixUtil.transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
                 resultRect.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
                 return resultRect;
             }
@@ -295,7 +295,7 @@ package starling.display
                 var child:DisplayObject = mChildren[i];
                 getTransformationMatrix(child, sHelperMatrix);
                 
-                transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
+                MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
                 var target:DisplayObject = child.hitTest(sHelperPoint, forTouch);
                 
                 if (target) return target;

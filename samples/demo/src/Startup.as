@@ -4,7 +4,6 @@ package
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.events.Event;
-    import flash.geom.Rectangle;
     import flash.system.Capabilities;
     
     import starling.core.Starling;

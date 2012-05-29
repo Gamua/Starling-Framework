@@ -314,7 +314,7 @@ package starling.utils
                     y = mRawData[int(offset+1)];
                     offset += ELEMENTS_PER_VERTEX;
                     
-                    transformCoords(transformationMatrix, x, y, sHelperPoint);
+                    MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
                     minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
                     maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
                     minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;

@@ -95,22 +95,22 @@ package starling.core
             mModelViewMatrix.identity();
         }
         
-        /** Appends a translation to the modelview matrix. */
+        /** Prepends a translation to the modelview matrix. */
         public function translateMatrix(dx:Number, dy:Number):void
         {
-            mModelViewMatrix.translate(dx, dy);
+            MatrixUtil.prependTranslation(mModelViewMatrix, dx, dy);
         }
         
-        /** Appends a rotation (angle in radians) to the modelview matrix. */
+        /** Prepends a rotation (angle in radians) to the modelview matrix. */
         public function rotateMatrix(angle:Number):void
         {
-            mModelViewMatrix.rotate(angle);
+            MatrixUtil.prependRotation(mModelViewMatrix, angle);
         }
         
-        /** Appends an incremental scale change to the modelview matrix. */
+        /** Prepends an incremental scale change to the modelview matrix. */
         public function scaleMatrix(sx:Number, sy:Number):void
         {
-            mModelViewMatrix.scale(sx, sy);
+            MatrixUtil.prependScale(mModelViewMatrix, sx, sy);
         }
         
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
@@ -154,7 +154,7 @@ package starling.core
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
         public function get mvpMatrix3D():Matrix3D
         {
-            return convertMatrix(mvpMatrix, mMvpMatrix3D);
+            return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
         }
         
         /** Prepends translation, scale and rotation of an object to a custom matrix. */

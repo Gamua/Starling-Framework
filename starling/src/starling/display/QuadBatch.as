@@ -29,8 +29,8 @@ package starling.display
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
+    import starling.utils.MatrixUtil;
     import starling.utils.VertexData;
-    import starling.utils.convertMatrix;
     
     use namespace starling_internal;
     
@@ -205,7 +205,7 @@ package starling.display
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
             sRenderAlpha[3] = parentAlpha;
             
-            convertMatrix(mvpMatrix, sRenderMatrix);
+            MatrixUtil.convertTo3D(mvpMatrix, sRenderMatrix);
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
             context.setProgram(Starling.current.getProgram(programName));
