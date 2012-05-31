@@ -253,7 +253,7 @@ package starling.core
         
         private function updateViewPort():void
         {
-            if (mContext)
+            if (mContext && mContext.driverInfo != "Disposed")
                 mContext.configureBackBuffer(mViewPort.width, mViewPort.height, mAntiAliasing, false);
             
             mStage3D.x = mViewPort.x;
