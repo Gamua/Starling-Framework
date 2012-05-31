@@ -29,6 +29,7 @@ package starling.display
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
+    import starling.utils.MatrixUtil;
     import starling.utils.VertexData;
     
     use namespace starling_internal;
@@ -77,8 +78,8 @@ package starling.display
 
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
+        private static var sRenderMatrix:Matrix3D = new Matrix3D();
         
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
@@ -188,7 +189,7 @@ package starling.display
         /** Renders the current batch with custom settings for model-view-projection matrix, alpha 
          *  and blend mode. This makes it possible to render batches that are not part of the 
          *  display list. */ 
-        public function renderCustom(mvpMatrix:Matrix3D, parentAlpha:Number=1.0,
+        public function renderCustom(mvpMatrix:Matrix, parentAlpha:Number=1.0,
                                      blendMode:String=null):void
         {
             if (mNumQuads == 0) return;
@@ -204,13 +205,14 @@ package starling.display
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
             sRenderAlpha[3] = parentAlpha;
             
+            MatrixUtil.convertTo3D(mvpMatrix, sRenderMatrix);
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
             context.setProgram(Starling.current.getProgram(programName));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, sRenderMatrix, true);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
-                                      Context3DVertexBufferFormat.FLOAT_3); 
+                                      Context3DVertexBufferFormat.FLOAT_2); 
             
             if (mTexture == null || tinted)
                 context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
@@ -247,7 +249,7 @@ package starling.display
         
         /** Adds an image to the batch. This method internally calls 'addQuad' with the correct
          *  parameters for 'texture' and 'smoothing'. */ 
-        public function addImage(image:Image, parentAlpha:Number=1.0, modelViewMatrix:Matrix3D=null,
+        public function addImage(image:Image, parentAlpha:Number=1.0, modelViewMatrix:Matrix=null,
                                  blendMode:String=null):void
         {
             addQuad(image, parentAlpha, image.texture, image.smoothing, modelViewMatrix, blendMode);
@@ -258,11 +260,11 @@ package starling.display
          *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
          *  the batch. */ 
         public function addQuad(quad:Quad, parentAlpha:Number=1.0, texture:Texture=null, 
-                                smoothing:String=null, modelViewMatrix:Matrix3D=null, 
+                                smoothing:String=null, modelViewMatrix:Matrix=null, 
                                 blendMode:String=null):void
         {
             if (modelViewMatrix == null)
-                modelViewMatrix = getHelperModelViewMatrix(quad);
+                modelViewMatrix = quad.transformationMatrix;
             
             var tinted:Boolean = texture ? (quad.tinted || parentAlpha != 1.0) : false;
             var alpha:Number = parentAlpha * quad.alpha;
@@ -290,10 +292,10 @@ package starling.display
         }
         
         public function addQuadBatch(quadBatch:QuadBatch, parentAlpha:Number=1.0, 
-                                     modelViewMatrix:Matrix3D=null, blendMode:String=null):void
+                                     modelViewMatrix:Matrix=null, blendMode:String=null):void
         {
             if (modelViewMatrix == null)
-                modelViewMatrix = getHelperModelViewMatrix(quadBatch);
+                modelViewMatrix = quadBatch.transformationMatrix;
             
             var tinted:Boolean = quadBatch.mTinted || parentAlpha != 1.0;
             var alpha:Number = parentAlpha * quadBatch.alpha;
@@ -318,13 +320,6 @@ package starling.display
             
             mSyncRequired = true;
             mNumQuads += numQuads;
-        }
-        
-        private function getHelperModelViewMatrix(object:DisplayObject):Matrix3D
-        {
-            sHelperMatrix3D.identity();
-            RenderSupport.transformMatrixForObject(sHelperMatrix3D, object);
-            return sHelperMatrix3D;
         }
         
         /** Indicates if a quad can be added to the batch without causing a state change. 
@@ -361,7 +356,8 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            support.batchQuads(this, parentAlpha);
+            support.finishQuadBatch();
+            renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
         }
         
         // compilation (for flattened sprites)
@@ -373,13 +369,13 @@ package starling.display
         public static function compile(container:DisplayObjectContainer, 
                                        quadBatches:Vector.<QuadBatch>):void
         {
-            compileObject(container, quadBatches, -1, new Matrix3D());
+            compileObject(container, quadBatches, -1, new Matrix());
         }
         
         private static function compileObject(object:DisplayObject, 
                                               quadBatches:Vector.<QuadBatch>,
                                               quadBatchID:int,
-                                              transformationMatrix:Matrix3D,
+                                              transformationMatrix:Matrix,
                                               alpha:Number=1.0,
                                               blendMode:String=null):int
         {
@@ -405,7 +401,7 @@ package starling.display
             if (container)
             {
                 var numChildren:int = container.numChildren;
-                var childMatrix:Matrix3D = new Matrix3D();
+                var childMatrix:Matrix = new Matrix();
                 
                 for (i=0; i<numChildren; ++i)
                 {
@@ -578,16 +574,79 @@ package starling.display
                                                     mipMap:Boolean=true, repeat:Boolean=false,
                                                     smoothing:String="bilinear"):String
         {
-            // this method is designed to return most quickly when called with
-            // the default parameters (no-repeat, mipmap, bilinear)
+            // to avoid temporary string creation, the program name is not built dynamically;
+            // instead, we use a generated code that returns a string constant.
+            // code generator: https://gist.github.com/2774587
             
-            var name:String = tinted ? "QB_i*" : "QB_i'";
+            if (tinted)
+            {
+                if (mipMap)
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*MRB";
+                        else if (smoothing == 'trilinear') return "QB_i*MRT";
+                        else return "QB_i*MRN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*MB";
+                        else if (smoothing == 'trilinear') return "QB_i*MT";
+                        else return "QB_i*MN";
+                    }
+                }
+                else
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*RB";
+                        else if (smoothing == 'trilinear') return "QB_i*RT";
+                        else return "QB_i*RN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i*B";
+                        else if (smoothing == 'trilinear') return "QB_i*T";
+                        else return "QB_i*N";
+                    }
+                }
+            }
+            else
+            {
+                if (mipMap)
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'MRB";
+                        else if (smoothing == 'trilinear') return "QB_i'MRT";
+                        else return "QB_i'MRN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'MB";
+                        else if (smoothing == 'trilinear') return "QB_i'MT";
+                        else return "QB_i'MN";
+                    }
+                }
+                else
+                {
+                    if (repeat)
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'RB";
+                        else if (smoothing == 'trilinear') return "QB_i'RT";
+                        else return "QB_i'RN";
+                    }
+                    else
+                    {
+                        if (smoothing == 'bilinear') return "QB_i'B";
+                        else if (smoothing == 'trilinear') return "QB_i'T";
+                        else return "QB_i'N";
+                    }
+                }
+            }
             
-            if (!mipMap) name += "N";
-            if (repeat)  name += "R";
-            if (smoothing != TextureSmoothing.BILINEAR) name += smoothing.charAt(0);
-            
-            return name;
+            // end of generated code
         }
+        
     }
 }

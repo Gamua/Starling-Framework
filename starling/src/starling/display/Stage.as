@@ -13,8 +13,11 @@ package starling.display
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
     
+    import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
+    
+    use namespace starling_internal;
     
     /** Dispatched when the Flash container is resized. */
     [Event(name="resize", type="starling.events.ResizeEvent")]
@@ -56,6 +59,7 @@ package starling.display
         private var mWidth:int;
         private var mHeight:int;
         private var mColor:uint;
+        private var mEnterFrameEvent:EnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -68,7 +72,8 @@ package starling.display
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
-            dispatchEventOnChildren(new EnterFrameEvent(Event.ENTER_FRAME, passedTime));
+            mEnterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
+            broadcastEvent(mEnterFrameEvent);
         }
 
         /** Returns the object that is found topmost beneath a point in stage coordinates, or  

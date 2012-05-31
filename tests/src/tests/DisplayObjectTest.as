@@ -22,6 +22,7 @@ package tests
     
     import starling.display.Quad;
     import starling.display.Sprite;
+    import starling.display.Stage;
     import starling.utils.deg2rad;
 
     public class DisplayObjectTest
@@ -29,7 +30,7 @@ package tests
         private static const E:Number = 0.0001;
         
         [Test]
-        public function testRoot():void
+        public function testBase():void
         {
             var object1:Sprite = new Sprite();
             var object2:Sprite = new Sprite();
@@ -38,9 +39,40 @@ package tests
             object1.addChild(object2);
             object2.addChild(object3);
             
+            Assert.assertEquals(object1, object1.base);
+            Assert.assertEquals(object1, object2.base);
+            Assert.assertEquals(object1, object3.base);
+            
+            var quad:Quad = new Quad(100, 100);
+            Assert.assertEquals(quad, quad.base);
+        }
+        
+        [Test]
+        public function testRootAndStage():void
+        {
+            var object1:Sprite = new Sprite();
+            var object2:Sprite = new Sprite();
+            var object3:Sprite = new Sprite();
+            
+            object1.addChild(object2);
+            object2.addChild(object3);
+            
+            Assert.assertEquals(null, object1.root);
+            Assert.assertEquals(null, object2.root);
+            Assert.assertEquals(null, object3.root);
+            Assert.assertEquals(null, object1.stage);
+            Assert.assertEquals(null, object2.stage);
+            Assert.assertEquals(null, object3.stage);
+            
+            var stage:Stage = new Stage(100, 100);
+            stage.addChild(object1);
+            
             Assert.assertEquals(object1, object1.root);
             Assert.assertEquals(object1, object2.root);
             Assert.assertEquals(object1, object3.root);
+            Assert.assertEquals(stage, object1.stage);
+            Assert.assertEquals(stage, object2.stage);
+            Assert.assertEquals(stage, object3.stage);
         }
         
         [Test]

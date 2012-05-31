@@ -50,7 +50,7 @@ package starling.display
      *  A container is simply a display object that has child nodes - which can, again, be either
      *  leaf nodes or other containers.</p> 
      *  
-     *  <p>At the root of the display tree, there is the Stage, which is a container, too. To create
+     *  <p>At the base of the display tree, there is the Stage, which is a container, too. To create
      *  a Starling application, you create a custom Sprite subclass, and Starling will add an
      *  instance of this class to the stage.</p>
      *  
@@ -121,13 +121,14 @@ package starling.display
         private var mBlendMode:String;
         private var mName:String;
         private var mLastTouchTimestamp:Number;
-        private var mParent:DisplayObjectContainer;        
+        private var mParent:DisplayObjectContainer;  
+        private var mTransformationMatrix:Matrix;
+        private var mOrientationChanged:Boolean;
         
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
-        private static var sTargetMatrix:Matrix  = new Matrix();
         
         /** @private */ 
         public function DisplayObject()
@@ -143,6 +144,8 @@ package starling.display
             mVisible = mTouchable = true;
             mLastTouchTimestamp = -1;
             mBlendMode = BlendMode.AUTO;
+            mTransformationMatrix = new Matrix();
+            mOrientationChanged = false;
         }
         
         /** Disposes all resources of the display object. 
@@ -165,6 +168,9 @@ package starling.display
         public function getTransformationMatrix(targetSpace:DisplayObject, 
                                                 resultMatrix:Matrix=null):Matrix
         {
+            var commonParent:DisplayObject;
+            var currentObject:DisplayObject;
+            
             if (resultMatrix) resultMatrix.identity();
             else resultMatrix = new Matrix();
             
@@ -174,23 +180,18 @@ package starling.display
             }
             else if (targetSpace == mParent || (targetSpace == null && mParent == null))
             {
-                if (mPivotX != 0.0 || mPivotY != 0.0) resultMatrix.translate(-mPivotX, -mPivotY);
-                if (mScaleX != 1.0 || mScaleY != 1.0) resultMatrix.scale(mScaleX, mScaleY);
-                if (mRotation != 0.0)                 resultMatrix.rotate(mRotation);
-                if (mX != 0.0 || mY != 0.0)           resultMatrix.translate(mX, mY);
-                
+                resultMatrix.copyFrom(transformationMatrix);
                 return resultMatrix;
             }
-            else if (targetSpace == null || targetSpace == root)
+            else if (targetSpace == null || targetSpace == base)
             {
-                // targetCoordinateSpace 'null' represents the target space of the root object.
-                // -> move up from this to root
+                // targetCoordinateSpace 'null' represents the target space of the base object.
+                // -> move up from this to base
                 
                 currentObject = this;
                 while (currentObject != targetSpace)
                 {
-                    currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                    resultMatrix.concat(sHelperMatrix);
+                    resultMatrix.concat(currentObject.transformationMatrix);
                     currentObject = currentObject.mParent;
                 }
                 
@@ -206,8 +207,9 @@ package starling.display
             
             // 1. find a common parent of this and the target space
             
-            var commonParent:DisplayObject = null;
-            var currentObject:DisplayObject = this;            
+            commonParent = null;
+            currentObject = this;
+            
             while (currentObject)
             {
                 sAncestors.push(currentObject);
@@ -228,8 +230,7 @@ package starling.display
             currentObject = this;
             while (currentObject != commonParent)
             {
-                currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                resultMatrix.concat(sHelperMatrix);
+                resultMatrix.concat(currentObject.transformationMatrix);
                 currentObject = currentObject.mParent;
             }
             
@@ -238,19 +239,18 @@ package starling.display
             
             // 3. now move up from target until we reach the common parent
             
-            sTargetMatrix.identity();
+            sHelperMatrix.identity();
             currentObject = targetSpace;
             while (currentObject != commonParent)
             {
-                currentObject.getTransformationMatrix(currentObject.mParent, sHelperMatrix);
-                sTargetMatrix.concat(sHelperMatrix);
+                sHelperMatrix.concat(currentObject.transformationMatrix);
                 currentObject = currentObject.mParent;
             }
             
             // 4. now combine the two matrices
             
-            sTargetMatrix.invert();
-            resultMatrix.concat(sTargetMatrix);
+            sHelperMatrix.invert();
+            resultMatrix.concat(sHelperMatrix);
             
             return resultMatrix;
         }        
@@ -280,16 +280,16 @@ package starling.display
         /** Transforms a point from the local coordinate system to global (stage) coordinates. */
         public function localToGlobal(localPoint:Point):Point
         {
-            getTransformationMatrix(root, sTargetMatrix);
-            return sTargetMatrix.transformPoint(localPoint);
+            getTransformationMatrix(base, sHelperMatrix);
+            return sHelperMatrix.transformPoint(localPoint);
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system. */
         public function globalToLocal(globalPoint:Point):Point
         {
-            getTransformationMatrix(root, sTargetMatrix);
-            sTargetMatrix.invert();
-            return sTargetMatrix.transformPoint(globalPoint);
+            getTransformationMatrix(base, sHelperMatrix);
+            sHelperMatrix.invert();
+            return sHelperMatrix.transformPoint(globalPoint);
         }
         
         /** Renders the display object with the help of a support object. Never call this method
@@ -333,18 +333,24 @@ package starling.display
                 mParent = value; 
         }
         
-        /** @private */
-        internal function dispatchEventOnChildren(event:Event):void 
-        { 
-            dispatchEvent(event); 
-        }
-        
         // properties
         
-        /** The transformation matrix of the object relative to its parent. */
+        /** The transformation matrix of the object relative to its parent. 
+         *  CAUTION: Returns not a copy, but the actual object! Do not change or reuse. */
         public function get transformationMatrix():Matrix
         {
-            return getTransformationMatrix(mParent); 
+            if (mOrientationChanged)
+            {
+                mOrientationChanged = false;
+                mTransformationMatrix.identity();
+                
+                if (mPivotX != 0.0 || mPivotY != 0.0) mTransformationMatrix.translate(-mPivotX, -mPivotY);
+                if (mScaleX != 1.0 || mScaleY != 1.0) mTransformationMatrix.scale(mScaleX, mScaleY);
+                if (mRotation != 0.0)                 mTransformationMatrix.rotate(mRotation);
+                if (mX != 0.0 || mY != 0.0)           mTransformationMatrix.translate(mX, mY);
+            }
+            
+            return mTransformationMatrix; 
         }
         
         /** The bounds of the object relative to the local coordinates of the parent. */
@@ -360,7 +366,7 @@ package starling.display
             // this method calls 'this.scaleX' instead of changing mScaleX directly.
             // that way, subclasses reacting on size changes need to override only the scaleX method.
             
-            mScaleX = 1.0;
+            scaleX = 1.0;
             var actualWidth:Number = width;
             if (actualWidth != 0.0) scaleX = value / actualWidth;
             else                    scaleX = 1.0;
@@ -370,53 +376,92 @@ package starling.display
         public function get height():Number { return getBounds(mParent, sHelperRect).height; }
         public function set height(value:Number):void
         {
-            mScaleY = 1.0;
+            scaleY = 1.0;
             var actualHeight:Number = height;
             if (actualHeight != 0.0) scaleY = value / actualHeight;
             else                     scaleY = 1.0;
         }
         
-        /** The topmost object in the display tree the object is part of. */
-        public function get root():DisplayObject
-        {
-            var currentObject:DisplayObject = this;
-            while (currentObject.mParent) currentObject = currentObject.mParent;
-            return currentObject;
-        }
-        
         /** The x coordinate of the object relative to the local coordinates of the parent. */
         public function get x():Number { return mX; }
-        public function set x(value:Number):void { mX = value; }
+        public function set x(value:Number):void 
+        { 
+            if (mX != value)
+            {
+                mX = value;
+                mOrientationChanged = true;
+            }
+        }
         
         /** The y coordinate of the object relative to the local coordinates of the parent. */
         public function get y():Number { return mY; }
-        public function set y(value:Number):void { mY = value; }
+        public function set y(value:Number):void 
+        {
+            if (mY != value)
+            {
+                mY = value;
+                mOrientationChanged = true;
+            }
+        }
         
         /** The x coordinate of the object's origin in its own coordinate space (default: 0). */
         public function get pivotX():Number { return mPivotX; }
-        public function set pivotX(value:Number):void { mPivotX = value; }
+        public function set pivotX(value:Number):void 
+        {
+            if (mPivotX != value)
+            {
+                mPivotX = value;
+                mOrientationChanged = true;
+            }
+        }
         
         /** The y coordinate of the object's origin in its own coordinate space (default: 0). */
         public function get pivotY():Number { return mPivotY; }
-        public function set pivotY(value:Number):void { mPivotY = value; }
+        public function set pivotY(value:Number):void 
+        { 
+            if (mPivotY != value)
+            {
+                mPivotY = value;
+                mOrientationChanged = true;
+            }
+        }
         
         /** The horizontal scale factor. '1' means no scale, negative values flip the object. */
         public function get scaleX():Number { return mScaleX; }
-        public function set scaleX(value:Number):void { mScaleX = value; }
+        public function set scaleX(value:Number):void 
+        { 
+            if (mScaleX != value)
+            {
+                mScaleX = value;
+                mOrientationChanged = true;
+            }
+        }
         
         /** The vertical scale factor. '1' means no scale, negative values flip the object. */
         public function get scaleY():Number { return mScaleY; }
-        public function set scaleY(value:Number):void { mScaleY = value; }
+        public function set scaleY(value:Number):void 
+        { 
+            if (mScaleY != value)
+            {
+                mScaleY = value;
+                mOrientationChanged = true;
+            }
+        }
         
         /** The rotation of the object in radians. (In Starling, all angles are measured 
          *  in radians.) */
         public function get rotation():Number { return mRotation; }
         public function set rotation(value:Number):void 
-        { 
+        {
             // move into range [-180 deg, +180 deg]
             while (value < -Math.PI) value += Math.PI * 2.0;
             while (value >  Math.PI) value -= Math.PI * 2.0;
-            mRotation = value;
+
+            if (mRotation != value)
+            {            
+                mRotation = value;
+                mOrientationChanged = true;
+            }
         }
         
         /** The opacity of the object. 0 = transparent, 1 = opaque. */
@@ -448,8 +493,31 @@ package starling.display
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return mParent; }
         
+        /** The topmost object in the display tree the object is part of. */
+        public function get base():DisplayObject
+        {
+            var currentObject:DisplayObject = this;
+            while (currentObject.mParent) currentObject = currentObject.mParent;
+            return currentObject;
+        }
+        
+        /** The root object the display object is connected to (i.e. an instance of the class 
+         *  that was passed to the Starling constructor), or null if the object is not connected
+         *  to the stage. */
+        public function get root():DisplayObject
+        {
+            var currentObject:DisplayObject = this;
+            while (currentObject.mParent)
+            {
+                if (currentObject.mParent is Stage) return currentObject;
+                else currentObject = currentObject.parent;
+            }
+            
+            return null;
+        }
+        
         /** The stage the display object is connected to, or null if it is not connected 
-         *  to a stage. */
-        public function get stage():Stage { return this.root as Stage; }
+         *  to the stage. */
+        public function get stage():Stage { return this.base as Stage; }
     }
 }

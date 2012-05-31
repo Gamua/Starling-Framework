@@ -253,7 +253,7 @@ package starling.core
         
         private function updateViewPort():void
         {
-            if (mContext)
+            if (mContext && mContext.driverInfo != "Disposed")
                 mContext.configureBackBuffer(mViewPort.width, mViewPort.height, mAntiAliasing, false);
             
             mStage3D.x = mViewPort.x;
@@ -361,10 +361,10 @@ package starling.core
             makeCurrent();
             
             initializeGraphicsAPI();
-            dispatchEvent(new starling.events.Event(starling.events.Event.CONTEXT3D_CREATE));
+            dispatchEventWith(starling.events.Event.CONTEXT3D_CREATE, false, mContext);
             
             initializeRoot();
-            dispatchEvent(new starling.events.Event(starling.events.Event.ROOT_CREATED));
+            dispatchEventWith(starling.events.Event.ROOT_CREATED, false, root);
             
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
             mLastFrameTimestamp = getTimer() / 1000.0;
