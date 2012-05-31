@@ -50,7 +50,7 @@ package starling.display
      *  A container is simply a display object that has child nodes - which can, again, be either
      *  leaf nodes or other containers.</p> 
      *  
-     *  <p>At the root of the display tree, there is the Stage, which is a container, too. To create
+     *  <p>At the base of the display tree, there is the Stage, which is a container, too. To create
      *  a Starling application, you create a custom Sprite subclass, and Starling will add an
      *  instance of this class to the stage.</p>
      *  
@@ -183,10 +183,10 @@ package starling.display
                 resultMatrix.copyFrom(transformationMatrix);
                 return resultMatrix;
             }
-            else if (targetSpace == null || targetSpace == root)
+            else if (targetSpace == null || targetSpace == base)
             {
-                // targetCoordinateSpace 'null' represents the target space of the root object.
-                // -> move up from this to root
+                // targetCoordinateSpace 'null' represents the target space of the base object.
+                // -> move up from this to base
                 
                 currentObject = this;
                 while (currentObject != targetSpace)
@@ -280,14 +280,14 @@ package starling.display
         /** Transforms a point from the local coordinate system to global (stage) coordinates. */
         public function localToGlobal(localPoint:Point):Point
         {
-            getTransformationMatrix(root, sHelperMatrix);
+            getTransformationMatrix(base, sHelperMatrix);
             return sHelperMatrix.transformPoint(localPoint);
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system. */
         public function globalToLocal(globalPoint:Point):Point
         {
-            getTransformationMatrix(root, sHelperMatrix);
+            getTransformationMatrix(base, sHelperMatrix);
             sHelperMatrix.invert();
             return sHelperMatrix.transformPoint(globalPoint);
         }
@@ -380,14 +380,6 @@ package starling.display
             var actualHeight:Number = height;
             if (actualHeight != 0.0) scaleY = value / actualHeight;
             else                     scaleY = 1.0;
-        }
-        
-        /** The topmost object in the display tree the object is part of. */
-        public function get root():DisplayObject
-        {
-            var currentObject:DisplayObject = this;
-            while (currentObject.mParent) currentObject = currentObject.mParent;
-            return currentObject;
         }
         
         /** The x coordinate of the object relative to the local coordinates of the parent. */
@@ -501,8 +493,31 @@ package starling.display
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return mParent; }
         
+        /** The topmost object in the display tree the object is part of. */
+        public function get base():DisplayObject
+        {
+            var currentObject:DisplayObject = this;
+            while (currentObject.mParent) currentObject = currentObject.mParent;
+            return currentObject;
+        }
+        
+        /** The root object the display object is connected to (i.e. an instance of the class 
+         *  that was passed to the Starling constructor), or null if the object is not connected
+         *  to the stage. */
+        public function get root():DisplayObject
+        {
+            var currentObject:DisplayObject = this;
+            while (currentObject.mParent)
+            {
+                if (currentObject.mParent is Stage) return currentObject;
+                else currentObject = currentObject.parent;
+            }
+            
+            return null;
+        }
+        
         /** The stage the display object is connected to, or null if it is not connected 
-         *  to a stage. */
-        public function get stage():Stage { return this.root as Stage; }
+         *  to the stage. */
+        public function get stage():Stage { return this.base as Stage; }
     }
 }

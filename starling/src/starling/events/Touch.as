@@ -66,7 +66,7 @@ package starling.events
         public function getLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mGlobalX, mGlobalY);
-            mTarget.root.getTransformationMatrix(space, sHelperMatrix);
+            mTarget.base.getTransformationMatrix(space, sHelperMatrix);
             return sHelperMatrix.transformPoint(point);
         }
         
@@ -75,7 +75,7 @@ package starling.events
         public function getPreviousLocation(space:DisplayObject):Point
         {
             var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
-            mTarget.root.getTransformationMatrix(space, sHelperMatrix);
+            mTarget.base.getTransformationMatrix(space, sHelperMatrix);
             return sHelperMatrix.transformPoint(point);
         }
         
