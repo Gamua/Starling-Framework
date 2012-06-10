@@ -55,7 +55,7 @@ package starling.display
         private var mLoop:Boolean;
         private var mPlaying:Boolean;
         
-        /** Creates a moviclip from the provided textures and with the specified default framerate.
+        /** Creates a movie clip from the provided textures and with the specified default framerate.
          *  The movie will have the size of the first frame. */  
         public function MovieClip(textures:Vector.<Texture>, fps:Number=12)
         {
