@@ -215,13 +215,16 @@ package starling.core
         /** Renders the current quad batch and resets it. */
         public function finishQuadBatch():void
         {
-            currentQuadBatch.renderCustom(mProjectionMatrix);
-            currentQuadBatch.reset();
-            
-            ++mCurrentQuadBatchID;
-            
-            if (mQuadBatches.length <= mCurrentQuadBatchID)
-                mQuadBatches.push(new QuadBatch());
+            if (currentQuadBatch.numQuads != 0)
+            {
+                currentQuadBatch.renderCustom(mProjectionMatrix);
+                currentQuadBatch.reset();
+                
+                ++mCurrentQuadBatchID;
+                
+                if (mQuadBatches.length <= mCurrentQuadBatchID)
+                    mQuadBatches.push(new QuadBatch());
+            }
         }
         
         /** Resets the matrix and blend mode stacks, and the quad batch index. */
