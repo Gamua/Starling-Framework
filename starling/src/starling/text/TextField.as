@@ -74,6 +74,7 @@ package starling.text
         private var mUnderline:Boolean;
         private var mAutoScale:Boolean;
         private var mKerning:Boolean;
+        private var mNativeFilters:Array;
         private var mRequiresRedraw:Boolean;
         private var mIsRenderedText:Boolean;
         private var mTextBounds:Rectangle;
@@ -172,6 +173,9 @@ package starling.text
             
             if (mAutoScale)
                 autoScaleNativeTextField(sNativeTextField);
+
+            if (mNativeFilters != null)
+                sNativeTextField.filters = mNativeFilters;
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
@@ -462,6 +466,20 @@ package starling.text
             if (mAutoScale != value)
             {
                 mAutoScale = value;
+                mRequiresRedraw = true;
+            }
+        }
+
+        /** The native Flash filters to apply to this TextField if using standard fonts. */
+        public function get nativeFilters():Array { return mNativeFilters; }
+        public function set nativeFilters(value:Array) : void
+        {
+            if (!mIsRenderedText)
+                throw(new Error("The TextField.nativeFilters property cannot be used on Bitmap fonts."));
+			
+            if (mNativeFilters != value)
+            {
+                mNativeFilters = value;
                 mRequiresRedraw = true;
             }
         }
