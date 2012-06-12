@@ -107,6 +107,18 @@ package tests
         }
         
         [Test]
+        public function testTinted2():void
+        {
+            // https://github.com/PrimaryFeather/Starling-Framework/issues/123
+            
+            var quad:Quad = new Quad(100, 100);
+            quad.color = 0xff0000;
+            quad.alpha = 0.5;
+            quad.color = 0xffffff;
+            Assert.assertTrue(quad.tinted);
+        }
+        
+        [Test]
         public function testBounds():void
         {
             var quad:Quad = new Quad(100, 200);

@@ -14,6 +14,8 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
+    import flash.ui.Mouse;
+    import flash.ui.MouseCursor;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
@@ -120,6 +122,7 @@ package starling.display
         private var mTouchable:Boolean;
         private var mBlendMode:String;
         private var mName:String;
+        private var mUseHandCursor:Boolean;
         private var mLastTouchTimestamp:Number;
         private var mParent:DisplayObjectContainer;  
         private var mTransformationMatrix:Matrix;
@@ -145,7 +148,7 @@ package starling.display
             mLastTouchTimestamp = -1;
             mBlendMode = BlendMode.AUTO;
             mTransformationMatrix = new Matrix();
-            mOrientationChanged = false;
+            mOrientationChanged = mUseHandCursor = false;
         }
         
         /** Disposes all resources of the display object. 
@@ -351,6 +354,25 @@ package starling.display
             }
             
             return mTransformationMatrix; 
+        }
+        
+        /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
+         *  @default false */
+        public function get useHandCursor():Boolean { return mUseHandCursor; }
+        public function set useHandCursor(value:Boolean):void
+        {
+            if (value == mUseHandCursor) return;
+            mUseHandCursor = value;
+            
+            if (mUseHandCursor)
+                addEventListener(TouchEvent.TOUCH, onTouch);
+            else
+                removeEventListener(TouchEvent.TOUCH, onTouch);
+        }
+        
+        private function onTouch(event:TouchEvent):void
+        {
+            Mouse.cursor = event.interactsWith(this) ? MouseCursor.BUTTON : MouseCursor.AUTO;
         }
         
         /** The bounds of the object relative to the local coordinates of the parent. */

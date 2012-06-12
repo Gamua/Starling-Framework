@@ -234,7 +234,7 @@ package starling.display
         
         /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
          *  @default true */
-        public function get useHandCursor():Boolean { return mUseHandCursor; }
-        public function set useHandCursor(value:Boolean):void { mUseHandCursor = value; }
+        public override function get useHandCursor():Boolean { return mUseHandCursor; }
+        public override function set useHandCursor(value:Boolean):void { mUseHandCursor = value; }
     }
 }

@@ -141,7 +141,7 @@ package starling.display
             for (var i:int=0; i<4; ++i)
                 setVertexColor(i, value);
             
-            if (color != 0xffffff) mTinted = true;
+            if (value != 0xffffff || alpha != 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;
         }
         
@@ -150,7 +150,7 @@ package starling.display
         {
             super.alpha = value;
             
-            if (alpha != 1.0) mTinted = true;
+            if (value < 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;
         }
         
