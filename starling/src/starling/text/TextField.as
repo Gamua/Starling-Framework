@@ -166,6 +166,7 @@ package starling.text
             sNativeTextField.wordWrap = true;            
             sNativeTextField.text = mText;
             sNativeTextField.embedFonts = true;
+            sNativeTextField.filters = mNativeFilters;
             
             // we try embedded fonts first, non-embedded fonts are just a fallback
             if (sNativeTextField.textWidth == 0.0 || sNativeTextField.textHeight == 0.0)
@@ -173,9 +174,6 @@ package starling.text
             
             if (mAutoScale)
                 autoScaleNativeTextField(sNativeTextField);
-
-            if (mNativeFilters != null)
-                sNativeTextField.filters = mNativeFilters;
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
