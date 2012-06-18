@@ -92,7 +92,7 @@ package starling.core
                         touch.setPhase(TouchPhase.STATIONARY);
                     
                     // check if target is still connected to stage, otherwise find new target
-                    if (touch.target.stage == null)
+                    if (touch.target && touch.target.stage == null)
                         touch.setTarget(mStage.hitTest(
                             new Point(touch.globalX, touch.globalY), true));
                 }
