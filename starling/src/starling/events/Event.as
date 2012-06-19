@@ -175,6 +175,7 @@ package starling.events
             mData = data;
             mTarget = mCurrentTarget = null;
             mStopsPropagation = mStopsImmediatePropagation = false;
+            mBubbleList = null;
             return this;
         }
     }
