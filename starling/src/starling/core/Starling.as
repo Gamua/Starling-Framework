@@ -177,8 +177,9 @@ package starling.core
             mViewPort = viewPort;
             mStage3D = stage3D;
             mStage = new Stage(viewPort.width, viewPort.height, stage.color);
-            mNativeStage = stage;
             mNativeOverlay = new Sprite();
+            mNativeStage = stage;
+            mNativeStage.addChild(mNativeOverlay);
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -304,17 +305,6 @@ package starling.core
             mNativeOverlay.y = mViewPort.y;
             mNativeOverlay.scaleX = mViewPort.width / mStage.stageWidth;
             mNativeOverlay.scaleY = mViewPort.height / mStage.stageHeight;
-            
-            // Having a native overlay on top of Stage3D content can cause a performance hit on
-            // some environments. For that reason, we add it only to the stage while it's not empty.
-            
-            var numChildren:int = mNativeOverlay.numChildren;
-            var parent:flash.display.DisplayObject = mNativeOverlay.parent;
-            
-            if (numChildren != 0 && parent == null) 
-                mNativeStage.addChild(mNativeOverlay);
-            else if (numChildren == 0 && parent)
-                mNativeStage.removeChild(mNativeOverlay);
         }
         
         private function showFatalError(message:String):void
@@ -390,7 +380,7 @@ package starling.core
             // paused -- because the native stage is only updated on calls to 'context.present()'.
             
             if (mStarted) advanceTime();
-            if (mStarted || mNativeOverlay.parent) render();
+            if (mStarted || mNativeOverlay.numChildren != 0) render();
         }
         
         private function onKey(event:KeyboardEvent):void
