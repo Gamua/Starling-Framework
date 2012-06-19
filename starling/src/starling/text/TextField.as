@@ -188,6 +188,7 @@ package starling.text
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             bitmapData.draw(sNativeTextField, new Matrix(1, 0, 0, 1, 0, int(yOffset)-2));
+            sNativeTextField.text = "";
             
             // update textBounds rectangle
             if (mTextBounds == null) mTextBounds = new Rectangle();
