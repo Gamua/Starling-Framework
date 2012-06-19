@@ -164,7 +164,7 @@ package starling.core
          */
         public function Starling(rootClass:Class, stage:flash.display.Stage, 
                                  viewPort:Rectangle=null, stage3D:Stage3D=null,
-                                 renderMode:String="auto") 
+                                 renderMode:String="auto", profile:String="baselineConstrained") 
         {
             if (stage == null) throw new ArgumentError("Stage must not be null");
             if (rootClass == null) throw new ArgumentError("Root class must not be null");
@@ -201,8 +201,19 @@ package starling.core
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 1, true);
             mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 1, true);
             
-            try { mStage3D.requestContext3D(renderMode); } 
-            catch (e:Error) { showFatalError("Context3D error: " + e.message); }
+            try
+            {
+                // "Context3DProfile" is only available starting with AIR 3.4.
+                // to stay compatible with older versions, we check if the parameter is available.
+                
+                var requestContext3D:Function = mStage3D.requestContext3D;
+                if (requestContext3D.length == 1) requestContext3D(renderMode);
+                else requestContext3D(renderMode, profile);
+            }
+            catch (e:Error)
+            {
+                showFatalError("Context3D error: " + e.message);
+            }
         }
         
         /** Disposes Shader programs and render context. */
