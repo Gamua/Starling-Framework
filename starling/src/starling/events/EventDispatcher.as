@@ -99,7 +99,12 @@ package starling.events
             
             var stopImmediatePropagation:Boolean = false;
             var numListeners:int = listeners == null ? 0 : listeners.length;
+
+            // If we bubble, and we haven't determined the full path for this event, then do so
+            if (event.bubbles && this is DisplayObject && !event.havePreparedBubbleQueue)
+				event.prepareBubbleQueue(DisplayObject(event.target).parent);
             
+            // Call all the listeners
             if (numListeners != 0)
             {
                 event.setCurrentTarget(this);
@@ -124,15 +129,17 @@ package starling.events
                 }
             }
             
+            // Progress up event tree if we are still bubbling
             if (!stopImmediatePropagation && event.bubbles && !event.stopsPropagation && 
                 this is DisplayObject)
             {
-                var targetDisplayObject:DisplayObject = this as DisplayObject;
-                if (targetDisplayObject.parent != null)
-                {
-                    event.setCurrentTarget(null); // to find out later if the event was redispatched
-                    targetDisplayObject.parent.dispatchEvent(event);
-                }
+            	// Get the next bubble target from the queue
+            	var next:DisplayObject = event.getNextBubbleQueueTarget();
+            	if (next != null)
+            	{
+					event.setCurrentTarget(null); // to find out later if the event was redispatched
+                    next.dispatchEvent(event);
+            	}
             }
             
             if (previousTarget) 
