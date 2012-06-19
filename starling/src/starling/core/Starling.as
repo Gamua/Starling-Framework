@@ -203,7 +203,7 @@ package starling.core
             
             try
             {
-                // "Context3DProfile" is only available starting with AIR 3.4.
+                // "Context3DProfile" is only available starting with Flash Player 11.4/AIR 3.4.
                 // to stay compatible with older versions, we check if the parameter is available.
                 
                 var requestContext3D:Function = mStage3D.requestContext3D;
