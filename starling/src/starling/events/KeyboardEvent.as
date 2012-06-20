@@ -41,7 +41,7 @@ package starling.events
                                       keyLocation:uint=0, ctrlKey:Boolean=false, 
                                       altKey:Boolean=false, shiftKey:Boolean=false)
         {
-            super(type, false);
+            super(type, false, keyCode);
             mCharCode = charCode;
             mKeyCode = keyCode;
             mKeyLocation = keyLocation;

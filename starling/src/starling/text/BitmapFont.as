@@ -77,6 +77,7 @@ package starling.text
         private var mLineHeight:Number;
         private var mBaseline:Number;
         private var mHelperImage:Image;
+        private var mCharLocationPool:Vector.<CharLocation>;
         
         /** Creates a bitmap font by parsing an XML file and uses the specified texture. 
          *  If you don't pass any data, the "mini" font will be created. */
@@ -94,6 +95,7 @@ package starling.text
             mTexture = texture;
             mChars = new Dictionary();
             mHelperImage = new Image(texture);
+            mCharLocationPool = new <CharLocation>[];
             
             if (fontXml) parseFontXml(fontXml);
         }
@@ -251,7 +253,10 @@ package starling.text
                             if (kerning)
                                 currentX += char.getKerning(lastCharID);
                             
-                            charLocation = new CharLocation(char);
+                            charLocation = mCharLocationPool.length ?
+                                mCharLocationPool.pop() : new CharLocation(char);
+                            
+                            charLocation.char = char;
                             charLocation.x = currentX + char.xOffset;
                             charLocation.y = currentY + char.yOffset;
                             currentLine.push(charLocation);
@@ -283,15 +288,15 @@ package starling.text
                         else if (lineFull)
                         {
                             lines.push(currentLine);
-                            currentY += mLineHeight;
                             
                             if (lastWhiteSpace == i)
                                 currentLine.pop();
                             
-                            if (currentY + mLineHeight <= containerHeight)
+                            if (currentY + 2*mLineHeight <= containerHeight)
                             {
                                 currentLine = new <CharLocation>[];
                                 currentX = 0;
+                                currentY += mLineHeight;
                                 lastWhiteSpace = -1;
                                 lastCharID = -1;
                             }
@@ -345,6 +350,9 @@ package starling.text
                     
                     if (charLocation.char.width > 0 && charLocation.char.height > 0)
                         finalLocations.push(charLocation);
+                    
+                    // return to pool for next call to "arrangeChars"
+                    mCharLocationPool.push(charLocation);
                 }
             }
             

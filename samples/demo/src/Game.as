@@ -15,6 +15,7 @@ package
     import scenes.TouchScene;
     
     import starling.core.Starling;
+    import starling.display.BlendMode;
     import starling.display.Button;
     import starling.display.Image;
     import starling.display.Sprite;
@@ -49,6 +50,7 @@ package
             // create and show menu screen
             
             var bg:Image = new Image(Assets.getTexture("Background"));
+            bg.blendMode = BlendMode.NONE;
             addChild(bg);
             
             mMainMenu = new Sprite();

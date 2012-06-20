@@ -19,6 +19,7 @@ package starling.textures
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
     
@@ -90,8 +91,11 @@ package starling.textures
         /** @private */
         public function Texture()
         {
-            if (getQualifiedClassName(this) == "starling.textures::Texture")
+            if (Capabilities.isDebugger && 
+                getQualifiedClassName(this) == "starling.textures::Texture")
+            {
                 throw new AbstractClassError();
+            }
             
             mRepeat = false;
         }

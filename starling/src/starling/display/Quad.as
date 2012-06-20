@@ -11,15 +11,12 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
-    import starling.core.starling_internal;
     import starling.utils.VertexData;
     
-    use namespace starling_internal;
-
     /** A Quad represents a rectangle with a uniform color or a color gradient.
      *  
      *  <p>You can set one color per vertex. The colors will smoothly fade into each other over the area
@@ -44,7 +41,7 @@ package starling.display
         protected var mVertexData:VertexData;
         
         /** Helper objects. */
-        private static var sHelperVector:Vector3D = new Vector3D();
+        private static var sHelperPoint:Point = new Point();
         private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
@@ -78,16 +75,16 @@ package starling.display
             
             if (targetSpace == this) // optimization
             {
-                mVertexData.getPosition(3, sHelperVector);
-                resultRect.setTo(0.0, 0.0, sHelperVector.x, sHelperVector.y);
+                mVertexData.getPosition(3, sHelperPoint);
+                resultRect.setTo(0.0, 0.0, sHelperPoint.x, sHelperPoint.y);
             }
             else if (targetSpace == parent && rotation == 0.0) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
-                mVertexData.getPosition(3, sHelperVector);
+                mVertexData.getPosition(3, sHelperPoint);
                 resultRect.setTo(x - pivotX * scaleX,      y - pivotY * scaleY,
-                                 sHelperVector.x * scaleX, sHelperVector.y * scaleY);
+                                 sHelperPoint.x * scaleX, sHelperPoint.y * scaleY);
                 if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
                 if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
             }
@@ -144,7 +141,7 @@ package starling.display
             for (var i:int=0; i<4; ++i)
                 setVertexColor(i, value);
             
-            if (color != 0xffffff) mTinted = true;
+            if (value != 0xffffff || alpha != 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;
         }
         
@@ -153,7 +150,7 @@ package starling.display
         {
             super.alpha = value;
             
-            if (alpha != 1.0) mTinted = true;
+            if (value < 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;
         }
         
@@ -169,8 +166,7 @@ package starling.display
             support.batchQuad(this, parentAlpha);
         }
         
-        /** @private 
-         *  Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
-        starling_internal function get tinted():Boolean { return mTinted; }
+        /** Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
+        public function get tinted():Boolean { return mTinted; }
     }
 }

@@ -22,6 +22,7 @@ package tests
     
     import starling.display.Quad;
     import starling.display.Sprite;
+    import starling.display.Stage;
     import starling.utils.deg2rad;
 
     public class DisplayObjectTest
@@ -29,7 +30,7 @@ package tests
         private static const E:Number = 0.0001;
         
         [Test]
-        public function testRoot():void
+        public function testBase():void
         {
             var object1:Sprite = new Sprite();
             var object2:Sprite = new Sprite();
@@ -38,9 +39,40 @@ package tests
             object1.addChild(object2);
             object2.addChild(object3);
             
+            Assert.assertEquals(object1, object1.base);
+            Assert.assertEquals(object1, object2.base);
+            Assert.assertEquals(object1, object3.base);
+            
+            var quad:Quad = new Quad(100, 100);
+            Assert.assertEquals(quad, quad.base);
+        }
+        
+        [Test]
+        public function testRootAndStage():void
+        {
+            var object1:Sprite = new Sprite();
+            var object2:Sprite = new Sprite();
+            var object3:Sprite = new Sprite();
+            
+            object1.addChild(object2);
+            object2.addChild(object3);
+            
+            Assert.assertEquals(null, object1.root);
+            Assert.assertEquals(null, object2.root);
+            Assert.assertEquals(null, object3.root);
+            Assert.assertEquals(null, object1.stage);
+            Assert.assertEquals(null, object2.stage);
+            Assert.assertEquals(null, object3.stage);
+            
+            var stage:Stage = new Stage(100, 100);
+            stage.addChild(object1);
+            
             Assert.assertEquals(object1, object1.root);
             Assert.assertEquals(object1, object2.root);
             Assert.assertEquals(object1, object3.root);
+            Assert.assertEquals(stage, object1.stage);
+            Assert.assertEquals(stage, object2.stage);
+            Assert.assertEquals(stage, object3.stage);
         }
         
         [Test]
@@ -119,9 +151,11 @@ package tests
         [Test]
         public function testLocalToGlobal():void
         {
+            var root:Sprite = new Sprite();
             var sprite:Sprite = new Sprite();
             sprite.x = 10;
             sprite.y = 20;
+            root.addChild(sprite);
             var sprite2:Sprite = new Sprite();
             sprite2.x = 150;
             sprite2.y = 200;
@@ -131,14 +165,22 @@ package tests
             var globalPoint:Point = sprite2.localToGlobal(localPoint);
             var expectedPoint:Point = new Point(160, 220);
             Helpers.comparePoints(expectedPoint, globalPoint);
-        }        
+            
+            // the position of the root object should be irrelevant -- we want the coordinates
+            // *within* the root coordinate system!
+            root.x = 50;
+            globalPoint = sprite2.localToGlobal(localPoint);
+            Helpers.comparePoints(expectedPoint, globalPoint);
+        }
          
         [Test]
         public function testGlobalToLocal():void
         {
+            var root:Sprite = new Sprite();
             var sprite:Sprite = new Sprite();
             sprite.x = 10;
             sprite.y = 20;
+            root.addChild(sprite);
             var sprite2:Sprite = new Sprite();
             sprite2.x = 150;
             sprite2.y = 200;
@@ -147,6 +189,12 @@ package tests
             var globalPoint:Point = new Point(160, 220);
             var localPoint:Point = sprite2.globalToLocal(globalPoint);
             var expectedPoint:Point = new Point();
+            Helpers.comparePoints(expectedPoint, localPoint);
+            
+            // the position of the root object should be irrelevant -- we want the coordinates
+            // *within* the root coordinate system!
+            root.x = 50;
+            localPoint = sprite2.globalToLocal(globalPoint);
             Helpers.comparePoints(expectedPoint, localPoint);
         }
         

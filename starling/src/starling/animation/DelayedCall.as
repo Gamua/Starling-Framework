@@ -65,7 +65,7 @@ package starling.animation
 				}
 				else
                 {
-                    dispatchEvent(new Event(Event.REMOVE_FROM_JUGGLER));
+                    dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
                 }
             }
         }

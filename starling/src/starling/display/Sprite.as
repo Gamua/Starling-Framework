@@ -10,14 +10,11 @@
 
 package starling.display
 {
-    import flash.geom.Matrix3D;
-    import flash.ui.Mouse;
-    import flash.ui.MouseCursor;
+    import flash.geom.Matrix;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.events.TouchEvent;
 
     /** Dispatched on all children when the object is flattened. */
     [Event(name="flatten", type="starling.events.Event")]
@@ -43,7 +40,6 @@ package starling.display
     public class Sprite extends DisplayObjectContainer
     {
         private var mFlattenedContents:Vector.<QuadBatch>;
-        private var mUseHandCursor:Boolean;
         
         /** Creates an empty sprite. */
         public function Sprite()
@@ -58,31 +54,12 @@ package starling.display
             super.dispose();
         }
         
-        /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
-         *  @default false */
-        public function get useHandCursor():Boolean { return mUseHandCursor; }
-        public function set useHandCursor(value:Boolean):void
-        {
-            if (value == mUseHandCursor) return;
-            mUseHandCursor = value;
-            
-            if (mUseHandCursor)
-                addEventListener(TouchEvent.TOUCH, onTouch);
-            else
-                removeEventListener(TouchEvent.TOUCH, onTouch);
-        }
-        
-        private function onTouch(event:TouchEvent):void
-        {
-            Mouse.cursor = event.interactsWith(this) ? MouseCursor.BUTTON : MouseCursor.AUTO;
-        }
-        
         /** Optimizes the sprite for optimal rendering performance. Changes in the
          *  children of a flattened sprite will not be displayed any longer. For this to happen,
          *  either call <code>flatten</code> again, or <code>unflatten</code> the sprite. */
         public function flatten():void
         {
-            dispatchEventOnChildren(new Event(Event.FLATTEN));
+            broadcastEventWith(Event.FLATTEN);
             
             if (mFlattenedContents == null)
             {
@@ -130,13 +107,13 @@ package starling.display
                 
                 var alpha:Number = parentAlpha * this.alpha;
                 var numBatches:int = mFlattenedContents.length;
-                var mvpMatrix:Matrix3D = support.mvpMatrix;
+                var mvpMatrix:Matrix = support.mvpMatrix;
                 
                 for (var i:int=0; i<numBatches; ++i)
                 {
                     var quadBatch:QuadBatch = mFlattenedContents[i];
                     var blendMode:String = quadBatch.blendMode == BlendMode.AUTO ?
-                                           support.blendMode : quadBatch.blendMode;
+                        support.blendMode : quadBatch.blendMode;
                     quadBatch.renderCustom(mvpMatrix, alpha, blendMode);
                 }
             }

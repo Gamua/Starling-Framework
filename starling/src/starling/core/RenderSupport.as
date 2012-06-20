@@ -25,12 +25,13 @@ package starling.core
      */
     public class RenderSupport
     {
-        // members        
+        // members
         
-        private var mProjectionMatrix:Matrix3D;
-        private var mModelViewMatrix:Matrix3D;
-        private var mMvpMatrix:Matrix3D;
-        private var mMatrixStack:Vector.<Matrix3D>;
+        private var mProjectionMatrix:Matrix;
+        private var mModelViewMatrix:Matrix;
+        private var mMvpMatrix:Matrix;
+        private var mMvpMatrix3D:Matrix3D;
+        private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         
         private var mBlendMode:String;
@@ -40,17 +41,18 @@ package starling.core
         private var mCurrentQuadBatchID:int;
         
         /** Helper object. */
-        private static var sMatrixCoords:Vector.<Number> = new Vector.<Number>(16, true);
+        private static var sHelperMatrix:Matrix = new Matrix();
         
         // construction
         
         /** Creates a new RenderSupport object with an empty matrix stack. */
         public function RenderSupport()
         {
-            mProjectionMatrix = new Matrix3D();
-            mModelViewMatrix = new Matrix3D();
-            mMvpMatrix = new Matrix3D();
-            mMatrixStack = new <Matrix3D>[];
+            mProjectionMatrix = new Matrix();
+            mModelViewMatrix = new Matrix();
+            mMvpMatrix = new Matrix();
+            mMvpMatrix3D = new Matrix3D();
+            mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
             
             mBlendMode = BlendMode.NORMAL;
@@ -82,21 +84,9 @@ package starling.core
         // matrix manipulation
         
         /** Sets up the projection matrix for ortographic 2D rendering. */
-        public function setOrthographicProjection(width:Number, height:Number, 
-                                                  near:Number=-1.0, far:Number=1.0):void
+        public function setOrthographicProjection(width:Number, height:Number):void
         {
-            sMatrixCoords[0] = 2.0 / width;
-            sMatrixCoords[1] = sMatrixCoords[2] = sMatrixCoords[3] = sMatrixCoords[4] = 0.0;
-            sMatrixCoords[5] = -2.0 / height;
-            sMatrixCoords[6] = sMatrixCoords[7] = sMatrixCoords[8] = sMatrixCoords[9] = 0.0;
-            sMatrixCoords[10] = -2.0 / (far - near);
-            sMatrixCoords[11] = 0.0;
-            sMatrixCoords[12] = -1.0;
-            sMatrixCoords[13] = 1.0;
-            sMatrixCoords[14] = -(far+near) / (far-near);
-            sMatrixCoords[15] = 1.0;
-            
-            mProjectionMatrix.copyRawDataFrom(sMatrixCoords);
+            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, -1.0, 1.0);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
@@ -106,22 +96,21 @@ package starling.core
         }
         
         /** Prepends a translation to the modelview matrix. */
-        public function translateMatrix(dx:Number, dy:Number, dz:Number=0):void
+        public function translateMatrix(dx:Number, dy:Number):void
         {
-            mModelViewMatrix.prependTranslation(dx, dy, dz);
+            MatrixUtil.prependTranslation(mModelViewMatrix, dx, dy);
         }
         
         /** Prepends a rotation (angle in radians) to the modelview matrix. */
-        public function rotateMatrix(angle:Number, axis:Vector3D=null):void
+        public function rotateMatrix(angle:Number):void
         {
-            mModelViewMatrix.prependRotation(angle / Math.PI * 180.0, 
-                                             axis == null ? Vector3D.Z_AXIS : axis);
+            MatrixUtil.prependRotation(mModelViewMatrix, angle);
         }
         
         /** Prepends an incremental scale change to the modelview matrix. */
-        public function scaleMatrix(sx:Number, sy:Number, sz:Number=1.0):void
+        public function scaleMatrix(sx:Number, sy:Number):void
         {
-            mModelViewMatrix.prependScale(sx, sy, sz);    
+            MatrixUtil.prependScale(mModelViewMatrix, sx, sy);
         }
         
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
@@ -134,7 +123,7 @@ package starling.core
         public function pushMatrix():void
         {
             if (mMatrixStack.length < mMatrixStackSize + 1)
-                mMatrixStack.push(new Matrix3D());
+                mMatrixStack.push(new Matrix());
             
             mMatrixStack[mMatrixStackSize++].copyFrom(mModelViewMatrix);
         }
@@ -154,25 +143,26 @@ package starling.core
         
         /** Calculates the product of modelview and projection matrix. 
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
-        public function get mvpMatrix():Matrix3D
+        public function get mvpMatrix():Matrix
         {
 			mMvpMatrix.copyFrom(mModelViewMatrix);
-            mMvpMatrix.append(mProjectionMatrix);
+            mMvpMatrix.concat(mProjectionMatrix);
             return mMvpMatrix;
         }
         
-        /** Prepends translation, scale and rotation of an object to a custom matrix. */
-        public static function transformMatrixForObject(matrix:Matrix3D, object:DisplayObject):void
+        /** Calculates the product of modelview and projection matrix and saves it in a 3D matrix. 
+         *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
+        public function get mvpMatrix3D():Matrix3D
         {
-            var x:Number = object.x; var y:Number = object.y;
-            var rotation:Number = object.rotation;
-            var scaleX:Number = object.scaleX; var scaleY:Number = object.scaleY;
-            var pivotX:Number = object.pivotX; var pivotY:Number = object.pivotY;
-            
-            if (x != 0 || y != 0)           matrix.prependTranslation(x, y, 0.0);
-            if (rotation != 0)              matrix.prependRotation(rotation / Math.PI * 180.0, Vector3D.Z_AXIS);
-            if (scaleX != 1 || scaleY != 1) matrix.prependScale(scaleX, scaleY, 1.0);
-            if (pivotX != 0 || pivotY != 0) matrix.prependTranslation(-pivotX, -pivotY, 0.0);
+            return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
+        }
+        
+        /** Prepends translation, scale and rotation of an object to a custom matrix. */
+        public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
+        {
+            sHelperMatrix.copyFrom(object.transformationMatrix);
+            sHelperMatrix.concat(matrix);
+            matrix.copyFrom(sHelperMatrix);
         }
         
         // blending
@@ -216,7 +206,7 @@ package starling.core
         public function batchQuad(quad:Quad, parentAlpha:Number, 
                                   texture:Texture=null, smoothing:String=null):void
         {
-            if (currentQuadBatch.isStateChange(quad, parentAlpha, texture, smoothing, mBlendMode))
+            if (currentQuadBatch.isStateChange(quad.tinted, parentAlpha, texture, smoothing, mBlendMode))
                 finishQuadBatch();
             
             currentQuadBatch.addQuad(quad, parentAlpha, texture, smoothing, mModelViewMatrix, mBlendMode);
@@ -225,13 +215,16 @@ package starling.core
         /** Renders the current quad batch and resets it. */
         public function finishQuadBatch():void
         {
-            currentQuadBatch.renderCustom(mProjectionMatrix);
-            currentQuadBatch.reset();
-            
-            ++mCurrentQuadBatchID;
-            
-            if (mQuadBatches.length <= mCurrentQuadBatchID)
-                mQuadBatches.push(new QuadBatch());
+            if (currentQuadBatch.numQuads != 0)
+            {
+                currentQuadBatch.renderCustom(mProjectionMatrix);
+                currentQuadBatch.reset();
+                
+                ++mCurrentQuadBatchID;
+                
+                if (mQuadBatches.length <= mCurrentQuadBatchID)
+                    mQuadBatches.push(new QuadBatch());
+            }
         }
         
         /** Resets the matrix and blend mode stacks, and the quad batch index. */

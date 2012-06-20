@@ -11,7 +11,6 @@
 package starling.utils
 {
     import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
@@ -45,28 +44,28 @@ package starling.utils
     public class VertexData 
     {
         /** The total number of elements (Numbers) stored per vertex. */
-        public static const ELEMENTS_PER_VERTEX:int = 9;
+        public static const ELEMENTS_PER_VERTEX:int = 8;
         
         /** The offset of position data (x, y) within a vertex. */
         public static const POSITION_OFFSET:int = 0;
         
         /** The offset of color data (r, g, b, a) within a vertex. */ 
-        public static const COLOR_OFFSET:int = 3;
+        public static const COLOR_OFFSET:int = 2;
         
         /** The offset of texture coordinate (u, v) within a vertex. */
-        public static const TEXCOORD_OFFSET:int = 7;
+        public static const TEXCOORD_OFFSET:int = 6;
         
         private var mRawData:Vector.<Number>;
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
 
         /** Helper objects. */
-        private static var sPositions:Vector.<Number> = new Vector.<Number>(12);
+        private static var sPositions:Vector.<Number> = new Vector.<Number>(8);
         private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
-        {            
+        {
             mRawData = new <Number>[];
             mPremultipliedAlpha = premultipliedAlpha;
             this.numVertices = numVertices;
@@ -87,18 +86,23 @@ package starling.utils
             return clone;
         }
         
-        /** Copies the vertex data of this instance to another vertex data object,
-         *  starting at a certain index. */
-        public function copyTo(targetData:VertexData, targetVertexID:int=0):void
+        /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices') 
+         *  of this instance to another vertex data object, starting at a certain index. */
+        public function copyTo(targetData:VertexData, targetVertexID:int=0,
+                               vertexID:int=0, numVertices:int=-1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                numVertices = mNumVertices - vertexID;
+            
             // todo: check/convert pma
             
             var targetRawData:Vector.<Number> = targetData.mRawData;
-            var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
-            var targetStartIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
+            var targetIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
+            var sourceIndex:int = vertexID * ELEMENTS_PER_VERTEX;
+            var dataLength:int = numVertices * ELEMENTS_PER_VERTEX;
             
-            for (var i:int=0; i<dataLength; ++i)
-                targetRawData[int(targetStartIndex+i)] = mRawData[i];
+            for (var i:int=sourceIndex; i<dataLength; ++i)
+                targetRawData[targetIndex++] = mRawData[i];
         }
         
         /** Appends the vertices from another VertexData object. */
@@ -119,21 +123,19 @@ package starling.utils
         // functions
         
         /** Updates the position values of a vertex. */
-        public function setPosition(vertexID:int, x:Number, y:Number, z:Number=0.0):void
+        public function setPosition(vertexID:int, x:Number, y:Number):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             mRawData[offset] = x;
             mRawData[int(offset+1)] = y;
-            mRawData[int(offset+2)] = z;
         }
         
         /** Returns the position of a vertex. */
-        public function getPosition(vertexID:int, position:Vector3D):void
+        public function getPosition(vertexID:int, position:Point):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             position.x = mRawData[offset];
             position.y = mRawData[int(offset+1)];
-            position.z = mRawData[int(offset+2)];
         }
         
         /** Updates the RGB color values of a vertex. */ 
@@ -207,41 +209,27 @@ package starling.utils
         // utility functions
         
         /** Translate the position of a vertex by a certain offset. */
-        public function translateVertex(vertexID:int, 
-                                        deltaX:Number, deltaY:Number, deltaZ:Number=0.0):void
+        public function translateVertex(vertexID:int, deltaX:Number, deltaY:Number):void
         {
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             mRawData[offset]        += deltaX;
             mRawData[int(offset+1)] += deltaY;
-            mRawData[int(offset+2)] += deltaZ;
         }
 
         /** Transforms the position of subsequent vertices by multiplication with a 
          *  transformation matrix. */
-        public function transformVertex(vertexID:int, matrix:Matrix3D, numVertices:int=1):void
+        public function transformVertex(vertexID:int, matrix:Matrix, numVertices:int=1):void
         {
-            if (numVertices < 0 || vertexID + numVertices > mNumVertices)
-                numVertices = mNumVertices - vertexID;
-            
-            var i:int;
             var offset:int = getOffset(vertexID) + POSITION_OFFSET;
             
-            for (i=0; i<numVertices; ++i)
+            for (var i:int=0; i<numVertices; ++i)
             {
-                sPositions[int(3*i    )] = mRawData[offset];
-                sPositions[int(3*i + 1)] = mRawData[int(offset+1)];
-                sPositions[int(3*i + 2)] = mRawData[int(offset+2)];
-                offset += ELEMENTS_PER_VERTEX;
-            }
-            
-            matrix.transformVectors(sPositions, sPositions);
-            offset -= ELEMENTS_PER_VERTEX * numVertices;
-            
-            for (i=0; i<numVertices; ++i)
-            {
-                mRawData[offset]        = sPositions[int(3*i    )];
-                mRawData[int(offset+1)] = sPositions[int(3*i + 1)];
-                mRawData[int(offset+2)] = sPositions[int(3*i + 2)];
+                var x:Number = mRawData[offset];
+                var y:Number = mRawData[int(offset+1)];
+                
+                mRawData[offset]        = matrix.a * x + matrix.c * y + matrix.tx;
+                mRawData[int(offset+1)] = matrix.d * y + matrix.b * x + matrix.ty;
+                
                 offset += ELEMENTS_PER_VERTEX;
             }
         }
@@ -263,13 +251,13 @@ package starling.utils
         /** Multiplies the alpha value of subsequent vertices with a certain delta. */
         public function scaleAlpha(vertexID:int, alpha:Number, numVertices:int=1):void
         {
+            if (alpha == 1.0) return;
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
              
             var i:int;
             
-            if (alpha == 1.0) return;
-            else if (mPremultipliedAlpha)
+            if (mPremultipliedAlpha)
             {
                 for (i=0; i<numVertices; ++i)
                     setAlpha(vertexID+i, getAlpha(vertexID+i) * alpha);
@@ -326,7 +314,7 @@ package starling.utils
                     y = mRawData[int(offset+1)];
                     offset += ELEMENTS_PER_VERTEX;
                     
-                    transformCoords(transformationMatrix, x, y, sHelperPoint);
+                    MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
                     minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
                     maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
                     minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
@@ -396,7 +384,7 @@ package starling.utils
             var delta:int = value - mNumVertices;
             
             for (i=0; i<delta; ++i)
-                mRawData.push(0, 0, 0,  0, 0, 0, 1,  0, 0); // alpha should be '1' per default
+                mRawData.push(0, 0,  0, 0, 0, 1,  0, 0); // alpha should be '1' per default
             
             for (i=0; i<-(delta*ELEMENTS_PER_VERTEX); ++i)
                 mRawData.pop();

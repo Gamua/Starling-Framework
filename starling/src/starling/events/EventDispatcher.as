@@ -12,7 +12,10 @@ package starling.events
 {
     import flash.utils.Dictionary;
     
+    import starling.core.starling_internal;
     import starling.display.DisplayObject;
+    
+    use namespace starling_internal;
     
     /** The EventDispatcher class is the base class for all classes that dispatch events. 
      *  This is the Starling version of the Flash class with the same name. 
@@ -49,7 +52,7 @@ package starling.events
             var listeners:Vector.<Function> = mEventListeners[type];
             if (listeners == null)
                 mEventListeners[type] = new <Function>[listener];
-            else
+            else if (listeners.indexOf(listener) == -1) // check for duplicates
                 mEventListeners[type] = listeners.concat(new <Function>[listener]);
         }
         
@@ -106,7 +109,12 @@ package starling.events
                 
                 for (var i:int=0; i<numListeners; ++i)
                 {
-                    listeners[i](event);
+                    var listener:Function = listeners[i];
+                    var numArgs:int = listener.length;
+                    
+                    if (numArgs == 0) listener();
+                    else if (numArgs == 1) listener(event);
+                    else listener(event, event.data);
                     
                     if (event.stopsImmediatePropagation)
                     {
@@ -129,6 +137,19 @@ package starling.events
             
             if (previousTarget) 
                 event.setTarget(previousTarget);
+        }
+        
+        /** Dispatches an event with the given parameters to all objects that have registered for 
+         *  events of the given type. The method uses an internal pool of event objects to avoid 
+         *  allocations. */
+        public function dispatchEventWith(type:String, bubbles:Boolean=false, data:Object=null):void
+        {
+            if (bubbles || hasEventListener(type)) 
+            {
+                var event:Event = Event.fromPool(type, bubbles, data);
+                dispatchEvent(event);
+                Event.toPool(event);
+            }
         }
         
         /** Returns if there are listeners registered for a certain event type. */
