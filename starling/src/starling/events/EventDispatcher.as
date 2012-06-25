@@ -14,6 +14,7 @@ package starling.events
     
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
+    import starling.utils.Reference;
     
     use namespace starling_internal;
     
@@ -24,8 +25,8 @@ package starling.events
      *  with each other through events. Compared the the Flash event system, Starling's event system
      *  was simplified. The main difference is that Starling events have no "Capture" phase.
      *  They are simply dispatched at the target and may optionally bubble up. They cannot move 
-     *  in the opposite direction.</p>  
-     *  
+     *  in the opposite direction.</p>
+     * 
      *  <p>As in the conventional Flash classes, display objects inherit from EventDispatcher 
      *  and can thus dispatch events. Beware, though, that the Starling event classes are 
      *  <em>not compatible with Flash events:</em> Starling display objects dispatch 
@@ -43,17 +44,28 @@ package starling.events
         public function EventDispatcher()
         {  }
         
-        /** Registers an event listener at a certain object. */
-        public function addEventListener(type:String, listener:Function):void
+        /** Registers an event listener at a certain object. The 'useWeakReference' parameter
+         *  determines whether the reference to the listener is strong or weak. 
+         *  A strong reference (the default) prevents your listener from being garbage-collected; 
+         *  a weak reference does not. */
+        public function addEventListener(type:String, listener:Function, useWeakReference:Boolean=false):void
         {
             if (mEventListeners == null)
                 mEventListeners = new Dictionary();
             
-            var listeners:Vector.<Function> = mEventListeners[type];
+            var listeners:Vector.<Reference> = mEventListeners[type];
+            var reference:Reference = new Reference(listener, useWeakReference);
+            
             if (listeners == null)
-                mEventListeners[type] = new <Function>[listener];
-            else if (listeners.indexOf(listener) == -1) // check for duplicates
-                mEventListeners[type] = listeners.concat(new <Function>[listener]);
+                mEventListeners[type] = new <Reference>[reference];
+            else
+            {
+                // check for duplicates
+                for each (var ref:Reference in listeners)
+                    if (ref.target == listener) return;
+                
+                mEventListeners[type] = listeners.concat(new <Reference>[reference]);
+            }
         }
         
         /** Removes an event listener from the object. */
@@ -61,11 +73,11 @@ package starling.events
         {
             if (mEventListeners)
             {
-                var listeners:Vector.<Function> = mEventListeners[type];
+                var listeners:Vector.<Reference> = mEventListeners[type];
                 if (listeners)
                 {
                     listeners = listeners.filter(
-                        function(item:Function, ...rest):Boolean { return item != listener; });
+                        function(item:Reference, ...rest):Boolean { return item.target != listener; });
                     
                     if (listeners.length == 0)
                         delete mEventListeners[type];
@@ -88,7 +100,7 @@ package starling.events
         /** Dispatches an event to all objects that have registered for events of the same type. */
         public function dispatchEvent(event:Event):void
         {
-            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[event.type] : null;
+            var listeners:Vector.<Reference> = mEventListeners ? mEventListeners[event.type] : null;
             if (listeners == null && !event.bubbles) return; // no need to do anything
             
             // if the event already has a current target, it was re-dispatched by user -> we change 
@@ -109,7 +121,7 @@ package starling.events
                 
                 for (var i:int=0; i<numListeners; ++i)
                 {
-                    var listener:Function = listeners[i];
+                    var listener:Function = listeners[i].target as Function;
                     var numArgs:int = listener.length;
                     
                     if (numArgs == 0) listener();
