@@ -50,6 +50,9 @@ package starling.events
          *  a weak reference does not. */
         public function addEventListener(type:String, listener:Function, useWeakReference:Boolean=false):void
         {
+            if (listener == null)
+                throw new ArgumentError("Listener cannot be null");
+            
             if (mEventListeners == null)
                 mEventListeners = new Dictionary();
             
@@ -60,11 +63,24 @@ package starling.events
                 mEventListeners[type] = new <Reference>[reference];
             else
             {
-                // check for duplicates
-                for each (var ref:Reference in listeners)
-                    if (ref.target == listener) return;
+                // check for duplicates and GC'ed references
+                var containsDuplicate:Boolean = false;
+                var containsInvalidListener:Boolean = false;
+                var numListeners:int = listeners.length;
                 
-                mEventListeners[type] = listeners.concat(new <Reference>[reference]);
+                for (var i:int=0; i<numListeners; ++i)
+                {
+                    var target:Function = listeners[i].target as Function;
+                    if (target == listener) containsDuplicate = true;
+                    else if (target == null) containsInvalidListener = true;
+                }
+                
+                if (containsInvalidListener)
+                    mEventListeners[type] = listeners.filter(
+                        function(item:Reference, ...rest):Boolean { return item.target != null; });
+                    
+                if (!containsDuplicate)
+                    mEventListeners[type] = listeners.concat(new <Reference>[reference]);
             }
         }
         
@@ -122,16 +138,19 @@ package starling.events
                 for (var i:int=0; i<numListeners; ++i)
                 {
                     var listener:Function = listeners[i].target as Function;
-                    var numArgs:int = listener.length;
-                    
-                    if (numArgs == 0) listener();
-                    else if (numArgs == 1) listener(event);
-                    else listener(event, event.data);
-                    
-                    if (event.stopsImmediatePropagation)
+                    if (listener != null)
                     {
-                        stopImmediatePropagation = true;
-                        break;
+                        var numArgs:int = listener.length;
+                        
+                        if (numArgs == 0) listener();
+                        else if (numArgs == 1) listener(event);
+                        else listener(event, event.data);
+                        
+                        if (event.stopsImmediatePropagation)
+                        {
+                            stopImmediatePropagation = true;
+                            break;
+                        }
                     }
                 }
             }
