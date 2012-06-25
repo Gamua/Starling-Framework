@@ -64,7 +64,7 @@ package starling.core
             loadIdentity();
             setOrthographicProjection(400, 300);
             
-            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, true);
         }
         
         /** Disposes all quad batches. */

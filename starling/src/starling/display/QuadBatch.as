@@ -91,7 +91,7 @@ package starling.display
             mSyncRequired = false;
             
             // handle lost context
-            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, true);
         }
         
         /** Disposes vertex- and index-buffer. */

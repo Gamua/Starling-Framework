@@ -62,7 +62,7 @@ package starling.textures
         public function restoreOnLostContext(data:Object):void
         {
             if (mData == null && data != null)
-                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, true);
             if (data == null)
                 Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
