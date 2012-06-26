@@ -63,8 +63,6 @@ package starling.core
             
             loadIdentity();
             setOrthographicProjection(400, 300);
-            
-            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
         
         /** Disposes all quad batches. */
@@ -72,13 +70,6 @@ package starling.core
         {
             for each (var quadBatch:QuadBatch in mQuadBatches)
                 quadBatch.dispose();
-            
-            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
-        }
-        
-        private function onContextCreated(event:Event):void
-        {
-            mQuadBatches = new <QuadBatch>[new QuadBatch()];
         }
         
         // matrix manipulation
