@@ -117,21 +117,22 @@ package starling.core
      *  the type "Event.CONTEXT3D_CREATE" when the context is restored. You can recreate any 
      *  invalid resources in a corresponding event listener.</p>
      * 
-     *  <strong>Sharing a 3D context</strong>
+     *  <strong>Sharing a 3D Context</strong>
      * 
      *  <p>Per default, Starling handles the Stage3D context independently. If you want to combine
      *  Starling with another Stage3D engine, however, this may not be what you want. In this case,
      *  you can make use of the <code>shareContext</code> property:</p> 
      *  
-     *  <ul>
-     *    <li>Enable <code>shareContext</code> on your Starling instance, or initialize Starling
-     *        with a stage3D instance that contains a configured context.</li>
-     *    <li>Instead of calling <code>start()</code> on Starling, call <code>nextFrame()</code>
-     *        manually once per frame.</li>
-     *    <li>Let the second Stage3D engine do its rendering in the same callback, and surround all
-     *        rendering with calls to <code>context.clear()</code> and 
+     *  <ol>
+     *    <li>Initialize Starling with a stage3D instance that contains a configured context.
+     *        This will automatically enable <code>shareContext</code>.</li>
+     *    <li>Call <code>start()</code> on your Starling instance (as usual). This will make  
+     *        Starling queue input events (keyboard/mouse/touch).</li>
+     *    <li>Create a game loop (e.g. using the native <code>ENTER_FRAME</code> event) and let it  
+     *        call Starling's <code>nextFrame</code> as well as the equivalent method of the other 
+     *        Stage3D engine. Surround those calls with <code>context.clear()</code> and 
      *        <code>context.present()</code>.</li>
-     *  </ul> 
+     *  </ol> 
 	 * 
      */ 
     public class Starling extends EventDispatcher
@@ -213,6 +214,7 @@ package starling.core
                 stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
             // register other event handlers
+            stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
@@ -249,6 +251,7 @@ package starling.core
         {
             stop();
             
+            mNativeStage.removeEventListener(Event.ENTER_FRAME, onEnterFrame, false);
             mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
             mNativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
             mNativeStage.removeEventListener(Event.RESIZE, onResize, false);
@@ -392,20 +395,20 @@ package starling.core
             sCurrent = this;
         }
         
-        /** Starts rendering and dispatching of <code>ENTER_FRAME</code> events. Internally, this
-         *  method simply calls <code>nextFrame()</code> once per Flash Player frame. */
+        /** As soon as Starling is started, it will queue input events (keyboard/mouse/touch);   
+         *  furthermore, the method <code>nextFrame</code> will be called once per Flash Player
+         *  frame. (Except when <code>shareContext</code> is enabled: in that case, you have to
+         *  call that method manually.) */
         public function start():void 
         { 
             mStarted = true; 
             mLastFrameTimestamp = getTimer() / 1000.0;
-            mNativeStage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
         }
         
         /** Stops rendering. */
         public function stop():void 
         { 
             mStarted = false; 
-            mNativeStage.removeEventListener(Event.ENTER_FRAME, onEnterFrame, false);
         }
         
         // event handlers
@@ -430,7 +433,8 @@ package starling.core
         
         private function onEnterFrame(event:Event):void
         {
-            nextFrame();
+            if (mStarted && !mShareContext) 
+                nextFrame();
         }
         
         private function onKey(event:KeyboardEvent):void
