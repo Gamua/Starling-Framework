@@ -175,10 +175,11 @@ package starling.text
             var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, fontSize, 
                                                                    hAlign, vAlign, autoScale, kerning);
             var numChars:int = charLocations.length;
+            mHelperImage.color = color;
             
             if (numChars > 8192)
                 throw new ArgumentError("Bitmap Font text is limited to 8192 characters.");
-            
+
             for (var i:int=0; i<numChars; ++i)
             {
                 var charLocation:CharLocation = charLocations[i];
@@ -188,7 +189,6 @@ package starling.text
                 mHelperImage.x = charLocation.x;
                 mHelperImage.y = charLocation.y;
                 mHelperImage.scaleX = mHelperImage.scaleY = charLocation.scale;
-                mHelperImage.color = color;
                 quadBatch.addImage(mHelperImage);
             }
         }
