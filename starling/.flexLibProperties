@@ -52,6 +52,7 @@
     <classEntry path="starling.utils.getNextPowerOfTwo"/>
     <classEntry path="starling.utils.rad2deg"/>
     <classEntry path="starling.utils.MatrixUtil"/>
+    <classEntry path="starling.textures.AtfData"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

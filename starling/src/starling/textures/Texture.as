@@ -143,8 +143,8 @@ package starling.textures
             uploadBitmapData(nativeTexture, data, generateMipMaps);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, legalWidth, legalHeight, generateMipMaps, true, 
-                optimizeForRenderTexture, scale);
+                nativeTexture, Context3DTextureFormat.BGRA, legalWidth, legalHeight,
+                generateMipMaps, true, optimizeForRenderTexture, scale);
             
             if (Starling.handleLostContext)
                 concreteTexture.restoreOnLostContext(data);
@@ -166,24 +166,17 @@ package starling.textures
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            var signature:String = String.fromCharCode(data[0], data[1], data[2]);
-            if (signature != "ATF") throw new ArgumentError("Invalid ATF data");
-            
-            var format:String = data[6] == 2 ? Context3DTextureFormat.COMPRESSED :
-                                               Context3DTextureFormat.BGRA;
-            var width:int = Math.pow(2, data[7]); 
-            var height:int = Math.pow(2, data[8]);
-            var textureCount:int = data[9];
+            var atfData:AtfData = new AtfData(data);
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
-                    width, height, format, false);
+                    atfData.width, atfData.height, atfData.format, false);
             
             uploadAtfData(nativeTexture, data);
             
-            var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, width, height, textureCount > 1, false, false, scale);
+            var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
+                atfData.width, atfData.height, atfData.numTextures > 1, false, false, scale);
             
             if (Starling.handleLostContext) 
-                concreteTexture.restoreOnLostContext(data);
+                concreteTexture.restoreOnLostContext(atfData);
             
             return concreteTexture;
         }
@@ -299,6 +292,9 @@ package starling.textures
         
         /** The Stage3D texture object the texture is based on. */
         public function get base():TextureBase { return null; }
+        
+        /** The <code>Context3DTextureFormat</code> of the underlying texture data. */
+        public function get format():String { return Context3DTextureFormat.BGRA; }
         
         /** Indicates if the texture contains mip maps. */ 
         public function get mipMapping():Boolean { return false; }

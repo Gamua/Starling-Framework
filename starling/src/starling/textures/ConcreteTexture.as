@@ -23,6 +23,7 @@ package starling.textures
     public class ConcreteTexture extends Texture
     {
         private var mBase:TextureBase;
+        private var mFormat:String;
         private var mWidth:int;
         private var mHeight:int;
         private var mMipMapping:Boolean;
@@ -33,13 +34,14 @@ package starling.textures
         
         /** Creates a ConcreteTexture object from a TextureBase, storing information about size,
          *  mip-mapping, and if the channels contain premultiplied alpha values. */
-        public function ConcreteTexture(base:TextureBase, width:int, height:int, 
+        public function ConcreteTexture(base:TextureBase, format:String, width:int, height:int, 
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
                                         optimizedForRenderTexture:Boolean=false,
                                         scale:Number=1)
         {
             mScale = scale <= 0 ? 1.0 : scale;
             mBase = base;
+            mFormat = format;
             mWidth = width;
             mHeight = height;
             mMipMapping = mipMapping;
@@ -73,7 +75,7 @@ package starling.textures
         {
             var context:Context3D = Starling.context;
             var bitmapData:BitmapData = mData as BitmapData;
-            var byteData:ByteArray = mData as ByteArray;
+            var atfData:AtfData = mData as AtfData;
             var nativeTexture:flash.display3D.textures.Texture;
             
             if (bitmapData)
@@ -82,16 +84,13 @@ package starling.textures
                     Context3DTextureFormat.BGRA, mOptimizedForRenderTexture);
                 Texture.uploadBitmapData(nativeTexture, bitmapData, mMipMapping);
             }
-            else if (byteData)
+            else if (atfData)
             {
-                var format:String = byteData[6] == 2 ? Context3DTextureFormat.COMPRESSED :
-                    Context3DTextureFormat.BGRA;
-                
-                nativeTexture = context.createTexture(mWidth, mHeight, 
-                    format, mOptimizedForRenderTexture);
-                Texture.uploadAtfData(nativeTexture, byteData);
+                nativeTexture = context.createTexture(atfData.width, atfData.height, atfData.format,
+                                                      mOptimizedForRenderTexture);
+                Texture.uploadAtfData(nativeTexture, atfData.data);
             }
-                
+            
             mBase = nativeTexture;
         }
         
@@ -102,6 +101,9 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get base():TextureBase { return mBase; }
+        
+        /** @inheritDoc */
+        public override function get format():String { return mFormat; }
         
         /** @inheritDoc */
         public override function get width():Number  { return mWidth / mScale;  }
