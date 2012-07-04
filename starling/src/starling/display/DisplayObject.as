@@ -161,8 +161,7 @@ package starling.display
         /** Removes the object from its parent, if it has one. */
         public function removeFromParent(dispose:Boolean=false):void
         {
-            if (mParent) mParent.removeChild(this);
-            if (dispose) this.dispose();
+            if (mParent) mParent.removeChild(this, dispose);
         }
         
         /** Creates a matrix that represents the transformation from the local coordinate system 
