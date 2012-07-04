@@ -37,7 +37,7 @@ package tests
             var subSubTexture:SubTexture;
             var vertexData:VertexData = createStandardVertexData();
             var adjustedVertexData:VertexData;            
-            var texture:ConcreteTexture = new ConcreteTexture(null, rootWidth, rootHeight, false, false);
+            var texture:ConcreteTexture = new ConcreteTexture(null, null, rootWidth, rootHeight, false, false);
             var texCoords:Point = new Point();
             
             // test subtexture filling the whole base texture

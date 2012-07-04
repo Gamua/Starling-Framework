@@ -10,6 +10,7 @@
 
 package tests
 {
+    import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;
     
     import flexunit.framework.Assert;
@@ -24,13 +25,14 @@ package tests
         [Test]
         public function testXmlParsing():void
         {
+            var format:String = Context3DTextureFormat.BGRA;
             var xml:XML = 
                 <TextureAtlas>
                     <SubTexture name='ann' x='0'   y='0'  width='55.5' height='16' />
                     <SubTexture name='bob' x='16'  y='32' width='16'   height='32' />
                 </TextureAtlas>;
             
-            var texture:Texture = new ConcreteTexture(null, 64, 64, false, false);
+            var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture, xml);
             
             var ann:Texture = atlas.getTexture("ann");            
@@ -56,7 +58,8 @@ package tests
         [Test]
         public function testManualCreation():void
         {
-            var texture:Texture = new ConcreteTexture(null, 64, 64, false, false);
+            var format:String = Context3DTextureFormat.BGRA;
+            var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
             atlas.addRegion("ann", new Rectangle(0, 0, 55.5, 16));
@@ -75,7 +78,8 @@ package tests
         [Test]
         public function testGetTextures():void
         {
-            var texture:Texture = new ConcreteTexture(null, 64, 64, false, false);
+            var format:String = Context3DTextureFormat.BGRA;
+            var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
             atlas.addRegion("ann", new Rectangle(0, 0, 8, 8));
