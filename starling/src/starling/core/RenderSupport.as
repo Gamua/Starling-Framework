@@ -13,7 +13,6 @@ package starling.core
     import flash.geom.*;
     
     import starling.display.*;
-    import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.*;
 
