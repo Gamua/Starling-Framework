@@ -104,6 +104,9 @@ package starling.textures
         public override function get base():TextureBase { return mParent.base; }
         
         /** @inheritDoc */
+        public override function get format():String { return mParent.format; }
+        
+        /** @inheritDoc */
         public override function get width():Number { return mParent.width * mClipping.width; }
         
         /** @inheritDoc */

@@ -15,6 +15,7 @@ package starling.events
     
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
+    import starling.utils.MatrixUtil;
     import starling.utils.formatString;
 
     /** A Touch object contains information about the presence or movement of a finger 
@@ -62,27 +63,37 @@ package starling.events
         }
         
         /** Converts the current location of a touch to the local coordinate system of a display 
-         *  object. */
-        public function getLocation(space:DisplayObject):Point
+         *  object. If you pass a 'resultPoint', the result will be stored in this point instead 
+         *  of creating a new object.*/
+        public function getLocation(space:DisplayObject, resultPoint:Point=null):Point
         {
-            var point:Point = new Point(mGlobalX, mGlobalY);
+            if (resultPoint == null) resultPoint = new Point();
             mTarget.base.getTransformationMatrix(space, sHelperMatrix);
-            return sHelperMatrix.transformPoint(point);
+            return MatrixUtil.transformCoords(sHelperMatrix, mGlobalX, mGlobalY, resultPoint); 
         }
         
         /** Converts the previous location of a touch to the local coordinate system of a display 
-         *  object. */
-        public function getPreviousLocation(space:DisplayObject):Point
+         *  object. If you pass a 'resultPoint', the result will be stored in this point instead 
+         *  of creating a new object.*/
+        public function getPreviousLocation(space:DisplayObject, resultPoint:Point=null):Point
         {
-            var point:Point = new Point(mPreviousGlobalX, mPreviousGlobalY);
+            if (resultPoint == null) resultPoint = new Point();
             mTarget.base.getTransformationMatrix(space, sHelperMatrix);
-            return sHelperMatrix.transformPoint(point);
+            return MatrixUtil.transformCoords(sHelperMatrix, mPreviousGlobalX, mPreviousGlobalY, resultPoint);
         }
         
-        /** Returns the movement of the touch between the current and previous location. */ 
-        public function getMovement(space:DisplayObject):Point
+        /** Returns the movement of the touch between the current and previous location. 
+         *  If you pass a 'resultPoint', the result will be stored in this point instead 
+         *  of creating a new object. */ 
+        public function getMovement(space:DisplayObject, resultPoint:Point=null):Point
         {
-            return getLocation(space).subtract(getPreviousLocation(space));
+            if (resultPoint == null) resultPoint = new Point();
+            getLocation(space, resultPoint);
+            var x:Number = resultPoint.x;
+            var y:Number = resultPoint.y;
+            getPreviousLocation(space, resultPoint);
+            resultPoint.setTo(x - resultPoint.x, y - resultPoint.y);
+            return resultPoint;
         }
         
         /** Returns a description of the object. */

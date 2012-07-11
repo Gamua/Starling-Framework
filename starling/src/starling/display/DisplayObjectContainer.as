@@ -112,7 +112,7 @@ package starling.display
             {
                 child.removeFromParent();
                 mChildren.splice(index, 0, child);
-                child.setParent(this);                
+                child.setParent(this);
                 child.dispatchEventWith(Event.ADDED, true);
                 
                 if (stage)
@@ -153,6 +153,8 @@ package starling.display
                     else           child.dispatchEventWith(Event.REMOVED_FROM_STAGE);
                 }
                 child.setParent(null);
+                index = mChildren.indexOf(child); // index might have changed by event handler
+                if (index >= 0) mChildren.splice(index, 1); 
                 if (dispose) child.dispose();
             }
             else

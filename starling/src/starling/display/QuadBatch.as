@@ -14,12 +14,14 @@ package starling.display
     
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
+    import flash.display3D.Context3DTextureFormat;
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
@@ -80,6 +82,7 @@ package starling.display
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         private static var sRenderMatrix:Matrix3D = new Matrix3D();
+        private static var sProgramNameCache:Dictionary = new Dictionary();
         
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
@@ -90,14 +93,17 @@ package starling.display
             mTinted = false;
             mSyncRequired = false;
             
-            // handle lost context
-            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            // Handle lost context. We use the conventional event here (not the one from Starling)
+            // so we're able to create a weak event listener; this avoids memory leaks when people 
+            // forget to call "dispose" on the QuadBatch.
+            Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE, 
+                                                      onContextCreated, false, 0, true);
         }
         
         /** Disposes vertex- and index-buffer. */
         public override function dispose():void
         {
-            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
@@ -105,7 +111,7 @@ package starling.display
             super.dispose();
         }
         
-        private function onContextCreated(event:Event):void
+        private function onContextCreated(event:Object):void
         {
             createBuffers();
             registerPrograms();
@@ -199,7 +205,7 @@ package starling.display
             var context:Context3D = Starling.context;
             var tinted:Boolean = mTinted || (parentAlpha != 1.0);
             var programName:String = mTexture ? 
-                getImageProgramName(tinted, mTexture.mipMapping, mTexture.repeat, mSmoothing) : 
+                getImageProgramName(tinted, mTexture.mipMapping, mTexture.repeat, mTexture.format, mSmoothing) : 
                 QUAD_PROGRAM_NAME;
             
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
@@ -322,14 +328,15 @@ package starling.display
             mNumQuads += numQuads;
         }
         
-        /** Indicates if a quad can be added to the batch without causing a state change. 
-         *  A state change occurs if the quad uses a different base texture or has a different 
-         *  'tinted', 'smoothing', 'repeat' or 'blendMode' setting. */
+        /** Indicates if specific quads can be added to the batch without causing a state change. 
+         *  A state change occurs if the quad uses a different base texture, has a different 
+         *  'tinted', 'smoothing', 'repeat' or 'blendMode' setting, or if the batch is full
+         *  (one batch can contain up to 8192 quads). */
         public function isStateChange(tinted:Boolean, parentAlpha:Number, texture:Texture, 
-                                      smoothing:String, blendMode:String):Boolean
+                                      smoothing:String, blendMode:String, numQuads:int=1):Boolean
         {
             if (mNumQuads == 0) return false;
-            else if (mNumQuads == 8192) return true; // maximum buffer size
+            else if (mNumQuads + numQuads > 8192) return true; // maximum buffer size
             else if (mTexture == null && texture == null) return false;
             else if (mTexture != null && texture != null)
                 return mTexture.base != texture.base ||
@@ -424,6 +431,7 @@ package starling.display
                 var texture:Texture;
                 var smoothing:String;
                 var tinted:Boolean;
+                var numQuads:int;
                 
                 if (quad)
                 {
@@ -431,17 +439,20 @@ package starling.display
                     texture = image ? image.texture : null;
                     smoothing = image ? image.smoothing : null;
                     tinted = quad.tinted;
+                    numQuads = 1;
                 }
                 else
                 {
                     texture = batch.mTexture;
                     smoothing = batch.mSmoothing;
                     tinted = batch.mTinted;
+                    numQuads = batch.mNumQuads;
                 }
                 
                 quadBatch = quadBatches[quadBatchID];
                 
-                if (quadBatch.isStateChange(tinted, alpha*objectAlpha, texture, smoothing, blendMode))
+                if (quadBatch.isStateChange(tinted, alpha*objectAlpha, texture, 
+                                            smoothing, blendMode, numQuads))
                 {
                     quadBatchID++;
                     if (quadBatches.length <= quadBatchID) quadBatches.push(new QuadBatch());
@@ -543,110 +554,76 @@ package starling.display
                     TextureSmoothing.TRILINEAR
                 ];
                 
+                var formats:Array = [
+                    Context3DTextureFormat.BGRA,
+                    Context3DTextureFormat.COMPRESSED,
+                    "compressedAlpha" // use explicit string for compatibility
+                ];
+                
                 for each (var repeat:Boolean in [true, false])
                 {
                     for each (var mipmap:Boolean in [true, false])
                     {
                         for each (var smoothing:String in smoothingTypes)
                         {
-                            var options:Array = ["2d", repeat ? "repeat" : "clamp"];
-                            
-                            if (smoothing == TextureSmoothing.NONE)
-                                options.push("nearest", mipmap ? "mipnearest" : "mipnone");
-                            else if (smoothing == TextureSmoothing.BILINEAR)
-                                options.push("linear", mipmap ? "mipnearest" : "mipnone");
-                            else
-                                options.push("linear", mipmap ? "miplinear" : "mipnone");
-                            
-                            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                                fragmentProgramCode.replace("???", options.join()));
-                            
-                            target.registerProgram(
-                                getImageProgramName(tinted, mipmap, repeat, smoothing),
-                                vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                            for each (var format:String in formats)
+                            {
+                                var options:Array = ["2d", repeat ? "repeat" : "clamp"];
+                                
+                                if (format == Context3DTextureFormat.COMPRESSED)
+                                    options.push("dxt1");
+                                else if (format == "compressedAlpha")
+                                    options.push("dxt5");
+                                
+                                if (smoothing == TextureSmoothing.NONE)
+                                    options.push("nearest", mipmap ? "mipnearest" : "mipnone");
+                                else if (smoothing == TextureSmoothing.BILINEAR)
+                                    options.push("linear", mipmap ? "mipnearest" : "mipnone");
+                                else
+                                    options.push("linear", mipmap ? "miplinear" : "mipnone");
+                                
+                                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
+                                    fragmentProgramCode.replace("???", options.join()));
+                                
+                                target.registerProgram(
+                                    getImageProgramName(tinted, mipmap, repeat, format, smoothing),
+                                    vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                            }
                         }
                     }
                 }
             }
         }
         
-        private static function getImageProgramName(tinted:Boolean,
-                                                    mipMap:Boolean=true, repeat:Boolean=false,
+        private static function getImageProgramName(tinted:Boolean, mipMap:Boolean=true, 
+                                                    repeat:Boolean=false, format:String="bgra",
                                                     smoothing:String="bilinear"):String
         {
-            // to avoid temporary string creation, the program name is not built dynamically;
-            // instead, we use a generated code that returns a string constant.
-            // code generator: https://gist.github.com/2774587
+            var bitField:uint = 0;
             
-            if (tinted)
+            if (tinted) bitField |= 1;
+            if (mipMap) bitField |= 1 << 1;
+            if (repeat) bitField |= 1 << 2;
+            
+            if (smoothing == TextureSmoothing.NONE)
+                bitField |= 1 << 3;
+            else if (smoothing == TextureSmoothing.TRILINEAR)
+                bitField |= 1 << 4;
+            
+            if (format == Context3DTextureFormat.COMPRESSED)
+                bitField |= 1 << 5;
+            else if (format == "compressedAlpha")
+                bitField |= 1 << 6;
+            
+            var name:String = sProgramNameCache[bitField];
+            
+            if (name == null)
             {
-                if (mipMap)
-                {
-                    if (repeat)
-                    {
-                        if (smoothing == 'bilinear') return "QB_i*MRB";
-                        else if (smoothing == 'trilinear') return "QB_i*MRT";
-                        else return "QB_i*MRN";
-                    }
-                    else
-                    {
-                        if (smoothing == 'bilinear') return "QB_i*MB";
-                        else if (smoothing == 'trilinear') return "QB_i*MT";
-                        else return "QB_i*MN";
-                    }
-                }
-                else
-                {
-                    if (repeat)
-                    {
-                        if (smoothing == 'bilinear') return "QB_i*RB";
-                        else if (smoothing == 'trilinear') return "QB_i*RT";
-                        else return "QB_i*RN";
-                    }
-                    else
-                    {
-                        if (smoothing == 'bilinear') return "QB_i*B";
-                        else if (smoothing == 'trilinear') return "QB_i*T";
-                        else return "QB_i*N";
-                    }
-                }
-            }
-            else
-            {
-                if (mipMap)
-                {
-                    if (repeat)
-                    {
-                        if (smoothing == 'bilinear') return "QB_i'MRB";
-                        else if (smoothing == 'trilinear') return "QB_i'MRT";
-                        else return "QB_i'MRN";
-                    }
-                    else
-                    {
-                        if (smoothing == 'bilinear') return "QB_i'MB";
-                        else if (smoothing == 'trilinear') return "QB_i'MT";
-                        else return "QB_i'MN";
-                    }
-                }
-                else
-                {
-                    if (repeat)
-                    {
-                        if (smoothing == 'bilinear') return "QB_i'RB";
-                        else if (smoothing == 'trilinear') return "QB_i'RT";
-                        else return "QB_i'RN";
-                    }
-                    else
-                    {
-                        if (smoothing == 'bilinear') return "QB_i'B";
-                        else if (smoothing == 'trilinear') return "QB_i'T";
-                        else return "QB_i'N";
-                    }
-                }
+                name = "QB_i." + bitField.toString(16);
+                sProgramNameCache[bitField] = name;
             }
             
-            // end of generated code
+            return name;
         }
-        
     }
 }

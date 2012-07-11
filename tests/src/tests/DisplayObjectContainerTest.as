@@ -396,6 +396,37 @@ package tests
             Assert.assertEquals(0, sprite.getChildIndex(quad));
         }
         
+        [Test]
+        public function testRemoveWithEventHandler():void
+        {
+            var parent:Sprite = new Sprite();
+            var child0:Sprite = new Sprite();
+            var child1:Sprite = new Sprite();
+            var child2:Sprite = new Sprite();
+            
+            parent.addChild(child0);
+            parent.addChild(child1);
+            parent.addChild(child2);
+            
+            // Remove last child, and in its event listener remove first child.
+            // That must work, even though the child changes its index in the event handler.
+            
+            child2.addEventListener(Event.REMOVED, function():void
+            {
+                child0.removeFromParent();
+            });
+            
+            Helpers.assertDoesNotThrow(function():void
+            {
+                parent.removeChildAt(2);
+            });
+            
+            Assert.assertNull(child2.parent);
+            Assert.assertNull(child0.parent);
+            Assert.assertEquals(child1, parent.getChildAt(0));
+            Assert.assertEquals(1, parent.numChildren);
+        }
+        
         [Test(expects="ArgumentError")]
         public function testIllegalRecursion():void
         {

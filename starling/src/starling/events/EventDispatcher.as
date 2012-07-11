@@ -93,7 +93,7 @@ package starling.events
             
             // if the event already has a current target, it was re-dispatched by user -> we change 
             // the target to 'this' for now, but undo that later on (instead of creating a clone)
-
+            
             var previousTarget:EventDispatcher = event.target;
             if (previousTarget == null || event.currentTarget != null) event.setTarget(this);
             

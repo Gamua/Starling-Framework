@@ -106,12 +106,14 @@ package starling.display
             onVertexDataChanged();
         }
         
-        /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
-        public function getTexCoords(vertexID:int):Point
+        /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. 
+         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
+         *  creating a new object.*/
+        public function getTexCoords(vertexID:int, resultPoint:Point=null):Point
         {
-            var coords:Point = new Point();
-            mVertexData.getTexCoords(vertexID, coords);
-            return coords;
+            if (resultPoint == null) resultPoint = new Point();
+            mVertexData.getTexCoords(vertexID, resultPoint);
+            return resultPoint;
         }
         
         /** Copies the raw vertex data to a VertexData instance.

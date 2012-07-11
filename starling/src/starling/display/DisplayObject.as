@@ -24,6 +24,7 @@ package starling.display
     import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
+    import starling.utils.MatrixUtil;
     
     /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
@@ -161,8 +162,7 @@ package starling.display
         /** Removes the object from its parent, if it has one. */
         public function removeFromParent(dispose:Boolean=false):void
         {
-            if (mParent) mParent.removeChild(this);
-            if (dispose) this.dispose();
+            if (mParent) mParent.removeChild(this, dispose);
         }
         
         /** Creates a matrix that represents the transformation from the local coordinate system 
@@ -280,19 +280,23 @@ package starling.display
             else return null;
         }
         
-        /** Transforms a point from the local coordinate system to global (stage) coordinates. */
-        public function localToGlobal(localPoint:Point):Point
+        /** Transforms a point from the local coordinate system to global (stage) coordinates.
+         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
+         *  creating a new object. */
+        public function localToGlobal(localPoint:Point, resultPoint:Point=null):Point
         {
             getTransformationMatrix(base, sHelperMatrix);
-            return sHelperMatrix.transformPoint(localPoint);
+            return MatrixUtil.transformCoords(sHelperMatrix, localPoint.x, localPoint.y, resultPoint);
         }
         
-        /** Transforms a point from global (stage) coordinates to the local coordinate system. */
-        public function globalToLocal(globalPoint:Point):Point
+        /** Transforms a point from global (stage) coordinates to the local coordinate system.
+         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
+         *  creating a new object. */
+        public function globalToLocal(globalPoint:Point, resultPoint:Point=null):Point
         {
             getTransformationMatrix(base, sHelperMatrix);
             sHelperMatrix.invert();
-            return sHelperMatrix.transformPoint(globalPoint);
+            return MatrixUtil.transformCoords(sHelperMatrix, globalPoint.x, globalPoint.y, resultPoint);
         }
         
         /** Renders the display object with the help of a support object. Never call this method

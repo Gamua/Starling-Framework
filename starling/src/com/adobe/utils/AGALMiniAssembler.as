@@ -1,26 +1,51 @@
-// ================================================================================
-//
-//	ADOBE SYSTEMS INCORPORATED
-//	Copyright 2010 Adobe Systems Incorporated
-//	All Rights Reserved.
-//
-//	NOTICE: Adobe permits you to use, modify, and distribute this file
-//	in accordance with the terms of the license agreement accompanying it.
-//
-// ================================================================================
+/*
+Copyright (c) 2011, Adobe Systems Incorporated
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright notice, 
+this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the 
+documentation and/or other materials provided with the distribution.
+
+* Neither the name of Adobe Systems Incorporated nor the names of its 
+contributors may be used to endorse or promote products derived from 
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package com.adobe.utils
 {
 	// ===========================================================================
 	//	Imports
 	// ---------------------------------------------------------------------------
-	//import flash.display3D.*;
+	import flash.display3D.*;
 	import flash.utils.*;
 	
 	// ===========================================================================
 	//	Class
 	// ---------------------------------------------------------------------------
 	public class AGALMiniAssembler
-	{
+	{		// ======================================================================
+		//	Constants
+		// ----------------------------------------------------------------------				
+		protected static const REGEXP_OUTER_SPACES:RegExp		= /^\s+|\s+$/g;
+		
 		// ======================================================================
 		//	Properties
 		// ----------------------------------------------------------------------
@@ -31,6 +56,7 @@ package com.adobe.utils
 		private var debugEnabled:Boolean						= false;
 		
 		private static var initialized:Boolean					= false;
+		public var verbose:Boolean								= false;
 		
 		// ======================================================================
 		//	Getters
@@ -50,11 +76,21 @@ package com.adobe.utils
 		// ======================================================================
 		//	Methods
 		// ----------------------------------------------------------------------
-		public function assemble( mode:String, source:String, verbose:Boolean = false ):ByteArray
+		
+		public function assemble2( ctx3d : Context3D, version:uint, vertexsrc:String, fragmentsrc:String ) : Program3D 
+		{
+			var agalvertex : ByteArray = assemble ( VERTEX, vertexsrc, version );
+			var agalfragment : ByteArray = assemble ( FRAGMENT, fragmentsrc, version );
+			var prog : Program3D = ctx3d.createProgram(); 
+			prog.upload(agalvertex,agalfragment);
+			return prog; 
+		}
+		
+		public function assemble( mode:String, source:String, version:uint=1 ):ByteArray
 		{
 			var start:uint = getTimer();
 			
-			_agalcode = new ByteArray();			
+			_agalcode							= new ByteArray();
 			_error = "";
 			
 			var isFrag:Boolean = false;
@@ -66,9 +102,11 @@ package com.adobe.utils
 			
 			agalcode.endian = Endian.LITTLE_ENDIAN;
 			agalcode.writeByte( 0xa0 );				// tag version
-			agalcode.writeUnsignedInt( 0x1 );		// AGAL version, big endian, bit pattern will be 0x01000000
+			agalcode.writeUnsignedInt( version );		// AGAL version, big endian, bit pattern will be 0x01000000
 			agalcode.writeByte( 0xa1 );				// tag program id
 			agalcode.writeByte( isFrag ? 1 : 0 );	// vertex or fragment
+			
+			initregmap(version); 
 			
 			var lines:Array = source.replace( /[\f\n\r\v]+/g, "\n" ).split( "\n" );
 			var nest:int = 0;
@@ -79,6 +117,7 @@ package com.adobe.utils
 			for ( i = 0; i < lng && _error == ""; i++ )
 			{
 				var line:String = new String( lines[i] );
+				line = line.replace( REGEXP_OUTER_SPACES, "" );
 				
 				// remove comments
 				var startcomment:int = line.search( "//" );
@@ -96,6 +135,12 @@ package com.adobe.utils
 				
 				// find opcode
 				var opCode:Array = line.match( /^\w{3}/ig );
+				if ( !opCode ) 
+				{
+					if ( line.length >= 3 )
+						trace( "warning: bad line "+i+": "+lines[i] );
+					continue;
+				}
 				var opFound:OpCode = OPMAP[ opCode[0] ];
 				
 				// if debug is enabled, output the opcodes
@@ -111,25 +156,18 @@ package com.adobe.utils
 				
 				line = line.slice( line.search( opFound.name ) + opFound.name.length );
 				
-				// nesting check
-				if ( opFound.flags & OP_DEC_NEST )
+				if ( ( opFound.flags & OP_VERSION2 ) && version<2 )
 				{
-					nest--;
-					if ( nest < 0 )
-					{
-						_error = "error: conditional closes without open.";
-						break;
-					}
+					_error = "error: opcode requires version 2.";
+					break;					
 				}
-				if ( opFound.flags & OP_INC_NEST )
+					
+				if ( ( opFound.flags & OP_VERT_ONLY ) && isFrag )
 				{
-					nest++;
-					if ( nest > MAX_NESTING )
-					{
-						_error = "error: nesting to deep, maximum allowed is "+MAX_NESTING+".";
-						break;
-					}
-				}
+					_error = "error: opcode is only allowed in vertex programs.";
+					break;
+				}		
+					
 				if ( ( opFound.flags & OP_FRAG_ONLY ) && !isFrag )
 				{
 					_error = "error: opcode is only allowed in fragment programs.";
@@ -148,11 +186,15 @@ package com.adobe.utils
 				}
 				
 				// get operands, use regexp
-				var regs:Array = line.match( /vc\[([vof][actps]?)(\d*)?(\.[xyzw](\+\d{1,3})?)?\](\.[xyzw]{1,4})?|([vof][actps]?)(\d*)?(\.[xyzw]{1,4})?/gi );
-				if ( regs.length != opFound.numRegister )
+				var regs:Array;
+				
+				// will match both syntax
+				regs = line.match( /vc\[([vof][acostdip]?)(\d*)?(\.[xyzw](\+\d{1,3})?)?\](\.[xyzw]{1,4})?|([vof][acostdip]?)(\d*)?(\.[xyzw]{1,4})?/gi );
+				
+				if ( !regs || regs.length != opFound.numRegister )
 				{
 					_error = "error: wrong number of operands. found "+regs.length+" but expected "+opFound.numRegister+".";
-					break;
+					break;					
 				}
 				
 				var badreg:Boolean	= false;
@@ -163,7 +205,7 @@ package com.adobe.utils
 				{
 					var isRelative:Boolean = false;
 					var relreg:Array = regs[ j ].match( /\[.*\]/ig );
-					if ( relreg.length > 0 )
+					if ( relreg && relreg.length > 0 )
 					{
 						regs[ j ] = regs[ j ].replace( relreg[ 0 ], "0" );
 						
@@ -173,6 +215,12 @@ package com.adobe.utils
 					}
 					
 					var res:Array = regs[j].match( /^\b[A-Za-z]{1,2}/ig );
+					if ( !res ) 
+					{
+						_error = "error: could not parse operand "+j+" ("+regs[j]+").";
+						badreg = true;
+						break;
+					}
 					var regFound:Register = REGMAP[ res[ 0 ] ];
 					
 					// if debug is enabled, output the registers
@@ -181,7 +229,7 @@ package com.adobe.utils
 					
 					if ( regFound == null )
 					{
-						_error = "error: could not parse operand "+j+" ("+regs[j]+").";
+						_error = "error: could not find register name for operand "+j+" ("+regs[j]+").";
 						badreg = true;
 						break;
 					}
@@ -314,7 +362,7 @@ package com.adobe.utils
 							if ( verbose )
 								trace( "  emit sampler" );
 							var samplerbits:uint = 5; // type 5 
-							var optsLength:uint = opts.length;
+							var optsLength:uint = opts == null ? 0 : opts.length;
 							var bias:Number = 0; 
 							for ( k = 0; k<optsLength; k++ )
 							{
@@ -406,6 +454,27 @@ package com.adobe.utils
 			return agalcode;
 		}
 		
+		private function initregmap ( version:uint ) : void {
+			// version changes limits				
+			REGMAP[ VA ]	= new Register( VA,	"vertex attribute",		0x0,	7,						REG_VERT | REG_READ );
+			REGMAP[ VC ]	= new Register( VC,	"vertex constant",		0x1,	version==1?127:250,		REG_VERT | REG_READ );
+			REGMAP[ VT ]	= new Register( VT,	"vertex temporary",		0x2,	version==1?7:27,		REG_VERT | REG_WRITE | REG_READ );
+			REGMAP[ VO ]	= new Register( VO,	"vertex output",		0x3,	0,						REG_VERT | REG_WRITE );
+			REGMAP[ VI ]	= new Register( VI,	"varying",				0x4,	version==1?7:11,		REG_VERT | REG_FRAG | REG_READ | REG_WRITE );			
+			REGMAP[ FC ]	= new Register( FC,	"fragment constant",	0x1,	version==1?27:63,		REG_FRAG | REG_READ );
+			REGMAP[ FT ]	= new Register( FT,	"fragment temporary",	0x2,	version==1?7:27,		REG_FRAG | REG_WRITE | REG_READ );
+			REGMAP[ FS ]	= new Register( FS,	"texture sampler",		0x5,	7,						REG_FRAG | REG_READ );
+			REGMAP[ FO ]	= new Register( FO,	"fragment output",		0x3,	version==1?0:3,			REG_FRAG | REG_WRITE );				
+			REGMAP[ FD ]	= new Register( FD,	"fragment depth output",0x6,	version==1?-1:0,		REG_FRAG | REG_WRITE );
+			
+			// aliases
+			REGMAP[ "op" ]	= REGMAP[ VO ];
+			REGMAP[ "i" ]	= REGMAP[ VI ];
+			REGMAP[ "v" ]	= REGMAP[ VI ];
+			REGMAP[ "oc" ]	= REGMAP[ FO ];					
+			REGMAP[ "fi" ]	= REGMAP[ VI ]; 
+		}
+		
 		static private function init():void
 		{
 			initialized = true;
@@ -436,51 +505,45 @@ package com.adobe.utils
 			OPMAP[ SAT ] = new OpCode( SAT, 2, 0x16, 0 );
 			OPMAP[ M33 ] = new OpCode( M33, 3, 0x17, OP_SPECIAL_MATRIX );
 			OPMAP[ M44 ] = new OpCode( M44, 3, 0x18, OP_SPECIAL_MATRIX );
-			OPMAP[ M34 ] = new OpCode( M34, 3, 0x19, OP_SPECIAL_MATRIX );			
-			OPMAP[ IFZ ] = new OpCode( IFZ, 1, 0x1a, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ INZ ] = new OpCode( INZ, 1, 0x1b, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ IFE ] = new OpCode( IFE, 2, 0x1c, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ INE ] = new OpCode( INE, 2, 0x1d, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ IFG ] = new OpCode( IFG, 2, 0x1e, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ IFL ] = new OpCode( IFL, 2, 0x1f, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ IEG ] = new OpCode( IEG, 2, 0x20, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ IEL ] = new OpCode( IEL, 2, 0x21, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ ELS ] = new OpCode( ELS, 0, 0x22, OP_NO_DEST | OP_INC_NEST | OP_DEC_NEST );
-			OPMAP[ EIF ] = new OpCode( EIF, 0, 0x23, OP_NO_DEST | OP_DEC_NEST );
-			OPMAP[ REP ] = new OpCode( REP, 1, 0x24, OP_NO_DEST | OP_INC_NEST | OP_SCALAR );
-			OPMAP[ ERP ] = new OpCode( ERP, 0, 0x25, OP_NO_DEST | OP_DEC_NEST );
-			OPMAP[ BRK ] = new OpCode( BRK, 0, 0x26, OP_NO_DEST );
+			OPMAP[ M34 ] = new OpCode( M34, 3, 0x19, OP_SPECIAL_MATRIX );		
+			OPMAP[ DDX ] = new OpCode( DDX, 2, 0x1a, OP_VERSION2 | OP_FRAG_ONLY );
+			OPMAP[ DDY ] = new OpCode( DDY, 2, 0x1b, OP_VERSION2 | OP_FRAG_ONLY );			
+			OPMAP[ IFE ] = new OpCode( IFE, 2, 0x1c, OP_NO_DEST | OP_VERSION2 | OP_INCNEST | OP_SCALAR );
+			OPMAP[ INE ] = new OpCode( INE, 2, 0x1d, OP_NO_DEST | OP_VERSION2 | OP_INCNEST | OP_SCALAR );
+			OPMAP[ IFG ] = new OpCode( IFG, 2, 0x1e, OP_NO_DEST | OP_VERSION2 | OP_INCNEST | OP_SCALAR );			
+			OPMAP[ IFL ] = new OpCode( IFL, 2, 0x1f, OP_NO_DEST | OP_VERSION2 | OP_INCNEST | OP_SCALAR );
+			OPMAP[ ELS ] = new OpCode( ELS, 0, 0x20, OP_NO_DEST | OP_VERSION2 | OP_INCNEST | OP_DECNEST | OP_SCALAR );
+			OPMAP[ EIF ] = new OpCode( EIF, 0, 0x21, OP_NO_DEST | OP_VERSION2 | OP_DECNEST | OP_SCALAR );
+			// space			
+			OPMAP[ TED ] = new OpCode( TED, 3, 0x26, OP_FRAG_ONLY | OP_SPECIAL_TEX | OP_VERSION2);			
 			OPMAP[ KIL ] = new OpCode( KIL, 1, 0x27, OP_NO_DEST | OP_FRAG_ONLY );
 			OPMAP[ TEX ] = new OpCode( TEX, 3, 0x28, OP_FRAG_ONLY | OP_SPECIAL_TEX );
 			OPMAP[ SGE ] = new OpCode( SGE, 3, 0x29, 0 );
 			OPMAP[ SLT ] = new OpCode( SLT, 3, 0x2a, 0 );
 			OPMAP[ SGN ] = new OpCode( SGN, 2, 0x2b, 0 );
+			OPMAP[ SEQ ] = new OpCode( SEQ, 3, 0x2c, 0 );
+			OPMAP[ SNE ] = new OpCode( SNE, 3, 0x2d, 0 );			
+		
 			
-			REGMAP[ VA ]	= new Register( VA,	"vertex attribute",		0x0,	7,		REG_VERT | REG_READ );
-			REGMAP[ VC ]	= new Register( VC,	"vertex constant",		0x1,	127,	REG_VERT | REG_READ );
-			REGMAP[ VT ]	= new Register( VT,	"vertex temporary",		0x2,	7,		REG_VERT | REG_WRITE | REG_READ );
-			REGMAP[ OP ]	= new Register( OP,	"vertex output",		0x3,	0,		REG_VERT | REG_WRITE );
-			REGMAP[ V ]		= new Register( V,	"varying",				0x4,	7,		REG_VERT | REG_FRAG | REG_READ | REG_WRITE );
-			REGMAP[ FC ]	= new Register( FC,	"fragment constant",	0x1,	27,		REG_FRAG | REG_READ );
-			REGMAP[ FT ]	= new Register( FT,	"fragment temporary",	0x2,	7,		REG_FRAG | REG_WRITE | REG_READ );
-			REGMAP[ FS ]	= new Register( FS,	"texture sampler",		0x5,	7,		REG_FRAG | REG_READ );
-			REGMAP[ OC ]	= new Register( OC,	"fragment output",		0x3,	0,		REG_FRAG | REG_WRITE );
-			
-			SAMPLEMAP[ D2 ]			= new Sampler( D2,			SAMPLER_DIM_SHIFT,		0 );
-			SAMPLEMAP[ D3 ]			= new Sampler( D3,			SAMPLER_DIM_SHIFT,		2 );
-			SAMPLEMAP[ CUBE ]		= new Sampler( CUBE,		SAMPLER_DIM_SHIFT,		1 );
-			SAMPLEMAP[ MIPNEAREST ]	= new Sampler( MIPNEAREST,	SAMPLER_MIPMAP_SHIFT,	1 );
-			SAMPLEMAP[ MIPLINEAR ]	= new Sampler( MIPLINEAR,	SAMPLER_MIPMAP_SHIFT,	2 );
-			SAMPLEMAP[ MIPNONE ]	= new Sampler( MIPNONE,		SAMPLER_MIPMAP_SHIFT,	0 );
-			SAMPLEMAP[ NOMIP ]		= new Sampler( NOMIP,		SAMPLER_MIPMAP_SHIFT,	0 );
-			SAMPLEMAP[ NEAREST ]	= new Sampler( NEAREST,		SAMPLER_FILTER_SHIFT,	0 );
-			SAMPLEMAP[ LINEAR ]		= new Sampler( LINEAR,		SAMPLER_FILTER_SHIFT,	1 );
-			SAMPLEMAP[ CENTROID ]	= new Sampler( CENTROID,	SAMPLER_SPECIAL_SHIFT,	1 << 0 );
-			SAMPLEMAP[ SINGLE ]		= new Sampler( SINGLE,		SAMPLER_SPECIAL_SHIFT,	1 << 1 );
-			SAMPLEMAP[ DEPTH ]		= new Sampler( DEPTH,		SAMPLER_SPECIAL_SHIFT,	1 << 2 );
-			SAMPLEMAP[ REPEAT ]		= new Sampler( REPEAT,		SAMPLER_REPEAT_SHIFT,	1 );
-			SAMPLEMAP[ WRAP ]		= new Sampler( WRAP,		SAMPLER_REPEAT_SHIFT,	1 );
-			SAMPLEMAP[ CLAMP ]		= new Sampler( CLAMP,		SAMPLER_REPEAT_SHIFT,	0 );
+			SAMPLEMAP[ RGBA ]		= new Sampler( RGBA,		SAMPLER_TYPE_SHIFT,			0 );
+			SAMPLEMAP[ DXT1 ]		= new Sampler( DXT1,		SAMPLER_TYPE_SHIFT,			1 );
+			SAMPLEMAP[ DXT5 ]		= new Sampler( DXT5,		SAMPLER_TYPE_SHIFT,			2 );
+			SAMPLEMAP[ VIDEO ]		= new Sampler( VIDEO,		SAMPLER_TYPE_SHIFT,			3 );
+			SAMPLEMAP[ D2 ]			= new Sampler( D2,			SAMPLER_DIM_SHIFT,			0 );
+			SAMPLEMAP[ D3 ]			= new Sampler( D3,			SAMPLER_DIM_SHIFT,			2 );
+			SAMPLEMAP[ CUBE ]		= new Sampler( CUBE,		SAMPLER_DIM_SHIFT,			1 );
+			SAMPLEMAP[ MIPNEAREST ]	= new Sampler( MIPNEAREST,	SAMPLER_MIPMAP_SHIFT,		1 );
+			SAMPLEMAP[ MIPLINEAR ]	= new Sampler( MIPLINEAR,	SAMPLER_MIPMAP_SHIFT,		2 );
+			SAMPLEMAP[ MIPNONE ]	= new Sampler( MIPNONE,		SAMPLER_MIPMAP_SHIFT,		0 );
+			SAMPLEMAP[ NOMIP ]		= new Sampler( NOMIP,		SAMPLER_MIPMAP_SHIFT,		0 );
+			SAMPLEMAP[ NEAREST ]	= new Sampler( NEAREST,		SAMPLER_FILTER_SHIFT,		0 );
+			SAMPLEMAP[ LINEAR ]		= new Sampler( LINEAR,		SAMPLER_FILTER_SHIFT,		1 );
+			SAMPLEMAP[ CENTROID ]	= new Sampler( CENTROID,	SAMPLER_SPECIAL_SHIFT,		1 << 0 );
+			SAMPLEMAP[ SINGLE ]		= new Sampler( SINGLE,		SAMPLER_SPECIAL_SHIFT,		1 << 1 );
+			SAMPLEMAP[ DEPTH ]		= new Sampler( DEPTH,		SAMPLER_SPECIAL_SHIFT,		1 << 2 );
+			SAMPLEMAP[ REPEAT ]		= new Sampler( REPEAT,		SAMPLER_REPEAT_SHIFT,		1 );
+			SAMPLEMAP[ WRAP ]		= new Sampler( WRAP,		SAMPLER_REPEAT_SHIFT,		1 );
+			SAMPLEMAP[ CLAMP ]		= new Sampler( CLAMP,		SAMPLER_REPEAT_SHIFT,		0 );
 		}
 		
 		// ======================================================================
@@ -497,6 +560,7 @@ package com.adobe.utils
 		private static const VERTEX:String						= "vertex";
 		
 		// masks and shifts
+		private static const SAMPLER_TYPE_SHIFT:uint			= 8;
 		private static const SAMPLER_DIM_SHIFT:uint				= 12;
 		private static const SAMPLER_SPECIAL_SHIFT:uint			= 16;
 		private static const SAMPLER_REPEAT_SHIFT:uint			= 20;
@@ -511,13 +575,14 @@ package com.adobe.utils
 		
 		// opmap flags
 		private static const OP_SCALAR:uint						= 0x1;
-		private static const OP_INC_NEST:uint					= 0x2;
-		private static const OP_DEC_NEST:uint					= 0x4;
 		private static const OP_SPECIAL_TEX:uint				= 0x8;
 		private static const OP_SPECIAL_MATRIX:uint				= 0x10;
 		private static const OP_FRAG_ONLY:uint					= 0x20;
-		// private static const OP_VERT_ONLY:uint					= 0x40; // not used, thus removed to shut down FDT compiler warning
+		private static const OP_VERT_ONLY:uint					= 0x40;
 		private static const OP_NO_DEST:uint					= 0x80;
+		private static const OP_VERSION2:uint 					= 0x100;		
+		private static const OP_INCNEST:uint 					= 0x200;
+		private static const OP_DECNEST:uint					= 0x400;
 		
 		// opcodes
 		private static const MOV:String							= "mov";
@@ -546,35 +611,34 @@ package com.adobe.utils
 		private static const M33:String							= "m33";
 		private static const M44:String							= "m44";
 		private static const M34:String							= "m34";
-		private static const IFZ:String							= "ifz";
-		private static const INZ:String							= "inz";
+		private static const DDX:String							= "ddx";
+		private static const DDY:String							= "ddy";		
 		private static const IFE:String							= "ife";
 		private static const INE:String							= "ine";
 		private static const IFG:String							= "ifg";
 		private static const IFL:String							= "ifl";
-		private static const IEG:String							= "ieg";
-		private static const IEL:String							= "iel";
 		private static const ELS:String							= "els";
 		private static const EIF:String							= "eif";
-		private static const REP:String							= "rep";
-		private static const ERP:String							= "erp";
-		private static const BRK:String							= "brk";
+		private static const TED:String							= "ted";
 		private static const KIL:String							= "kil";
 		private static const TEX:String							= "tex";
 		private static const SGE:String							= "sge";
 		private static const SLT:String							= "slt";
 		private static const SGN:String							= "sgn";
+		private static const SEQ:String							= "seq";
+		private static const SNE:String							= "sne";		
 		
 		// registers
 		private static const VA:String							= "va";
 		private static const VC:String							= "vc";
 		private static const VT:String							= "vt";
-		private static const OP:String							= "op";
-		private static const V:String							= "v";
+		private static const VO:String							= "vo";
+		private static const VI:String							= "vi";
 		private static const FC:String							= "fc";
 		private static const FT:String							= "ft";
 		private static const FS:String							= "fs";
-		private static const OC:String							= "oc";
+		private static const FO:String							= "fo";			
+		private static const FD:String							= "fd"; 
 		
 		// samplers
 		private static const D2:String							= "2d";
@@ -592,6 +656,10 @@ package com.adobe.utils
 		private static const REPEAT:String						= "repeat";
 		private static const WRAP:String						= "wrap";
 		private static const CLAMP:String						= "clamp";
+		private static const RGBA:String						= "rgba";
+		private static const DXT1:String						= "dxt1";
+		private static const DXT5:String						= "dxt5";
+		private static const VIDEO:String						= "video";
 	}
 }
 
@@ -721,4 +789,4 @@ package com.adobe.utils
 			return "[Sampler name=\""+_name+"\", flag=\""+_flag+"\", mask="+mask+"]";
 		}
 	}
-	}
+}

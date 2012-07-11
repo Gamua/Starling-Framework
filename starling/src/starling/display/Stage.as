@@ -83,6 +83,11 @@ package starling.display
             if (forTouch && (!visible || !touchable))
                 return null;
             
+            // locations outside of the stage area shouldn't be accepted
+            if (localPoint.x < 0 || localPoint.x > mWidth ||
+                localPoint.y < 0 || localPoint.y > mHeight)
+                return null;
+            
             // if nothing else is hit, the stage returns itself as target
             var target:DisplayObject = super.hitTest(localPoint, forTouch);
             if (target == null) target = this;
