@@ -13,6 +13,7 @@ package starling.events
     import flash.utils.getQualifiedClassName;
     
     import starling.core.starling_internal;
+    import starling.display.DisplayObject;
     import starling.utils.formatString;
     
     use namespace starling_internal;
@@ -71,6 +72,7 @@ package starling.events
         private var mStopsPropagation:Boolean;
         private var mStopsImmediatePropagation:Boolean;
         private var mData:Object;
+        private var mBubbleList:Vector.<DisplayObject>;
         
         /** Creates an event object that can be passed to listeners. */
         public function Event(type:String, bubbles:Boolean=false, data:Object=null)
@@ -127,6 +129,28 @@ package starling.events
         
         /** @private */
         internal function get stopsImmediatePropagation():Boolean { return mStopsImmediatePropagation; }
+
+        // Internal state for pre-determining bubble queue
+
+        /** @private */
+        internal function get havePreparedBubbleQueue():Boolean { return mBubbleList != null; }
+        /** @private */
+        internal function prepareBubbleQueue(target:DisplayObject):void
+        { 
+            mBubbleList = new Vector.<DisplayObject>();
+            while (target != null)
+            {
+                mBubbleList.push(target);
+                target = target.parent;
+            }
+        }
+        /** @private */
+        internal function getNextBubbleQueueTarget():DisplayObject
+        {
+            if (mBubbleList.length == 0)
+                return null;
+            return mBubbleList.shift();
+        }
         
         // event pooling
         
@@ -151,6 +175,7 @@ package starling.events
             mData = data;
             mTarget = mCurrentTarget = null;
             mStopsPropagation = mStopsImmediatePropagation = false;
+            mBubbleList = null;
             return this;
         }
     }
