@@ -124,7 +124,10 @@ package starling.core
      *  you can make use of the <code>shareContext</code> property:</p> 
      *  
      *  <ol>
-     *    <li>Initialize Starling with a stage3D instance that contains a configured context.
+     *    <li>Manually create and configure a context3D object that both frameworks can work with
+     *        (through <code>stage3D.requestContext3D</code> and
+     *        <code>context.configureBackBuffer</code>).</li>
+     *    <li>Initialize Starling with the stage3D instance that contains that configured context.
      *        This will automatically enable <code>shareContext</code>.</li>
      *    <li>Call <code>start()</code> on your Starling instance (as usual). This will make  
      *        Starling queue input events (keyboard/mouse/touch).</li>
@@ -132,7 +135,7 @@ package starling.core
      *        call Starling's <code>nextFrame</code> as well as the equivalent method of the other 
      *        Stage3D engine. Surround those calls with <code>context.clear()</code> and 
      *        <code>context.present()</code>.</li>
-     *  </ol> 
+     *  </ol>
 	 * 
      */ 
     public class Starling extends EventDispatcher
