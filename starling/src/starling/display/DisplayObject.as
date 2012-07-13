@@ -340,6 +340,12 @@ package starling.display
                 mParent = value; 
         }
         
+        /** @private */
+        internal function get hasVisibleArea():Boolean
+        {
+            return mAlpha != 0.0 && mVisible && mScaleX != 0.0 && mScaleY != 0.0;
+        }
+        
         // properties
         
         /** The transformation matrix of the object relative to its parent. 

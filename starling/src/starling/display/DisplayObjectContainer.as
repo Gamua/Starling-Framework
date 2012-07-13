@@ -314,7 +314,7 @@ package starling.display
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = mChildren[i];
-                if (child.alpha != 0.0 && child.visible && child.scaleX != 0.0 && child.scaleY != 0.0)
+                if (child.hasVisibleArea)
                 {
                     var blendMode:String = child.blendMode;
                     var blendModeChange:Boolean = blendMode != BlendMode.AUTO;
