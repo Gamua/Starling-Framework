@@ -196,19 +196,25 @@ package starling.core
         public function batchQuad(quad:Quad, parentAlpha:Number, 
                                   texture:Texture=null, smoothing:String=null):void
         {
-            if (currentQuadBatch.isStateChange(quad.tinted, parentAlpha, texture, smoothing, mBlendMode))
+            if (mQuadBatches[mCurrentQuadBatchID].isStateChange(quad.tinted, parentAlpha, texture, 
+                                                                smoothing, mBlendMode))
+            {
                 finishQuadBatch();
+            }
             
-            currentQuadBatch.addQuad(quad, parentAlpha, texture, smoothing, mModelViewMatrix, mBlendMode);
+            mQuadBatches[mCurrentQuadBatchID].addQuad(quad, parentAlpha, texture, smoothing, 
+                                                      mModelViewMatrix, mBlendMode);
         }
         
         /** Renders the current quad batch and resets it. */
         public function finishQuadBatch():void
         {
-            if (currentQuadBatch.numQuads != 0)
+            var currentBatch:QuadBatch = mQuadBatches[mCurrentQuadBatchID];
+            
+            if (currentBatch.numQuads != 0)
             {
-                currentQuadBatch.renderCustom(mProjectionMatrix);
-                currentQuadBatch.reset();
+                currentBatch.renderCustom(mProjectionMatrix);
+                currentBatch.reset();
                 
                 ++mCurrentQuadBatchID;
                 
@@ -223,11 +229,6 @@ package starling.core
             resetMatrix();
             resetBlendMode();
             mCurrentQuadBatchID = 0;
-        }
-        
-        private function get currentQuadBatch():QuadBatch
-        {
-            return mQuadBatches[mCurrentQuadBatchID];
         }
         
         // other helper methods
