@@ -39,6 +39,9 @@ package starling.events
     {
         private var mEventListeners:Dictionary;
         
+        /** Helper object. */
+        private static var sBubbleChains:Array = [];
+        
         /** Creates an EventDispatcher. */
         public function EventDispatcher()
         {  }
@@ -88,19 +91,29 @@ package starling.events
         /** Dispatches an event to all objects that have registered for events of the same type. */
         public function dispatchEvent(event:Event):void
         {
-            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[event.type] : null;
-            if (listeners == null && !event.bubbles) return; // no need to do anything
+            var bubbles:Boolean = event.bubbles;
             
-            // if the event already has a current target, it was re-dispatched by user -> we change 
-            // the target to 'this' for now, but undo that later on (instead of creating a clone)
+            if (!bubbles && (mEventListeners == null || !(event.type in mEventListeners)))
+                return; // no need to do anything
+            
+            // we save the current target and restore it later;
+            // this allows users to re-dispatch events without creating a clone.
             
             var previousTarget:EventDispatcher = event.target;
-            if (previousTarget == null || event.currentTarget != null) event.setTarget(this);
+            event.setTarget(this);
             
-            var stopImmediatePropagation:Boolean = false;
+            if (bubbles && this is DisplayObject) bubble(event);
+            else                                  invoke(event);
+            
+            if (previousTarget) event.setTarget(previousTarget);
+        }
+        
+        private function invoke(event:Event):Boolean
+        {
+            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[event.type] : null;
             var numListeners:int = listeners == null ? 0 : listeners.length;
             
-            if (numListeners != 0)
+            if (numListeners)
             {
                 event.setCurrentTarget(this);
                 
@@ -109,7 +122,7 @@ package starling.events
                 
                 for (var i:int=0; i<numListeners; ++i)
                 {
-                    var listener:Function = listeners[i];
+                    var listener:Function = listeners[i] as Function;
                     var numArgs:int = listener.length;
                     
                     if (numArgs == 0) listener();
@@ -117,26 +130,40 @@ package starling.events
                     else listener(event, event.data);
                     
                     if (event.stopsImmediatePropagation)
-                    {
-                        stopImmediatePropagation = true;
-                        break;
-                    }
+                        return true;
                 }
+                
+                return event.stopsPropagation;
             }
-            
-            if (!stopImmediatePropagation && event.bubbles && !event.stopsPropagation && 
-                this is DisplayObject)
+            else
             {
-                var targetDisplayObject:DisplayObject = this as DisplayObject;
-                if (targetDisplayObject.parent != null)
-                {
-                    event.setCurrentTarget(null); // to find out later if the event was redispatched
-                    targetDisplayObject.parent.dispatchEvent(event);
-                }
+                return false;
+            }
+        }
+        
+        private function bubble(event:Event):void
+        {
+            // we determine the bubble chain before starting to invoke the listeners.
+            // that way, changes done by the listeners won't affect the bubble chain.
+            
+            var chain:Vector.<DisplayObject>;
+            var element:DisplayObject = this as DisplayObject;
+            var length:int = 1;
+            
+            if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); chain[0] = element; }
+            else chain = new <DisplayObject>[element];
+            
+            while (element = element.parent)
+                chain[length++] = element;
+
+            for (var i:int=0; i<length; ++i)
+            {
+                var stopPropagation:Boolean = chain[i].invoke(event);
+                if (stopPropagation) break;
             }
             
-            if (previousTarget) 
-                event.setTarget(previousTarget);
+            chain.length = 0;
+            sBubbleChains.push(chain);
         }
         
         /** Dispatches an event with the given parameters to all objects that have registered for 
