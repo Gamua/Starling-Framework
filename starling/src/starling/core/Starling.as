@@ -418,7 +418,10 @@ package starling.core
         
         private function onStage3DError(event:ErrorEvent):void
         {
-            showFatalError("This application is not correctly embedded (wrong wmode value)");
+            if (event.errorID == 3702)
+                showFatalError("This application is not correctly embedded (wrong wmode value)");
+            else
+                showFatalError("Stage3D error: " + event.text);
         }
         
         private function onContextCreated(event:Event):void
