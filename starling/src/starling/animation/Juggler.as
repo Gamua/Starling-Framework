@@ -58,10 +58,13 @@ package starling.animation
         /** Adds an object to the juggler. */
         public function add(object:IAnimatable):void
         {
-            if (object != null) mObjects.push(object);
+            if (object && mObjects.indexOf(object) == -1) 
+            {
+                mObjects.push(object);
             
-            var dispatcher:EventDispatcher = object as EventDispatcher;
-            if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+                var dispatcher:EventDispatcher = object as EventDispatcher;
+                if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+            }
         }
         
         /** Removes an object from the juggler. */
