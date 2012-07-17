@@ -123,8 +123,8 @@ package starling.textures
         {
             var origWidth:int = data.width;
             var origHeight:int = data.height;
-            var legalWidth:int  = getNextPowerOfTwo(data.width);
-            var legalHeight:int = getNextPowerOfTwo(data.height);
+            var legalWidth:int  = (origWidth & (origWidth - 1)) ? getNextPowerOfTwo(origWidth) : origWidth;
+            var legalHeight:int = (origHeight & (origHeight - 1)) ? getNextPowerOfTwo(origHeight) : origHeight;
             var context:Context3D = Starling.context;
             var potData:BitmapData;
             
