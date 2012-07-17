@@ -56,7 +56,7 @@ package starling.events
             if (listeners == null)
                 mEventListeners[type] = new <Function>[listener];
             else if (listeners.indexOf(listener) == -1) // check for duplicates
-                mEventListeners[type] = listeners.concat(new <Function>[listener]);
+                listeners.push(listener);
         }
         
         /** Removes an event listener from the object. */
@@ -67,13 +67,13 @@ package starling.events
                 var listeners:Vector.<Function> = mEventListeners[type];
                 if (listeners)
                 {
-                    listeners = listeners.filter(
-                        function(item:Function, ...rest):Boolean { return item != listener; });
+                    var numListeners:int = listeners.length;
+                    var remainingListeners:Vector.<Function> = new <Function>[];
                     
-                    if (listeners.length == 0)
-                        delete mEventListeners[type];
-                    else
-                        mEventListeners[type] = listeners;
+                    for (var i:int=0; i<numListeners; ++i)
+                        if (listeners[i] != listener) remainingListeners.push(listeners[i]);
+                    
+                    mEventListeners[type] = remainingListeners;
                 }
             }
         }
@@ -117,8 +117,9 @@ package starling.events
             {
                 event.setCurrentTarget(this);
                 
-                // we can enumerate directly over the vector, since "add"- and "removeEventListener" 
-                // won't change it, but instead always create a new vector.
+                // we can enumerate directly over the vector, because:
+                // when somebody modifies the list while we're looping, "addEventListener" is not
+                // problematic, and "removeEventListener" will create a new Vector, anyway.
                 
                 for (var i:int=0; i<numListeners; ++i)
                 {
@@ -182,7 +183,8 @@ package starling.events
         /** Returns if there are listeners registered for a certain event type. */
         public function hasEventListener(type:String):Boolean
         {
-            return mEventListeners != null && type in mEventListeners;
+            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[type] : null;
+            return listeners ? listeners.length != 0 : false;
         }
     }
 }
