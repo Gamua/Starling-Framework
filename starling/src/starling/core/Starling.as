@@ -38,6 +38,8 @@ package starling.core
     import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
+    import starling.utils.HAlign;
+    import starling.utils.VAlign;
     
     /** Dispatched when a new render context is created. */
     [Event(name="context3DCreate", type="starling.events.Event")]
@@ -340,6 +342,7 @@ package starling.core
         {
             makeCurrent();
             updateNativeOverlay();
+            mSupport.nextFrame();
             
             if (mContext == null || mContext.driverInfo == "Disposed")
                 return;
@@ -350,7 +353,9 @@ package starling.core
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
-            mSupport.nextFrame();
+            
+            if (mStatsDisplay)
+                mStatsDisplay.drawCount = mSupport.drawCount;
             
             if (!mShareContext)
                 mContext.present();
@@ -609,9 +614,23 @@ package starling.core
          *  Flash components. */ 
         public function get nativeOverlay():Sprite { return mNativeOverlay; }
         
-        /** Indicates if a small statistics box (with FPS and memory usage) is displayed. */
+        /** Indicates if a small statistics box (with FPS, memory usage and draw count) is displayed. */
         public function get showStats():Boolean { return mStatsDisplay != null; }
         public function set showStats(value:Boolean):void
+        {
+            if (mStatsDisplay && !value)
+            {
+                mStatsDisplay.removeFromParent(true);
+                mStatsDisplay = null;
+            }
+            else if (!mStatsDisplay && value)
+            {
+                showStatsAt();
+            }
+        }
+        
+        /** Displays the statistics box at a certain position. */
+        public function showStatsAt(hAlign:String="left", vAlign:String="top"):void
         {
             if (mContext == null)
             {
@@ -620,23 +639,29 @@ package starling.core
             }
             else
             {
-                if (value && mStatsDisplay == null)
+                if (mStatsDisplay == null)
                 {
                     mStatsDisplay = new StatsDisplay();
                     mStatsDisplay.touchable = false;
                     mStatsDisplay.scaleX = mStatsDisplay.scaleY = 1.0 / contentScaleFactor;
                     mStage.addChild(mStatsDisplay);
                 }
-                else if (!value && mStatsDisplay)
-                {
-                    mStatsDisplay.removeFromParent(true);
-                    mStatsDisplay = null;
-                }
+                
+                var stageWidth:int  = mStage.stageWidth;
+                var stageHeight:int = mStage.stageHeight;
+                
+                if (hAlign == HAlign.LEFT) mStatsDisplay.x = 0;
+                else if (hAlign == HAlign.RIGHT) mStatsDisplay.x = stageWidth - mStatsDisplay.width; 
+                else mStatsDisplay.x = int((stageWidth - mStatsDisplay.width) / 2);
+                
+                if (vAlign == VAlign.TOP) mStatsDisplay.y = 0;
+                else if (vAlign == VAlign.BOTTOM) mStatsDisplay.y = stageHeight - mStatsDisplay.height;
+                else mStatsDisplay.y = int((stageHeight - mStatsDisplay.height) / 2);
             }
             
-            function onRootCreated(event:Object):void
+            function onRootCreated():void
             {
-                showStats = value;
+                showStatsAt(hAlign, vAlign);
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }

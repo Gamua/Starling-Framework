@@ -32,6 +32,7 @@ package starling.core
         private var mMvpMatrix3D:Matrix3D;
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
+        private var mDrawCount:int;
         
         private var mBlendMode:String;
         private var mBlendModeStack:Vector.<String>;
@@ -53,6 +54,7 @@ package starling.core
             mMvpMatrix3D = new Matrix3D();
             mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
+            mDrawCount = 0;
             
             mBlendMode = BlendMode.NORMAL;
             mBlendModeStack = new <String>[];
@@ -217,18 +219,20 @@ package starling.core
                 currentBatch.reset();
                 
                 ++mCurrentQuadBatchID;
+                ++mDrawCount;
                 
                 if (mQuadBatches.length <= mCurrentQuadBatchID)
                     mQuadBatches.push(new QuadBatch());
             }
         }
         
-        /** Resets the matrix and blend mode stacks, and the quad batch index. */
+        /** Resets the matrix and blend mode stacks, the quad batch index, and the draw count. */
         public function nextFrame():void
         {
             resetMatrix();
             resetBlendMode();
             mCurrentQuadBatchID = 0;
+            mDrawCount = 0;
         }
         
         // other helper methods
@@ -255,5 +259,15 @@ package starling.core
                 Color.getBlue(rgb)  / 255.0,
                 alpha);
         }
+        
+        // statistics
+        
+        /** Raises the draw count by a specific value. Call this method in custom render methods
+         *  to keep the statistics display in sync. */
+        public function raiseDrawCount(value:uint=1):void { mDrawCount += value; }
+        
+        /** Indicates the number of stage3D draw calls. */
+        public function get drawCount():int { return mDrawCount; }
+        
     }
 }
