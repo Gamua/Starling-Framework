@@ -197,7 +197,7 @@ package starling.text
             mTextBounds.setTo(xOffset   / scale, yOffset    / scale,
                               textWidth / scale, textHeight / scale);
             
-            var texture:Texture = Texture.fromBitmapData(bitmapData, true, false, scale);
+            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale);
             
             if (mImage == null) 
             {
