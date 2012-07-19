@@ -76,7 +76,10 @@ package starling.textures
             mAtlasTexture.dispose();
         }
         
-        private function parseAtlasXml(atlasXml:XML):void
+        /** This function is called by the constructor and will parse an XML in Starling's 
+         *  default atlas file format. Override this method to create custom parsing logic
+         *  (e.g. to support a different file format). */
+        protected function parseAtlasXml(atlasXml:XML):void
         {
             var scale:Number = mAtlasTexture.scale;
             
