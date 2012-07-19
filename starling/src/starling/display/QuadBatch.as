@@ -364,6 +364,7 @@ package starling.display
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             support.finishQuadBatch();
+            support.raiseDrawCount();
             renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
         }
         

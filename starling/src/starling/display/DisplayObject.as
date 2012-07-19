@@ -94,9 +94,9 @@ package starling.display
      *  </ul>
      *  
      *  <p>Have a look at the Quad class for a sample implementation of the 'getBounds' method.
-     *  For a sample on how to write a custom render function, you can have a look at the
-     *  <a href="https://github.com/PrimaryFeather/Starling-Extension-Particle-System">particle
-     *  system extension</a>.</p> 
+     *  For a sample on how to write a custom render function, you can have a look at this
+     *  <a href="http://wiki.starling-framework.org/manual/custom_display_objects">article</a>
+     *  in the Starling Wiki.</p> 
      * 
      *  <p>When you override the render method, it is important that you call the method
      *  'finishQuadBatch' of the support object. This forces Starling to render all quads that 
@@ -117,6 +117,8 @@ package starling.display
         private var mPivotY:Number;
         private var mScaleX:Number;
         private var mScaleY:Number;
+        private var mSkewX:Number;
+        private var mSkewY:Number;
         private var mRotation:Number;
         private var mAlpha:Number;
         private var mVisible:Boolean;
@@ -143,7 +145,7 @@ package starling.display
                 throw new AbstractClassError();
             }
             
-            mX = mY = mPivotX = mPivotY = mRotation = 0.0;
+            mX = mY = mPivotX = mPivotY = mRotation = mSkewX = mSkewY = 0.0;
             mScaleX = mScaleY = mAlpha = 1.0;            
             mVisible = mTouchable = true;
             mLastTouchTimestamp = -1;
@@ -340,6 +342,12 @@ package starling.display
                 mParent = value; 
         }
         
+        /** @private */
+        internal function get hasVisibleArea():Boolean
+        {
+            return mAlpha != 0.0 && mVisible && mScaleX != 0.0 && mScaleY != 0.0;
+        }
+        
         // properties
         
         /** The transformation matrix of the object relative to its parent. 
@@ -353,11 +361,47 @@ package starling.display
                 
                 if (mPivotX != 0.0 || mPivotY != 0.0) mTransformationMatrix.translate(-mPivotX, -mPivotY);
                 if (mScaleX != 1.0 || mScaleY != 1.0) mTransformationMatrix.scale(mScaleX, mScaleY);
+                if (mSkewX  != 0.0 || mSkewY  != 0.0) MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
                 if (mRotation != 0.0)                 mTransformationMatrix.rotate(mRotation);
                 if (mX != 0.0 || mY != 0.0)           mTransformationMatrix.translate(mX, mY);
             }
             
             return mTransformationMatrix; 
+        }
+        
+        /** Set the transformation matrix of the object relative to its parent. Assigning a 
+         *  custom transformation matrix will update the <code>x, y, scaleX, scaleY, rotation, 
+         *  skewX</code> properties; the <code>pivotX, pivotY, skew</code> will be set to zero. */
+        public function set transformationMatrix(matrix:Matrix):void
+        {
+            mOrientationChanged = false;
+            mX = matrix.tx;
+            mY = matrix.ty;
+            
+            var a:Number = matrix.a;
+            var b:Number = matrix.b;
+            var c:Number = matrix.c;
+            var d:Number = matrix.d;
+            
+            mScaleX = Math.sqrt(a * a + b * b);
+            if (mScaleX != 0) mRotation = Math.atan2(b, a);
+            else              mRotation = 0; // Rotation is not defined when a = b = 0
+            
+            var cosTheta:Number = Math.cos(mRotation);
+            var sinTheta:Number = Math.sin(mRotation);
+            
+            mScaleY = d * cosTheta - c * sinTheta;
+            if (mScaleY != 0) mSkewX = Math.atan2(d * sinTheta + c * cosTheta, mScaleY);
+            else              mSkewX = 0; // skewX is not defined when scaleY = 0
+            
+            // A 2-D affine transform has only 6 degrees of freedom -- two for translation,
+            // two for scale, one for rotation and one for skew. We are using 2 parameters for skew.
+            // To calculate the parameters from matrix values, one skew can be set to any arbitrary 
+            // value. Setting it to 0 makes the math simpler.
+            
+            mSkewY  = 0;
+            mPivotX = 0;
+            mPivotY = 0;
         }
         
         /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
@@ -470,6 +514,28 @@ package starling.display
             if (mScaleY != value)
             {
                 mScaleY = value;
+                mOrientationChanged = true;
+            }
+        }
+        
+        /** The horizontal skew angle in radians */
+        public function get skewX():Number { return mSkewX; }
+        public function set skewX(value:Number):void 
+        {
+            if (mSkewX != value)
+            {
+                mSkewX = value;
+                mOrientationChanged = true;
+            }
+        }
+        
+        /** The vertical skew angle in radians */
+        public function get skewY():Number { return mSkewY; }
+        public function set skewY(value:Number):void 
+        {
+            if (mSkewY != value)
+            {
+                mSkewY = value;
                 mOrientationChanged = true;
             }
         }

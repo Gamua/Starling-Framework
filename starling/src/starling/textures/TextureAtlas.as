@@ -129,6 +129,19 @@ package starling.textures
             return textures;
         }
         
+        /** Returns the region rectangle associated with a specific name. */
+        public function getRegion(name:String):Rectangle
+        {
+            return mTextureRegions[name];
+        }
+        
+        /** Returns the frame rectangle of a specific region, or <code>null</code> if that region 
+         *  has no frame. */
+        public function getFrame(name:String):Rectangle
+        {
+            return mTextureFrames[name];
+        }
+        
         /** Creates a region for a subtexture and gives it a name. */
         public function addRegion(name:String, region:Rectangle, frame:Rectangle=null):void
         {
@@ -140,6 +153,7 @@ package starling.textures
         public function removeRegion(name:String):void
         {
             delete mTextureRegions[name];
+            delete mTextureFrames[name];
         }
     }
 }

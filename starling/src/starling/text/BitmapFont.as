@@ -231,7 +231,6 @@ package starling.text
             
             var lines:Vector.<Vector.<CharLocation>>;
             var finished:Boolean = false;
-            var char:BitmapChar;
             var charLocation:CharLocation;
             var numChars:int;
             var containerWidth:Number;
@@ -259,21 +258,18 @@ package starling.text
                     {
                         var lineFull:Boolean = false;
                         var charID:int = text.charCodeAt(i);
+                        var char:BitmapChar = getChar(charID);
                         
                         if (charID == CHAR_NEWLINE)
                         {
                             lineFull = true;
                         }
+                        else if (char == null)
+                        {
+                            trace("[Starling] Missing character: " + charID);
+                        }
                         else
                         {
-                            char = getChar(charID);
-                            
-                            if (char == null)
-                            {
-                                trace("[Starling] Missing character: " + charID);
-                                continue;
-                            }
-                            
                             if (charID == CHAR_SPACE || charID == CHAR_TAB)
                                 lastWhiteSpace = i;
                             

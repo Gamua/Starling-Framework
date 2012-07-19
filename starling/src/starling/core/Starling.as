@@ -38,6 +38,8 @@ package starling.core
     import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
+    import starling.utils.HAlign;
+    import starling.utils.VAlign;
     
     /** Dispatched when a new render context is created. */
     [Event(name="context3DCreate", type="starling.events.Event")]
@@ -124,7 +126,10 @@ package starling.core
      *  you can make use of the <code>shareContext</code> property:</p> 
      *  
      *  <ol>
-     *    <li>Initialize Starling with a stage3D instance that contains a configured context.
+     *    <li>Manually create and configure a context3D object that both frameworks can work with
+     *        (through <code>stage3D.requestContext3D</code> and
+     *        <code>context.configureBackBuffer</code>).</li>
+     *    <li>Initialize Starling with the stage3D instance that contains that configured context.
      *        This will automatically enable <code>shareContext</code>.</li>
      *    <li>Call <code>start()</code> on your Starling instance (as usual). This will make  
      *        Starling queue input events (keyboard/mouse/touch).</li>
@@ -132,7 +137,7 @@ package starling.core
      *        call Starling's <code>nextFrame</code> as well as the equivalent method of the other 
      *        Stage3D engine. Surround those calls with <code>context.clear()</code> and 
      *        <code>context.present()</code>.</li>
-     *  </ol> 
+     *  </ol>
 	 * 
      */ 
     public class Starling extends EventDispatcher
@@ -337,6 +342,7 @@ package starling.core
         {
             makeCurrent();
             updateNativeOverlay();
+            mSupport.nextFrame();
             
             if (mContext == null || mContext.driverInfo == "Disposed")
                 return;
@@ -347,7 +353,9 @@ package starling.core
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
-            mSupport.nextFrame();
+            
+            if (mStatsDisplay)
+                mStatsDisplay.drawCount = mSupport.drawCount;
             
             if (!mShareContext)
                 mContext.present();
@@ -415,7 +423,10 @@ package starling.core
         
         private function onStage3DError(event:ErrorEvent):void
         {
-            showFatalError("This application is not correctly embedded (wrong wmode value)");
+            if (event.errorID == 3702)
+                showFatalError("This application is not correctly embedded (wrong wmode value)");
+            else
+                showFatalError("Stage3D error: " + event.text);
         }
         
         private function onContextCreated(event:Event):void
@@ -603,9 +614,23 @@ package starling.core
          *  Flash components. */ 
         public function get nativeOverlay():Sprite { return mNativeOverlay; }
         
-        /** Indicates if a small statistics box (with FPS and memory usage) is displayed. */
+        /** Indicates if a small statistics box (with FPS, memory usage and draw count) is displayed. */
         public function get showStats():Boolean { return mStatsDisplay != null; }
         public function set showStats(value:Boolean):void
+        {
+            if (mStatsDisplay && !value)
+            {
+                mStatsDisplay.removeFromParent(true);
+                mStatsDisplay = null;
+            }
+            else if (!mStatsDisplay && value)
+            {
+                showStatsAt();
+            }
+        }
+        
+        /** Displays the statistics box at a certain position. */
+        public function showStatsAt(hAlign:String="left", vAlign:String="top"):void
         {
             if (mContext == null)
             {
@@ -614,23 +639,29 @@ package starling.core
             }
             else
             {
-                if (value && mStatsDisplay == null)
+                if (mStatsDisplay == null)
                 {
                     mStatsDisplay = new StatsDisplay();
                     mStatsDisplay.touchable = false;
                     mStatsDisplay.scaleX = mStatsDisplay.scaleY = 1.0 / contentScaleFactor;
                     mStage.addChild(mStatsDisplay);
                 }
-                else if (!value && mStatsDisplay)
-                {
-                    mStatsDisplay.removeFromParent(true);
-                    mStatsDisplay = null;
-                }
+                
+                var stageWidth:int  = mStage.stageWidth;
+                var stageHeight:int = mStage.stageHeight;
+                
+                if (hAlign == HAlign.LEFT) mStatsDisplay.x = 0;
+                else if (hAlign == HAlign.RIGHT) mStatsDisplay.x = stageWidth - mStatsDisplay.width; 
+                else mStatsDisplay.x = int((stageWidth - mStatsDisplay.width) / 2);
+                
+                if (vAlign == VAlign.TOP) mStatsDisplay.y = 0;
+                else if (vAlign == VAlign.BOTTOM) mStatsDisplay.y = stageHeight - mStatsDisplay.height;
+                else mStatsDisplay.y = int((stageHeight - mStatsDisplay.height) / 2);
             }
             
-            function onRootCreated(event:Object):void
+            function onRootCreated():void
             {
-                showStats = value;
+                showStatsAt(hAlign, vAlign);
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }

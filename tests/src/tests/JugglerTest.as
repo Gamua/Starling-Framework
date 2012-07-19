@@ -104,5 +104,20 @@ package tests
             assertThat(quad1.rotation, closeTo(0.0, E));
             assertThat(quad2.rotation, closeTo(1.0, E));   
         }
+        
+        [Test]
+        public function testAddTwice():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0);
+            
+            juggler.add(tween);
+            juggler.add(tween);
+            
+            assertThat(tween.currentTime, closeTo(0.0, E));
+            juggler.advanceTime(0.5);
+            assertThat(tween.currentTime, closeTo(0.5, E));
+        }
     }
 }

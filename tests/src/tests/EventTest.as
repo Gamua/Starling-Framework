@@ -226,5 +226,97 @@ package tests
                 callCount++;
             }
         }
+        
+        [Test]
+        public function testBubbleWithModifiedChain():void
+        {
+            const eventType:String = "test";
+            
+            var grandParent:Sprite = new Sprite();
+            var parent:Sprite = new Sprite();
+            var child:Sprite = new Sprite();
+            
+            grandParent.addChild(parent);
+            parent.addChild(child);
+            
+            var hitCount:int = 0;
+            
+            // listener on 'child' changes display list; bubbling must not be affected.
+            
+            grandParent.addEventListener(eventType, onEvent);
+            parent.addEventListener(eventType, onEvent);
+            child.addEventListener(eventType, onEvent);
+            child.addEventListener(eventType, onEvent_removeFromParent);
+            
+            child.dispatchEvent(new Event(eventType, true));
+            
+            Assert.assertNull(parent.parent);
+            Assert.assertEquals(3, hitCount);
+            
+            function onEvent():void
+            {
+                hitCount++;
+            }
+            
+            function onEvent_removeFromParent():void
+            {
+                parent.removeFromParent();
+            }
+        }
+        
+        [Test]
+        public function testRedispatch():void
+        {
+            const eventType:String = "test";
+            
+            var grandParent:Sprite = new Sprite();
+            var parent:Sprite = new Sprite();
+            var child:Sprite = new Sprite();
+            
+            grandParent.addChild(parent);
+            parent.addChild(child);
+            
+            grandParent.addEventListener(eventType, onEvent);
+            parent.addEventListener(eventType, onEvent);
+            child.addEventListener(eventType, onEvent);
+            parent.addEventListener(eventType, onEvent_redispatch);
+            
+            var targets:Array = [];
+            var currentTargets:Array = [];
+            
+            child.dispatchEventWith(eventType, true);
+            
+            // main bubble
+            Assert.assertEquals(targets[0], child);
+            Assert.assertEquals(currentTargets[0], child);
+            
+            // main bubble
+            Assert.assertEquals(targets[1], child);
+            Assert.assertEquals(currentTargets[1], parent);
+            
+            // inner bubble
+            Assert.assertEquals(targets[2], parent);
+            Assert.assertEquals(currentTargets[2], parent);
+            
+            // inner bubble
+            Assert.assertEquals(targets[3], parent);
+            Assert.assertEquals(currentTargets[3], grandParent);
+            
+            // main bubble
+            Assert.assertEquals(targets[4], child);
+            Assert.assertEquals(currentTargets[4], grandParent);
+            
+            function onEvent(event:Event):void
+            {
+                targets.push(event.target);
+                currentTargets.push(event.currentTarget);
+            }
+            
+            function onEvent_redispatch(event:Event):void
+            {
+                parent.removeEventListener(eventType, onEvent_redispatch);
+                parent.dispatchEvent(event);
+            }
+        }
     }
 }

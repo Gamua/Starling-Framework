@@ -121,10 +121,10 @@ package starling.textures
                                               optimizeForRenderTexture:Boolean=false,
                                               scale:Number=1):starling.textures.Texture
         {
-            var origWidth:int = data.width;
-            var origHeight:int = data.height;
-            var legalWidth:int  = getNextPowerOfTwo(data.width);
-            var legalHeight:int = getNextPowerOfTwo(data.height);
+            var origWidth:int   = data.width;
+            var origHeight:int  = data.height;
+            var legalWidth:int  = getNextPowerOfTwo(origWidth);
+            var legalHeight:int = getNextPowerOfTwo(origHeight);
             var context:Context3D = Starling.context;
             var potData:BitmapData;
             
