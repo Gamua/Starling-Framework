@@ -349,9 +349,11 @@ package starling.display
         }
         
         // properties
-        
-        /** The transformation matrix of the object relative to its parent. 
-         *  CAUTION: Returns not a copy, but the actual object! Do not change or reuse. */
+ 
+        /** The transformation matrix of the object relative to its parent.
+         *  If you assign a custom transformation matrix, Starling will figure out suitable values  
+         *  for the corresponding orienation properties (<code>x, y, scaleX/Y, rotation</code> etc).
+         *  CAUTION: Returns not a copy, but the actual object! */
         public function get transformationMatrix():Matrix
         {
             if (mOrientationChanged)
@@ -369,9 +371,6 @@ package starling.display
             return mTransformationMatrix; 
         }
         
-        /** Set the transformation matrix of the object relative to its parent. Assigning a 
-         *  custom transformation matrix will update the <code>x, y, scaleX, scaleY, rotation, 
-         *  skewX</code> properties; the <code>pivotX, pivotY, skew</code> will be set to zero. */
         public function set transformationMatrix(matrix:Matrix):void
         {
             mOrientationChanged = false;
