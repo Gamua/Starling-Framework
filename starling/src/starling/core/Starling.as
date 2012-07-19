@@ -143,7 +143,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "1.1";
+        public static const VERSION:String = "1.2";
         
         // members
         
