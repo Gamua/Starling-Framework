@@ -50,35 +50,46 @@ package tests
             var parent:Sprite = new Sprite();
             var child1:Sprite = new Sprite();
             var child2:Sprite = new Sprite();
+            var returnValue:DisplayObject;
             
             Assert.assertEquals(0, parent.numChildren);
             Assert.assertNull(child1.parent);
             
-            parent.addChild(child1);
+            returnValue = parent.addChild(child1);
+            Assert.assertEquals(child1, returnValue);
             Assert.assertEquals(1, parent.numChildren);
             Assert.assertEquals(parent, child1.parent);
             
-            parent.addChild(child2);
+            returnValue = parent.addChild(child2);
+            Assert.assertEquals(child2, returnValue);
             Assert.assertEquals(2, parent.numChildren);
             Assert.assertEquals(parent, child2.parent);
             Assert.assertEquals(child1, parent.getChildAt(0));
             Assert.assertEquals(child2, parent.getChildAt(1));
             
-            parent.removeChild(child1);
+            returnValue = parent.removeChild(child1);
+            Assert.assertEquals(child1, returnValue);
             Assert.assertNull(child1.parent);
             Assert.assertEquals(child2, parent.getChildAt(0));
             child1.removeFromParent(); // should *not* throw an exception
             
-            child2.addChild(child1);
+            returnValue = child2.addChild(child1);
+            Assert.assertEquals(child1, returnValue);
             Assert.assertTrue(parent.contains(child1));
             Assert.assertTrue(parent.contains(child2));
             Assert.assertEquals(child2, child1.parent);
             
-            parent.addChildAt(child1, 0);
+            returnValue = parent.addChildAt(child1, 0);
+            Assert.assertEquals(child1, returnValue);
             Assert.assertEquals(parent, child1.parent);
             Assert.assertFalse(child2.contains(child1));
             Assert.assertEquals(child1, parent.getChildAt(0));
             Assert.assertEquals(child2, parent.getChildAt(1));
+            
+            returnValue = parent.removeChildAt(0);
+            Assert.assertEquals(child1, returnValue);
+            Assert.assertEquals(child2, parent.getChildAt(0));
+            Assert.assertEquals(1, parent.numChildren);
         }
         
         [Test]
