@@ -13,7 +13,6 @@ package starling.display
     import flash.geom.Matrix;
     
     import starling.core.RenderSupport;
-    import starling.core.Starling;
     import starling.events.Event;
 
     /** Dispatched on all children when the object is flattened. */

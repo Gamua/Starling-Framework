@@ -147,12 +147,12 @@ package starling.events
             // we determine the bubble chain before starting to invoke the listeners.
             // that way, changes done by the listeners won't affect the bubble chain.
             
-            var chain:Vector.<DisplayObject>;
+            var chain:Vector.<EventDispatcher>;
             var element:DisplayObject = this as DisplayObject;
             var length:int = 1;
             
             if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); chain[0] = element; }
-            else chain = new <DisplayObject>[element];
+            else chain = new <EventDispatcher>[element];
             
             while (element = element.parent)
                 chain[length++] = element;

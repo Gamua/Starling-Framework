@@ -1,7 +1,5 @@
 package
 {
-    import flash.display.Bitmap;
-
     public class AssetEmbeds_1x
     {
         // Bitmaps
