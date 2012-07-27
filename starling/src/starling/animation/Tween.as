@@ -128,8 +128,8 @@ package starling.animation
             if (mCurrentTime < 0 || previousTime >= mTotalTime) 
                 return;
 
-            if (onStart != null && previousTime <= 0 && mCurrentTime >= 0) 
-                onStart.apply(null, mOnStartArgs);
+            if (mOnStart != null && previousTime <= 0 && mCurrentTime >= 0) 
+                mOnStart.apply(null, mOnStartArgs);
 
             var ratio:Number = Math.min(mTotalTime, mCurrentTime) / mTotalTime;
             var numAnimatedProperties:int = mStartValues.length;
@@ -149,13 +149,13 @@ package starling.animation
                 mTarget[mProperties[i]] = currentValue;
             }
 
-            if (onUpdate != null) 
-                onUpdate.apply(null, mOnUpdateArgs);
+            if (mOnUpdate != null) 
+                mOnUpdate.apply(null, mOnUpdateArgs);
             
             if (previousTime < mTotalTime && mCurrentTime >= mTotalTime)
             {
                 dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
-                if (onComplete != null) onComplete.apply(null, mOnCompleteArgs);
+                if (mOnComplete != null) mOnComplete.apply(null, mOnCompleteArgs);
             }
         }
         
