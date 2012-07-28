@@ -14,7 +14,6 @@ package starling.textures
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
-    import flash.utils.ByteArray;
     
     import starling.core.Starling;
     import starling.events.Event;

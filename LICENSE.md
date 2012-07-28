@@ -1,10 +1,10 @@
-Starling: Simplified BSD License
-================================
+Simplified BSD License
+======================
 
 Copyright 2012 Gamua. All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, are
-permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this list of
       conditions and the following disclaimer.
@@ -13,12 +13,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-   3. Redistributions in binary form via an online application distribution system (like the 
-      Apple App Store) that inhibit execution of condition 2 must include a text equivalent
-      to the following in the app description: "Powered by the Starling Framework". 
-      The content of the following disclaimer is still in effect.
-
-THIS SOFTWARE IS PROVIDED BY GAMUA ``AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY GAMUA "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL GAMUA OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR

@@ -2,8 +2,6 @@ package scenes
 {
     import starling.display.Image;
     import starling.text.TextField;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
     import starling.utils.deg2rad;
     
     import utils.TouchSheet;

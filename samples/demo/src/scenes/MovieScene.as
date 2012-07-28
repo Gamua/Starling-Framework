@@ -5,10 +5,7 @@ package scenes
     import starling.core.Starling;
     import starling.display.MovieClip;
     import starling.events.Event;
-    import starling.text.TextField;
     import starling.textures.Texture;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
 
     public class MovieScene extends Scene
     {

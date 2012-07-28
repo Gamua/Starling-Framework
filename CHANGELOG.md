@@ -1,6 +1,54 @@
 Starling: Changelog
 ===================
 
+version 1.2 - 2012-07-24
+------------------------
+
+- added enhanced event system with automatic event pooling and new 'dispatchEventWith' method
+- added support for Context3D profiles (available in AIR 3.4)
+- added support for final ATF file format
+- added support for skewing through new properties 'skewX' and 'skewY' on DisplayObjects
+  (thanks to aduros, tconkling, spmallick and groves)
+- added support for manually assigning a transformation matrix to a display object 
+  (thanks to spmallick)
+- added new 'DRW' value in statistics display, showing the number of draw calls per frame
+- added 'BitmapFont.createSprite' method, useful for simple text effects
+- added support for a shared context3D (useful for combining Starling with other frameworks)
+- added 'Starling.root' property to access the root class instance
+- added 'BitmapFont.getBitmapFont' method
+- added support for custom bitmap font names
+- added support for batching QuadBatch instances
+- added check that MovieClip's fps value is greater than zero
+- added 'MatrixUtil' class containing Matrix helper methods
+- added more optional 'result*'-parameters to avoid temporary object creation
+- added native filter support to TextField class (thanks to RRAway)
+- added 'getRegion' and 'getFrame' methods to TextureAtlas
+- added new 'DisplayObject.base' property that replaces old 'DisplayObject.root' functionality.
+- now, 'DisplayObject.root' returns the topmost object below the stage, just as in classic Flash.
+- now determining bubble chain before dispatching event, just as in classic Flash
+- now returning the removed/added child in remove/add methods of DisplayObject
+- now returning the name of the bitmap font in 'registerBitmapFont' method
+- moved 'useHandCursor' property from Sprite to DisplayObject
+- updated AGALMiniAssembler to latest version
+- optimized performance by using 2D matrices (instead of Matrix3D) almost everywhere
+- optimized performance by caching transformation matrices of DisplayObjects
+- optimized handling of empty batches in 'RenderSupport.finishQuadBatch' method
+- optimized temporary object handling, avoiding it at even more places
+- optimized localToGlobal and globalToLocal methods
+- optimized bitmap char arrangement by moving color assignment out of the loop
+- optimized bitmap char arrangement by pooling char location objects
+- optimized abstract class check (now only done in debug player)
+- fixed wrong char arrangement when last bitmap char is missing (thanks to qoolbox)
+- fixed handling of touches that begin outside the viewport
+- fixed wrong 'tinted' value when setting color to white
+- fixed scaling implementation (did not take cached transformation matrix into account)
+- fixed handling of duplicate event listeners
+- fixed handling of duplicate tweens in juggler (thanks to bsideup)
+- fixed bitmap font line position when text is truncated
+- fixed memory leak when using Juggler.purge (thanks to vync79)
+- fixed leak when computing display object's transformation matrix (thanks to Fraggle)
+- fixed error caused by removal of sibling in REMOVED_FROM_STAGE event (thanks to Josh)
+
 version 1.1 - 2012-05-06
 ------------------------
 

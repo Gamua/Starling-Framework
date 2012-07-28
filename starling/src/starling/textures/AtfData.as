@@ -28,7 +28,6 @@ package starling.textures
             var signature:String = String.fromCharCode(data[0], data[1], data[2]);
             if (signature != "ATF") throw new ArgumentError("Invalid ATF data");
             
-            var format:String;
             switch (data[6])
             {
                 case 0:
