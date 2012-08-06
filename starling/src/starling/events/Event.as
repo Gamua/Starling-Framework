@@ -140,6 +140,7 @@ package starling.events
         /** @private */
         starling_internal static function toPool(event:Event):void
         {
+            event.mData = event.mTarget = event.mCurrentTarget = null;
             sEventPool.push(event);
         }
         
