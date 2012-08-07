@@ -13,7 +13,6 @@ package starling.utils
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
      *  to Stage3D vertex buffers. <em>You only have to work with this class if you create display 
@@ -59,8 +58,7 @@ package starling.utils
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
 
-        /** Helper objects. */
-        private static var sPositions:Vector.<Number> = new Vector.<Number>(8);
+        /** Helper object. */
         private static var sHelperPoint:Point = new Point();
         
         /** Create a new VertexData object with a specified number of vertices. */

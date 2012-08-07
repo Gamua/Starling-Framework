@@ -569,7 +569,7 @@ package com.adobe.utils
 		private static const OP_SPECIAL_TEX:uint				= 0x8;
 		private static const OP_SPECIAL_MATRIX:uint				= 0x10;
 		private static const OP_FRAG_ONLY:uint					= 0x20;
-		private static const OP_VERT_ONLY:uint					= 0x40;
+		//private static const OP_VERT_ONLY:uint				= 0x40;
 		private static const OP_NO_DEST:uint					= 0x80;
 		
 		// opcodes

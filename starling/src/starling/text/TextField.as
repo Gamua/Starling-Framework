@@ -483,10 +483,12 @@ package starling.text
         
         /** Makes a bitmap font available at any text field, identified by its <code>name</code>.
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you 
-         *  can pass a custom name, as well. */
-        public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):void
+         *  can pass a custom name, as well. @returns the name of the font. */
+        public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
-            sBitmapFonts[name ? name : bitmapFont.name] = bitmapFont;
+            if (name == null) name = bitmapFont.name;
+            sBitmapFonts[name] = bitmapFont;
+            return name;
         }
         
         /** Unregisters the bitmap font and, optionally, disposes it. */

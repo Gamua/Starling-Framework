@@ -143,7 +143,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "1.1";
+        public static const VERSION:String = "1.2";
         
         // members
         
@@ -224,7 +224,7 @@ package starling.core
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
-            if (mStage3D.context3D)
+            if (mStage3D.context3D && mStage3D.context3D.driverInfo != "Disposed")
             {
                 mShareContext = true;
                 initialize();
@@ -273,6 +273,7 @@ package starling.core
             if (mContext && !mShareContext) mContext.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
             if (mSupport) mSupport.dispose();
+            if (mStage) mStage.dispose();
             if (sCurrent == this) sCurrent = null;
         }
         
@@ -729,9 +730,11 @@ package starling.core
         }
         
         /** Indicates if Starling should automatically recover from a lost device context.
-         *  On some systems, an upcoming screensaver or entering sleep mode may invalidate the
-         *  render context. This setting indicates if Starling should recover from such incidents.
-         *  Beware that this has a huge impact on memory consumption! @default false */
+         *  On some systems, an upcoming screensaver or entering sleep mode may 
+         *  invalidate the render context. This setting indicates if Starling should recover from 
+         *  such incidents. Beware that this has a huge impact on memory consumption!
+         *  It is recommended to enable this setting on Android and Windows, but to deactivate it
+         *  on iOS and Mac OS X. @default false */
         public static function get handleLostContext():Boolean { return sHandleLostContext; }
         public static function set handleLostContext(value:Boolean):void 
         {

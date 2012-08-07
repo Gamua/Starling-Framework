@@ -76,7 +76,10 @@ package starling.textures
             mAtlasTexture.dispose();
         }
         
-        private function parseAtlasXml(atlasXml:XML):void
+        /** This function is called by the constructor and will parse an XML in Starling's 
+         *  default atlas file format. Override this method to create custom parsing logic
+         *  (e.g. to support a different file format). */
+        protected function parseAtlasXml(atlasXml:XML):void
         {
             var scale:Number = mAtlasTexture.scale;
             
@@ -142,11 +145,12 @@ package starling.textures
             return mTextureFrames[name];
         }
         
-        /** Creates a region for a subtexture and gives it a name. */
+        /** Adds a named region for a subtexture (described by rectangle with coordinates in 
+         *  pixels) with an optional frame. */
         public function addRegion(name:String, region:Rectangle, frame:Rectangle=null):void
         {
             mTextureRegions[name] = region;
-            if (frame) mTextureFrames[name] = frame;
+            mTextureFrames[name]  = frame;
         }
         
         /** Removes a region with a certain name. */
