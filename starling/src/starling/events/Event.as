@@ -64,13 +64,13 @@ package starling.events
         
         private static var sEventPool:Vector.<Event> = new <Event>[];
         
-        private var mTarget:EventDispatcher;
-        private var mCurrentTarget:EventDispatcher;
-        private var mType:String;
-        private var mBubbles:Boolean;
-        private var mStopsPropagation:Boolean;
-        private var mStopsImmediatePropagation:Boolean;
-        private var mData:Object;
+        protected var mTarget:EventDispatcher;
+        protected var mCurrentTarget:EventDispatcher;
+        protected var mType:String;
+        protected var mBubbles:Boolean;
+        protected var mStopsPropagation:Boolean;
+        protected var mStopsImmediatePropagation:Boolean;
+        protected var mData:Object;
         
         /** Creates an event object that can be passed to listeners. */
         public function Event(type:String, bubbles:Boolean=false, data:Object=null)

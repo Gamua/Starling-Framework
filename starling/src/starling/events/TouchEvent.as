@@ -10,8 +10,11 @@
 
 package starling.events
 {
+    import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
+
+    use namespace starling_internal;
     
     /** A TouchEvent is triggered either by touch or mouse input.  
      *  
@@ -60,6 +63,8 @@ package starling.events
         private var mShiftKey:Boolean;
         private var mCtrlKey:Boolean;
         private var mTimestamp:Number;
+        
+        private static var sEventPool:Vector.<TouchEvent> = new <TouchEvent>[];
         
         /** Creates a new TouchEvent instance. */
         public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
@@ -134,5 +139,52 @@ package starling.events
         
         /** Indicates if the ctrl key was pressed when the event occurred. (Mac OS: Cmd or Ctrl) */
         public function get ctrlKey():Boolean { return mCtrlKey; }
+        
+        // event pooling
+
+        /** @private */
+        starling_internal static function reset(event:TouchEvent, type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
+                                                ctrlKey:Boolean=false, bubbles:Boolean=true):void
+        {
+            event.mType = type;
+            event.mTouches = touches;
+            event.mShiftKey = shiftKey;
+            event.mCtrlKey = ctrlKey;
+            event.mBubbles = bubbles;
+            event.mTarget = event.mCurrentTarget = null;
+            event.mStopsPropagation = event.mStopsImmediatePropagation = false;
+            event.mTimestamp = -1.0;
+            
+            var numTouches:int=touches.length;
+            for (var i:int=0; i<numTouches; ++i)
+            {
+                var touch:Touch = touches[i];
+                if (touch.timestamp > event.mTimestamp)
+                {
+                    event.mTimestamp = touch.timestamp;
+                }
+            }
+        }
+        
+        /** @private */
+        starling_internal static function fromPool(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
+                                                   ctrlKey:Boolean=false, bubbles:Boolean=true):TouchEvent
+        {
+            if (sEventPool.length)
+            {
+                var event:TouchEvent = sEventPool.pop();
+                TouchEvent.reset(event, type, touches, shiftKey, ctrlKey, bubbles);
+                return event;
+            }
+            else return new TouchEvent(type, touches, shiftKey, ctrlKey, bubbles);
+        }
+        
+        /** @private */
+        starling_internal static function toPool(event:TouchEvent):void
+        {
+            event.mData = event.mTarget = event.mCurrentTarget = null;
+            event.mTouches = null;
+            sEventPool.push(event);
+        }
     }
 }
