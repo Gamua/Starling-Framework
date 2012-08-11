@@ -132,6 +132,14 @@ package starling.core
             mMatrixStackSize = 0;
             loadIdentity();
         }
+		
+		/** Calculates the product of modelview without projection matrix.
+		 *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
+		public function get modelViewMatrix():Matrix
+		{
+			mMvpMatrix.copyFrom(mModelViewMatrix);
+			return mMvpMatrix;
+		}
         
         /** Calculates the product of modelview and projection matrix. 
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
