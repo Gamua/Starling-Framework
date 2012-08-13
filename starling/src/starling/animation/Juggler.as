@@ -147,15 +147,15 @@ package starling.animation
                 }
             }
             
-            numObjects = mObjects.length; // count might have changed!
-
-            if (i != currentIndex)
+            if (currentIndex != i)
             {
-                while (i<numObjects)
+                numObjects = mObjects.length; // count might have changed!
+                
+                while (i < numObjects)
                     mObjects[currentIndex++] = mObjects[i++];
+                
+                mObjects.length = currentIndex;
             }
-            
-            mObjects.length = currentIndex;
         }
         
         private function onRemove(event:Event):void
