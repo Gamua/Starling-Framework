@@ -62,25 +62,34 @@ package starling.display
             if (textures.length > 0)
             {
                 super(textures[0]);
-                if (fps <= 0) throw new ArgumentError("Invalid fps: " + fps);
-                
-                mDefaultFrameDuration = 1.0 / fps;
-                mLoop = true;
-                mPlaying = true;
-                mTotalTime = 0.0;
-                mCurrentTime = 0.0;
-                mCurrentFrame = 0;
-                mTextures = new <Texture>[];
-                mSounds = new <Sound>[];
-                mDurations = new <Number>[];
-                mStartTimes = new <Number>[];
-                
-                for each (var texture:Texture in textures)
-                    addFrame(texture);
+                init(textures, fps);
             }
             else
             {
                 throw new ArgumentError("Empty texture array");
+            }
+        }
+        
+        private function init(textures:Vector.<Texture>, fps:Number):void
+        {
+            if (fps <= 0) throw new ArgumentError("Invalid fps: " + fps);
+            var numFrames:int = textures.length;
+            
+            mDefaultFrameDuration = 1.0 / fps;
+            mLoop = true;
+            mPlaying = true;
+            mCurrentTime = 0.0;
+            mCurrentFrame = 0;
+            mTotalTime = mDefaultFrameDuration * numFrames;
+            mTextures = textures.concat();
+            mSounds = new Vector.<Sound>(numFrames);
+            mDurations = new Vector.<Number>(numFrames);
+            mStartTimes = new Vector.<Number>(numFrames);
+            
+            for (var i:int=0; i<numFrames; ++i)
+            {
+                mDurations[i] = mDefaultFrameDuration;
+                mStartTimes[i] = i * mDefaultFrameDuration;
             }
         }
         
