@@ -109,10 +109,16 @@ package starling.display
         /** Adds a child to the container at a certain index. */
         public function addChildAt(child:DisplayObject, index:int):DisplayObject
         {
+            var numChildren:int = mChildren.length; 
+            
             if (index >= 0 && index <= numChildren)
             {
                 child.removeFromParent();
-                mChildren.splice(index, 0, child);
+                
+                // 'splice' creates a temporary object, so we avoid it if it's not necessary
+                if (index == numChildren) mChildren.push(child);
+                else                      mChildren.splice(index, 0, child);
+                
                 child.setParent(this);
                 child.dispatchEventWith(Event.ADDED, true);
                 
