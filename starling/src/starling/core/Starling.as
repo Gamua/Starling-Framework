@@ -647,7 +647,6 @@ package starling.core
                 {
                     mStatsDisplay = new StatsDisplay();
                     mStatsDisplay.touchable = false;
-                    mStatsDisplay.scaleX = mStatsDisplay.scaleY = 1.0 / contentScaleFactor;
                     mStage.addChild(mStatsDisplay);
                 }
                 
