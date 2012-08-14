@@ -31,6 +31,7 @@ package starling.core
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
+    import flash.utils.setTimeout;
     
     import starling.animation.Juggler;
     import starling.display.DisplayObject;
@@ -227,7 +228,8 @@ package starling.core
             if (mStage3D.context3D && mStage3D.context3D.driverInfo != "Disposed")
             {
                 mShareContext = true;
-                initialize();
+                setTimeout(initialize, 1); // we don't call it right away, because Starling should
+                                           // behave the same way with or without a shared context
             }
             else
             {
@@ -284,10 +286,7 @@ package starling.core
             makeCurrent();
             
             initializeGraphicsAPI();
-            dispatchEventWith(starling.events.Event.CONTEXT3D_CREATE, false, mContext);
-            
             initializeRoot();
-            dispatchEventWith(starling.events.Event.ROOT_CREATED, false, root);
             
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
             mLastFrameTimestamp = getTimer() / 1000.0;
@@ -302,7 +301,9 @@ package starling.core
             updateViewPort();
             
             trace("[Starling] Initialization complete.");
-            trace("[Starling] Display Driver:" + mContext.driverInfo);
+            trace("[Starling] Display Driver:", mContext.driverInfo);
+            
+            dispatchEventWith(starling.events.Event.CONTEXT3D_CREATE, false, mContext);
         }
         
         private function initializeRoot():void
@@ -312,6 +313,8 @@ package starling.core
             var rootObject:DisplayObject = new mRootClass();
             if (rootObject == null) throw new Error("Invalid root class: " + mRootClass);
             mStage.addChildAt(rootObject, 0);
+            
+            dispatchEventWith(starling.events.Event.ROOT_CREATED, false, root);
         }
         
         /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
