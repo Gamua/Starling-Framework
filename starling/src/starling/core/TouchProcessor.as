@@ -116,9 +116,14 @@ package starling.core
                 // if the target of a hovering touch changed, we dispatch an event to the previous
                 // target to notify it that it's no longer being hovered over.
                 for each (var touchData:Object in sHoveringTouchData)
+                {
                     if (touchData.touch.target != touchData.target)
-                        touchData.target.dispatchEvent(new TouchEvent(
-                            TouchEvent.TOUCH, mCurrentTouches, mShiftDown, mCtrlDown));
+                    {
+                        var event:TouchEvent = TouchEvent.fromPool(TouchEvent.TOUCH, mCurrentTouches, mShiftDown, mCtrlDown)
+                        touchData.target.dispatchEvent(event);
+                        TouchEvent.toPool(event);
+                    }
+                }
                 
                 // dispatch events
                 for each (touchID in sProcessedTouchIDs)
@@ -126,8 +131,11 @@ package starling.core
                     touch = getCurrentTouch(touchID);
                     
                     if (touch.target)
-                        touch.target.dispatchEvent(new TouchEvent(TouchEvent.TOUCH, mCurrentTouches,
-                                                                  mShiftDown, mCtrlDown));
+                    {
+                        event = TouchEvent.fromPool(TouchEvent.TOUCH, mCurrentTouches, mShiftDown, mCtrlDown)
+                        touch.target.dispatchEvent(event);
+                        TouchEvent.toPool(event);
+                    }
                 }
                 
                 // remove ended touches
