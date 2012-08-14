@@ -280,6 +280,48 @@ package tests
         }
         
         [Test]
+        public function testPivotWithSkew():void
+        {
+            var width:int = 200;
+            var height:int = 100;
+            var skewX:Number = 0.2;
+            var skewY:Number = 0.35;
+            var scaleY:Number = 0.5;
+            var rotation:Number = 0.5;
+            
+            // create a scaled, rotated and skewed object from a sprite and a quad
+            
+            var quad:Quad = new Quad(width, height);
+            quad.x = width / -2;
+            quad.y = height / -2;
+            
+            var sprite:Sprite = new Sprite();
+            sprite.x = width / 2;
+            sprite.y = height / 2;
+            sprite.skewX = skewX;
+            sprite.skewY = skewY;
+            sprite.rotation = rotation;
+            sprite.scaleY = scaleY;
+            sprite.addChild(quad);
+            
+            // do the same without a sprite, but with a pivoted quad
+            
+            var pQuad:Quad = new Quad(width, height);
+            pQuad.x = width / 2;
+            pQuad.y = height / 2;
+            pQuad.pivotX = width / 2;
+            pQuad.pivotY = height / 2;
+            pQuad.skewX = skewX;
+            pQuad.skewY = skewY;
+            pQuad.scaleY = scaleY;
+            pQuad.rotation = rotation;
+            
+            // the bounds have to be the same
+            
+            Helpers.compareRectangles(sprite.bounds, pQuad.bounds, 1.0);
+        }
+        
+        [Test]
         public function testName():void
         {
             var sprite:Sprite = new Sprite();
