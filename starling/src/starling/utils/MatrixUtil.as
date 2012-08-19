@@ -19,6 +19,7 @@ package starling.utils
     /** A utility class containing methods related to the Matrix class. */
     public class MatrixUtil
     {
+        /** Helper object. */
         private static var sRawData:Vector.<Number> = 
             new <Number>[1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1];
         
@@ -74,6 +75,17 @@ package starling.utils
             matrix.b = b * cosY + d * sinY;
             matrix.c = c * cosX - a * sinX;
             matrix.d = d * cosX - b * sinX;
+        }
+        
+        /** Prepends a matrix to 'base' by multiplying it with another matrix. */
+        public static function prependMatrix(base:Matrix, prep:Matrix):void
+        {
+            base.setTo(base.a * prep.a + base.c * prep.b,
+                       base.b * prep.a + base.d * prep.b,
+                       base.a * prep.c + base.c * prep.d,
+                       base.b * prep.c + base.d * prep.d,
+                       base.tx + base.a * prep.tx + base.c * prep.ty,
+                       base.ty + base.b * prep.tx + base.d * prep.ty);
         }
         
         /** Prepends an incremental translation to a Matrix object. */

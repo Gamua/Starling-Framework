@@ -535,7 +535,7 @@ package starling.display
             }
         }
         
-        /** The horizontal skew angle in radians */
+        /** The horizontal skew angle in radians. */
         public function get skewX():Number { return mSkewX; }
         public function set skewX(value:Number):void 
         {
@@ -548,7 +548,7 @@ package starling.display
             }
         }
         
-        /** The vertical skew angle in radians */
+        /** The vertical skew angle in radians. */
         public function get skewY():Number { return mSkewY; }
         public function set skewY(value:Number):void 
         {
