@@ -99,6 +99,25 @@ package tests
         }
         
         [Test]
+        public function testSetTransformationMatrix():void
+        {
+            var sprite:Sprite = new Sprite();
+            var matrix:Matrix = new Matrix();
+            matrix.scale(1.5, 2.0);
+            matrix.rotate(0.25);
+            matrix.translate(10, 20);
+            sprite.transformationMatrix = matrix;
+            
+            assertThat(sprite.scaleX, closeTo(1.5, E));
+            assertThat(sprite.scaleY, closeTo(2.0, E));
+            assertThat(sprite.rotation, closeTo(0.25, E));
+            assertThat(sprite.x, closeTo(10, E));
+            assertThat(sprite.y, closeTo(20, E));
+            
+            Helpers.compareMatrices(matrix, sprite.transformationMatrix);
+        }
+        
+        [Test]
         public function testBounds():void
         {
             var quad:Quad = new Quad(10, 20);

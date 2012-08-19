@@ -363,7 +363,7 @@ package starling.display
         /** The transformation matrix of the object relative to its parent.
          *  If you assign a custom transformation matrix, Starling will figure out suitable values  
          *  for the corresponding orienation properties (<code>x, y, scaleX/Y, rotation</code> etc).
-         *  CAUTION: Returns not a copy, but the actual object! */
+         *  CAUTION: returns not a copy, but the actual object! */
         public function get transformationMatrix():Matrix
         {
             if (mOrientationChanged)
@@ -392,6 +392,7 @@ package starling.display
         public function set transformationMatrix(matrix:Matrix):void
         {
             mOrientationChanged = false;
+            mTransformationMatrix.copyFrom(matrix);
             mX = matrix.tx;
             mY = matrix.ty;
             
