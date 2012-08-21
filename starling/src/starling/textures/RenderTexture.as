@@ -12,6 +12,7 @@ package starling.textures
 {
     import flash.display3D.Context3D;
     import flash.display3D.textures.TextureBase;
+    import flash.geom.Matrix;
     import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
@@ -77,11 +78,11 @@ package starling.textures
             mSupport = new RenderSupport();
             mNativeWidth  = getNextPowerOfTwo(width  * scale);
             mNativeHeight = getNextPowerOfTwo(height * scale);
-            mActiveTexture = Texture.empty(width, height, 0x0, true, scale);
+            mActiveTexture = Texture.empty(width, height, true, true, scale);
             
             if (persistent)
             {
-                mBufferTexture = Texture.empty(width, height, 0x0, true, scale);
+                mBufferTexture = Texture.empty(width, height, true, true, scale);
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
@@ -102,8 +103,9 @@ package starling.textures
         }
         
         /** Draws an object onto the texture, adhering its properties for position, scale, rotation 
-         *  and alpha. */
-        public function draw(object:DisplayObject, antiAliasing:int=0):void
+         *  and alpha. If you pass a matrix object, you can apply additional transformations to the
+         *  object. Beware: the 'antialiasing' value is currently ignored by Stage3D. */
+        public function draw(object:DisplayObject, matrix:Matrix=null, antiAliasing:int=0):void
         {
             if (object == null) return;
             
@@ -116,9 +118,11 @@ package starling.textures
             {
                 mSupport.pushMatrix();
                 mSupport.pushBlendMode();
-                
                 mSupport.blendMode = object.blendMode;
-                mSupport.transformMatrix(object);            
+                
+                if (matrix) mSupport.prependMatrix(matrix);
+                mSupport.transformMatrix(object);
+                
                 object.render(mSupport, 1.0);
                 
                 mSupport.popMatrix();
@@ -154,7 +158,7 @@ package starling.textures
             RenderSupport.clear();
             
             mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
-            mSupport.applyBlendMode(true);
+            mSupport.applyBlendMode(mActiveTexture.premultipliedAlpha);
             
             // draw buffer
             if (isPersistent)
@@ -186,13 +190,6 @@ package starling.textures
             
             context.setRenderToTexture(mActiveTexture.base);
             RenderSupport.clear();
-
-            if (isPersistent)
-            {
-                context.setRenderToTexture(mActiveTexture.base);
-                RenderSupport.clear();
-            }
-            
             context.setRenderToBackBuffer();
         }
         

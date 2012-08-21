@@ -181,22 +181,12 @@ package starling.textures
             return concreteTexture;
         }
         
-        /** Creates a texture that contains a region (in pixels) of another texture. The new
-         *  texture will reference the base texture; no data is duplicated. */
-        public static function fromTexture(texture:Texture, region:Rectangle=null, frame:Rectangle=null):Texture
-        {
-            var subTexture:Texture = new SubTexture(texture, region);   
-            subTexture.mFrame = frame;
-            return subTexture;
-        }
-        
         /** Creates an empty texture of a certain size and color. The color parameter
          *  expects data in ARGB format. */
-        public static function empty(width:int=64, height:int=64, color:uint=0xffffffff,
-                                     optimizeForRenderTexture:Boolean=false, scale:Number=-1):Texture
+        public static function fromColor(width:int, height:int, color:uint=0xffffffff,
+                                         optimizeForRenderTexture:Boolean=false, 
+                                         scale:Number=1):Texture
         {
-            if (scale <= 0) scale = Starling.contentScaleFactor;
-            
             var bitmapData:BitmapData = new BitmapData(width*scale, height*scale, true, color);
             var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
             
@@ -204,6 +194,43 @@ package starling.textures
                 bitmapData.dispose();
             
             return texture;
+        }
+        
+        /** Creates an empty texture of a certain size. Useful mainly for render textures. 
+         *  Beware that the texture can only be used after you either upload some color data or
+         *  clear the texture while it is an active render target. */
+        public static function empty(width:int=64, height:int=64, premultipliedAlpha:Boolean=false,
+                                     optimizeForRenderTexture:Boolean=true,
+                                     scale:Number=1):Texture
+        {
+            var origWidth:int  = width * scale;
+            var origHeight:int = height * scale;
+            var legalWidth:int  = getNextPowerOfTwo(origWidth);
+            var legalHeight:int = getNextPowerOfTwo(origHeight);
+            var format:String = Context3DTextureFormat.BGRA;
+            var context:Context3D = Starling.context;
+            
+            if (context == null) throw new MissingContextError();
+            
+            var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
+                legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderTexture);
+            
+            var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
+                legalWidth, legalHeight, false, premultipliedAlpha, optimizeForRenderTexture, scale);
+            
+            if (origWidth == legalWidth && origHeight == legalHeight)
+                return concreteTexture;
+            else
+                return new SubTexture(concreteTexture, new Rectangle(0, 0, width, height), true);
+        }
+        
+        /** Creates a texture that contains a region (in pixels) of another texture. The new
+         *  texture will reference the base texture; no data is duplicated. */
+        public static function fromTexture(texture:Texture, region:Rectangle=null, frame:Rectangle=null):Texture
+        {
+            var subTexture:Texture = new SubTexture(texture, region);   
+            subTexture.mFrame = frame;
+            return subTexture;
         }
         
         /** Converts texture coordinates and vertex positions of raw vertex data into the format 
