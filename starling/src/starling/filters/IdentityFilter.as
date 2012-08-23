@@ -11,6 +11,7 @@
 package starling.filters
 {
     import flash.display3D.Context3D;
+    import flash.display3D.IndexBuffer3D;
     import flash.display3D.Program3D;
     
     import starling.core.RenderSupport;
@@ -26,7 +27,7 @@ package starling.filters
         
         public override function dispose():void
         {
-            mShaderProgram.dispose();
+            if (mShaderProgram) mShaderProgram.dispose();
             super.dispose();
         }
         
@@ -42,7 +43,8 @@ package starling.filters
             mShaderProgram = assembleAgal(vertexProgramCode, fragmentProgramCode);            
         }
         
-        protected override function renderFilter(pass:int, support:RenderSupport, context:Context3D):void
+        protected override function renderFilter(pass:int, support:RenderSupport, context:Context3D,
+                                                 indexBuffer:IndexBuffer3D):void
         {
             // already set by super class:
             // 
@@ -52,7 +54,7 @@ package starling.filters
             // texture 0:            input texture
             
             context.setProgram(mShaderProgram);
-            drawTriangles(context);
+            drawTriangles(indexBuffer);
         }
     }
 }

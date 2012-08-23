@@ -157,7 +157,7 @@ package starling.display
         }
         
         /** Disposes all resources of the display object. 
-          * GPU buffers are released, event listeners are removed. */
+          * GPU buffers are released, event listeners are removed, filters are disposed. */
         public function dispose():void
         {
             if (mFilter) mFilter.dispose();
@@ -605,7 +605,9 @@ package starling.display
         public function set name(value:String):void { mName = value; }
         
         /** The filter or filter group that is attached to the display object. The starling.filters 
-         *  package contains several classes that define specific filters you can use. */ 
+         *  package contains several classes that define specific filters you can use. 
+         *  Beware that you should NOT use the same filter on more than one object (for 
+         *  performance reasons). */ 
         public function get filter():FragmentFilter { return mFilter; }
         public function set filter(value:FragmentFilter):void { mFilter = value; }
         

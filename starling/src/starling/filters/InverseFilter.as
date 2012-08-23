@@ -1,7 +1,18 @@
+// =================================================================================================
+//
+//	Starling Framework
+//	Copyright 2012 Gamua OG. All Rights Reserved.
+//
+//	This program is free software. You can redistribute and/or modify it
+//	in accordance with the terms of the accompanying license agreement.
+//
+// =================================================================================================
+
 package starling.filters
 {
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
+    import flash.display3D.IndexBuffer3D;
     import flash.display3D.Program3D;
     
     import starling.core.RenderSupport;
@@ -18,7 +29,7 @@ package starling.filters
         
         public override function dispose():void
         {
-            mShaderProgram.dispose();
+            if (mShaderProgram) mShaderProgram.dispose();
             super.dispose();
         }
         
@@ -37,7 +48,8 @@ package starling.filters
             mShaderProgram = assembleAgal(vertexProgramCode, fragmentProgramCode);            
         }
         
-        protected override function renderFilter(pass:int, support:RenderSupport, context:Context3D):void
+        protected override function renderFilter(pass:int, support:RenderSupport, context:Context3D,
+                                                 indexBuffer:IndexBuffer3D):void
         {
             // already set by super class:
             // 
@@ -48,7 +60,8 @@ package starling.filters
             
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mOnes, 1);
             context.setProgram(mShaderProgram);
-            drawTriangles(context);
+            
+            drawTriangles(indexBuffer);
         }
     }
 }

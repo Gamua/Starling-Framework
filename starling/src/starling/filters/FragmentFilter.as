@@ -31,17 +31,26 @@ package starling.filters
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
+    /** The FragmentFilter class is the base class for all image filter effects.
+     *  
+     *  <p>All other filters of this package extend this class. You can attach them to any display
+     *  object through the 'filter' property. To combine several filters, group them in a 
+     *  'FilterChain' instance.</p>
+     *  
+     *  <p>Create your own filters by extending this class.</p>
+     */ 
     public class FragmentFilter
     {
         private const PMA:Boolean = true;
         
         private var mNumPasses:int;
+        private var mPassTextures:Vector.<Texture>;
+        
         private var mMarginTop:Number;
         private var mMarginBottom:Number;
         private var mMarginLeft:Number;
         private var mMarginRight:Number;
         
-        private var mPassTextures:Vector.<Texture>;
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
@@ -87,7 +96,11 @@ package starling.filters
             if (context == null) throw new MissingContextError();
             
             // get bounds in stage coordinates
-            object.getBounds(stage, sBounds);
+            // can be expensive, so we optimize at least for full-screen effects
+            if (object == stage || object == Starling.current.root)
+                sBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+            else
+                object.getBounds(stage, sBounds);
             
             sBounds.x -= mMarginLeft;
             sBounds.y -= mMarginTop;
@@ -140,7 +153,7 @@ package starling.filters
                 context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
                 context.setTextureAt(0, mPassTextures[i].base);
                 
-                renderFilter(i, support, context);
+                renderFilter(i, support, context, mIndexBuffer);
             }
             
             // reset shader attributes
@@ -182,6 +195,7 @@ package starling.filters
         private function updatePassTextures(width:int, height:int):void
         {
             var needsUpdate:Boolean = mPassTextures == null || 
+                mPassTextures.length != mNumPasses ||
                 mPassTextures[0].width != width || mPassTextures[0].height != height;  
             
             if (needsUpdate)
@@ -207,14 +221,15 @@ package starling.filters
             throw new Error("Method has to be implemented in subclass!");
         }
 
-        protected function renderFilter(pass:int, support:RenderSupport, context:Context3D):void
+        protected function renderFilter(pass:int, support:RenderSupport, context:Context3D,
+                                        indexBuffer:IndexBuffer3D):void
         {
             throw new Error("Method has to be implemented in subclass!");
         }
         
-        protected function drawTriangles(context:Context3D):void
+        protected function drawTriangles(indexBuffer:IndexBuffer3D):void
         {
-            context.drawTriangles(mIndexBuffer, 0, 2);
+            Starling.context.drawTriangles(indexBuffer, 0, 2);
         }
         
         protected function assembleAgal(vertexShader:String, fragmentShader:String):Program3D
@@ -231,21 +246,22 @@ package starling.filters
             
             return program;
         }
-
+        
         // properties
         
-        public function get numPasses():int { return mNumPasses; }
+        public    function get numPasses():int { return mNumPasses; }
+        protected function set numPasses(value:int):void { mNumPasses = value; }
         
-        protected function get marginTop():Number { return mMarginTop; }
+        public    function get marginTop():Number { return mMarginTop; }
         protected function set marginTop(value:Number):void { mMarginTop = value; }
         
-        protected function get marginBottom():Number { return mMarginBottom; }
+        public    function get marginBottom():Number { return mMarginBottom; }
         protected function set marginBottom(value:Number):void { mMarginBottom = value; }
         
-        protected function get marginLeft():Number { return mMarginLeft; }
+        public    function get marginLeft():Number { return mMarginLeft; }
         protected function set marginLeft(value:Number):void { mMarginLeft = value; }
         
-        protected function get marginRight():Number { return mMarginRight; }
+        public    function get marginRight():Number { return mMarginRight; }
         protected function set marginRight(value:Number):void { mMarginRight = value; }
     }
 }
