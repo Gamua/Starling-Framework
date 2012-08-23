@@ -28,28 +28,33 @@ package starling.filters
     import starling.display.Stage;
     import starling.errors.MissingContextError;
     import starling.textures.RenderTexture;
-    import starling.utils.MatrixUtil;
+    import starling.textures.Texture;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
     public class FragmentFilter
     {
-        private var mTargetTexture:RenderTexture;
+        private const PMA:Boolean = true;
+        
+        private var mNumPasses:int;
         private var mPaddingX:int;
         private var mPaddingY:int;
+        private var mPassTextures:Vector.<Texture>;
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
         
-        // helper objects
+        /** helper objects. */
         private static var sBounds:Rectangle = new Rectangle();
         private static var sMatrix:Matrix = new Matrix();
-        private static var sPosition:Point = new Point();
         
-        public function FragmentFilter(paddingX:int=0, paddingY:int=0)
+        public function FragmentFilter(numPasses:int=1, paddingX:int=0, paddingY:int=0)
         {
+            if (numPasses < 1) throw new ArgumentError("At least one pass is required.");
+            
+            mNumPasses = numPasses;
             mPaddingX = paddingX;
             mPaddingY = paddingY;
             
@@ -69,7 +74,8 @@ package starling.filters
         
         public function dispose():void
         {
-            if (mTargetTexture) mTargetTexture.dispose();
+            for each (var texture:Texture in mPassTextures)
+                texture.dispose();
         }
         
         public function render(object:DisplayObject, support:RenderSupport, parentAlpha:Number):void
@@ -80,33 +86,83 @@ package starling.filters
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            // draw object into render texture
-            
             // get bounds in stage coordinates
             object.getBounds(stage, sBounds);
             sBounds.inflate(mPaddingX, mPaddingY);
             sBounds.width  = getNextPowerOfTwo(sBounds.width);
             sBounds.height = getNextPowerOfTwo(sBounds.height);
             
-            // move object to top left
-            sMatrix.identity();
-            sMatrix.translate(-sBounds.x, -sBounds.y);
+            // TODO: intersect with stage bounds & set scissor rectangle accordingly
+            updatePassTextures(sBounds.width, sBounds.height);
             
-            if (mTargetTexture == null || 
-                mTargetTexture.width != sBounds.width || mTargetTexture.height != sBounds.height)
+            // update the vertices that span up the filter rectangle 
+            updateBuffers(context, sBounds.width, sBounds.height);
+            
+            // draw the original object into a render texture
+            renderBaseTexture(object, sBounds.x, sBounds.y);
+            
+            // now prepare filter passes
+            support.finishQuadBatch();
+            support.raiseDrawCount(mNumPasses);
+            RenderSupport.setBlendFactors(PMA); // TODO: check blend modes
+            
+            support.pushMatrix();
+            sMatrix.copyFrom(support.projectionMatrix); // save original projection matrix
+            
+            support.loadIdentity();
+            support.setOrthographicProjection(sBounds.width, sBounds.height);
+            
+            // set shader attributes
+            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+            context.setVertexBufferAt(1, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+            
+            for (var i:int=0; i<mNumPasses; ++i)
             {
-                if (mTargetTexture) mTargetTexture.dispose();
-                mTargetTexture = new RenderTexture(sBounds.width, sBounds.height , false);
+                if (i < mNumPasses - 1) // intermediate pass - draw into texture  
+                {
+                    context.setRenderToTexture(mPassTextures[i+1].base);
+                    RenderSupport.clear();
+                }
+                else // final pass -- draw into back buffer, at original position
+                {
+                    context.setRenderToBackBuffer();
+                    support.projectionMatrix.copyFrom(sMatrix); // restore projection matrix
+                    support.translateMatrix(sBounds.x, sBounds.y);
+                    
+                    support.applyBlendMode(false);
+                }
+                
+                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
+                context.setTextureAt(0, mPassTextures[i].base);
+                
+                renderFilter(i, support, context);
             }
             
-            mTargetTexture.draw(object, sMatrix);
+            // reset shader attributes
+            context.setVertexBufferAt(0, null);
+            context.setVertexBufferAt(1, null);
+            context.setTextureAt(0, null);
             
-            // update vertex- and index buffers
+            support.popMatrix();
+        }
+        
+        // helper methods
+        
+        private function renderBaseTexture(object:DisplayObject, offsetX:Number, offsetY:Number):void
+        {
+            // move object to top left
+            sMatrix.identity();
+            sMatrix.translate(-offsetX, -offsetY);
             
-            mVertexData.setPosition(0, sBounds.x, sBounds.y);
-            mVertexData.setPosition(1, sBounds.right, sBounds.y);
-            mVertexData.setPosition(2, sBounds.x, sBounds.bottom);
-            mVertexData.setPosition(3, sBounds.right, sBounds.bottom);
+            var basePassTexture:RenderTexture = mPassTextures[0] as RenderTexture;
+            basePassTexture.draw(object, sMatrix);
+        }
+        
+        private function updateBuffers(context:Context3D, width:Number, height:Number):void
+        {
+            mVertexData.setPosition(1, width, 0);
+            mVertexData.setPosition(2, 0, height);
+            mVertexData.setPosition(3, width, height);
             
             if (mVertexBuffer == null)
             {
@@ -116,36 +172,37 @@ package starling.filters
             }
             
             mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, 4);
-            
-            // now draw the texture
-            
-            support.pushMatrix();
-            support.loadIdentity();
-            
-            support.finishQuadBatch();
-            support.raiseDrawCount(); // TODO: raise depending on number of passes
-            support.applyBlendMode(false);
-            
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(1, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
-            context.setTextureAt(0, mTargetTexture.base);
-            
-            renderFilter(support, context);
-            
-            context.setVertexBufferAt(0, null);
-            context.setVertexBufferAt(1, null);
-            context.setTextureAt(0, null);
-            
-            support.popMatrix();
         }
+        
+        private function updatePassTextures(width:int, height:int):void
+        {
+            var needsUpdate:Boolean = mPassTextures == null || 
+                mPassTextures[0].width != width || mPassTextures[0].height != height;  
+            
+            if (needsUpdate)
+            {
+                if (mPassTextures)
+                    for each (var texture:Texture in mPassTextures)
+                        texture.dispose();
+                else
+                    mPassTextures = new Vector.<Texture>(mNumPasses, true);
+                
+                var scale:Number = Starling.contentScaleFactor; 
+                mPassTextures[0] = new RenderTexture(width, height, false, scale);
+                
+                for (var i:int=1; i<mNumPasses; ++i)
+                    mPassTextures[i] = Texture.empty(width, height, PMA, true, scale);
+            }
+        }
+        
+        // protected methods
 
         protected function createPrograms():void
         {
             throw new Error("Method has to be implemented in subclass!");
         }
 
-        protected function renderFilter(support:RenderSupport, context:Context3D):void
+        protected function renderFilter(pass:int, support:RenderSupport, context:Context3D):void
         {
             throw new Error("Method has to be implemented in subclass!");
         }
@@ -169,5 +226,9 @@ package starling.filters
             
             return program;
         }
+
+        // properties
+        
+        public function get numPasses():int { return mNumPasses; }
     }
 }

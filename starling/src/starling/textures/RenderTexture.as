@@ -57,10 +57,13 @@ package starling.textures
      */
     public class RenderTexture extends Texture
     {
+        private const PMA:Boolean = true;
+        
         private var mActiveTexture:Texture;
         private var mBufferTexture:Texture;
         private var mHelperImage:Image;
         private var mDrawing:Boolean;
+        private var mBufferReady:Boolean;
         
         private var mNativeWidth:int;
         private var mNativeHeight:int;
@@ -75,14 +78,16 @@ package starling.textures
         {
             if (scale <= 0) scale = Starling.contentScaleFactor; 
             
-            mSupport = new RenderSupport();
             mNativeWidth  = getNextPowerOfTwo(width  * scale);
             mNativeHeight = getNextPowerOfTwo(height * scale);
-            mActiveTexture = Texture.empty(width, height, true, true, scale);
+            mActiveTexture = Texture.empty(width, height, PMA, true, scale);
+            
+            mSupport = new RenderSupport();
+            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
             
             if (persistent)
             {
-                mBufferTexture = Texture.empty(width, height, true, true, scale);
+                mBufferTexture = Texture.empty(width, height, PMA, true, scale);
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
@@ -157,12 +162,11 @@ package starling.textures
             context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             RenderSupport.clear();
             
-            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
-            mSupport.applyBlendMode(mActiveTexture.premultipliedAlpha);
-            
             // draw buffer
-            if (isPersistent)
+            if (isPersistent && mBufferReady)
                 mHelperImage.render(mSupport, 1.0);
+            else
+                mBufferReady = true;
             
             try
             {
@@ -210,12 +214,9 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get scale():Number { return mActiveTexture.scale; }
-        
+ 
         /** @inheritDoc */
-        public override function get premultipliedAlpha():Boolean 
-        { 
-            return mActiveTexture.premultipliedAlpha; 
-        }
+        public override function get premultipliedAlpha():Boolean { return PMA; }
         
         /** @inheritDoc */
         public override function get base():TextureBase 

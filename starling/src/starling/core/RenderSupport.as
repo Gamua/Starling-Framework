@@ -136,6 +136,12 @@ package starling.core
             loadIdentity();
         }
         
+        /** Prepends translation, scale and rotation of an object to a custom matrix. */
+        public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
+        {
+            MatrixUtil.prependMatrix(matrix, object.transformationMatrix);
+        }
+        
         /** Calculates the product of modelview and projection matrix. 
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
         public function get mvpMatrix():Matrix
@@ -152,11 +158,11 @@ package starling.core
             return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
         }
         
-        /** Prepends translation, scale and rotation of an object to a custom matrix. */
-        public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
-        {
-            MatrixUtil.prependMatrix(matrix, object.transformationMatrix);
-        }
+        /** Returns the current modelview matrix. CAUTION: not a copy -- use with care! */
+        public function get modelViewMatrix():Matrix { return mModelViewMatrix; }
+        
+        /** Returns the current projection matrix. CAUTION: not a copy -- use with care! */
+        public function get projectionMatrix():Matrix { return mProjectionMatrix; }
         
         // blending
         

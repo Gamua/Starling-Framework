@@ -55,6 +55,7 @@
     <classEntry path="starling.textures.AtfData"/>
     <classEntry path="starling.filters.FragmentFilter"/>
     <classEntry path="starling.filters.IdentityFilter"/>
+    <classEntry path="starling.filters.InverseFilter"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
