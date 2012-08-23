@@ -70,7 +70,7 @@ package starling.display.graphics
 				pma = true;
 			}
 			RenderSupport.setDefaultBlendFactors(pma);
-			_material.drawTriangles( Starling.context, renderSupport.mvpMatrix, vertexBuffer, indexBuffer );
+			_material.drawTriangles( Starling.context, renderSupport.mvpMatrix3D, vertexBuffer, indexBuffer );
 		}
 	}
 }
