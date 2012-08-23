@@ -19,7 +19,6 @@ package starling.filters
     import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
-    import flash.geom.Point;
     import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
@@ -37,10 +36,12 @@ package starling.filters
         private const PMA:Boolean = true;
         
         private var mNumPasses:int;
-        private var mPaddingX:int;
-        private var mPaddingY:int;
-        private var mPassTextures:Vector.<Texture>;
+        private var mMarginTop:Number;
+        private var mMarginBottom:Number;
+        private var mMarginLeft:Number;
+        private var mMarginRight:Number;
         
+        private var mPassTextures:Vector.<Texture>;
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
@@ -50,13 +51,12 @@ package starling.filters
         private static var sBounds:Rectangle = new Rectangle();
         private static var sMatrix:Matrix = new Matrix();
         
-        public function FragmentFilter(numPasses:int=1, paddingX:int=0, paddingY:int=0)
+        public function FragmentFilter(numPasses:int=1)
         {
             if (numPasses < 1) throw new ArgumentError("At least one pass is required.");
             
             mNumPasses = numPasses;
-            mPaddingX = paddingX;
-            mPaddingY = paddingY;
+            mMarginTop = mMarginBottom = mMarginLeft = mMarginRight = 0.0;
             
             mVertexData = new VertexData(4);
             mVertexData.setTexCoords(0, 0, 0);
@@ -88,7 +88,12 @@ package starling.filters
             
             // get bounds in stage coordinates
             object.getBounds(stage, sBounds);
-            sBounds.inflate(mPaddingX, mPaddingY);
+            
+            sBounds.x -= mMarginLeft;
+            sBounds.y -= mMarginTop;
+            sBounds.width  += mMarginLeft + mMarginRight;
+            sBounds.height += mMarginTop  + mMarginBottom;
+            
             sBounds.width  = getNextPowerOfTwo(sBounds.width);
             sBounds.height = getNextPowerOfTwo(sBounds.height);
             
@@ -230,5 +235,17 @@ package starling.filters
         // properties
         
         public function get numPasses():int { return mNumPasses; }
+        
+        protected function get marginTop():Number { return mMarginTop; }
+        protected function set marginTop(value:Number):void { mMarginTop = value; }
+        
+        protected function get marginBottom():Number { return mMarginBottom; }
+        protected function set marginBottom(value:Number):void { mMarginBottom = value; }
+        
+        protected function get marginLeft():Number { return mMarginLeft; }
+        protected function set marginLeft(value:Number):void { mMarginLeft = value; }
+        
+        protected function get marginRight():Number { return mMarginRight; }
+        protected function set marginRight(value:Number):void { mMarginRight = value; }
     }
 }
