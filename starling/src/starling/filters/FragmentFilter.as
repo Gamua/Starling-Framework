@@ -41,7 +41,10 @@ package starling.filters
      */ 
     public class FragmentFilter
     {
-        private const PMA:Boolean = true;
+        protected const PMA:Boolean = true;
+        protected const STD_VERTEX_SHADER:String = 
+            "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output space
+            "mov v0, va1      \n";  // pass texture coordinates to fragment program
         
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
@@ -153,7 +156,9 @@ package starling.filters
                 context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
                 context.setTextureAt(0, mPassTextures[i].base);
                 
-                renderFilter(i, support, context, mIndexBuffer);
+                activate(i, support, context);
+                context.drawTriangles(mIndexBuffer, 0, 2);
+                deactivate(i, support, context);
             }
             
             // reset shader attributes
@@ -221,19 +226,20 @@ package starling.filters
             throw new Error("Method has to be implemented in subclass!");
         }
 
-        protected function renderFilter(pass:int, support:RenderSupport, context:Context3D,
-                                        indexBuffer:IndexBuffer3D):void
+        protected function activate(pass:int, support:RenderSupport, context:Context3D):void
         {
             throw new Error("Method has to be implemented in subclass!");
         }
         
-        protected function drawTriangles(indexBuffer:IndexBuffer3D):void
+        protected function deactivate(pass:int, support:RenderSupport, context:Context3D):void
         {
-            Starling.context.drawTriangles(indexBuffer, 0, 2);
+            // clean up resources
         }
         
-        protected function assembleAgal(vertexShader:String, fragmentShader:String):Program3D
+        protected function assembleAgal(fragmentShader:String, vertexShader:String=null):Program3D
         {
+            if (vertexShader == null) vertexShader = STD_VERTEX_SHADER;
+            
             var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
             vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexShader);
             

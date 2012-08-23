@@ -40,21 +40,16 @@ package starling.filters
         {
             // TODO: we could create an optimized shader when the offset values are all zero
             
-            var vertexProgramCode:String =
-                "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output space
-                "mov v0, va1      \n"   // pass texture coordinates to fragment program
-            
             var fragmentProgramCode:String =
                 "tex ft0, v0,  fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
                 "m44 ft1, ft0, fc0    \n" +  // multiply color with 4x4 matrix
                 "add ft1, ft1, fc4    \n" +  // add 5th column
                 "mov  oc, ft1            ";  // copy to output
             
-            mShaderProgram = assembleAgal(vertexProgramCode, fragmentProgramCode);            
+            mShaderProgram = assembleAgal(fragmentProgramCode);
         }
         
-        protected override function renderFilter(pass:int, support:RenderSupport, context:Context3D,
-                                                 indexBuffer:IndexBuffer3D):void
+        protected override function activate(pass:int, support:RenderSupport, context:Context3D):void
         {
             // already set by super class:
             // 
@@ -65,8 +60,6 @@ package starling.filters
             
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mRawData, 5);
             context.setProgram(mShaderProgram);
-            
-            drawTriangles(indexBuffer);
         }
         
         private function transpose(input:Vector.<Number>, output:Vector.<Number>=null):Vector.<Number>

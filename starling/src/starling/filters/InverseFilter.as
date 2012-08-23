@@ -35,21 +35,16 @@ package starling.filters
         
         protected override function createPrograms():void
         {
-            var vertexProgramCode:String =
-                "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output space
-                "mov v0, va1      \n"   // pass texture coordinates to fragment program
-            
             var fragmentProgramCode:String =
                 "tex ft0, v0, fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
                 "sub ft1, fc0, ft0  \n" +   // subtract each value from '1'
                 "mov ft1.w, ft0.w   \n" +   // but use original alpha value (w)
                 "mov oc, ft1        \n";    // copy to output
             
-            mShaderProgram = assembleAgal(vertexProgramCode, fragmentProgramCode);            
+            mShaderProgram = assembleAgal(fragmentProgramCode);
         }
         
-        protected override function renderFilter(pass:int, support:RenderSupport, context:Context3D,
-                                                 indexBuffer:IndexBuffer3D):void
+        protected override function activate(pass:int, support:RenderSupport, context:Context3D):void
         {
             // already set by super class:
             // 
@@ -60,8 +55,6 @@ package starling.filters
             
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mOnes, 1);
             context.setProgram(mShaderProgram);
-            
-            drawTriangles(indexBuffer);
         }
     }
 }
