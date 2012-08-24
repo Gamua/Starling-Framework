@@ -141,7 +141,7 @@ package starling.filters
             {
                 if (i < mNumPasses - 1) // intermediate pass - draw into texture  
                 {
-                    context.setRenderToTexture(mPassTextures[i+1].base);
+                    context.setRenderToTexture(getPassTexture(i+1).base);
                     RenderSupport.clear();
                 }
                 else // final pass -- draw into back buffer, at original position
@@ -154,7 +154,7 @@ package starling.filters
                 }
                 
                 context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
-                context.setTextureAt(0, mPassTextures[i].base);
+                context.setTextureAt(0, getPassTexture(i).base);
                 
                 activate(i, support, context);
                 context.drawTriangles(mIndexBuffer, 0, 2);
@@ -199,8 +199,10 @@ package starling.filters
         
         private function updatePassTextures(width:int, height:int):void
         {
+            var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
+            
             var needsUpdate:Boolean = mPassTextures == null || 
-                mPassTextures.length != mNumPasses ||
+                mPassTextures.length != numPassTextures ||
                 mPassTextures[0].width != width || mPassTextures[0].height != height;  
             
             if (needsUpdate)
@@ -209,14 +211,19 @@ package starling.filters
                     for each (var texture:Texture in mPassTextures)
                         texture.dispose();
                 else
-                    mPassTextures = new Vector.<Texture>(mNumPasses, true);
+                    mPassTextures = new Vector.<Texture>(numPassTextures, true);
                 
                 var scale:Number = Starling.contentScaleFactor; 
                 mPassTextures[0] = new RenderTexture(width, height, false, scale);
                 
-                for (var i:int=1; i<mNumPasses; ++i)
-                    mPassTextures[i] = Texture.empty(width, height, PMA, true, scale);
+                if (numPassTextures > 1)
+                    mPassTextures[1] = Texture.empty(width, height, PMA, true, scale);
             }
+        }
+        
+        private function getPassTexture(pass:int):Texture
+        {
+            return mPassTextures[pass % 2];
         }
         
         // protected methods
