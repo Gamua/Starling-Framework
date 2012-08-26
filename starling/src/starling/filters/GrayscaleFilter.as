@@ -14,7 +14,7 @@ package starling.filters
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
     
-    import starling.core.RenderSupport;
+    import starling.textures.Texture;
 
     public class GrayscaleFilter extends FragmentFilter
     {
@@ -42,7 +42,7 @@ package starling.filters
             mShaderProgram = assembleAgal(fragmentProgramCode);
         }
         
-        protected override function activate(pass:int, support:RenderSupport, context:Context3D):void
+        protected override function activate(pass:int, context:Context3D, texture:Texture):void
         {
             // already set by super class:
             // 

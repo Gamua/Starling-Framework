@@ -48,6 +48,7 @@ package starling.filters
         
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
+        private var mResolution:Number;
         
         private var mMarginTop:Number;
         private var mMarginBottom:Number;
@@ -69,6 +70,7 @@ package starling.filters
             
             mNumPasses = numPasses;
             mMarginTop = mMarginBottom = mMarginLeft = mMarginRight = 0.0;
+            mResolution = 1.0;
             
             mVertexData = new VertexData(4);
             mVertexData.setTexCoords(0, 0, 0);
@@ -110,8 +112,8 @@ package starling.filters
             sBounds.width  += mMarginLeft + mMarginRight;
             sBounds.height += mMarginTop  + mMarginBottom;
             
-            sBounds.width  = getNextPowerOfTwo(sBounds.width);
-            sBounds.height = getNextPowerOfTwo(sBounds.height);
+            sBounds.width  = getNextPowerOfTwo(sBounds.width  * mResolution);
+            sBounds.height = getNextPowerOfTwo(sBounds.height * mResolution);
             
             // TODO: intersect with stage bounds & set scissor rectangle accordingly
             updatePassTextures(sBounds.width, sBounds.height);
@@ -149,16 +151,19 @@ package starling.filters
                     context.setRenderToBackBuffer();
                     support.projectionMatrix.copyFrom(sMatrix); // restore projection matrix
                     support.translateMatrix(sBounds.x, sBounds.y);
+                    support.scaleMatrix(1.0/mResolution, 1.0/mResolution);
                     
                     support.applyBlendMode(false);
                 }
                 
-                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
-                context.setTextureAt(0, getPassTexture(i).base);
+                var passTexture:Texture = getPassTexture(i);
                 
-                activate(i, support, context);
+                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
+                context.setTextureAt(0, passTexture.base);
+                
+                activate(i, context, passTexture);
                 context.drawTriangles(mIndexBuffer, 0, 2);
-                deactivate(i, support, context);
+                deactivate(i, context, passTexture);
             }
             
             // reset shader attributes
@@ -176,6 +181,7 @@ package starling.filters
             // move object to top left
             sMatrix.identity();
             sMatrix.translate(-offsetX, -offsetY);
+            sMatrix.scale(mResolution, mResolution);
             
             var basePassTexture:RenderTexture = mPassTextures[0] as RenderTexture;
             basePassTexture.draw(object, sMatrix);
@@ -200,7 +206,6 @@ package starling.filters
         private function updatePassTextures(width:int, height:int):void
         {
             var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
-            
             var needsUpdate:Boolean = mPassTextures == null || 
                 mPassTextures.length != numPassTextures ||
                 mPassTextures[0].width != width || mPassTextures[0].height != height;  
@@ -208,10 +213,15 @@ package starling.filters
             if (needsUpdate)
             {
                 if (mPassTextures)
+                {
                     for each (var texture:Texture in mPassTextures)
                         texture.dispose();
+                    mPassTextures.length = numPassTextures;
+                }
                 else
-                    mPassTextures = new Vector.<Texture>(numPassTextures, true);
+                {
+                    mPassTextures = new Vector.<Texture>(numPassTextures);
+                }
                 
                 var scale:Number = Starling.contentScaleFactor; 
                 mPassTextures[0] = new RenderTexture(width, height, false, scale);
@@ -233,12 +243,12 @@ package starling.filters
             throw new Error("Method has to be implemented in subclass!");
         }
 
-        protected function activate(pass:int, support:RenderSupport, context:Context3D):void
+        protected function activate(pass:int, context:Context3D, texture:Texture):void
         {
             throw new Error("Method has to be implemented in subclass!");
         }
         
-        protected function deactivate(pass:int, support:RenderSupport, context:Context3D):void
+        protected function deactivate(pass:int, context:Context3D, texture:Texture):void
         {
             // clean up resources
         }
@@ -262,19 +272,22 @@ package starling.filters
         
         // properties
         
-        public    function get numPasses():int { return mNumPasses; }
-        protected function set numPasses(value:int):void { mNumPasses = value; }
+        public function get resolution():Number { return mResolution; }
+        public function set resolution(value:Number):void { mResolution = value; }
         
-        public    function get marginTop():Number { return mMarginTop; }
+        protected function set numPasses(value:int):void { mNumPasses = value; }
+        protected function get numPasses():int { return mNumPasses; }
+        
+        protected function get marginTop():Number { return mMarginTop; }
         protected function set marginTop(value:Number):void { mMarginTop = value; }
         
-        public    function get marginBottom():Number { return mMarginBottom; }
+        protected function get marginBottom():Number { return mMarginBottom; }
         protected function set marginBottom(value:Number):void { mMarginBottom = value; }
         
-        public    function get marginLeft():Number { return mMarginLeft; }
+        protected function get marginLeft():Number { return mMarginLeft; }
         protected function set marginLeft(value:Number):void { mMarginLeft = value; }
         
-        public    function get marginRight():Number { return mMarginRight; }
+        protected function get marginRight():Number { return mMarginRight; }
         protected function set marginRight(value:Number):void { mMarginRight = value; }
     }
 }
