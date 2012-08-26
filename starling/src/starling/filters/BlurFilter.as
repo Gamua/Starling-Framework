@@ -16,6 +16,7 @@ package starling.filters
     
     import starling.core.Starling;
     import starling.textures.Texture;
+    import starling.utils.Color;
 
     public class BlurFilter extends FragmentFilter
     {
@@ -23,16 +24,16 @@ package starling.filters
         private const SAMPLE_1:Number  = 1.3;
         private const SAMPLE_2:Number  = 3.1;
         
-        private var mShaderProgram:Program3D;
+        private var mNormalProgram:Program3D;
+        private var mTintedProgram:Program3D;
+        
         private var mOffsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
         private var mWeights:Vector.<Number> = new <Number>[0, 0, 0, 0];
+        private var mColor:Vector.<Number>   = new <Number>[1, 1, 1, 1];
         
         private var mBlurX:Number;
         private var mBlurY:Number;
         private var mScale:Number;
-        
-        /** helper object */
-        private static const sTempWeights:Vector.<Number> = new <Number>[0, 0, 0, 0];
         
         public function BlurFilter(blurX:Number, blurY:Number)
         {
@@ -44,11 +45,24 @@ package starling.filters
         
         public override function dispose():void
         {
-            if (mShaderProgram) mShaderProgram.dispose();
+            disposePrograms();
             super.dispose();
         }
         
+        private function disposePrograms():void
+        {
+            if (mNormalProgram) mNormalProgram.dispose();
+            if (mTintedProgram) mTintedProgram.dispose();
+        }
+        
         protected override function createPrograms():void
+        {
+            disposePrograms();
+            mNormalProgram = createProgram(false);
+            mTintedProgram = createProgram(true);
+        }
+        
+        private function createProgram(tinted:Boolean):Program3D
         {
             // vc0-3 - mvp matrix
             // vc4   - kernel offset
@@ -66,6 +80,7 @@ package starling.filters
             // v0-v4 - kernel position
             // fs0   - input texture
             // fc0   - weight data
+            // fc1   - color (optional)
             // ft0   - pixel color from texture
             // ft1   - output color
             
@@ -86,10 +101,18 @@ package starling.filters
                 "add ft1, ft1, ft0                              \n" +  // add to output color
 
                 "tex ft0,  v4, fs0 <2d, clamp, linear, mipnone> \n" +  // read texture
-                "mul ft0, ft0, fc0.zzzz                         \n" +  // multiply with weight
+                "mul ft0, ft0, fc0.zzzz                         \n";   // multiply with weight
+
+            if (tinted) fragmentProgramCode +=
+                "add ft1, ft1, ft0                              \n" +  // add to output color
+                "mov ft1.xyz, fc1.xyz                           \n" +  // set color
+                "mul ft1.w, ft1.w, fc1.w                        \n" +  // multiply alpha
+                "mov  oc, ft1                                   \n";   // copy to output 
+            
+            else fragmentProgramCode +=
                 "add  oc, ft1, ft0                              \n";   // add to output color
             
-            mShaderProgram = assembleAgal(fragmentProgramCode, vertexProgramCode);
+            return assembleAgal(fragmentProgramCode, vertexProgramCode);
         }
         
         protected override function activate(pass:int, context:Context3D, texture:Texture):void
@@ -101,12 +124,20 @@ package starling.filters
             // vertex attribute 1:   texture coordinates (FLOAT_2)
             // texture 0:            input texture
             
-            var scale:Number = texture.scale;
-            updateParameters(pass, texture.width * scale, texture.height * scale);
+            updateParameters(pass, texture.width * mScale, texture.height * mScale);
             
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, mOffsets);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mWeights);
-            context.setProgram(mShaderProgram);
+            
+            if (pass == numPasses - 1 && isTinted)
+            {
+                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, mColor);
+                context.setProgram(mTintedProgram);
+            }
+            else
+            {
+                context.setProgram(mNormalProgram);
+            }
         }
         
         private function updateParameters(pass:int, textureWidth:int, textureHeight:int):void
@@ -182,6 +213,12 @@ package starling.filters
             marginTop  = marginBottom = 4 + Math.ceil(mBlurY); 
         }
         
+        private function get isTinted():Boolean 
+        { 
+            return mColor[0] != 1.0 || mColor[1] != 1.0 || 
+                   mColor[2] != 1.0 || mColor[3] != 1.0;
+        }
+        
         public function get blurX():Number { return mBlurX / mScale; }
         public function set blurX(value:Number):void 
         { 
@@ -195,5 +232,20 @@ package starling.filters
             mBlurY = value * mScale; 
             updateMarginsAndPasses(); 
         }
+        
+        public function get color():uint 
+        { 
+            return Color.rgb(mColor[0] * 255, mColor[1] * 255, mColor[2] * 255); 
+        }
+        
+        public function set color(value:uint):void 
+        {
+            mColor[0] = Color.getRed(value)   / 255.0;
+            mColor[1] = Color.getGreen(value) / 255.0;
+            mColor[2] = Color.getBlue(value)  / 255.0;
+        }
+        
+        public function get alpha():Number { return mColor[3]; }
+        public function set alpha(value:Number):void { mColor[3] = value; }
     }
 }
