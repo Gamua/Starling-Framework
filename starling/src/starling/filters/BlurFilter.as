@@ -21,8 +21,6 @@ package starling.filters
     public class BlurFilter extends FragmentFilter
     {
         private const MAX_SIGMA:Number = 2.0;
-        private const SAMPLE_1:Number  = 1.3;
-        private const SAMPLE_2:Number  = 3.1;
         
         private var mNormalProgram:Program3D;
         private var mTintedProgram:Program3D;
@@ -35,7 +33,10 @@ package starling.filters
         private var mBlurY:Number;
         private var mScale:Number;
         
-        public function BlurFilter(blurX:Number, blurY:Number)
+        /** helper object */
+        private var sTmpWeights:Vector.<Number> = new Vector.<Number>(5, true);
+        
+        public function BlurFilter(blurX:Number=1, blurY:Number=1)
         {
             mScale = Starling.contentScaleFactor;
             mBlurX = blurX * mScale;
@@ -142,15 +143,12 @@ package starling.filters
         
         private function updateParameters(pass:int, textureWidth:int, textureHeight:int):void
         {
-            // algorithm inspired by: 
+            // algorithm described here: 
             // http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
             // 
             // To run in constrained mode, we can only make 5 texture lookups in the fragment
             // shader. By making use of linear texture sampling, we can produce similar output
             // to what would be 9 lookups.
-            //
-            // Instead of sampling at "-2 -1 0 +1 +2", we sample at "-3.1 -1.3 0 +1.3 +3.1"
-            // That way, the two side pixels contain values of pixels 1 to 4 in both directions.
             
             var sigma:Number;
             var horizontal:Boolean = pass < mBlurX;
@@ -170,12 +168,14 @@ package starling.filters
             const twoSigmaSq:Number = 2 * sigma * sigma; 
             const multiplier:Number = 1.0 / Math.sqrt(twoSigmaSq * Math.PI);
             
-            var offset1:Number = SAMPLE_1 * pixelSize;
-            var offset2:Number = SAMPLE_2 * pixelSize;
+            // get weights on the exact pixels (sTmpWeights) and calculate sums (mWeights)
             
-            mWeights[0] = multiplier;
-            mWeights[1] = multiplier * Math.exp(-SAMPLE_1*SAMPLE_1 / twoSigmaSq);
-            mWeights[2] = multiplier * Math.exp(-SAMPLE_2*SAMPLE_2 / twoSigmaSq);
+            for (var i:int=0; i<4; ++i)
+                sTmpWeights[i] = multiplier * Math.exp(-i*i / twoSigmaSq);
+            
+            mWeights[0] = sTmpWeights[0];
+            mWeights[1] = sTmpWeights[1] + sTmpWeights[2]; 
+            mWeights[2] = sTmpWeights[3] + sTmpWeights[4];
 
             // normalize weights so that sum equals "1.0"
             
@@ -185,7 +185,12 @@ package starling.filters
             mWeights[0] *= invWeightSum;
             mWeights[1] *= invWeightSum;
             mWeights[2] *= invWeightSum;
-                        
+            
+            // calculate intermediate offsets
+            
+            var offset1:Number = (  pixelSize * sTmpWeights[1] + 2*pixelSize * sTmpWeights[2]) / mWeights[1];
+            var offset2:Number = (3*pixelSize * sTmpWeights[3] + 4*pixelSize * sTmpWeights[4]) / mWeights[2];
+            
             // depending on pass, we move in x- or y-direction
             
             if (horizontal) 
