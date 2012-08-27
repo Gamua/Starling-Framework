@@ -20,12 +20,15 @@ package starling.filters
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
+    import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.display.Stage;
+    import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
     import starling.textures.RenderTexture;
     import starling.textures.Texture;
@@ -70,15 +73,21 @@ package starling.filters
         private static var sBounds:Rectangle = new Rectangle();
         private static var sMatrix:Matrix = new Matrix();
         
-        public function FragmentFilter(numPasses:int=1)
+        public function FragmentFilter(numPasses:int=1, resolution:Number=1.0)
         {
+            if (Capabilities.isDebugger && 
+                getQualifiedClassName(this) == "starling.filters::FragmentFilter")
+            {
+                throw new AbstractClassError();
+            }
+            
             if (numPasses < 1) throw new ArgumentError("At least one pass is required.");
             
             mNumPasses = numPasses;
             mMarginTop = mMarginBottom = mMarginLeft = mMarginRight = 0.0;
             mMode = FragmentFilterMode.REPLACE;
             mOffsetX = mOffsetY = 0;
-            mResolution = 1.0;
+            mResolution = resolution;
             
             mVertexData = new VertexData(4);
             mVertexData.setTexCoords(0, 0, 0);
@@ -115,10 +124,14 @@ package starling.filters
             else
                 object.getBounds(stage, sBounds);
             
-            sBounds.x -= mMarginLeft;
-            sBounds.y -= mMarginTop;
-            sBounds.width  += mMarginLeft + mMarginRight;
-            sBounds.height += mMarginTop  + mMarginBottom;
+            var objectX:Number = sBounds.x;
+            var objectY:Number = sBounds.y;
+            var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // to avoid hard edges
+            
+            sBounds.x -= mMarginLeft + deltaMargin;
+            sBounds.y -= mMarginTop  + deltaMargin;
+            sBounds.width  += mMarginLeft + mMarginRight  + 2*deltaMargin;
+            sBounds.height += mMarginTop  + mMarginBottom + 2*deltaMargin;
             
             sBounds.width  = getNextPowerOfTwo(sBounds.width  * mResolution);
             sBounds.height = getNextPowerOfTwo(sBounds.height * mResolution);
@@ -133,7 +146,7 @@ package starling.filters
             renderIntoBaseTexture(object, sBounds.x, sBounds.y);
             
             if (mode == FragmentFilterMode.ABOVE)
-                renderBaseTexture(support, sBounds.x, sBounds.y);
+                renderBaseObject(support, object, parentAlpha, objectX, objectY);
             
             // now prepare filter passes
             support.finishQuadBatch();
@@ -185,7 +198,7 @@ package starling.filters
             support.popMatrix();
             
             if (mode == FragmentFilterMode.BELOW)
-                renderBaseTexture(support, sBounds.x, sBounds.y);
+                renderBaseObject(support, object, parentAlpha, objectX, objectY);
         }
         
         // helper methods
@@ -201,20 +214,30 @@ package starling.filters
             basePassTexture.draw(object, sMatrix);
         }
         
-        private function renderBaseTexture(support:RenderSupport, offsetX:Number, offsetY:Number):void
+        private function renderBaseObject(support:RenderSupport, object:DisplayObject, 
+                                          parentAlpha:Number, offsetX:Number, offsetY:Number):void
         {
-            if (mBaseImage == null) mBaseImage = new Image(mPassTextures[0]);
-            else
-            {
-                mBaseImage.texture = mPassTextures[0];
-                mBaseImage.readjustSize();
-            }
-            
             support.pushMatrix();
             support.loadIdentity();
             support.translateMatrix(offsetX, offsetY);
             
-            mBaseImage.render(support, 1.0);
+            if (mResolution == 1.0)
+            {
+                // the base object should always be shown in full resolution. When the resolution
+                // is "1.0", we can draw our render texture instead of the original object.
+                
+                if (mBaseImage == null) mBaseImage = new Image(mPassTextures[0]);
+                else
+                {
+                    mBaseImage.texture = mPassTextures[0];
+                    mBaseImage.readjustSize();
+                }
+                mBaseImage.render(support, 1.0);
+            }
+            else
+            {
+                object.render(support, parentAlpha);
+            }
             
             support.popMatrix();
         }
