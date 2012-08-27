@@ -124,10 +124,7 @@ package starling.filters
             else
                 object.getBounds(stage, sBounds);
             
-            var objectX:Number = sBounds.x;
-            var objectY:Number = sBounds.y;
             var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // to avoid hard edges
-            
             sBounds.x -= mMarginLeft + deltaMargin;
             sBounds.y -= mMarginTop  + deltaMargin;
             sBounds.width  += mMarginLeft + mMarginRight  + 2*deltaMargin;
@@ -143,10 +140,10 @@ package starling.filters
             updateBuffers(context, sBounds.width, sBounds.height);
             
             // draw the original object into a render texture
-            renderIntoBaseTexture(object, sBounds.x, sBounds.y);
+            renderIntoBaseTexture(object, parentAlpha, sBounds.x, sBounds.y);
             
             if (mode == FragmentFilterMode.ABOVE)
-                renderBaseObject(support, object, parentAlpha, objectX, objectY);
+                renderBaseObject(support, object, parentAlpha, sBounds.x, sBounds.y);
             
             // now prepare filter passes
             support.finishQuadBatch();
@@ -198,12 +195,13 @@ package starling.filters
             support.popMatrix();
             
             if (mode == FragmentFilterMode.BELOW)
-                renderBaseObject(support, object, parentAlpha, objectX, objectY);
+                renderBaseObject(support, object, parentAlpha, sBounds.x, sBounds.y);
         }
         
         // helper methods
         
-        private function renderIntoBaseTexture(object:DisplayObject, offsetX:Number, offsetY:Number):void
+        private function renderIntoBaseTexture(object:DisplayObject, parentAlpha:Number, 
+                                               offsetX:Number, offsetY:Number):void
         {
             // move object to top left
             sMatrix.identity();
@@ -211,7 +209,7 @@ package starling.filters
             sMatrix.scale(mResolution, mResolution);
             
             var basePassTexture:RenderTexture = mPassTextures[0] as RenderTexture;
-            basePassTexture.draw(object, sMatrix);
+            basePassTexture.draw(object, sMatrix, parentAlpha);
         }
         
         private function renderBaseObject(support:RenderSupport, object:DisplayObject, 
@@ -232,10 +230,12 @@ package starling.filters
                     mBaseImage.texture = mPassTextures[0];
                     mBaseImage.readjustSize();
                 }
+                
                 mBaseImage.render(support, 1.0);
             }
             else
             {
+                support.translateMatrix(mMarginLeft, mMarginTop);
                 object.render(support, parentAlpha);
             }
             
