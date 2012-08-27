@@ -20,6 +20,7 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
     import starling.utils.MatrixUtil;
     
     use namespace starling_internal;
@@ -330,6 +331,7 @@ package starling.display
                 {
                     var blendMode:String = child.blendMode;
                     var blendModeChange:Boolean = blendMode != BlendMode.AUTO;
+                    var filter:FragmentFilter = child.filter;
                     
                     if (blendModeChange)
                     {
@@ -339,7 +341,10 @@ package starling.display
 
                     support.pushMatrix();
                     support.transformMatrix(child);
-                    child.render(support, alpha);
+                    
+                    if (filter) filter.render(child, support, alpha);
+                    else        child.render(support, alpha);
+                    
                     support.popMatrix();
                     
                     if (blendModeChange)

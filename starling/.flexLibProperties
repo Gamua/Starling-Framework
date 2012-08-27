@@ -53,6 +53,10 @@
     <classEntry path="starling.utils.rad2deg"/>
     <classEntry path="starling.utils.MatrixUtil"/>
     <classEntry path="starling.textures.AtfData"/>
+<<<<<<< HEAD
+=======
+    <classEntry path="starling.filters.FragmentFilter"/>
+>>>>>>> filters
     <classEntry path="starling.filters.IdentityFilter"/>
     <classEntry path="starling.filters.InverseFilter"/>
   </includeClasses>

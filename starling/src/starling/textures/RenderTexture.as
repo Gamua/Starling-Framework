@@ -12,6 +12,7 @@ package starling.textures
 {
     import flash.display3D.Context3D;
     import flash.display3D.textures.TextureBase;
+    import flash.geom.Matrix;
     import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
@@ -56,10 +57,13 @@ package starling.textures
      */
     public class RenderTexture extends Texture
     {
+        private const PMA:Boolean = true;
+        
         private var mActiveTexture:Texture;
         private var mBufferTexture:Texture;
         private var mHelperImage:Image;
         private var mDrawing:Boolean;
+        private var mBufferReady:Boolean;
         
         private var mNativeWidth:int;
         private var mNativeHeight:int;
@@ -74,14 +78,16 @@ package starling.textures
         {
             if (scale <= 0) scale = Starling.contentScaleFactor; 
             
-            mSupport = new RenderSupport();
             mNativeWidth  = getNextPowerOfTwo(width  * scale);
             mNativeHeight = getNextPowerOfTwo(height * scale);
-            mActiveTexture = Texture.empty(width, height, 0x0, true, scale);
+            mActiveTexture = Texture.empty(width, height, PMA, true, scale);
+            
+            mSupport = new RenderSupport();
+            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
             
             if (persistent)
             {
-                mBufferTexture = Texture.empty(width, height, 0x0, true, scale);
+                mBufferTexture = Texture.empty(width, height, PMA, true, scale);
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
@@ -102,8 +108,14 @@ package starling.textures
         }
         
         /** Draws an object onto the texture, adhering its properties for position, scale, rotation 
-         *  and alpha. */
-        public function draw(object:DisplayObject, antiAliasing:int=0):void
+         *  and alpha.  
+         * 
+         *  @param matrix       Pass a matrix to apply additional transformations to the object.
+         *  @param alpha        The object's alpha value will be multiplied with this value.
+         *  @param antiAliasing This parameter is currently ignored by Stage3D.
+         * */
+        public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0, 
+                             antiAliasing:int=0):void
         {
             if (object == null) return;
             
@@ -116,10 +128,12 @@ package starling.textures
             {
                 mSupport.pushMatrix();
                 mSupport.pushBlendMode();
-                
                 mSupport.blendMode = object.blendMode;
-                mSupport.transformMatrix(object);            
-                object.render(mSupport, 1.0);
+                
+                if (matrix) mSupport.prependMatrix(matrix);
+                mSupport.transformMatrix(object);
+                
+                object.render(mSupport, alpha);
                 
                 mSupport.popMatrix();
                 mSupport.popBlendMode();
@@ -153,12 +167,11 @@ package starling.textures
             context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
             RenderSupport.clear();
             
-            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
-            mSupport.applyBlendMode(true);
-            
             // draw buffer
-            if (isPersistent)
+            if (isPersistent && mBufferReady)
                 mHelperImage.render(mSupport, 1.0);
+            else
+                mBufferReady = true;
             
             try
             {
@@ -186,13 +199,6 @@ package starling.textures
             
             context.setRenderToTexture(mActiveTexture.base);
             RenderSupport.clear();
-
-            if (isPersistent)
-            {
-                context.setRenderToTexture(mActiveTexture.base);
-                RenderSupport.clear();
-            }
-            
             context.setRenderToBackBuffer();
         }
         
@@ -213,12 +219,9 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get scale():Number { return mActiveTexture.scale; }
-        
+ 
         /** @inheritDoc */
-        public override function get premultipliedAlpha():Boolean 
-        { 
-            return mActiveTexture.premultipliedAlpha; 
-        }
+        public override function get premultipliedAlpha():Boolean { return PMA; }
         
         /** @inheritDoc */
         public override function get base():TextureBase 
