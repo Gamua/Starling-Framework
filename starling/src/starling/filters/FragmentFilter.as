@@ -24,6 +24,7 @@ package starling.filters
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
+    import starling.display.Image;
     import starling.display.Stage;
     import starling.errors.MissingContextError;
     import starling.textures.RenderTexture;
@@ -31,7 +32,7 @@ package starling.filters
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
-    /** The FragmentFilter class is the base class for all image filter effects.
+    /** The FragmentFilter class is the base class for all filter effects.
      *  
      *  <p>All other filters of this package extend this class. You can attach them to any display
      *  object through the 'filter' property. To combine several filters, group them in a 
@@ -48,12 +49,17 @@ package starling.filters
         
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
+        private var mMode:String;
         private var mResolution:Number;
         
         private var mMarginTop:Number;
         private var mMarginBottom:Number;
         private var mMarginLeft:Number;
         private var mMarginRight:Number;
+        
+        private var mBaseImage:Image;
+        private var mOffsetX:Number;
+        private var mOffsetY:Number;
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
@@ -70,6 +76,8 @@ package starling.filters
             
             mNumPasses = numPasses;
             mMarginTop = mMarginBottom = mMarginLeft = mMarginRight = 0.0;
+            mMode = FragmentFilterMode.REPLACE;
+            mOffsetX = mOffsetY = 0;
             mResolution = 1.0;
             
             mVertexData = new VertexData(4);
@@ -122,11 +130,14 @@ package starling.filters
             updateBuffers(context, sBounds.width, sBounds.height);
             
             // draw the original object into a render texture
-            renderBaseTexture(object, sBounds.x, sBounds.y);
+            renderIntoBaseTexture(object, sBounds.x, sBounds.y);
+            
+            if (mode == FragmentFilterMode.ABOVE)
+                renderBaseTexture(support, sBounds.x, sBounds.y);
             
             // now prepare filter passes
             support.finishQuadBatch();
-            support.raiseDrawCount(mNumPasses);
+            support.raiseDrawCount(mNumPasses+1);
             RenderSupport.setBlendFactors(PMA); // TODO: check blend modes
             
             support.pushMatrix();
@@ -150,7 +161,7 @@ package starling.filters
                 {
                     context.setRenderToBackBuffer();
                     support.projectionMatrix.copyFrom(sMatrix); // restore projection matrix
-                    support.translateMatrix(sBounds.x, sBounds.y);
+                    support.translateMatrix(sBounds.x + mOffsetX, sBounds.y + mOffsetY);
                     support.scaleMatrix(1.0/mResolution, 1.0/mResolution);
                     
                     support.applyBlendMode(false);
@@ -172,11 +183,14 @@ package starling.filters
             context.setTextureAt(0, null);
             
             support.popMatrix();
+            
+            if (mode == FragmentFilterMode.BELOW)
+                renderBaseTexture(support, sBounds.x, sBounds.y);
         }
         
         // helper methods
         
-        private function renderBaseTexture(object:DisplayObject, offsetX:Number, offsetY:Number):void
+        private function renderIntoBaseTexture(object:DisplayObject, offsetX:Number, offsetY:Number):void
         {
             // move object to top left
             sMatrix.identity();
@@ -185,6 +199,24 @@ package starling.filters
             
             var basePassTexture:RenderTexture = mPassTextures[0] as RenderTexture;
             basePassTexture.draw(object, sMatrix);
+        }
+        
+        private function renderBaseTexture(support:RenderSupport, offsetX:Number, offsetY:Number):void
+        {
+            if (mBaseImage == null) mBaseImage = new Image(mPassTextures[0]);
+            else
+            {
+                mBaseImage.texture = mPassTextures[0];
+                mBaseImage.readjustSize();
+            }
+            
+            support.pushMatrix();
+            support.loadIdentity();
+            support.translateMatrix(offsetX, offsetY);
+            
+            mBaseImage.render(support, 1.0);
+            
+            support.popMatrix();
         }
         
         private function updateBuffers(context:Context3D, width:Number, height:Number):void
@@ -206,6 +238,8 @@ package starling.filters
         private function updatePassTextures(width:int, height:int):void
         {
             var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
+            if (mMode == FragmentFilterMode.BELOW) numPassTextures++;
+            
             var needsUpdate:Boolean = mPassTextures == null || 
                 mPassTextures.length != numPassTextures ||
                 mPassTextures[0].width != width || mPassTextures[0].height != height;  
@@ -214,8 +248,7 @@ package starling.filters
             {
                 if (mPassTextures)
                 {
-                    for each (var texture:Texture in mPassTextures)
-                        texture.dispose();
+                    for each (var texture:Texture in mPassTextures) texture.dispose();
                     mPassTextures.length = numPassTextures;
                 }
                 else
@@ -226,14 +259,17 @@ package starling.filters
                 var scale:Number = Starling.contentScaleFactor; 
                 mPassTextures[0] = new RenderTexture(width, height, false, scale);
                 
-                if (numPassTextures > 1)
-                    mPassTextures[1] = Texture.empty(width, height, PMA, true, scale);
+                for (var i:int=1; i<numPassTextures; ++i)
+                    mPassTextures[i] = Texture.empty(width, height, PMA, true, scale);
             }
         }
         
         private function getPassTexture(pass:int):Texture
         {
-            return mPassTextures[pass % 2];
+            if (mode != FragmentFilterMode.BELOW || pass < 2)
+                return mPassTextures[pass % 2];
+            else
+                return mPassTextures[(pass+1) % 2 + 1]; 
         }
         
         // protected methods
@@ -274,6 +310,15 @@ package starling.filters
         
         public function get resolution():Number { return mResolution; }
         public function set resolution(value:Number):void { mResolution = value; }
+        
+        public function get mode():String { return mMode; }
+        public function set mode(value:String):void { mMode = value; }
+        
+        public function get offsetX():Number { return mOffsetX; }
+        public function set offsetX(value:Number):void { mOffsetX = value; }
+        
+        public function get offsetY():Number { return mOffsetY; }
+        public function set offsetY(value:Number):void { mOffsetY = value; }
         
         protected function set numPasses(value:int):void { mNumPasses = value; }
         protected function get numPasses():int { return mNumPasses; }
