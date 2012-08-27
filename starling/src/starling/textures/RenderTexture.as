@@ -108,9 +108,14 @@ package starling.textures
         }
         
         /** Draws an object onto the texture, adhering its properties for position, scale, rotation 
-         *  and alpha. If you pass a matrix object, you can apply additional transformations to the
-         *  object. Beware: the 'antialiasing' value is currently ignored by Stage3D. */
-        public function draw(object:DisplayObject, matrix:Matrix=null, antiAliasing:int=0):void
+         *  and alpha.  
+         * 
+         *  @param matrix       Pass a matrix to apply additional transformations to the object.
+         *  @param alpha        The object's alpha value will be multiplied with this value.
+         *  @param antiAliasing This parameter is currently ignored by Stage3D.
+         * */
+        public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0, 
+                             antiAliasing:int=0):void
         {
             if (object == null) return;
             
@@ -128,7 +133,7 @@ package starling.textures
                 if (matrix) mSupport.prependMatrix(matrix);
                 mSupport.transformMatrix(object);
                 
-                object.render(mSupport, 1.0);
+                object.render(mSupport, alpha);
                 
                 mSupport.popMatrix();
                 mSupport.popBlendMode();
