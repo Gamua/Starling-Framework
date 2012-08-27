@@ -32,12 +32,14 @@ package starling.filters
         private var mBlurX:Number;
         private var mBlurY:Number;
         private var mScale:Number;
+        private var mUniformColor:Boolean;
         
         /** helper object */
         private var sTmpWeights:Vector.<Number> = new Vector.<Number>(5, true);
         
-        public function BlurFilter(blurX:Number=1, blurY:Number=1)
+        public function BlurFilter(blurX:Number=1, blurY:Number=1, resolution:Number=1)
         {
+            super(1, resolution);
             mScale = Starling.contentScaleFactor;
             mBlurX = blurX * mScale;
             mBlurY = blurY * mScale;
@@ -130,7 +132,7 @@ package starling.filters
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, mOffsets);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mWeights);
             
-            if (pass == numPasses - 1 && isTinted)
+            if (mUniformColor && pass == numPasses - 1)
             {
                 context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, mColor);
                 context.setProgram(mTintedProgram);
@@ -218,10 +220,13 @@ package starling.filters
             marginTop  = marginBottom = 4 + Math.ceil(mBlurY); 
         }
         
-        private function get isTinted():Boolean 
-        { 
-            return mColor[0] != 1.0 || mColor[1] != 1.0 || 
-                   mColor[2] != 1.0 || mColor[3] != 1.0;
+        public function setUniformColor(enable:Boolean, color:uint=0x0, alpha:Number=1.0):void
+        {
+            mColor[0] = Color.getRed(color)   / 255.0;
+            mColor[1] = Color.getGreen(color) / 255.0;
+            mColor[2] = Color.getBlue(color)  / 255.0;
+            mColor[3] = alpha;
+            mUniformColor = enable;
         }
         
         public function get blurX():Number { return mBlurX / mScale; }
@@ -237,20 +242,5 @@ package starling.filters
             mBlurY = value * mScale; 
             updateMarginsAndPasses(); 
         }
-        
-        public function get color():uint 
-        { 
-            return Color.rgb(mColor[0] * 255, mColor[1] * 255, mColor[2] * 255); 
-        }
-        
-        public function set color(value:uint):void 
-        {
-            mColor[0] = Color.getRed(value)   / 255.0;
-            mColor[1] = Color.getGreen(value) / 255.0;
-            mColor[2] = Color.getBlue(value)  / 255.0;
-        }
-        
-        public function get alpha():Number { return mColor[3]; }
-        public function set alpha(value:Number):void { mColor[3] = value; }
     }
 }
