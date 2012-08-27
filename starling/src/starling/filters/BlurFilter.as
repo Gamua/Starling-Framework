@@ -14,7 +14,6 @@ package starling.filters
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
     
-    import starling.core.Starling;
     import starling.textures.Texture;
     import starling.utils.Color;
 
@@ -31,7 +30,6 @@ package starling.filters
         
         private var mBlurX:Number;
         private var mBlurY:Number;
-        private var mScale:Number;
         private var mUniformColor:Boolean;
         
         /** helper object */
@@ -40,10 +38,30 @@ package starling.filters
         public function BlurFilter(blurX:Number=1, blurY:Number=1, resolution:Number=1)
         {
             super(1, resolution);
-            mScale = Starling.contentScaleFactor;
-            mBlurX = blurX * mScale;
-            mBlurY = blurY * mScale;
+            mBlurX = blurX;
+            mBlurY = blurY;
             updateMarginsAndPasses();
+        }
+        
+        public static function createDropShadow(distance:Number=4.0, angle:Number=0.785, 
+                                                color:uint=0x0, alpha:Number=0.5, blur:Number=1.0, 
+                                                resolution:Number=0.5):BlurFilter
+        {
+            var dropShadow:BlurFilter = new BlurFilter(blur, blur, resolution);
+            dropShadow.offsetX = Math.cos(angle) * distance;
+            dropShadow.offsetY = Math.sin(angle) * distance;
+            dropShadow.mode = FragmentFilterMode.BELOW;
+            dropShadow.setUniformColor(true, color, alpha);
+            return dropShadow;
+        }
+        
+        public static function createGlow(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0,
+                                          resolution:Number=0.5):BlurFilter
+        {
+            var glow:BlurFilter = new BlurFilter(blur, blur, resolution);
+            glow.mode = FragmentFilterMode.BELOW;
+            glow.setUniformColor(true, color, alpha);
+            return glow;
         }
         
         public override function dispose():void
@@ -127,7 +145,7 @@ package starling.filters
             // vertex attribute 1:   texture coordinates (FLOAT_2)
             // texture 0:            input texture
             
-            updateParameters(pass, texture.width * mScale, texture.height * mScale);
+            updateParameters(pass, texture.width * texture.scale, texture.height * texture.scale);
             
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, mOffsets);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mWeights);
@@ -229,17 +247,17 @@ package starling.filters
             mUniformColor = enable;
         }
         
-        public function get blurX():Number { return mBlurX / mScale; }
+        public function get blurX():Number { return mBlurX; }
         public function set blurX(value:Number):void 
         { 
-            mBlurX = value * mScale; 
+            mBlurX = value; 
             updateMarginsAndPasses(); 
         }
         
-        public function get blurY():Number { return mBlurY / mScale; }
+        public function get blurY():Number { return mBlurY; }
         public function set blurY(value:Number):void 
         { 
-            mBlurY = value * mScale; 
+            mBlurY = value; 
             updateMarginsAndPasses(); 
         }
     }
