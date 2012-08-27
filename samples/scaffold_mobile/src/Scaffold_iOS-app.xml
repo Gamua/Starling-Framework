@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/3.3">
+<application xmlns="http://ns.adobe.com/air/application/3.4">
 
 	<id>com.gamua.starling.scaffold</id> <!-- Bundle Identifier. Required. -->
 	<filename>Scaffold</filename> <!-- Used as the filename for the application. Required. -->
@@ -42,8 +42,7 @@
         <image57x57>icon57.png</image57x57>
         <image72x72>icon72.png</image72x72>
         <image114x114>icon114.png</image114x114>
-        <!--  144x144 is available beginning with AIR 3.3: -->
-        <!--  <image144x144>icon144.png</image144x144>     -->
+        <image144x144>icon144.png</image144x144>
     </icon>
 
     <!-- iOS specific capabilities -->
