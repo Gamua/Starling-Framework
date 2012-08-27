@@ -117,6 +117,9 @@ package starling.filters
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
+            if (mode == FragmentFilterMode.ABOVE)
+                object.render(support, parentAlpha);
+            
             // get bounds in stage coordinates
             // can be expensive, so we optimize at least for full-screen effects
             if (object == stage || object == Starling.current.root)
@@ -140,10 +143,7 @@ package starling.filters
             updateBuffers(context, sBounds.width, sBounds.height);
             
             // draw the original object into a render texture
-            renderIntoBaseTexture(object, parentAlpha, sBounds.x, sBounds.y);
-            
-            if (mode == FragmentFilterMode.ABOVE)
-                renderBaseObject(support, object, parentAlpha, sBounds.x, sBounds.y);
+            renderBaseTexture(object, parentAlpha, sBounds.x, sBounds.y);
             
             // now prepare filter passes
             support.finishQuadBatch();
@@ -195,12 +195,12 @@ package starling.filters
             support.popMatrix();
             
             if (mode == FragmentFilterMode.BELOW)
-                renderBaseObject(support, object, parentAlpha, sBounds.x, sBounds.y);
+                object.render(support, parentAlpha);
         }
         
         // helper methods
         
-        private function renderIntoBaseTexture(object:DisplayObject, parentAlpha:Number, 
+        private function renderBaseTexture(object:DisplayObject, parentAlpha:Number, 
                                                offsetX:Number, offsetY:Number):void
         {
             // move object to top left
@@ -210,36 +210,6 @@ package starling.filters
             
             var basePassTexture:RenderTexture = mPassTextures[0] as RenderTexture;
             basePassTexture.draw(object, sMatrix, parentAlpha);
-        }
-        
-        private function renderBaseObject(support:RenderSupport, object:DisplayObject, 
-                                          parentAlpha:Number, offsetX:Number, offsetY:Number):void
-        {
-            support.pushMatrix();
-            support.loadIdentity();
-            support.translateMatrix(offsetX, offsetY);
-            
-            if (mResolution == 1.0)
-            {
-                // the base object should always be shown in full resolution. When the resolution
-                // is "1.0", we can draw our render texture instead of the original object.
-                
-                if (mBaseImage == null) mBaseImage = new Image(mPassTextures[0]);
-                else
-                {
-                    mBaseImage.texture = mPassTextures[0];
-                    mBaseImage.readjustSize();
-                }
-                
-                mBaseImage.render(support, 1.0);
-            }
-            else
-            {
-                support.translateMatrix(mMarginLeft, mMarginTop);
-                object.render(support, parentAlpha);
-            }
-            
-            support.popMatrix();
         }
         
         private function updateBuffers(context:Context3D, width:Number, height:Number):void
@@ -261,7 +231,6 @@ package starling.filters
         private function updatePassTextures(width:int, height:int):void
         {
             var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
-            if (mMode == FragmentFilterMode.BELOW) numPassTextures++;
             
             var needsUpdate:Boolean = mPassTextures == null || 
                 mPassTextures.length != numPassTextures ||
@@ -289,10 +258,7 @@ package starling.filters
         
         private function getPassTexture(pass:int):Texture
         {
-            if (mode != FragmentFilterMode.BELOW || pass < 2)
-                return mPassTextures[pass % 2];
-            else
-                return mPassTextures[(pass+1) % 2 + 1]; 
+            return mPassTextures[pass % 2];
         }
         
         // protected methods
