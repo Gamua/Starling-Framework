@@ -634,7 +634,7 @@ package starling.core
         }
         
         /** Displays the statistics box at a certain position. */
-        public function showStatsAt(hAlign:String="left", vAlign:String="top"):void
+        public function showStatsAt(hAlign:String="left", vAlign:String="top", scale:Number=1):void
         {
             if (mContext == null)
             {
@@ -647,6 +647,7 @@ package starling.core
                 {
                     mStatsDisplay = new StatsDisplay();
                     mStatsDisplay.touchable = false;
+                    mStatsDisplay.scaleX = mStatsDisplay.scaleY = scale;
                     mStage.addChild(mStatsDisplay);
                 }
                 
@@ -664,7 +665,7 @@ package starling.core
             
             function onRootCreated():void
             {
-                showStatsAt(hAlign, vAlign);
+                showStatsAt(hAlign, vAlign, scale);
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
