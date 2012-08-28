@@ -201,10 +201,10 @@ package starling.filters
         // helper methods
         
         private function renderBaseTexture(object:DisplayObject, parentAlpha:Number, 
-                                               offsetX:Number, offsetY:Number):void
+                                           offsetX:Number, offsetY:Number):void
         {
             // move object to top left
-            sMatrix.identity();
+            object.getTransformationMatrix(object.stage, sMatrix);
             sMatrix.translate(-offsetX, -offsetY);
             sMatrix.scale(mResolution, mResolution);
             
