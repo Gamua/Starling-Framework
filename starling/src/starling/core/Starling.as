@@ -335,9 +335,9 @@ package starling.core
         {
             makeCurrent();
             
+            mTouchProcessor.advanceTime(passedTime);
             mStage.advanceTime(passedTime);
             mJuggler.advanceTime(passedTime);
-            mTouchProcessor.advanceTime(passedTime);
         }
         
         /** Renders the complete display list. Before rendering, the context is cleared; afterwards,
