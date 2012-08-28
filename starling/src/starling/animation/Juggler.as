@@ -134,8 +134,6 @@ package starling.animation
                 var object:IAnimatable = mObjects[i];
                 if (object)
                 {
-                    object.advanceTime(time);
-                    
                     // shift objects into empty slots along the way
                     if (currentIndex != i) 
                     {
@@ -143,6 +141,7 @@ package starling.animation
                         mObjects[i] = null;
                     }
                     
+                    object.advanceTime(time);
                     ++currentIndex;
                 }
             }

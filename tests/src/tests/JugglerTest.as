@@ -150,5 +150,30 @@ package tests
             assertThat(quad.y, closeTo(100.0, E));
             assertThat(quad.scaleX, closeTo(0.5, E));
         }
+        
+        [Test]
+        public function testModifyJugglerTwiceInCallback():void
+        {
+            // https://github.com/PrimaryFeather/Starling-Framework/issues/155
+            
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+            
+            var tween1:Tween = new Tween(quad, 1.0);
+            var tween2:Tween = new Tween(quad, 1.0);
+            tween2.fadeTo(0);
+            
+            juggler.add(tween1);
+            juggler.add(tween2);
+            
+            juggler.remove(tween1); // sets slot in array to null
+            tween2.onUpdate = juggler.remove;
+            tween2.onUpdateArgs = [tween2];
+            
+            juggler.advanceTime(0.5);
+            juggler.advanceTime(0.5);
+            
+            assertThat(quad.alpha, closeTo(0.5, E));
+        }
     }
 }
