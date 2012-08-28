@@ -102,36 +102,36 @@ package starling.filters
             // fs0   - input texture
             // fc0   - weight data
             // fc1   - color (optional)
-            // ft0   - pixel color from texture
-            // ft1   - output color
+            // ft0-4 - pixel color from texture
+            // ft5   - output color
             
             var fragmentProgramCode:String =
                 "tex ft0,  v0, fs0 <2d, clamp, linear, mipnone> \n" +  // read center pixel
-                "mul ft1, ft0, fc0.xxxx                         \n" +  // multiply with center weight
+                "mul ft5, ft0, fc0.xxxx                         \n" +  // multiply with center weight
                 
-                "tex ft0,  v1, fs0 <2d, clamp, linear, mipnone> \n" +  // read texture
-                "mul ft0, ft0, fc0.zzzz                         \n" +  // multiply with weight
-                "add ft1, ft1, ft0                              \n" +  // add to output color
+                "tex ft1,  v1, fs0 <2d, clamp, linear, mipnone> \n" +  // read pixel -2
+                "mul ft1, ft1, fc0.zzzz                         \n" +  // multiply with weight
+                "add ft5, ft5, ft1                              \n" +  // add to output color
                 
-                "tex ft0,  v2, fs0 <2d, clamp, linear, mipnone> \n" +  // read texture
-                "mul ft0, ft0, fc0.yyyy                         \n" +  // multiply with weight
-                "add ft1, ft1, ft0                              \n" +  // add to output color
+                "tex ft2,  v2, fs0 <2d, clamp, linear, mipnone> \n" +  // read pixel -1
+                "mul ft2, ft2, fc0.yyyy                         \n" +  // multiply with weight
+                "add ft5, ft5, ft2                              \n" +  // add to output color
 
-                "tex ft0,  v3, fs0 <2d, clamp, linear, mipnone> \n" +  // read texture
-                "mul ft0, ft0, fc0.yyyy                         \n" +  // multiply with weight
-                "add ft1, ft1, ft0                              \n" +  // add to output color
+                "tex ft3,  v3, fs0 <2d, clamp, linear, mipnone> \n" +  // read pixel +1
+                "mul ft3, ft3, fc0.yyyy                         \n" +  // multiply with weight
+                "add ft5, ft5, ft3                              \n" +  // add to output color
 
-                "tex ft0,  v4, fs0 <2d, clamp, linear, mipnone> \n" +  // read texture
-                "mul ft0, ft0, fc0.zzzz                         \n";   // multiply with weight
+                "tex ft4,  v4, fs0 <2d, clamp, linear, mipnone> \n" +  // read pixel +2
+                "mul ft4, ft4, fc0.zzzz                         \n";   // multiply with weight
 
             if (tinted) fragmentProgramCode +=
-                "add ft1, ft1, ft0                              \n" +  // add to output color
-                "mov ft1.xyz, fc1.xyz                           \n" +  // set color
-                "mul ft1.w, ft1.w, fc1.w                        \n" +  // multiply alpha
-                "mov  oc, ft1                                   \n";   // copy to output 
+                "add ft5, ft5, ft4                              \n" +  // add to output color
+                "mov ft5.xyz, fc1.xyz                           \n" +  // set color
+                "mul ft5.w, ft5.w, fc1.w                        \n" +  // multiply alpha
+                "mov  oc, ft5                                   \n";   // copy to output 
             
             else fragmentProgramCode +=
-                "add  oc, ft1, ft0                              \n";   // add to output color
+                "add  oc, ft5, ft4                              \n";   // add to output color
             
             return assembleAgal(fragmentProgramCode, vertexProgramCode);
         }
