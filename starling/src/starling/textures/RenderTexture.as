@@ -69,6 +69,9 @@ package starling.textures
         private var mNativeHeight:int;
         private var mSupport:RenderSupport;
         
+        /** helper object */
+        private static var sScissorRect:Rectangle = new Rectangle();
+        
         /** Creates a new RenderTexture with a certain size. If the texture is persistent, the
          *  contents of the texture remains intact after each draw call, allowing you to use the
          *  texture just like a canvas. If it is not, it will be cleared before each draw call.
@@ -128,17 +131,13 @@ package starling.textures
             
             function render():void
             {
-                mSupport.pushMatrix();
-                mSupport.pushBlendMode();
+                mSupport.loadIdentity();
                 mSupport.blendMode = object.blendMode;
                 
                 if (matrix) mSupport.prependMatrix(matrix);
                 else        mSupport.transformMatrix(object);
                 
                 object.render(mSupport, alpha);
-                
-                mSupport.popMatrix();
-                mSupport.popBlendMode();
             }
         }
         
@@ -151,8 +150,8 @@ package starling.textures
             if (context == null) throw new MissingContextError();
             
             // limit drawing to relevant area
-            context.setScissorRectangle(
-                new Rectangle(0, 0, mActiveTexture.width * scale, mActiveTexture.height * scale));
+            sScissorRect.setTo(0, 0, mActiveTexture.width * scale, mActiveTexture.height * scale);
+            context.setScissorRectangle(sScissorRect)
             
             // persistent drawing uses double buffering, as Molehill forces us to call 'clear'
             // on every render target once per update.
