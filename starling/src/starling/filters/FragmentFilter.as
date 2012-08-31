@@ -155,7 +155,6 @@ package starling.filters
             // now prepare filter passes
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
-            RenderSupport.setBlendFactors(PMA);
             
             support.pushMatrix();
             support.loadIdentity();
