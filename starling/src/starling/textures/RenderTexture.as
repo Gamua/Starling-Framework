@@ -165,8 +165,8 @@ package starling.textures
                 mHelperImage.texture = mBufferTexture;
             }
             
-            context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
-            RenderSupport.clear();
+            mSupport.renderTarget = mActiveTexture;
+            mSupport.clear();
             
             // draw buffer
             if (isPersistent && mBufferReady)
@@ -187,8 +187,8 @@ package starling.textures
                 mDrawing = false;
                 mSupport.finishQuadBatch();
                 mSupport.nextFrame();
+                mSupport.renderTarget = null;
                 context.setScissorRectangle(null);
-                context.setRenderToBackBuffer();
             }
         }
         
@@ -198,9 +198,9 @@ package starling.textures
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            context.setRenderToTexture(mActiveTexture.base);
-            RenderSupport.clear();
-            context.setRenderToBackBuffer();
+            mSupport.renderTarget = mActiveTexture;
+            mSupport.clear();
+            mSupport.renderTarget = null;
         }
         
         /** @inheritDoc */
