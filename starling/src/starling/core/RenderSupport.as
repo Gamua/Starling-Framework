@@ -33,6 +33,7 @@ package starling.core
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         private var mDrawCount:int;
+        private var mRenderTarget:Texture;
         
         private var mBlendMode:String;
         private var mBlendModeStack:Vector.<String>;
@@ -52,6 +53,7 @@ package starling.core
             mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
             mDrawCount = 0;
+            mRenderTarget = null;
             
             mBlendMode = BlendMode.NORMAL;
             mBlendModeStack = new <String>[];
@@ -198,6 +200,20 @@ package starling.core
             if (value != BlendMode.AUTO) mBlendMode = value;
         }
         
+        // render targets
+        
+        /** The texture that is currently being rendered into, 
+         *  or 'null' to render into the back buffer. */
+        public function set renderTarget(target:Texture):void 
+        { 
+            mRenderTarget = target;
+            
+            if (target) Starling.context.setRenderToTexture(target.base);
+            else        Starling.context.setRenderToBackBuffer();
+        }
+        
+        public function get renderTarget():Texture { return mRenderTarget; }
+        
         // optimized quad rendering
         
         /** Adds a quad to the current batch of unrendered quads. If there is a state change,
@@ -265,6 +281,12 @@ package starling.core
                 Color.getGreen(rgb) / 255.0, 
                 Color.getBlue(rgb)  / 255.0,
                 alpha);
+        }
+        
+        /** Clears the render context with a certain color and alpha value. */
+        public function clear(rgb:uint=0, alpha:Number=0.0):void
+        {
+            RenderSupport.clear(rgb, alpha);
         }
         
         // statistics

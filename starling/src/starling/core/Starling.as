@@ -355,6 +355,8 @@ package starling.core
                 RenderSupport.clear(mStage.color, 1.0);
             
             mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
+            mSupport.renderTarget = null; // back buffer
+            
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
             

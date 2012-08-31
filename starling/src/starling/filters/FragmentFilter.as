@@ -18,6 +18,7 @@ package starling.filters
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
+    import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
@@ -121,6 +122,15 @@ package starling.filters
             if (mode == FragmentFilterMode.ABOVE)
                 object.render(support, parentAlpha);
             
+            // save original projection matrix and render target
+            mProjMatrix.copyFrom(support.projectionMatrix); 
+            var previousRenderTarget:Texture = support.renderTarget;
+            
+            if (previousRenderTarget)
+                throw new IllegalOperationError(
+                    "It's currently not possible to stack filters! " +
+                    "This limitation will be removed in a future Stage3D version.");
+            
             // get bounds in stage coordinates
             // can be expensive, so we optimize at least for full-screen effects
             if (object == stage || object == Starling.current.root)
@@ -145,9 +155,7 @@ package starling.filters
             // now prepare filter passes
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
-            RenderSupport.setBlendFactors(PMA); 
-            
-            mProjMatrix.copyFrom(support.projectionMatrix); // save original projection matrix
+            RenderSupport.setBlendFactors(PMA);
             
             support.pushMatrix();
             support.loadIdentity();
@@ -159,8 +167,8 @@ package starling.filters
             matrix.translate(-mBounds.x, -mBounds.y);
             matrix.scale(mResolution, mResolution);
             
-            context.setRenderToTexture(mPassTextures[0].base);
-            RenderSupport.clear();
+            support.renderTarget = mPassTextures[0];
+            support.clear();
             
             object.render(support, parentAlpha);
             
@@ -176,16 +184,15 @@ package starling.filters
             {
                 if (i < mNumPasses - 1) // intermediate pass - draw into texture  
                 {
-                    context.setRenderToTexture(getPassTexture(i+1).base);
-                    RenderSupport.clear();
+                    support.renderTarget = getPassTexture(i+1);
+                    support.clear();
                 }
                 else // final pass -- draw into back buffer, at original position
                 {
-                    context.setRenderToBackBuffer();
+                    support.renderTarget = previousRenderTarget;
                     support.projectionMatrix.copyFrom(mProjMatrix); // restore projection matrix
                     support.translateMatrix(mBounds.x + mOffsetX, mBounds.y + mOffsetY);
                     support.scaleMatrix(1.0/mResolution, 1.0/mResolution);
-                    
                     support.applyBlendMode(false);
                 }
                 
