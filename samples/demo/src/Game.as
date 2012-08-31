@@ -7,7 +7,6 @@ package
     import scenes.AnimationScene;
     import scenes.BenchmarkScene;
     import scenes.CustomHitTestScene;
-    import scenes.FilterScene;
     import scenes.MovieScene;
     import scenes.RenderTextureScene;
     import scenes.Scene;
@@ -22,9 +21,6 @@ package
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.KeyboardEvent;
-    import starling.filters.BlurFilter;
-    import starling.filters.GrayscaleFilter;
-    import starling.filters.IdentityFilter;
     import starling.text.TextField;
     import starling.textures.Texture;
     import starling.utils.VAlign;
@@ -61,8 +57,6 @@ package
             addChild(mMainMenu);
             
             var logo:Image = new Image(Assets.getTexture("Logo"));
-            logo.filter = new GrayscaleFilter();
-//            logo.filter.mode = "below";
             mMainMenu.addChild(logo);
             
             var scenesToCreate:Array = [
@@ -74,7 +68,6 @@ package
                 ["Movie Clip", MovieScene],
                 ["Benchmark", BenchmarkScene],
                 ["Render Texture", RenderTextureScene],
-                ["Filters", FilterScene]
             ];
             
             var buttonTexture:Texture = Assets.getTexture("ButtonBig");
