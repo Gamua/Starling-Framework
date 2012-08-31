@@ -34,9 +34,7 @@ package starling.core
         private var mMatrixStackSize:int;
         private var mDrawCount:int;
         private var mRenderTarget:Texture;
-        
         private var mBlendMode:String;
-        private var mBlendModeStack:Vector.<String>;
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
@@ -54,9 +52,7 @@ package starling.core
             mMatrixStackSize = 0;
             mDrawCount = 0;
             mRenderTarget = null;
-            
             mBlendMode = BlendMode.NORMAL;
-            mBlendModeStack = new <String>[];
             
             mCurrentQuadBatchID = 0;
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
@@ -168,26 +164,7 @@ package starling.core
         
         // blending
         
-        /** Pushes the current blend mode to a stack from which it can be restored later. */
-        public function pushBlendMode():void
-        {
-            mBlendModeStack.push(mBlendMode);
-        }
-        
-        /** Restores the blend mode that was last pushed to the stack. */
-        public function popBlendMode():void
-        {
-            mBlendMode = mBlendModeStack.pop();
-        }
-        
-        /** Clears the blend mode stack and restores NORMAL blend mode. */
-        public function resetBlendMode():void
-        {
-            mBlendModeStack.length = 0;
-            mBlendMode = BlendMode.NORMAL;
-        }
-        
-        /** Activates the appropriate blend factors on the current rendering context. */
+        /** Activates the current blend mode on the active rendering context. */
         public function applyBlendMode(premultipliedAlpha:Boolean):void
         {
             setBlendFactors(premultipliedAlpha, mBlendMode);
@@ -249,11 +226,11 @@ package starling.core
             }
         }
         
-        /** Resets the matrix and blend mode stacks, the quad batch index, and the draw count. */
+        /** Resets matrix stack, blend mode, quad batch index, and draw count. */
         public function nextFrame():void
         {
             resetMatrix();
-            resetBlendMode();
+            mBlendMode = BlendMode.NORMAL;
             mCurrentQuadBatchID = 0;
             mDrawCount = 0;
         }

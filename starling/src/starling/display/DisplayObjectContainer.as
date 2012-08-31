@@ -323,32 +323,25 @@ package starling.display
         {
             var alpha:Number = parentAlpha * this.alpha;
             var numChildren:int = mChildren.length;
+            var blendMode:String = support.blendMode;
             
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = mChildren[i];
+                
                 if (child.hasVisibleArea)
                 {
-                    var blendMode:String = child.blendMode;
-                    var blendModeChange:Boolean = blendMode != BlendMode.AUTO;
                     var filter:FragmentFilter = child.filter;
-                    
-                    if (blendModeChange)
-                    {
-                        support.pushBlendMode();
-                        support.blendMode = blendMode;
-                    }
 
                     support.pushMatrix();
                     support.transformMatrix(child);
+                    support.blendMode = child.blendMode;
                     
                     if (filter) filter.render(child, support, alpha);
                     else        child.render(support, alpha);
                     
+                    support.blendMode = blendMode;
                     support.popMatrix();
-                    
-                    if (blendModeChange)
-                        support.popBlendMode();
                 }
             }
         }
