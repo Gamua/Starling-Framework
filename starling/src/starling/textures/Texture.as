@@ -14,7 +14,6 @@ package starling.textures
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
-    import flash.display3D.textures.Texture;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Point;
