@@ -110,7 +110,7 @@ package starling.textures
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
                                           optimizeForRenderTexture:Boolean=false,
-                                          scale:Number=1):Texture
+                                          scale:Number=1):starling.textures.Texture
         {
             return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture, scale);
         }
@@ -119,7 +119,7 @@ package starling.textures
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
                                               optimizeForRenderTexture:Boolean=false,
-                                              scale:Number=1):Texture
+                                              scale:Number=1):starling.textures.Texture
         {
             var origWidth:int   = data.width;
             var origHeight:int  = data.height;
@@ -161,7 +161,7 @@ package starling.textures
         
         /** Creates a texture from the compressed ATF format. 
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */ 
-        public static function fromAtfData(data:ByteArray, scale:Number=1):Texture
+        public static function fromAtfData(data:ByteArray, scale:Number=1):starling.textures.Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -185,12 +185,12 @@ package starling.textures
          *  expects data in ARGB format. */
         public static function fromColor(width:int, height:int, color:uint=0xffffffff,
                                          optimizeForRenderTexture:Boolean=false, 
-                                         scale:Number=-1):Texture
+                                         scale:Number=-1):starling.textures.Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
             var bitmapData:BitmapData = new BitmapData(width*scale, height*scale, true, color);
-            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
+            var texture:starling.textures.Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
             
             if (!Starling.handleLostContext)
                 bitmapData.dispose();
@@ -203,7 +203,7 @@ package starling.textures
          *  clear the texture while it is an active render target. */
         public static function empty(width:int=64, height:int=64, premultipliedAlpha:Boolean=false,
                                      optimizeForRenderTexture:Boolean=true,
-                                     scale:Number=-1):Texture
+                                     scale:Number=-1):starling.textures.Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
@@ -230,9 +230,9 @@ package starling.textures
         
         /** Creates a texture that contains a region (in pixels) of another texture. The new
          *  texture will reference the base texture; no data is duplicated. */
-        public static function fromTexture(texture:Texture, region:Rectangle=null, frame:Rectangle=null):Texture
+        public static function fromTexture(texture:starling.textures.Texture, region:Rectangle=null, frame:Rectangle=null):starling.textures.Texture
         {
-            var subTexture:Texture = new SubTexture(texture, region);   
+            var subTexture:starling.textures.Texture = new SubTexture(texture, region);   
             subTexture.mFrame = frame;
             return subTexture;
         }
