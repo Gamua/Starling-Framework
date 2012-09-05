@@ -87,6 +87,9 @@ package starling.textures
         private var mFrame:Rectangle;
         private var mRepeat:Boolean;
         
+        /** helper object */
+        private static var sOrigin:Point = new Point();
+        
         /** @private */
         public function Texture()
         {
@@ -135,7 +138,7 @@ package starling.textures
             if (legalWidth > origWidth || legalHeight > origHeight)
             {
                 potData = new BitmapData(legalWidth, legalHeight, true, 0);
-                potData.copyPixels(data, data.rect, new Point(0, 0));
+                potData.copyPixels(data, data.rect, sOrigin);
                 data = potData;
             }
             
