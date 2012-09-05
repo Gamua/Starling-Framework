@@ -621,18 +621,17 @@ package starling.core
         public function get nativeOverlay():Sprite { return mNativeOverlay; }
         
         /** Indicates if a small statistics box (with FPS, memory usage and draw count) is displayed. */
-        public function get showStats():Boolean { return mStatsDisplay != null; }
+        public function get showStats():Boolean { return mStatsDisplay && mStatsDisplay.parent; }
         public function set showStats(value:Boolean):void
         {
-            if (mStatsDisplay && !value)
+            if (value == showStats) return;
+            
+            if (value)
             {
-                mStatsDisplay.removeFromParent(true);
-                mStatsDisplay = null;
+                if (mStatsDisplay) mStage.addChild(mStatsDisplay);
+                else               showStatsAt();
             }
-            else if (!mStatsDisplay && value)
-            {
-                showStatsAt();
-            }
+            else mStatsDisplay.removeFromParent();
         }
         
         /** Displays the statistics box at a certain position. */
@@ -649,12 +648,13 @@ package starling.core
                 {
                     mStatsDisplay = new StatsDisplay();
                     mStatsDisplay.touchable = false;
-                    mStatsDisplay.scaleX = mStatsDisplay.scaleY = scale;
                     mStage.addChild(mStatsDisplay);
                 }
                 
                 var stageWidth:int  = mStage.stageWidth;
                 var stageHeight:int = mStage.stageHeight;
+                
+                mStatsDisplay.scaleX = mStatsDisplay.scaleY = scale;
                 
                 if (hAlign == HAlign.LEFT) mStatsDisplay.x = 0;
                 else if (hAlign == HAlign.RIGHT) mStatsDisplay.x = stageWidth - mStatsDisplay.width; 
