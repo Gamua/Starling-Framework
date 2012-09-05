@@ -174,6 +174,9 @@ package starling.filters
             support.finishQuadBatch();
             support.loadIdentity();
             
+            // force blend mode "normal" for render passes
+            RenderSupport.setBlendFactors(PMA);
+            
             // set shader attributes
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
@@ -181,7 +184,7 @@ package starling.filters
             // draw all passes
             for (var i:int=0; i<mNumPasses; ++i)
             {
-                if (i < mNumPasses - 1) // intermediate pass - draw into texture  
+                if (i < mNumPasses - 1) // intermediate pass -- draw into texture  
                 {
                     support.renderTarget = getPassTexture(i+1);
                     support.clear();
@@ -192,7 +195,6 @@ package starling.filters
                     support.projectionMatrix.copyFrom(mProjMatrix); // restore projection matrix
                     support.translateMatrix(mBounds.x + mOffsetX, mBounds.y + mOffsetY);
                     support.scaleMatrix(1.0/mResolution, 1.0/mResolution);
-                    support.applyBlendMode(false);
                 }
                 
                 var passTexture:Texture = getPassTexture(i);
