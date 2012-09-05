@@ -34,11 +34,17 @@ package starling.filters
         
         protected override function createPrograms():void
         {
+            // One might expect that we could just subtract the RGB values from 1, right?
+            // The problem is that the input arrives with premultiplied alpha values, and the
+            // output is expected in the same form. So we first have to restore the original RGB
+            // values, subtract them from one, and then multiply with the original alpha again.
+            
             var fragmentProgramCode:String =
                 "tex ft0, v0, fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
-                "sub ft1, fc0, ft0  \n" +   // subtract each value from '1'
-                "mov ft1.w, ft0.w   \n" +   // but use original alpha value (w)
-                "mov oc, ft1        \n";    // copy to output
+                "div ft0.xyz, ft0.xyz, ft0.www  \n" + // restore original (non-PMA) RGB values
+                "sub ft0.xyz, fc0.xyz, ft0.xyz  \n" + // subtract rgb values from '1'
+                "mul ft0.xyz, ft0.xyz, ft0.www  \n" + // multiply with alpha again (PMA)
+                "mov oc, ft0                    \n";  // copy to output
             
             mShaderProgram = assembleAgal(fragmentProgramCode);
         }
