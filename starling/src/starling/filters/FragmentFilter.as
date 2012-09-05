@@ -31,6 +31,7 @@ package starling.filters
     import starling.display.Stage;
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
+    import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
@@ -96,15 +97,31 @@ package starling.filters
             
             createPrograms();
             
-            // TODO: handle device loss
+            // Handle lost context. By using the conventional event, we can make it weak; this  
+            // avoids memory leaks when people forget to call "dispose" on the filter.
+            Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE, 
+                onContextCreated, false, 0, true);
+            
             // TODO: check blend modes
             // TODO: intersect object bounds with stage bounds & set scissor rectangle accordingly
         }
         
         public function dispose():void
         {
+            if (mVertexBuffer) mVertexBuffer.dispose();
+            if (mIndexBuffer)  mIndexBuffer.dispose();
+            
             for each (var texture:Texture in mPassTextures)
                 texture.dispose();
+        }
+        
+        private function onContextCreated(event:Object):void
+        {
+            mVertexBuffer = null;
+            mIndexBuffer  = null;
+            mPassTextures = null;
+            
+            createPrograms();
         }
         
         public function render(object:DisplayObject, support:RenderSupport, parentAlpha:Number):void

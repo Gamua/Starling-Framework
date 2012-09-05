@@ -66,19 +66,14 @@ package starling.filters
         
         public override function dispose():void
         {
-            disposePrograms();
-            super.dispose();
-        }
-        
-        private function disposePrograms():void
-        {
             if (mNormalProgram) mNormalProgram.dispose();
             if (mTintedProgram) mTintedProgram.dispose();
+            
+            super.dispose();
         }
         
         protected override function createPrograms():void
         {
-            disposePrograms();
             mNormalProgram = createProgram(false);
             mTintedProgram = createProgram(true);
         }
