@@ -52,15 +52,11 @@ package starling.filters
         
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
+
         private var mMode:String;
         private var mResolution:Number;
-        
-        private var mMarginTop:Number;
-        private var mMarginBottom:Number;
-        private var mMarginLeft:Number;
-        private var mMarginRight:Number;
-        
-        private var mBaseImage:Image;
+        private var mMarginX:Number;
+        private var mMarginY:Number;
         private var mOffsetX:Number;
         private var mOffsetY:Number;
         
@@ -84,10 +80,10 @@ package starling.filters
             if (numPasses < 1) throw new ArgumentError("At least one pass is required.");
             
             mNumPasses = numPasses;
-            mMarginTop = mMarginBottom = mMarginLeft = mMarginRight = 0.0;
-            mMode = FragmentFilterMode.REPLACE;
+            mMarginX = mMarginY = 0.0;
             mOffsetX = mOffsetY = 0;
             mResolution = resolution;
+            mMode = FragmentFilterMode.REPLACE;
             
             mVertexData = new VertexData(4);
             mVertexData.setTexCoords(0, 0, 0);
@@ -139,10 +135,10 @@ package starling.filters
                 object.getBounds(stage, mBounds);
             
             var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // to avoid hard edges
-            mBounds.x -= mMarginLeft + deltaMargin;
-            mBounds.y -= mMarginTop  + deltaMargin;
-            mBounds.width  += mMarginLeft + mMarginRight  + 2*deltaMargin;
-            mBounds.height += mMarginTop  + mMarginBottom + 2*deltaMargin;
+            mBounds.x -= mMarginX + deltaMargin;
+            mBounds.y -= mMarginY + deltaMargin;
+            mBounds.width  += 2 * (mMarginX + deltaMargin);
+            mBounds.height += 2 * (mMarginY + deltaMargin);
             
             mBounds.width  = getNextPowerOfTwo(mBounds.width  * mResolution);
             mBounds.height = getNextPowerOfTwo(mBounds.height * mResolution);
@@ -314,19 +310,13 @@ package starling.filters
         public function get offsetY():Number { return mOffsetY; }
         public function set offsetY(value:Number):void { mOffsetY = value; }
         
+        protected function get marginX():Number { return mMarginX; }
+        protected function set marginX(value:Number):void { mMarginX = value; }
+        
+        protected function get marginY():Number { return mMarginY; }
+        protected function set marginY(value:Number):void { mMarginY = value; }
+        
         protected function set numPasses(value:int):void { mNumPasses = value; }
         protected function get numPasses():int { return mNumPasses; }
-        
-        protected function get marginTop():Number { return mMarginTop; }
-        protected function set marginTop(value:Number):void { mMarginTop = value; }
-        
-        protected function get marginBottom():Number { return mMarginBottom; }
-        protected function set marginBottom(value:Number):void { mMarginBottom = value; }
-        
-        protected function get marginLeft():Number { return mMarginLeft; }
-        protected function set marginLeft(value:Number):void { mMarginLeft = value; }
-        
-        protected function get marginRight():Number { return mMarginRight; }
-        protected function set marginRight(value:Number):void { mMarginRight = value; }
     }
 }

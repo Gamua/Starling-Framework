@@ -232,9 +232,9 @@ package starling.filters
         {
             if (mBlurX == 0 && mBlurY == 0) mBlurX = 0.001;
             
-            numPasses  = Math.ceil(mBlurX) + Math.ceil(mBlurY);
-            marginLeft = marginRight = 4 + Math.ceil(mBlurX);
-            marginTop  = marginBottom = 4 + Math.ceil(mBlurY); 
+            numPasses = Math.ceil(mBlurX) + Math.ceil(mBlurY);
+            marginX = 4 + Math.ceil(mBlurX);
+            marginY = 4 + Math.ceil(mBlurY); 
         }
         
         public function setUniformColor(enable:Boolean, color:uint=0x0, alpha:Number=1.0):void
