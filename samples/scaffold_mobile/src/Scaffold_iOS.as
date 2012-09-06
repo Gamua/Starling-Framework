@@ -37,7 +37,7 @@ package
             var screenHeight:int = stage.fullScreenHeight;
             var viewPort:Rectangle = new Rectangle();
             
-            if (stage.fullScreenHeight / stage.fullScreenWidth < Constants.ASPECT_RATIO)
+            if (screenHeight / screenWidth < Constants.ASPECT_RATIO)
             {
                 viewPort.height = screenHeight;
                 viewPort.width  = int(viewPort.height / Constants.ASPECT_RATIO);
