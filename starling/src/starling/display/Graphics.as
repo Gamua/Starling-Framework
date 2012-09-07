@@ -1,7 +1,13 @@
 package starling.display
 {
+	import flash.display.Bitmap;
+	
 	import starling.display.graphics.Fill;
 	import starling.display.graphics.Stroke;
+	import starling.display.materials.StandardMaterial;
+	import starling.display.shaders.fragment.TextureVertexColorFragmentShader;
+	import starling.display.shaders.vertex.StandardVertexShader;
+	import starling.textures.Texture;
 
 	public class Graphics
 	{
@@ -12,8 +18,9 @@ package starling.display
 		private var _strokeColor		:uint;
 		private var _strokeAlpha		:Number;
 		
-		private var _currentStroke		:Stroke;
-		private var _currentFill		:Fill;
+		private var _currentStroke				:Stroke;
+		private var _currentFill				:Fill;
+		private var _currentFillIsBitmapFill	:Boolean;
 		
 		private var _container			:DisplayObjectContainer;
 		
@@ -32,10 +39,25 @@ package starling.display
 			}
 		}
 		
+		public function beginBitmapFill(bitmap:Bitmap):Fill//, matrix:Matrix = null, repeat:Boolean = true, smooth:Boolean = false ) 
+		{
+			_currentFillColor = NaN;
+			_currentFillAlpha = NaN;
+			_currentFillIsBitmapFill = true;
+			
+			_currentFill = new Fill();
+			_currentFill.material = new StandardMaterial( new StandardVertexShader(), new TextureVertexColorFragmentShader() );
+			_currentFill.material.textures[0] = Texture.fromBitmap( bitmap, false );
+			_container.addChild(_currentFill);
+			
+			return _currentFill;
+		}
+		
 		public function beginFill(color:uint, alpha:Number = 1.0):void
 		{
 			_currentFillColor = color;
 			_currentFillAlpha = alpha;
+			_currentFillIsBitmapFill = false;
 			
 			_currentFill = new Fill();
 			_container.addChild(_currentFill);
@@ -105,7 +127,11 @@ package starling.display
 			_currentStroke.addVertex( x, y, _strokeThickness, _strokeColor, _strokeAlpha, _strokeColor );
 			
 			if (_currentFill) {
-				_currentFill.addVertex(x, y, _currentFillColor, _currentFillAlpha );
+				if (_currentFillIsBitmapFill) {
+					_currentFill.addVertex(x, y);
+				} else {
+					_currentFill.addVertex(x, y, _currentFillColor, _currentFillAlpha );
+				}
 			}
 		}
 		
@@ -116,7 +142,11 @@ package starling.display
 			_currentStroke.addVertex( x, y, _strokeThickness, _strokeColor, _strokeAlpha, _strokeColor );
 			
 			if (_currentFill) {
-				_currentFill.addVertex(x, y, _currentFillColor, _currentFillAlpha );
+				if (_currentFillIsBitmapFill) {
+					_currentFill.addVertex(x, y);
+				} else {
+					_currentFill.addVertex(x, y, _currentFillColor, _currentFillAlpha );
+				}
 			}
 		}
 		

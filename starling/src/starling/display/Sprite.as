@@ -40,10 +40,14 @@ package starling.display
     {
         private var mFlattenedContents:Vector.<QuadBatch>;
         
+		public var graphics			:Graphics;
+		
         /** Creates an empty sprite. */
         public function Sprite()
         {
             super();
+			
+			graphics	= new Graphics(this);
         }
         
         /** @inheritDoc */
