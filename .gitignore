@@ -7,6 +7,8 @@ starling/doc/html/
 .settings/
 .flexProperties
 .FlexUnitSettings
+.project
+.actionScriptProperties
 
 # OS X folders
 .DS_Store
