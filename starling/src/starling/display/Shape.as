@@ -32,14 +32,14 @@ package starling.display
 			penPosition = new Point();
 			penPositionPrev = new Point();
 			
-			graphics	= new Graphics(this);
+			graphics	= new Graphics(this, showProfiling);
 		}
 		
 		override public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             return new Rectangle();
         }
-		
+		/*
 		public function clear():void
 		{
 			while ( numChildren > 0 )
@@ -50,6 +50,7 @@ package starling.display
 			}
 		}
 		
+		//TODO: This should be removed
 		public function beginStroke( closed:Boolean = false ):Stroke
 		{
 			currentStroke = new Stroke();
@@ -137,6 +138,7 @@ package starling.display
 				currentStroke.addVertex( x, y, thickness, color1, alpha1, color2, alpha2 );
 			}
 		}
+		*/
 		
 		override public function render( renderSupport:RenderSupport, alpha:Number ):void
 		{

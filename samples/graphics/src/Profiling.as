@@ -1,5 +1,7 @@
 package
 {
+	import flash.display.Bitmap;
+	
 	import starling.core.Starling;
 	import starling.display.Shape;
 	import starling.display.Sprite;
@@ -10,8 +12,10 @@ package
 	{
 		[Embed( source = "/assets/Checker.png" )]
 		private var CheckerBMP		:Class;
-		private var checkerTexture	:Texture;
+		//private var checkerTexture	:Texture;
 		private var shape			:Shape;
+		
+		private var checkerBMP		:Bitmap;
 		
 		public function Profiling()
 		{
@@ -23,7 +27,9 @@ package
 			shape = new Shape(true);
 			addChild(shape);
 			
-			checkerTexture = Texture.fromBitmap( new CheckerBMP(), false );
+			//checkerTexture = Texture.fromBitmap( new CheckerBMP(), false );
+			
+			checkerBMP = new CheckerBMP();
 			
 			addEventListener(Event.ENTER_FRAME, enterFrameHandler);
 		}
@@ -31,12 +37,12 @@ package
 		private var numFrames:int = 0;
 		private function enterFrameHandler( event:Event ):void
 		{
-			shape.clear();
+			shape.graphics.clear();
 			
-			shape.beginTexturedFill( checkerTexture );
+			shape.graphics.beginBitmapFill( checkerBMP );
 			for ( var i:int = 0; i < 3 * 100; i++ )
 			{
-				shape.lineTo( Math.random() * Starling.current.nativeStage.stageWidth, Math.random() * Starling.current.nativeStage.stageHeight );
+				shape.graphics.lineTo( Math.random() * Starling.current.nativeStage.stageWidth, Math.random() * Starling.current.nativeStage.stageHeight );
 			}
 			
 			numFrames++;

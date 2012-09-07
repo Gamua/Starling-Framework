@@ -1,6 +1,7 @@
 package starling.display
 {
 	import flash.display.Bitmap;
+	import flash.geom.Matrix;
 	
 	import starling.display.graphics.Fill;
 	import starling.display.graphics.Stroke;
@@ -24,9 +25,12 @@ package starling.display
 		
 		private var _container			:DisplayObjectContainer;
 		
-		public function Graphics(displayObjectContainer:DisplayObjectContainer)
+		private var showProfiling		:Boolean;
+		
+		public function Graphics(displayObjectContainer:DisplayObjectContainer, showProfiling:Boolean = false)
 		{
 			_container = displayObjectContainer;
+			this.showProfiling = showProfiling;
 		}
 		
 		public function clear():void
@@ -39,18 +43,21 @@ package starling.display
 			}
 		}
 		
-		public function beginBitmapFill(bitmap:Bitmap):Fill//, matrix:Matrix = null, repeat:Boolean = true, smooth:Boolean = false ) 
+		public function beginBitmapFill(bitmap:Bitmap, matrix:Matrix = null, repeat:Boolean = true):void//, smooth:Boolean = false ) 
 		{
 			_currentFillColor = NaN;
 			_currentFillAlpha = NaN;
 			_currentFillIsBitmapFill = true;
 			
-			_currentFill = new Fill();
+			_currentFill = new Fill(showProfiling);
 			_currentFill.material = new StandardMaterial( new StandardVertexShader(), new TextureVertexColorFragmentShader() );
 			_currentFill.material.textures[0] = Texture.fromBitmap( bitmap, false );
-			_container.addChild(_currentFill);
 			
-			return _currentFill;
+			if ( matrix ) {
+				_currentFill.uvMatrix = matrix;
+			}
+			
+			_container.addChild(_currentFill);
 		}
 		
 		public function beginFill(color:uint, alpha:Number = 1.0):void
@@ -59,7 +66,7 @@ package starling.display
 			_currentFillAlpha = alpha;
 			_currentFillIsBitmapFill = false;
 			
-			_currentFill = new Fill();
+			_currentFill = new Fill(showProfiling);
 			_container.addChild(_currentFill);
 		}
 		public function endFill():void

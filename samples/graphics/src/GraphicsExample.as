@@ -24,9 +24,8 @@ package
 		[Embed( source = "/assets/Checker.png" )]
 		private var CheckerBMP		:Class;
 		
-		private var _currentFill		:Fill;
-		private var _currentFillColor	:Number = NaN;
-		private var _currentFillAlpha	:Number = NaN;
+		[Embed( source = "/assets/marble_80x80.png" )]
+		private var MarbleBMP		:Class;
 		
 		public function GraphicsExample()
 		{
@@ -85,7 +84,7 @@ package
 			shape.graphics.beginFill(fillColor, 0.2);
 			shape.graphics.lineStyle(5, 0x00FF00, strokeAlpha);
 			shape.graphics.drawCircle(0, 0, 50);
-			shape.endFill();
+			shape.graphics.endFill();
 			
 			// Line Ellipse
 			shape = new Shape();
@@ -121,13 +120,26 @@ package
 			sprite.y = 400;
 			
 			sprite.graphics.beginBitmapFill(new CheckerBMP());
-			//sprite.graphics.beginFill(fillColor, 0.2);
 			sprite.graphics.lineStyle(2, 0xFF0000, 0.5);
 			sprite.graphics.moveTo(left, top);
 			sprite.graphics.lineTo(right, bottom);
 			sprite.graphics.lineTo(left, bottom);
 			sprite.graphics.lineTo(left, top);
 			sprite.graphics.endFill();
+			
+			// Marble
+			sprite = new Sprite();
+			addChild(sprite);
+			
+			sprite.x = 350;
+			sprite.y = 450;
+			
+			var m:Matrix = new Matrix();
+			m.translate(-40, -40);
+			sprite.graphics.beginBitmapFill(new MarbleBMP(), m, false);
+			sprite.graphics.lineStyle(5, 0x00FF00, strokeAlpha);
+			sprite.graphics.drawCircle(0, 0, 50);
+			sprite.graphics.endFill();		
 		}
 	}
 }

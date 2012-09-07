@@ -12,3 +12,6 @@ starling/doc/html/
 
 # OS X folders
 .DS_Store
+
+# Windows
+Thumbs.db
