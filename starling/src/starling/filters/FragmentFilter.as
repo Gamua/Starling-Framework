@@ -27,7 +27,6 @@ package starling.filters
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
-    import starling.display.Image;
     import starling.display.Stage;
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
@@ -126,14 +125,29 @@ package starling.filters
         
         public function render(object:DisplayObject, support:RenderSupport, parentAlpha:Number):void
         {
+            if (mode == FragmentFilterMode.ABOVE)
+                object.render(support, parentAlpha);
+            
+            renderPasses(object, support, parentAlpha);
+            
+            if (mode == FragmentFilterMode.BELOW)
+                object.render(support, parentAlpha);
+        }
+        
+        // helper methods
+        
+        private function renderPasses(object:DisplayObject, support:RenderSupport, 
+                                      parentAlpha:Number):void
+        {
             var stage:Stage = object.stage;
             if (stage == null) return;
             
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            if (mode == FragmentFilterMode.ABOVE)
-                object.render(support, parentAlpha);
+            support.finishQuadBatch();
+            support.raiseDrawCount(mNumPasses);
+            support.pushMatrix();
             
             // save original projection matrix and render target
             mProjMatrix.copyFrom(support.projectionMatrix); 
@@ -145,52 +159,42 @@ package starling.filters
                     "This limitation will be removed in a future Stage3D version.");
             
             // get bounds in stage coordinates
-            // can be expensive, so we optimize at least for full-screen effects
+            // optimize for full-screen effects
             if (object == stage || object == Starling.current.root)
                 mBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
             else
                 object.getBounds(stage, mBounds);
             
+            // the bounds are a rectangle around the object, in stage coordinates,
+            // and with an optional margin. To fit into a POT-texture, it will grow towards
+            // the right and bottom.
             var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // to avoid hard edges
             mBounds.x -= mMarginX + deltaMargin;
             mBounds.y -= mMarginY + deltaMargin;
             mBounds.width  += 2 * (mMarginX + deltaMargin);
             mBounds.height += 2 * (mMarginY + deltaMargin);
             
-            mBounds.width  = getNextPowerOfTwo(mBounds.width  * mResolution);
-            mBounds.height = getNextPowerOfTwo(mBounds.height * mResolution);
+            var textureWidth:int  = getNextPowerOfTwo(mBounds.width  * mResolution);
+            var textureHeight:int = getNextPowerOfTwo(mBounds.height * mResolution);
             
-            updatePassTextures(mBounds.width, mBounds.height);
+            mBounds.width  = textureWidth  / mResolution;
+            mBounds.height = textureHeight / mResolution;
             
-            // update the vertices that span up the filter rectangle 
-            updateBuffers(context, mBounds.width, mBounds.height);
+            // prepare the textures we will render into, and the quad that spans up the filter 
+            updatePassTextures(textureWidth, textureHeight);
+            updateBuffers(context, mBounds);
             
-            // now prepare filter passes
-            support.finishQuadBatch();
-            support.raiseDrawCount(mNumPasses);
-            
-            support.pushMatrix();
-            support.loadIdentity();
-            support.setOrthographicProjection(mBounds.width, mBounds.height);
-            
-            // draw the original object into a render texture
-            var matrix:Matrix = support.modelViewMatrix; 
-            object.getTransformationMatrix(stage, matrix);
-            matrix.translate(-mBounds.x, -mBounds.y);
-            matrix.scale(mResolution, mResolution);
-            
+            // draw the original object into a texture
             support.renderTarget = mPassTextures[0];
             support.clear();
-            
+            support.setOrthographicProjection(mBounds.x, mBounds.y, mBounds.width, mBounds.height);
             object.render(support, parentAlpha);
-            
             support.finishQuadBatch();
-            support.loadIdentity();
             
-            // force blend mode "normal" for render passes
-            RenderSupport.setBlendFactors(PMA);
+            // prepare drawing of actual filter passes
+            RenderSupport.setBlendFactors(PMA); // force blend mode "normal" for filter passes
+            support.loadIdentity();             // now we'll draw in stage coordinates!
             
-            // set shader attributes
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             context.setVertexBufferAt(1, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             
@@ -206,8 +210,7 @@ package starling.filters
                 {
                     support.renderTarget = previousRenderTarget;
                     support.projectionMatrix.copyFrom(mProjMatrix); // restore projection matrix
-                    support.translateMatrix(mBounds.x + mOffsetX, mBounds.y + mOffsetY);
-                    support.scaleMatrix(1.0/mResolution, 1.0/mResolution);
+                    support.translateMatrix(mOffsetX, mOffsetY);
                 }
                 
                 var passTexture:Texture = getPassTexture(i);
@@ -226,18 +229,14 @@ package starling.filters
             context.setTextureAt(0, null);
             
             support.popMatrix();
-            
-            if (mode == FragmentFilterMode.BELOW)
-                object.render(support, parentAlpha);
         }
         
-        // helper methods
-        
-        private function updateBuffers(context:Context3D, width:Number, height:Number):void
+        private function updateBuffers(context:Context3D, bounds:Rectangle):void
         {
-            mVertexData.setPosition(1, width, 0);
-            mVertexData.setPosition(2, 0, height);
-            mVertexData.setPosition(3, width, height);
+            mVertexData.setPosition(0, bounds.x, bounds.y);
+            mVertexData.setPosition(1, bounds.right, bounds.y);
+            mVertexData.setPosition(2, bounds.x, bounds.bottom);
+            mVertexData.setPosition(3, bounds.right, bounds.bottom);
             
             if (mVertexBuffer == null)
             {
@@ -261,7 +260,9 @@ package starling.filters
             {
                 if (mPassTextures)
                 {
-                    for each (var texture:Texture in mPassTextures) texture.dispose();
+                    for each (var texture:Texture in mPassTextures) 
+                        texture.dispose();
+                    
                     mPassTextures.length = numPassTextures;
                 }
                 else
@@ -316,7 +317,11 @@ package starling.filters
         // properties
         
         public function get resolution():Number { return mResolution; }
-        public function set resolution(value:Number):void { mResolution = value; }
+        public function set resolution(value:Number):void 
+        {
+            if (value <= 0) throw new ArgumentError("Resolution must be > 0");
+            else mResolution = value; 
+        }
         
         public function get mode():String { return mMode; }
         public function set mode(value:String):void { mMode = value; }

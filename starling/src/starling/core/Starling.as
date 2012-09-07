@@ -354,7 +354,7 @@ package starling.core
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);
             
-            mSupport.setOrthographicProjection(mStage.stageWidth, mStage.stageHeight);
+            mSupport.setOrthographicProjection(0, 0, mStage.stageWidth, mStage.stageHeight);
             mSupport.renderTarget = null; // back buffer
             
             mStage.render(mSupport, 1.0);

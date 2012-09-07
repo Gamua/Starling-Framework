@@ -58,7 +58,7 @@ package starling.core
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
-            setOrthographicProjection(400, 300);
+            setOrthographicProjection(0, 0, 400, 300);
         }
         
         /** Disposes all quad batches. */
@@ -71,9 +71,10 @@ package starling.core
         // matrix manipulation
         
         /** Sets up the projection matrix for ortographic 2D rendering. */
-        public function setOrthographicProjection(width:Number, height:Number):void
+        public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
         {
-            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, -1.0, 1.0);
+            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
+                -(2*x + width) / width, (2*y + height) / height);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
@@ -170,7 +171,8 @@ package starling.core
             setBlendFactors(premultipliedAlpha, mBlendMode);
         }
         
-        /** The blend mode to be used on rendering. */
+        /** The blend mode to be used on rendering. To apply the factor, you have to manually call
+         *  'applyBlendMode' (because the actual blend factors depend on the PMA mode). */
         public function get blendMode():String { return mBlendMode; }
         public function set blendMode(value:String):void
         {
@@ -179,17 +181,16 @@ package starling.core
         
         // render targets
         
-        /** The texture that is currently being rendered into, 
-         *  or 'null' to render into the back buffer. */
+        /** The texture that is currently being rendered into, or 'null' to render into the 
+         *  back buffer. If you set a new target, it is immediately activated. */
+        public function get renderTarget():Texture { return mRenderTarget; }
         public function set renderTarget(target:Texture):void 
-        { 
+        {
             mRenderTarget = target;
             
             if (target) Starling.context.setRenderToTexture(target.base);
             else        Starling.context.setRenderToBackBuffer();
         }
-        
-        public function get renderTarget():Texture { return mRenderTarget; }
         
         // optimized quad rendering
         

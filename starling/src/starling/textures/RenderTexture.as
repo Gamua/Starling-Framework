@@ -86,7 +86,7 @@ package starling.textures
             mActiveTexture = Texture.empty(width, height, PMA, true, scale);
             
             mSupport = new RenderSupport();
-            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
+            mSupport.setOrthographicProjection(0, 0, mNativeWidth/scale, mNativeHeight/scale);
             
             if (persistent)
             {
