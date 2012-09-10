@@ -5,8 +5,6 @@ package scenes
     import starling.events.Event;
     import starling.filters.BlurFilter;
     import starling.filters.ColorMatrixFilter;
-    import starling.filters.GrayscaleFilter;
-    import starling.filters.InverseFilter;
     import starling.text.TextField;
 
     public class FilterScene extends Scene
@@ -14,18 +12,12 @@ package scenes
         private var mButton:Button;
         private var mImage:Image;
         private var mInfoText:TextField;
-        
-        private var mFilterInfos:Array = [
-            ["Identity", new ColorMatrixFilter()],
-            ["Inverse", new InverseFilter()],
-            ["Grayscale", new GrayscaleFilter()],
-            ["Blur", new BlurFilter()],
-            ["Drop Shadow", BlurFilter.createDropShadow()],
-            ["Glow", BlurFilter.createGlow()]
-        ];
+        private var mFilterInfos:Array;
         
         public function FilterScene()
         {
+            initFilters();
+            
             mButton = new Button(Assets.getTexture("ButtonNormal"), "Switch Filter");
             mButton.x = int(Constants.CenterX - mButton.width / 2);
             mButton.y = 15;
@@ -50,8 +42,42 @@ package scenes
             var filterInfo:Array = mFilterInfos.shift() as Array;
             mFilterInfos.push(filterInfo);
             
-            mInfoText.text = filterInfo[0] + " Filter";
-            mImage.filter = filterInfo[1];
+            mInfoText.text = filterInfo[0];
+            mImage.filter  = filterInfo[1];
+        }
+        
+        private function initFilters():void
+        {
+            mFilterInfos = [
+                ["Identity", new ColorMatrixFilter()],
+                ["Blur", new BlurFilter()],
+                ["Drop Shadow", BlurFilter.createDropShadow()],
+                ["Glow", BlurFilter.createGlow()]
+            ];
+            
+            var invertFilter:ColorMatrixFilter = new ColorMatrixFilter();
+            invertFilter.invert();
+            mFilterInfos.push(["Invert", invertFilter]);
+            
+            var grayscaleFilter:ColorMatrixFilter = new ColorMatrixFilter();
+            grayscaleFilter.desaturate();
+            mFilterInfos.push(["Grayscale", grayscaleFilter]);
+            
+            var saturationFilter:ColorMatrixFilter = new ColorMatrixFilter();
+            saturationFilter.adjustSaturation(2);
+            mFilterInfos.push(["Adjust Saturation", saturationFilter]);
+            
+            var contrastFilter:ColorMatrixFilter = new ColorMatrixFilter();
+            contrastFilter.adjustContrast(0.5);
+            mFilterInfos.push(["Adjust Contrast", contrastFilter]);
+
+            var brightnessFilter:ColorMatrixFilter = new ColorMatrixFilter();
+            brightnessFilter.adjustBrightness(64);
+            mFilterInfos.push(["Adjust Brightness", brightnessFilter]);
+
+            var hueFilter:ColorMatrixFilter = new ColorMatrixFilter();
+            hueFilter.adjustHue(Math.PI);
+            mFilterInfos.push(["Adjust Hue", hueFilter]);
         }
     }
 }
