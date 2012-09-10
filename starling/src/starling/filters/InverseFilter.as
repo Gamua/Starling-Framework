@@ -20,6 +20,7 @@ package starling.filters
     {
         private var mShaderProgram:Program3D;
         private var mOnes:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
+        private var mMinColor:Vector.<Number> = new <Number>[0, 0, 0, 0.0001];
         
         public function InverseFilter()
         {
@@ -41,6 +42,7 @@ package starling.filters
             
             var fragmentProgramCode:String =
                 "tex ft0, v0, fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
+                "max ft0, ft0, fc1              \n" + // avoid division through zero in next step
                 "div ft0.xyz, ft0.xyz, ft0.www  \n" + // restore original (non-PMA) RGB values
                 "sub ft0.xyz, fc0.xyz, ft0.xyz  \n" + // subtract rgb values from '1'
                 "mul ft0.xyz, ft0.xyz, ft0.www  \n" + // multiply with alpha again (PMA)
@@ -59,6 +61,7 @@ package starling.filters
             // texture 0:            input texture
             
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mOnes, 1);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, mMinColor, 1);
             context.setProgram(mShaderProgram);
         }
     }

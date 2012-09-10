@@ -23,6 +23,7 @@ package starling.filters
         
         private var mMatrix:Vector.<Number>; // offset in range 0-255
         private var mShaderMatrix:Vector.<Number>; // offset in range 0-1, changed order
+        private var mMinColor:Vector.<Number> = new <Number>[0, 0, 0, 0.0001];
         
         public function ColorMatrixFilter(matrix:Vector.<Number>=null)
         {
@@ -45,6 +46,7 @@ package starling.filters
             
             var fragmentProgramCode:String =
                 "tex ft0, v0,  fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
+                "max ft0, ft0, fc5              \n" + // avoid division trough zero in next step
                 "div ft0.xyz, ft0.xyz, ft0.www  \n" + // restore original (non-PMA) RGB values
                 "m44 ft0, ft0, fc0              \n" + // multiply color with 4x4 matrix
                 "add ft0, ft0, fc4              \n" + // add offset
@@ -57,6 +59,7 @@ package starling.filters
         protected override function activate(pass:int, context:Context3D, texture:Texture):void
         {
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mShaderMatrix);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, mMinColor);
             context.setProgram(mShaderProgram);
         }
         
