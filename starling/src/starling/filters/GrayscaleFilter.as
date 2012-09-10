@@ -16,6 +16,9 @@ package starling.filters
     
     import starling.textures.Texture;
 
+    /** This filter is only kept as a sample filter implementation you can learn from. 
+      * It will be removed with the next official Starling release! 
+      * As a replacement, use the 'desaturate' method in the ColorMatrixFilter. */
     public class GrayscaleFilter extends FragmentFilter
     {
         private var mQuantifiers:Vector.<Number>;

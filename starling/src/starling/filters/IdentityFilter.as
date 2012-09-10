@@ -15,6 +15,8 @@ package starling.filters
     
     import starling.textures.Texture;
 
+    /** This filter is only kept as a sample filter implementation you can learn from. It will
+      * be removed with the next official Starling release! */
     public class IdentityFilter extends FragmentFilter
     {
         private var mShaderProgram:Program3D;
