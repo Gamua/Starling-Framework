@@ -16,6 +16,9 @@ package
         [Embed(source = "../media/textures/1x/starling_front.png")]
         public static const StarlingFront:Class;
         
+        [Embed(source = "../media/textures/1x/starling_rocket.png")]
+        public static const StarlingRocket:Class;
+        
         [Embed(source = "../media/textures/1x/logo.png")]
         public static const Logo:Class;
         
