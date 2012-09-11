@@ -60,24 +60,24 @@ package scenes
             mFilterInfos.push(["Invert", invertFilter]);
             
             var grayscaleFilter:ColorMatrixFilter = new ColorMatrixFilter();
-            grayscaleFilter.desaturate();
+            grayscaleFilter.adjustSaturation(-1);
             mFilterInfos.push(["Grayscale", grayscaleFilter]);
             
             var saturationFilter:ColorMatrixFilter = new ColorMatrixFilter();
-            saturationFilter.adjustSaturation(2);
-            mFilterInfos.push(["Adjust Saturation", saturationFilter]);
+            saturationFilter.adjustSaturation(1);
+            mFilterInfos.push(["Saturation", saturationFilter]);
             
             var contrastFilter:ColorMatrixFilter = new ColorMatrixFilter();
-            contrastFilter.adjustContrast(0.5);
-            mFilterInfos.push(["Adjust Contrast", contrastFilter]);
+            contrastFilter.adjustContrast(0.75);
+            mFilterInfos.push(["Contrast", contrastFilter]);
 
             var brightnessFilter:ColorMatrixFilter = new ColorMatrixFilter();
-            brightnessFilter.adjustBrightness(64);
-            mFilterInfos.push(["Adjust Brightness", brightnessFilter]);
+            brightnessFilter.adjustBrightness(-0.25);
+            mFilterInfos.push(["Brightness", brightnessFilter]);
 
             var hueFilter:ColorMatrixFilter = new ColorMatrixFilter();
-            hueFilter.adjustHue(Math.PI);
-            mFilterInfos.push(["Adjust Hue", hueFilter]);
+            hueFilter.adjustHue(1);
+            mFilterInfos.push(["Hue", hueFilter]);
         }
     }
 }
