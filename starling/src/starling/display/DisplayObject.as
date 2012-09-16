@@ -328,6 +328,13 @@ package starling.display
             super.dispatchEvent(event);
         }
         
+        /** Indicates if an object occupies any visible area. (Which is the case when its 'alpha', 
+         *  'scaleX' and 'scaleY' values are not zero, and its 'visible' property is enabled.) */
+        public function get hasVisibleArea():Boolean
+        {
+            return mAlpha != 0.0 && mVisible && mScaleX != 0.0 && mScaleY != 0.0;
+        }
+        
         // internal methods
         
         /** @private */
@@ -343,12 +350,6 @@ package starling.display
                                         "of its children (or children's children, etc.)");
             else
                 mParent = value; 
-        }
-        
-        /** @private */
-        internal function get hasVisibleArea():Boolean
-        {
-            return mAlpha != 0.0 && mVisible && mScaleX != 0.0 && mScaleY != 0.0;
         }
         
         // helpers
