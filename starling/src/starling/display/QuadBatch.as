@@ -29,6 +29,8 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.MissingContextError;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
+    import starling.filters.FragmentFilterMode;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.MatrixUtil;
@@ -370,14 +372,14 @@ package starling.display
         
         // compilation (for flattened sprites)
         
-        /** Analyses a container object that is made up exclusively of quads (or other containers)
-         *  and creates a vector of QuadBatch objects representing the container. This can be
+        /** Analyses an object that is made up exclusively of quads (or other containers)
+         *  and creates a vector of QuadBatch objects representing it. This can be
          *  used to render the container very efficiently. The 'flatten'-method of the Sprite 
          *  class uses this method internally. */
-        public static function compile(container:DisplayObjectContainer, 
+        public static function compile(object:DisplayObject, 
                                        quadBatches:Vector.<QuadBatch>):void
         {
-            compileObject(container, quadBatches, -1, new Matrix());
+            compileObject(object, quadBatches, -1, new Matrix());
         }
         
         private static function compileObject(object:DisplayObject, 
@@ -385,7 +387,8 @@ package starling.display
                                               quadBatchID:int,
                                               transformationMatrix:Matrix,
                                               alpha:Number=1.0,
-                                              blendMode:String=null):int
+                                              blendMode:String=null,
+                                              ignoreCurrentFilter:Boolean=false):int
         {
             var i:int;
             var quadBatch:QuadBatch;
@@ -395,6 +398,7 @@ package starling.display
             var container:DisplayObjectContainer = object as DisplayObjectContainer;
             var quad:Quad = object as Quad;
             var batch:QuadBatch = object as QuadBatch;
+            var filter:FragmentFilter = object.filter;
             
             if (quadBatchID == -1)
             {
@@ -406,7 +410,24 @@ package starling.display
                 else quadBatches[0].reset();
             }
             
-            if (container)
+            if (filter && !ignoreCurrentFilter)
+            {
+                if (filter.mode == FragmentFilterMode.ABOVE)
+                {
+                    quadBatchID = compileObject(object, quadBatches, quadBatchID,
+                                                transformationMatrix, alpha, blendMode, true);
+                }
+                
+                quadBatchID = compileObject(filter.compile(object), quadBatches, quadBatchID,
+                                            transformationMatrix, alpha, blendMode);
+                
+                if (filter.mode == FragmentFilterMode.BELOW)
+                {
+                    quadBatchID = compileObject(object, quadBatches, quadBatchID,
+                        transformationMatrix, alpha, blendMode, true);
+                }
+            }
+            else if (container)
             {
                 var numChildren:int = container.numChildren;
                 var childMatrix:Matrix = new Matrix();

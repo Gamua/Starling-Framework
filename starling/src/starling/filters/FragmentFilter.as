@@ -26,6 +26,7 @@ package starling.filters
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Image;
@@ -148,7 +149,7 @@ package starling.filters
             }
             
             if (mCache)
-                renderCache(support, object.alpha * parentAlpha);
+                mCache.render(support, object.alpha * parentAlpha);
             else
                 renderPasses(object, support, parentAlpha, false);
             
@@ -166,7 +167,7 @@ package starling.filters
             var context:Context3D = Starling.context;
             var scale:Number = Starling.current.contentScaleFactor;
             
-            if (stage   == null) throw new Error("filtered object must be on the stage");
+            if (stage   == null) throw new Error("Filtered object must be on the stage.");
             if (context == null) throw new MissingContextError();
             
             support.finishQuadBatch();
@@ -266,19 +267,13 @@ package starling.filters
                 var image:Image = new Image(cacheTexture);
                 
                 stage.getTransformationMatrix(object, sTransformationMatrix);
-                MatrixUtil.prependTranslation(sTransformationMatrix, sBounds.x, sBounds.y);
+                MatrixUtil.prependTranslation(sTransformationMatrix, 
+                                              sBounds.x + mOffsetX, sBounds.y + mOffsetY);
                 quadBatch.addImage(image, 1.0, sTransformationMatrix);
 
                 return quadBatch;
             }
             else return null;
-        }
-        
-        private function renderCache(support:RenderSupport, alpha:Number):void
-        {
-            support.modelViewMatrix.translate(mOffsetX, mOffsetY);
-            mCache.render(support, alpha);
-            support.modelViewMatrix.translate(-mOffsetX, -mOffsetY);
         }
         
         // helper methods
@@ -419,6 +414,25 @@ package starling.filters
         {
             mCacheRequested = false;
             disposeCache();
+        }
+        
+        // flattening
+        
+        starling_internal function compile(object:DisplayObject):QuadBatch
+        {
+            if (mCache) return mCache;
+            else
+            {
+                var renderSupport:RenderSupport;
+                var stage:Stage = object.stage;
+                
+                if (stage == null) 
+                    throw new Error("Filtered object must be on the stage.");
+                
+                renderSupport = new RenderSupport();
+                object.getTransformationMatrix(stage, renderSupport.modelViewMatrix);
+                return renderPasses(object, renderSupport, 1.0, true);
+            }
         }
         
         // properties
