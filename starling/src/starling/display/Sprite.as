@@ -35,10 +35,11 @@ package starling.display
      * 
      *  @see DisplayObject
      *  @see DisplayObjectContainer
-     */  
+     */
     public class Sprite extends DisplayObjectContainer
     {
         private var mFlattenedContents:Vector.<QuadBatch>;
+        private var mFlattenRequested:Boolean;
         
         /** Creates an empty sprite. */
         public function Sprite()
@@ -49,46 +50,60 @@ package starling.display
         /** @inheritDoc */
         public override function dispose():void
         {
-            unflatten();
+            disposeFlattenedContents();
             super.dispose();
         }
         
-        /** Optimizes the sprite for optimal rendering performance. Changes in the
-         *  children of a flattened sprite will not be displayed any longer. For this to happen,
-         *  either call <code>flatten</code> again, or <code>unflatten</code> the sprite. */
-        public function flatten():void
-        {
-            broadcastEventWith(Event.FLATTEN);
-            
-            if (mFlattenedContents == null)
-                mFlattenedContents = new <QuadBatch>[];
-            
-            QuadBatch.compile(this, mFlattenedContents);
-        }
-        
-        /** Removes the rendering optimizations that were created when flattening the sprite.
-         *  Changes to the sprite's children will become immediately visible again. */ 
-        public function unflatten():void
+        private function disposeFlattenedContents():void
         {
             if (mFlattenedContents)
             {
-                var numBatches:int = mFlattenedContents.length;
-                
-                for (var i:int=0; i<numBatches; ++i)
+                for (var i:int=0, max:int=mFlattenedContents.length; i<max; ++i)
                     mFlattenedContents[i].dispose();
                 
                 mFlattenedContents = null;
             }
         }
         
+        /** Optimizes the sprite for optimal rendering performance. Changes in the
+         *  children of a flattened sprite will not be displayed any longer. For this to happen,
+         *  either call <code>flatten</code> again, or <code>unflatten</code> the sprite. 
+         *  Beware that the actual flattening will not happen right away, but right before the
+         *  next rendering. */
+        public function flatten():void
+        {
+            mFlattenRequested = true;
+            broadcastEventWith(Event.FLATTEN);
+        }
+        
+        /** Removes the rendering optimizations that were created when flattening the sprite.
+         *  Changes to the sprite's children will immediately become visible again. */ 
+        public function unflatten():void
+        {
+            mFlattenRequested = false;
+            disposeFlattenedContents();
+        }
+        
         /** Indicates if the sprite was flattened. */
-        public function get isFlattened():Boolean { return mFlattenedContents != null; }
+        public function get isFlattened():Boolean 
+        { 
+            return mFlattenedContents || mFlattenRequested; 
+        }
         
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            if (mFlattenedContents)
+            if (mFlattenedContents || mFlattenRequested)
             {
+                if (mFlattenedContents == null)
+                    mFlattenedContents = new <QuadBatch>[];
+                
+                if (mFlattenRequested)
+                {
+                    QuadBatch.compile(this, mFlattenedContents);
+                    mFlattenRequested = false;
+                }
+                
                 var alpha:Number = parentAlpha * this.alpha;
                 var numBatches:int = mFlattenedContents.length;
                 var mvpMatrix:Matrix = support.mvpMatrix;
