@@ -13,6 +13,8 @@ package starling.core
     import flash.display.Sprite;
     import flash.display.Stage3D;
     import flash.display3D.Context3D;
+    import flash.display3D.Context3DCompareMode;
+    import flash.display3D.Context3DTriangleFace;
     import flash.display3D.Program3D;
     import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
@@ -354,6 +356,9 @@ package starling.core
             
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);
+            
+            mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
+            mContext.setCulling(Context3DTriangleFace.NONE);
             
             mSupport.setOrthographicProjection(0, 0, mStage.stageWidth, mStage.stageHeight);
             mSupport.renderTarget = null; // back buffer
