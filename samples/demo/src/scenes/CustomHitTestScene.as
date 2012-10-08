@@ -11,7 +11,7 @@ package scenes
         public function CustomHitTestScene()
         {
             var description:String = 
-                "Pushing the egg only works when the touch occurs within a circle." + 
+                "Pushing the bird only works when the touch occurs within a circle." + 
                 "This can be accomplished by overriding the method 'hitTest'.";
             
             var infoText:TextField = new TextField(300, 100, description);
