@@ -6,7 +6,9 @@ package
     
     import scenes.AnimationScene;
     import scenes.BenchmarkScene;
+    import scenes.BlendModeScene;
     import scenes.CustomHitTestScene;
+    import scenes.FilterScene;
     import scenes.MovieScene;
     import scenes.RenderTextureScene;
     import scenes.Scene;
@@ -66,8 +68,10 @@ package
                 ["Animations", AnimationScene],
                 ["Custom hit-test", CustomHitTestScene],
                 ["Movie Clip", MovieScene],
-                ["Benchmark", BenchmarkScene],
-                ["Render Texture", RenderTextureScene]
+                ["Filters", FilterScene],
+                ["Blend Modes", BlendModeScene],
+                ["Render Texture", RenderTextureScene],
+                ["Benchmark", BenchmarkScene]
             ];
             
             var buttonTexture:Texture = Assets.getTexture("ButtonBig");
@@ -80,7 +84,7 @@ package
                 
                 var button:Button = new Button(buttonTexture, sceneTitle);
                 button.x = count % 2 == 0 ? 28 : 167;
-                button.y = 180 + int(count / 2) * 52;
+                button.y = 160 + int(count / 2) * 52;
                 button.name = getQualifiedClassName(sceneClass);
                 button.addEventListener(Event.TRIGGERED, onButtonTriggered);
                 mMainMenu.addChild(button);

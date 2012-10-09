@@ -33,15 +33,11 @@ package starling.core
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         private var mDrawCount:int;
-        
+        private var mRenderTarget:Texture;
         private var mBlendMode:String;
-        private var mBlendModeStack:Vector.<String>;
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
-        
-        /** Helper object. */
-        private static var sHelperMatrix:Matrix = new Matrix();
         
         // construction
         
@@ -55,15 +51,14 @@ package starling.core
             mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
             mDrawCount = 0;
-            
+            mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
-            mBlendModeStack = new <String>[];
             
             mCurrentQuadBatchID = 0;
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
-            setOrthographicProjection(400, 300);
+            setOrthographicProjection(0, 0, 400, 300);
         }
         
         /** Disposes all quad batches. */
@@ -76,9 +71,10 @@ package starling.core
         // matrix manipulation
         
         /** Sets up the projection matrix for ortographic 2D rendering. */
-        public function setOrthographicProjection(width:Number, height:Number):void
+        public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
         {
-            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, -1.0, 1.0);
+            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
+                -(2*x + width) / width, (2*y + height) / height);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
@@ -105,10 +101,16 @@ package starling.core
             MatrixUtil.prependScale(mModelViewMatrix, sx, sy);
         }
         
+        /** Prepends a matrix to the modelview matrix by multiplying it another matrix. */
+        public function prependMatrix(matrix:Matrix):void
+        {
+            MatrixUtil.prependMatrix(mModelViewMatrix, matrix);
+        }
+        
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
         public function transformMatrix(object:DisplayObject):void
         {
-            transformMatrixForObject(mModelViewMatrix, object);   
+            MatrixUtil.prependMatrix(mModelViewMatrix, object.transformationMatrix);
         }
         
         /** Pushes the current modelview matrix to a stack from which it can be restored later. */
@@ -133,6 +135,12 @@ package starling.core
             loadIdentity();
         }
         
+        /** Prepends translation, scale and rotation of an object to a custom matrix. */
+        public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
+        {
+            MatrixUtil.prependMatrix(matrix, object.transformationMatrix);
+        }
+        
         /** Calculates the product of modelview and projection matrix. 
          *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
         public function get mvpMatrix():Matrix
@@ -149,46 +157,39 @@ package starling.core
             return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
         }
         
-        /** Prepends translation, scale and rotation of an object to a custom matrix. */
-        public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
-        {
-            sHelperMatrix.copyFrom(object.transformationMatrix);
-            sHelperMatrix.concat(matrix);
-            matrix.copyFrom(sHelperMatrix);
-        }
+        /** Returns the current modelview matrix. CAUTION: not a copy -- use with care! */
+        public function get modelViewMatrix():Matrix { return mModelViewMatrix; }
+        
+        /** Returns the current projection matrix. CAUTION: not a copy -- use with care! */
+        public function get projectionMatrix():Matrix { return mProjectionMatrix; }
         
         // blending
         
-        /** Pushes the current blend mode to a stack from which it can be restored later. */
-        public function pushBlendMode():void
-        {
-            mBlendModeStack.push(mBlendMode);
-        }
-        
-        /** Restores the blend mode that was last pushed to the stack. */
-        public function popBlendMode():void
-        {
-            mBlendMode = mBlendModeStack.pop();
-        }
-        
-        /** Clears the blend mode stack and restores NORMAL blend mode. */
-        public function resetBlendMode():void
-        {
-            mBlendModeStack.length = 0;
-            mBlendMode = BlendMode.NORMAL;
-        }
-        
-        /** Activates the appropriate blend factors on the current rendering context. */
+        /** Activates the current blend mode on the active rendering context. */
         public function applyBlendMode(premultipliedAlpha:Boolean):void
         {
             setBlendFactors(premultipliedAlpha, mBlendMode);
         }
         
-        /** The blend mode to be used on rendering. */
+        /** The blend mode to be used on rendering. To apply the factor, you have to manually call
+         *  'applyBlendMode' (because the actual blend factors depend on the PMA mode). */
         public function get blendMode():String { return mBlendMode; }
         public function set blendMode(value:String):void
         {
             if (value != BlendMode.AUTO) mBlendMode = value;
+        }
+        
+        // render targets
+        
+        /** The texture that is currently being rendered into, or 'null' to render into the 
+         *  back buffer. If you set a new target, it is immediately activated. */
+        public function get renderTarget():Texture { return mRenderTarget; }
+        public function set renderTarget(target:Texture):void 
+        {
+            mRenderTarget = target;
+            
+            if (target) Starling.context.setRenderToTexture(target.base);
+            else        Starling.context.setRenderToBackBuffer();
         }
         
         // optimized quad rendering
@@ -226,11 +227,11 @@ package starling.core
             }
         }
         
-        /** Resets the matrix and blend mode stacks, the quad batch index, and the draw count. */
+        /** Resets matrix stack, blend mode, quad batch index, and draw count. */
         public function nextFrame():void
         {
             resetMatrix();
-            resetBlendMode();
+            mBlendMode = BlendMode.NORMAL;
             mCurrentQuadBatchID = 0;
             mDrawCount = 0;
         }
@@ -258,6 +259,12 @@ package starling.core
                 Color.getGreen(rgb) / 255.0, 
                 Color.getBlue(rgb)  / 255.0,
                 alpha);
+        }
+        
+        /** Clears the render context with a certain color and alpha value. */
+        public function clear(rgb:uint=0, alpha:Number=0.0):void
+        {
+            RenderSupport.clear(rgb, alpha);
         }
         
         // statistics

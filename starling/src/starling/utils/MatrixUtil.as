@@ -19,6 +19,7 @@ package starling.utils
     /** A utility class containing methods related to the Matrix class. */
     public class MatrixUtil
     {
+        /** Helper object. */
         private static var sRawData:Vector.<Number> = 
             new <Number>[1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1];
         
@@ -64,15 +65,27 @@ package starling.utils
             var d:Number    = matrix.d;
             var tx:Number   = matrix.tx;
             var ty:Number   = matrix.ty;
-            var tanX:Number = Math.tan(skewX);
-            var tanY:Number = Math.tan(skewY);
             
-            matrix.a  = a  +  b * tanX;
-            matrix.b  = b  +  a * tanY;
-            matrix.c  = c  +  d * tanX;
-            matrix.d  = d  +  c * tanY;
-            matrix.tx = tx + ty * tanX;
-            matrix.ty = ty + tx * tanY;
+            var sinX:Number = Math.sin(skewX);
+            var cosX:Number = Math.cos(skewX);
+            var sinY:Number = Math.sin(skewY);
+            var cosY:Number = Math.cos(skewY);
+            
+            matrix.a = a * cosY + c * sinY;
+            matrix.b = b * cosY + d * sinY;
+            matrix.c = c * cosX - a * sinX;
+            matrix.d = d * cosX - b * sinX;
+        }
+        
+        /** Prepends a matrix to 'base' by multiplying it with another matrix. */
+        public static function prependMatrix(base:Matrix, prep:Matrix):void
+        {
+            base.setTo(base.a * prep.a + base.c * prep.b,
+                       base.b * prep.a + base.d * prep.b,
+                       base.a * prep.c + base.c * prep.d,
+                       base.b * prep.c + base.d * prep.d,
+                       base.tx + base.a * prep.tx + base.c * prep.ty,
+                       base.ty + base.b * prep.tx + base.d * prep.ty);
         }
         
         /** Prepends an incremental translation to a Matrix object. */

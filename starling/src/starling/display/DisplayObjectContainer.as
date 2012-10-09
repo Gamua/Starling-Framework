@@ -20,6 +20,7 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
     import starling.utils.MatrixUtil;
     
     use namespace starling_internal;
@@ -109,10 +110,16 @@ package starling.display
         /** Adds a child to the container at a certain index. */
         public function addChildAt(child:DisplayObject, index:int):DisplayObject
         {
+            var numChildren:int = mChildren.length; 
+            
             if (index >= 0 && index <= numChildren)
             {
                 child.removeFromParent();
-                mChildren.splice(index, 0, child);
+                
+                // 'splice' creates a temporary object, so we avoid it if it's not necessary
+                if (index == numChildren) mChildren.push(child);
+                else                      mChildren.splice(index, 0, child);
+                
                 child.setParent(this);
                 child.dispatchEventWith(Event.ADDED, true);
                 
@@ -316,28 +323,25 @@ package starling.display
         {
             var alpha:Number = parentAlpha * this.alpha;
             var numChildren:int = mChildren.length;
+            var blendMode:String = support.blendMode;
             
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = mChildren[i];
+                
                 if (child.hasVisibleArea)
                 {
-                    var blendMode:String = child.blendMode;
-                    var blendModeChange:Boolean = blendMode != BlendMode.AUTO;
-                    
-                    if (blendModeChange)
-                    {
-                        support.pushBlendMode();
-                        support.blendMode = blendMode;
-                    }
+                    var filter:FragmentFilter = child.filter;
 
                     support.pushMatrix();
                     support.transformMatrix(child);
-                    child.render(support, alpha);
-                    support.popMatrix();
+                    support.blendMode = child.blendMode;
                     
-                    if (blendModeChange)
-                        support.popBlendMode();
+                    if (filter) filter.render(child, support, alpha);
+                    else        child.render(support, alpha);
+                    
+                    support.blendMode = blendMode;
+                    support.popMatrix();
                 }
             }
         }

@@ -154,7 +154,7 @@ package starling.events
             if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); chain[0] = element; }
             else chain = new <EventDispatcher>[element];
             
-            while (element = element.parent)
+            while ((element = element.parent) != null)
                 chain[length++] = element;
 
             for (var i:int=0; i<length; ++i)

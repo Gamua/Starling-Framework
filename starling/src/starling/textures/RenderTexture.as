@@ -12,6 +12,7 @@ package starling.textures
 {
     import flash.display3D.Context3D;
     import flash.display3D.textures.TextureBase;
+    import flash.geom.Matrix;
     import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
@@ -56,14 +57,20 @@ package starling.textures
      */
     public class RenderTexture extends Texture
     {
+        private const PMA:Boolean = true;
+        
         private var mActiveTexture:Texture;
         private var mBufferTexture:Texture;
         private var mHelperImage:Image;
         private var mDrawing:Boolean;
+        private var mBufferReady:Boolean;
         
         private var mNativeWidth:int;
         private var mNativeHeight:int;
         private var mSupport:RenderSupport;
+        
+        /** helper object */
+        private static var sScissorRect:Rectangle = new Rectangle();
         
         /** Creates a new RenderTexture with a certain size. If the texture is persistent, the
          *  contents of the texture remains intact after each draw call, allowing you to use the
@@ -74,14 +81,16 @@ package starling.textures
         {
             if (scale <= 0) scale = Starling.contentScaleFactor; 
             
-            mSupport = new RenderSupport();
             mNativeWidth  = getNextPowerOfTwo(width  * scale);
             mNativeHeight = getNextPowerOfTwo(height * scale);
-            mActiveTexture = Texture.empty(width, height, 0x0, true, scale);
+            mActiveTexture = Texture.empty(width, height, PMA, true, scale);
+            
+            mSupport = new RenderSupport();
+            mSupport.setOrthographicProjection(0, 0, mNativeWidth/scale, mNativeHeight/scale);
             
             if (persistent)
             {
-                mBufferTexture = Texture.empty(width, height, 0x0, true, scale);
+                mBufferTexture = Texture.empty(width, height, PMA, true, scale);
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
@@ -101,9 +110,17 @@ package starling.textures
             super.dispose();
         }
         
-        /** Draws an object onto the texture, adhering its properties for position, scale, rotation 
-         *  and alpha. */
-        public function draw(object:DisplayObject, antiAliasing:int=0):void
+        /** Draws an object into the texture.
+         * 
+         *  @param object       The object to draw.
+         *  @param matrix       If 'matrix' is null, the object will be drawn adhering its 
+         *                      properties for position, scale, and rotation. If it is not null,
+         *                      the object will be drawn in the orientation depicted by the matrix.
+         *  @param alpha        The object's alpha value will be multiplied with this value.
+         *  @param antiAliasing This parameter is currently ignored by Stage3D.
+         */
+        public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0, 
+                             antiAliasing:int=0):void
         {
             if (object == null) return;
             
@@ -114,15 +131,13 @@ package starling.textures
             
             function render():void
             {
-                mSupport.pushMatrix();
-                mSupport.pushBlendMode();
-                
+                mSupport.loadIdentity();
                 mSupport.blendMode = object.blendMode;
-                mSupport.transformMatrix(object);            
-                object.render(mSupport, 1.0);
                 
-                mSupport.popMatrix();
-                mSupport.popBlendMode();
+                if (matrix) mSupport.prependMatrix(matrix);
+                else        mSupport.transformMatrix(object);
+                
+                object.render(mSupport, alpha);
             }
         }
         
@@ -135,8 +150,8 @@ package starling.textures
             if (context == null) throw new MissingContextError();
             
             // limit drawing to relevant area
-            context.setScissorRectangle(
-                new Rectangle(0, 0, mActiveTexture.width * scale, mActiveTexture.height * scale));
+            sScissorRect.setTo(0, 0, mActiveTexture.width * scale, mActiveTexture.height * scale);
+            context.setScissorRectangle(sScissorRect)
             
             // persistent drawing uses double buffering, as Molehill forces us to call 'clear'
             // on every render target once per update.
@@ -150,15 +165,14 @@ package starling.textures
                 mHelperImage.texture = mBufferTexture;
             }
             
-            context.setRenderToTexture(mActiveTexture.base, false, antiAliasing);
-            RenderSupport.clear();
-            
-            mSupport.setOrthographicProjection(mNativeWidth/scale, mNativeHeight/scale);
-            mSupport.applyBlendMode(true);
+            mSupport.renderTarget = mActiveTexture;
+            mSupport.clear();
             
             // draw buffer
-            if (isPersistent)
+            if (isPersistent && mBufferReady)
                 mHelperImage.render(mSupport, 1.0);
+            else
+                mBufferReady = true;
             
             try
             {
@@ -173,8 +187,8 @@ package starling.textures
                 mDrawing = false;
                 mSupport.finishQuadBatch();
                 mSupport.nextFrame();
+                mSupport.renderTarget = null;
                 context.setScissorRectangle(null);
-                context.setRenderToBackBuffer();
             }
         }
         
@@ -184,16 +198,9 @@ package starling.textures
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            context.setRenderToTexture(mActiveTexture.base);
-            RenderSupport.clear();
-
-            if (isPersistent)
-            {
-                context.setRenderToTexture(mActiveTexture.base);
-                RenderSupport.clear();
-            }
-            
-            context.setRenderToBackBuffer();
+            mSupport.renderTarget = mActiveTexture;
+            mSupport.clear();
+            mSupport.renderTarget = null;
         }
         
         /** @inheritDoc */
@@ -213,12 +220,9 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get scale():Number { return mActiveTexture.scale; }
-        
+ 
         /** @inheritDoc */
-        public override function get premultipliedAlpha():Boolean 
-        { 
-            return mActiveTexture.premultipliedAlpha; 
-        }
+        public override function get premultipliedAlpha():Boolean { return PMA; }
         
         /** @inheritDoc */
         public override function get base():TextureBase 

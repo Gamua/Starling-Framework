@@ -1,7 +1,7 @@
 Starling: Changelog
 ===================
 
-version 1.2 - 2012-07-24
+version 1.2 - 2012-08-15
 ------------------------
 
 - added enhanced event system with automatic event pooling and new 'dispatchEventWith' method
@@ -38,6 +38,8 @@ version 1.2 - 2012-07-24
 - optimized bitmap char arrangement by moving color assignment out of the loop
 - optimized bitmap char arrangement by pooling char location objects
 - optimized abstract class check (now only done in debug player)
+- optimized 'advanceTime' method in Juggler
+- optimized MovieClip constructor
 - fixed wrong char arrangement when last bitmap char is missing (thanks to qoolbox)
 - fixed handling of touches that begin outside the viewport
 - fixed wrong 'tinted' value when setting color to white
@@ -48,6 +50,7 @@ version 1.2 - 2012-07-24
 - fixed memory leak when using Juggler.purge (thanks to vync79)
 - fixed leak when computing display object's transformation matrix (thanks to Fraggle)
 - fixed error caused by removal of sibling in REMOVED_FROM_STAGE event (thanks to Josh)
+- fixed that ROOT_CREATED was sometimes dispatched in wrong situations (thanks to Alex and Marc)
 
 version 1.1 - 2012-05-06
 ------------------------
