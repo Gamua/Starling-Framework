@@ -8,6 +8,8 @@ package
 	import flash.events.Event;
 	import flash.utils.getDefinitionByName;
 	
+	import starling.utils.Color;
+	
 	public class Preloader extends MovieClip
 	{
         private const STARTUP_CLASS:String = "Startup";
@@ -63,13 +65,15 @@ package
             var angleDelta:Number = Math.PI * 2 / elements;
             var x:Number, y:Number;
             var innerRadius:Number = radius / 4;
+            var color:uint;
             
             for (var i:int=0; i<elements; ++i)
             {
                 x = Math.cos(angleDelta * i) * radius;
                 y = Math.sin(angleDelta * i) * radius;
+                color = (i+1) / elements * 255;
                 
-                shape.graphics.beginFill(0x0, (i+1) / elements);
+                shape.graphics.beginFill(Color.rgb(color, color, color));
                 shape.graphics.drawCircle(x, y, innerRadius);
                 shape.graphics.endFill();
             }
