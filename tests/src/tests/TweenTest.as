@@ -13,6 +13,7 @@ package tests
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
     import starling.animation.Transitions;
@@ -153,6 +154,30 @@ package tests
         public function testZeroTween():void
         {
             executeTween(0.0, 0.1);
+        }
+        
+        [Test]
+        public function testCustomTween():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0, transition);
+            tween.animate("x", 100);
+            
+            tween.advanceTime(0.1);
+            assertThat(quad.x, closeTo(10, E));
+            
+            tween.advanceTime(0.5);
+            assertThat(quad.x, closeTo(60, E));
+            
+            tween.advanceTime(0.4);
+            assertThat(quad.x, closeTo(100, E));
+            
+            assertEquals("custom", tween.transition);
+            
+            function transition(ratio:Number):Number
+            {
+                return ratio;
+            }
         }
         
         private function executeTween(time:Number, advanceTime:Number):void

@@ -43,7 +43,9 @@ package starling.animation
     public class Tween extends EventDispatcher implements IAnimatable
     {
         private var mTarget:Object;
-        private var mTransition:String;
+        private var mTransitionFunc:Function;
+        private var mTransitionName:String;
+        
         private var mProperties:Vector.<String>;
         private var mStartValues:Vector.<Number>;
         private var mEndValues:Vector.<Number>;
@@ -61,23 +63,40 @@ package starling.animation
         private var mDelay:Number;
         private var mRoundToInt:Boolean;
         
-        /** Creates a tween with a target, duration (in seconds) and a transition function. */
-        public function Tween(target:Object, time:Number, transition:String="linear")        
+        /** Creates a tween with a target, duration (in seconds) and a transition function. 
+         *  @param transition can be either a String (e.g. one of the constants defined in the
+         *         Transitions class) or a function. Look up the 'Transitions' class for a   
+         *         documentation about the required function signature. */ 
+        public function Tween(target:Object, time:Number, transition:Object="linear")        
         {
              reset(target, time, transition);
         }
 
         /** Resets the tween to its default values. Useful for pooling tweens. */
-        public function reset(target:Object, time:Number, transition:String="linear"):Tween
+        public function reset(target:Object, time:Number, transition:Object="linear"):Tween
         {
             mTarget = target;
             mCurrentTime = 0;
             mTotalTime = Math.max(0.0001, time);
             mDelay = 0;
-            mTransition = transition;
             mRoundToInt = false;
             mOnStart = mOnUpdate = mOnComplete = null;
-            mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null; 
+            mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null;
+            
+            if (transition is String)
+            {
+                mTransitionName = transition as String;
+                mTransitionFunc = Transitions.getTransition(mTransitionName);
+                
+                if (mTransitionFunc == null)
+                    throw new ArgumentError("Invalid transiton: " + mTransitionName);
+            }
+            else if (transition is Function)
+            {
+                mTransitionFunc = transition as Function;
+                mTransitionName = "custom";
+            }
+            else throw new ArgumentError("Transition must be either a string or a function");
             
             if (mProperties)  mProperties.length  = 0; else mProperties  = new <String>[];
             if (mStartValues) mStartValues.length = 0; else mStartValues = new <Number>[];
@@ -143,8 +162,7 @@ package starling.animation
                 var endValue:Number = mEndValues[i];
                 var delta:Number = endValue - startValue;
                 
-                var transitionFunc:Function = Transitions.getTransition(mTransition);                
-                var currentValue:Number = startValue + transitionFunc(ratio) * delta;
+                var currentValue:Number = startValue + mTransitionFunc(ratio) * delta;
                 if (mRoundToInt) currentValue = Math.round(currentValue);
                 mTarget[mProperties[i]] = currentValue;
             }
@@ -166,7 +184,7 @@ package starling.animation
         public function get target():Object { return mTarget; }
         
         /** The transition method used for the animation. @see Transitions */
-        public function get transition():String { return mTransition; }
+        public function get transition():String { return mTransitionName; }
         
         /** The total time the tween will take (in seconds). */
         public function get totalTime():Number { return mTotalTime; }
