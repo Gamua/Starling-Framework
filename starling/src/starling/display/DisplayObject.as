@@ -461,7 +461,6 @@ package starling.display
             scaleX = 1.0;
             var actualWidth:Number = width;
             if (actualWidth != 0.0) scaleX = value / actualWidth;
-            else                    scaleX = 1.0;
         }
         
         /** The height of the object in pixels. */
@@ -471,7 +470,6 @@ package starling.display
             scaleY = 1.0;
             var actualHeight:Number = height;
             if (actualHeight != 0.0) scaleY = value / actualHeight;
-            else                     scaleY = 1.0;
         }
         
         /** The x coordinate of the object relative to the local coordinates of the parent. */
