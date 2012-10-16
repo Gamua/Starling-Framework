@@ -8,6 +8,7 @@ package
     
     import tests.BlendModeTest;
     import tests.ColorTest;
+    import tests.DelayedCallTest;
     import tests.DisplayObjectContainerTest;
     import tests.DisplayObjectTest;
     import tests.EventTest;
@@ -44,6 +45,7 @@ package
             testsToRun.push(tests.BlendModeTest);
             testsToRun.push(tests.TextureTest);
             testsToRun.push(tests.DisplayObjectContainerTest);
+            testsToRun.push(tests.DelayedCallTest);
             testsToRun.push(tests.MovieClipTest);
             testsToRun.push(tests.UtilsTest);
             testsToRun.push(tests.JugglerTest);
