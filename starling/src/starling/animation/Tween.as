@@ -90,19 +90,11 @@ package starling.animation
             mCurrentCycle = -1;
             
             if (transition is String)
-            {
-                mTransitionName = transition as String;
-                mTransitionFunc = Transitions.getTransition(mTransitionName);
-                
-                if (mTransitionFunc == null)
-                    throw new ArgumentError("Invalid transiton: " + mTransitionName);
-            }
+                this.transition = transition as String;
             else if (transition is Function)
-            {
-                mTransitionFunc = transition as Function;
-                mTransitionName = "custom";
-            }
-            else throw new ArgumentError("Transition must be either a string or a function");
+                this.transitionFunc = transition as Function;
+            else 
+                throw new ArgumentError("Transition must be either a string or a function");
             
             if (mProperties)  mProperties.length  = 0; else mProperties  = new <String>[];
             if (mStartValues) mStartValues.length = 0; else mStartValues = new <Number>[];
@@ -195,8 +187,8 @@ package starling.animation
                 }
                 else
                 {
-                    dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
                     if (mOnComplete != null) mOnComplete.apply(null, mOnCompleteArgs);
+                    dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
                 }
             }
             
@@ -215,8 +207,24 @@ package starling.animation
         
         /** The transition method used for the animation. @see Transitions */
         public function get transition():String { return mTransitionName; }
+        public function set transition(value:String):void 
+        { 
+            mTransitionName = value;
+            mTransitionFunc = Transitions.getTransition(value);
+            
+            if (mTransitionFunc == null)
+                throw new ArgumentError("Invalid transiton: " + value);
+        }
         
-        /** The total time the tween will take (in seconds). */
+        /** The actual transition function used for the animation. */
+        public function get transitionFunc():Function { return mTransitionFunc; }
+        public function set transitionFunc(value:Function):void
+        {
+            mTransitionName = "custom";
+            mTransitionFunc = value;
+        }
+        
+        /** The total time the tween will take per repetition (in seconds). */
         public function get totalTime():Number { return mTotalTime; }
         
         /** The time that has passed since the tween was created. */
@@ -267,5 +275,29 @@ package starling.animation
         /** The arguments that will be passed to the 'onComplete' function. */
         public function get onCompleteArgs():Array { return mOnCompleteArgs; }
         public function set onCompleteArgs(value:Array):void { mOnCompleteArgs = value; }
+        
+        // tween pooling
+        
+        private static var sTweenPool:Vector.<Tween> = new <Tween>[];
+        
+        /** @private */
+        starling_internal static function fromPool(target:Object, time:Number, 
+                                                   transition:Object="linear"):Tween
+        {
+            if (sTweenPool.length) return sTweenPool.pop().reset(target, time, transition);
+            else return new Tween(target, time, transition);
+        }
+        
+        /** @private */
+        starling_internal static function toPool(tween:Tween):void
+        {
+            // reset any object-references, to make sure we don't prevent any garbage collection
+            tween.mOnStart = tween.mOnUpdate = tween.mOnComplete = null;
+            tween.mOnStartArgs = tween.mOnUpdateArgs = tween.mOnCompleteArgs = null;
+            tween.mTarget = null;
+            tween.mTransitionFunc = null;
+            tween.removeEventListeners();
+            sTweenPool.push(tween);
+        }
     }
 }

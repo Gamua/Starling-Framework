@@ -10,6 +10,7 @@
 
 package starling.animation
 {
+    import starling.core.starling_internal;
     import starling.events.Event;
     import starling.events.EventDispatcher;
 
@@ -113,6 +114,46 @@ package starling.animation
             var delayedCall:DelayedCall = new DelayedCall(call, delay, args);
             add(delayedCall);
             return delayedCall;
+        }
+        
+        /** Utilizes a tween to animate the target object over a certain time. Internally, this
+         *  method uses a tween instance (taken from an object pool) that is added to the
+         *  juggler right away. This method provides a convenient alternative for creating 
+         *  and adding a tween manually.
+         *  
+         *  <p>Fill 'properties' with key-value pairs that describe both the 
+         *  tween and the animation target. Here is an example:</p>
+         *  
+         *  <pre>
+         *  juggler.tween(object, 2.0, {
+         *      delay: 20, // -> tween.delay = 20
+         *      x: 50      // -> tween.animate("x", 50)
+         *  });
+         *  </pre> 
+         */
+        public function tween(target:Object, time:Number, properties:Object):void
+        {
+            var tween:Tween = Tween.starling_internal::fromPool(target, time);
+            
+            for (var property:String in properties)
+            {
+                var value:Object = properties[property];
+                
+                if (tween.hasOwnProperty(property))
+                    tween[property] = value;
+                else if (target.hasOwnProperty(property))
+                    tween.animate(property, value as Number);
+                else
+                    throw new ArgumentError("Invalid property: " + property);
+            }
+            
+            tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
+            add(tween);
+        }
+        
+        private function onPooledTweenComplete(event:Event):void
+        {
+            Tween.starling_internal::toPool(event.target as Tween);
         }
         
         /** Advances all objects by a certain time (in seconds). */
