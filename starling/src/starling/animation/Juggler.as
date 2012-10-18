@@ -201,6 +201,10 @@ package starling.animation
         private function onRemove(event:Event):void
         {
             remove(event.target as IAnimatable);
+            
+            var tween:Tween = event.target as Tween;
+            if (tween && tween.isComplete)
+                add(tween.nextTween);
         }
         
         /** The total life time of the juggler. */

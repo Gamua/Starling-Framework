@@ -63,7 +63,7 @@ package starling.animation
         private var mCurrentTime:Number;
         private var mDelay:Number;
         private var mRoundToInt:Boolean;
-        
+        private var mNextTween:Tween;
         private var mRepeatCount:int;
         private var mReverse:Boolean;
         private var mCurrentCycle:int;
@@ -276,6 +276,11 @@ package starling.animation
         /** The arguments that will be passed to the 'onComplete' function. */
         public function get onCompleteArgs():Array { return mOnCompleteArgs; }
         public function set onCompleteArgs(value:Array):void { mOnCompleteArgs = value; }
+        
+        /** Another tween that will be started (i.e. added to the same juggler) as soon as 
+         *  this tween is completed. */
+        public function get nextTween():Tween { return mNextTween; }
+        public function set nextTween(value:Tween):void { mNextTween = value; }
         
         // tween pooling
         
