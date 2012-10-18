@@ -61,6 +61,9 @@ package starling.events
         private var mCtrlKey:Boolean;
         private var mTimestamp:Number;
         
+        /** Helper object. */
+        private static var sTouches:Vector.<Touch> = new <Touch>[];
+        
         /** Creates a new TouchEvent instance. */
         public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
@@ -78,10 +81,13 @@ package starling.events
                     mTimestamp = touches[i].timestamp;
         }
         
-        /** Returns a list of touches that originated over a certain target. */
-        public function getTouches(target:DisplayObject, phase:String=null):Vector.<Touch>
+        /** Returns a list of touches that originated over a certain target. If you pass a
+         *  'result' vector, the touches will be added to this vector instead of creating a new 
+         *  object. */
+        public function getTouches(target:DisplayObject, phase:String=null,
+                                   result:Vector.<Touch>=null):Vector.<Touch>
         {
-            var touchesFound:Vector.<Touch> = new <Touch>[];
+            if (result == null) result = new <Touch>[];
             var numTouches:int = mTouches.length;
             
             for (var i:int=0; i<numTouches; ++i)
@@ -93,16 +99,21 @@ package starling.events
                 var correctPhase:Boolean = (phase == null || phase == touch.phase);
                     
                 if (correctTarget && correctPhase)
-                    touchesFound.push(touch);
+                    result.push(touch);
             }
-            return touchesFound;
+            return result;
         }
         
         /** Returns a touch that originated over a certain target. */
         public function getTouch(target:DisplayObject, phase:String=null):Touch
         {
-            var touchesFound:Vector.<Touch> = getTouches(target, phase);
-            if (touchesFound.length > 0) return touchesFound[0];
+            getTouches(target, phase, sTouches);
+            if (sTouches.length) 
+            {
+                var touch:Touch = sTouches[0];
+                sTouches.length = 0;
+                return touch;
+            }
             else return null;
         }
         
