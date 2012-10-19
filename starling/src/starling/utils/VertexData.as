@@ -108,12 +108,13 @@ package starling.utils
         {
             mRawData.fixed = false;
             
+            var targetIndex:int = mRawData.length;
             var rawData:Vector.<Number> = data.mRawData;
             var rawDataLength:int = rawData.length;
             
             for (var i:int=0; i<rawDataLength; ++i)
-                mRawData.push(rawData[i]);
-                
+                mRawData[targetIndex++] = rawData[i];
+            
             mNumVertices += data.numVertices;
             mRawData.fixed = true;
         }
