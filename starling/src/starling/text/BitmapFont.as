@@ -67,9 +67,10 @@ package starling.text
         /** The font name of the embedded minimal bitmap font. Use this e.g. for debug output. */
         public static const MINI:String = "mini";
         
-        private static const CHAR_SPACE:int   = 32;
-        private static const CHAR_TAB:int     =  9;
-        private static const CHAR_NEWLINE:int = 10;
+        private static const CHAR_SPACE:int           = 32;
+        private static const CHAR_TAB:int             =  9;
+        private static const CHAR_NEWLINE:int         = 10;
+        private static const CHAR_CARRIAGE_RETURN:int = 13;
         
         private var mTexture:Texture;
         private var mChars:Dictionary;
@@ -259,7 +260,7 @@ package starling.text
                         var charID:int = text.charCodeAt(i);
                         var char:BitmapChar = getChar(charID);
                         
-                        if (charID == CHAR_NEWLINE)
+                        if (charID == CHAR_NEWLINE || charID == CHAR_CARRIAGE_RETURN)
                         {
                             lineFull = true;
                         }
