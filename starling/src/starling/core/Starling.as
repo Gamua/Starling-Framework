@@ -476,7 +476,7 @@ package starling.core
             mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stage.stageWidth, stage.stageHeight));
         }
 
-        private function onTouch(event:Event):void
+        protected function onTouch(event:Event):void
         {
             if (!mStarted) return;
             

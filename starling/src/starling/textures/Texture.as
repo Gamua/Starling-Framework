@@ -1,6 +1,6 @@
 // =================================================================================================
 //
-//	Starling Framework
+//    Starling Framework
 //	Copyright 2011 Gamua OG. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
@@ -163,7 +163,7 @@ package starling.textures
         
         /** Creates a texture from the compressed ATF format. 
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */ 
-        public static function fromAtfData(data:ByteArray, scale:Number=1):Texture
+        public static function fromAtfData(data:ByteArray, scale:Number=1, async:Boolean=true):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -172,7 +172,7 @@ package starling.textures
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                     atfData.width, atfData.height, atfData.format, false);
             
-            uploadAtfData(nativeTexture, data);
+            uploadAtfData(nativeTexture, data, 0, async);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
                 atfData.width, atfData.height, atfData.numTextures > 1, false, false, scale);
@@ -290,9 +290,19 @@ package starling.textures
         
         /** Uploads ATF data from a ByteArray to a native texture. */
         internal static function uploadAtfData(nativeTexture:flash.display3D.textures.Texture, 
-                                               data:ByteArray, offset:int=0):void
+                                               data:ByteArray, offset:int=0, async:Boolean = true):void
         {
-            nativeTexture.uploadCompressedTextureFromByteArray(data, offset);
+            var callFunc:Function = nativeTexture.uploadCompressedTextureFromByteArray;
+            if(callFunc.length>2)
+            {
+                nativeTexture.uploadCompressedTextureFromByteArray.apply(null,[data, offset, async]);
+            }
+            else
+            {
+                nativeTexture.uploadCompressedTextureFromByteArray.apply(null,[data, offset]);
+            }
+                
+            
         }
         
         // properties
