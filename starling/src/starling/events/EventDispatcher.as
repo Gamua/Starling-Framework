@@ -52,7 +52,7 @@ package starling.events
             if (mEventListeners == null)
                 mEventListeners = new Dictionary();
             
-            var listeners:Vector.<Function> = mEventListeners[type];
+            var listeners:Vector.<Function> = mEventListeners[type] as Vector.<Function>;
             if (listeners == null)
                 mEventListeners[type] = new <Function>[listener];
             else if (listeners.indexOf(listener) == -1) // check for duplicates
@@ -64,7 +64,7 @@ package starling.events
         {
             if (mEventListeners)
             {
-                var listeners:Vector.<Function> = mEventListeners[type];
+                var listeners:Vector.<Function> = mEventListeners[type] as Vector.<Function>;
                 if (listeners)
                 {
                     var numListeners:int = listeners.length;
@@ -110,7 +110,11 @@ package starling.events
         
         private function invoke(event:Event):Boolean
         {
-            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[event.type] : null;
+            var listeners:Vector.<Function>;
+            if(mEventListeners)
+            {
+                listeners = mEventListeners[event.type] as Vector.<Function>;
+            }
             var numListeners:int = listeners == null ? 0 : listeners.length;
             
             if (numListeners)
@@ -183,7 +187,11 @@ package starling.events
         /** Returns if there are listeners registered for a certain event type. */
         public function hasEventListener(type:String):Boolean
         {
-            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[type] : null;
+            var listeners:Vector.<Function>;
+            if(mEventListeners)
+            {
+                listeners = mEventListeners[type] as Vector.<Function>;
+            }
             return listeners ? listeners.length != 0 : false;
         }
     }
