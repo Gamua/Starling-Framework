@@ -49,9 +49,9 @@ package starling.animation
             {                
                 mCall.apply(null, mArgs);
                 
-                if (mRepeatCount > 1)
+                if (mRepeatCount == 0 || mRepeatCount > 1)
                 {
-                    mRepeatCount -= 1;
+                    if (mRepeatCount > 0) mRepeatCount -= 1;
                     mCurrentTime = 0;
                     advanceTime((previousTime + time) - mTotalTime);
                 }
@@ -74,7 +74,8 @@ package starling.animation
         /** The time that has already passed (in seconds). */
         public function get currentTime():Number { return mCurrentTime; }
         
-        /** The number of times the call will be repeated. */
+        /** The number of times the call will be repeated. 
+         *  Set to '0' to repeat indefinitely. @default 1 */
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
     }

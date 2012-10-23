@@ -13,6 +13,9 @@ package tests
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
     
     import starling.animation.Transitions;
@@ -153,6 +156,114 @@ package tests
         public function testZeroTween():void
         {
             executeTween(0.0, 0.1);
+        }
+        
+        [Test]
+        public function testCustomTween():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0, transition);
+            tween.animate("x", 100);
+            
+            tween.advanceTime(0.1);
+            assertThat(quad.x, closeTo(10, E));
+            
+            tween.advanceTime(0.5);
+            assertThat(quad.x, closeTo(60, E));
+            
+            tween.advanceTime(0.4);
+            assertThat(quad.x, closeTo(100, E));
+            
+            assertEquals("custom", tween.transition);
+            
+            function transition(ratio:Number):Number
+            {
+                return ratio;
+            }
+        }
+        
+        [Test]
+        public function testRepeatedTween():void
+        {
+            var startCount:int = 0;
+            var completeCount:int = 0;
+            
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.repeatCount = 3;
+            tween.onStart = onStart;
+            tween.onComplete = onComplete;
+            tween.animate("x", 100);
+            
+            tween.advanceTime(1.5);
+            assertThat(quad.x, closeTo(50, E));
+            assertEquals(tween.repeatCount, 2);
+            assertEquals(startCount, 1);
+            assertEquals(completeCount, 0);
+            
+            tween.advanceTime(0.75);
+            assertThat(quad.x, closeTo(25, E));
+            assertEquals(tween.repeatCount, 1);
+            assertEquals(startCount, 1);
+            assertEquals(completeCount, 0);
+            assertFalse(tween.isComplete);
+            
+            tween.advanceTime(1.0);
+            assertThat(quad.x, closeTo(100, E));
+            assertEquals(tween.repeatCount, 1);
+            assertEquals(startCount, 1);
+            assertEquals(completeCount, 1);
+            assertTrue(tween.isComplete);
+            
+            function onStart():void { startCount++; }
+            function onComplete():void { completeCount++; }
+        }
+        
+        [Test]
+        public function testReverseTween():void
+        {
+            var startCount:int = 0;
+            var completeCount:int = 0;
+            
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.repeatCount = 4;
+            tween.reverse = true;
+            tween.animate("x", 100);
+            
+            tween.advanceTime(0.75);
+            assertThat(quad.x, closeTo(75, E));            
+            
+            tween.advanceTime(0.5);
+            assertThat(quad.x, closeTo(75, E));
+            
+            tween.advanceTime(0.5);
+            assertThat(quad.x, closeTo(25, E));
+            assertFalse(tween.isComplete);
+
+            tween.advanceTime(1.25);
+            assertThat(quad.x, closeTo(100, E));
+            assertFalse(tween.isComplete);
+            
+            tween.advanceTime(10);
+            assertThat(quad.x, closeTo(0, E));
+            assertTrue(tween.isComplete);
+        }
+        
+        [Test]
+        public function testInfiniteTween():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.animate("x", 100);
+            tween.repeatCount = 0;
+            
+            tween.advanceTime(30.5);
+            assertThat(quad.x, closeTo(50, E));
+
+            tween.advanceTime(100.5);
+            assertThat(quad.x, closeTo(100, E));
+            assertFalse(tween.isComplete);
         }
         
         private function executeTween(time:Number, advanceTime:Number):void
