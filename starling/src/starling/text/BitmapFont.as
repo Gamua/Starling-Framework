@@ -280,11 +280,15 @@ package starling.text
                                 mCharLocationPool.pop() : new CharLocation(char);
                             
                             charLocation.char = char;
-                            charLocation.x = currentX + char.xOffset;
+                            charLocation.x = currentX + ((i > 0) ? char.xOffset : 0);
                             charLocation.y = currentY + char.yOffset;
                             currentLine.push(charLocation);
                             
                             currentX += char.xAdvance;
+                            if (i == 0)
+                            {
+                                currentX -= char.xOffset;
+                            }
                             lastCharID = charID;
                             
                             if (charLocation.x + char.width > containerWidth)
