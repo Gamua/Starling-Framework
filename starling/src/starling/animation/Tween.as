@@ -65,6 +65,7 @@ package starling.animation
         private var mRoundToInt:Boolean;
         private var mNextTween:Tween;
         private var mRepeatCount:int;
+        private var mRepeatTime:Number;
         private var mReverse:Boolean;
         private var mCurrentCycle:int;
         
@@ -88,6 +89,7 @@ package starling.animation
             mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null;
             mRoundToInt = mReverse = false;
             mRepeatCount = 1;
+            mRepeatTime = 0.0;
             mCurrentCycle = -1;
             
             if (transition is String)
@@ -182,7 +184,7 @@ package starling.animation
             {
                 if (mRepeatCount == 0 || mRepeatCount > 1)
                 {
-                    mCurrentTime = 0.0;
+                    mCurrentTime = 0.0 - mRepeatTime;
                     mCurrentCycle++;
                     if (mRepeatCount > 1) mRepeatCount--;
                 }
@@ -243,6 +245,10 @@ package starling.animation
          *  Set to '0' to tween indefinitely. @default 1 */
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
+        
+        /** The amount of time to wait between repeat cycles, in seconds. @default 0 */
+        public function get repeatDelay():Number { return mRepeatTime; }
+        public function set repeatDelay(value:Number):void { mRepeatTime = value; }
         
         /** Indicates if the tween should be reversed when it is repeating. If enabled, 
          *  every second repetition will be reversed. @default false */
