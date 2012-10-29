@@ -128,6 +128,7 @@ package starling.animation
          *  
          *  <pre>
          *  juggler.tween(object, 2.0, {
+         *      transition: Transitions.EASE_IN_OUT,
          *      delay: 20, // -> tween.delay = 20
          *      x: 50      // -> tween.animate("x", 50)
          *  });

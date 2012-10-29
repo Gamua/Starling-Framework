@@ -18,6 +18,7 @@ package tests
     import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
     
+    import starling.animation.Juggler;
     import starling.animation.Transitions;
     import starling.animation.Tween;
     import starling.display.Quad;
@@ -144,6 +145,32 @@ package tests
             
             // tween should no longer change quad.x
             assertThat(quad.x, closeTo(50, E));
+        }
+        
+        [Test]
+        public function testResetTweenInOnComplete():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            var juggler:Juggler = new Juggler();
+            
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.animate("x", 100);
+            tween.onComplete = function():void
+            {
+                tween.reset(quad, 1.0);
+                tween.animate("x", 0);
+                juggler.add(tween);
+            };
+            
+            juggler.add(tween);
+            
+            juggler.advanceTime(1.0);
+            assertThat(quad.x, closeTo(100, E));
+            assertThat(tween.currentTime, closeTo(0, E));
+            
+            juggler.advanceTime(1.0);
+            assertThat(quad.x, closeTo(0, E));
+            assertTrue(tween.isComplete);
         }
         
         [Test]

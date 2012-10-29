@@ -175,5 +175,34 @@ package tests
             
             assertThat(quad.alpha, closeTo(0.5, E));
         }
+        
+        [Test]
+        public function testTweenConvenienceMethod():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+            
+            var completeCount:int = 0;
+            var startCount:int = 0;
+            
+            juggler.tween(quad, 1.0, {
+                x: 100,
+                onStart: onStart,
+                onComplete: onComplete
+            });
+                
+            juggler.advanceTime(0.5);
+            assertEquals(1, startCount);
+            assertEquals(0, completeCount);
+            assertThat(quad.x, closeTo(50, E));
+            
+            juggler.advanceTime(0.5);
+            assertEquals(1, startCount);
+            assertEquals(1, completeCount);
+            assertThat(quad.x, closeTo(100, E));
+                
+            function onComplete():void { completeCount++; }
+            function onStart():void { startCount++; }
+        }
     }
 }
