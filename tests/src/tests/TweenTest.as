@@ -213,12 +213,14 @@ package tests
         public function testRepeatedTween():void
         {
             var startCount:int = 0;
+            var repeatCount:int = 0;
             var completeCount:int = 0;
             
             var quad:Quad = new Quad(100, 100);
             var tween:Tween = new Tween(quad, 1.0);
             tween.repeatCount = 3;
             tween.onStart = onStart;
+            tween.onRepeat = onRepeat;
             tween.onComplete = onComplete;
             tween.animate("x", 100);
             
@@ -226,12 +228,14 @@ package tests
             assertThat(quad.x, closeTo(50, E));
             assertEquals(tween.repeatCount, 2);
             assertEquals(startCount, 1);
+            assertEquals(repeatCount, 1);
             assertEquals(completeCount, 0);
             
             tween.advanceTime(0.75);
             assertThat(quad.x, closeTo(25, E));
             assertEquals(tween.repeatCount, 1);
             assertEquals(startCount, 1);
+            assertEquals(repeatCount, 2);
             assertEquals(completeCount, 0);
             assertFalse(tween.isComplete);
             
@@ -239,10 +243,12 @@ package tests
             assertThat(quad.x, closeTo(100, E));
             assertEquals(tween.repeatCount, 1);
             assertEquals(startCount, 1);
+            assertEquals(repeatCount, 2);
             assertEquals(completeCount, 1);
             assertTrue(tween.isComplete);
             
             function onStart():void { startCount++; }
+            function onRepeat():void { repeatCount++; }
             function onComplete():void { completeCount++; }
         }
         

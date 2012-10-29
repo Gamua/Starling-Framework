@@ -53,10 +53,12 @@ package starling.animation
 
         private var mOnStart:Function;
         private var mOnUpdate:Function;
+        private var mOnRepeat:Function;
         private var mOnComplete:Function;  
         
         private var mOnStartArgs:Array;
         private var mOnUpdateArgs:Array;
+        private var mOnRepeatArgs:Array;
         private var mOnCompleteArgs:Array;
         
         private var mTotalTime:Number;
@@ -185,6 +187,7 @@ package starling.animation
                     mCurrentTime = 0.0;
                     mCurrentCycle++;
                     if (mRepeatCount > 1) mRepeatCount--;
+                    if (mOnRepeat != null) mOnRepeat.apply(null, mOnRepeatArgs);
                 }
                 else
                 {
@@ -267,6 +270,11 @@ package starling.animation
         public function get onUpdate():Function { return mOnUpdate; }
         public function set onUpdate(value:Function):void { mOnUpdate = value; }
         
+        /** A function that will be called each time the tween finishes one repetition
+         *  (except the last, which will trigger 'onComplete'). */
+        public function get onRepeat():Function { return mOnRepeat; }
+        public function set onRepeat(value:Function):void { mOnRepeat = value; }
+        
         /** A function that will be called when the tween is complete. */
         public function get onComplete():Function { return mOnComplete; }
         public function set onComplete(value:Function):void { mOnComplete = value; }
@@ -278,6 +286,10 @@ package starling.animation
         /** The arguments that will be passed to the 'onUpdate' function. */
         public function get onUpdateArgs():Array { return mOnUpdateArgs; }
         public function set onUpdateArgs(value:Array):void { mOnUpdateArgs = value; }
+        
+        /** The arguments that will be passed to the 'onRepeat' function. */
+        public function get onRepeatArgs():Array { return mOnRepeatArgs; }
+        public function set onRepeatArgs(value:Array):void { mOnRepeatArgs = value; }
         
         /** The arguments that will be passed to the 'onComplete' function. */
         public function get onCompleteArgs():Array { return mOnCompleteArgs; }
@@ -304,8 +316,8 @@ package starling.animation
         starling_internal static function toPool(tween:Tween):void
         {
             // reset any object-references, to make sure we don't prevent any garbage collection
-            tween.mOnStart = tween.mOnUpdate = tween.mOnComplete = null;
-            tween.mOnStartArgs = tween.mOnUpdateArgs = tween.mOnCompleteArgs = null;
+            tween.mOnStart = tween.mOnUpdate = tween.mOnRepeat = tween.mOnComplete = null;
+            tween.mOnStartArgs = tween.mOnUpdateArgs = tween.mOnRepeatArgs = tween.mOnCompleteArgs = null;
             tween.mTarget = null;
             tween.mTransitionFunc = null;
             tween.removeEventListeners();
