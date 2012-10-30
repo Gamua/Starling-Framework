@@ -192,14 +192,15 @@ package starling.animation
                 }
                 else
                 {
-                    // save callback: it might be changed through an event listener
-                    var onComplete:Function = mOnComplete; 
+                    // save callback & args: they might be changed through an event listener
+                    var onComplete:Function = mOnComplete;
+                    var onCompleteArgs:Array = mOnCompleteArgs;
                     
                     // in the 'onComplete' callback, people might want to call "tween.reset" and
                     // add it to another juggler; so this event has to be dispatched *before*
                     // executing 'onComplete'.
                     dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
-                    if (onComplete != null) onComplete.apply(null, mOnCompleteArgs);
+                    if (onComplete != null) onComplete.apply(null, onCompleteArgs);
                 }
             }
             
