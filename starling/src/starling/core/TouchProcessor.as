@@ -10,6 +10,7 @@
 
 package starling.core
 {
+    import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.geom.Point;
     import flash.utils.getDefinitionByName;
