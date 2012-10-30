@@ -10,7 +10,9 @@
 
 package starling.core
 {
+    import flash.events.EventDispatcher;
     import flash.geom.Point;
+    import flash.utils.getDefinitionByName;
     
     import starling.display.Stage;
     import starling.events.KeyboardEvent;
@@ -54,10 +56,12 @@ package starling.core
             
             mStage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
             mStage.addEventListener(KeyboardEvent.KEY_UP,   onKey);
+            monitorInterruptions(true);
         }
 
         public function dispose():void
         {
+            monitorInterruptions(false);
             mStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey);
             mStage.removeEventListener(KeyboardEvent.KEY_UP,   onKey);
             if (mTouchMarker) mTouchMarker.dispose();
@@ -271,6 +275,54 @@ package starling.core
                 mTouchMarker.removeFromParent(true);
                 mTouchMarker = null;
             }
+        }
+        
+        // interruption handling
+        
+        private function monitorInterruptions(enable:Boolean):void
+        {
+            // if the application moves into the background or is interrupted (e.g. through
+            // an incoming phone call), we need to abort all touches.
+            
+            try
+            {
+                var nativeAppClass:Object = getDefinitionByName("flash.desktop::NativeApplication");
+                var nativeApp:EventDispatcher = nativeAppClass["nativeApplication"] as EventDispatcher;
+                
+                if (enable)
+                    nativeApp.addEventListener(Event.DEACTIVATE, onInterruption, false, 0, true);
+                else
+                    nativeApp.removeEventListener(Event.ACTIVATE, onInterruption);
+            }
+            catch (e:Error) {} // we're not running in AIR
+        }
+        
+        private function onInterruption(event:Event):void
+        {
+            var touch:Touch;
+            var phase:String;
+            
+            // abort touches
+            for each (touch in mCurrentTouches)
+            {
+                if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
+                    touch.phase == TouchPhase.STATIONARY)
+                {
+                    touch.setPhase(TouchPhase.ENDED);
+                    touch.setTimestamp(mElapsedTime + 0.001);
+                }
+            }
+            
+            // dispatch events
+            for each (touch in mCurrentTouches)
+            {
+                if (touch.target)
+                    touch.target.dispatchEvent(new TouchEvent(TouchEvent.TOUCH, mCurrentTouches,
+                                                              mShiftDown, mCtrlDown));
+            }
+            
+            // purge touches
+            mCurrentTouches.length = 0;
         }
     }
 }
