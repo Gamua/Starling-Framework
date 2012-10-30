@@ -275,10 +275,10 @@ package starling.core
             for each (var program:Program3D in mPrograms)
                 program.dispose();
             
-            if (mContext && !mShareContext) mContext.dispose();
-            if (mTouchProcessor) mTouchProcessor.dispose();
-            if (mSupport) mSupport.dispose();
             if (mStage) mStage.dispose();
+            if (mSupport) mSupport.dispose();
+            if (mTouchProcessor) mTouchProcessor.dispose();
+            if (mContext && !mShareContext) mContext.dispose();
             if (sCurrent == this) sCurrent = null;
         }
         
