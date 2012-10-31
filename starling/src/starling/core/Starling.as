@@ -161,10 +161,12 @@ package starling.core
         private var mSimulateMultitouch:Boolean;
         private var mEnableErrorChecking:Boolean;
         private var mLastFrameTimestamp:Number;
-        private var mViewPort:Rectangle;
         private var mLeftMouseDown:Boolean;
         private var mStatsDisplay:StatsDisplay;
         private var mShareContext:Boolean;
+        
+        private var mViewPort:Rectangle;
+        private var mViewPortClipped:Rectangle;
         
         private var mNativeStage:flash.display.Stage;
         private var mNativeOverlay:flash.display.Sprite;
@@ -357,11 +359,18 @@ package starling.core
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);
             
+            var scaleX:Number = mViewPort.width  / mStage.stageWidth;
+            var scaleY:Number = mViewPort.height / mStage.stageHeight;
+            
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mContext.setCulling(Context3DTriangleFace.NONE);
             
-            mSupport.setOrthographicProjection(0, 0, mStage.stageWidth, mStage.stageHeight);
             mSupport.renderTarget = null; // back buffer
+            mSupport.setOrthographicProjection(
+                mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0, 
+                mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
+                mViewPortClipped.width  / scaleX, 
+                mViewPortClipped.height / scaleY);
             
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
@@ -377,11 +386,19 @@ package starling.core
         {
             if (mShareContext) return;
             
-            if (mContext && mContext.driverInfo != "Disposed")
-                mContext.configureBackBuffer(mViewPort.width, mViewPort.height, mAntiAliasing, false);
+            // Constrained mode requires that the viewport is within the native stage bounds;
+            // thus, we use a clipped viewport when configuring the back buffer. (In baseline
+            // mode, that's not necessary, but it does not hurt either.)
             
-            mStage3D.x = mViewPort.x;
-            mStage3D.y = mViewPort.y;
+            mViewPortClipped = mViewPort.intersection(
+                new Rectangle(0, 0, mNativeStage.stageWidth, mNativeStage.stageHeight));
+            
+            if (mContext && mContext.driverInfo != "Disposed")
+                mContext.configureBackBuffer(
+                    mViewPortClipped.width, mViewPortClipped.height, mAntiAliasing, false);
+            
+            mStage3D.x = mViewPortClipped.x;
+            mStage3D.y = mViewPortClipped.y;
         }
 
         private function updateNativeOverlay():void
