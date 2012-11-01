@@ -153,6 +153,7 @@ package starling.core
         private var mStage3D:Stage3D;
         private var mStage:Stage; // starling.display.stage!
         private var mRootClass:Class;
+        private var mRoot:DisplayObject;
         private var mJuggler:Juggler;
         private var mStarted:Boolean;        
         private var mSupport:RenderSupport;
@@ -313,13 +314,14 @@ package starling.core
         
         private function initializeRoot():void
         {
-            if (mStage.numChildren > 0) return;
+            if (mRoot == null)
+            {
+                mRoot = new mRootClass() as DisplayObject;
+                if (mRoot == null) throw new Error("Invalid root class: " + mRootClass);
+                mStage.addChildAt(mRoot, 0);
             
-            var rootObject:DisplayObject = new mRootClass();
-            if (rootObject == null) throw new Error("Invalid root class: " + mRootClass);
-            mStage.addChildAt(rootObject, 0);
-            
-            dispatchEventWith(starling.events.Event.ROOT_CREATED, false, root);
+                dispatchEventWith(starling.events.Event.ROOT_CREATED, false, mRoot);
+            }
         }
         
         /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
@@ -720,7 +722,7 @@ package starling.core
          *  the event 'ROOT_CREATED' has been dispatched. */
         public function get root():DisplayObject
         {
-            return mStage.getChildAt(0);
+            return mRoot;
         }
         
         /** Indicates if the Context3D render calls are managed externally to Starling, 
