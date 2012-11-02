@@ -252,6 +252,7 @@ package starling.text
                     var currentX:Number = 0;
                     var currentY:Number = 0;
                     var currentLine:Vector.<CharLocation> = new <CharLocation>[];
+                    var firstCharacter:Boolean = true;
                     
                     numChars = text.length;
                     for (var i:int=0; i<numChars; ++i)
@@ -280,11 +281,16 @@ package starling.text
                                 mCharLocationPool.pop() : new CharLocation(char);
                             
                             charLocation.char = char;
-                            charLocation.x = currentX + char.xOffset;
+                            charLocation.x = currentX + (!firstCharacter ? char.xOffset : 0);
                             charLocation.y = currentY + char.yOffset;
                             currentLine.push(charLocation);
                             
                             currentX += char.xAdvance;
+                            if (firstCharacter)
+                            {
+                                currentX -= char.xOffset;
+                                firstCharacter = false;
+                            }
                             lastCharID = charID;
                             
                             if (charLocation.x + char.width > containerWidth)
@@ -322,6 +328,7 @@ package starling.text
                                 currentY += mLineHeight;
                                 lastWhiteSpace = -1;
                                 lastCharID = -1;
+                                firstCharacter = true;
                             }
                             else
                             {
