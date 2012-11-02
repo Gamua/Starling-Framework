@@ -287,6 +287,13 @@ package starling.text
                             currentX += char.xAdvance;
                             lastCharID = charID;
                             
+                            if (currentLine.length == 1)
+                            {
+                                // the first character is not meant to have an xOffset
+                                currentX -= char.xOffset;
+                                charLocation.x -= char.xOffset;
+                            }
+                            
                             if (charLocation.x + char.width > containerWidth)
                             {
                                 // remove characters and add them again to next line
