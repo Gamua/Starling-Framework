@@ -136,6 +136,55 @@ package starling.display
             }
         }
         
+        /** Replaces a child in the container at a certain index. */
+        public function replaceChildAt(child:DisplayObject, index:int, dispose:Boolean=false):DisplayObject
+        {
+            var numChildren:int = mChildren.length;
+            
+            if (index >= 0 && index <= numChildren)
+            {
+                child.removeFromParent();
+                
+                var prevChild:DisplayObject
+                if (index < numChildren) {
+                    prevChild = mChildren[index];
+                    mChildren[index] = child;
+                } else {
+                    mChildren.push(child);
+                }
+                //prevChild can be also null if index == numChildren
+                
+                
+                child.setParent(this);
+                child.dispatchEventWith(Event.ADDED, true);
+                if(prevChild) prevChild.dispatchEventWith(Event.REMOVED, true);
+                
+                if (stage)
+                {
+                    var container:DisplayObjectContainer;
+                    container = child as DisplayObjectContainer;
+                    if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
+                    else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
+                }
+                if (prevChild)
+                {
+                    if (stage) {
+                        container = prevChild as DisplayObjectContainer;
+                        if (container) container.broadcastEventWith(Event.REMOVED_FROM_STAGE);
+                        else           prevChild.dispatchEventWith(Event.REMOVED_FROM_STAGE);
+                    }
+                    prevChild.setParent(null);
+                    if (dispose) prevChild.dispose();
+                }
+                
+                return child;
+            }
+            else
+            {
+                throw new RangeError("Invalid child index " + index + " "+numChildren+" "+child);
+            }
+        }
+        
         /** Removes a child from the container. If the object is not a child, nothing happens. 
          *  If requested, the child will be disposed right away. */
         public function removeChild(child:DisplayObject, dispose:Boolean=false):DisplayObject
