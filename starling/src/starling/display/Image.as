@@ -1,4 +1,4 @@
-// =================================================================================================
+﻿// =================================================================================================
 //
 //	Starling Framework
 //	Copyright 2011 Gamua OG. All Rights Reserved.
@@ -77,7 +77,13 @@ package starling.display
         {
             return new Image(Texture.fromBitmap(bitmap, generateMipMaps, false, scale));
         }
-        
+		
+        /** Creates copy of an existing image. */
+        public function clone():Image
+        {
+            return new Image(texture);
+        }
+
         /** @inheritDoc */
         protected override function onVertexDataChanged():void
         {
