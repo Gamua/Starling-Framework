@@ -38,13 +38,6 @@ package starling.animation
             mTotalTime = Math.max(delay, 0.0001);
             mArgs = args;
         }
-        public function reset(call:Function, delay:Number, args:Array=null):void
-        {
-            mCall = call;
-            mTotalTime = Math.max(delay, 0.0001);
-            mArgs = args;
-            mRepeatCount = 1;
-        }
         
         /** @inheritDoc */
         public function advanceTime(time:Number):void
