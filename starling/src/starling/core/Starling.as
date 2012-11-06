@@ -386,14 +386,14 @@ package starling.core
         
         private function updateViewPort():void
         {
-            if (mShareContext) return;
-            
             // Constrained mode requires that the viewport is within the native stage bounds;
             // thus, we use a clipped viewport when configuring the back buffer. (In baseline
             // mode, that's not necessary, but it does not hurt either.)
             
             mViewPortClipped = mViewPort.intersection(
                 new Rectangle(0, 0, mNativeStage.stageWidth, mNativeStage.stageHeight));
+            
+            if (mShareContext) return;
             
             if (mContext && mContext.driverInfo != "Disposed")
                 mContext.configureBackBuffer(
