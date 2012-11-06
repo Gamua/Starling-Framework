@@ -145,7 +145,8 @@ package starling.core
             }
         }
         
-        public function enqueue(touchID:int, phase:String, globalX:Number, globalY:Number):void
+        public function enqueue(touchID:int, phase:String, globalX:Number, globalY:Number,
+                                pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
             mQueue.unshift(arguments);
             
@@ -157,7 +158,8 @@ package starling.core
             }
         }
         
-        private function processTouch(touchID:int, phase:String, globalX:Number, globalY:Number):void
+        private function processTouch(touchID:int, phase:String, globalX:Number, globalY:Number,
+                                      pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
             var position:Point = new Point(globalX, globalY);
             var touch:Touch = getCurrentTouch(touchID);
@@ -171,6 +173,8 @@ package starling.core
             touch.setPosition(globalX, globalY);
             touch.setPhase(phase);
             touch.setTimestamp(mElapsedTime + mOffsetTime);
+            touch.setPressure(pressure);
+            touch.setSize(width, height);
             
             if (phase == TouchPhase.HOVER || phase == TouchPhase.BEGAN)
                 touch.setTarget(mStage.hitTest(position, true));

@@ -506,6 +506,9 @@ package starling.core
             var globalY:Number;
             var touchID:int;
             var phase:String;
+            var pressure:Number = 1.0;
+            var width:Number = 1.0;
+            var height:Number = 1.0;
             
             // figure out general touch properties
             if (event is MouseEvent)
@@ -527,6 +530,9 @@ package starling.core
                 globalX = touchEvent.stageX;
                 globalY = touchEvent.stageY;
                 touchID = touchEvent.touchPointID;
+                pressure = touchEvent.pressure;
+                width = touchEvent.sizeX;
+                height = touchEvent.sizeY;
             }
             
             // figure out touch phase
@@ -546,7 +552,7 @@ package starling.core
             globalY = mStage.stageHeight * (globalY - mViewPort.y) / mViewPort.height;
             
             // enqueue touch in touch processor
-            mTouchProcessor.enqueue(touchID, phase, globalX, globalY);
+            mTouchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
         }
         
         private function get touchEventTypes():Array
