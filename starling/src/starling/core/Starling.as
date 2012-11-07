@@ -174,6 +174,7 @@ package starling.core
         
         private var mContext:Context3D;
         private var mPrograms:Dictionary;
+        private var mCustomData:Dictionary;
         
         private static var sCurrent:Starling;
         private static var sHandleLostContext:Boolean;
@@ -218,6 +219,7 @@ package starling.core
             mEnableErrorChecking = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mPrograms = new Dictionary();
+            mCustomData = new Dictionary();
             mSupport  = new RenderSupport();
             
             // register touch/mouse event handlers            
@@ -730,6 +732,11 @@ package starling.core
         {
             return mRoot;
         }
+        
+        /** A dictionary that can be used to save custom data within this Starling instance. 
+         *  If you need to share data that is bound to a specific Starling instance
+         *  (e.g. textures), use this dictionary instead of creating a static class variable. */ 
+        public function get customData():Dictionary { return mCustomData; }
         
         /** Indicates if the Context3D render calls are managed externally to Starling, 
          *  to allow other frameworks to share the Stage3D instance. @default false */
