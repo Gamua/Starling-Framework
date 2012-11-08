@@ -172,14 +172,19 @@ package starling.textures
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                     atfData.width, atfData.height, atfData.format, false);
             
+			
             uploadAtfData(nativeTexture, data);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
-                atfData.width, atfData.height, atfData.numTextures > 1, false, false, scale);
+                atfData.width, atfData.height, false, false, false, scale); // atfData.numTextures > 1
             
             if (Starling.handleLostContext) 
                 concreteTexture.restoreOnLostContext(atfData);
             
+			data.clear();
+			atfData.data.clear();
+			atfData = null;
+			
             return concreteTexture;
         }
         

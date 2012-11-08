@@ -55,7 +55,7 @@ package starling.textures
      */
     public class TextureAtlas
     {
-        private var mAtlasTexture:Texture;
+        public var mAtlasTexture:Texture;
         private var mTextureRegions:Dictionary;
         private var mTextureFrames:Dictionary;
         
