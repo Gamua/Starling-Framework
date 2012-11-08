@@ -70,7 +70,7 @@ package scenes
             // After that, you can use them just like a conventional TrueType font.
             
             var bmpFontTF:TextField = new TextField(300, 150, 
-                "It is very easy to use Bitmap fonts, as well!", "Desyrel");
+                "It is very easy to use Bitmap fonts,\nas well!", "Desyrel");
             
             bmpFontTF.fontSize = BitmapFont.NATIVE_SIZE; // the native bitmap font size, no scaling
             bmpFontTF.color = Color.WHITE; // use white to use the texture as it is (no tinting)

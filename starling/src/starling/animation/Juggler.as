@@ -84,13 +84,15 @@ package starling.animation
         public function removeTweens(target:Object):void
         {
             if (target == null) return;
-            var numObjects:int = mObjects.length;
             
-            for (var i:int=numObjects-1; i>=0; --i)
+            for (var i:int=mObjects.length-1; i>=0; --i)
             {
                 var tween:Tween = mObjects[i] as Tween;
                 if (tween && tween.target == target)
+                {
+                    tween.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
                     mObjects[i] = null;
+                }
             }
         }
         
@@ -126,6 +128,7 @@ package starling.animation
          *  
          *  <pre>
          *  juggler.tween(object, 2.0, {
+         *      transition: Transitions.EASE_IN_OUT,
          *      delay: 20, // -> tween.delay = 20
          *      x: 50      // -> tween.animate("x", 50)
          *  });

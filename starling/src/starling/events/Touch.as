@@ -47,6 +47,9 @@ package starling.events
         private var mPhase:String;
         private var mTarget:DisplayObject;
         private var mTimestamp:Number;
+        private var mPressure:Number;
+        private var mWidth:Number;
+        private var mHeight:Number;
         
         /** Helper object. */
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -60,6 +63,7 @@ package starling.events
             mTapCount = 0;
             mPhase = phase;
             mTarget = target;
+            mPressure = mWidth = mHeight = 1.0;
         }
         
         /** Converts the current location of a touch to the local coordinate system of a display 
@@ -142,6 +146,18 @@ package starling.events
         /** The moment the touch occurred (in seconds since application start). */
         public function get timestamp():Number { return mTimestamp; }
         
+        /** A value between 0.0 and 1.0 indicating force of the contact with the device. 
+         *  If the device does not support detecting the pressure, the value is 1.0. */ 
+        public function get pressure():Number { return mPressure; }
+        
+        /** Width of the contact area. 
+         *  If the device does not support detecting the pressure, the value is 1.0. */
+        public function get width():Number { return mWidth; }
+        
+        /** Height of the contact area. 
+         *  If the device does not support detecting the pressure, the value is 1.0. */
+        public function get height():Number { return mHeight; }
+        
         // internal methods
         
         /** @private */
@@ -151,6 +167,13 @@ package starling.events
             mPreviousGlobalY = mGlobalY;
             mGlobalX = globalX;
             mGlobalY = globalY;
+        }
+        
+        /** @private */
+        starling_internal function setSize(width:Number, height:Number):void 
+        { 
+            mWidth = width;
+            mHeight = height;
         }
         
         /** @private */
@@ -164,5 +187,8 @@ package starling.events
         
         /** @private */
         starling_internal function setTimestamp(value:Number):void { mTimestamp = value; }
+        
+        /** @private */
+        starling_internal function setPressure(value:Number):void { mPressure = value; }
     }
 }

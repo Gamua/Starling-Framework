@@ -20,7 +20,6 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
-    import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
@@ -55,7 +54,7 @@ package starling.textures
      *  </p>
      *     
      */
-    public class RenderTexture extends Texture
+    public class RenderTexture extends SubTexture
     {
         private const PMA:Boolean = true;
         
@@ -64,9 +63,6 @@ package starling.textures
         private var mHelperImage:Image;
         private var mDrawing:Boolean;
         private var mBufferReady:Boolean;
-        
-        private var mNativeWidth:int;
-        private var mNativeHeight:int;
         private var mSupport:RenderSupport;
         
         /** helper object */
@@ -81,12 +77,14 @@ package starling.textures
         {
             if (scale <= 0) scale = Starling.contentScaleFactor; 
             
-            mNativeWidth  = getNextPowerOfTwo(width  * scale);
-            mNativeHeight = getNextPowerOfTwo(height * scale);
+            var nativeWidth:int  = getNextPowerOfTwo(width  * scale);
+            var nativeHeight:int = getNextPowerOfTwo(height * scale);
             mActiveTexture = Texture.empty(width, height, PMA, true, scale);
             
+            super(mActiveTexture, new Rectangle(0, 0, width, height), true);
+            
             mSupport = new RenderSupport();
-            mSupport.setOrthographicProjection(0, 0, mNativeWidth/scale, mNativeHeight/scale);
+            mSupport.setOrthographicProjection(0, 0, nativeWidth/scale, nativeHeight/scale);
             
             if (persistent)
             {
@@ -99,8 +97,6 @@ package starling.textures
         /** @inheritDoc */
         public override function dispose():void
         {
-            mActiveTexture.dispose();
-            
             if (isPersistent) 
             {
                 mBufferTexture.dispose();
@@ -203,26 +199,8 @@ package starling.textures
             mSupport.renderTarget = null;
         }
         
-        /** @inheritDoc */
-        public override function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
-        {
-            mActiveTexture.adjustVertexData(vertexData, vertexID, count);   
-        }
-        
         /** Indicates if the texture is persistent over multiple draw calls. */
         public function get isPersistent():Boolean { return mBufferTexture != null; }
-        
-        /** @inheritDoc */
-        public override function get width():Number { return mActiveTexture.width; }        
-        
-        /** @inheritDoc */
-        public override function get height():Number { return mActiveTexture.height; }        
-        
-        /** @inheritDoc */
-        public override function get scale():Number { return mActiveTexture.scale; }
- 
-        /** @inheritDoc */
-        public override function get premultipliedAlpha():Boolean { return PMA; }
         
         /** @inheritDoc */
         public override function get base():TextureBase 

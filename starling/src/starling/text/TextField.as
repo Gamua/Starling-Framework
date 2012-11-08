@@ -63,6 +63,9 @@ package starling.text
      */
     public class TextField extends DisplayObjectContainer
     {
+        // the name container with the registered bitmap fonts
+        private static const BITMAP_FONT_DATA_NAME:String = "starling.TextField.BitmapFonts";
+        
         private var mFontSize:Number;
         private var mColor:uint;
         private var mText:String;
@@ -87,9 +90,6 @@ package starling.text
         
         // this object will be used for text rendering
         private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
-        
-        // this is the container for bitmap fonts
-        private static var sBitmapFonts:Dictionary = new Dictionary();
         
         /** Create a new text field with the given properties. */
         public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
@@ -246,7 +246,7 @@ package starling.text
             else
                 mQuadBatch.reset();
             
-            var bitmapFont:BitmapFont = sBitmapFonts[mFontName];
+            var bitmapFont:BitmapFont = bitmapFonts[mFontName];
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
             
             bitmapFont.fillQuadBatch(mQuadBatch,
@@ -329,12 +329,12 @@ package starling.text
         {
             if (mFontName != value)
             {
-                if (value == BitmapFont.MINI && sBitmapFonts[value] == undefined)
+                if (value == BitmapFont.MINI && bitmapFonts[value] == undefined)
                     registerBitmapFont(new BitmapFont());
                 
                 mFontName = value;
                 mRequiresRedraw = true;
-                mIsRenderedText = sBitmapFonts[value] == undefined;
+                mIsRenderedText = bitmapFonts[value] == undefined;
             }
         }
         
@@ -487,23 +487,38 @@ package starling.text
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;
-            sBitmapFonts[name] = bitmapFont;
+            bitmapFonts[name] = bitmapFont;
             return name;
         }
         
         /** Unregisters the bitmap font and, optionally, disposes it. */
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
-            if (dispose && sBitmapFonts[name] != undefined)
-                sBitmapFonts[name].dispose();
+            if (dispose && bitmapFonts[name] != undefined)
+                bitmapFonts[name].dispose();
             
-            delete sBitmapFonts[name];
+            delete bitmapFonts[name];
         }
         
         /** Returns a registered bitmap font (or null, if the font has not been registered). */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return sBitmapFonts[name];
+            return bitmapFonts[name]
+        }
+        
+        /** Stores the currently available bitmap fonts. Since a bitmap font will only work
+         *  in one Starling instance, they are saved in Starling's 'customData' property. */
+        private static function get bitmapFonts():Dictionary
+        {
+            var fonts:Dictionary = Starling.current.customData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            
+            if (fonts == null)
+            {
+                fonts = new Dictionary();
+                Starling.current.customData[BITMAP_FONT_DATA_NAME] = fonts;
+            }
+            
+            return fonts;
         }
     }
 }

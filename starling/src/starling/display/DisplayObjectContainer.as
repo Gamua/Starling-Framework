@@ -90,11 +90,9 @@ package starling.display
         /** Disposes the resources of all children. */
         public override function dispose():void
         {
-            var numChildren:int = mChildren.length;
-            
-            for (var i:int=0; i<numChildren; ++i)
+            for (var i:int=mChildren.length-1; i>=0; --i)
                 mChildren[i].dispose();
-                
+            
             super.dispose();
         }
         
