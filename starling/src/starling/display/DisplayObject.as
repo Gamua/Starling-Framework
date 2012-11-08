@@ -127,7 +127,6 @@ package starling.display
         private var mBlendMode:String;
         private var mName:String;
         private var mUseHandCursor:Boolean;
-        private var mLastTouchTimestamp:Number;
         private var mParent:DisplayObjectContainer;  
         private var mTransformationMatrix:Matrix;
         private var mOrientationChanged:Boolean;
@@ -150,7 +149,6 @@ package starling.display
             mX = mY = mPivotX = mPivotY = mRotation = mSkewX = mSkewY = 0.0;
             mScaleX = mScaleY = mAlpha = 1.0;            
             mVisible = mTouchable = true;
-            mLastTouchTimestamp = -1;
             mBlendMode = BlendMode.AUTO;
             mTransformationMatrix = new Matrix();
             mOrientationChanged = mUseHandCursor = false;
@@ -311,21 +309,6 @@ package starling.display
         public function render(support:RenderSupport, parentAlpha:Number):void
         {
             throw new AbstractMethodError("Method needs to be implemented in subclass");
-        }
-        
-        /** @inheritDoc */
-        public override function dispatchEvent(event:Event):void
-        {
-            // on one given moment, there is only one set of touches -- thus, 
-            // we process only one touch event with a certain timestamp per frame
-            if (event is TouchEvent)
-            {
-                var touchEvent:TouchEvent = event as TouchEvent;
-                if (touchEvent.timestamp == mLastTouchTimestamp) return;
-                else mLastTouchTimestamp = touchEvent.timestamp;
-            }
-            
-            super.dispatchEvent(event);
         }
         
         /** Indicates if an object occupies any visible area. (Which is the case when its 'alpha', 

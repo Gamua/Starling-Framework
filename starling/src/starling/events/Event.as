@@ -136,6 +136,9 @@ package starling.events
         internal function setCurrentTarget(value:EventDispatcher):void { mCurrentTarget = value; } 
         
         /** @private */
+        internal function setData(value:Object):void { mData = value; }
+        
+        /** @private */
         internal function get stopsPropagation():Boolean { return mStopsPropagation; }
         
         /** @private */

@@ -88,7 +88,10 @@ package starling.events
                 mEventListeners = null;
         }
         
-        /** Dispatches an event to all objects that have registered for events of the same type. */
+        /** Dispatches an event to all objects that have registered listeners for its type. 
+         *  If an event with enabled 'bubble' property is dispatched to a display object, it will 
+         *  travel up along the line of parents, until it either hits the root object or someone
+         *  stops its propagation manually. */
         public function dispatchEvent(event:Event):void
         {
             var bubbles:Boolean = event.bubbles;
@@ -102,19 +105,20 @@ package starling.events
             var previousTarget:EventDispatcher = event.target;
             event.setTarget(this);
             
-            if (bubbles && this is DisplayObject) bubble(event);
-            else                                  invoke(event);
+            if (bubbles && this is DisplayObject) bubbleEvent(event);
+            else                                  invokeEvent(event);
             
             if (previousTarget) event.setTarget(previousTarget);
         }
         
-        private function invoke(event:Event):Boolean
+        /** @private
+         *  Invokes an event on the current object. This method does not do any bubbling, nor
+         *  does it back-up and restore the previous target on the event. The 'dispatchEvent' 
+         *  method uses this method internally. */
+        internal function invokeEvent(event:Event):Boolean
         {
-            var listeners:Vector.<Function>;
-            if(mEventListeners)
-            {
-                listeners = mEventListeners[event.type] as Vector.<Function>;
-            }
+            var listeners:Vector.<Function> = mEventListeners ?
+                mEventListeners[event.type] as Vector.<Function> : null;
             var numListeners:int = listeners == null ? 0 : listeners.length;
             
             if (numListeners)
@@ -146,7 +150,7 @@ package starling.events
             }
         }
         
-        private function bubble(event:Event):void
+        internal function bubbleEvent(event:Event):void
         {
             // we determine the bubble chain before starting to invoke the listeners.
             // that way, changes done by the listeners won't affect the bubble chain.
@@ -163,7 +167,7 @@ package starling.events
 
             for (var i:int=0; i<length; ++i)
             {
-                var stopPropagation:Boolean = chain[i].invoke(event);
+                var stopPropagation:Boolean = chain[i].invokeEvent(event);
                 if (stopPropagation) break;
             }
             
@@ -171,9 +175,9 @@ package starling.events
             sBubbleChains.push(chain);
         }
         
-        /** Dispatches an event with the given parameters to all objects that have registered for 
-         *  events of the given type. The method uses an internal pool of event objects to avoid 
-         *  allocations. */
+        /** Dispatches an event with the given parameters to all objects that have registered 
+         *  listeners for the given type. The method uses an internal pool of event objects to 
+         *  avoid allocations. */
         public function dispatchEventWith(type:String, bubbles:Boolean=false, data:Object=null):void
         {
             if (bubbles || hasEventListener(type)) 
@@ -187,11 +191,8 @@ package starling.events
         /** Returns if there are listeners registered for a certain event type. */
         public function hasEventListener(type:String):Boolean
         {
-            var listeners:Vector.<Function>;
-            if(mEventListeners)
-            {
-                listeners = mEventListeners[type] as Vector.<Function>;
-            }
+            var listeners:Vector.<Function> = mEventListeners ?
+                mEventListeners[type] as Vector.<Function> : null;
             return listeners ? listeners.length != 0 : false;
         }
     }
