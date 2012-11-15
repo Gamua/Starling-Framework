@@ -97,9 +97,7 @@ package starling.events
             for (var i:int=0; i<numTouches; ++i)
             {
                 var touch:Touch = allTouches[i];
-                var correctTarget:Boolean = (touch.target == target) ||
-                    ((target is DisplayObjectContainer) && 
-                     (target as DisplayObjectContainer).contains(touch.target));
+                var correctTarget:Boolean = touch.isTouching(target);
                 var correctPhase:Boolean = (phase == null || phase == touch.phase);
                     
                 if (correctTarget && correctPhase)

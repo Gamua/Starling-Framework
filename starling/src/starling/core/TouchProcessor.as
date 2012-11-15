@@ -45,7 +45,6 @@ package starling.core
         /** Helper objects. */
         private static var sProcessedTouchIDs:Vector.<int> = new <int>[];
         private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
-        private static var sBubbleChain:Vector.<EventDispatcher> = new <EventDispatcher>[];
         
         public function TouchProcessor(stage:Stage)
         {
@@ -103,7 +102,11 @@ package starling.core
                     
                     // hovering touches need special handling (see below)
                     if (touch && touch.phase == TouchPhase.HOVER && touch.target)
-                        sHoveringTouchData.push({ touch: touch, target: touch.target });
+                        sHoveringTouchData.push({ 
+                            touch: touch, 
+                            target: touch.target, 
+                            bubbleChain: touch.bubbleChain 
+                        });
                     
                     processTouch.apply(this, touchArgs);
                     sProcessedTouchIDs.push(touchID);
@@ -118,8 +121,8 @@ package starling.core
                 // target to notify it that it's no longer being hovered over.
                 for each (var touchData:Object in sHoveringTouchData)
                     if (touchData.touch.target != touchData.target)
-                        touchEvent.dispatch(getBubbleChain(touchData.target, sBubbleChain));
-                        
+                        touchEvent.dispatch(touchData.bubbleChain);
+                
                 // dispatch events
                 for each (touchID in sProcessedTouchIDs)
                     getCurrentTouch(touchID).dispatchEvent(touchEvent);
@@ -129,23 +132,6 @@ package starling.core
                     if (mCurrentTouches[i].phase == TouchPhase.ENDED)
                         mCurrentTouches.splice(i, 1);
             }
-            
-            sBubbleChain.length = 0; // remove any references that might prevent GC.
-        }
-        
-        private function getBubbleChain(target:DisplayObject, 
-                                        result:Vector.<EventDispatcher>):Vector.<EventDispatcher>
-        {
-            var element:DisplayObject = target;
-            var length:int = 1;
-            
-            result.length = length;
-            result[0] = target;
-            
-            while ((element = element.parent) != null)
-                result[length++] = element;
-            
-            return result;
         }
         
         public function enqueue(touchID:int, phase:String, globalX:Number, globalY:Number,
