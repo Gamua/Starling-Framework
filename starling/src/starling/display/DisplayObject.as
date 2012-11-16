@@ -21,7 +21,6 @@ package starling.display
     import starling.core.RenderSupport;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
-    import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
@@ -136,6 +135,7 @@ package starling.display
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
+        private static var sTransformationMatrixWarningIssued:Boolean = false;
         
         /** @private */ 
         public function DisplayObject()
@@ -337,7 +337,12 @@ package starling.display
         
         // helpers
         
-        private function normalizeAngle(angle:Number):Number
+        private final function isEquivalent(a:Number, b:Number, epsilon:Number=0.0001):Boolean
+        {
+            return (a - epsilon < b) && (a + epsilon > b);
+        }
+        
+        private final function normalizeAngle(angle:Number):Number
         {
             // move into range [-180 deg, +180 deg]
             while (angle < -Math.PI) angle += Math.PI * 2.0;
@@ -348,9 +353,14 @@ package starling.display
         // properties
  
         /** The transformation matrix of the object relative to its parent.
-         *  If you assign a custom transformation matrix, Starling will figure out suitable values  
-         *  for the corresponding orienation properties (<code>x, y, scaleX/Y, rotation</code> etc).
-         *  CAUTION: returns not a copy, but the actual object! */
+         * 
+         *  <p>If you assign a custom transformation matrix, Starling will try to figure out  
+         *  suitable values for <code>x, y, scaleX, scaleY,</code> and <code>rotation</code>.
+         *  However, this is not always possible: skewed matrices, for example, are currently
+         *  not supported. In that case, Starling will apply the matrix, but not update the
+         *  corresponding properties.
+         * 
+         *  @returns CAUTION: not a copy, but the actual object! */
         public function get transformationMatrix():Matrix
         {
             if (mOrientationChanged)
@@ -380,33 +390,35 @@ package starling.display
         {
             mOrientationChanged = false;
             mTransformationMatrix.copyFrom(matrix);
-            mX = matrix.tx;
-            mY = matrix.ty;
             
-            var a:Number = matrix.a;
-            var b:Number = matrix.b;
-            var c:Number = matrix.c;
-            var d:Number = matrix.d;
+            var aa:Number = matrix.a * matrix.a;
+            var bb:Number = matrix.b * matrix.b;
+            var cc:Number = matrix.c * matrix.c;
+            var dd:Number = matrix.d * matrix.d;
             
-            mScaleX = Math.sqrt(a * a + b * b);
-            if (mScaleX != 0) mRotation = Math.atan2(b, a);
-            else              mRotation = 0; // Rotation is not defined when a = b = 0
-            
-            var cosTheta:Number = Math.cos(mRotation);
-            var sinTheta:Number = Math.sin(mRotation);
-            
-            mScaleY = d * cosTheta - c * sinTheta;
-            if (mScaleY != 0) mSkewX = Math.atan2(d * sinTheta + c * cosTheta, mScaleY);
-            else              mSkewX = 0; // skewX is not defined when scaleY = 0
-            
-            // A 2-D affine transform has only 6 degrees of freedom -- two for translation,
-            // two for scale, one for rotation and one for skew. We are using 2 parameters for skew.
-            // To calculate the parameters from matrix values, one skew can be set to any arbitrary 
-            // value. Setting it to 0 makes the math simpler.
-            
-            mSkewY  = 0;
-            mPivotX = 0;
-            mPivotY = 0;
+            if (isEquivalent(bb/(aa+bb), cc/(dd+cc)))
+            {
+                // the matrix contains only translation, rotation and scaling changes.
+                // thus, we can figure out the properties that make up the matrix.
+                
+                var sinRot:Number = Math.sqrt(bb/(aa+bb));
+                
+                if ((matrix.a >= 0 && matrix.b < 0) || (matrix.a < 0 && matrix.b >= 0)) 
+                    sinRot *= -1;
+                
+                mRotation = Math.asin(sinRot);
+                mScaleX = rotation ?  matrix.b / sinRot : matrix.a;
+                mScaleY = rotation ? -matrix.c / sinRot : matrix.d;
+                mX = matrix.tx;
+                mY = matrix.ty;
+                mSkewX = mSkewY = mPivotX = mPivotY = 0;
+            }
+            else if (!sTransformationMatrixWarningIssued)
+            {
+                trace("[Starling] Cannot calculate individual transformation matrix properties.",
+                      "This warning is issued only once.");
+                sTransformationMatrixWarningIssued = true;
+            }
         }
         
         /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
