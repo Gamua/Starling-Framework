@@ -77,7 +77,7 @@ package starling.events
         public function getLocation(space:DisplayObject, resultPoint:Point=null):Point
         {
             if (resultPoint == null) resultPoint = new Point();
-            mTarget.base.getTransformationMatrix(space, sHelperMatrix);
+            space.base.getTransformationMatrix(space, sHelperMatrix);
             return MatrixUtil.transformCoords(sHelperMatrix, mGlobalX, mGlobalY, resultPoint); 
         }
         
@@ -87,7 +87,7 @@ package starling.events
         public function getPreviousLocation(space:DisplayObject, resultPoint:Point=null):Point
         {
             if (resultPoint == null) resultPoint = new Point();
-            mTarget.base.getTransformationMatrix(space, sHelperMatrix);
+            space.base.getTransformationMatrix(space, sHelperMatrix);
             return MatrixUtil.transformCoords(sHelperMatrix, mPreviousGlobalX, mPreviousGlobalY, resultPoint);
         }
         
