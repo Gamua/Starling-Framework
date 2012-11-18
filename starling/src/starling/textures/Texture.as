@@ -163,7 +163,7 @@ package starling.textures
         
         /** Creates a texture from the compressed ATF format. 
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */ 
-        public static function fromAtfData(data:ByteArray, scale:Number=1):Texture
+        public static function fromAtfData(data:ByteArray, scale:Number=1, ignoreMipMaps:Boolean = false):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -175,7 +175,7 @@ package starling.textures
             uploadAtfData(nativeTexture, data);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
-                atfData.width, atfData.height, atfData.numTextures > 1, false, false, scale);
+                atfData.width, atfData.height, atfData.numTextures > 1 && !ignoreMipMaps, false, false, scale);
             
             if (Starling.handleLostContext) 
                 concreteTexture.restoreOnLostContext(atfData);
