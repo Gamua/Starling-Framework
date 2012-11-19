@@ -12,7 +12,6 @@ package starling.events
 {
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
-    import starling.display.DisplayObjectContainer;
     
     use namespace starling_internal;
     

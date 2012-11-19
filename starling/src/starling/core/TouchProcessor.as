@@ -13,9 +13,7 @@ package starling.core
     import flash.geom.Point;
     import flash.utils.getDefinitionByName;
     
-    import starling.display.DisplayObject;
     import starling.display.Stage;
-    import starling.events.EventDispatcher;
     import starling.events.KeyboardEvent;
     import starling.events.Touch;
     import starling.events.TouchEvent;

@@ -358,7 +358,7 @@ package starling.display
          *  suitable values for <code>x, y, scaleX, scaleY,</code> and <code>rotation</code>.
          *  However, this is not always possible: skewed matrices, for example, are currently
          *  not supported. In that case, Starling will apply the matrix, but not update the
-         *  corresponding properties.
+         *  corresponding properties.</p>
          * 
          *  @returns CAUTION: not a copy, but the actual object! */
         public function get transformationMatrix():Matrix
