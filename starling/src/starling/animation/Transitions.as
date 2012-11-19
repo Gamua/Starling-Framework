@@ -19,7 +19,7 @@ package starling.animation
     import starling.errors.AbstractClassError;
     
     /** The Transitions class contains static methods that define easing functions. 
-     *  Those functions will be used by the Tween class to execute animations.
+     *  Those functions are used by the Tween class to execute animations.
      * 
      *  <p>Here is a visual representation of the available transitions:</p> 
      *  <img src="http://gamua.com/img/blog/2010/sparrow-transitions.png"/>
@@ -94,56 +94,56 @@ package starling.animation
         
         // transition functions
         
-        private static function linear(ratio:Number):Number
+        protected static function linear(ratio:Number):Number
         {
             return ratio;
         }
         
-        private static function easeIn(ratio:Number):Number
+        protected static function easeIn(ratio:Number):Number
         {
             return ratio * ratio * ratio;
         }    
         
-        private static function easeOut(ratio:Number):Number
+        protected static function easeOut(ratio:Number):Number
         {
             var invRatio:Number = ratio - 1.0;
             return invRatio * invRatio * invRatio + 1;
         }        
         
-        private static function easeInOut(ratio:Number):Number
+        protected static function easeInOut(ratio:Number):Number
         {
             return easeCombined(easeIn, easeOut, ratio);
         }   
         
-        private static function easeOutIn(ratio:Number):Number
+        protected static function easeOutIn(ratio:Number):Number
         {
             return easeCombined(easeOut, easeIn, ratio);
         }
         
-        private static function easeInBack(ratio:Number):Number
+        protected static function easeInBack(ratio:Number):Number
         {
             var s:Number = 1.70158;
             return Math.pow(ratio, 2) * ((s + 1.0)*ratio - s);
         }
         
-        private static function easeOutBack(ratio:Number):Number
+        protected static function easeOutBack(ratio:Number):Number
         {
             var invRatio:Number = ratio - 1.0;            
             var s:Number = 1.70158;
             return Math.pow(invRatio, 2) * ((s + 1.0)*invRatio + s) + 1.0;
         }
         
-        private static function easeInOutBack(ratio:Number):Number
+        protected static function easeInOutBack(ratio:Number):Number
         {
             return easeCombined(easeInBack, easeOutBack, ratio);
         }   
         
-        private static function easeOutInBack(ratio:Number):Number
+        protected static function easeOutInBack(ratio:Number):Number
         {
             return easeCombined(easeOutBack, easeInBack, ratio);
         }        
         
-        private static function easeInElastic(ratio:Number):Number
+        protected static function easeInElastic(ratio:Number):Number
         {
             if (ratio == 0 || ratio == 1) return ratio;
             else
@@ -155,7 +155,7 @@ package starling.animation
             }            
         }
         
-        private static function easeOutElastic(ratio:Number):Number
+        protected static function easeOutElastic(ratio:Number):Number
         {
             if (ratio == 0 || ratio == 1) return ratio;
             else
@@ -166,22 +166,22 @@ package starling.animation
             }            
         }
         
-        private static function easeInOutElastic(ratio:Number):Number
+        protected static function easeInOutElastic(ratio:Number):Number
         {
             return easeCombined(easeInElastic, easeOutElastic, ratio);
         }   
         
-        private static function easeOutInElastic(ratio:Number):Number
+        protected static function easeOutInElastic(ratio:Number):Number
         {
             return easeCombined(easeOutElastic, easeInElastic, ratio);
         }
         
-        private static function easeInBounce(ratio:Number):Number
+        protected static function easeInBounce(ratio:Number):Number
         {
             return 1.0 - easeOutBounce(1.0 - ratio);
         }
         
-        private static function easeOutBounce(ratio:Number):Number
+        protected static function easeOutBounce(ratio:Number):Number
         {
             var s:Number = 7.5625;
             var p:Number = 2.75;
@@ -214,17 +214,17 @@ package starling.animation
             return l;
         }
         
-        private static function easeInOutBounce(ratio:Number):Number
+        protected static function easeInOutBounce(ratio:Number):Number
         {
             return easeCombined(easeInBounce, easeOutBounce, ratio);
         }   
         
-        private static function easeOutInBounce(ratio:Number):Number
+        protected static function easeOutInBounce(ratio:Number):Number
         {
             return easeCombined(easeOutBounce, easeInBounce, ratio);
         }
         
-        private static function easeCombined(startFunc:Function, endFunc:Function, ratio:Number):Number
+        protected static function easeCombined(startFunc:Function, endFunc:Function, ratio:Number):Number
         {
             if (ratio < 0.5) return 0.5 * startFunc(ratio*2.0);
             else             return 0.5 * endFunc((ratio-0.5)*2.0) + 0.5;

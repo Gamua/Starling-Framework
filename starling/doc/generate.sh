@@ -7,7 +7,7 @@
 echo "Please enter the version number (like '1.0'), followed by [ENTER]:"
 read version
 
-ASDOC="/Applications/Adobe Flash Builder 4.6/sdks/4.6.0/bin/asdoc"
+ASDOC="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0/bin/asdoc"
 
 "${ASDOC}" \
   -doc-sources ../src \
@@ -22,5 +22,6 @@ ASDOC="/Applications/Adobe Flash Builder 4.6/sdks/4.6.0/bin/asdoc"
   -package starling.text "Classes for working with text fields and bitmap fonts." \
   -package starling.textures "Classes to create and work with GPU texture data." \
   -package starling.utils "Utility classes and helper methods." \
+  -package starling.filters "Post processing filters for special effects." \
   -output html
 

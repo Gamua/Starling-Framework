@@ -55,6 +55,7 @@
     <classEntry path="starling.textures.AtfData"/>
     <classEntry path="starling.filters.IdentityFilter"/>
     <classEntry path="starling.filters.InverseFilter"/>
+    <classEntry path="starling.text.MiniBitmapFont"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

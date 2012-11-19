@@ -56,25 +56,20 @@ package starling.utils
             return resultPoint;
         }
         
-        /** Appends a skew transformation to a matrix, with angles in radians. */
+        /** Appends a skew transformation to a matrix (angles in radians). */
         public static function skew(matrix:Matrix, skewX:Number, skewY:Number):void
         {
-            var a:Number    = matrix.a;
-            var b:Number    = matrix.b;
-            var c:Number    = matrix.c;
-            var d:Number    = matrix.d;
-            var tx:Number   = matrix.tx;
-            var ty:Number   = matrix.ty;
-            
             var sinX:Number = Math.sin(skewX);
             var cosX:Number = Math.cos(skewX);
             var sinY:Number = Math.sin(skewY);
             var cosY:Number = Math.cos(skewY);
             
-            matrix.a = a * cosY + c * sinY;
-            matrix.b = b * cosY + d * sinY;
-            matrix.c = c * cosX - a * sinX;
-            matrix.d = d * cosX - b * sinX;
+            matrix.setTo(matrix.a  * cosY - matrix.b  * sinX,
+                         matrix.a  * sinY + matrix.b  * cosX,
+                         matrix.c  * cosY - matrix.d  * sinX,
+                         matrix.c  * sinY + matrix.d  * cosX,
+                         matrix.tx * cosY - matrix.ty * sinX,
+                         matrix.tx * sinY + matrix.ty * cosX);
         }
         
         /** Prepends a matrix to 'base' by multiplying it with another matrix. */
@@ -103,7 +98,7 @@ package starling.utils
                          matrix.tx, matrix.ty);
         }
         
-        /** Prepends an incremental rotation to a Matrix3D object. */
+        /** Prepends an incremental rotation to a Matrix object (angle in radians). */
         public static function prependRotation(matrix:Matrix, angle:Number):void
         {
             var sin:Number = Math.sin(angle);
@@ -111,6 +106,21 @@ package starling.utils
             
             matrix.setTo(matrix.a * cos + matrix.c * sin,  matrix.b * cos + matrix.d * sin,
                          matrix.c * cos - matrix.a * sin,  matrix.d * cos - matrix.b * sin,
+                         matrix.tx, matrix.ty);
+        }
+        
+        /** Prepends an incremental skew to a Matrix object (angles in radians). */
+        public static function prependSkew(matrix:Matrix, skewX:Number, skewY:Number):void
+        {
+            var sinX:Number = Math.sin(skewX);
+            var cosX:Number = Math.cos(skewX);
+            var sinY:Number = Math.sin(skewY);
+            var cosY:Number = Math.cos(skewY);
+            
+            matrix.setTo(matrix.a * cosY + matrix.c * sinY,
+                         matrix.b * cosY + matrix.d * sinY,
+                         matrix.c * cosX - matrix.a * sinX,
+                         matrix.d * cosX - matrix.b * sinX,
                          matrix.tx, matrix.ty);
         }
     }

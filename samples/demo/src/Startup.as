@@ -8,7 +8,9 @@ package
     
     import starling.core.Starling;
     
-    [Frame(factoryClass="Preloader")]
+    // If you set this class as your 'default application', it will run without a preloader.
+    // To use a preloader, see 'Preloader.as'.
+    
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
     public class Startup extends Sprite
     {
