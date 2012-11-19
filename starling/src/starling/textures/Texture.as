@@ -181,9 +181,6 @@ package starling.textures
             if (Starling.handleLostContext) 
                 concreteTexture.restoreOnLostContext(atfData);
             
-			data.clear();
-			atfData.data.clear();
-			atfData = null;
 			
             return concreteTexture;
         }
