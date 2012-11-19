@@ -26,13 +26,12 @@ package starling.animation
      *  <p>Here is an example of a tween that moves an object to the right, rotates it, and 
      *  fades it out:</p>
      *  
-     *  <pre>
+     *  <listing>
      *  var tween:Tween = new Tween(object, 2.0, Transitions.EASE_IN_OUT);
      *  tween.animate("x", object.x + 50);
      *  tween.animate("rotation", deg2rad(45));
      *  tween.fadeTo(0);    // equivalent to 'animate("alpha", 0)'
-     *  Starling.juggler.add(tween); 
-     *  </pre> 
+     *  Starling.juggler.add(tween);</listing> 
      *  
      *  <p>Note that the object is added to a juggler at the end of this sample. That's because a 
      *  tween will only be executed if its "advanceTime" method is executed regularly - the 
@@ -71,7 +70,9 @@ package starling.animation
         private var mReverse:Boolean;
         private var mCurrentCycle:int;
         
-        /** Creates a tween with a target, duration (in seconds) and a transition function. 
+        /** Creates a tween with a target, duration (in seconds) and a transition function.
+         *  @param target the object that you want to animate
+         *  @param time the duration of the Tween
          *  @param transition can be either a String (e.g. one of the constants defined in the
          *         Transitions class) or a function. Look up the 'Transitions' class for a   
          *         documentation about the required function signature. */ 
