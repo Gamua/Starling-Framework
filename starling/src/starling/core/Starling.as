@@ -410,7 +410,7 @@ package starling.core
                 if (!mShareContext)
                 {
                     if (mContext && mContext.driverInfo != "Disposed")
-                        mContext.configureBackBuffer(
+                        mSupport.configureBackBuffer(
                             mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
                 
                     mStage3D.x = mClippedViewPort.x;
