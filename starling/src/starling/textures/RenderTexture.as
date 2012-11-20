@@ -203,9 +203,9 @@ package starling.textures
         public function get isPersistent():Boolean { return mBufferTexture != null; }
         
         /** @inheritDoc */
-        public override function get base():TextureBase 
-        { 
-            return mActiveTexture.base; 
-        }
+        public override function get base():TextureBase { return mActiveTexture.base; }
+        
+        /** @inheritDoc */
+        public override function get root():ConcreteTexture { return mActiveTexture.root; }
     }
 }

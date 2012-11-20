@@ -316,17 +316,26 @@ package starling.textures
         public function get repeat():Boolean { return mRepeat; }
         public function set repeat(value:Boolean):void { mRepeat = value; }
         
-        /** The width of the texture in pixels. */
+        /** The width of the texture in points. */
         public function get width():Number { return 0; }
         
-        /** The height of the texture in pixels. */
+        /** The height of the texture in points. */
         public function get height():Number { return 0; }
 
+        /** The width of the texture in pixels (without scale adjustment). */
+        public function get nativeWidth():Number { return 0; }
+        
+        /** The height of the texture in pixels (without scale adjustment). */
+        public function get nativeHeight():Number { return 0; }
+        
         /** The scale factor, which influences width and height properties. */
         public function get scale():Number { return 1.0; }
         
         /** The Stage3D texture object the texture is based on. */
         public function get base():TextureBase { return null; }
+        
+        /** The concrete (power-of-two) texture the texture is based on. */
+        public function get root():ConcreteTexture { return null; }
         
         /** The <code>Context3DTextureFormat</code> of the underlying texture data. */
         public function get format():String { return Context3DTextureFormat.BGRA; }
