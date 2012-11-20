@@ -68,6 +68,12 @@ package starling.animation
             }
         }
         
+        /** Determines if an object has been added to the juggler. */
+        public function contains(object:IAnimatable):Boolean
+        {
+            return mObjects.indexOf(object) != -1;
+        }
+        
         /** Removes an object from the juggler. */
         public function remove(object:IAnimatable):void
         {

@@ -53,6 +53,18 @@ package tests
         }
         
         [Test]
+        public function testContains():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0);
+            
+            Assert.assertFalse(juggler.contains(tween));
+            juggler.add(tween);
+            Assert.assertTrue(juggler.contains(tween));
+        }
+        
+        [Test]
         public function testPurge():void
         {
             var juggler:Juggler = new Juggler();
