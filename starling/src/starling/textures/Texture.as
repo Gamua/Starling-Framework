@@ -15,6 +15,7 @@ package starling.textures
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
+    import flash.events.Event;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
@@ -162,18 +163,26 @@ package starling.textures
         
         /** Creates a texture from the compressed ATF format. If you don't want to use any embedded
          *  mipmaps, you can disable them by setting "useMipMaps" to <code>false</code>.
-         *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */ 
-        public static function fromAtfData(data:ByteArray, scale:Number=1, 
-                                           useMipMaps:Boolean=true):Texture
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context.
+         *  
+         *  <p>If you pass a function for the 'loadAsync' parameter, the method will return
+         *  immediately, while the texture will be created asynchronously. It can be used as soon
+         *  as the callback has been executed. This is the expected function definition:
+         *  <code>function(texture:Texture):void;</code></p> */ 
+        public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true, 
+                                           loadAsync:Function=null):Texture
         {
+            const eventType:String = "textureReady"; // defined here for backwards compatibility
+            
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
+            var async:Boolean = loadAsync != null;
             var atfData:AtfData = new AtfData(data);
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                     atfData.width, atfData.height, atfData.format, false);
             
-            uploadAtfData(nativeTexture, data);
+            uploadAtfData(nativeTexture, data, 0, async);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1, 
@@ -182,7 +191,17 @@ package starling.textures
             if (Starling.handleLostContext) 
                 concreteTexture.restoreOnLostContext(atfData);
             
+            if (async)
+                nativeTexture.addEventListener(eventType, onTextureReady);
+            
             return concreteTexture;
+            
+            function onTextureReady(event:Event):void
+            {
+                nativeTexture.removeEventListener(eventType, onTextureReady);
+                if (loadAsync.length == 1) loadAsync(concreteTexture);
+                else loadAsync();
+            }
         }
         
         /** Creates a texture with a certain size and color.
@@ -273,7 +292,7 @@ package starling.textures
             }
         }
         
-        /** Uploads the bitmap data to the native texture, optionally creating mipmaps. */
+        /** @private Uploads the bitmap data to the native texture, optionally creating mipmaps. */
         internal static function uploadBitmapData(nativeTexture:flash.display3D.textures.Texture,
                                                   data:BitmapData, generateMipmaps:Boolean):void
         {
@@ -303,11 +322,12 @@ package starling.textures
             }
         }
         
-        /** Uploads ATF data from a ByteArray to a native texture. */
+        /** @private Uploads ATF data from a ByteArray to a native texture. */
         internal static function uploadAtfData(nativeTexture:flash.display3D.textures.Texture, 
-                                               data:ByteArray, offset:int=0):void
+                                               data:ByteArray, offset:int=0, 
+                                               async:Boolean=false):void
         {
-            nativeTexture.uploadCompressedTextureFromByteArray(data, offset);
+            nativeTexture.uploadCompressedTextureFromByteArray(data, offset, async);
         }
         
         // properties
