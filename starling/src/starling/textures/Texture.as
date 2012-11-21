@@ -185,8 +185,14 @@ package starling.textures
             return concreteTexture;
         }
         
-        /** Creates an empty texture of a certain size and color. The color parameter
-         *  expects data in ARGB format. */
+        /** Creates a texture with a certain size and color.
+         *  
+         *  @param width:  in points; number of pixels depends on scale parameter
+         *  @param height: in points; number of pixels depends on scale parameter
+         *  @param color:  expected in ARGB format (inlude alpha!)
+         *  @param optimizeForRenderTexture: indicates if this texture will be used as render target
+         *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         */
         public static function fromColor(width:int, height:int, color:uint=0xffffffff,
                                          optimizeForRenderTexture:Boolean=false, 
                                          scale:Number=-1):Texture
@@ -204,7 +210,14 @@ package starling.textures
         
         /** Creates an empty texture of a certain size. Useful mainly for render textures. 
          *  Beware that the texture can only be used after you either upload some color data or
-         *  clear the texture while it is an active render target. */
+         *  clear the texture while it is an active render target. 
+         *  
+         *  @param width:  in points; number of pixels depends on scale parameter
+         *  @param height: in points; number of pixels depends on scale parameter
+         *  @param premultipliedAlpha: the PMA format you will use the texture with
+         *  @param optimizeForRenderTexture: indicates if this texture will be used as render target
+         *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         */
         public static function empty(width:int=64, height:int=64, premultipliedAlpha:Boolean=false,
                                      optimizeForRenderTexture:Boolean=true,
                                      scale:Number=-1):Texture
