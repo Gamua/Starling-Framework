@@ -150,6 +150,7 @@ package starling.events
             }
         }
         
+        /** @private */
         internal function bubbleEvent(event:Event):void
         {
             // we determine the bubble chain before starting to invoke the listeners.

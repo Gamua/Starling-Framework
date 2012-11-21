@@ -419,6 +419,7 @@ package starling.filters
         
         // flattening
         
+        /** @private */
         starling_internal function compile(object:DisplayObject):QuadBatch
         {
             if (mCache) return mCache;
