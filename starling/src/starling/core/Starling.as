@@ -356,11 +356,12 @@ package starling.core
         public function render():void
         {
             makeCurrent();
+            
             updateViewPort();
             updateNativeOverlay();
             mSupport.nextFrame();
             
-            if (mContext == null || mContext.driverInfo == "Disposed")
+            if (!contextValid)
                 return;
             
             if (!mShareContext)
@@ -409,9 +410,8 @@ package starling.core
                 
                 if (!mShareContext)
                 {
-                    if (mContext && mContext.driverInfo != "Disposed")
-                        mSupport.configureBackBuffer(
-                            mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
+                    if (contextValid) mSupport.configureBackBuffer(
+                        mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
                 
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
@@ -615,6 +615,12 @@ package starling.core
         }
         
         // properties
+        
+        /** Indicates if a context is available and non-disposed. */
+        private function get contextValid():Boolean
+        {
+            return (mContext && mContext.driverInfo != "Disposed");
+        }
         
         /** Indicates if this Starling instance is started. */
         public function get isStarted():Boolean { return mStarted; }
