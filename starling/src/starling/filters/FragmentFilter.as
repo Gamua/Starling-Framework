@@ -37,6 +37,7 @@ package starling.filters
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
@@ -78,6 +79,7 @@ package starling.filters
         /** helper objects. */
         private var mProjMatrix:Matrix = new Matrix();
         private static var sBounds:Rectangle  = new Rectangle();
+        private static var sStageBounds:Rectangle = new Rectangle();
         private static var sTransformationMatrix:Matrix = new Matrix();
         
         public function FragmentFilter(numPasses:int=1, resolution:Number=1.0)
@@ -111,8 +113,6 @@ package starling.filters
             // avoids memory leaks when people forget to call "dispose" on the filter.
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE, 
                 onContextCreated, false, 0, true);
-            
-            // TODO: intersect object bounds with stage bounds & set scissor rectangle accordingly
         }
         
         public function dispose():void
@@ -170,6 +170,18 @@ package starling.filters
             if (stage   == null) throw new Error("Filtered object must be on the stage.");
             if (context == null) throw new MissingContextError();
             
+            // the bounds of the object in stage coordinates 
+            calculateBounds(object, stage, !intoCache, sBounds);
+            
+            if (sBounds.isEmpty())
+            {
+                disposePassTextures();
+                return intoCache ? new QuadBatch() : null; 
+            }
+            
+            updateBuffers(context, sBounds);
+            updatePassTextures(sBounds.width, sBounds.height, mResolution * scale);
+
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
@@ -186,11 +198,6 @@ package starling.filters
                 throw new IllegalOperationError(
                     "It's currently not possible to stack filters! " +
                     "This limitation will be removed in a future Stage3D version.");
-            
-            // get bounds and update buffers and textures accordingly
-            calculateBounds(object, stage, sBounds);
-            updateBuffers(context, sBounds);
-            updatePassTextures(sBounds.width, sBounds.height, mResolution * scale);
             
             if (intoCache) 
                 cacheTexture = Texture.empty(sBounds.width, sBounds.height, PMA, true, 
@@ -330,7 +337,8 @@ package starling.filters
         
         /** Calculates the bounds of the filter in stage coordinates, making sure that the 
          *  according textures will have powers of two. */
-        private function calculateBounds(object:DisplayObject, stage:Stage, resultRect:Rectangle):void
+        private function calculateBounds(object:DisplayObject, stage:Stage, 
+                                         intersectWithStage:Boolean, resultRect:Rectangle):void
         {
             // optimize for full-screen effects
             if (object == stage || object == Starling.current.root)
@@ -338,16 +346,25 @@ package starling.filters
             else
                 object.getBounds(stage, resultRect);
             
-            // the bounds are a rectangle around the object, in stage coordinates,
-            // and with an optional margin. To fit into a POT-texture, it will grow towards
-            // the right and bottom.
-            var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // avoid hard edges
-            resultRect.x -= mMarginX + deltaMargin;
-            resultRect.y -= mMarginY + deltaMargin;
-            resultRect.width  += 2 * (mMarginX + deltaMargin);
-            resultRect.height += 2 * (mMarginY + deltaMargin);
-            resultRect.width  = getNextPowerOfTwo(resultRect.width  * mResolution) / mResolution;
-            resultRect.height = getNextPowerOfTwo(resultRect.height * mResolution) / mResolution;
+            if (intersectWithStage)
+            {
+                sStageBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+                RectangleUtil.intersect(sBounds, sStageBounds, sBounds);
+            }
+            
+            if (!resultRect.isEmpty())
+            {    
+                // the bounds are a rectangle around the object, in stage coordinates,
+                // and with an optional margin. To fit into a POT-texture, it will grow towards
+                // the right and bottom.
+                var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // avoid hard edges
+                resultRect.x -= mMarginX + deltaMargin;
+                resultRect.y -= mMarginY + deltaMargin;
+                resultRect.width  += 2 * (mMarginX + deltaMargin);
+                resultRect.height += 2 * (mMarginY + deltaMargin);
+                resultRect.width  = getNextPowerOfTwo(resultRect.width  * mResolution) / mResolution;
+                resultRect.height = getNextPowerOfTwo(resultRect.height * mResolution) / mResolution;
+            }
         }
         
         private function disposePassTextures():void
@@ -362,7 +379,7 @@ package starling.filters
         {
             if (mCache)
             {
-                mCache.texture.dispose();
+                if (mCache.texture) mCache.texture.dispose();
                 mCache.dispose();
                 mCache = null;
             }
