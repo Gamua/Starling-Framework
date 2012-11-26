@@ -391,7 +391,7 @@ package starling.display
             mTransformationMatrix.copyFrom(matrix);
             
             mScaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-            mSkewY  = Math.acos(matrix.a / scaleX);
+            mSkewY  = Math.acos(matrix.a / mScaleX);
             
             if (!isEquivalent(matrix.b, mScaleX * Math.sin(mSkewY)))
             {
