@@ -34,18 +34,9 @@ package
         
         public function Game()
         {
-            // The following settings are for mobile development (iOS, Android):
-            //
-            // You develop your game in a *fixed* coordinate system of 320x480; the game might 
-            // then run on a device with a different resolution, and the assets class will
-            // provide textures in the most suitable format.
+            // load general assets (with correct scale factor, important on mobile)
             
-            Starling.current.stage.stageWidth  = 320;
-            Starling.current.stage.stageHeight = 480;
             Assets.contentScaleFactor = Starling.current.contentScaleFactor;
-            
-            // load general assets
-            
             Assets.prepareSounds();
             Assets.loadBitmapFonts();
             
