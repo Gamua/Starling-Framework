@@ -12,6 +12,8 @@ package starling.core
 {
     import flash.display.Sprite;
     import flash.display.Stage3D;
+    import flash.display.StageAlign;
+    import flash.display.StageScaleMode;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DTriangleFace;
@@ -224,6 +226,10 @@ package starling.core
             mCustomData = new Dictionary();
             mSupport  = new RenderSupport();
             
+            // all other modes are problematic in Starling, so we force those here
+            stage.scaleMode = StageScaleMode.NO_SCALE;
+            stage.align = StageAlign.TOP_LEFT;
+            
             // register touch/mouse event handlers            
             for each (var touchEventType:String in touchEventTypes)
                 stage.addEventListener(touchEventType, onTouch, false, 0, true);
@@ -355,14 +361,13 @@ package starling.core
          *  it is presented. This can be avoided by enabling <code>shareContext</code>.*/ 
         public function render():void
         {
-            makeCurrent();
+            if (!contextValid)
+                return;
             
+            makeCurrent();
             updateViewPort();
             updateNativeOverlay();
             mSupport.nextFrame();
-            
-            if (!contextValid)
-                return;
             
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);
@@ -410,11 +415,10 @@ package starling.core
                 
                 if (!mShareContext)
                 {
-                    if (contextValid) mSupport.configureBackBuffer(
-                        mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
-                
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
+                    mSupport.configureBackBuffer(
+                        mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
                 }
             }
         }
@@ -656,7 +660,7 @@ package starling.core
             if (mAntiAliasing != value)
             {
                 mAntiAliasing = value;
-                updateViewPort(true);
+                if (contextValid) updateViewPort(true);
             }
         }
         
