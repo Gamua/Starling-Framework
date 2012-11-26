@@ -149,7 +149,7 @@ package starling.filters
             }
             
             if (mCache)
-                mCache.render(support, object.alpha * parentAlpha);
+                mCache.render(support, parentAlpha);
             else
                 renderPasses(object, support, parentAlpha, false);
             
