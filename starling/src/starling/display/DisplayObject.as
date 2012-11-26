@@ -389,6 +389,9 @@ package starling.display
         {
             mOrientationChanged = false;
             mTransformationMatrix.copyFrom(matrix);
+
+            mX = matrix.tx;
+            mY = matrix.ty;
             
             mScaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
             mSkewY  = Math.acos(matrix.a / mScaleX);
@@ -412,6 +415,10 @@ package starling.display
             {
                 mRotation = mSkewX;
                 mSkewX = mSkewY = 0;
+            }
+            else
+            {
+                mRotation = 0;
             }
         }
         
