@@ -58,6 +58,11 @@ package starling.filters
         protected const STD_FRAGMENT_SHADER:String =
             "tex oc, v0, fs0 <2d, clamp, linear, mipnone>"; // just forward texture color
         
+        protected var mVertexAttributeID:int = 0
+        protected var mTextureAttributeID:int = 1
+        protected var mBaseTextureID:int = 0
+        protected var mMVPConstantID:int = 0
+        
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
 
@@ -213,8 +218,8 @@ package starling.filters
             // prepare drawing of actual filter passes
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(1, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+            context.setVertexBufferAt(mVertexAttributeID, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+            context.setVertexBufferAt(mTextureAttributeID, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
             
             // draw all passes
             for (var i:int=0; i<mNumPasses; ++i)
@@ -246,8 +251,8 @@ package starling.filters
                 
                 var passTexture:Texture = getPassTexture(i);
                 
-                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
-                context.setTextureAt(0, passTexture.base);
+                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, mMVPConstantID, support.mvpMatrix3D, true);
+                context.setTextureAt(mBaseTextureID, passTexture.base);
                 
                 activate(i, context, passTexture);
                 context.drawTriangles(mIndexBuffer, 0, 2);
@@ -255,9 +260,9 @@ package starling.filters
             }
             
             // reset shader attributes
-            context.setVertexBufferAt(0, null);
-            context.setVertexBufferAt(1, null);
-            context.setTextureAt(0, null);
+            context.setVertexBufferAt(mVertexAttributeID, null);
+            context.setVertexBufferAt(mTextureAttributeID, null);
+            context.setTextureAt(mBaseTextureID, null);
             
             support.popMatrix();
             
