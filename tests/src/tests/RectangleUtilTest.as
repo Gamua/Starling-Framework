@@ -48,5 +48,31 @@ package tests
             Helpers.compareRectangles(expectedRect,
                 RectangleUtil.intersect(rect, insideRect));
         }
+        
+        [Test]
+        public function testFit():void
+        {
+            var into:Rectangle = new Rectangle(50, 50, 200, 100);
+            
+            Helpers.compareRectangles(
+                RectangleUtil.fit(new Rectangle(0, 0, 200, 100), into),
+                new Rectangle(50, 50, 200, 100));
+                    
+            Helpers.compareRectangles(
+                RectangleUtil.fit(new Rectangle(0, 0, 50, 50), into, false),
+                new Rectangle(125, 75, 50, 50));
+            
+            Helpers.compareRectangles(
+                RectangleUtil.fit(new Rectangle(0, 0, 50, 50), into, true),
+                new Rectangle(100, 50, 100, 100));
+            
+            Helpers.compareRectangles(
+                RectangleUtil.fit(new Rectangle(0, 0, 400, 200), into, false),
+                new Rectangle(-50, 0, 400, 200));
+            
+            Helpers.compareRectangles(
+                RectangleUtil.fit(new Rectangle(0, 0, 400, 200), into, true),
+                new Rectangle(50, 50, 200, 100));
+        }
     }
 }

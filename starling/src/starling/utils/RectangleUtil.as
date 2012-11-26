@@ -39,5 +39,35 @@ package starling.utils
             
             return resultRect;
         }
+        
+        /** Calculates a rectangle with the same aspect ratio as the given 'rectangle',
+         *  centered within 'into'. Optionally, the rectangle will be scaled to the biggest 
+         *  possible size (so that no cropping occurs). This method is useful for calculating  
+         *  the optimal viewPort for a certain display size. */
+        public static function fit(rectangle:Rectangle, into:Rectangle, scale:Boolean=true,
+                                   resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            var width:Number  = rectangle.width;
+            var height:Number = rectangle.height;
+            
+            if (scale)
+            {
+                var factorX:Number = into.width  / width;
+                var factorY:Number = into.height / height;
+                var factor:Number  = factorX < factorY ? factorX : factorY;
+                
+                width  *= factor;
+                height *= factor;
+            }
+            
+            resultRect.setTo(
+                into.x + (into.width  - width)  / 2,
+                into.y + (into.height - height) / 2,
+                width, height);
+            
+            return resultRect;
+        }
     }
 }
