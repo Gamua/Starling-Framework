@@ -135,7 +135,6 @@ package starling.display
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
-        private static var sTransformationMatrixWarningIssued:Boolean = false;
         
         /** @private */ 
         public function DisplayObject()
@@ -356,9 +355,9 @@ package starling.display
          * 
          *  <p>If you assign a custom transformation matrix, Starling will try to figure out  
          *  suitable values for <code>x, y, scaleX, scaleY,</code> and <code>rotation</code>.
-         *  However, this is not always possible: skewed matrices, for example, are currently
-         *  not supported. In that case, Starling will apply the matrix, but not update the
-         *  corresponding properties.</p>
+         *  However, if the matrix was created in a different way, this might not be possible. 
+         *  In that case, Starling will apply the matrix, but not update the corresponding 
+         *  properties.</p>
          * 
          *  @returns CAUTION: not a copy, but the actual object! */
         public function get transformationMatrix():Matrix
@@ -368,8 +367,8 @@ package starling.display
                 mOrientationChanged = false;
                 mTransformationMatrix.identity();
                 
-                if (mSkewX  != 0.0 || mSkewY  != 0.0) MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
                 if (mScaleX != 1.0 || mScaleY != 1.0) mTransformationMatrix.scale(mScaleX, mScaleY);
+                if (mSkewX  != 0.0 || mSkewY  != 0.0) MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
                 if (mRotation != 0.0)                 mTransformationMatrix.rotate(mRotation);
                 if (mX != 0.0 || mY != 0.0)           mTransformationMatrix.translate(mX, mY);
                 
@@ -391,33 +390,28 @@ package starling.display
             mOrientationChanged = false;
             mTransformationMatrix.copyFrom(matrix);
             
-            var aa:Number = matrix.a * matrix.a;
-            var bb:Number = matrix.b * matrix.b;
-            var cc:Number = matrix.c * matrix.c;
-            var dd:Number = matrix.d * matrix.d;
+            mScaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
+            mSkewY  = Math.acos(matrix.a / scaleX);
             
-            if (isEquivalent(bb/(aa+bb), cc/(dd+cc)))
+            if (!isEquivalent(matrix.b, mScaleX * Math.sin(mSkewY)))
             {
-                // the matrix contains only translation, rotation and scaling changes.
-                // thus, we can figure out the properties that make up the matrix.
-                
-                var sinRot:Number = Math.sqrt(bb/(aa+bb));
-                
-                if ((matrix.a >= 0 && matrix.b < 0) || (matrix.a < 0 && matrix.b >= 0)) 
-                    sinRot *= -1;
-                
-                mRotation = Math.asin(sinRot);
-                mScaleX = rotation ?  matrix.b / sinRot : matrix.a;
-                mScaleY = rotation ? -matrix.c / sinRot : matrix.d;
-                mX = matrix.tx;
-                mY = matrix.ty;
-                mSkewX = mSkewY = mPivotX = mPivotY = 0;
+                mScaleX *= -1;
+                mSkewY = Math.acos(matrix.a / mScaleX);
             }
-            else if (!sTransformationMatrixWarningIssued)
+            
+            mScaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
+            mSkewX  = Math.acos(matrix.d / mScaleY);
+            
+            if (!isEquivalent(matrix.c, -mScaleY * Math.sin(mSkewX)))
             {
-                trace("[Starling] Cannot calculate individual transformation matrix properties.",
-                      "This warning is issued only once.");
-                sTransformationMatrixWarningIssued = true;
+                mScaleY *= -1;
+                mSkewX = Math.acos(matrix.d / mScaleY);
+            }
+            
+            if (isEquivalent(mSkewX, mSkewY))
+            {
+                mRotation = mSkewX;
+                mSkewX = mSkewY = 0;
             }
         }
         
