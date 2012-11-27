@@ -197,10 +197,6 @@ package starling.filters
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
             
-            // force blend mode "normal" for filter passes
-            support.blendMode = BlendMode.NORMAL;
-            RenderSupport.setBlendFactors(PMA);
-            
             // save original projection matrix and render target
             mProjMatrix.copyFrom(support.projectionMatrix); 
             var previousRenderTarget:Texture = support.renderTarget;
@@ -217,6 +213,7 @@ package starling.filters
             // draw the original object into a texture
             support.renderTarget = mPassTextures[0];
             support.clear();
+            support.blendMode = BlendMode.NORMAL;
             support.setOrthographicProjection(sBounds.x, sBounds.y, sBounds.width, sBounds.height);
             object.render(support, parentAlpha);
             support.finishQuadBatch();
