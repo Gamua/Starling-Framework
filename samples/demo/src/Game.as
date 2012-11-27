@@ -77,11 +77,11 @@ package
                 button.x = count % 2 == 0 ? 28 : 167;
                 button.y = 160 + int(count / 2) * 52;
                 button.name = getQualifiedClassName(sceneClass);
-                button.addEventListener(Event.TRIGGERED, onButtonTriggered);
                 mMainMenu.addChild(button);
                 ++count;
             }
             
+            addEventListener(Event.TRIGGERED, onButtonTriggered);
             addEventListener(Scene.CLOSING, onSceneClosing);
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
@@ -118,7 +118,11 @@ package
         private function onButtonTriggered(event:Event):void
         {
             var button:Button = event.target as Button;
-            showScene(button.name);
+            
+            if (button.name == "backButton")
+				closeScene();
+			else
+                showScene(button.name);
         }
         
         private function onSceneClosing(event:Event):void

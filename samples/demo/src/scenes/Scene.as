@@ -6,8 +6,6 @@ package scenes
     
     public class Scene extends Sprite
     {
-        public static const CLOSING:String = "closing";
-        
         private var mBackButton:Button;
         
         public function Scene()
@@ -16,6 +14,7 @@ package scenes
             mBackButton.x = Constants.CenterX - mBackButton.width / 2;
             mBackButton.y = Constants.GameHeight - mBackButton.height + 1;
             mBackButton.addEventListener(Event.TRIGGERED, onBackButtonTriggered);
+            mBackButton.name = "backButton";
             addChild(mBackButton);
         }
         
