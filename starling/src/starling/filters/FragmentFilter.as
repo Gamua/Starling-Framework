@@ -44,8 +44,7 @@ package starling.filters
     /** The FragmentFilter class is the base class for all filter effects.
      *  
      *  <p>All other filters of this package extend this class. You can attach them to any display
-     *  object through the 'filter' property. To combine several filters, group them in a 
-     *  'FilterChain' instance.</p>
+     *  object through the 'filter' property.</p>
      *  
      *  <p>Create your own filters by extending this class.</p>
      */ 
@@ -58,10 +57,17 @@ package starling.filters
         protected const STD_FRAGMENT_SHADER:String =
             "tex oc, v0, fs0 <2d, clamp, linear, mipnone>"; // just forward texture color
         
-        protected var mVertexAttributeID:int = 0
-        protected var mTextureAttributeID:int = 1
-        protected var mBaseTextureID:int = 0
-        protected var mMVPConstantID:int = 0
+        /** The ID of the vertex buffer attribute storing the vertex position. */ 
+        protected var mVertexPosAtID:int = 0;
+        
+        /** The ID of the vertex buffer attribute storing the texture coordinates. */
+        protected var mTexCoordsAtID:int = 1;
+        
+        /** The ID (sampler) of the input texture (containing the output of the previous pass). */
+        protected var mBaseTextureID:int = 0;
+        
+        /** The ID of the first register of the MVP matrix constant (a 4x4 matrix). */ 
+        protected var mMvpConstantID:int = 0;
         
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
@@ -218,8 +224,11 @@ package starling.filters
             // prepare drawing of actual filter passes
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
-            context.setVertexBufferAt(mVertexAttributeID, mVertexBuffer, VertexData.POSITION_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(mTextureAttributeID, mVertexBuffer, VertexData.TEXCOORD_OFFSET, Context3DVertexBufferFormat.FLOAT_2);
+            
+            context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
+                                      Context3DVertexBufferFormat.FLOAT_2);
+            context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, VertexData.TEXCOORD_OFFSET,
+                                      Context3DVertexBufferFormat.FLOAT_2);
             
             // draw all passes
             for (var i:int=0; i<mNumPasses; ++i)
@@ -251,7 +260,8 @@ package starling.filters
                 
                 var passTexture:Texture = getPassTexture(i);
                 
-                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, mMVPConstantID, support.mvpMatrix3D, true);
+                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, mMvpConstantID, 
+                                                      support.mvpMatrix3D, true);
                 context.setTextureAt(mBaseTextureID, passTexture.base);
                 
                 activate(i, context, passTexture);
@@ -260,8 +270,8 @@ package starling.filters
             }
             
             // reset shader attributes
-            context.setVertexBufferAt(mVertexAttributeID, null);
-            context.setVertexBufferAt(mTextureAttributeID, null);
+            context.setVertexBufferAt(mVertexPosAtID, null);
+            context.setVertexBufferAt(mTexCoordsAtID, null);
             context.setTextureAt(mBaseTextureID, null);
             
             support.popMatrix();
