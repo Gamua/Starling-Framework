@@ -102,7 +102,10 @@ package starling.textures
             mRepeat = false;
         }
         
-        /** Disposes the underlying texture data. */
+        /** Disposes the underlying texture data. Note that not all textures need to be disposed: 
+         *  SubTextures (created with 'Texture.fromTexture') just reference other textures and
+         *  and do not take up resources themselves; this is also true for textures from an 
+         *  atlas. */
         public function dispose():void
         { 
             // override in subclasses
