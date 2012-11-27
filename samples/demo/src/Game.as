@@ -82,7 +82,6 @@ package
             }
             
             addEventListener(Event.TRIGGERED, onButtonTriggered);
-            addEventListener(Scene.CLOSING, onSceneClosing);
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
             
@@ -120,12 +119,12 @@ package
             var button:Button = event.target as Button;
             
             if (button.name == "backButton")
-				closeScene();
-			else
+                closeScene();
+            else
                 showScene(button.name);
         }
         
-        private function onSceneClosing(event:Event):void
+        private function closeScene():void
         {
             mCurrentScene.removeFromParent(true);
             mCurrentScene = null;
