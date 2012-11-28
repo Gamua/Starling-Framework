@@ -34,18 +34,9 @@ package
         
         public function Game()
         {
-            // The following settings are for mobile development (iOS, Android):
-            //
-            // You develop your game in a *fixed* coordinate system of 320x480; the game might 
-            // then run on a device with a different resolution, and the assets class will
-            // provide textures in the most suitable format.
+            // load general assets (with correct scale factor, important on mobile)
             
-            Starling.current.stage.stageWidth  = 320;
-            Starling.current.stage.stageHeight = 480;
             Assets.contentScaleFactor = Starling.current.contentScaleFactor;
-            
-            // load general assets
-            
             Assets.prepareSounds();
             Assets.loadBitmapFonts();
             
@@ -86,12 +77,11 @@ package
                 button.x = count % 2 == 0 ? 28 : 167;
                 button.y = 160 + int(count / 2) * 52;
                 button.name = getQualifiedClassName(sceneClass);
-                button.addEventListener(Event.TRIGGERED, onButtonTriggered);
                 mMainMenu.addChild(button);
                 ++count;
             }
             
-            addEventListener(Scene.CLOSING, onSceneClosing);
+            addEventListener(Event.TRIGGERED, onButtonTriggered);
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
             
@@ -127,10 +117,14 @@ package
         private function onButtonTriggered(event:Event):void
         {
             var button:Button = event.target as Button;
-            showScene(button.name);
+            
+            if (button.name == "backButton")
+                closeScene();
+            else
+                showScene(button.name);
         }
         
-        private function onSceneClosing(event:Event):void
+        private function closeScene():void
         {
             mCurrentScene.removeFromParent(true);
             mCurrentScene = null;

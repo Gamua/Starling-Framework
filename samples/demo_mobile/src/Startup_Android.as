@@ -1,16 +1,12 @@
 package
 {
     import flash.desktop.NativeApplication;
-    import flash.display.Bitmap;
     import flash.display.Sprite;
-    import flash.display.StageAlign;
-    import flash.display.StageQuality;
-    import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.geom.Rectangle;
-    import flash.system.Capabilities;
     
     import starling.core.Starling;
+    import starling.utils.RectangleUtil;
     
     [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
     public class Startup_Android extends Sprite
@@ -24,34 +20,26 @@ package
             // The "media" folder of this project has to be added to its "source paths" as well, 
             // to make sure the icon and startup images are added to the compiled mobile app.
             
-            // set general properties
-            
-            stage.scaleMode = StageScaleMode.NO_SCALE;
-            stage.align = StageAlign.TOP_LEFT;
-            
             Starling.multitouchEnabled = true; // useful on mobile devices
             Starling.handleLostContext = true; // required on Android
             
             // create a suitable viewport for the screen size
+            //
+            // we develop the game in a *fixed* coordinate system of 320x480; the game might 
+            // then run on a device with a different resolution; for that case, we zoom the 
+            // viewPort to the optimal size for any display and load the optimal textures.
             
-            var viewPort:Rectangle = new Rectangle();
-            
-            if (stage.fullScreenHeight / stage.fullScreenWidth < 1.5)
-            {
-                viewPort.height = stage.fullScreenHeight;
-                viewPort.width  = int(viewPort.height / 1.5);
-                viewPort.x = int((stage.fullScreenWidth - viewPort.width) / 2);
-            }
-            else
-            {            
-                viewPort.width = stage.fullScreenWidth; 
-                viewPort.height = int(viewPort.width * 1.5);
-                viewPort.y = int((stage.fullScreenHeight - viewPort.height) / 2);
-            }
+            var stageWidth:int  = 320;
+            var stageHeight:int = 480;
+            var viewPort:Rectangle = RectangleUtil.fit(
+                new Rectangle(0, 0, stageWidth, stageHeight), 
+                new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight), true);
             
             // initialize Starling
             
             mStarling = new Starling(Game, stage, viewPort);
+            mStarling.stage.stageWidth  = stageWidth;
+            mStarling.stage.stageHeight = stageHeight;
             mStarling.simulateMultitouch  = false;
             mStarling.enableErrorChecking = false;
             mStarling.start();

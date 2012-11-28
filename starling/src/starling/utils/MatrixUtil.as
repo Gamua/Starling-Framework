@@ -56,7 +56,14 @@ package starling.utils
             return resultPoint;
         }
         
-        /** Appends a skew transformation to a matrix (angles in radians). */
+        /** Appends a skew transformation to a matrix (angles in radians). The skew matrix
+         *  has the following form: 
+         *  <pre>
+         *  | cos(skewY)  -sin(skewX)  0 |
+         *  | sin(skewY)   cos(skewX)  0 |
+         *  |     0            0       1 |
+         *  </pre> 
+         */
         public static function skew(matrix:Matrix, skewX:Number, skewY:Number):void
         {
             var sinX:Number = Math.sin(skewX);
@@ -109,7 +116,14 @@ package starling.utils
                          matrix.tx, matrix.ty);
         }
         
-        /** Prepends an incremental skew to a Matrix object (angles in radians). */
+        /** Prepends a skew transformation to a Matrix object (angles in radians). The skew matrix
+         *  has the following form: 
+         *  <pre>
+         *  | cos(skewY)  -sin(skewX)  0 |
+         *  | sin(skewY)   cos(skewX)  0 |
+         *  |     0            0       1 |
+         *  </pre> 
+         */
         public static function prependSkew(matrix:Matrix, skewX:Number, skewY:Number):void
         {
             var sinX:Number = Math.sin(skewX);

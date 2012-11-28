@@ -10,11 +10,18 @@
 
 package starling.core
 {
-    import flash.geom.*;
+    import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
     
-    import starling.display.*;
+    import starling.display.BlendMode;
+    import starling.display.DisplayObject;
+    import starling.display.Quad;
+    import starling.display.QuadBatch;
     import starling.textures.Texture;
-    import starling.utils.*;
+    import starling.utils.Color;
+    import starling.utils.MatrixUtil;
 
     /** A class that contains helper methods simplifying Stage3D rendering.
      *
@@ -33,11 +40,19 @@ package starling.core
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         private var mDrawCount:int;
-        private var mRenderTarget:Texture;
         private var mBlendMode:String;
+
+        private var mRenderTarget:Texture;
+        private var mRenderTargetWidth:int;
+        private var mRenderTargetHeight:int;
+        private var mScissorRectangle:Rectangle;
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
+        
+        /** helper objects */
+        private var sPoint:Point = new Point();
+        private var sRectangle:Rectangle = new Rectangle();
         
         // construction
         
@@ -53,6 +68,7 @@ package starling.core
             mDrawCount = 0;
             mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
+            mScissorRectangle = new Rectangle();
             
             mCurrentQuadBatchID = 0;
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
@@ -190,6 +206,55 @@ package starling.core
             
             if (target) Starling.context.setRenderToTexture(target.base);
             else        Starling.context.setRenderToBackBuffer();
+        }
+        
+        /** Configures the back buffer on the current context3D. By using this method, Starling
+         *  can store the size of the back buffer and utilize this information in other methods
+         *  (e.g. the scissor rectangle property). */
+        public function configureBackBuffer(width:int, height:int, antiAlias:int, 
+                                            enableDepthAndStencil:Boolean):void
+        {
+            mRenderTargetWidth = width;
+            mRenderTargetHeight = height;
+            Starling.context.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
+        }
+        
+        // scissor rect
+        
+        /** The scissor rectangle can be used to limit rendering in the current render target to
+         *  a certain area. This method expects the rectangle in stage coordinates
+         *  (different to the context3D method with the same name, which expects pixels).
+         *  Pass <code>null</code> to turn off scissoring.
+         *  CAUTION: not a copy -- use with care! */ 
+        public function get scissorRectangle():Rectangle 
+        { 
+            return mScissorRectangle.isEmpty() ? null : mScissorRectangle; 
+        }
+        
+        public function set scissorRectangle(value:Rectangle):void
+        {
+            if (value)
+            {
+                mScissorRectangle.setTo(value.x, value.y, value.width, value.height);
+
+                var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mRenderTargetWidth;
+                var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mRenderTargetHeight;
+                
+                MatrixUtil.transformCoords(mProjectionMatrix, value.x, value.y, sPoint);
+                sRectangle.x = Math.max(0, ( sPoint.x + 1) / 2) * width;
+                sRectangle.y = Math.max(0, (-sPoint.y + 1) / 2) * height;
+                
+                MatrixUtil.transformCoords(mProjectionMatrix, value.right, value.bottom, sPoint);
+                sRectangle.right  = Math.min(1, ( sPoint.x + 1) / 2) * width;
+                sRectangle.bottom = Math.min(1, (-sPoint.y + 1) / 2) * height;
+                
+                Starling.context.setScissorRectangle(sRectangle);
+            }
+            else 
+            {
+                mScissorRectangle.setEmpty();
+                Starling.context.setScissorRectangle(null);
+            }
         }
         
         // optimized quad rendering

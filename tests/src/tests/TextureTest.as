@@ -13,7 +13,9 @@ package tests
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
-    import flexunit.framework.Assert;
+    import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
+    import org.hamcrest.number.closeTo;
     
     import starling.textures.ConcreteTexture;
     import starling.textures.SubTexture;
@@ -22,6 +24,8 @@ package tests
 
     public class TextureTest
     {
+        private static const E:Number = 0.0001;
+        
         [Test(expects="starling.errors.AbstractClassError")]
         public function testCreateTexture():void
         {
@@ -110,6 +114,36 @@ package tests
             vertexData.setTexCoords(2, 0.25, 0.75);
             vertexData.setTexCoords(3, 0.75, 0.75);
             return vertexData;
+        }
+        
+        [Test]
+        public function testGetRoot():void
+        {
+            var texture:ConcreteTexture = new ConcreteTexture(null, null, 32, 32, false, false);
+            var subTexture:SubTexture = new SubTexture(texture, new Rectangle(0, 0, 16, 16));
+            var subSubTexture:SubTexture = new SubTexture(texture, new Rectangle(0, 0, 8, 8));
+            
+            assertEquals(texture, texture.root);
+            assertEquals(texture, subTexture.root);
+            assertEquals(texture, subSubTexture.root);
+            assertEquals(texture.base, subSubTexture.base);
+        }
+        
+        [Test]
+        public function testGetSize():void
+        {
+            var texture:ConcreteTexture = new ConcreteTexture(null, null, 32, 16, false, false, false, 2);
+            var subTexture:SubTexture = new SubTexture(texture, new Rectangle(0, 0, 12, 8));
+            
+            assertThat(texture.width, closeTo(16, E));
+            assertThat(texture.height, closeTo(8, E));
+            assertThat(texture.nativeWidth, closeTo(32, E));
+            assertThat(texture.nativeHeight, closeTo(16, E));
+            
+            assertThat(subTexture.width, closeTo(12, E));
+            assertThat(subTexture.height, closeTo(8, E));
+            assertThat(subTexture.nativeWidth, closeTo(24, E));
+            assertThat(subTexture.nativeHeight, closeTo(16, E));
         }
     }
 }

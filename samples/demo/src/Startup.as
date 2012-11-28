@@ -1,8 +1,6 @@
 package 
 {
     import flash.display.Sprite;
-    import flash.display.StageAlign;
-    import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.system.Capabilities;
     
@@ -24,9 +22,6 @@ package
         
         private function start():void
         {
-            stage.scaleMode = StageScaleMode.NO_SCALE;
-            stage.align = StageAlign.TOP_LEFT;
-            
             Starling.multitouchEnabled = true; // useful on mobile devices
             Starling.handleLostContext = true; // required on Windows and Android, needs more memory
             

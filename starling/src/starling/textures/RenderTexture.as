@@ -141,13 +141,8 @@ package starling.textures
          *  switches and allows you to draw multiple objects into a non-persistent texture. */
         public function drawBundled(drawingBlock:Function, antiAliasing:int=0):void
         {
-            var scale:Number = mActiveTexture.scale;
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
-            
-            // limit drawing to relevant area
-            sScissorRect.setTo(0, 0, mActiveTexture.width * scale, mActiveTexture.height * scale);
-            context.setScissorRectangle(sScissorRect)
             
             // persistent drawing uses double buffering, as Molehill forces us to call 'clear'
             // on every render target once per update.
@@ -161,6 +156,10 @@ package starling.textures
                 mHelperImage.texture = mBufferTexture;
             }
             
+            // limit drawing to relevant area
+            sScissorRect.setTo(0, 0, mActiveTexture.nativeWidth, mActiveTexture.nativeHeight);
+
+            mSupport.scissorRectangle = sScissorRect;
             mSupport.renderTarget = mActiveTexture;
             mSupport.clear();
             
@@ -184,7 +183,7 @@ package starling.textures
                 mSupport.finishQuadBatch();
                 mSupport.nextFrame();
                 mSupport.renderTarget = null;
-                context.setScissorRectangle(null);
+                mSupport.scissorRectangle = null;
             }
         }
         
@@ -203,9 +202,9 @@ package starling.textures
         public function get isPersistent():Boolean { return mBufferTexture != null; }
         
         /** @inheritDoc */
-        public override function get base():TextureBase 
-        { 
-            return mActiveTexture.base; 
-        }
+        public override function get base():TextureBase { return mActiveTexture.base; }
+        
+        /** @inheritDoc */
+        public override function get root():ConcreteTexture { return mActiveTexture.root; }
     }
 }

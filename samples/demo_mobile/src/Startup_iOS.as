@@ -3,8 +3,6 @@ package
     import flash.desktop.NativeApplication;
     import flash.display.Bitmap;
     import flash.display.Sprite;
-    import flash.display.StageAlign;
-    import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
@@ -25,13 +23,14 @@ package
             
             // set general properties
             
-            stage.scaleMode = StageScaleMode.NO_SCALE;
-            stage.align = StageAlign.TOP_LEFT;
-            
             Starling.multitouchEnabled = true;  // useful on mobile devices
             Starling.handleLostContext = false; // not necessary on iOS. Saves a lot of memory!
             
             // create a suitable viewport for the screen size
+            //
+            // we create the game with a fixed stage-size of 320x480. On a retina-iPhone, it
+            // is scaled up to 640x960; on an iPad, we display black borders on all 4 sides instead.
+            // To learn how we could scale it up to full-screen, see 'Startup_Android'.
             
             var viewPort:Rectangle =  new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight);
             
@@ -39,7 +38,7 @@ package
                 viewPort.setTo(64, 32, 640, 960);
             else if (viewPort.width == 1536) // iPad 3
                 viewPort.setTo(128, 64, 1280, 1920);
-                
+            
             // While Stage3D is initializing, the screen will be blank. To avoid any flickering, 
             // we display a startup image now and remove it below, when Starling is ready to go.
             
@@ -55,6 +54,8 @@ package
             // launch Starling
             
             mStarling = new Starling(Game, stage, viewPort);
+            mStarling.stage.stageWidth  = 320; // <- same size on all devices!
+            mStarling.stage.stageHeight = 480; // <- same size on all devices!
             mStarling.simulateMultitouch  = false;
             mStarling.enableErrorChecking = false;
             

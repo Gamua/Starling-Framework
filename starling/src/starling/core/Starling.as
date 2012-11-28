@@ -12,6 +12,8 @@ package starling.core
 {
     import flash.display.Sprite;
     import flash.display.Stage3D;
+    import flash.display.StageAlign;
+    import flash.display.StageScaleMode;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DTriangleFace;
@@ -167,7 +169,8 @@ package starling.core
         private var mShareContext:Boolean;
         
         private var mViewPort:Rectangle;
-        private var mViewPortClipped:Rectangle;
+        private var mPreviousViewPort:Rectangle;
+        private var mClippedViewPort:Rectangle;
         
         private var mNativeStage:flash.display.Stage;
         private var mNativeOverlay:flash.display.Sprite;
@@ -207,6 +210,7 @@ package starling.core
             
             mRootClass = rootClass;
             mViewPort = viewPort;
+            mPreviousViewPort = new Rectangle();
             mStage3D = stage3D;
             mStage = new Stage(viewPort.width, viewPort.height, stage.color);
             mNativeOverlay = new Sprite();
@@ -221,6 +225,10 @@ package starling.core
             mPrograms = new Dictionary();
             mCustomData = new Dictionary();
             mSupport  = new RenderSupport();
+            
+            // all other modes are problematic in Starling, so we force those here
+            stage.scaleMode = StageScaleMode.NO_SCALE;
+            stage.align = StageAlign.TOP_LEFT;
             
             // register touch/mouse event handlers            
             for each (var touchEventType:String in touchEventTypes)
@@ -306,7 +314,7 @@ package starling.core
             mContext.enableErrorChecking = mEnableErrorChecking;
             mPrograms = new Dictionary();
             
-            updateViewPort();
+            updateViewPort(true);
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:", mContext.driverInfo);
@@ -353,12 +361,13 @@ package starling.core
          *  it is presented. This can be avoided by enabling <code>shareContext</code>.*/ 
         public function render():void
         {
+            if (!contextValid)
+                return;
+            
             makeCurrent();
+            updateViewPort();
             updateNativeOverlay();
             mSupport.nextFrame();
-            
-            if (mContext == null || mContext.driverInfo == "Disposed")
-                return;
             
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);
@@ -373,8 +382,8 @@ package starling.core
             mSupport.setOrthographicProjection(
                 mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0, 
                 mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
-                mViewPortClipped.width  / scaleX, 
-                mViewPortClipped.height / scaleY);
+                mClippedViewPort.width  / scaleX, 
+                mClippedViewPort.height / scaleY);
             
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
@@ -386,23 +395,32 @@ package starling.core
                 mContext.present();
         }
         
-        private function updateViewPort():void
+        private function updateViewPort(updateAliasing:Boolean=false):void
         {
-            // Constrained mode requires that the viewport is within the native stage bounds;
-            // thus, we use a clipped viewport when configuring the back buffer. (In baseline
-            // mode, that's not necessary, but it does not hurt either.)
+            // the last set viewport is stored in a variable; that way, people can modify the
+            // viewPort directly (without a copy) and we still know if it has changed.
             
-            mViewPortClipped = mViewPort.intersection(
-                new Rectangle(0, 0, mNativeStage.stageWidth, mNativeStage.stageHeight));
-            
-            if (mShareContext) return;
-            
-            if (mContext && mContext.driverInfo != "Disposed")
-                mContext.configureBackBuffer(
-                    mViewPortClipped.width, mViewPortClipped.height, mAntiAliasing, false);
-            
-            mStage3D.x = mViewPortClipped.x;
-            mStage3D.y = mViewPortClipped.y;
+            if (updateAliasing || mPreviousViewPort.width != mViewPort.width || 
+                mPreviousViewPort.height != mViewPort.height ||
+                mPreviousViewPort.x != mViewPort.x || mPreviousViewPort.y != mViewPort.y)
+            {
+                mPreviousViewPort.setTo(mViewPort.x, mViewPort.y, mViewPort.width, mViewPort.height);
+                
+                // Constrained mode requires that the viewport is within the native stage bounds;
+                // thus, we use a clipped viewport when configuring the back buffer. (In baseline
+                // mode, that's not necessary, but it does not hurt either.)
+                
+                mClippedViewPort = mViewPort.intersection(
+                    new Rectangle(0, 0, mNativeStage.stageWidth, mNativeStage.stageHeight));
+                
+                if (!mShareContext)
+                {
+                    mStage3D.x = mClippedViewPort.x;
+                    mStage3D.y = mClippedViewPort.y;
+                    mSupport.configureBackBuffer(
+                        mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
+                }
+            }
         }
 
         private function updateNativeOverlay():void
@@ -602,6 +620,12 @@ package starling.core
         
         // properties
         
+        /** Indicates if a context is available and non-disposed. */
+        private function get contextValid():Boolean
+        {
+            return (mContext && mContext.driverInfo != "Disposed");
+        }
+        
         /** Indicates if this Starling instance is started. */
         public function get isStarted():Boolean { return mStarted; }
         
@@ -633,17 +657,16 @@ package starling.core
         public function get antiAliasing():int { return mAntiAliasing; }
         public function set antiAliasing(value:int):void
         {
-            mAntiAliasing = value;
-            updateViewPort();
+            if (mAntiAliasing != value)
+            {
+                mAntiAliasing = value;
+                if (contextValid) updateViewPort(true);
+            }
         }
         
         /** The viewport into which Starling contents will be rendered. */
-        public function get viewPort():Rectangle { return mViewPort.clone(); }
-        public function set viewPort(value:Rectangle):void
-        {
-            mViewPort = value.clone();
-            updateViewPort();
-        }
+        public function get viewPort():Rectangle { return mViewPort; }
+        public function set viewPort(value:Rectangle):void { mViewPort = value.clone(); }
         
         /** The ratio between viewPort width and stage width. Useful for choosing a different
          *  set of textures depending on the display resolution. */

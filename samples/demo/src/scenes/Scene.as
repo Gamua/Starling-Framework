@@ -2,27 +2,21 @@ package scenes
 {
     import starling.display.Button;
     import starling.display.Sprite;
-    import starling.events.Event;
     
     public class Scene extends Sprite
     {
-        public static const CLOSING:String = "closing";
-        
         private var mBackButton:Button;
         
         public function Scene()
         {
+            // the main menu listens for TRIGGERED events, so we just need to add the button.
+            // (the event will bubble up when it's dispatched.)
+            
             mBackButton = new Button(Assets.getTexture("ButtonBack"), "Back");
             mBackButton.x = Constants.CenterX - mBackButton.width / 2;
             mBackButton.y = Constants.GameHeight - mBackButton.height + 1;
-            mBackButton.addEventListener(Event.TRIGGERED, onBackButtonTriggered);
+            mBackButton.name = "backButton";
             addChild(mBackButton);
-        }
-        
-        private function onBackButtonTriggered(event:Event):void
-        {
-            mBackButton.removeEventListener(Event.TRIGGERED, onBackButtonTriggered);
-            dispatchEvent(new Event(CLOSING, true));
         }
     }
 }

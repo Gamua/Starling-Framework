@@ -13,6 +13,7 @@ package utils
         public function TouchSheet(contents:DisplayObject=null)
         {
             addEventListener(TouchEvent.TOUCH, onTouch);
+            useHandCursor = true;
             
             if (contents)
             {

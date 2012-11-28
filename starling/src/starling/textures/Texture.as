@@ -15,6 +15,7 @@ package starling.textures
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
+    import flash.events.Event;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
@@ -101,7 +102,10 @@ package starling.textures
             mRepeat = false;
         }
         
-        /** Disposes the underlying texture data. */
+        /** Disposes the underlying texture data. Note that not all textures need to be disposed: 
+         *  SubTextures (created with 'Texture.fromTexture') just reference other textures and
+         *  and do not take up resources themselves; this is also true for textures from an 
+         *  atlas. */
         public function dispose():void
         { 
             // override in subclasses
@@ -111,7 +115,7 @@ package starling.textures
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
                                           optimizeForRenderTexture:Boolean=false,
-                                          scale:Number=1):starling.textures.Texture
+                                          scale:Number=1):Texture
         {
             return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture, scale);
         }
@@ -120,7 +124,7 @@ package starling.textures
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
                                               optimizeForRenderTexture:Boolean=false,
-                                              scale:Number=1):starling.textures.Texture
+                                              scale:Number=1):Texture
         {
             var origWidth:int   = data.width;
             var origHeight:int  = data.height;
@@ -162,19 +166,26 @@ package starling.textures
         
         /** Creates a texture from the compressed ATF format. If you don't want to use any embedded
          *  mipmaps, you can disable them by setting "useMipMaps" to <code>false</code>.
-         *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */ 
-        public static function fromAtfData(data:ByteArray, scale:Number=1, 
-                                           useMipMaps:Boolean=true):Texture
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context.
+         *  
+         *  <p>If you pass a function for the 'loadAsync' parameter, the method will return
+         *  immediately, while the texture will be created asynchronously. It can be used as soon
+         *  as the callback has been executed. This is the expected function definition:
+         *  <code>function(texture:Texture):void;</code></p> */ 
+        public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true, 
+                                           loadAsync:Function=null):Texture
         {
+            const eventType:String = "textureReady"; // defined here for backwards compatibility
+            
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
+            var async:Boolean = loadAsync != null;
             var atfData:AtfData = new AtfData(data);
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                     atfData.width, atfData.height, atfData.format, false);
             
-			
-            uploadAtfData(nativeTexture, data);
+            uploadAtfData(nativeTexture, data, 0, async);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1, 
@@ -183,12 +194,27 @@ package starling.textures
             if (Starling.handleLostContext) 
                 concreteTexture.restoreOnLostContext(atfData);
             
-			
+            if (async)
+                nativeTexture.addEventListener(eventType, onTextureReady);
+            
             return concreteTexture;
+            
+            function onTextureReady(event:Event):void
+            {
+                nativeTexture.removeEventListener(eventType, onTextureReady);
+                if (loadAsync.length == 1) loadAsync(concreteTexture);
+                else loadAsync();
+            }
         }
         
-        /** Creates an empty texture of a certain size and color. The color parameter
-         *  expects data in ARGB format. */
+        /** Creates a texture with a certain size and color.
+         *  
+         *  @param width:  in points; number of pixels depends on scale parameter
+         *  @param height: in points; number of pixels depends on scale parameter
+         *  @param color:  expected in ARGB format (inlude alpha!)
+         *  @param optimizeForRenderTexture: indicates if this texture will be used as render target
+         *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         */
         public static function fromColor(width:int, height:int, color:uint=0xffffffff,
                                          optimizeForRenderTexture:Boolean=false, 
                                          scale:Number=-1):Texture
@@ -196,7 +222,7 @@ package starling.textures
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
             var bitmapData:BitmapData = new BitmapData(width*scale, height*scale, true, color);
-            var texture:starling.textures.Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
+            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
             
             if (!Starling.handleLostContext)
                 bitmapData.dispose();
@@ -206,7 +232,14 @@ package starling.textures
         
         /** Creates an empty texture of a certain size. Useful mainly for render textures. 
          *  Beware that the texture can only be used after you either upload some color data or
-         *  clear the texture while it is an active render target. */
+         *  clear the texture while it is an active render target. 
+         *  
+         *  @param width:  in points; number of pixels depends on scale parameter
+         *  @param height: in points; number of pixels depends on scale parameter
+         *  @param premultipliedAlpha: the PMA format you will use the texture with
+         *  @param optimizeForRenderTexture: indicates if this texture will be used as render target
+         *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         */
         public static function empty(width:int=64, height:int=64, premultipliedAlpha:Boolean=false,
                                      optimizeForRenderTexture:Boolean=true,
                                      scale:Number=-1):Texture
@@ -262,7 +295,7 @@ package starling.textures
             }
         }
         
-        /** Uploads the bitmap data to the native texture, optionally creating mipmaps. */
+        /** @private Uploads the bitmap data to the native texture, optionally creating mipmaps. */
         internal static function uploadBitmapData(nativeTexture:flash.display3D.textures.Texture,
                                                   data:BitmapData, generateMipmaps:Boolean):void
         {
@@ -292,11 +325,12 @@ package starling.textures
             }
         }
         
-        /** Uploads ATF data from a ByteArray to a native texture. */
+        /** @private Uploads ATF data from a ByteArray to a native texture. */
         internal static function uploadAtfData(nativeTexture:flash.display3D.textures.Texture, 
-                                               data:ByteArray, offset:int=0):void
+                                               data:ByteArray, offset:int=0, 
+                                               async:Boolean=false):void
         {
-            nativeTexture.uploadCompressedTextureFromByteArray(data, offset);
+            nativeTexture.uploadCompressedTextureFromByteArray(data, offset, async);
         }
         
         // properties
@@ -318,17 +352,26 @@ package starling.textures
         public function get repeat():Boolean { return mRepeat; }
         public function set repeat(value:Boolean):void { mRepeat = value; }
         
-        /** The width of the texture in pixels. */
+        /** The width of the texture in points. */
         public function get width():Number { return 0; }
         
-        /** The height of the texture in pixels. */
+        /** The height of the texture in points. */
         public function get height():Number { return 0; }
 
+        /** The width of the texture in pixels (without scale adjustment). */
+        public function get nativeWidth():Number { return 0; }
+        
+        /** The height of the texture in pixels (without scale adjustment). */
+        public function get nativeHeight():Number { return 0; }
+        
         /** The scale factor, which influences width and height properties. */
         public function get scale():Number { return 1.0; }
         
         /** The Stage3D texture object the texture is based on. */
         public function get base():TextureBase { return null; }
+        
+        /** The concrete (power-of-two) texture the texture is based on. */
+        public function get root():ConcreteTexture { return null; }
         
         /** The <code>Context3DTextureFormat</code> of the underlying texture data. */
         public function get format():String { return Context3DTextureFormat.BGRA; }

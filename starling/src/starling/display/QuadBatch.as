@@ -365,9 +365,12 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            support.finishQuadBatch();
-            support.raiseDrawCount();
-            renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
+            if (mNumQuads)
+            {
+                support.finishQuadBatch();
+                support.raiseDrawCount();
+                renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
+            }
         }
         
         // compilation (for flattened sprites)
