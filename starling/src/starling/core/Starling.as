@@ -167,6 +167,7 @@ package starling.core
         private var mLeftMouseDown:Boolean;
         private var mStatsDisplay:StatsDisplay;
         private var mShareContext:Boolean;
+        private var mProfile:String;
         
         private var mViewPort:Rectangle;
         private var mPreviousViewPort:Rectangle;
@@ -221,6 +222,7 @@ package starling.core
             mAntiAliasing = 0;
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
+            mProfile = profile;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mPrograms = new Dictionary();
             mCustomData = new Dictionary();
@@ -415,8 +417,16 @@ package starling.core
                 
                 if (!mShareContext)
                 {
+                    // setting x and y might move the context to invalid bounds (since changing
+                    // the size happens in a separate operation) -- so we have no choice but to
+                    // set the backbuffer to a very small size first, to be on the safe side.
+                    
+                    if (mProfile == "baselineConstrained")
+                        mSupport.configureBackBuffer(32, 32, mAntiAliasing, false);
+                    
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
+                    
                     mSupport.configureBackBuffer(
                         mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
                 }
@@ -765,6 +775,10 @@ package starling.core
          *  to allow other frameworks to share the Stage3D instance. @default false */
         public function get shareContext() : Boolean { return mShareContext; }
         public function set shareContext(value : Boolean) : void { mShareContext = value; }
+        
+        /** The Context3D profile as requested in the constructor. Beware that if you are 
+         *  using a shared context, this might not be accurate. */
+        public function get profile():String { return mProfile; }
         
         // static properties
         
