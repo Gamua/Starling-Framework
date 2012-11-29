@@ -508,8 +508,14 @@ package starling.core
         
         private function onEnterFrame(event:Event):void
         {
-            if (mStarted && !mShareContext) 
-                nextFrame();
+            // On mobile, the native display list is only updated on stage3D draw calls. 
+            // Thus, we render even when Starling is paused.
+            
+            if (!mShareContext)
+            {
+                if (mStarted) nextFrame();
+                else          render();
+            }
         }
         
         private function onKey(event:KeyboardEvent):void
