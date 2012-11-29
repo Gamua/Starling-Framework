@@ -23,6 +23,8 @@ package
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.KeyboardEvent;
+    import starling.events.TouchEvent;
+    import starling.events.TouchPhase;
     import starling.text.TextField;
     import starling.textures.Texture;
     import starling.utils.VAlign;
@@ -92,8 +94,8 @@ package
             infoText.x = 5;
             infoText.y = 475 - infoText.height;
             infoText.vAlign = VAlign.BOTTOM;
-            infoText.touchable = false;
-            mMainMenu.addChild(infoText);
+            infoText.addEventListener(TouchEvent.TOUCH, onInfoTextTouched);
+            mMainMenu.addChildAt(infoText, 0);
         }
         
         private function onAddedToStage(event:Event):void
@@ -112,6 +114,12 @@ package
                 Starling.current.showStats = !Starling.current.showStats;
             else if (event.keyCode == Keyboard.X)
                 Starling.context.dispose();
+        }
+        
+        private function onInfoTextTouched(event:TouchEvent):void
+        {
+            if (event.getTouch(this, TouchPhase.ENDED))
+                Starling.current.showStats = !Starling.current.showStats;
         }
         
         private function onButtonTriggered(event:Event):void
