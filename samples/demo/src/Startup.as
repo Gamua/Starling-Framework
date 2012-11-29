@@ -22,8 +22,10 @@ package
         
         private function start():void
         {
-            Starling.multitouchEnabled = true; // useful on mobile devices
-            Starling.handleLostContext = true; // required on Windows and Android, needs more memory
+            var isMac:Boolean = Capabilities.manufacturer.indexOf("Macintosh") != -1;
+            
+            Starling.multitouchEnabled = true;   // useful on mobile devices
+            Starling.handleLostContext = !isMac; // required on Windows, needs more memory
             
             mStarling = new Starling(Game, stage);
             mStarling.simulateMultitouch = true;

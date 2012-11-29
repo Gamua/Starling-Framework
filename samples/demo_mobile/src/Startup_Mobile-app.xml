@@ -41,7 +41,25 @@
         <image57x57>icon57.png</image57x57>
         <image72x72>icon72.png</image72x72>
         <image114x114>icon114.png</image114x114>
+        <image144x144>icon144.png</image144x144>
     </icon>
+
+    <!-- iOS specific capabilities -->
+    <iPhone>
+        <!-- A list of plist key/value pairs to be added to the application Info.plist -->
+        <!-- UIDeviceFamily: 1 - iPhone/iPod Touch; 2 - iPad; both: universal app -->
+    
+        <InfoAdditions><![CDATA[            
+            <key>UIDeviceFamily</key>
+            <array>
+                <string>1</string>
+                <string>2</string>
+            </array>
+        ]]></InfoAdditions>
+        
+        <!-- Display Resolution for the app ("standard" or "high"). Optional. Default "standard" -->
+        <requestedDisplayResolution>high</requestedDisplayResolution>
+    </iPhone>
     
     <!-- Android specific capabilities -->
     <android>
@@ -63,6 +81,6 @@
              </manifest>
          ]]>
         </manifestAdditions>
-    </android>    
+    </android>  
 
 </application>
