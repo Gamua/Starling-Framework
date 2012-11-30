@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/3.4">
+<application xmlns="http://ns.adobe.com/air/application/3.5">
 
     <id>com.gamua.starling.scaffold</id> <!-- Bundle Identifier. Required. -->
     <filename>Scaffold</filename> <!-- Used as the filename for the application. Required. -->
     <name>Scaffold</name> <!-- The name that is displayed below the app icon. -->
     <versionNumber>0.0.1</versionNumber> <!-- Required. -->
-
+    
     <!-- Settings for the application's initial window. Required. -->
     <initialWindow>
         <!-- The main SWF or HTML file of the application. Required. -->
@@ -29,6 +29,7 @@
 
         <!-- Whether or not to pan when a soft keyboard is raised or lowered (either "pan" or "none").  Optional.  Defaults "pan." -->
         <!-- <softKeyboardBehavior></softKeyboardBehavior> -->
+    <visible>true</visible>
     </initialWindow>
 
     <!-- Languages supported by application. Only these languages can be specified. -->
@@ -41,7 +42,25 @@
         <image57x57>icon57.png</image57x57>
         <image72x72>icon72.png</image72x72>
         <image114x114>icon114.png</image114x114>
+        <image144x144>icon144.png</image144x144>
     </icon>
+
+    <!-- iOS specific capabilities -->
+    <iPhone>
+        <!-- A list of plist key/value pairs to be added to the application Info.plist -->
+        <!-- UIDeviceFamily: 1 - iPhone/iPod Touch; 2 - iPad; both: universal app -->
+    
+        <InfoAdditions><![CDATA[            
+            <key>UIDeviceFamily</key>
+            <array>
+                <string>1</string>
+                <string>2</string>
+            </array>
+        ]]></InfoAdditions>
+        
+        <!-- Display Resolution for the app ("standard" or "high"). Optional. Default "standard" -->
+        <requestedDisplayResolution>high</requestedDisplayResolution>
+    </iPhone>
     
     <!-- Android specific capabilities -->
     <android>
@@ -63,6 +82,6 @@
              </manifest>
          ]]>
         </manifestAdditions>
-    </android>    
-
+    </android>
+    
 </application>

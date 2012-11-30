@@ -1,15 +1,11 @@
 package 
 {
-    import flash.geom.Rectangle;
-    
     import starling.core.Starling;
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Event;
-    import starling.events.ResizeEvent;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
-    import starling.utils.deg2rad;
 
     public class Game extends Sprite
     {
@@ -29,10 +25,6 @@ package
         
         private function init():void
         {
-            // we create the game with a fixed stage size -- only the viewPort is variable.
-            stage.stageWidth  = Constants.STAGE_WIDTH;
-            stage.stageHeight = Constants.STAGE_HEIGHT;
-            
             // the contentScaleFactor is calculated from stage size and viewport size
             Assets.contentScaleFactor = Starling.current.contentScaleFactor;
             

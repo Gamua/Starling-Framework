@@ -9,8 +9,8 @@ Features:
 * Devices with screens smaller than 480x720 use SD graphics (e.g. old iPhone).
 * Devices with greater resolutions use HD graphics (e.g. Retina iPhone, iPad).
 * App icons and Startup images are correctly set up.
-* On iOS, the background image is displayed in the classic display list while Starling 
-  is starting up.
+* While Starling is starting up, the background image is displayed in the classic 
+  display list. This provides a seamless startup process.
 
 To find out more about multi-resolution development, please visit the [Starling Wiki][1]. 
 It also contains an article about [auto-rotation][2].
