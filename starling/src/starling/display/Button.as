@@ -236,5 +236,21 @@ package starling.display
          *  @default true */
         public override function get useHandCursor():Boolean { return mUseHandCursor; }
         public override function set useHandCursor(value:Boolean):void { mUseHandCursor = value; }
+		
+		/** The vertical alignment of the font **/
+		public function get fontVAlign():String {return mTextField.vAlign}
+		public function set fontVAlign(value:String):void
+		{
+			createTextField();
+			mTextField.vAlign = value;
+		}
+		
+		/** The horizontal alignment of the font **/
+		public function get fontHAlign():String {return mTextField.hAlign}
+		public function set fontHAlign(value:String):void
+		{
+			createTextField();
+			mTextField.hAlign = value;
+		}
     }
 }
