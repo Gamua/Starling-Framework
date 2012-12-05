@@ -117,19 +117,23 @@ package starling.textures
         public function getTextures(prefix:String=""):Vector.<Texture>
         {
             var textures:Vector.<Texture> = new <Texture>[];
-            var names:Vector.<String> = new <String>[];
-            var name:String;
             
-            for (name in mTextureRegions)
-                if (name.indexOf(prefix) == 0)                
-                    names.push(name);                
-            
-            names.sort(Array.CASEINSENSITIVE);
-            
-            for each (name in names) 
+            for each (var name:String in getNames(prefix)) 
                 textures.push(getTexture(name)); 
             
             return textures;
+        }
+        
+        /** Returns all texture names that start with a certain string, sorted alphabetically. */
+        public function getNames(prefix:String=""):Vector.<String>
+        {
+            var names:Vector.<String> = new <String>[];
+            
+            for (var name:String in mTextureRegions)
+                if (name.indexOf(prefix) == 0)
+                    names.push(name);                
+            
+            return names.sort(Array.CASEINSENSITIVE);
         }
         
         /** Returns the region rectangle associated with a specific name. */
