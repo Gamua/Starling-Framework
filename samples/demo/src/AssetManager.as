@@ -12,6 +12,8 @@ package
     import flash.net.URLLoader;
     import flash.net.URLLoaderDataFormat;
     import flash.net.URLRequest;
+    import flash.system.ImageDecodingPolicy;
+    import flash.system.LoaderContext;
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     import flash.utils.clearTimeout;
@@ -378,9 +380,11 @@ package
                         onComplete();
                         break;
                     default:
+                        var loaderContext:LoaderContext = new LoaderContext();
                         var loader:Loader = new Loader();
+                        loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
-                        loader.loadBytes(urlLoader.data as ByteArray);
+                        loader.loadBytes(urlLoader.data as ByteArray, loaderContext);
                         break;
                 }
             }
