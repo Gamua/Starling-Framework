@@ -10,6 +10,7 @@
 
 package starling.textures
 {
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
 
@@ -58,6 +59,9 @@ package starling.textures
         private var mAtlasTexture:Texture;
         private var mTextureRegions:Dictionary;
         private var mTextureFrames:Dictionary;
+        
+        /** helper objects */
+        private var sNames:Vector.<String> = new <String>[];
         
         /** Create a texture atlas from a texture by parsing the regions from an XML file. */
         public function TextureAtlas(texture:Texture, atlasXml:XML=null)
@@ -114,26 +118,28 @@ package starling.textures
         
         /** Returns all textures that start with a certain string, sorted alphabetically
          *  (especially useful for "MovieClip"). */
-        public function getTextures(prefix:String=""):Vector.<Texture>
+        public function getTextures(prefix:String="", result:Vector.<Texture>=null):Vector.<Texture>
         {
-            var textures:Vector.<Texture> = new <Texture>[];
+            if (result == null) result = new <Texture>[];
             
-            for each (var name:String in getNames(prefix)) 
-                textures.push(getTexture(name)); 
-            
-            return textures;
+            for each (var name:String in getNames(prefix, sNames)) 
+                result.push(getTexture(name)); 
+
+            sNames.length = 0;
+            return result;
         }
         
         /** Returns all texture names that start with a certain string, sorted alphabetically. */
-        public function getNames(prefix:String=""):Vector.<String>
+        public function getNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
         {
-            var names:Vector.<String> = new <String>[];
+            if (result == null) result = new <String>[];
             
             for (var name:String in mTextureRegions)
                 if (name.indexOf(prefix) == 0)
-                    names.push(name);                
+                    result.push(name);
             
-            return names.sort(Array.CASEINSENSITIVE);
+            result.sort(Array.CASEINSENSITIVE);
+            return result;
         }
         
         /** Returns the region rectangle associated with a specific name. */
