@@ -2,110 +2,82 @@ package
 {
     import flash.ui.Keyboard;
     import flash.utils.getDefinitionByName;
-    import flash.utils.getQualifiedClassName;
     
-    import scenes.AnimationScene;
-    import scenes.BenchmarkScene;
-    import scenes.BlendModeScene;
-    import scenes.CustomHitTestScene;
-    import scenes.FilterScene;
-    import scenes.MovieScene;
-    import scenes.RenderTextureScene;
     import scenes.Scene;
-    import scenes.TextScene;
-    import scenes.TextureScene;
-    import scenes.TouchScene;
     
     import starling.core.Starling;
-    import starling.display.BlendMode;
     import starling.display.Button;
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.KeyboardEvent;
-    import starling.events.TouchEvent;
-    import starling.events.TouchPhase;
-    import starling.text.TextField;
     import starling.textures.Texture;
-    import starling.utils.VAlign;
 
     public class Game extends Sprite
     {
-        private var mMainMenu:Sprite;
+        // Embed the Ubuntu Font, which is needed in the "TextScene".
+        // Beware: the 'embedAsCFF'-part IS REQUIRED!!!
+        [Embed(source="../../demo/media/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]        
+        private static const UbuntuRegular:Class;
+        
+        private var mLoadingProgress:ProgressBar;
+        private var mMainMenu:MainMenu;
         private var mCurrentScene:Scene;
+        
+        private static var sAssets:AssetManager;
         
         public function Game()
         {
-            // load general assets (with correct scale factor, important on mobile)
-            
-            Assets.contentScaleFactor = Starling.current.contentScaleFactor;
-            Assets.prepareSounds();
-            Assets.loadBitmapFonts();
-            
-            // create and show menu screen
-            
-            var bg:Image = new Image(Assets.getTexture("Background"));
-            bg.blendMode = BlendMode.NONE;
-            addChild(bg);
-            
-            mMainMenu = new Sprite();
-            addChild(mMainMenu);
-            
-            var logo:Image = new Image(Assets.getTexture("Logo"));
-            mMainMenu.addChild(logo);
-            
-            var scenesToCreate:Array = [
-                ["Textures", TextureScene],
-                ["Multitouch", TouchScene],
-                ["TextFields", TextScene],
-                ["Animations", AnimationScene],
-                ["Custom hit-test", CustomHitTestScene],
-                ["Movie Clip", MovieScene],
-                ["Filters", FilterScene],
-                ["Blend Modes", BlendModeScene],
-                ["Render Texture", RenderTextureScene],
-                ["Benchmark", BenchmarkScene]
-            ];
-            
-            var buttonTexture:Texture = Assets.getTexture("ButtonBig");
-            var count:int = 0;
-            
-            for each (var sceneToCreate:Array in scenesToCreate)
-            {
-                var sceneTitle:String = sceneToCreate[0];
-                var sceneClass:Class  = sceneToCreate[1];
-                
-                var button:Button = new Button(buttonTexture, sceneTitle);
-                button.x = count % 2 == 0 ? 28 : 167;
-                button.y = 160 + int(count / 2) * 52;
-                button.name = getQualifiedClassName(sceneClass);
-                mMainMenu.addChild(button);
-                ++count;
-            }
-            
-            addEventListener(Event.TRIGGERED, onButtonTriggered);
-            addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
-            addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
-            
-            // show information about rendering method (hardware/software)
-            
-            var driverInfo:String = Starling.context.driverInfo;
-            var infoText:TextField = new TextField(310, 64, driverInfo, "Verdana", 10);
-            infoText.x = 5;
-            infoText.y = 475 - infoText.height;
-            infoText.vAlign = VAlign.BOTTOM;
-            infoText.addEventListener(TouchEvent.TOUCH, onInfoTextTouched);
-            mMainMenu.addChildAt(infoText, 0);
+            // nothing to do here -- Startup will call "start" immediately.
         }
         
-        private function onAddedToStage(event:Event):void
+        public function start(background:Texture, assets:AssetManager):void
         {
+            sAssets = assets;
+            
+            // The background is passed into this method for two reasons:
+            // 
+            // 1) we need it right away, otherwise we have an empty frame
+            // 2) the Startup class can decide on the right image, depending on the device.
+            
+            addChild(new Image(background));
+            
+            // The AssetManager contains all the raw asset data, but has not created the textures
+            // yet. This takes some time (the assets might be loaded from disk or even via the
+            // network), during which we display a progress indicator. 
+            
+            mLoadingProgress = new ProgressBar(175, 20);
+            mLoadingProgress.x = (background.width  - mLoadingProgress.width) / 2;
+            mLoadingProgress.y = (background.height - mLoadingProgress.height) / 2;
+            mLoadingProgress.y = background.height * 0.7;
+            addChild(mLoadingProgress);
+            
+            assets.loadQueue(function onProgress(ratio:Number):void
+            {
+                mLoadingProgress.ratio = ratio;
+
+                // a progress bar should always show the 100% for a while,
+                // so we show the main menu only after a short delay. 
+                
+                if (ratio == 1)
+                    Starling.juggler.delayCall(function():void
+                    {
+                        mLoadingProgress.removeFromParent(true);
+                        mLoadingProgress = null;
+                        showMainMenu();
+                    }, 0.15);
+            });
+            
+            addEventListener(Event.TRIGGERED, onButtonTriggered);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
         }
         
-        private function onRemovedFromStage(event:Event):void
+        private function showMainMenu():void
         {
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey);
+            if (mMainMenu == null)
+                mMainMenu = new MainMenu();
+            
+            addChild(mMainMenu);
         }
         
         private function onKey(event:KeyboardEvent):void
@@ -114,12 +86,6 @@ package
                 Starling.current.showStats = !Starling.current.showStats;
             else if (event.keyCode == Keyboard.X)
                 Starling.context.dispose();
-        }
-        
-        private function onInfoTextTouched(event:TouchEvent):void
-        {
-            if (event.getTouch(this, TouchPhase.ENDED))
-                Starling.current.showStats = !Starling.current.showStats;
         }
         
         private function onButtonTriggered(event:Event):void
@@ -136,7 +102,7 @@ package
         {
             mCurrentScene.removeFromParent(true);
             mCurrentScene = null;
-            mMainMenu.visible = true;
+            showMainMenu();
         }
         
         private function showScene(name:String):void
@@ -145,8 +111,10 @@ package
             
             var sceneClass:Class = getDefinitionByName(name) as Class;
             mCurrentScene = new sceneClass() as Scene;
-            mMainMenu.visible = false;
+            mMainMenu.removeFromParent();
             addChild(mCurrentScene);
         }
+        
+        public static function get assets():AssetManager { return sAssets; }
     }
 }

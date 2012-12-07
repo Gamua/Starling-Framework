@@ -23,13 +23,13 @@ package scenes
         
         public function BlendModeScene()
         {
-            mButton = new Button(Assets.getTexture("ButtonNormal"), "Switch Mode");
+            mButton = new Button(Game.assets.getTexture("button_normal"), "Switch Mode");
             mButton.x = int(Constants.CenterX - mButton.width / 2);
             mButton.y = 15;
             mButton.addEventListener(Event.TRIGGERED, onButtonTriggered);
             addChild(mButton);
             
-            mImage = new Image(Assets.getTexture("StarlingRocket"));
+            mImage = new Image(Game.assets.getTexture("starling_rocket"));
             mImage.x = int(Constants.CenterX - mImage.width / 2);
             mImage.y = 170;
             addChild(mImage);

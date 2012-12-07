@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>Starling-Demo</name>
+	<name>Starling-Demo-Web</name>
 	<comment></comment>
 	<projects>
 		<project>Starling</project>
@@ -15,4 +15,11 @@
 	<natures>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>[source path] src</name>
+			<type>2</type>
+			<location>/Users/redge/Development/starling/samples/demo/src</location>
+		</link>
+	</linkedResources>
 </projectDescription>

@@ -3,27 +3,25 @@ package scenes
     import starling.display.Image;
     import starling.text.TextField;
     import starling.textures.Texture;
-    import starling.textures.TextureAtlas;
 
     public class TextureScene extends Scene
     {
         public function TextureScene()
         {
-            // load textures from an atlas
+            // the flight textures are actually loaded from an atlas texture.
+            // the "AssetManager" class wraps it away for us.
             
-            var atlas:TextureAtlas = Assets.getTextureAtlas();
-            
-            var image1:Image = new Image(atlas.getTexture("flight_00"));
+            var image1:Image = new Image(Game.assets.getTexture("flight_00"));
             image1.x = -20;
             image1.y = 0;
             addChild(image1);
             
-            var image2:Image = new Image(atlas.getTexture("flight_04"));
+            var image2:Image = new Image(Game.assets.getTexture("flight_04"));
             image2.x = 90;
             image2.y = 85;
             addChild(image2);
             
-            var image3:Image = new Image(atlas.getTexture("flight_08"));
+            var image3:Image = new Image(Game.assets.getTexture("flight_08"));
             image3.x = 100;
             image3.y = -60;
             addChild(image3);
@@ -31,7 +29,7 @@ package scenes
             try
             {
                 // display a compressed texture
-                var compressedTexture:Texture = Assets.getTexture("CompressedTexture");
+                var compressedTexture:Texture = Game.assets.getTexture("compressed_texture");
                 var image:Image = new Image(compressedTexture);
                 image.x = Constants.CenterX - image.width / 2;
                 image.y = 280;

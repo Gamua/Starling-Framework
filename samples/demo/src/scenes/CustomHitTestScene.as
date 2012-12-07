@@ -23,7 +23,7 @@ package scenes
             // 'RoundButton' is a helper class of the Demo, not a part of Starling!
             // Have a look at its code to understand this sample.
             
-            var button:RoundButton = new RoundButton(Assets.getTexture("StarlingRound"));
+            var button:RoundButton = new RoundButton(Game.assets.getTexture("starling_round"));
             button.x = Constants.CenterX - int(button.width / 2);
             button.y = 150;
             addChild(button);

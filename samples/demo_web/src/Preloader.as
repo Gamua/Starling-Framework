@@ -11,12 +11,12 @@ package
 	import starling.utils.Color;
 	
     // To use a Preloader, set this class as your 'default application' and add the 
-    // following to your compiler arguments: '-frame StartupFrame Startup'
+    // following to your compiler arguments: '-frame StartupFrame Startup_Web'
     
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
 	public class Preloader extends MovieClip
 	{
-        private const STARTUP_CLASS:String = "Startup";
+        private const STARTUP_CLASS:String = "Startup_Web";
         
         private var mProgressIndicator:Shape;
         private var mFrameCount:int = 0;

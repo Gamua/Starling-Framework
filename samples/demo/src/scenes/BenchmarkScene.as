@@ -33,7 +33,7 @@ package scenes
                                           // thus, it is more efficient to disable them.
             addChildAt(mContainer, 0);
             
-            mStartButton = new Button(Assets.getTexture("ButtonNormal"), "Start benchmark");
+            mStartButton = new Button(Game.assets.getTexture("button_normal"), "Start benchmark");
             mStartButton.addEventListener(Event.TRIGGERED, onStartButtonTriggered);
             mStartButton.x = Constants.CenterX - int(mStartButton.width / 2);
             mStartButton.y = 20;
@@ -117,7 +117,7 @@ package scenes
             
             for (var i:int = 0; i<numObjects; ++i)
             {
-                var egg:Image = new Image(Assets.getTexture("BenchmarkObject"));
+                var egg:Image = new Image(Game.assets.getTexture("benchmark_object"));
                 egg.x = padding + Math.random() * (Constants.GameWidth - 2 * padding);
                 egg.y = padding + Math.random() * (Constants.GameHeight - 2 * padding);
                 mContainer.addChild(egg);

@@ -25,9 +25,19 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>[source path] media</name>
+			<type>2</type>
+			<location>/Users/redge/Development/starling/samples/demo/media</location>
+		</link>
+		<link>
 			<name>[source path] src</name>
 			<type>2</type>
 			<location>/Users/redge/Development/starling/samples/demo/src</location>
+		</link>
+		<link>
+			<name>[source path] system</name>
+			<type>2</type>
+			<location>/Users/redge/Development/starling/samples/demo/system</location>
 		</link>
 	</linkedResources>
 </projectDescription>

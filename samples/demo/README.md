@@ -1,0 +1,1 @@
+This folder does not contain an actual project, but just the data that needs to be referenced by the "demo_web" and "demo_mobile" projects. To compile the demo, have a look at those folders.
