@@ -17,11 +17,13 @@ package
     [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
     public class Startup_Mobile extends Sprite
     {
+        // Startup image for SD screens
         [Embed(source="../../demo/system/startup.jpg")]
-        public static var Background:Class;
+        private static var Background:Class;
         
+        // Startup image for HD screens
         [Embed(source="../../demo/system/startup@2x.jpg")]
-        public static var BackgroundHD:Class;
+        private static var BackgroundHD:Class;
         
         private var mStarling:Starling;
         
