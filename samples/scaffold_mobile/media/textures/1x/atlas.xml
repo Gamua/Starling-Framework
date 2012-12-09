@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with TexturePacker http://texturepacker.com-->
-<!-- $TexturePacker:SmartUpdate:54282136222cf4c3ecac482e84579475$ -->
-<TextureAtlas imagePath="atlas_b.png">
-    <SubTexture name="bird_bl" x="102" y="145" width="124" height="94"/>
-    <SubTexture name="bird_br" x="1" y="145" width="100" height="95"/>
-    <SubTexture name="bird_tl" x="346" y="1" width="110" height="76"/>
-    <SubTexture name="bird_tr" x="227" y="145" width="118" height="76"/>
-    <SubTexture name="logo" x="1" y="1" width="320" height="143"/>
+<!-- $TexturePacker:SmartUpdate:6de4fa2dfeed84f6d032b46b0c926a1e$ -->
+<TextureAtlas imagePath="atlas.png">
+    <SubTexture name="button_normal" x="2" y="212" width="127" height="32"/>
+    <SubTexture name="powered_by_starling" x="2" y="146" width="180" height="64"/>
+    <SubTexture name="starling_rocket" x="2" y="2" width="256" height="142"/>
 </TextureAtlas>

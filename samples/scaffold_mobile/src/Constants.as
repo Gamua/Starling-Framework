@@ -11,7 +11,8 @@ package
         // will be displayed without any black bars on all iPhone models up to 4S.
         // 
         // To use landscape mode, exchange the values of width and height, and 
-        // set the "aspectRatio" element in the config XML to "portrait".
+        // set the "aspectRatio" element in the config XML to "landscape". (You'll also have to
+        // update the background, startup- and "Default" graphics accordingly.)
         
         public static const STAGE_WIDTH:int  = 320;
         public static const STAGE_HEIGHT:int = 480;
