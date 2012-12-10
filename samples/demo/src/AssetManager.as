@@ -26,7 +26,7 @@ package
     import starling.text.TextField;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
-
+    
     public class AssetManager
     {
         private var mScaleFactor:Number;
@@ -67,14 +67,14 @@ package
                 return null;
             }
         }
-
+        
         /** Returns all textures that start with a certain string, sorted alphabetically
          *  (especially useful for "MovieClip"). */
         public function getTextures(prefix:String="", result:Vector.<Texture>=null):Vector.<Texture>
         {
             if (result == null) result = new <Texture>[];
             
-            for each (var name:String in getTextureNames(prefix, sNames)) 
+            for each (var name:String in getTextureNames(prefix, sNames))
                 result.push(getTexture(name));
             
             sNames.length = 0;
@@ -190,18 +190,18 @@ package
                 }
                 else if (rawAsset is Class)
                 {
-                    if (/\$[\d\w-]+$/.test(getQualifiedClassName(rawAsset)))
-                    {
-                        // embedded classes always end with a $HEX string -- yes, call it a hack ;)
-                        push(rawAsset);
-                    }
-                    else
-                    {
-                        // find all members with "Embed" metadata
-                        for each (var childNode:XML in describeType(rawAsset).*)
-                        if (childNode.metadata.(@name == "Embed").hasComplexContent())
-                            push(rawAsset[childNode.@name]);
-                    }
+                    var typeXml:XML = describeType(rawAsset);
+                    var childNode:XML;
+                    
+                    if (mVerbose)
+                        log("Looking for static embedded assets in '" + 
+                            (typeXml.@name).split("::").pop() + "'"); 
+                    
+                    for each (childNode in typeXml.constant.(@type == "Class"))
+                        push(rawAsset[childNode.@name], childNode.@name);
+                    
+                    for each (childNode in typeXml.variable.(@type == "Class"))
+                        push(rawAsset[childNode.@name], childNode.@name);
                 }
                 else if (getQualifiedClassName(rawAsset) == "flash.filesystem::File")
                 {
@@ -226,9 +226,10 @@ package
             function push(asset:Object, name:String=null):void
             {
                 if (name == null) name = getName(asset);
+                log("Enqueuing '" + name + "'");
                 
                 mRawAssets.push({ 
-                    name: (name ? name : getName(asset)), 
+                    name: name, 
                     asset: asset 
                 });
             }
@@ -415,18 +416,10 @@ package
             {
                 name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
-                matches = /(.*[\\/])?([\w\s\-]+)(\.[\w]{1,4})?/.exec(name);
+                matches = /(.*[\\\/])?([\w\s\-]+)(\.[\w]{1,4})?/.exec(name);
                 
                 if (matches && matches.length == 4) return matches[2];
                 else throw new ArgumentError("Could not extract name from String '" + rawAsset + "'");
-            }
-            else if (rawAsset is Class)
-            {
-                name = getQualifiedClassName(rawAsset);
-                matches = /([\w\d-]+)_\w{1,4}/.exec(name);
-                
-                if (matches && matches.length == 2) return matches[1];
-                else throw new ArgumentError("Could not extract name from Class '" + name + "'");
             }
             else
             {
