@@ -16,7 +16,7 @@ package
     public class Game extends Sprite
     {
         // Embed the Ubuntu Font. Beware: the 'embedAsCFF'-part IS REQUIRED!!!
-        [Embed(source="../../demo/media/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]        
+        [Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
         private static const UbuntuRegular:Class;
         
         private var mLoadingProgress:ProgressBar;

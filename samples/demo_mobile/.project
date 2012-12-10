@@ -25,9 +25,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>[source path] media</name>
+			<name>[source path] assets</name>
 			<type>2</type>
-			<location>/Users/redge/Development/starling/samples/demo/media</location>
+			<location>/Users/redge/Development/starling/samples/demo/assets</location>
 		</link>
 		<link>
 			<name>[source path] src</name>
