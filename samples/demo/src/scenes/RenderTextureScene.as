@@ -77,7 +77,7 @@ package scenes
             });
         }
         
-        private function onButtonTriggered(event:Event):void
+        private function onButtonTriggered():void
         {
             if (mBrush.blendMode == BlendMode.NORMAL)
             {

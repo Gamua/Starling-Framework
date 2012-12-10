@@ -468,7 +468,7 @@ package starling.filters
         
         // properties
         
-        public function get isCached():Boolean { return mCache || mCacheRequested; }
+        public function get isCached():Boolean { return (mCache != null) || mCacheRequested; }
         
         public function get resolution():Number { return mResolution; }
         public function set resolution(value:Number):void 

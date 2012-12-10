@@ -31,12 +31,12 @@ package scenes
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
         }
         
-        private function onAddedToStage(event:Event):void
+        private function onAddedToStage():void
         {
             Starling.juggler.add(mMovie);
         }
         
-        private function onRemovedFromStage(event:Event):void
+        private function onRemovedFromStage():void
         {
             Starling.juggler.remove(mMovie);
         }

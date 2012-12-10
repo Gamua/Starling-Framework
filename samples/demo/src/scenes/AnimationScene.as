@@ -60,7 +60,7 @@ package scenes
             mEgg.rotation = 0.0;
         }
         
-        private function onStartButtonTriggered(event:Event):void
+        private function onStartButtonTriggered():void
         {
             mStartButton.enabled = false;
             resetEgg();
@@ -97,7 +97,7 @@ package scenes
             Starling.juggler.add(hideTween);
         }
         
-        private function onDelayButtonTriggered(event:Event):void
+        private function onDelayButtonTriggered():void
         {
             mDelayButton.enabled = false;
             

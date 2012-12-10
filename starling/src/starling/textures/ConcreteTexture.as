@@ -10,13 +10,13 @@
 
 package starling.textures
 {
+    import flash.events.Event;
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
     
     import starling.core.Starling;
-    import starling.events.Event;
 
     /** A ConcreteTexture wraps a Stage3D texture object, storing the properties of the texture. */
     public class ConcreteTexture extends Texture
@@ -63,9 +63,9 @@ package starling.textures
         public function restoreOnLostContext(data:Object):void
         {
             if (mData == null && data != null)
-                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+                Starling.context.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 0, true);
             if (data == null)
-                Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+                Starling.context.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
             mData = data;
         }

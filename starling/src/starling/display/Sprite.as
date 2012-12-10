@@ -87,7 +87,7 @@ package starling.display
         /** Indicates if the sprite was flattened. */
         public function get isFlattened():Boolean 
         { 
-            return mFlattenedContents || mFlattenRequested; 
+            return (mFlattenedContents != null) || mFlattenRequested; 
         }
         
         /** @inheritDoc */

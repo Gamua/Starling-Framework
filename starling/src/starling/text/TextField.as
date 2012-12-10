@@ -121,7 +121,7 @@ package starling.text
             super.dispose();
         }
         
-        private function onFlatten(event:Event):void
+        private function onFlatten():void
         {
             if (mRequiresRedraw) redrawContents();
         }
@@ -503,7 +503,7 @@ package starling.text
         /** Returns a registered bitmap font (or null, if the font has not been registered). */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return bitmapFonts[name]
+            return bitmapFonts[name];
         }
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work

@@ -292,7 +292,6 @@ package starling.core
         private function onInterruption(event:Object):void
         {
             var touch:Touch;
-            var phase:String;
             
             // abort touches
             for each (touch in mCurrentTouches)

@@ -91,7 +91,7 @@ package scenes
                 mContainer.getChildAt(i).rotation += Math.PI / 2 * passedTime;
         }
         
-        private function onStartButtonTriggered(event:Event):void
+        private function onStartButtonTriggered():void
         {
             trace("Starting benchmark");
             

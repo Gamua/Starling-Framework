@@ -16,7 +16,6 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
-    import flash.geom.Matrix;
     
     import starling.textures.Texture;
 
