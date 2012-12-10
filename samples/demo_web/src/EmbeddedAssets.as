@@ -2,30 +2,41 @@ package
 {
     public class EmbeddedAssets
     {
+        /** ATTENTION: Naming conventions!
+         *  
+         *  - Classes for embedded IMAGES should have the exact same name as the file,
+         *    without extension. This is required so that references from XMLs (atlas, bitmap font)
+         *    won't break.
+         *    
+         *  - Atlas and Font XML files can have an arbitrary name, since they are never
+         *    referenced by file name.
+         * 
+         */
+        
         // Texture Atlas
         
         [Embed(source="../../demo/media/textures/1x/atlas.xml", mimeType="application/octet-stream")]
-        public static const AtlasXml:Class;
+        public static const atlas_xml:Class;
         
         [Embed(source="../../demo/media/textures/1x/atlas.png")]
-        public static const AtlasTexture:Class;
+        public static const atlas:Class;
 
         // Compressed textures
         
         [Embed(source = "../../demo/media/textures/1x/compressed_texture.atf", mimeType="application/octet-stream")]
-        public static const CompressedTexture:Class;
+        public static const compressed_texture:Class;
         
         // Bitmap Fonts
         
         [Embed(source="../../demo/media/fonts/1x/desyrel.fnt", mimeType="application/octet-stream")]
-        public static const DesyrelXml:Class;
+        public static const desyrel_fnt:Class;
         
         [Embed(source = "../../demo/media/fonts/1x/desyrel.png")]
-        public static const DesyrelTexture:Class;
+        public static const desyrel:Class;
         
         // Sounds
         
         [Embed(source="../../demo/media/audio/wing_flap.mp3")]
-        public static const WingFlap:Class;
+        public static const wing_flap:Class;
     }
 }
