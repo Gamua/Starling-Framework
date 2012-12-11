@@ -5,6 +5,9 @@ package
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.textures.Texture;
+    
+    import utils.AssetManager;
+    import utils.ProgressBar;
 
     /** The Root class is the topmost display object in your game. It loads all the assets
      *  and displays a progress bar while this is happening. Later, it is responsible for

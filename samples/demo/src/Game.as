@@ -12,6 +12,9 @@ package
     import starling.events.Event;
     import starling.events.KeyboardEvent;
     import starling.textures.Texture;
+    
+    import utils.AssetManager;
+    import utils.ProgressBar;
 
     public class Game extends Sprite
     {

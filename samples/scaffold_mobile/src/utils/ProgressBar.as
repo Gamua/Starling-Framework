@@ -1,4 +1,4 @@
-package
+package utils
 {
     import flash.display.BitmapData;
     import flash.display.Shape;
@@ -28,7 +28,7 @@ package
             // create black rounded box for background
             
             var bgShape:Shape = new Shape();
-            bgShape.graphics.beginFill(0x0, 0.5);
+            bgShape.graphics.beginFill(0x0, 0.6);
             bgShape.graphics.drawRoundRect(0, 0, width*scale, height*scale, cornerRadius, cornerRadius);
             bgShape.graphics.endFill();
             

@@ -14,6 +14,8 @@ package
     import starling.utils.RectangleUtil;
     import starling.utils.formatString;
     
+    import utils.AssetManager;
+    
     [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
     public class Startup_Mobile extends Sprite
     {

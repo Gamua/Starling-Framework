@@ -14,6 +14,8 @@ package
     import starling.utils.RectangleUtil;
     import starling.utils.formatString;
     
+    import utils.AssetManager;
+    
     [SWF(frameRate="30", backgroundColor="#000")]
     public class Scaffold_Mobile extends Sprite
     {
