@@ -41,8 +41,7 @@ package starling.filters
             mUserMatrix   = new <Number>[];
             mShaderMatrix = new <Number>[];
             
-            mUserMatrix.push.apply(mUserMatrix, IDENTITY);
-            updateShaderMatrix();
+            this.matrix = matrix;
         }
         
         public override function dispose():void
