@@ -53,8 +53,6 @@
     <classEntry path="starling.utils.rad2deg"/>
     <classEntry path="starling.utils.MatrixUtil"/>
     <classEntry path="starling.textures.AtfData"/>
-    <classEntry path="starling.filters.IdentityFilter"/>
-    <classEntry path="starling.filters.InverseFilter"/>
     <classEntry path="starling.text.MiniBitmapFont"/>
   </includeClasses>
   <includeResources/>
