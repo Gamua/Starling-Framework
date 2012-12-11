@@ -41,10 +41,26 @@ package starling.filters
     import starling.utils.VertexData;
     import starling.utils.getNextPowerOfTwo;
 
-    /** The FragmentFilter class is the base class for all filter effects.
+    /** The FragmentFilter class is the base class for all filter effects in Starling.
      *  
      *  <p>All other filters of this package extend this class. You can attach them to any display
      *  object through the 'filter' property.</p>
+     * 
+     *  <p>A fragment filter works in the following way:</p>
+     *  <ol>
+     *    <li>The object that is filtered is rendered into a Texture (in stage coordinates).</li>
+     *    <li>The texture is fed into the first filter pass.</li>
+     *    <li>Each pass processes the texture using a fragment filter (and optionally a vertex 
+     *        filter) to achieve a certain effect.</li>
+     *    <li>The output of a pass is either another texture (if there are more passes) or the
+     *        back buffer.</li>  
+     *  </ol>
+     * 
+     *  <p>The abstract FragmentFilter class sets everything up for the filter. The filter itself
+     *  only needs to override the protected methods "createPrograms", "activate" and 
+     *  (optionally) "deactivate" to create and execute its custom shader code. Each filter
+     *  can be configured to either replace the original object, to be drawn below or above it.
+     *  This can be done through the "FragmentFilterMode" property.</p>
      *  
      *  <p>Create your own filters by extending this class.</p>
      */ 
