@@ -10,18 +10,19 @@ package
 	
 	import starling.utils.Color;
 	
-    // To use a Preloader, set this class as your 'default application' and add the 
-    // following to your compiler arguments: '-frame StartupFrame Startup_Web'
+    // To show a Preloader while the SWF is being transferred from the server, 
+    // set this class as your 'default application' and add the following 
+    // compiler argument: '-frame StartupFrame Demo_Web'
     
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
-	public class Preloader extends MovieClip
+	public class Demo_Web_Preloader extends MovieClip
 	{
-        private const STARTUP_CLASS:String = "Startup_Web";
+        private const STARTUP_CLASS:String = "Demo_Web";
         
         private var mProgressIndicator:Shape;
         private var mFrameCount:int = 0;
         
-		public function Preloader()
+		public function Demo_Web_Preloader()
 		{
 			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
 			stop();

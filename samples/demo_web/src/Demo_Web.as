@@ -10,17 +10,17 @@ package
     import utils.AssetManager;
     
     // If you set this class as your 'default application', it will run without a preloader.
-    // To use a preloader, see 'Preloader.as'.
+    // To use a preloader, see 'Demo_Web_Preloader.as'.
     
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
-    public class Startup_Web extends Sprite
+    public class Demo_Web extends Sprite
     {
         [Embed(source = "/startup.jpg")]
         private var Background:Class;
         
         private var mStarling:Starling;
         
-        public function Startup_Web()
+        public function Demo_Web()
         {
             if (stage) start();
             else addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);

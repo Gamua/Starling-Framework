@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties analytics="false" mainApplicationPath="Preloader.as" projectUUID="9573455a-0df5-4e91-9270-ad108510699f" version="11">
-  <compiler additionalCompilerArguments="-locale en_US&#10;-frame StartupFrame Startup_Web&#10;-inline" advancedTelemetry="false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" useFlashSDK="true" verifyDigests="true" warn="true">
+<actionScriptProperties analytics="false" mainApplicationPath="Demo_Web.as" projectUUID="9573455a-0df5-4e91-9270-ad108510699f" version="11">
+  <compiler additionalCompilerArguments="-locale en_US&#10;-frame StartupFrame Demo_Web" advancedTelemetry="false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" useFlashSDK="true" verifyDigests="true" warn="true">
     <compilerSourcePath>
       <compilerSourcePathEntry kind="1" linkType="1" path="${STARLING_FRAMEWORK}/samples/demo/src"/>
       <compilerSourcePathEntry kind="1" linkType="1" path="${STARLING_FRAMEWORK}/samples/demo/assets"/>
@@ -37,8 +37,7 @@
     <sourceAttachmentPath/>
   </compiler>
   <applications>
-    <application path="Preloader.as"/>
-    <application path="Startup_Web.as"/>
+    <application path="Demo_Web.as"/>
   </applications>
   <modules/>
   <workers/>
