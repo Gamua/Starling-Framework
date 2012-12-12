@@ -1,6 +1,58 @@
 Starling: Changelog
 ===================
 
+version 1.3 - 2012-12-12
+------------------------
+
+- added FragmentFilter class for filter effects
+- added BlurFilter for blur, drop shadow and glow effects
+- added ColorMatrixFilter for color effects
+- added experimental 'AssetManager' class to scaffold and demo projects
+- added convenience method 'Juggler.tween'
+- added 'repeatDelay' property to Tween class
+- added 'onRepeat' and 'onRepeatArgs' callback to Tween class
+- added 'repeatCount' and 'reverse' properties to Tween class
+- added 'nextTween' property to Tween class
+- added support for custom transition functions without string reference
+- added 'TextureAtlas.getNames' method
+- added text alignment properties to the Button class (thanks to piterwilson)
+- added workaround for viewport limitations in constrained mode (thanks to jamikado)
+- added setting of correct stage scale mode and align to Starling constructor
+- added 'RectangleUtil' class with Rectangle helper methods
+- added support for asynchronous loading of ATF textures
+- added 'renderTarget' property to RenderSupport class
+- added 'scissorRect' property to RenderSupport class
+- added 'nativeWidth' & 'nativeHeight' properties to Texture classes
+- added 'Juggler.contains' method (thanks to Josh Tynjala)
+- added support for directly modifying Starling viewPort rectangle (without re-assigning)
+- added option to ignore mip maps of ATF textures
+- added 'reset' method to 'DelayedCall' class (thanks to Oldes)
+- added support for infinite 'DelayedCall' repetitions
+- added 'pressure' and 'size' properties to Touch
+- added optional 'result' argument to 'Touch.getTouches' (thanks to Josh Tynjala)
+- added optional 'result' argument to 'TextureAtlas.getTextures/getNames'
+- added support for carriage return char in BitmapFont (thanks to marcus7262)
+- added arguments for mipmaps and scale to 'fromBitmap' method (thanks to elsassph)
+- added preloader to demo project
+- added scale parameter to 'Starling.showStatsAt'
+- added support for Maven builds (thanks to bsideup)
+- updated mobile scaffold and demo projects, now using the same startup class for Android & iOS
+- updated methods in 'Transitions' class to be protected
+- updated 'DisplayObject.hasVisibleArea' method to be public
+- removed embedded assets to avoid dependency on 'mx.core' library
+- fixed display list rendering when Starling is stopped (thanks to jamikado)
+- fixed 'DisplayObject.transformationMatrix' setter
+- fixed skewing to work just like in Flash Pro (thanks to tconkling)
+- fixed 'Touch.get(Previous)Location' (threw error when touch target was no longer on the stage)
+- fixed wrong x-offset on first bitmap char of a line (thanks to Calibretto)
+- fixed bug when creating a SubTexture / calling 'Texture.fromTexture()' from a RenderTexture
+- fixed disruptive left-over touches on interruption of AIR app
+- fixed multiply blend mode for ATF textures
+- fixed: bubble chain is now frozen when touch reaches phase "BEGAN"
+- fixed: now disposing children in reverse order
+- fixed: now forcing correct depth test and stencil settings
+- fixed: stats display now remembers previous position
+
 version 1.2 - 2012-08-15
 ------------------------
 
