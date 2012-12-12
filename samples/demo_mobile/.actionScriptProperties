@@ -2,9 +2,9 @@
 <actionScriptProperties analytics="false" mainApplicationPath="Startup_Mobile.as" projectUUID="f842483a-86bc-45da-b1d8-d4a7528d15a5" version="11">
   <compiler additionalCompilerArguments="-locale en_US" advancedTelemetry="false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" useFlashSDK="true" verifyDigests="true" warn="true">
     <compilerSourcePath>
-      <compilerSourcePathEntry kind="1" linkType="1" path="/Users/redge/Development/starling/samples/demo/src"/>
-      <compilerSourcePathEntry kind="1" linkType="1" path="/Users/redge/Development/starling/samples/demo/system"/>
-      <compilerSourcePathEntry kind="1" linkType="1" path="/Users/redge/Development/starling/samples/demo/assets"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="${STARLING_FRAMEWORK}/samples/demo/src"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="${STARLING_FRAMEWORK}/samples/demo/system"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="${STARLING_FRAMEWORK}/samples/demo/assets"/>
     </compilerSourcePath>
     <libraryPath defaultLinkType="0">
       <libraryPathEntry kind="4" path="">
