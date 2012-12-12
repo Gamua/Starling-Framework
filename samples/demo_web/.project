@@ -19,7 +19,7 @@
 		<link>
 			<name>[source path] src</name>
 			<type>2</type>
-			<location>/Users/redge/Development/starling/samples/demo/src</location>
+			<locationURI>STARLING_FRAMEWORK/samples/demo/src</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
