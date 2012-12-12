@@ -22,4 +22,8 @@ It also contains an article about [auto-rotation][2].
 [1]: http://wiki.starling-framework.org/manual/multi-resolution_development
 [2]: http://wiki.starling-framework.org/manual/auto-rotation
 
+## How to build this project ##
+
+If you are working with Flash Builder, you can import the project using "File - Import Flash Builder Project". In other IDEs, set up the project as an "ActionScript Mobile Project" and add the directories "src", "system", and "assets" to your source paths (that's required so that they are added to the application package when the project is built). Furthermore, you have to link Starling to the project (either its "src" directory or the precompiled SWC file).
+
 **Note:** You will need at least AIR 3.2 to deploy AIR applications on a mobile device. To deploy to actual Android or iOS devices, you will need the certificates and profiles provided by Google or Apple.
