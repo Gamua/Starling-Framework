@@ -15,28 +15,28 @@ package
         
         // Texture Atlas
         
-        [Embed(source="../../demo/assets/textures/1x/atlas.xml", mimeType="application/octet-stream")]
+        [Embed(source="/textures/1x/atlas.xml", mimeType="application/octet-stream")]
         public static const atlas_xml:Class;
         
-        [Embed(source="../../demo/assets/textures/1x/atlas.png")]
+        [Embed(source="/textures/1x/atlas.png")]
         public static const atlas:Class;
 
         // Compressed textures
         
-        [Embed(source = "../../demo/assets/textures/1x/compressed_texture.atf", mimeType="application/octet-stream")]
+        [Embed(source = "/textures/1x/compressed_texture.atf", mimeType="application/octet-stream")]
         public static const compressed_texture:Class;
         
         // Bitmap Fonts
         
-        [Embed(source="../../demo/assets/fonts/1x/desyrel.fnt", mimeType="application/octet-stream")]
+        [Embed(source="/fonts/1x/desyrel.fnt", mimeType="application/octet-stream")]
         public static const desyrel_fnt:Class;
         
-        [Embed(source = "../../demo/assets/fonts/1x/desyrel.png")]
+        [Embed(source = "/fonts/1x/desyrel.png")]
         public static const desyrel:Class;
         
         // Sounds
         
-        [Embed(source="../../demo/assets/audio/wing_flap.mp3")]
+        [Embed(source="/audio/wing_flap.mp3")]
         public static const wing_flap:Class;
     }
 }

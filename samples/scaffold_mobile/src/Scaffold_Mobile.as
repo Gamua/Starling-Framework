@@ -20,15 +20,15 @@ package
     public class Scaffold_Mobile extends Sprite
     {
         // We embed the "Ubuntu" font. Beware: the 'embedAsCFF'-part IS REQUIRED!!!
-        [Embed(source="../assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
+        [Embed(source="/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
         private static const UbuntuRegular:Class;
         
         // Startup image for SD screens
-        [Embed(source="../system/startup.jpg")]
+        [Embed(source="/startup.jpg")]
         private static var Background:Class;
         
         // Startup image for HD screens
-        [Embed(source="../system/startup@2x.jpg")]
+        [Embed(source="/startup@2x.jpg")]
         private static var BackgroundHD:Class;
         
         private var mStarling:Starling;

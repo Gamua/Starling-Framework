@@ -15,4 +15,4 @@ If you are using another IDE, it might unfortunately be a little more complicate
 
 Starling itself can either be linked via a source path, or by referencing its swc file.
 
-If your IDE doesn't allow adding source paths outside the project root, I recommend you create a new folder where you manually merge the "demo" and "demo_web" folders together.
+If your IDE doesn't allow adding source paths outside the project root, I recommend you create a new folder where you manually merge the "demo" and "demo_web" folders together. Then add just the "media" and "system" folders to your source paths (that's required so that the "Embed" statements can find them).

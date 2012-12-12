@@ -15,7 +15,7 @@ package
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
     public class Startup_Web extends Sprite
     {
-        [Embed(source = "../../demo/system/startup.jpg")]
+        [Embed(source = "/startup.jpg")]
         private var Background:Class;
         
         private var mStarling:Starling;
