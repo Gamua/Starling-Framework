@@ -114,16 +114,16 @@ package starling.textures
         /** Creates a texture object from a bitmap.
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
-                                          optimizeForRenderTexture:Boolean=false,
+                                          optimizeForRenderToTexture:Boolean=false,
                                           scale:Number=1):Texture
         {
-            return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderTexture, scale);
+            return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderToTexture, scale);
         }
         
         /** Creates a texture from bitmap data. 
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
-                                              optimizeForRenderTexture:Boolean=false,
+                                              optimizeForRenderToTexture:Boolean=false,
                                               scale:Number=1):Texture
         {
             var origWidth:int   = data.width;
@@ -136,7 +136,7 @@ package starling.textures
             if (context == null) throw new MissingContextError();
             
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
-                legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderTexture);
+                legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
             
             if (legalWidth > origWidth || legalHeight > origHeight)
             {
@@ -149,7 +149,7 @@ package starling.textures
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(
                 nativeTexture, Context3DTextureFormat.BGRA, legalWidth, legalHeight,
-                generateMipMaps, true, optimizeForRenderTexture, scale);
+                generateMipMaps, true, optimizeForRenderToTexture, scale);
             
             if (Starling.handleLostContext)
                 concreteTexture.restoreOnLostContext(data);
@@ -212,17 +212,17 @@ package starling.textures
          *  @param width:  in points; number of pixels depends on scale parameter
          *  @param height: in points; number of pixels depends on scale parameter
          *  @param color:  expected in ARGB format (inlude alpha!)
-         *  @param optimizeForRenderTexture: indicates if this texture will be used as render target
+         *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          */
         public static function fromColor(width:int, height:int, color:uint=0xffffffff,
-                                         optimizeForRenderTexture:Boolean=false, 
+                                         optimizeForRenderToTexture:Boolean=false, 
                                          scale:Number=-1):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
             var bitmapData:BitmapData = new BitmapData(width*scale, height*scale, true, color);
-            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderTexture, scale);
+            var texture:Texture = fromBitmapData(bitmapData, false, optimizeForRenderToTexture, scale);
             
             if (!Starling.handleLostContext)
                 bitmapData.dispose();
@@ -237,11 +237,11 @@ package starling.textures
          *  @param width:  in points; number of pixels depends on scale parameter
          *  @param height: in points; number of pixels depends on scale parameter
          *  @param premultipliedAlpha: the PMA format you will use the texture with
-         *  @param optimizeForRenderTexture: indicates if this texture will be used as render target
+         *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          */
         public static function empty(width:int=64, height:int=64, premultipliedAlpha:Boolean=false,
-                                     optimizeForRenderTexture:Boolean=true,
+                                     optimizeForRenderToTexture:Boolean=true,
                                      scale:Number=-1):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
@@ -256,10 +256,10 @@ package starling.textures
             if (context == null) throw new MissingContextError();
             
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
-                legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderTexture);
+                legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
-                legalWidth, legalHeight, false, premultipliedAlpha, optimizeForRenderTexture, scale);
+                legalWidth, legalHeight, false, premultipliedAlpha, optimizeForRenderToTexture, scale);
             
             if (origWidth == legalWidth && origHeight == legalHeight)
                 return concreteTexture;
