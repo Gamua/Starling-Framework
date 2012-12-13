@@ -37,6 +37,7 @@
     <sourceAttachmentPath/>
   </compiler>
   <applications>
+    <application path="Demo_Web_Preloader.as"/>
     <application path="Demo_Web.as"/>
   </applications>
   <modules/>
