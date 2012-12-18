@@ -384,7 +384,7 @@ package starling.filters
             if (intersectWithStage)
             {
                 sStageBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
-                RectangleUtil.intersect(sBounds, sStageBounds, sBounds);
+                RectangleUtil.intersect(resultRect, sStageBounds, resultRect);
             }
             
             if (!resultRect.isEmpty())
