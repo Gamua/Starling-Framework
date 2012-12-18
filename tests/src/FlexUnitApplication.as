@@ -15,6 +15,7 @@ package
     import tests.JugglerTest;
     import tests.MovieClipTest;
     import tests.QuadTest;
+    import tests.RectangleUtilTest;
     import tests.TextureAtlasTest;
     import tests.TextureTest;
     import tests.TweenTest;
@@ -39,20 +40,21 @@ package
         public function currentRunTestSuite():Array
         {
             var testsToRun:Array = new Array();
-            testsToRun.push(tests.TextureAtlasTest);
-            testsToRun.push(tests.DisplayObjectTest);
-            testsToRun.push(tests.VertexDataTest);
-            testsToRun.push(tests.BlendModeTest);
-            testsToRun.push(tests.TextureTest);
-            testsToRun.push(tests.DisplayObjectContainerTest);
-            testsToRun.push(tests.DelayedCallTest);
-            testsToRun.push(tests.MovieClipTest);
-            testsToRun.push(tests.UtilsTest);
-            testsToRun.push(tests.JugglerTest);
-            testsToRun.push(tests.TweenTest);
             testsToRun.push(tests.ColorTest);
+            testsToRun.push(tests.TextureAtlasTest);
+            testsToRun.push(tests.JugglerTest);
             testsToRun.push(tests.QuadTest);
+            testsToRun.push(tests.DisplayObjectContainerTest);
+            testsToRun.push(tests.UtilsTest);
+            testsToRun.push(tests.DisplayObjectTest);
+            testsToRun.push(tests.BlendModeTest);
+            testsToRun.push(tests.MovieClipTest);
+            testsToRun.push(tests.RectangleUtilTest);
+            testsToRun.push(tests.VertexDataTest);
             testsToRun.push(tests.EventTest);
+            testsToRun.push(tests.DelayedCallTest);
+            testsToRun.push(tests.TweenTest);
+            testsToRun.push(tests.TextureTest);
             return testsToRun;
         }
     }
