@@ -234,6 +234,10 @@ package starling.display
                 {
                     if (hasEventListener(Event.COMPLETE))
                     {
+                        // since we return below, we have to update the texture here
+                        if (mCurrentFrame != previousFrame)
+                            texture = mTextures[mCurrentFrame];
+                        
                         var restTime:Number = mCurrentTime - mTotalTime;
                         mCurrentTime = mTotalTime;
                         dispatchEventWith(Event.COMPLETE);
@@ -242,8 +246,7 @@ package starling.display
                         advanceTime(restTime);
                         return;
                     }
-                    
-                    if (mLoop)
+                    else if (mLoop)
                     {
                         mCurrentTime -= mTotalTime;
                         mCurrentFrame = 0;

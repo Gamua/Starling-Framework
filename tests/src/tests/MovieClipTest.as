@@ -268,6 +268,23 @@ package tests
             Assert.assertTrue(throwsError);
         }
         
+        [Test]
+        public function testLastTextureInFastPlayback():void
+        {
+            var fps:Number = 20.0;
+            var frameDuration:Number = 0.5;
+            
+            var frames:Vector.<Texture> = createFrames(3);
+            var movie:MovieClip = new MovieClip(frames, fps);
+            movie.addEventListener(Event.COMPLETE, onMovieCompleted);
+            movie.advanceTime(1.0);
+            
+            function onMovieCompleted():void
+            {
+                Assert.assertEquals(frames[2], movie.texture);
+            }
+        }
+        
         private function createFrames(count:int):Vector.<Texture>
         {
             var frames:Vector.<Texture> = new <Texture>[];
