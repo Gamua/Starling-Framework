@@ -208,7 +208,7 @@ package starling.filters
             
             // get weights on the exact pixels (sTmpWeights) and calculate sums (mWeights)
             
-            for (var i:int=0; i<4; ++i)
+            for (var i:int=0; i<5; ++i)
                 sTmpWeights[i] = multiplier * Math.exp(-i*i / twoSigmaSq);
             
             mWeights[0] = sTmpWeights[0];
