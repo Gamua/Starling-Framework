@@ -82,6 +82,10 @@ package starling.text
         private var mIsRenderedText:Boolean;
         private var mTextBounds:Rectangle;
 
+        private var mAutoSize:String = TextFieldAutoSize.NONE;
+        private var mAutoSizeMaxWidth:Number = 0;
+        private var mAutoSizeMaxHeight:Number = 0;
+
         private var mHitArea:DisplayObject;
         private var mBorder:DisplayObjectContainer;
 
@@ -150,8 +154,33 @@ package starling.text
             }
 
             var scale:Number  = Starling.contentScaleFactor;
-            var width:Number  = mHitArea.width  * scale;
-            var height:Number = mHitArea.height * scale;
+
+            var width:Number;
+            var height:Number;
+            var multiline:Boolean;
+            var wordWrap:Boolean;
+            switch (mAutoSize) {
+            case TextFieldAutoSize.NONE:
+                width = mHitArea.width * scale;
+                height = mHitArea.width * scale;
+                multiline = true;
+                wordWrap = true;
+                break;
+
+            case TextFieldAutoSize.SINGLE_LINE:
+                width = (mAutoSizeMaxWidth > 0 ? mAutoSizeMaxWidth * scale : Number.MAX_VALUE);
+                height = Number.MAX_VALUE;
+                multiline = false;
+                wordWrap = false;
+                break;
+
+            case TextFieldAutoSize.MULTI_LINE:
+                width = (mAutoSizeMaxWidth > 0 ? mAutoSizeMaxWidth * scale : Number.MAX_VALUE);
+                height = Number.MAX_VALUE;
+                multiline = true;
+                wordWrap = true;
+                break;
+            }
 
             var textFormat:TextFormat = new TextFormat(mFontName,
                 mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, mHAlign);
@@ -162,8 +191,8 @@ package starling.text
             sNativeTextField.height = height;
             sNativeTextField.antiAliasType = AntiAliasType.ADVANCED;
             sNativeTextField.selectable = false;
-            sNativeTextField.multiline = true;
-            sNativeTextField.wordWrap = true;
+            sNativeTextField.multiline = multiline;
+            sNativeTextField.wordWrap = wordWrap;
             sNativeTextField.text = mText;
             sNativeTextField.embedFonts = true;
             sNativeTextField.filters = mNativeFilters;
@@ -175,8 +204,19 @@ package starling.text
             if (mAutoScale)
                 autoScaleNativeTextField(sNativeTextField);
 
-            var textWidth:Number  = sNativeTextField.textWidth;
-            var textHeight:Number = sNativeTextField.textHeight;
+            // Flash incorrectly reports textWidth and height
+            var textWidth:Number  = sNativeTextField.textWidth + 5;
+            var textHeight:Number = sNativeTextField.textHeight + 4;
+
+            if (mAutoSize != TextFieldAutoSize.NONE)
+            {
+                sNativeTextField.width = width = textWidth;
+                sNativeTextField.height = height = textHeight;
+
+                // Clip our height, if necessary
+                if (mAutoSizeMaxHeight > 0)
+                    textHeight = height = Math.min(textHeight, mAutoSizeMaxHeight * scale);
+            }
 
             var xOffset:Number = 0.0;
             if (mHAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
@@ -210,6 +250,13 @@ package starling.text
                 mImage.texture.dispose();
                 mImage.texture = texture;
                 mImage.readjustSize();
+            }
+
+            if (mAutoSize != TextFieldAutoSize.NONE)
+            {
+                mHitArea.width = mTextBounds.width;
+                mHitArea.height = mTextBounds.height;
+                updateBorder();
             }
         }
 
@@ -249,11 +296,48 @@ package starling.text
             var bitmapFont:BitmapFont = bitmapFonts[mFontName];
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
 
+            // Determine our parameters
+            var width:Number;
+            var height:Number;
+            var autoSize:Boolean;
+            var multiline:Boolean;
+            switch (mAutoSize)
+            {
+            case TextFieldAutoSize.NONE:
+                width = mHitArea.width;
+                height = mHitArea.height;
+                autoSize = false;
+                multiline = true;
+                break;
+
+            case TextFieldAutoSize.SINGLE_LINE:
+                width = (autoSizeMaxWidth > 0 ? autoSizeMaxWidth : Number.MAX_VALUE);
+                height = bitmapFont.lineHeight;
+                autoSize = true;
+                multiline = false;
+                break;
+
+            case TextFieldAutoSize.MULTI_LINE:
+                width = (autoSizeMaxWidth > 0 ? autoSizeMaxWidth : Number.MAX_VALUE);
+                height = (autoSizeMaxHeight > 0 ? autoSizeMaxHeight : Number.MAX_VALUE);
+                autoSize = true;
+                multiline = true;
+                break;
+            }
+
             bitmapFont.fillQuadBatch(mQuadBatch,
-                mHitArea.width, mHitArea.height, mText, mFontSize, mColor, mHAlign, mVAlign,
-                mAutoScale, mKerning);
+                width, height, mText, mFontSize, mColor, mHAlign, mVAlign,
+                mAutoScale, mKerning, autoSize, multiline);
 
             mTextBounds = null; // will be created on demand
+
+            if (autoSize)
+            {
+                mTextBounds = mQuadBatch.getBounds(mQuadBatch);
+                mHitArea.width = mTextBounds.width;
+                mHitArea.height = mTextBounds.height;
+                updateBorder();
+            }
         }
 
         private function updateBorder():void
@@ -291,24 +375,36 @@ package starling.text
             return mHitArea.getBounds(targetSpace, resultRect);
         }
 
-        /** @inheritDoc */
+        /** Sets the width of the TextField. Unlike ordinary display objects, changing
+         * the size of the TextField will not change its scaling. Instead, it makes the texture
+         * bigger or smaller while the size of the text and font stays the same.
+         *
+         * Manually changing the TextField's size will disable auto-sizing, if it's enabled. */
         public override function set width(value:Number):void
         {
-            // different to ordinary display objects, changing the size of the text field should
-            // not change the scaling, but make the texture bigger/smaller, while the size
-            // of the text/font stays the same (this applies to the height, as well).
-
-            mHitArea.width = value;
-            mRequiresRedraw = true;
-            updateBorder();
+            if (mHitArea.width != value)
+            {
+                mHitArea.width = value;
+                mAutoSize = TextFieldAutoSize.NONE;
+                mRequiresRedraw = true;
+                updateBorder();
+            }
         }
 
-        /** @inheritDoc */
+        /** Sets the height of the TextField. Unlike ordinary display objects, changing
+         * the size of the TextField will not change its scaling. Instead, it makes the texture
+         * bigger or smaller while the size of the text and font stays the same.
+         *
+         * Manually changing the TextField's size will disable auto-sizing, if it's enabled. */
         public override function set height(value:Number):void
         {
-            mHitArea.height = value;
-            mRequiresRedraw = true;
-            updateBorder();
+            if (mHitArea.height != value)
+            {
+                mHitArea.height = value;
+                mAutoSize = TextFieldAutoSize.NONE;
+                mRequiresRedraw = true;
+                updateBorder();
+            }
         }
 
         /** The displayed text. */
@@ -458,13 +554,16 @@ package starling.text
         }
 
         /** Indicates whether the font size is scaled down so that the complete text fits
-         *  into the text field. @default false */
+         *  into the text field. (Auto-sizing is incompatible with auto-scaling;
+         *  enabling auto-sizing will disable auto-scaling and vice-versa).
+         *  @default false */
         public function get autoScale():Boolean { return mAutoScale; }
         public function set autoScale(value:Boolean):void
         {
             if (mAutoScale != value)
             {
                 mAutoScale = value;
+                if (mAutoScale) mAutoSize = TextFieldAutoSize.NONE;
                 mRequiresRedraw = true;
             }
         }
@@ -479,6 +578,44 @@ package starling.text
 
             mNativeFilters = value.concat();
             mRequiresRedraw = true;
+        }
+
+        /** Specifies the type of auto-sizing the TextField will do. (Auto-sizing is incompatible
+        *   with auto-scaling; enabling auto-sizing will disable auto-scaling and vice-versa).
+        *   @default "none" */
+        public function get autoSize():String { return mAutoSize; }
+        public function set autoSize(value:String):void
+        {
+            if (mAutoSize != value)
+            {
+                mAutoSize = value;
+                mAutoScale = mAutoScale && (mAutoSize == TextFieldAutoSize.NONE);
+                mRequiresRedraw = true;
+            }
+        }
+
+        /** Specifies the TextField's maximum width when auto-sizing is used. A value <= 0
+         *  indicates no max width. @default 0 */
+        public function get autoSizeMaxWidth():Number { return mAutoSizeMaxWidth; }
+        public function set autoSizeMaxWidth(value:Number):void
+        {
+            if (mAutoSizeMaxWidth != value)
+            {
+                mAutoSizeMaxWidth = value;
+                mRequiresRedraw = true;
+            }
+        }
+
+        /** Specifies the TextField's maximum height when auto-sizing is used. A value <= 0
+         *  indicates no max height. @default 0 */
+        public function get autoSizeMaxHeight():Number { return mAutoSizeMaxHeight; }
+        public function set autoSizeMaxHeight(value:Number):void
+        {
+            if (mAutoSizeMaxHeight != value)
+            {
+                mAutoSizeMaxHeight = value;
+                mRequiresRedraw = true;
+            }
         }
 
         /** Makes a bitmap font available at any text field, identified by its <code>name</code>.
