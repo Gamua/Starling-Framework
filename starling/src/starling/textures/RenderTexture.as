@@ -97,6 +97,8 @@ package starling.textures
         /** @inheritDoc */
         public override function dispose():void
         {
+            mSupport.dispose();
+            
             if (isPersistent) 
             {
                 mBufferTexture.dispose();
