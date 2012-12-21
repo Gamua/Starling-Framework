@@ -54,6 +54,7 @@
     <classEntry path="starling.utils.MatrixUtil"/>
     <classEntry path="starling.textures.AtfData"/>
     <classEntry path="starling.text.MiniBitmapFont"/>
+    <classEntry path="starling.text.TextFieldAutoSize"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
