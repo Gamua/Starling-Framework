@@ -94,6 +94,26 @@ package tests
         }
         
         [Test]
+        public function testPurgeFromAdvanceTime():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+            
+            var tween1:Tween = new Tween(quad, 1.0);
+            var tween2:Tween = new Tween(quad, 1.0);
+            var tween3:Tween = new Tween(quad, 1.0);
+            
+            juggler.add(tween1);
+            juggler.add(tween2);
+            juggler.add(tween3);
+            
+            tween2.onUpdate = juggler.purge;
+            
+            // if this doesn't crash, we're fine =)
+            juggler.advanceTime(0.5);
+        }
+        
+        [Test]
         public function testRemoveTweensWithTarget():void
         {
             var juggler:Juggler = new Juggler();
