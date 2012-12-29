@@ -10,13 +10,13 @@
 
 package starling.core
 {
-    import flash.geom.Point;
     import flash.utils.getDefinitionByName;
 
     import starling.display.Stage;
     import starling.events.KeyboardEvent;
     import starling.events.Touch;
-    import starling.events.TouchEvent;
+    import starling.events.TouchDispatcher;
+    import starling.events.TouchHandler;
     import starling.events.TouchPhase;
 
     use namespace starling_internal;
@@ -33,6 +33,8 @@ package starling.core
         private var mElapsedTime:Number;
         private var mTouchMarker:TouchMarker;
 
+        private var mTouchHandler:TouchHandler;
+
         private var mCurrentTouches:Vector.<Touch>;
         private var mQueue:Vector.<Array>;
         private var mLastTaps:Vector.<Touch>;
@@ -42,7 +44,6 @@ package starling.core
 
         /** Helper objects. */
         private static var sProcessedTouchIDs:Vector.<int> = new <int>[];
-        private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
 
         public function TouchProcessor(stage:Stage)
         {
@@ -51,6 +52,9 @@ package starling.core
             mCurrentTouches = new <Touch>[];
             mQueue = new <Array>[];
             mLastTaps = new <Touch>[];
+
+            // install the default touch handler
+            mTouchHandler = new TouchDispatcher(stage);
 
             mStage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
             mStage.addEventListener(KeyboardEvent.KEY_UP,   onKey);
@@ -63,6 +67,7 @@ package starling.core
             mStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey);
             mStage.removeEventListener(KeyboardEvent.KEY_UP,   onKey);
             if (mTouchMarker) mTouchMarker.dispose();
+            if (mTouchHandler) mTouchHandler.dispose();
         }
 
         public function advanceTime(passedTime:Number):void
@@ -83,47 +88,31 @@ package starling.core
 
             while (mQueue.length > 0)
             {
-                sProcessedTouchIDs.length = sHoveringTouchData.length = 0;
+                sProcessedTouchIDs.length = 0;
 
-                // set touches that were new or moving to phase 'stationary'
+                // Set touches that were new or moving to phase 'stationary'.
+                // Moving into the STATIONARY state doesn't generate touch events, so we don't
+                // set the 'updated' flag on these touches.
                 for each (touch in mCurrentTouches)
+                {
+                    touch.setUpdated(false);
                     if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED)
                         touch.setPhase(TouchPhase.STATIONARY);
+                }
 
                 // process new touches, but each ID only once
                 while (mQueue.length > 0 &&
                     sProcessedTouchIDs.indexOf(mQueue[mQueue.length-1][0]) == -1)
                 {
                     var touchArgs:Array = mQueue.pop();
-                    touchID = touchArgs[0] as int;
-                    touch = getCurrentTouch(touchID);
-
-                    // hovering touches need special handling (see below)
-                    if (touch && touch.phase == TouchPhase.HOVER && touch.target)
-                        sHoveringTouchData.push({
-                            touch: touch,
-                            target: touch.target,
-                            bubbleChain: touch.bubbleChain
-                        });
-
-                    processTouch.apply(this, touchArgs);
-                    sProcessedTouchIDs.push(touchID);
+                    touch = processTouch.apply(this, touchArgs);
+                    sProcessedTouchIDs.push(touch.id);
+                    touch.setUpdated(true);
                 }
 
-                // the same touch event will be dispatched to all targets;
-                // the 'dispatch' method will make sure each bubble target is visited only once.
-                var touchEvent:TouchEvent =
-                    new TouchEvent(TouchEvent.TOUCH, mCurrentTouches, mShiftDown, mCtrlDown);
-
-                // if the target of a hovering touch changed, we dispatch the event to the previous
-                // target to notify it that it's no longer being hovered over.
-                for each (var touchData:Object in sHoveringTouchData)
-                    if (touchData.touch.target != touchData.target)
-                        touchEvent.dispatch(touchData.bubbleChain);
-
-                // dispatch events
-                for each (touchID in sProcessedTouchIDs)
-                    getCurrentTouch(touchID).dispatchEvent(touchEvent);
+                // hand the newly-processed touches to the touch handler
+                if (mTouchHandler)
+                    mTouchHandler.handleTouches(mCurrentTouches);
 
                 // remove ended touches
                 for (i=mCurrentTouches.length-1; i>=0; --i)
@@ -146,14 +135,13 @@ package starling.core
         }
 
         private function processTouch(touchID:int, phase:String, globalX:Number, globalY:Number,
-                                      pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
+                                      pressure:Number=1.0, width:Number=1.0, height:Number=1.0):Touch
         {
-            var position:Point = new Point(globalX, globalY);
             var touch:Touch = getCurrentTouch(touchID);
 
             if (touch == null)
             {
-                touch = new Touch(touchID, globalX, globalY, phase, null);
+                touch = new Touch(touchID, globalX, globalY, phase);
                 addCurrentTouch(touch);
             }
 
@@ -163,11 +151,10 @@ package starling.core
             touch.setPressure(pressure);
             touch.setSize(width, height);
 
-            if (phase == TouchPhase.HOVER || phase == TouchPhase.BEGAN)
-                touch.setTarget(mStage.hitTest(position, true));
-
             if (phase == TouchPhase.BEGAN)
                 processTap(touch);
+
+            return touch;
         }
 
         private function onKey(event:KeyboardEvent):void
@@ -269,6 +256,9 @@ package starling.core
             }
         }
 
+        public function get touchHandler():TouchHandler { return mTouchHandler; }
+        public function set touchHandler(value:TouchHandler):void { mTouchHandler = value; }
+
         // interruption handling
 
         private function monitorInterruptions(enable:Boolean):void
@@ -291,24 +281,22 @@ package starling.core
 
         private function onInterruption(event:Object):void
         {
-            var touch:Touch;
-
-            // abort touches
-            for each (touch in mCurrentTouches)
+            if (mCurrentTouches.length > 0 && mTouchHandler != null)
             {
-                if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
-                    touch.phase == TouchPhase.STATIONARY)
+                // abort touches
+                for each (var touch:Touch in mCurrentTouches)
                 {
-                    touch.setPhase(TouchPhase.ENDED);
+                    if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
+                        touch.phase == TouchPhase.STATIONARY)
+                    {
+                        touch.setPhase(TouchPhase.ENDED);
+                        touch.setUpdated(true);
+                    }
                 }
+
+                // update the touch handler
+                mTouchHandler.handleTouches(mCurrentTouches);
             }
-
-            // dispatch events
-            var touchEvent:TouchEvent =
-                new TouchEvent(TouchEvent.TOUCH, mCurrentTouches, mShiftDown, mCtrlDown);
-
-            for each (touch in mCurrentTouches)
-                touch.dispatchEvent(touchEvent);
 
             // purge touches
             mCurrentTouches.length = 0;

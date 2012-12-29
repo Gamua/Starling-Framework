@@ -42,6 +42,8 @@ package starling.core
     import starling.display.Stage;
     import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
+    import starling.events.Touch;
+    import starling.events.TouchHandler;
     import starling.events.TouchPhase;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
@@ -785,6 +787,10 @@ package starling.core
         /** The Context3D profile as requested in the constructor. Beware that if you are
          *  using a shared context, this might not be accurate. */
         public function get profile():String { return mProfile; }
+
+        /** The TouchHandler. All Touch input is processed by Starling and passed to the handler. */
+        public function get touchHandler():TouchHandler { return mTouchProcessor.touchHandler; }
+        public function set touchHandler(value:TouchHandler):void { mTouchProcessor.touchHandler = value; }
 
         // static properties
 
