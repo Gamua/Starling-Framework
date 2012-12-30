@@ -15,6 +15,7 @@ package tests
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
     import starling.display.MovieClip;
@@ -283,6 +284,29 @@ package tests
             {
                 Assert.assertEquals(frames[2], movie.texture);
             }
+        }
+        
+        [Test]
+        public function testAssignedTextureWithCompleteHandler():void
+        {
+            // https://github.com/PrimaryFeather/Starling-Framework/issues/232
+            
+            var frames:Vector.<Texture> = createFrames(2);
+            var movie:MovieClip = new MovieClip(frames, 2);
+            
+            movie.addEventListener(Event.COMPLETE, onComplete);
+            assertEquals(frames[0], movie.texture);
+            
+            movie.advanceTime(0.5);
+            assertEquals(frames[1], movie.texture);
+            
+            movie.advanceTime(0.5);
+            assertEquals(frames[0], movie.texture);
+            
+            movie.advanceTime(0.5);
+            assertEquals(frames[1], movie.texture);
+            
+            function onComplete():void { /* does not have to do anything */ }
         }
         
         private function createFrames(count:int):Vector.<Texture>
