@@ -18,6 +18,8 @@ package starling.events
 
     use namespace starling_internal;
 
+    /** Starling's default TouchHandler implementation. Dispatches TouchEvents on the display list
+     * in reponse to touch input. */
     public class TouchDispatcher implements TouchHandler
     {
         private var mRoot:DisplayObjectContainer;
@@ -29,6 +31,7 @@ package starling.events
         /** Helper object */
         private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
 
+        /** Constructs a new TouchDispatcher with the given DisplayObjectContainer root. */
         public function TouchDispatcher(root:DisplayObjectContainer)
         {
             mRoot = root;
@@ -89,7 +92,7 @@ package starling.events
             if (event.keyCode == 17 || event.keyCode == 15) // ctrl or cmd key
                 mCtrlDown = event.type == KeyboardEvent.KEY_DOWN;
             else if (event.keyCode == 16)
-               mShiftDown = event.type == KeyboardEvent.KEY_DOWN;
+                mShiftDown = event.type == KeyboardEvent.KEY_DOWN;
         }
     }
 }

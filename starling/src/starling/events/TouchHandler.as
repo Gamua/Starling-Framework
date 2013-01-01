@@ -10,9 +10,16 @@
 
 package starling.events {
 
-public interface TouchHandler
-{
-    function handleTouches(touches:Vector.<Touch>):void;
-    function dispose():void;
-}
+    /** An interface that allows for low-level handling of Touch input. User code can install
+     * a custom TouchHandler via Starling.touchHandler */
+    public interface TouchHandler
+    {
+        /** Handle touch input. 'touches' is a list of *all* current touches. Touches that were
+         * just created or updated as a result of new input will have their 'updated' properties
+         * set to true.  */
+        function handleTouches(touches:Vector.<Touch>):void;
+
+        /** Perform any necessary cleanup */
+        function dispose():void;
+    }
 }
