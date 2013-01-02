@@ -372,6 +372,8 @@ package starling.text
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
+            // If we are auto-sized, ensure we're up-to-date
+            if (mRequiresRedraw && mAutoSize != TextFieldAutoSize.NONE) redrawContents();
             return mHitArea.getBounds(targetSpace, resultRect);
         }
 
