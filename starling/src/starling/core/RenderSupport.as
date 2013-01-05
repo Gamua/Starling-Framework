@@ -43,8 +43,8 @@ package starling.core
         private var mBlendMode:String;
 
         private var mRenderTarget:Texture;
-        private var mRenderTargetWidth:int;
-        private var mRenderTargetHeight:int;
+        private var mBackBufferWidth:int;
+        private var mBackBufferHeight:int;
         private var mScissorRectangle:Rectangle;
         
         private var mQuadBatches:Vector.<QuadBatch>;
@@ -210,14 +210,31 @@ package starling.core
         
         /** Configures the back buffer on the current context3D. By using this method, Starling
          *  can store the size of the back buffer and utilize this information in other methods
-         *  (e.g. the scissor rectangle property). */
+         *  (e.g. the scissor rectangle property). Back buffer width and height can later be
+         *  accessed using the properties with the same name. */
         public function configureBackBuffer(width:int, height:int, antiAlias:int, 
                                             enableDepthAndStencil:Boolean):void
         {
-            mRenderTargetWidth = width;
-            mRenderTargetHeight = height;
+            mBackBufferWidth  = width;
+            mBackBufferHeight = height;
             Starling.context.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
         }
+        
+        /** The width of the back buffer, as it was configured in the last call to 
+         *  'RenderSupport.configureBackBuffer()'. Beware: changing this value does not actually
+         *  resize the back buffer; the setter should only be used to inform Starling about the
+         *  size of a back buffer it can't control (shared context situations).
+         */
+        public function get backBufferWidth():int { return mBackBufferWidth; }
+        public function set backBufferWidth(value:int):void { mBackBufferWidth = value; }
+        
+        /** The height of the back buffer, as it was configured in the last call to 
+         *  'RenderSupport.configureBackBuffer()'. Beware: changing this value does not actually
+         *  resize the back buffer; the setter should only be used to inform Starling about the
+         *  size of a back buffer it can't control (shared context situations).
+         */
+        public function get backBufferHeight():int { return mBackBufferHeight; }
+        public function set backBufferHeight(value:int):void { mBackBufferHeight = value; }
         
         // scissor rect
         
@@ -237,8 +254,8 @@ package starling.core
             {
                 mScissorRectangle.setTo(value.x, value.y, value.width, value.height);
 
-                var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mRenderTargetWidth;
-                var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mRenderTargetHeight;
+                var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mBackBufferWidth;
+                var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mBackBufferHeight;
                 
                 MatrixUtil.transformCoords(mProjectionMatrix, value.x, value.y, sPoint);
                 sRectangle.x = Math.max(0, ( sPoint.x + 1) / 2) * width;

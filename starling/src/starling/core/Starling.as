@@ -430,6 +430,11 @@ package starling.core
                     mSupport.configureBackBuffer(
                         mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
                 }
+                else
+                {
+                    mSupport.backBufferWidth  = mClippedViewPort.width;
+                    mSupport.backBufferHeight = mClippedViewPort.height;
+                }
             }
         }
 
