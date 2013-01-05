@@ -143,6 +143,9 @@ package starling.core
      *        Stage3D engine. Surround those calls with <code>context.clear()</code> and 
      *        <code>context.present()</code>.</li>
      *  </ol>
+     *  
+     *  <p>The Starling wiki contains a <a href="http://goo.gl/BsXzw">tutorial</a> with more 
+     *  information about this topic.</p>
 	 * 
      */ 
     public class Starling extends EventDispatcher
