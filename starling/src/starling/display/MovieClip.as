@@ -324,8 +324,14 @@ package starling.display
             mCurrentTime *= acceleration;
             mDefaultFrameDuration = newFrameDuration;
             
-            for (var i:int=0; i<numFrames; ++i)
-                setFrameDuration(i, getFrameDuration(i) * acceleration);
+            for (var i:int=0; i<numFrames; ++i) 
+            {
+                var duration:Number = mDurations[i] * acceleration;
+                mTotalTime = mTotalTime - mDurations[i] + duration;
+                mDurations[i] = duration;
+            }
+            
+            updateStartTimes();
         }
         
         /** Indicates if the clip is still playing. Returns <code>false</code> when the end 
