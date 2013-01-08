@@ -51,8 +51,8 @@ package starling.core
         private var mCurrentQuadBatchID:int;
         
         /** helper objects */
-        private var sPoint:Point = new Point();
-        private var sRectangle:Rectangle = new Rectangle();
+        private static var sPoint:Point = new Point();
+        private static var sRectangle:Rectangle = new Rectangle();
         
         // construction
         
@@ -135,13 +135,13 @@ package starling.core
             if (mMatrixStack.length < mMatrixStackSize + 1)
                 mMatrixStack.push(new Matrix());
             
-            mMatrixStack[mMatrixStackSize++].copyFrom(mModelViewMatrix);
+            mMatrixStack[int(mMatrixStackSize++)].copyFrom(mModelViewMatrix);
         }
         
         /** Restores the modelview matrix that was last pushed to the stack. */
         public function popMatrix():void
         {
-            mModelViewMatrix.copyFrom(mMatrixStack[--mMatrixStackSize]);
+            mModelViewMatrix.copyFrom(mMatrixStack[int(--mMatrixStackSize)]);
         }
         
         /** Empties the matrix stack, resets the modelview matrix to the identity matrix. */
