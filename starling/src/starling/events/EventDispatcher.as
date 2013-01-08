@@ -164,7 +164,7 @@ package starling.events
             else chain = new <EventDispatcher>[element];
             
             while ((element = element.parent) != null)
-                chain[length++] = element;
+                chain[int(length++)] = element;
 
             for (var i:int=0; i<length; ++i)
             {

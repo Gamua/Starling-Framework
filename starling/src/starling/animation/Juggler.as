@@ -207,7 +207,7 @@ package starling.animation
                 numObjects = mObjects.length; // count might have changed!
                 
                 while (i < numObjects)
-                    mObjects[currentIndex++] = mObjects[i++];
+                    mObjects[int(currentIndex++)] = mObjects[int(i++)];
                 
                 mObjects.length = currentIndex;
             }
