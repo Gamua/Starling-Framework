@@ -10,13 +10,12 @@
 
 package starling.display
 {
-    import com.adobe.utils.AGALMiniAssembler;
-    
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
+    import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -66,7 +65,8 @@ package starling.display
      */ 
     public class QuadBatch extends DisplayObject
     {
-        private static const QUAD_PROGRAM_NAME:String = "QB_q";
+        private static const PROGRAM_DATA_NAME:String = "starling.display.QuadBatch.programs";
+        private static const QUAD_PROGRAM_ID:uint = 0x100;
         
         private var mNumQuads:int;
         private var mSyncRequired:Boolean;
@@ -84,7 +84,6 @@ package starling.display
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         private static var sRenderMatrix:Matrix3D = new Matrix3D();
-        private static var sProgramNameCache:Dictionary = new Dictionary();
         
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
@@ -116,7 +115,7 @@ package starling.display
         private function onContextCreated(event:Object):void
         {
             createBuffers();
-            registerPrograms();
+            createPrograms();
         }
         
         /** Creates a duplicate of the QuadBatch object. */
@@ -156,7 +155,7 @@ package starling.display
             }
             
             createBuffers();
-            registerPrograms();
+            createPrograms();
         }
         
         private function createBuffers():void
@@ -206,9 +205,13 @@ package starling.display
             var pma:Boolean = mVertexData.premultipliedAlpha;
             var context:Context3D = Starling.context;
             var tinted:Boolean = mTinted || (parentAlpha != 1.0);
-            var programName:String = mTexture ? 
-                getImageProgramName(tinted, mTexture.mipMapping, mTexture.repeat, mTexture.format, mSmoothing) : 
-                QUAD_PROGRAM_NAME;
+            var program:Program3D;
+            
+            if (texture)
+                program = programs[getImageProgramID(tinted, mTexture.mipMapping, mTexture.repeat,
+                                                     mTexture.format, mSmoothing)];
+            else
+                program = programs[QUAD_PROGRAM_ID];
             
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
             sRenderAlpha[3] = parentAlpha;
@@ -216,7 +219,7 @@ package starling.display
             MatrixUtil.convertTo3D(mvpMatrix, sRenderMatrix);
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
             
-            context.setProgram(Starling.current.getProgram(programName));
+            context.setProgram(program);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, sRenderMatrix, true);
             context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
@@ -516,17 +519,21 @@ package starling.display
         
         // program management
         
-        private static function registerPrograms():void
+        private static function get programs():Dictionary
         {
-            var target:Starling = Starling.current;
-            if (target.hasProgram(QUAD_PROGRAM_NAME)) return; // already registered
+            return Starling.current.contextData[PROGRAM_DATA_NAME];
+        }
+        
+        private static function createPrograms():void
+        {
+            var contextData:Dictionary = Starling.current.contextData;
             
-            // create vertex and fragment programs from assembly
-            var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+            if (PROGRAM_DATA_NAME in contextData) return; // already created
+            else contextData[PROGRAM_DATA_NAME] = new Dictionary();
             
-            var vertexProgramCode:String;
-            var fragmentProgramCode:String;
+            var vertexShader:String;
+            var fragmentShader:String;
+            var programID:uint;
             
             // this is the input data we'll pass to the shaders:
             // 
@@ -539,25 +546,21 @@ package starling.display
             
             // Quad:
             
-            vertexProgramCode =
+            vertexShader =
                 "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
                 "mul v0, va1, vc0 \n";  // multiply alpha (vc0) with color (va1)
             
-            fragmentProgramCode =
+            fragmentShader =
                 "mov oc, v0       \n";  // output color
             
-            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode);
-            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode);
-            
-            target.registerProgram(QUAD_PROGRAM_NAME,
-                vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+            programs[QUAD_PROGRAM_ID] = RenderSupport.assembleAgal(vertexShader, fragmentShader);
             
             // Image:
             // Each combination of tinted/repeat/mipmap/smoothing has its own fragment shader.
             
             for each (var tinted:Boolean in [true, false])
             {
-                vertexProgramCode = tinted ?
+                vertexShader = tinted ?
                     "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
                     "mul v0, va1, vc0 \n" + // multiply alpha (vc0) with color (va1)
                     "mov v1, va2      \n"   // pass texture coordinates to fragment program
@@ -565,9 +568,7 @@ package starling.display
                     "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
                     "mov v1, va2      \n";  // pass texture coordinates to fragment program
                     
-                vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode);
-                
-                fragmentProgramCode = tinted ?
+                fragmentShader = tinted ?
                     "tex ft1,  v1, fs0 <???> \n" + // sample texture 0
                     "mul  oc, ft1,  v0       \n"   // multiply color with texel color
                   :
@@ -607,12 +608,10 @@ package starling.display
                                 else
                                     options.push("linear", mipmap ? "miplinear" : "mipnone");
                                 
-                                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT,
-                                    fragmentProgramCode.replace("???", options.join()));
-                                
-                                target.registerProgram(
-                                    getImageProgramName(tinted, mipmap, repeat, format, smoothing),
-                                    vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+                                programID = getImageProgramID(
+                                    tinted, mipmap, repeat, format, smoothing);
+                                programs[programID] = RenderSupport.assembleAgal(
+                                    vertexShader, fragmentShader.replace("???", options.join()));
                             }
                         }
                     }
@@ -620,9 +619,9 @@ package starling.display
             }
         }
         
-        private static function getImageProgramName(tinted:Boolean, mipMap:Boolean=true, 
-                                                    repeat:Boolean=false, format:String="bgra",
-                                                    smoothing:String="bilinear"):String
+        private static function getImageProgramID(tinted:Boolean, mipMap:Boolean=true, 
+                                                  repeat:Boolean=false, format:String="bgra",
+                                                  smoothing:String="bilinear"):uint
         {
             var bitField:uint = 0;
             
@@ -640,15 +639,7 @@ package starling.display
             else if (format == "compressedAlpha")
                 bitField |= 1 << 6;
             
-            var name:String = sProgramNameCache[bitField];
-            
-            if (name == null)
-            {
-                name = "QB_i." + bitField.toString(16);
-                sProgramNameCache[bitField] = name;
-            }
-            
-            return name;
+            return bitField;
         }
     }
 }
