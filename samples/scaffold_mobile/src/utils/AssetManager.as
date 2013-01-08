@@ -278,7 +278,11 @@ package utils
                 }
                 else if (getQualifiedClassName(rawAsset) == "flash.filesystem::File")
                 {
-                    if (!rawAsset["isHidden"])
+                    if (!rawAsset["exists"])
+                    {
+                        log("File or directory not found: '" + rawAsset["url"] + "'");
+                    }
+                    else if (!rawAsset["isHidden"])
                     {
                         if (rawAsset["isDirectory"])
                             enqueue.apply(this, rawAsset["getDirectoryListing"]());
