@@ -17,4 +17,4 @@ Icons:
 AIR Startup images: (displayed when AIR is ready, but Starling is still loading)
 
   * startup.jpg -> iPhone
-  * startup@2x.jpg -> iPhone Retina, iPad
+  * startupHD.jpg -> iPhone Retina, iPad
