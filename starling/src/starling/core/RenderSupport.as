@@ -10,6 +10,11 @@
 
 package starling.core
 {
+    import com.adobe.utils.AGALMiniAssembler;
+    
+    import flash.display3D.Context3D;
+    import flash.display3D.Context3DProgramType;
+    import flash.display3D.Program3D;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
@@ -19,6 +24,7 @@ package starling.core
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.QuadBatch;
+    import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.utils.Color;
     import starling.utils.MatrixUtil;
@@ -53,6 +59,7 @@ package starling.core
         /** helper objects */
         private static var sPoint:Point = new Point();
         private static var sRectangle:Rectangle = new Rectangle();
+        private static var sAssembler:AGALMiniAssembler = new AGALMiniAssembler();
         
         // construction
         
@@ -347,6 +354,26 @@ package starling.core
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             RenderSupport.clear(rgb, alpha);
+        }
+        
+        /** Assembles fragment- and vertex-shaders, passed as Strings, to a Program3D. If you
+         *  pass a 'resultProgram', it will be uploaded to that program; otherwise, a new program
+         *  will be created on the current Stage3D context. */ 
+        public static function assembleAgal(vertexShader:String, fragmentShader:String,
+                                            resultProgram:Program3D=null):Program3D
+        {
+            if (resultProgram == null) 
+            {
+                var context:Context3D = Starling.context;
+                if (context == null) throw new MissingContextError();
+                resultProgram = context.createProgram();
+            }
+            
+            resultProgram.upload(
+                sAssembler.assemble(Context3DProgramType.VERTEX, vertexShader),
+                sAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShader));
+            
+            return resultProgram;
         }
         
         // statistics
