@@ -241,6 +241,9 @@ package starling.core
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             
+            mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 10, true);
+            mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 10, true);
+            
             if (mStage3D.context3D && mStage3D.context3D.driverInfo != "Disposed")
             {
                 mShareContext = true;
@@ -250,8 +253,6 @@ package starling.core
             else
             {
                 mShareContext = false;
-                mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 1, true);
-                mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 1, true);
                 
                 try
                 {
