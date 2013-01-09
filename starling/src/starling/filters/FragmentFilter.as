@@ -148,6 +148,7 @@ package starling.filters
         /** Disposes the filter (programs, buffers, textures). */
         public function dispose():void
         {
+            Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
             disposePassTextures();
