@@ -12,6 +12,7 @@ package
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.RectangleUtil;
+    import starling.utils.ScaleMode;
     import starling.utils.formatString;
     
     import utils.AssetManager;
@@ -53,7 +54,8 @@ package
             
             var viewPort:Rectangle = RectangleUtil.fit(
                 new Rectangle(0, 0, stageWidth, stageHeight), 
-                new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight), true);
+                new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight), 
+                ScaleMode.SHOW_ALL, true);
             
             // create the AssetManager, which handles all required assets for this resolution
             
