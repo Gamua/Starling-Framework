@@ -41,7 +41,7 @@ package utils
             new <String>["png", "jpg", "jpeg", "atf", "mp3", "xml", "fnt"]; 
         
         private var mScaleFactor:Number;
-        private var mGenerateMipmaps:Boolean;
+        private var mUseMipMaps:Boolean;
         private var mVerbose:Boolean;
         
         private var mRawAssets:Array;
@@ -52,13 +52,13 @@ package utils
         /** helper objects */
         private var sNames:Vector.<String> = new <String>[];
         
-        /** Create a new AssetManager. The 'scaleFactor' and 'createMipmaps' parameters define
+        /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
-        public function AssetManager(scaleFactor:Number=-1, createMipmaps:Boolean=false)
+        public function AssetManager(scaleFactor:Number=-1, useMipmaps:Boolean=false)
         {
             mVerbose = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
-            mGenerateMipmaps = createMipmaps;
+            mUseMipMaps = useMipmaps;
             mRawAssets = [];
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
@@ -148,7 +148,7 @@ package utils
         }
         
         /** Generates a new SoundChannel object to play back the sound. This method returns a 
-         *  SoundChannel object, which you access to stop the sound and to monitor volume. */ 
+         *  SoundChannel object, which you can access to stop the sound and to control volume. */ 
         public function playSound(name:String, startTime:Number=0, loops:int=0, 
                                   transform:SoundTransform=null):SoundChannel
         {
@@ -278,7 +278,11 @@ package utils
                 }
                 else if (getQualifiedClassName(rawAsset) == "flash.filesystem::File")
                 {
-                    if (!rawAsset["isHidden"])
+                    if (!rawAsset["exists"])
+                    {
+                        log("File or directory not found: '" + rawAsset["url"] + "'");
+                    }
+                    else if (!rawAsset["isHidden"])
                     {
                         if (rawAsset["isDirectory"])
                             enqueue.apply(this, rawAsset["getDirectoryListing"]());
@@ -406,13 +410,13 @@ package utils
                     addSound(name, asset as Sound);
                 else if (asset is Bitmap)
                     addTexture(name, 
-                        Texture.fromBitmap(asset as Bitmap, mGenerateMipmaps, false, mScaleFactor));
+                        Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor));
                 else if (asset is ByteArray)
                 {
                     var bytes:ByteArray = asset as ByteArray;
                     var signature:String = String.fromCharCode(bytes[0], bytes[1], bytes[2]);
                     if (signature == "ATF")
-                        addTexture(name, Texture.fromAtfData(asset as ByteArray, mScaleFactor));
+                        addTexture(name, Texture.fromAtfData(asset as ByteArray, mScaleFactor, mUseMipMaps));
                     else
                         xmls.push(new XML(bytes));
                 }
@@ -456,7 +460,7 @@ package utils
                 switch (extension)
                 {
                     case "atf":
-                        addTexture(name, Texture.fromAtfData(bytes, mScaleFactor));
+                        addTexture(name, Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps));
                         onComplete();
                         break;
                     case "fnt":
@@ -487,7 +491,7 @@ package utils
                 
                 if (content is Bitmap)
                     addTexture(name,
-                        Texture.fromBitmap(content as Bitmap, mGenerateMipmaps, false, mScaleFactor));
+                        Texture.fromBitmap(content as Bitmap, mUseMipMaps, false, mScaleFactor));
                 else
                     throw new Error("Unsupported asset type: " + getQualifiedClassName(content));
                 
@@ -529,9 +533,11 @@ package utils
         public function get verbose():Boolean { return mVerbose; }
         public function set verbose(value:Boolean):void { mVerbose = value; }
         
-        /** Indicates if mipMaps should be generated for textures created from Bitmaps. */ 
-        public function get generateMipMaps():Boolean { return mGenerateMipmaps; }
-        public function set generateMipMaps(value:Boolean):void { mGenerateMipmaps = value; }
+        /** For bitmap textures, this flag indicates if mip maps should be generated when they 
+         *  are loaded; for ATF textures, it indicates if mip maps are valid and should be
+         *  used. */
+        public function get useMipMaps():Boolean { return mUseMipMaps; }
+        public function set useMipMaps(value:Boolean):void { mUseMipMaps = value; }
         
         /** Textures that are created from Bitmaps will have the scale factor assigned here. */
         public function get scaleFactor():Number { return mScaleFactor; }

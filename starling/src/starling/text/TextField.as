@@ -64,7 +64,7 @@ package starling.text
     public class TextField extends DisplayObjectContainer
     {
         // the name container with the registered bitmap fonts
-        private static const BITMAP_FONT_DATA_NAME:String = "starling.TextField.BitmapFonts";
+        private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
         
         private var mFontSize:Number;
         private var mColor:uint;
@@ -507,15 +507,15 @@ package starling.text
         }
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work
-         *  in one Starling instance, they are saved in Starling's 'customData' property. */
+         *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
         private static function get bitmapFonts():Dictionary
         {
-            var fonts:Dictionary = Starling.current.customData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            var fonts:Dictionary = Starling.current.contextData[BITMAP_FONT_DATA_NAME] as Dictionary;
             
             if (fonts == null)
             {
                 fonts = new Dictionary();
-                Starling.current.customData[BITMAP_FONT_DATA_NAME] = fonts;
+                Starling.current.contextData[BITMAP_FONT_DATA_NAME] = fonts;
             }
             
             return fonts;

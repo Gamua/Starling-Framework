@@ -28,7 +28,7 @@ package
         private static var Background:Class;
         
         // Startup image for HD screens
-        [Embed(source="/startup@2x.jpg")]
+        [Embed(source="/startupHD.jpg")]
         private static var BackgroundHD:Class;
         
         private var mStarling:Starling;

@@ -108,7 +108,8 @@ package starling.textures
             super.dispose();
         }
         
-        /** Draws an object into the texture.
+        /** Draws an object into the texture. Note that any filters on the object will currently
+         *  be ignored.
          * 
          *  @param object       The object to draw.
          *  @param matrix       If 'matrix' is null, the object will be drawn adhering its 
