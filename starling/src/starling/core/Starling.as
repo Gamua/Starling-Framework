@@ -479,7 +479,9 @@ package starling.core
             mLastFrameTimestamp = getTimer() / 1000.0;
         }
         
-        /** Stops rendering. */
+        /** Stops all logic processing and freezes the game in its current state. The content
+         *  is still being rendered once per frame, though, because otherwise the conventional
+         *  display list would no longer be updated. */
         public function stop():void 
         { 
             mStarted = false; 
