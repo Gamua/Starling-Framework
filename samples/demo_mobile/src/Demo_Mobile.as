@@ -55,7 +55,7 @@ package
             var viewPort:Rectangle = RectangleUtil.fit(
                 new Rectangle(0, 0, stageWidth, stageHeight), 
                 new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight), 
-                ScaleMode.SHOW_ALL, true);
+                ScaleMode.SHOW_ALL, iOS);
             
             // create the AssetManager, which handles all required assets for this resolution
             
