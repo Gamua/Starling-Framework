@@ -481,7 +481,8 @@ package starling.text
             mRequiresRedraw = true;
         }
         
-        /** Makes a bitmap font available at any text field, identified by its <code>name</code>.
+        /** Makes a bitmap font available at any TextField that is created in the current
+         *  Starling instance. The font is identified by its <code>name</code>.
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you 
          *  can pass a custom name, as well. @returns the name of the font. */
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
@@ -510,12 +511,12 @@ package starling.text
          *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
         private static function get bitmapFonts():Dictionary
         {
-            var fonts:Dictionary = Starling.current.contextData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            var fonts:Dictionary = Starling.current.customData[BITMAP_FONT_DATA_NAME] as Dictionary;
             
             if (fonts == null)
             {
                 fonts = new Dictionary();
-                Starling.current.contextData[BITMAP_FONT_DATA_NAME] = fonts;
+                Starling.current.customData[BITMAP_FONT_DATA_NAME] = fonts;
             }
             
             return fonts;

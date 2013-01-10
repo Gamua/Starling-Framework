@@ -28,10 +28,8 @@ package
         
         private function start():void
         {
-            var isMac:Boolean = Capabilities.manufacturer.indexOf("Macintosh") != -1;
-            
-            Starling.multitouchEnabled = true;   // useful on mobile devices
-            Starling.handleLostContext = !isMac; // required on Windows, needs more memory
+            Starling.multitouchEnabled = true; // for Multitouch Scene
+            Starling.handleLostContext = true; // required on Windows, needs more memory
             
             mStarling = new Starling(Game, stage);
             mStarling.simulateMultitouch = true;
