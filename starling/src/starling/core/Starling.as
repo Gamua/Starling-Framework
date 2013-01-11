@@ -153,6 +153,9 @@ package starling.core
         /** The version of the Starling framework. */
         public static const VERSION:String = "1.3";
         
+        /** The key for the shader programs stored in 'contextData' */
+        private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
+        
         // members
         
         private var mStage3D:Stage3D;
@@ -171,10 +174,7 @@ package starling.core
         private var mStatsDisplay:StatsDisplay;
         private var mShareContext:Boolean;
         private var mProfile:String;
-        
         private var mContext:Context3D;
-        private var mPrograms:Dictionary;
-        private var mCustomData:Dictionary;
         
         private var mViewPort:Rectangle;
         private var mPreviousViewPort:Rectangle;
@@ -185,6 +185,7 @@ package starling.core
         
         private static var sCurrent:Starling;
         private static var sHandleLostContext:Boolean;
+        private static var sContextData:Dictionary = new Dictionary(true);
         
         // construction
         
@@ -227,9 +228,11 @@ package starling.core
             mEnableErrorChecking = false;
             mProfile = profile;
             mLastFrameTimestamp = getTimer() / 1000.0;
-            mPrograms = new Dictionary();
-            mCustomData = new Dictionary();
             mSupport  = new RenderSupport();
+            
+            // for context data, we actually reference by stage3D, since it survives a context loss
+            sContextData[stage3D] = new Dictionary();
+            sContextData[stage3D][PROGRAM_DATA_NAME] = new Dictionary();
             
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -291,9 +294,6 @@ package starling.core
             
             for each (var touchEventType:String in touchEventTypes)
                 mNativeStage.removeEventListener(touchEventType, onTouch, false);
-                
-            for each (var program:Program3D in mPrograms)
-                program.dispose();
             
             if (mStage) mStage.dispose();
             if (mSupport) mSupport.dispose();
@@ -319,7 +319,7 @@ package starling.core
         {
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
-            mPrograms = new Dictionary();
+            contextData[PROGRAM_DATA_NAME] = new Dictionary();
             
             updateViewPort(true);
             
@@ -612,15 +612,15 @@ package starling.core
         
         // program management
         
-        /** Registers a vertex- and fragment-program under a certain name. */
+        /** Registers a vertex- and fragment-program under a certain name. If the name was already
+         *  used, the previous program is overwritten. */
         public function registerProgram(name:String, vertexProgram:ByteArray, fragmentProgram:ByteArray):void
         {
-            if (name in mPrograms)
-                throw new Error("Another program with this name is already registered");
+            deleteProgram(name);
             
             var program:Program3D = mContext.createProgram();
             program.upload(vertexProgram, fragmentProgram);            
-            mPrograms[name] = program;
+            programs[name] = program;
         }
         
         /** Deletes the vertex- and fragment-programs of a certain name. */
@@ -630,21 +630,23 @@ package starling.core
             if (program)
             {                
                 program.dispose();
-                delete mPrograms[name];
+                delete programs[name];
             }
         }
         
         /** Returns the vertex- and fragment-programs registered under a certain name. */
         public function getProgram(name:String):Program3D
         {
-            return mPrograms[name] as Program3D;
+            return programs[name] as Program3D;
         }
         
         /** Indicates if a set of vertex- and fragment-programs is registered under a certain name. */
         public function hasProgram(name:String):Boolean
         {
-            return name in mPrograms;
+            return name in programs;
         }
+        
+        private function get programs():Dictionary { return contextData[PROGRAM_DATA_NAME]; }
         
         // properties
         
@@ -662,6 +664,16 @@ package starling.core
         
         /** The render context of this instance. */
         public function get context():Context3D { return mContext; }
+        
+        /** A dictionary that can be used to save custom data related to the current context. 
+         *  If you need to share data that is bound to a specific stage3D instance
+         *  (e.g. textures), use this dictionary instead of creating a static class variable.
+         *  The Dictionary is actually bound to the stage3D instance, thus it survives a 
+         *  context loss. */
+        public function get contextData():Dictionary
+        {
+            return sContextData[mStage3D] as Dictionary;
+        }
         
         /** Indicates if multitouch simulation with "Shift" and "Ctrl"/"Cmd"-keys is enabled. 
          *  @default false */
@@ -783,11 +795,6 @@ package starling.core
         {
             return mRoot;
         }
-        
-        /** A dictionary that can be used to save custom data within this Starling instance. 
-         *  If you need to share data that is bound to a specific Starling instance
-         *  (e.g. textures), use this dictionary instead of creating a static class variable. */ 
-        public function get customData():Dictionary { return mCustomData; }
         
         /** Indicates if the Context3D render calls are managed externally to Starling, 
          *  to allow other frameworks to share the Stage3D instance. @default false */
