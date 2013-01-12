@@ -146,7 +146,7 @@ package starling.core
      *  
      *  <p>The Starling wiki contains a <a href="http://goo.gl/BsXzw">tutorial</a> with more 
      *  information about this topic.</p>
-	 * 
+     * 
      */ 
     public class Starling extends EventDispatcher
     {
@@ -247,6 +247,7 @@ package starling.core
             stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
+            stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave, false, 0, true);
             
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 10, true);
             mStage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 10, true);
@@ -287,6 +288,7 @@ package starling.core
             mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
             mNativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
             mNativeStage.removeEventListener(Event.RESIZE, onResize, false);
+            mNativeStage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeave, false);
             mNativeStage.removeChild(mNativeOverlay);
             
             mStage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false);
@@ -540,12 +542,17 @@ package starling.core
                 event.ctrlKey, event.altKey, event.shiftKey));
         }
         
-        private function onResize(event:flash.events.Event):void
+        private function onResize(event:Event):void
         {
             var stage:flash.display.Stage = event.target as flash.display.Stage; 
             mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stage.stageWidth, stage.stageHeight));
         }
 
+        private function onMouseLeave(event:Event):void
+        {
+            mTouchProcessor.enqueueMouseLeftStage();
+        }
+        
         private function onTouch(event:Event):void
         {
             if (!mStarted) return;
