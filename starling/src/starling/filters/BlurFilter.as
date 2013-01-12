@@ -163,7 +163,7 @@ package starling.filters
             // vertex attribute 1:   texture coordinates (FLOAT_2)
             // texture 0:            input texture
             
-            updateParameters(pass, texture.width * texture.scale, texture.height * texture.scale);
+            updateParameters(pass, texture.nativeWidth, texture.nativeHeight);
             
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, mOffsets);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mWeights);
