@@ -407,21 +407,36 @@ package utils
                 var asset:Object = new rawAsset();
                 
                 if (asset is Sound)
+                {
                     addSound(name, asset as Sound);
+                    onComplete();
+                }
                 else if (asset is Bitmap)
-                    addTexture(name, 
-                        Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor));
+                {
+                    addTexture(name, Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor));
+                    onComplete();
+                }
                 else if (asset is ByteArray)
                 {
                     var bytes:ByteArray = asset as ByteArray;
                     var signature:String = String.fromCharCode(bytes[0], bytes[1], bytes[2]);
+                    
                     if (signature == "ATF")
-                        addTexture(name, Texture.fromAtfData(asset as ByteArray, mScaleFactor, mUseMipMaps));
+                    {
+                        addTexture(name, Texture.fromAtfData(asset as ByteArray, mScaleFactor, 
+                            mUseMipMaps, onComplete));
+                    }
                     else
+                    {
                         xmls.push(new XML(bytes));
+                        onComplete();
+                    }
                 }
-                
-                onComplete();
+                else
+                {
+                    log("Ignoring unsupported asset type: " + getQualifiedClassName(asset));
+                    onComplete();
+                }
             }
             else if (rawAsset is String)
             {
@@ -460,8 +475,7 @@ package utils
                 switch (extension)
                 {
                     case "atf":
-                        addTexture(name, Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps));
-                        onComplete();
+                        addTexture(name, Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete));
                         break;
                     case "fnt":
                     case "xml":
