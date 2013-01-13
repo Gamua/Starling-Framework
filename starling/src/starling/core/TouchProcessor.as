@@ -145,6 +145,35 @@ package starling.core
             }
         }
         
+        public function enqueueMouseLeftStage():void
+        {
+            var mouse:Touch = getCurrentTouch(0);
+            if (mouse == null || mouse.phase != TouchPhase.HOVER) return;
+            
+            // On OS X, we get mouse events from outside the stage; on Windows, we do not.
+            // This method enqueues an artifial hover point that is just outside the stage.
+            // That way, objects listening for HOVERs over them will get notified everywhere.
+            
+            var offset:int = 1;
+            var exitX:Number = mouse.globalX;
+            var exitY:Number = mouse.globalY;
+            var distLeft:Number = mouse.globalX;
+            var distRight:Number = mStage.stageWidth - distLeft;
+            var distTop:Number = mouse.globalY;
+            var distBottom:Number = mStage.stageHeight - distTop;
+            var minDist:Number = Math.min(distLeft, distRight, distTop, distBottom);
+            
+            // the new hover point should be just outside the stage, near the point where
+            // the mouse point was last to be seen.
+            
+            if (minDist == distLeft)       exitX = -offset;
+            else if (minDist == distRight) exitX = mStage.stageWidth + offset;
+            else if (minDist == distTop)   exitY = -offset;
+            else                           exitY = mStage.stageHeight + offset;
+            
+            enqueue(0, TouchPhase.HOVER, exitX, exitY);
+        }
+        
         private function processTouch(touchID:int, phase:String, globalX:Number, globalY:Number,
                                       pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
