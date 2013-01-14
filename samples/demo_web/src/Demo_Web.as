@@ -6,8 +6,7 @@ package
     import starling.core.Starling;
     import starling.events.Event;
     import starling.textures.Texture;
-    
-    import utils.AssetManager;
+    import starling.utils.AssetManager;
     
     // If you set this class as your 'default application', it will run without a preloader.
     // To use a preloader, see 'Demo_Web_Preloader.as'.
