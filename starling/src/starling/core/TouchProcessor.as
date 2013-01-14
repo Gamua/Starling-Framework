@@ -145,6 +145,35 @@ package starling.core
             }
         }
         
+        public function enqueueMouseLeftStage():void
+        {
+            var mouse:Touch = getCurrentTouch(0);
+            if (mouse == null || mouse.phase != TouchPhase.HOVER) return;
+            
+            // On OS X, we get mouse events from outside the stage; on Windows, we do not.
+            // This method enqueues an artifial hover point that is just outside the stage.
+            // That way, objects listening for HOVERs over them will get notified everywhere.
+            
+            var offset:int = 1;
+            var exitX:Number = mouse.globalX;
+            var exitY:Number = mouse.globalY;
+            var distLeft:Number = mouse.globalX;
+            var distRight:Number = mStage.stageWidth - distLeft;
+            var distTop:Number = mouse.globalY;
+            var distBottom:Number = mStage.stageHeight - distTop;
+            var minDist:Number = Math.min(distLeft, distRight, distTop, distBottom);
+            
+            // the new hover point should be just outside the stage, near the point where
+            // the mouse point was last to be seen.
+            
+            if (minDist == distLeft)       exitX = -offset;
+            else if (minDist == distRight) exitX = mStage.stageWidth + offset;
+            else if (minDist == distTop)   exitY = -offset;
+            else                           exitY = mStage.stageHeight + offset;
+            
+            enqueue(0, TouchPhase.HOVER, exitX, exitY);
+        }
+        
         private function processTouch(touchID:int, phase:String, globalX:Number, globalY:Number,
                                       pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
@@ -194,10 +223,10 @@ package starling.core
                     // ... or start new one
                     else if (mCtrlDown && mouseTouch)
                     {
-                        if (mouseTouch.phase == TouchPhase.BEGAN || mouseTouch.phase == TouchPhase.MOVED)
-                            mQueue.unshift([1, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
-                        else
+                        if (mouseTouch.phase == TouchPhase.HOVER || mouseTouch.phase == TouchPhase.ENDED)
                             mQueue.unshift([1, TouchPhase.HOVER, mTouchMarker.mockX, mTouchMarker.mockY]);
+                        else
+                            mQueue.unshift([1, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
                     }
                 }
             }
@@ -292,7 +321,6 @@ package starling.core
         private function onInterruption(event:Object):void
         {
             var touch:Touch;
-            var phase:String;
             
             // abort touches
             for each (touch in mCurrentTouches)

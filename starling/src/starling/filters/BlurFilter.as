@@ -17,6 +17,11 @@ package starling.filters
     import starling.textures.Texture;
     import starling.utils.Color;
 
+    /** The BlurFilter applies a Gaussian blur to an object. The strength of the blur can be
+     *  set for x- and y-axis separately (always relative to the stage).
+     *  A blur filter can also be set up as a drop shadow or glow filter. Use the respective
+     *  static methods to create such a filter.
+     */
     public class BlurFilter extends FragmentFilter
     {
         private const MAX_SIGMA:Number = 2.0;
@@ -35,6 +40,20 @@ package starling.filters
         /** helper object */
         private var sTmpWeights:Vector.<Number> = new Vector.<Number>(5, true);
         
+        /** Create a new BlurFilter. For each blur direction, the number of required passes is
+         *  <code>Math.ceil(blur)</code>. 
+         *  
+         *  <ul><li>blur = 0.5: 1 pass</li>  
+         *      <li>blur = 1.0: 1 pass</li>
+         *      <li>blur = 1.5: 2 passes</li>
+         *      <li>blur = 2.0: 2 passes</li>
+         *      <li>etc.</li>
+         *  </ul>
+         *  
+         *  <p>Instead of raising the number of passes, you should consider lowering the resolution.
+         *  A lower resolution will result in a blurrier image, while reducing the rendering
+         *  cost.</p>
+         */
         public function BlurFilter(blurX:Number=1, blurY:Number=1, resolution:Number=1)
         {
             super(1, resolution);
@@ -43,6 +62,7 @@ package starling.filters
             updateMarginsAndPasses();
         }
         
+        /** Creates a blur filter that is set up for a drop shadow effect. */
         public static function createDropShadow(distance:Number=4.0, angle:Number=0.785, 
                                                 color:uint=0x0, alpha:Number=0.5, blur:Number=1.0, 
                                                 resolution:Number=0.5):BlurFilter
@@ -55,6 +75,7 @@ package starling.filters
             return dropShadow;
         }
         
+        /** Creates a blur filter that is set up for a glow effect. */
         public static function createGlow(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0,
                                           resolution:Number=0.5):BlurFilter
         {
@@ -64,6 +85,7 @@ package starling.filters
             return glow;
         }
         
+        /** @inheritDoc */
         public override function dispose():void
         {
             if (mNormalProgram) mNormalProgram.dispose();
@@ -72,6 +94,7 @@ package starling.filters
             super.dispose();
         }
         
+        /** @private */
         protected override function createPrograms():void
         {
             mNormalProgram = createProgram(false);
@@ -130,6 +153,7 @@ package starling.filters
             return assembleAgal(fragmentProgramCode, vertexProgramCode);
         }
         
+        /** @private */
         protected override function activate(pass:int, context:Context3D, texture:Texture):void
         {
             // already set by super class:
@@ -139,7 +163,7 @@ package starling.filters
             // vertex attribute 1:   texture coordinates (FLOAT_2)
             // texture 0:            input texture
             
-            updateParameters(pass, texture.width * texture.scale, texture.height * texture.scale);
+            updateParameters(pass, texture.nativeWidth, texture.nativeHeight);
             
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, mOffsets);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mWeights);
@@ -184,7 +208,7 @@ package starling.filters
             
             // get weights on the exact pixels (sTmpWeights) and calculate sums (mWeights)
             
-            for (var i:int=0; i<4; ++i)
+            for (var i:int=0; i<5; ++i)
                 sTmpWeights[i] = multiplier * Math.exp(-i*i / twoSigmaSq);
             
             mWeights[0] = sTmpWeights[0];
@@ -232,6 +256,9 @@ package starling.filters
             marginY = 4 + Math.ceil(mBlurY); 
         }
         
+        /** A uniform color will replace the RGB values of the input color, while the alpha
+         *  value will be multiplied with the given factor. Pass <code>false</code> as the
+         *  first parameter to deactivate the uniform color. */
         public function setUniformColor(enable:Boolean, color:uint=0x0, alpha:Number=1.0):void
         {
             mColor[0] = Color.getRed(color)   / 255.0;
@@ -241,6 +268,8 @@ package starling.filters
             mUniformColor = enable;
         }
         
+        /** The blur factor in x-direction (stage coordinates). 
+         *  The number of required passes will be <code>Math.ceil(value)</code>. */
         public function get blurX():Number { return mBlurX; }
         public function set blurX(value:Number):void 
         { 
@@ -248,6 +277,8 @@ package starling.filters
             updateMarginsAndPasses(); 
         }
         
+        /** The blur factor in y-direction (stage coordinates). 
+         *  The number of required passes will be <code>Math.ceil(value)</code>. */
         public function get blurY():Number { return mBlurY; }
         public function set blurY(value:Number):void 
         { 

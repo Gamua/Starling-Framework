@@ -221,50 +221,62 @@ package starling.display
         {
             var finalFrame:int;
             var previousFrame:int = mCurrentFrame;
+            var restTime:Number = 0.0;
+            var breakAfterFrame:Boolean = false;
             
-            if (mLoop && mCurrentTime == mTotalTime) { mCurrentTime = 0.0; mCurrentFrame = 0; }
-            if (!mPlaying || passedTime == 0.0 || mCurrentTime == mTotalTime) return;
+            if (mLoop && mCurrentTime == mTotalTime) 
+            { 
+                mCurrentTime = 0.0; 
+                mCurrentFrame = 0; 
+            }
             
-            mCurrentTime += passedTime;
-            finalFrame = mTextures.length - 1;
-            
-            while (mCurrentTime >= mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
-            {
-                if (mCurrentFrame == finalFrame)
+            if (mPlaying && passedTime > 0.0 && mCurrentTime < mTotalTime) 
+            {				
+                mCurrentTime += passedTime;
+                finalFrame = mTextures.length - 1;
+                
+                while (mCurrentTime >= mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
                 {
-                    if (hasEventListener(Event.COMPLETE))
+                    if (mCurrentFrame == finalFrame)
                     {
-                        var restTime:Number = mCurrentTime - mTotalTime;
-                        mCurrentTime = mTotalTime;
-                        dispatchEventWith(Event.COMPLETE);
+                        if (hasEventListener(Event.COMPLETE))
+                        {
+                            if (mCurrentFrame != previousFrame)
+                                texture = mTextures[mCurrentFrame];
+                            
+                            restTime = mCurrentTime - mTotalTime;
+                            mCurrentTime = mTotalTime;
+                            dispatchEventWith(Event.COMPLETE);
+                            breakAfterFrame = true;
+                        }
                         
-                        // user might have changed movie clip settings, so we restart the method
-                        advanceTime(restTime);
-                        return;
-                    }
-                    
-                    if (mLoop)
-                    {
-                        mCurrentTime -= mTotalTime;
-                        mCurrentFrame = 0;
+                        if (mLoop)
+                        {
+                            mCurrentTime -= mTotalTime;
+                            mCurrentFrame = 0;
+                        }
+                        else
+                        {
+                            mCurrentTime = mTotalTime;
+                            breakAfterFrame = true;
+                        }
                     }
                     else
                     {
-                        mCurrentTime = mTotalTime;
-                        break;
+                        mCurrentFrame++;
                     }
-                }
-                else
-                {
-                    mCurrentFrame++;
                     
                     var sound:Sound = mSounds[mCurrentFrame];
                     if (sound) sound.play();
+                    if (breakAfterFrame) break;
                 }
             }
             
             if (mCurrentFrame != previousFrame)
                 texture = mTextures[mCurrentFrame];
+            
+            if (restTime)
+                advanceTime(restTime);
         }
         
         /** Indicates if a (non-looping) movie has come to its end. */
@@ -312,8 +324,14 @@ package starling.display
             mCurrentTime *= acceleration;
             mDefaultFrameDuration = newFrameDuration;
             
-            for (var i:int=0; i<numFrames; ++i)
-                setFrameDuration(i, getFrameDuration(i) * acceleration);
+            for (var i:int=0; i<numFrames; ++i) 
+            {
+                var duration:Number = mDurations[i] * acceleration;
+                mTotalTime = mTotalTime - mDurations[i] + duration;
+                mDurations[i] = duration;
+            }
+            
+            updateStartTimes();
         }
         
         /** Indicates if the clip is still playing. Returns <code>false</code> when the end 

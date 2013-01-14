@@ -10,6 +10,11 @@
 
 package starling.core
 {
+    import com.adobe.utils.AGALMiniAssembler;
+    
+    import flash.display3D.Context3D;
+    import flash.display3D.Context3DProgramType;
+    import flash.display3D.Program3D;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
@@ -19,6 +24,7 @@ package starling.core
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.QuadBatch;
+    import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.utils.Color;
     import starling.utils.MatrixUtil;
@@ -43,16 +49,17 @@ package starling.core
         private var mBlendMode:String;
 
         private var mRenderTarget:Texture;
-        private var mRenderTargetWidth:int;
-        private var mRenderTargetHeight:int;
+        private var mBackBufferWidth:int;
+        private var mBackBufferHeight:int;
         private var mScissorRectangle:Rectangle;
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
         
         /** helper objects */
-        private var sPoint:Point = new Point();
-        private var sRectangle:Rectangle = new Rectangle();
+        private static var sPoint:Point = new Point();
+        private static var sRectangle:Rectangle = new Rectangle();
+        private static var sAssembler:AGALMiniAssembler = new AGALMiniAssembler();
         
         // construction
         
@@ -135,13 +142,13 @@ package starling.core
             if (mMatrixStack.length < mMatrixStackSize + 1)
                 mMatrixStack.push(new Matrix());
             
-            mMatrixStack[mMatrixStackSize++].copyFrom(mModelViewMatrix);
+            mMatrixStack[int(mMatrixStackSize++)].copyFrom(mModelViewMatrix);
         }
         
         /** Restores the modelview matrix that was last pushed to the stack. */
         public function popMatrix():void
         {
-            mModelViewMatrix.copyFrom(mMatrixStack[--mMatrixStackSize]);
+            mModelViewMatrix.copyFrom(mMatrixStack[int(--mMatrixStackSize)]);
         }
         
         /** Empties the matrix stack, resets the modelview matrix to the identity matrix. */
@@ -210,14 +217,31 @@ package starling.core
         
         /** Configures the back buffer on the current context3D. By using this method, Starling
          *  can store the size of the back buffer and utilize this information in other methods
-         *  (e.g. the scissor rectangle property). */
+         *  (e.g. the scissor rectangle property). Back buffer width and height can later be
+         *  accessed using the properties with the same name. */
         public function configureBackBuffer(width:int, height:int, antiAlias:int, 
                                             enableDepthAndStencil:Boolean):void
         {
-            mRenderTargetWidth = width;
-            mRenderTargetHeight = height;
+            mBackBufferWidth  = width;
+            mBackBufferHeight = height;
             Starling.context.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
         }
+        
+        /** The width of the back buffer, as it was configured in the last call to 
+         *  'RenderSupport.configureBackBuffer()'. Beware: changing this value does not actually
+         *  resize the back buffer; the setter should only be used to inform Starling about the
+         *  size of a back buffer it can't control (shared context situations).
+         */
+        public function get backBufferWidth():int { return mBackBufferWidth; }
+        public function set backBufferWidth(value:int):void { mBackBufferWidth = value; }
+        
+        /** The height of the back buffer, as it was configured in the last call to 
+         *  'RenderSupport.configureBackBuffer()'. Beware: changing this value does not actually
+         *  resize the back buffer; the setter should only be used to inform Starling about the
+         *  size of a back buffer it can't control (shared context situations).
+         */
+        public function get backBufferHeight():int { return mBackBufferHeight; }
+        public function set backBufferHeight(value:int):void { mBackBufferHeight = value; }
         
         // scissor rect
         
@@ -237,8 +261,8 @@ package starling.core
             {
                 mScissorRectangle.setTo(value.x, value.y, value.width, value.height);
 
-                var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mRenderTargetWidth;
-                var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mRenderTargetHeight;
+                var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mBackBufferWidth;
+                var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mBackBufferHeight;
                 
                 MatrixUtil.transformCoords(mProjectionMatrix, value.x, value.y, sPoint);
                 sRectangle.x = Math.max(0, ( sPoint.x + 1) / 2) * width;
@@ -330,6 +354,26 @@ package starling.core
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             RenderSupport.clear(rgb, alpha);
+        }
+        
+        /** Assembles fragment- and vertex-shaders, passed as Strings, to a Program3D. If you
+         *  pass a 'resultProgram', it will be uploaded to that program; otherwise, a new program
+         *  will be created on the current Stage3D context. */ 
+        public static function assembleAgal(vertexShader:String, fragmentShader:String,
+                                            resultProgram:Program3D=null):Program3D
+        {
+            if (resultProgram == null) 
+            {
+                var context:Context3D = Starling.context;
+                if (context == null) throw new MissingContextError();
+                resultProgram = context.createProgram();
+            }
+            
+            resultProgram.upload(
+                sAssembler.assemble(Context3DProgramType.VERTEX, vertexShader),
+                sAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShader));
+            
+            return resultProgram;
         }
         
         // statistics

@@ -30,7 +30,7 @@ package scenes
             mCanvas.addEventListener(TouchEvent.TOUCH, onTouch);
             addChild(mCanvas);
             
-            mBrush = new Image(Assets.getTexture("Brush"));
+            mBrush = new Image(Game.assets.getTexture("brush"));
             mBrush.pivotX = mBrush.width / 2;
             mBrush.pivotY = mBrush.height / 2;
             mBrush.blendMode = BlendMode.NORMAL;
@@ -41,7 +41,7 @@ package scenes
             infoText.y = Constants.CenterY - infoText.height / 2;
             mRenderTexture.draw(infoText);
             
-            mButton = new Button(Assets.getTexture("ButtonNormal"), "Mode: Draw");
+            mButton = new Button(Game.assets.getTexture("button_normal"), "Mode: Draw");
             mButton.x = int(Constants.CenterX - mButton.width / 2);
             mButton.y = 15;
             mButton.addEventListener(Event.TRIGGERED, onButtonTriggered);
@@ -77,7 +77,7 @@ package scenes
             });
         }
         
-        private function onButtonTriggered(event:Event):void
+        private function onButtonTriggered():void
         {
             if (mBrush.blendMode == BlendMode.NORMAL)
             {

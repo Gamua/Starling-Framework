@@ -16,10 +16,29 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
-    import flash.geom.Matrix;
     
     import starling.textures.Texture;
-
+    
+    /** The ColorMatrixFilter class lets you apply a 4x5 matrix transformation on the RGBA color 
+     *  and alpha values of every pixel in the input image to produce a result with a new set 
+     *  of RGBA color and alpha values. It allows saturation changes, hue rotation, 
+     *  luminance to alpha, and various other effects.
+     * 
+     *  <p>The class contains several convenience methods for frequently used color 
+     *  adjustments. All those methods change the current matrix, which means you can easily 
+     *  combine them in one filter:</p>
+     *  
+     *  <listing>
+     *  // create an inverted filter with 50% saturation and 180° hue rotation
+     *  var filter:ColorMatrixFilter = new ColorMatrixFilter();
+     *  filter.invert();
+     *  filter.adjustSaturation(-0.5);
+     *  filter.adjustHue(1.0);</listing>
+     *  
+     *  <p>If you want to gradually animate one of the predefined color adjustments, either reset
+     *  the matrix after each step, or use an identical adjustment value for each step; the 
+     *  changes will add up.</p>
+     */
     public class ColorMatrixFilter extends FragmentFilter
     {
         private var mShaderProgram:Program3D;
@@ -37,21 +56,25 @@ package starling.filters
         private static var sTmpMatrix1:Vector.<Number> = new Vector.<Number>(20, true);
         private static var sTmpMatrix2:Vector.<Number> = new <Number>[];
         
+        /** Creates a new ColorMatrixFilter instance with the specified matrix. 
+         *  @param matrix: a vector of 20 items arranged as a 4x5 matrix.   
+         */
         public function ColorMatrixFilter(matrix:Vector.<Number>=null)
         {
             mUserMatrix   = new <Number>[];
             mShaderMatrix = new <Number>[];
             
-            mUserMatrix.push.apply(mUserMatrix, IDENTITY);
-            updateShaderMatrix();
+            this.matrix = matrix;
         }
         
+        /** @inheritDoc */
         public override function dispose():void
         {
             if (mShaderProgram) mShaderProgram.dispose();
             super.dispose();
         }
         
+        /** @private */
         protected override function createPrograms():void
         {
             // fc0-3: matrix
@@ -70,6 +93,7 @@ package starling.filters
             mShaderProgram = assembleAgal(fragmentProgramCode);
         }
         
+        /** @private */
         protected override function activate(pass:int, context:Context3D, texture:Texture):void
         {
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mShaderMatrix);
@@ -216,6 +240,7 @@ package starling.filters
         
         // properties
         
+        /** A vector of 20 items arranged as a 4x5 matrix. */
         public function get matrix():Vector.<Number> { return mUserMatrix; }
         public function set matrix(value:Vector.<Number>):void
         {

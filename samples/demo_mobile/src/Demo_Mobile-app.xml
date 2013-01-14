@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<application xmlns="http://ns.adobe.com/air/application/3.5">
+
+    <id>com.gamua.starling.demo</id> <!-- Bundle Identifier. Required. -->
+    <filename>Starling-Demo</filename> <!-- Used as the filename for the application. Required. -->
+    <name>Starling Demo</name> <!-- The name that is displayed below the app icon. -->
+    <versionNumber>0.0.1</versionNumber> <!-- Required. -->
+    
+    <!-- Settings for the application's initial window. Required. -->
+    <initialWindow>
+        <!-- The main SWF or HTML file of the application. Required. -->
+        <content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
+        
+        <!-- The initial aspect ratio ("portrait" or "landscape"). Optional. -->
+        <aspectRatio>portrait</aspectRatio>
+
+        <!-- Whether the app will begin auto-orienting on launch. Optional. Default false -->
+        <!-- <autoOrients></autoOrients> -->
+
+        <!-- Whether the app launches in full screen. Optional. Mobile only. Default false -->
+        <!-- (On iOS, this decides if the StatusBar is visible or not.) -->
+        <fullScreen>true</fullScreen>
+
+        <!-- Either auto, cpu, gpu, or direct. Default auto -->
+        <renderMode>direct</renderMode>
+
+        <!-- Whether direct mode allocates storage for depth and stencil buffers. Default false -->
+        <!-- <depthAndStencil></depthAndStencil> -->
+
+        <!-- Whether or not to pan when a soft keyboard is raised or lowered (either "pan" or "none").  Optional.  Defaults "pan." -->
+        <!-- <softKeyboardBehavior></softKeyboardBehavior> -->
+    </initialWindow>
+
+    <!-- Languages supported by application. Only these languages can be specified. -->
+    <!-- <supportedLanguages>en de cs es fr it ja ko nl pl pt ru sv tr zh</supportedLanguages> -->
+
+    <!-- The icon the system uses for the application. Optional. -->
+    <!-- Place the icons in a 'source path' (e.g. in the 'src' directory). -->
+    <!-- iPhone: 57x57, iPhone HD: 114x114, iPad: 72x72, iPad HD: 144x144 -->
+    <icon>
+        <image57x57>icon57.png</image57x57>
+        <image72x72>icon72.png</image72x72>
+        <image114x114>icon114.png</image114x114>
+        <image144x144>icon144.png</image144x144>
+    </icon>
+
+    <!-- iOS specific capabilities -->
+    <iPhone>
+        <!-- A list of plist key/value pairs to be added to the application Info.plist -->
+        <!-- UIDeviceFamily: 1 - iPhone/iPod Touch; 2 - iPad; both: universal app -->
+    
+        <InfoAdditions><![CDATA[            
+            <key>UIDeviceFamily</key>
+            <array>
+                <string>1</string>
+                <string>2</string>
+            </array>
+        ]]></InfoAdditions>
+        
+        <!-- Display Resolution for the app ("standard" or "high"). Optional. Default "standard" -->
+        <requestedDisplayResolution>high</requestedDisplayResolution>
+    </iPhone>
+    
+    <!-- Android specific capabilities -->
+    <android>
+        <manifestAdditions>
+         <![CDATA[
+             <manifest android:installLocation="auto">
+                 <uses-permission android:name="android.permission.INTERNET"/>
+                 <uses-configuration android:reqFiveWayNav="true"/>
+                 <supports-screens android:normalScreens="true"/>
+                 <uses-feature android:required="true" android:name="android.hardware.touchscreen.multitouch"/>
+                 <application android:enabled="true">
+                     <activity android:excludeFromRecents="false">
+                         <intent-filter>
+                             <action android:name="android.intent.action.MAIN"/>
+                             <category android:name="android.intent.category.LAUNCHER"/>
+                         </intent-filter>
+                     </activity>
+                 </application>
+             </manifest>
+         ]]>
+        </manifestAdditions>
+    </android>  
+
+</application>

@@ -10,7 +10,6 @@
 
 package starling.core
 {
-    import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.Shape;
     import flash.geom.Point;

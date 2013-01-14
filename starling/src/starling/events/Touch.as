@@ -145,7 +145,7 @@ package starling.events
                 mBubbleChain[0] = element;
                 
                 while ((element = element.parent) != null)
-                    mBubbleChain[length++] = element;
+                    mBubbleChain[int(length++)] = element;
             }
             else
             {

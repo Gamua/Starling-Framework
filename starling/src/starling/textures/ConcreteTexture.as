@@ -64,7 +64,7 @@ package starling.textures
         {
             if (mData == null && data != null)
                 Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
-            if (data == null)
+            else if (data == null)
                 Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
             mData = data;

@@ -64,7 +64,7 @@ package starling.text
     public class TextField extends DisplayObjectContainer
     {
         // the name container with the registered bitmap fonts
-        private static const BITMAP_FONT_DATA_NAME:String = "starling.TextField.BitmapFonts";
+        private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
         
         private var mFontSize:Number;
         private var mColor:uint;
@@ -121,7 +121,7 @@ package starling.text
             super.dispose();
         }
         
-        private function onFlatten(event:Event):void
+        private function onFlatten():void
         {
             if (mRequiresRedraw) redrawContents();
         }
@@ -481,7 +481,8 @@ package starling.text
             mRequiresRedraw = true;
         }
         
-        /** Makes a bitmap font available at any text field, identified by its <code>name</code>.
+        /** Makes a bitmap font available at any TextField in the current stage3D context.
+         *  The font is identified by its <code>name</code>.
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you 
          *  can pass a custom name, as well. @returns the name of the font. */
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
@@ -503,19 +504,19 @@ package starling.text
         /** Returns a registered bitmap font (or null, if the font has not been registered). */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return bitmapFonts[name]
+            return bitmapFonts[name];
         }
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work
-         *  in one Starling instance, they are saved in Starling's 'customData' property. */
+         *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
         private static function get bitmapFonts():Dictionary
         {
-            var fonts:Dictionary = Starling.current.customData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            var fonts:Dictionary = Starling.current.contextData[BITMAP_FONT_DATA_NAME] as Dictionary;
             
             if (fonts == null)
             {
                 fonts = new Dictionary();
-                Starling.current.customData[BITMAP_FONT_DATA_NAME] = fonts;
+                Starling.current.contextData[BITMAP_FONT_DATA_NAME] = fonts;
             }
             
             return fonts;

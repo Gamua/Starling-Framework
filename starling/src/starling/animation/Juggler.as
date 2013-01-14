@@ -105,10 +105,16 @@ package starling.animation
         /** Removes all objects at once. */
         public function purge():void
         {
+            // the object vector is not purged right away, because if this method is called 
+            // from an 'advanceTime' call, this would make the loop crash. Instead, the
+            // vector is filled with 'null' values. They will be cleaned up on the next call
+            // to 'advanceTime'.
+            
             for (var i:int=mObjects.length-1; i>=0; --i)
             {
-                var dispatcher:EventDispatcher = mObjects.pop() as EventDispatcher;
+                var dispatcher:EventDispatcher = mObjects[i] as EventDispatcher;
                 if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+                mObjects[i] = null;
             }
         }
         
@@ -201,7 +207,7 @@ package starling.animation
                 numObjects = mObjects.length; // count might have changed!
                 
                 while (i < numObjects)
-                    mObjects[currentIndex++] = mObjects[i++];
+                    mObjects[int(currentIndex++)] = mObjects[int(i++)];
                 
                 mObjects.length = currentIndex;
             }

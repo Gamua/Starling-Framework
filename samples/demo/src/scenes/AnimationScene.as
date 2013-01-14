@@ -25,7 +25,7 @@ package scenes
                             Transitions.EASE_OUT_BACK, Transitions.EASE_OUT_BOUNCE,
                             Transitions.EASE_OUT_ELASTIC];
             
-            var buttonTexture:Texture = Assets.getTexture("ButtonNormal");
+            var buttonTexture:Texture = Game.assets.getTexture("button_normal");
             
             // create a button that starts the tween
             mStartButton = new Button(buttonTexture, "Start animation");
@@ -42,7 +42,7 @@ package scenes
             addChild(mDelayButton);
             
             // the Starling will be tweened
-            mEgg = new Image(Assets.getTexture("StarlingFront"));
+            mEgg = new Image(Game.assets.getTexture("starling_front"));
             addChild(mEgg);
             resetEgg();
             
@@ -60,7 +60,7 @@ package scenes
             mEgg.rotation = 0.0;
         }
         
-        private function onStartButtonTriggered(event:Event):void
+        private function onStartButtonTriggered():void
         {
             mStartButton.enabled = false;
             resetEgg();
@@ -97,7 +97,7 @@ package scenes
             Starling.juggler.add(hideTween);
         }
         
-        private function onDelayButtonTriggered(event:Event):void
+        private function onDelayButtonTriggered():void
         {
             mDelayButton.enabled = false;
             
