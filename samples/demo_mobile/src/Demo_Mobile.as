@@ -11,11 +11,10 @@ package
     import starling.core.Starling;
     import starling.events.Event;
     import starling.textures.Texture;
+    import starling.utils.AssetManager;
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
     import starling.utils.formatString;
-    
-    import utils.AssetManager;
     
     [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
     public class Demo_Mobile extends Sprite

@@ -1,7 +1,7 @@
 Starling: Changelog
 ===================
 
-version 1.3 - 2012-12-12
+version 1.3 - 2013-01-14
 ------------------------
 
 - added FragmentFilter class for filter effects
@@ -35,10 +35,15 @@ version 1.3 - 2012-12-12
 - added arguments for mipmaps and scale to 'fromBitmap' method (thanks to elsassph)
 - added preloader to demo project
 - added scale parameter to 'Starling.showStatsAt'
+- added support for Event.MOUSE_LEAVE on native stage (thans to jamikado)
 - added support for Maven builds (thanks to bsideup)
+- added 'contextData' property on Starling instance
+- added 'RenderSupport.assembleAgal'
 - updated mobile scaffold and demo projects, now using the same startup class for Android & iOS
 - updated methods in 'Transitions' class to be protected
 - updated 'DisplayObject.hasVisibleArea' method to be public
+- updated MovieClip.fps setter for better performance (thanks to radamchin)
+- updated handling of shared context situations (now also supporting context loss)
 - removed embedded assets to avoid dependency on 'mx.core' library
 - fixed display list rendering when Starling is stopped (thanks to jamikado)
 - fixed 'DisplayObject.transformationMatrix' setter
@@ -48,6 +53,7 @@ version 1.3 - 2012-12-12
 - fixed bug when creating a SubTexture / calling 'Texture.fromTexture()' from a RenderTexture
 - fixed disruptive left-over touches on interruption of AIR app
 - fixed multiply blend mode for ATF textures
+- fixed error when juggler purge was triggered from advanceTime
 - fixed: bubble chain is now frozen when touch reaches phase "BEGAN"
 - fixed: now disposing children in reverse order
 - fixed: now forcing correct depth test and stencil settings

@@ -1,4 +1,4 @@
-package utils
+package starling.utils
 {
     import flash.display.Bitmap;
     import flash.display.Loader;
@@ -32,8 +32,8 @@ package utils
      *  you to deal with assets in a unified way, no matter if they are loaded from a file, 
      *  directory, URL, or from an embedded object.
      *  
-     *  <p>If you load files from disk, the following types are supported:</p>
-     *  <code>png, jpg, atf, mp3, xml, fnt</code> 
+     *  <p>If you load files from disk, the following types are supported:
+     *  <code>png, jpg, atf, mp3, xml, fnt</code></p>
      */    
     public class AssetManager
     {
@@ -553,7 +553,8 @@ package utils
         public function get useMipMaps():Boolean { return mUseMipMaps; }
         public function set useMipMaps(value:Boolean):void { mUseMipMaps = value; }
         
-        /** Textures that are created from Bitmaps will have the scale factor assigned here. */
+        /** Textures that are created from Bitmaps or ATF files will have the scale factor 
+         *  assigned here. */
         public function get scaleFactor():Number { return mScaleFactor; }
         public function set scaleFactor(value:Number):void { mScaleFactor = value; }
     }
