@@ -524,7 +524,7 @@ package starling.utils
             {
                 name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
-                matches = /(.*[\\\/])?([\w\s\-]+)(\.[\w]{1,4})?/.exec(name);
+                matches = /(.*[\\\/])?([^\\\/]+)(\.[\w]{1,4})?/.exec(name);
                 
                 if (matches && matches.length == 4) return matches[2];
                 else throw new ArgumentError("Could not extract name from String '" + rawAsset + "'");
