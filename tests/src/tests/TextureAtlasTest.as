@@ -82,6 +82,8 @@ package tests
             var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
+            Assert.assertEquals(texture, atlas.texture);
+            
             atlas.addRegion("ann", new Rectangle(0, 0, 8, 8));
             atlas.addRegion("prefix_3", new Rectangle(8, 0, 3, 8));
             atlas.addRegion("prefix_1", new Rectangle(16, 0, 1, 8));
