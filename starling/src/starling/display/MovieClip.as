@@ -219,10 +219,14 @@ package starling.display
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
+            if (!mPlaying || passedTime <= 0.0) return;
+            
             var finalFrame:int;
             var previousFrame:int = mCurrentFrame;
             var restTime:Number = 0.0;
             var breakAfterFrame:Boolean = false;
+            var hasCompleteListener:Boolean = hasEventListener(Event.COMPLETE); 
+            var dispatchCompleteEvent:Boolean = false;
             
             if (mLoop && mCurrentTime == mTotalTime) 
             { 
@@ -230,40 +234,36 @@ package starling.display
                 mCurrentFrame = 0; 
             }
             
-            if (mPlaying && passedTime > 0.0 && mCurrentTime < mTotalTime) 
-            {				
+            if (mCurrentTime < mTotalTime)
+            {
                 mCurrentTime += passedTime;
                 finalFrame = mTextures.length - 1;
                 
-                while (mCurrentTime >= mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
+                while (mCurrentTime > mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
                 {
                     if (mCurrentFrame == finalFrame)
                     {
-                        if (hasEventListener(Event.COMPLETE))
-                        {
-                            if (mCurrentFrame != previousFrame)
-                                texture = mTextures[mCurrentFrame];
-                            
-                            restTime = mCurrentTime - mTotalTime;
-                            mCurrentTime = mTotalTime;
-                            dispatchEventWith(Event.COMPLETE);
-                            breakAfterFrame = true;
-                        }
-                        
-                        if (mLoop)
+                        if (mLoop && !hasCompleteListener)
                         {
                             mCurrentTime -= mTotalTime;
                             mCurrentFrame = 0;
                         }
                         else
                         {
-                            mCurrentTime = mTotalTime;
                             breakAfterFrame = true;
+                            restTime = mCurrentTime - mTotalTime;
+                            dispatchCompleteEvent = hasCompleteListener;
+                            mCurrentFrame = finalFrame;
+                            mCurrentTime = mTotalTime;
                         }
                     }
                     else
                     {
                         mCurrentFrame++;
+                        
+                        // special case when we reach *exactly* the total time.
+                        if (mCurrentFrame == finalFrame && mCurrentTime == mTotalTime)
+                            dispatchCompleteEvent = hasCompleteListener;
                     }
                     
                     var sound:Sound = mSounds[mCurrentFrame];
@@ -275,7 +275,10 @@ package starling.display
             if (mCurrentFrame != previousFrame)
                 texture = mTextures[mCurrentFrame];
             
-            if (restTime)
+            if (dispatchCompleteEvent)
+                dispatchEventWith(Event.COMPLETE);
+            
+            if (mLoop && restTime != 0)
                 advanceTime(restTime);
         }
         
@@ -289,6 +292,9 @@ package starling.display
         
         /** The total duration of the clip in seconds. */
         public function get totalTime():Number { return mTotalTime; }
+        
+        /** The time that has passed since the clip was started (each loop starts at zero). */
+        public function get currentTime():Number { return mCurrentTime; }
         
         /** The total number of frames. */
         public function get numFrames():int { return mTextures.length; }
