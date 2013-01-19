@@ -160,7 +160,7 @@ package starling.utils
         
         // direct adding
         
-        /** Register a texture under a certain name. It will be availble right away. */
+        /** Register a texture under a certain name. It will be available right away. */
         public function addTexture(name:String, texture:Texture):void
         {
             log("Adding texture '" + name + "'");
@@ -171,7 +171,7 @@ package starling.utils
                 mTextures[name] = texture;
         }
         
-        /** Register a texture atlas under a certain name. It will be availble right away. */
+        /** Register a texture atlas under a certain name. It will be available right away. */
         public function addTextureAtlas(name:String, atlas:TextureAtlas):void
         {
             log("Adding texture atlas '" + name + "'");
@@ -182,7 +182,7 @@ package starling.utils
                 mAtlases[name] = atlas;
         }
         
-        /** Register a sound under a certain name. It will be availble right away. */
+        /** Register a sound under a certain name. It will be available right away. */
         public function addSound(name:String, sound:Sound):void
         {
             log("Adding sound '" + name + "'");
