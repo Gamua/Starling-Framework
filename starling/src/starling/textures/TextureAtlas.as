@@ -168,5 +168,8 @@ package starling.textures
             delete mTextureRegions[name];
             delete mTextureFrames[name];
         }
+        
+        /** The base texture that makes up the atlas. */
+        public function get texture():Texture { return mAtlasTexture; }
     }
 }

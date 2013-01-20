@@ -16,6 +16,7 @@ package tests
     
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
     import org.hamcrest.number.closeTo;
     
     import starling.display.MovieClip;
@@ -181,13 +182,13 @@ package tests
             
             Assert.assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(0, movie.currentFrame);
+            Assert.assertEquals(0, completedCount);
+            movie.advanceTime(frameDuration);
             Assert.assertEquals(1, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(2, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
-            movie.advanceTime(frameDuration);
-            Assert.assertEquals(3, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(3, movie.currentFrame);
@@ -203,6 +204,9 @@ package tests
             
             Assert.assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
+            Assert.assertEquals(0, movie.currentFrame);
+            Assert.assertEquals(0, completedCount);
+            movie.advanceTime(frameDuration);
             Assert.assertEquals(1, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
@@ -210,9 +214,6 @@ package tests
             Assert.assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             Assert.assertEquals(3, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
-            movie.advanceTime(frameDuration);
-            Assert.assertEquals(0, movie.currentFrame);
             Assert.assertEquals(1, completedCount);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
             Assert.assertEquals(3, completedCount);
@@ -273,8 +274,6 @@ package tests
         public function testLastTextureInFastPlayback():void
         {
             var fps:Number = 20.0;
-            var frameDuration:Number = 0.5;
-            
             var frames:Vector.<Texture> = createFrames(3);
             var movie:MovieClip = new MovieClip(frames, fps);
             movie.addEventListener(Event.COMPLETE, onMovieCompleted);
@@ -298,15 +297,36 @@ package tests
             assertEquals(frames[0], movie.texture);
             
             movie.advanceTime(0.5);
-            assertEquals(frames[1], movie.texture);
-            
-            movie.advanceTime(0.5);
             assertEquals(frames[0], movie.texture);
             
             movie.advanceTime(0.5);
             assertEquals(frames[1], movie.texture);
             
+            movie.advanceTime(0.5);
+            assertEquals(frames[0], movie.texture);
+            
             function onComplete():void { /* does not have to do anything */ }
+        }
+        
+        [Test]
+        public function testStopMovieInCompleteHandler():void
+        {
+            var frames:Vector.<Texture> = createFrames(5);
+            var movie:MovieClip = new MovieClip(frames, 5);
+            
+            movie.addEventListener(Event.COMPLETE, onComplete);
+            movie.advanceTime(1.3);
+            
+            assertFalse(movie.isPlaying);
+            assertThat(movie.currentTime, closeTo(0.0, E));
+            assertEquals(frames[0], movie.texture);
+            
+            movie.play();
+            movie.advanceTime(0.3);
+            assertThat(movie.currentTime, closeTo(0.3, E));
+            assertEquals(frames[1], movie.texture);
+            
+            function onComplete():void { movie.stop(); }
         }
         
         private function createFrames(count:int):Vector.<Texture>
