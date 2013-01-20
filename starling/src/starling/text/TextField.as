@@ -187,6 +187,8 @@ package starling.text
             if (mVAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
             else if (mVAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
             else if (mVAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
+
+            formatText(sNativeTextField, textFormat);
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             bitmapData.draw(sNativeTextField, new Matrix(1, 0, 0, 1, 0, int(yOffset)-2));
@@ -212,7 +214,14 @@ package starling.text
                 mImage.readjustSize(); 
             }
         }
-        
+
+    /** formatText is called immediately before the text is rendered. The intent of formatText
+     *  is to be overridden in a subclass, so that you can provide custom formatting for TextField.
+     *  <code>textField</code> is the flash.text.TextField object that you can specially format;
+     *  <code>textFormat</code> is the default TextFormat for <code>textField</code>.
+     */
+        protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
+
         private function autoScaleNativeTextField(textField:flash.text.TextField):void
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
