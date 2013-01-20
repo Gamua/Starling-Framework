@@ -536,9 +536,11 @@ package starling.utils
             }
         }
         
-        private function log(message:String):void
+        /** This method is called during loading of assets when 'verbose' is activated. Per
+         *  default, it traces 'message' to the console. */
+        protected function log(message:String):void
         {
-            if (verbose) trace("[AssetManager]", message);
+            if (mVerbose) trace("[AssetManager]", message);
         }
         
         // properties
