@@ -162,7 +162,7 @@ package starling.text
             switch (mAutoSize) {
             case TextFieldAutoSize.NONE:
                 width = mHitArea.width * scale;
-                height = mHitArea.width * scale;
+                height = mHitArea.height * scale;
                 multiline = true;
                 wordWrap = true;
                 break;
