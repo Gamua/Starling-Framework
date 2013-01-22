@@ -600,7 +600,7 @@ package starling.display
         public function get name():String { return mName; }
         public function set name(value:String):void { mName = value; }
         
-        /** The filter or filter group that is attached to the display object. The starling.filters 
+        /** The filter that is attached to the display object. The starling.filters 
          *  package contains several classes that define specific filters you can use. 
          *  Beware that you should NOT use the same filter on more than one object (for 
          *  performance reasons). */ 
