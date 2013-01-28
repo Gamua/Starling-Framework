@@ -337,7 +337,7 @@ package starling.utils
             
             function resume():void
             {
-                currentRatio = 1.0 - (mRawAssets.length / numElements);
+                currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
                 
                 if (mRawAssets.length)
                     timeoutID = setTimeout(processNext, 1);
