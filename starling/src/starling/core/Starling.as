@@ -25,6 +25,7 @@ package starling.core
     import flash.events.MouseEvent;
     import flash.events.TouchEvent;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
@@ -499,7 +500,11 @@ package starling.core
         private function onStage3DError(event:ErrorEvent):void
         {
             if (event.errorID == 3702)
-                showFatalError("This application is not correctly embedded (wrong wmode value)");
+            {
+                var mode:String = Capabilities.playerType == "Desktop" ? "renderMode" : "wmode";
+                showFatalError("Context3D not available! Possible reasons: wrong " + mode +
+                               " or missing device support.");
+            }
             else
                 showFatalError("Stage3D error: " + event.text);
         }

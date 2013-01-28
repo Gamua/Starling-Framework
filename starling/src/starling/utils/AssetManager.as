@@ -54,7 +54,7 @@ package starling.utils
         
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
-        public function AssetManager(scaleFactor:Number=-1, useMipmaps:Boolean=false)
+        public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
             mVerbose = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
