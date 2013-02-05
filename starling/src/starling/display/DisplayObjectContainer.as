@@ -22,6 +22,7 @@ package starling.display
     import starling.events.Event;
     import starling.filters.FragmentFilter;
     import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
     
     use namespace starling_internal;
     
@@ -65,12 +66,13 @@ package starling.display
     public class DisplayObjectContainer extends DisplayObject
     {
         // members
-        
+        private var mScissorRect:Rectangle;
         private var mChildren:Vector.<DisplayObject>;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperPoint:Point = new Point();
+        private static var sHelperRect:Rectangle = new Rectangle();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         
         // construction
@@ -94,6 +96,48 @@ package starling.display
                 mChildren[i].dispose();
             
             super.dispose();
+        }
+        
+        /** The object's scissor rect.
+         *  <strong>Note</strong>: clip rects are axis aligned with the screen, so they
+         *  will not be rotated or skewed if the DisplayObjectContainer is. */
+        public function get scissorRect():Rectangle { return mScissorRect; }
+        public function set scissorRect(val:Rectangle) :void { mScissorRect = val; }
+        
+        /** Returns the bounds of the container's scissorRect in the given coordinate space, or
+         *  null if the container doens't have a scissorRect. */ 
+        public function getScissorBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        {
+            if (mScissorRect == null) return null;
+            
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            var minX:Number = Number.MAX_VALUE;
+            var maxX:Number = -Number.MAX_VALUE;
+            var minY:Number = Number.MAX_VALUE;
+            var maxY :Number = -Number.MAX_VALUE;
+            
+            var transformMatrix:Matrix = getTransformationMatrix(targetSpace, sHelperMatrix);
+            var x :Number = 0;
+            var y :Number = 0;
+            for (var i:int=0; i<4; ++i)
+            {
+                switch(i)
+                {
+                case 0: x = mScissorRect.left; y = mScissorRect.top; break;
+                case 1: x = mScissorRect.left; y = mScissorRect.bottom; break;
+                case 2: x = mScissorRect.right; y = mScissorRect.top; break;
+                case 3: x = mScissorRect.right; y = mScissorRect.bottom; break;
+                }
+                var transformedPoint :Point = MatrixUtil.transformCoords(transformMatrix, x, y, sHelperPoint);
+                minX = Math.min(minX, transformedPoint.x);
+                maxX = Math.max(maxX, transformedPoint.x);
+                minY = Math.min(minY, transformedPoint.y);
+                maxY = Math.max(maxY, transformedPoint.y);
+            }
+            
+            resultRect.setTo(minX, minY, maxX-minX, maxY-minY);
+            return resultRect;
         }
         
         // child management
@@ -267,11 +311,10 @@ package starling.display
                 getTransformationMatrix(targetSpace, sHelperMatrix);
                 MatrixUtil.transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
                 resultRect.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
-                return resultRect;
             }
             else if (numChildren == 1)
             {
-                return mChildren[0].getBounds(targetSpace, resultRect);
+                resultRect = mChildren[0].getBounds(targetSpace, resultRect);
             }
             else
             {
@@ -288,14 +331,22 @@ package starling.display
                 }
                 
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
-                return resultRect;
             }                
+            
+            // if we have a scissor rect, intersect it with our bounds
+            if (mScissorRect != null)
+                resultRect = RectangleUtil.intersect(resultRect, getScissorBounds(targetSpace, resultRect));
+            
+            return resultRect;
         }
         
         /** @inheritDoc */
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable))
+                return null;
+            
+            if (mScissorRect != null && !mScissorRect.containsPoint(localPoint))
                 return null;
             
             var localX:Number = localPoint.x;
@@ -318,7 +369,18 @@ package starling.display
         
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
-        {
+        {   
+            if (mScissorRect != null)
+            {
+                var scissor:Rectangle = support.pushScissorRect(getScissorBounds(this.stage, sHelperRect));
+                // don't bother rendering our children if our scissored bounds are empty
+                if (scissor.isEmpty())
+                {
+                    support.popScissorRect();
+                    return;
+                }
+            }
+            
             var alpha:Number = parentAlpha * this.alpha;
             var numChildren:int = mChildren.length;
             var blendMode:String = support.blendMode;
@@ -342,6 +404,9 @@ package starling.display
                     support.popMatrix();
                 }
             }
+            
+            if (mScissorRect != null)
+                support.popScissorRect();
         }
         
         /** Dispatches an event on all children (recursively). The event must not bubble. */
