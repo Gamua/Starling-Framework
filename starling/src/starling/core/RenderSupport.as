@@ -28,6 +28,7 @@ package starling.core
     import starling.textures.Texture;
     import starling.utils.Color;
     import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
 
     /** A class that contains helper methods simplifying Stage3D rendering.
      *
@@ -51,7 +52,8 @@ package starling.core
         private var mRenderTarget:Texture;
         private var mBackBufferWidth:int;
         private var mBackBufferHeight:int;
-        private var mScissorRectangle:Rectangle;
+        private var mScissorRectStack:Vector.<Rectangle>;
+        private var mScissorRectStackSize:int;
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
@@ -75,7 +77,7 @@ package starling.core
             mDrawCount = 0;
             mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
-            mScissorRectangle = new Rectangle();
+            mScissorRectStack = new <Rectangle>[];
             
             mCurrentQuadBatchID = 0;
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
@@ -247,36 +249,61 @@ package starling.core
         
         /** The scissor rectangle can be used to limit rendering in the current render target to
          *  a certain area. This method expects the rectangle in stage coordinates
-         *  (different to the context3D method with the same name, which expects pixels).
-         *  Pass <code>null</code> to turn off scissoring.
-         *  CAUTION: not a copy -- use with care! */ 
-        public function get scissorRectangle():Rectangle 
-        { 
-            return mScissorRectangle.isEmpty() ? null : mScissorRectangle; 
+         *  (different to the context3D method with the same name, which expects pixels). */
+        public function pushScissorRect(rect:Rectangle):Rectangle
+        {
+            if (mScissorRectStack.length < mScissorRectStackSize + 1)
+                mScissorRectStack.push(new Rectangle());
+            
+            mScissorRectStack[mScissorRectStackSize].copyFrom(rect);
+            rect = mScissorRectStack[mScissorRectStackSize];
+            
+            // intersect with the last pushed scissor rect
+            if (mScissorRectStackSize > 0)
+                rect = RectangleUtil.intersect(rect, mScissorRectStack[mScissorRectStackSize-1], rect);
+            
+            ++mScissorRectStackSize;
+            
+            updateClipping();
+            
+            // return the intersected scissor rect so callers can skip draw calls if it's empty
+            return rect;
         }
         
-        public function set scissorRectangle(value:Rectangle):void
+        public function popScissorRect():void
         {
-            if (value)
+            if (mScissorRectStackSize > 0)
             {
-                mScissorRectangle.setTo(value.x, value.y, value.width, value.height);
-
+                --mScissorRectStackSize;
+                updateClipping();
+            }
+        }
+        
+        protected function updateClipping():void
+        {
+            finishQuadBatch();
+            
+            if (mScissorRectStackSize > 0)
+            {
+                var rect:Rectangle = mScissorRectStack[mScissorRectStackSize-1];
+                sRectangle.setTo(rect.x, rect.y, rect.width, rect.height);
+                
                 var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mBackBufferWidth;
                 var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mBackBufferHeight;
                 
-                MatrixUtil.transformCoords(mProjectionMatrix, value.x, value.y, sPoint);
+                // convert to pixel coordinates
+                MatrixUtil.transformCoords(mProjectionMatrix, rect.x, rect.y, sPoint);
                 sRectangle.x = Math.max(0, ( sPoint.x + 1) / 2) * width;
                 sRectangle.y = Math.max(0, (-sPoint.y + 1) / 2) * height;
                 
-                MatrixUtil.transformCoords(mProjectionMatrix, value.right, value.bottom, sPoint);
+                MatrixUtil.transformCoords(mProjectionMatrix, rect.right, rect.bottom, sPoint);
                 sRectangle.right  = Math.min(1, ( sPoint.x + 1) / 2) * width;
                 sRectangle.bottom = Math.min(1, (-sPoint.y + 1) / 2) * height;
                 
                 Starling.context.setScissorRectangle(sRectangle);
             }
-            else 
+            else
             {
-                mScissorRectangle.setEmpty();
                 Starling.context.setScissorRectangle(null);
             }
         }

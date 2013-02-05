@@ -163,7 +163,7 @@ package starling.textures
             // limit drawing to relevant area
             sScissorRect.setTo(0, 0, mActiveTexture.nativeWidth, mActiveTexture.nativeHeight);
 
-            mSupport.scissorRectangle = sScissorRect;
+            mSupport.pushScissorRect(sScissorRect);
             mSupport.renderTarget = mActiveTexture;
             mSupport.clear();
             
@@ -187,7 +187,7 @@ package starling.textures
                 mSupport.finishQuadBatch();
                 mSupport.nextFrame();
                 mSupport.renderTarget = null;
-                mSupport.scissorRectangle = null;
+                mSupport.popScissorRect();
             }
         }
         
