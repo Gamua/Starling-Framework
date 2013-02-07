@@ -116,8 +116,8 @@ package starling.display
         public function get clipRect():Rectangle { return mClipRect; }
         public function set clipRect(value:Rectangle):void 
         {
-            if (mClipRect) mClipRect.setTo(value.x, value.y, value.width, value.height);
-            else mClipRect = value.clone();
+            if (mClipRect && value) mClipRect.copyFrom(value);
+            else mClipRect = (value ? value.clone() : null);
         }
 
         /** Returns the bounds of the container's clipRect in the given coordinate space, or
