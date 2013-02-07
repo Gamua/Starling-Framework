@@ -269,8 +269,8 @@ package starling.filters
                     else
                     {
                         // draw into back buffer, at original (stage) coordinates
+                        support.projectionMatrix = mProjMatrix;
                         support.renderTarget = previousRenderTarget;
-                        support.projectionMatrix.copyFrom(mProjMatrix); // restore projection matrix
                         support.translateMatrix(mOffsetX, mOffsetY);
                         support.blendMode = object.blendMode;
                         support.applyBlendMode(PMA);
