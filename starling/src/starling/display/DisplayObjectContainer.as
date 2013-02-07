@@ -22,7 +22,6 @@ package starling.display
     import starling.events.Event;
     import starling.filters.FragmentFilter;
     import starling.utils.MatrixUtil;
-    import starling.utils.RectangleUtil;
     
     use namespace starling_internal;
     
@@ -66,13 +65,11 @@ package starling.display
     public class DisplayObjectContainer extends DisplayObject
     {
         // members
-        private var mClipRect:Rectangle;
         private var mChildren:Vector.<DisplayObject>;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperPoint:Point = new Point();
-        private static var sHelperRect:Rectangle = new Rectangle();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         
         // construction
@@ -96,52 +93,6 @@ package starling.display
                 mChildren[i].dispose();
             
             super.dispose();
-        }
-        
-        /** The object's clipping rectangle in its local coordinate system.
-         *  Only pixels within that rectangle will be drawn. 
-         *  <strong>Note:</strong> clip rects are axis aligned with the screen, so they
-         *  will not be rotated or skewed if the DisplayObjectContainer is. */
-        public function get clipRect():Rectangle { return mClipRect; }
-        public function set clipRect(value:Rectangle):void 
-        { 
-            if (mClipRect) mClipRect.setTo(value.x, value.y, value.width, value.height);
-            else mClipRect = value.clone();
-        }
-        
-        /** Returns the bounds of the container's clipRect in the given coordinate space, or
-         *  null if the container doens't have a clipRect. */ 
-        public function getClipRect(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
-        {
-            if (mClipRect == null) return null;
-            if (resultRect == null) resultRect = new Rectangle();
-            
-            var minX:Number = Number.MAX_VALUE;
-            var maxX:Number = -Number.MAX_VALUE;
-            var minY:Number = Number.MAX_VALUE;
-            var maxY:Number = -Number.MAX_VALUE;
-            
-            var transMatrix:Matrix = getTransformationMatrix(targetSpace, sHelperMatrix);
-            var x:Number = 0;
-            var y:Number = 0;
-            for (var i:int=0; i<4; ++i)
-            {
-                switch(i)
-                {
-                    case 0: x = mClipRect.left;  y = mClipRect.top;    break;
-                    case 1: x = mClipRect.left;  y = mClipRect.bottom; break;
-                    case 2: x = mClipRect.right; y = mClipRect.top;    break;
-                    case 3: x = mClipRect.right; y = mClipRect.bottom; break;
-                }
-                var transformedPoint:Point = MatrixUtil.transformCoords(transMatrix, x, y, sHelperPoint);
-                minX = Math.min(minX, transformedPoint.x);
-                maxX = Math.max(maxX, transformedPoint.x);
-                minY = Math.min(minY, transformedPoint.y);
-                maxY = Math.max(maxY, transformedPoint.y);
-            }
-            
-            resultRect.setTo(minX, minY, maxX-minX, maxY-minY);
-            return resultRect;
         }
         
         // child management
@@ -337,11 +288,6 @@ package starling.display
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             }                
             
-            // if we have a scissor rect, intersect it with our bounds
-            if (mClipRect)
-                RectangleUtil.intersect(resultRect, getClipRect(targetSpace, sHelperRect), 
-                                        resultRect);
-            
             return resultRect;
         }
         
@@ -349,9 +295,6 @@ package starling.display
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable))
-                return null;
-            
-            if (mClipRect != null && !mClipRect.containsPoint(localPoint))
                 return null;
             
             var localX:Number = localPoint.x;
@@ -375,17 +318,6 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            if (mClipRect)
-            {
-                var clipRect:Rectangle = support.pushClipRect(getClipRect(stage, sHelperRect));
-                if (clipRect.isEmpty())
-                {
-                    // empty clipping bounds - no need to render children.
-                    support.popClipRect();
-                    return;
-                }
-            }
-            
             var alpha:Number = parentAlpha * this.alpha;
             var numChildren:int = mChildren.length;
             var blendMode:String = support.blendMode;
@@ -409,9 +341,6 @@ package starling.display
                     support.popMatrix();
                 }
             }
-            
-            if (mClipRect)
-                support.popClipRect();
         }
         
         /** Dispatches an event on all children (recursively). The event must not bubble. */
