@@ -199,6 +199,7 @@ package starling.display
                 if (mFlattenRequested)
                 {
                     QuadBatch.compile(this, mFlattenedContents);
+                    support.applyClipRect(); // compiling filters might change scissor rect. :-\
                     mFlattenRequested = false;
                 }
                 

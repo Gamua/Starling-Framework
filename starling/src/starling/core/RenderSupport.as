@@ -294,9 +294,10 @@ package starling.core
             }
         }
         
-        /** Updates the context3D scissor rectangle. Called when the render target, the projection
-         *  matrix, or the clipping rectangle changes. */
-        private function applyClipRect():void
+        /** Updates the context3D scissor rectangle using the current clipping rectangle. This
+         *  method is called automatically when either the render target, the projection matrix,
+         *  or the clipping rectangle changes. */
+        public function applyClipRect():void
         {
             finishQuadBatch();
             
