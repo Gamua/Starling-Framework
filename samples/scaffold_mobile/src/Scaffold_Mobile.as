@@ -11,11 +11,10 @@ package
     import starling.core.Starling;
     import starling.events.Event;
     import starling.textures.Texture;
+    import starling.utils.AssetManager;
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
     import starling.utils.formatString;
-    
-    import utils.AssetManager;
     
     [SWF(frameRate="30", backgroundColor="#000")]
     public class Scaffold_Mobile extends Sprite

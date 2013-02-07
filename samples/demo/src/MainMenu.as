@@ -7,6 +7,7 @@ package
     import scenes.BlendModeScene;
     import scenes.CustomHitTestScene;
     import scenes.FilterScene;
+    import scenes.MaskScene;
     import scenes.MovieScene;
     import scenes.RenderTextureScene;
     import scenes.TextScene;
@@ -45,10 +46,11 @@ package
                 ["Filters", FilterScene],
                 ["Blend Modes", BlendModeScene],
                 ["Render Texture", RenderTextureScene],
-                ["Benchmark", BenchmarkScene]
+                ["Benchmark", BenchmarkScene],
+                ["Clipping", MaskScene]
             ];
             
-            var buttonTexture:Texture = Game.assets.getTexture("button_big");
+            var buttonTexture:Texture = Game.assets.getTexture("button_medium");
             var count:int = 0;
             
             for each (var sceneToCreate:Array in scenesToCreate)
@@ -58,9 +60,13 @@ package
                 
                 var button:Button = new Button(buttonTexture, sceneTitle);
                 button.x = count % 2 == 0 ? 28 : 167;
-                button.y = 160 + int(count / 2) * 52;
+                button.y = 155 + int(count / 2) * 46;
                 button.name = getQualifiedClassName(sceneClass);
                 addChild(button);
+                
+                if (scenesToCreate.length % 2 != 0 && count % 2 == 1)
+                    button.y += 24;
+                
                 ++count;
             }
             

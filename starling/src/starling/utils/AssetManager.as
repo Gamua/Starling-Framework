@@ -54,7 +54,7 @@ package starling.utils
         
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
-        public function AssetManager(scaleFactor:Number=-1, useMipmaps:Boolean=false)
+        public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
             mVerbose = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
@@ -160,7 +160,7 @@ package starling.utils
         
         // direct adding
         
-        /** Register a texture under a certain name. It will be availble right away. */
+        /** Register a texture under a certain name. It will be available right away. */
         public function addTexture(name:String, texture:Texture):void
         {
             log("Adding texture '" + name + "'");
@@ -171,7 +171,7 @@ package starling.utils
                 mTextures[name] = texture;
         }
         
-        /** Register a texture atlas under a certain name. It will be availble right away. */
+        /** Register a texture atlas under a certain name. It will be available right away. */
         public function addTextureAtlas(name:String, atlas:TextureAtlas):void
         {
             log("Adding texture atlas '" + name + "'");
@@ -182,7 +182,7 @@ package starling.utils
                 mAtlases[name] = atlas;
         }
         
-        /** Register a sound under a certain name. It will be availble right away. */
+        /** Register a sound under a certain name. It will be available right away. */
         public function addSound(name:String, sound:Sound):void
         {
             log("Adding sound '" + name + "'");
@@ -337,7 +337,7 @@ package starling.utils
             
             function resume():void
             {
-                currentRatio = 1.0 - (mRawAssets.length / numElements);
+                currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
                 
                 if (mRawAssets.length)
                     timeoutID = setTimeout(processNext, 1);
@@ -413,7 +413,7 @@ package starling.utils
                 }
                 else if (asset is Bitmap)
                 {
-                    addTexture(name, Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor));
+                    addBitmapTexture(name, asset as Bitmap);
                     onComplete();
                 }
                 else if (asset is ByteArray)
@@ -504,8 +504,7 @@ package starling.utils
                 var content:Object = event.target.content;
                 
                 if (content is Bitmap)
-                    addTexture(name,
-                        Texture.fromBitmap(content as Bitmap, mUseMipMaps, false, mScaleFactor));
+                    addBitmapTexture(name, content as Bitmap);
                 else
                     throw new Error("Unsupported asset type: " + getQualifiedClassName(content));
                 
@@ -524,7 +523,7 @@ package starling.utils
             {
                 name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
-                matches = /(.*[\\\/])?([\w\s\-]+)(\.[\w]{1,4})?/.exec(name);
+                matches = /(.*[\\\/])?(.+)(\.[\w]{1,4})/.exec(name);
                 
                 if (matches && matches.length == 4) return matches[2];
                 else throw new ArgumentError("Could not extract name from String '" + rawAsset + "'");
@@ -536,9 +535,18 @@ package starling.utils
             }
         }
         
-        private function log(message:String):void
+        /** This method is called during loading of assets when 'verbose' is activated. Per
+         *  default, it traces 'message' to the console. */
+        protected function log(message:String):void
         {
-            if (verbose) trace("[AssetManager]", message);
+            if (mVerbose) trace("[AssetManager]", message);
+        }
+        
+        /** This method is called during loading of assets when a bitmap texture is processed. 
+         *  Override it if you want to preprocess the bitmap in some way. */
+        protected function addBitmapTexture(name:String, bitmap:Bitmap):void
+        {
+            addTexture(name, Texture.fromBitmap(bitmap, mUseMipMaps, false, mScaleFactor));
         }
         
         // properties

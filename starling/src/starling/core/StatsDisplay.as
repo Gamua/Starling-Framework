@@ -23,15 +23,18 @@ package starling.core
     import starling.utils.VAlign;
     
     /** A small, lightweight box that displays the current framerate, memory consumption and
-     *  the number of draw calls per frame. */
+     *  the number of draw calls per frame. The display is updated automatically once per frame. */
     internal class StatsDisplay extends Sprite
     {
         private var mBackground:Quad;
         private var mTextField:TextField;
         
         private var mFrameCount:int = 0;
-        private var mDrawCount:int  = 0;
         private var mTotalTime:Number = 0;
+        
+        private var mFps:Number = 0;
+        private var mMemory:Number = 0;
+        private var mDrawCount:int = 0;
         
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
@@ -45,21 +48,22 @@ package starling.core
             addChild(mBackground);
             addChild(mTextField);
             
-            addEventListener(Event.ENTER_FRAME, onEnterFrame);
-            updateText(0, getMemory(), 0);
             blendMode = BlendMode.NONE;
+            
+            addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+            addEventListener(Event.REMOVE_FROM_JUGGLER, onRemovedFromStage);
         }
         
-        private function updateText(fps:Number, memory:Number, drawCount:int):void
+        private function onAddedToStage():void
         {
-            mTextField.text = "FPS: " + fps.toFixed(fps < 100 ? 1 : 0) + 
-                            "\nMEM: " + memory.toFixed(memory < 100 ? 1 : 0) +
-                            "\nDRW: " + drawCount; 
+            addEventListener(Event.ENTER_FRAME, onEnterFrame);
+            mTotalTime = mFrameCount = 0;
+            update();
         }
         
-        private function getMemory():Number
+        private function onRemovedFromStage():void
         {
-            return System.totalMemory * 0.000000954; // 1 / (1024*1024) to convert to MB
+            removeEventListener(Event.ENTER_FRAME, onEnterFrame);
         }
         
         private function onEnterFrame(event:EnterFrameEvent):void
@@ -69,13 +73,32 @@ package starling.core
             
             if (mTotalTime > 1.0)
             {
-                updateText(mFrameCount / mTotalTime, getMemory(), mDrawCount-2); // DRW: ignore self
+                update();
                 mFrameCount = mTotalTime = 0;
             }
+        }
+        
+        /** Updates the displayed values. */
+        public function update():void
+        {
+            mFps = mTotalTime > 0 ? mFrameCount / mTotalTime : 0;
+            mMemory = System.totalMemory * 0.000000954; // 1.0 / (1024*1024) to convert to MB
+            
+            mTextField.text = "FPS: " + mFps.toFixed(mFps < 100 ? 1 : 0) + 
+                            "\nMEM: " + mMemory.toFixed(mMemory < 100 ? 1 : 0) +
+                            "\nDRW: " + Math.max(0, mDrawCount - 2); // ignore self 
         }
         
         /** The number of Stage3D draw calls per second. */
         public function get drawCount():int { return mDrawCount; }
         public function set drawCount(value:int):void { mDrawCount = value; }
+        
+        /** The current frames per second (updated once per second). */
+        public function get fps():Number { return mFps; }
+        public function set fps(value:Number):void { mFps = value; }
+        
+        /** The currently required system memory in MB. */
+        public function get memory():Number { return mMemory; }
+        public function set memory(value:Number):void { mMemory = value; }
     }
 }

@@ -108,15 +108,15 @@ package starling.animation
             return this;
         }
         
-        /** Animates the property of an object to a target value. You can call this method multiple
+        /** Animates the property of the target to a certain value. You can call this method multiple
          *  times on one tween. */
-        public function animate(property:String, targetValue:Number):void
+        public function animate(property:String, endValue:Number):void
         {
             if (mTarget == null) return; // tweening null just does nothing.
                    
             mProperties.push(property);
             mStartValues.push(Number.NaN);
-            mEndValues.push(targetValue);
+            mEndValues.push(endValue);
         }
         
         /** Animates the 'scaleX' and 'scaleY' properties of an object simultaneously. */
@@ -207,6 +207,15 @@ package starling.animation
             
             if (carryOverTime) 
                 advanceTime(carryOverTime);
+        }
+        
+        /** The end value a certain property is animated to. Throws an ArgumentError if the 
+         *  property is not being animated. */
+        public function getEndValue(property:String):Number
+        {
+            var index:int = mProperties.indexOf(property);
+            if (index == -1) throw new ArgumentError("The property '" + property + "' is not animated");
+            else return mEndValues[index] as Number;
         }
         
         /** Indicates if the tween is finished. */
