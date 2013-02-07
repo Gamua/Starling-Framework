@@ -19,8 +19,9 @@ package starling.text
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.HAlign;
-    import starling.utils.VAlign;
-
+	import starling.utils.VAlign;
+	import starling.text.BitmapChar;
+	
     /** The BitmapFont class parses bitmap font files and arranges the glyphs 
      *  in the form of a text.
      *

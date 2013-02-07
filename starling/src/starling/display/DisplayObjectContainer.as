@@ -151,6 +151,7 @@ package starling.display
             if (index >= 0 && index < numChildren)
             {
                 var child:DisplayObject = mChildren[index];
+                mChildren.splice(index, 1);
                 child.dispatchEventWith(Event.REMOVED, true);
                 
                 if (stage)
@@ -159,7 +160,6 @@ package starling.display
                     if (container) container.broadcastEventWith(Event.REMOVED_FROM_STAGE);
                     else           child.dispatchEventWith(Event.REMOVED_FROM_STAGE);
                 }
-                
                 child.setParent(null);
                 index = mChildren.indexOf(child); // index might have changed by event handler
                 if (index >= 0) mChildren.splice(index, 1); 
