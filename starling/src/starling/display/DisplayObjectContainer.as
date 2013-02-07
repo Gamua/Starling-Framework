@@ -65,7 +65,6 @@ package starling.display
     public class DisplayObjectContainer extends DisplayObject
     {
         // members
-        
         private var mChildren:Vector.<DisplayObject>;
         
         /** Helper objects. */
@@ -267,11 +266,10 @@ package starling.display
                 getTransformationMatrix(targetSpace, sHelperMatrix);
                 MatrixUtil.transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
                 resultRect.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
-                return resultRect;
             }
             else if (numChildren == 1)
             {
-                return mChildren[0].getBounds(targetSpace, resultRect);
+                resultRect = mChildren[0].getBounds(targetSpace, resultRect);
             }
             else
             {
@@ -288,8 +286,9 @@ package starling.display
                 }
                 
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
-                return resultRect;
             }                
+            
+            return resultRect;
         }
         
         /** @inheritDoc */
