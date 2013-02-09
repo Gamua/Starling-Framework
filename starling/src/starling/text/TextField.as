@@ -193,7 +193,10 @@ package starling.text
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
-            var drawWithQualityFunc:Function = bitmapData["drawWithQuality"];
+            var drawWithQualityFunc:Function;
+            
+            try { drawWithQualityFunc = bitmapData["drawWithQuality"]; } 
+            catch (e:Error) {} // we're not running in AIR
             
             // Beginning with AIR 3.3, we can force a drawing quality. Since "LOW" produces
             // wrong output oftentimes, we force "MEDIUM" if possible.
