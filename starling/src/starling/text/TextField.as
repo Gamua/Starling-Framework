@@ -199,7 +199,7 @@ package starling.text
             // Beginning with AIR 3.3, we can force a drawing quality. Since "LOW" produces
             // wrong output oftentimes, we force "MEDIUM" if possible.
             
-            if (drawWithQualityFunc)
+            if (drawWithQualityFunc is Function)
                 drawWithQualityFunc.call(bitmapData, sNativeTextField, drawMatrix, 
                                          null, null, null, false, StageQuality.MEDIUM);
             else
