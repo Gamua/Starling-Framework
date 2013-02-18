@@ -130,7 +130,7 @@ package starling.core
             MatrixUtil.prependScale(mModelViewMatrix, sx, sy);
         }
         
-        /** Prepends a matrix to the modelview matrix by multiplying it another matrix. */
+        /** Prepends a matrix to the modelview matrix by multiplying it with another matrix. */
         public function prependMatrix(matrix:Matrix):void
         {
             MatrixUtil.prependMatrix(mModelViewMatrix, matrix);
