@@ -168,5 +168,9 @@ package starling.display
         
         /** Returns true if the quad (or any of its vertices) is non-white or non-opaque. */
         public function get tinted():Boolean { return mTinted; }
+        
+        /** Indicates if the rgb values are stored premultiplied with the alpha value; this can
+         *  affect the rendering. (Most developers don't have to care, though.) */
+        public function get premultipliedAlpha():Boolean { return mVertexData.premultipliedAlpha; }
     }
 }
