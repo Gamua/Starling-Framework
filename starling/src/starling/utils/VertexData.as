@@ -51,7 +51,7 @@ package starling.utils
         /** The offset of color data (r, g, b, a) within a vertex. */ 
         public static const COLOR_OFFSET:int = 2;
         
-        /** The offset of texture coordinate (u, v) within a vertex. */
+        /** The offset of texture coordinates (u, v) within a vertex. */
         public static const TEXCOORD_OFFSET:int = 6;
         
         private var mRawData:Vector.<Number>;
