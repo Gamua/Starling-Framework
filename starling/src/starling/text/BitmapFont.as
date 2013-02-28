@@ -280,13 +280,6 @@ package starling.text
                             currentX += char.xAdvance;
                             lastCharID = charID;
                             
-                            if (currentLine.length == 1)
-                            {
-                                // the first character is not meant to have an xOffset
-                                currentX -= char.xOffset;
-                                charLocation.x -= char.xOffset;
-                            }
-                            
                             if (charLocation.x + char.width > containerWidth)
                             {
                                 // remove characters and add them again to next line
@@ -357,9 +350,10 @@ package starling.text
                 
                 if (numChars == 0) continue;
                 
-                var lastLocation:CharLocation = line[line.length-1];
-                var right:Number = lastLocation.x + lastLocation.char.width;
                 var xOffset:int = 0;
+                var lastLocation:CharLocation = line[line.length-1];
+                var right:Number = lastLocation.x - lastLocation.char.xOffset 
+                                                  + lastLocation.char.xAdvance;
                 
                 if (hAlign == HAlign.RIGHT)       xOffset =  containerWidth - right;
                 else if (hAlign == HAlign.CENTER) xOffset = (containerWidth - right) / 2;
