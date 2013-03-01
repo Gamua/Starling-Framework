@@ -223,7 +223,7 @@ package starling.display
             var dispatchCompleteEvent:Boolean = false;
             var totalTime:Number = this.totalTime;
             
-            if (mLoop && mCurrentTime == totalTime) 
+            if (mLoop && mCurrentTime >= totalTime)
             { 
                 mCurrentTime = 0.0; 
                 mCurrentFrame = 0; 
@@ -255,16 +255,16 @@ package starling.display
                     else
                     {
                         mCurrentFrame++;
-                        
-                        // special case when we reach *exactly* the total time.
-                        if (mCurrentFrame == finalFrame && mCurrentTime == totalTime)
-                            dispatchCompleteEvent = hasCompleteListener;
                     }
                     
                     var sound:Sound = mSounds[mCurrentFrame];
                     if (sound) sound.play();
                     if (breakAfterFrame) break;
                 }
+                
+                // special case when we reach *exactly* the total time.
+                if (mCurrentFrame == finalFrame && mCurrentTime == totalTime)
+                    dispatchCompleteEvent = hasCompleteListener;
             }
             
             if (mCurrentFrame != previousFrame)
@@ -273,7 +273,7 @@ package starling.display
             if (dispatchCompleteEvent)
                 dispatchEventWith(Event.COMPLETE);
             
-            if (mLoop && restTime != 0)
+            if (mLoop && restTime > 0.0)
                 advanceTime(restTime);
         }
         
