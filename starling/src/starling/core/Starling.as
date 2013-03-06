@@ -301,8 +301,16 @@ package starling.core
             if (mStage) mStage.dispose();
             if (mSupport) mSupport.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
-            if (mContext && !mShareContext) mContext.dispose();
             if (sCurrent == this) sCurrent = null;
+            if (mContext && !mShareContext) 
+            {
+                // Per default, the context is recreated as long as there are listeners on it.
+                // Beginning with AIR 3.6, we can avoid that with an additional parameter.
+                
+                var disposeContext3D:Function = mContext.dispose;
+                if (disposeContext3D.length == 1) disposeContext3D(false);
+                else disposeContext3D();
+            }
         }
         
         // functions
