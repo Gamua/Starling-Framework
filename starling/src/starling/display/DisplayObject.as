@@ -365,20 +365,46 @@ package starling.display
             if (mOrientationChanged)
             {
                 mOrientationChanged = false;
-                mTransformationMatrix.identity();
                 
-                if (mScaleX != 1.0 || mScaleY != 1.0) mTransformationMatrix.scale(mScaleX, mScaleY);
-                if (mSkewX  != 0.0 || mSkewY  != 0.0) MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
-                if (mRotation != 0.0)                 mTransformationMatrix.rotate(mRotation);
-                if (mX != 0.0 || mY != 0.0)           mTransformationMatrix.translate(mX, mY);
-                
-                if (mPivotX != 0.0 || mPivotY != 0.0)
+                if (mSkewX == 0.0 && mSkewY == 0.0)
                 {
-                    // prepend pivot transformation
-                    mTransformationMatrix.tx = mX - mTransformationMatrix.a * mPivotX
-                                                  - mTransformationMatrix.c * mPivotY;
-                    mTransformationMatrix.ty = mY - mTransformationMatrix.b * mPivotX 
-                                                  - mTransformationMatrix.d * mPivotY;
+                    // optimization: no skewing / rotation simplifies the matrix math
+                    
+                    if (mRotation == 0.0)
+                    {
+                        mTransformationMatrix.setTo(mScaleX, 0.0, 0.0, mScaleY, 
+                            mX - mPivotX * mScaleX, mY - mPivotY * mScaleY);
+                    }
+                    else
+                    {
+                        var cos:Number = Math.cos(mRotation);
+                        var sin:Number = Math.sin(mRotation);
+                        var a:Number   = mScaleX *  cos;
+                        var b:Number   = mScaleX *  sin;
+                        var c:Number   = mScaleY * -sin;
+                        var d:Number   = mScaleY *  cos;
+                        var tx:Number  = mX - mPivotX * a - mPivotY * c;
+                        var ty:Number  = mY - mPivotX * b - mPivotY * d;
+                        
+                        mTransformationMatrix.setTo(a, b, c, d, tx, ty);
+                    }
+                }
+                else
+                {
+                    mTransformationMatrix.identity();
+                    mTransformationMatrix.scale(mScaleX, mScaleY);
+                    MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
+                    mTransformationMatrix.rotate(mRotation);
+                    mTransformationMatrix.translate(mX, mY);
+                    
+                    if (mPivotX != 0.0 || mPivotY != 0.0)
+                    {
+                        // prepend pivot transformation
+                        mTransformationMatrix.tx = mX - mTransformationMatrix.a * mPivotX
+                                                      - mTransformationMatrix.c * mPivotY;
+                        mTransformationMatrix.ty = mY - mTransformationMatrix.b * mPivotX 
+                                                      - mTransformationMatrix.d * mPivotY;
+                    }
                 }
             }
             
