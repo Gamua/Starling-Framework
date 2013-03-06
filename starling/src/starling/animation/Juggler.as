@@ -102,6 +102,20 @@ package starling.animation
             }
         }
         
+        /** Figures out if the juggler contains one or more tweens with a certain target. */
+        public function containsTweens(target:Object):Boolean
+        {
+            if (target == null) return false;
+            
+            for (var i:int=mObjects.length-1; i>=0; --i)
+            {
+                var tween:Tween = mObjects[i] as Tween;
+                if (tween && tween.target == target) return true;
+            }
+            
+            return false;
+        }
+        
         /** Removes all objects at once. */
         public function purge():void
         {
