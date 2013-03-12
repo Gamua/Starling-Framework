@@ -124,11 +124,11 @@ package starling.display
             if (mVertexDataCacheInvalid)
             {
                 mVertexDataCacheInvalid = false;
-                mVertexData.copyTo(mVertexDataCache);
+                mVertexData.copyTo(mVertexDataCache,tinted);
                 mTexture.adjustVertexData(mVertexDataCache, 0, 4);
             }
             
-            mVertexDataCache.copyTo(targetData, targetVertexID);
+            mVertexDataCache.copyTo(targetData,tinted, targetVertexID);
         }
         
         /** The texture that is displayed on the quad. */

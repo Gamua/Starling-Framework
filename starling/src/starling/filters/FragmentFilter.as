@@ -95,7 +95,10 @@ package starling.filters
         private var mOffsetY:Number;
         
         private var mVertexData:VertexData;
-        private var mVertexBuffer:VertexBuffer3D;
+		
+        private var mPositonVertexBuffer:VertexBuffer3D;
+		private var mTextureVertexBuffer:VertexBuffer3D;
+		
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
         
@@ -147,7 +150,8 @@ package starling.filters
         public function dispose():void
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
-            if (mVertexBuffer) mVertexBuffer.dispose();
+            if (mPositonVertexBuffer) mPositonVertexBuffer.dispose();
+            if (mTextureVertexBuffer) mTextureVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
             disposePassTextures();
             disposeCache();
@@ -155,7 +159,8 @@ package starling.filters
         
         private function onContextCreated(event:Object):void
         {
-            mVertexBuffer = null;
+			mPositonVertexBuffer = null;
+			mTextureVertexBuffer = null;
             mIndexBuffer  = null;
             mPassTextures = null;
             
@@ -244,10 +249,8 @@ package starling.filters
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
             
-            context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
-                                      Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, VertexData.TEXCOORD_OFFSET,
-                                      Context3DVertexBufferFormat.FLOAT_2);
+            context.setVertexBufferAt(mVertexPosAtID, mPositonVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
+            context.setVertexBufferAt(mTexCoordsAtID, mTextureVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
             
             // draw all passes
             for (var i:int=0; i<mNumPasses; ++i)
@@ -327,14 +330,16 @@ package starling.filters
             mVertexData.setPosition(2, bounds.x, bounds.bottom);
             mVertexData.setPosition(3, bounds.right, bounds.bottom);
             
-            if (mVertexBuffer == null)
+            if (mPositonVertexBuffer == null)
             {
-                mVertexBuffer = context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
+				mPositonVertexBuffer = context.createVertexBuffer(4,2);
+				mTextureVertexBuffer = context.createVertexBuffer(4,2);
                 mIndexBuffer  = context.createIndexBuffer(6);
                 mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
             }
-            
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, 4);
+			
+			mPositonVertexBuffer.uploadFromVector(mVertexData.PositionData,0,4);
+			mTextureVertexBuffer.uploadFromVector(mVertexData.TextureData,0,4);
         }
         
         private function updatePassTextures(width:int, height:int, scale:Number):void

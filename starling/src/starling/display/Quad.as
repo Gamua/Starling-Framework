@@ -157,7 +157,7 @@ package starling.display
         /** Copies the raw vertex data to a VertexData instance. */
         public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
-            mVertexData.copyTo(targetData, targetVertexID);
+            mVertexData.copyTo(targetData,mTinted, targetVertexID);
         }
         
         /** @inheritDoc */
