@@ -190,7 +190,8 @@ package tests
             movie.advanceTime(frameDuration);
             Assert.assertEquals(2, movie.currentFrame);
             Assert.assertEquals(0, completedCount);
-            movie.advanceTime(frameDuration);
+            movie.advanceTime(frameDuration * 0.5);
+            movie.advanceTime(frameDuration * 0.5);
             Assert.assertEquals(3, movie.currentFrame);
             Assert.assertEquals(1, completedCount);
             Assert.assertTrue(movie.isComplete);

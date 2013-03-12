@@ -407,7 +407,7 @@ package starling.text
                 return 0;
 
             var lastLocation:CharLocation = line[line.length-1];
-            return lastLocation.x + lastLocation.char.width;
+            return lastLocation.x - lastLocation.char.xOffset + lastLocation.char.width;
         }
 
         /** The name of the font as it was parsed from the font file. */

@@ -51,7 +51,7 @@ package starling.core
             blendMode = BlendMode.NONE;
             
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
-            addEventListener(Event.REMOVE_FROM_JUGGLER, onRemovedFromStage);
+            addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
         }
         
         private function onAddedToStage():void

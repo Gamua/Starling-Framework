@@ -28,6 +28,7 @@ package starling.core
     import starling.textures.Texture;
     import starling.utils.Color;
     import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
 
     /** A class that contains helper methods simplifying Stage3D rendering.
      *
@@ -45,13 +46,16 @@ package starling.core
         private var mMvpMatrix3D:Matrix3D;
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
+        
         private var mDrawCount:int;
         private var mBlendMode:String;
 
         private var mRenderTarget:Texture;
         private var mBackBufferWidth:int;
         private var mBackBufferHeight:int;
-        private var mScissorRectangle:Rectangle;
+        
+        private var mClipRectStack:Vector.<Rectangle>;
+        private var mClipRectStackSize:int;
         
         private var mQuadBatches:Vector.<QuadBatch>;
         private var mCurrentQuadBatchID:int;
@@ -75,7 +79,7 @@ package starling.core
             mDrawCount = 0;
             mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
-            mScissorRectangle = new Rectangle();
+            mClipRectStack = new <Rectangle>[];
             
             mCurrentQuadBatchID = 0;
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
@@ -98,6 +102,8 @@ package starling.core
         {
             mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
                 -(2*x + width) / width, (2*y + height) / height);
+            
+            applyClipRect();
         }
         
         /** Changes the modelview matrix to the identity matrix. */
@@ -124,7 +130,7 @@ package starling.core
             MatrixUtil.prependScale(mModelViewMatrix, sx, sy);
         }
         
-        /** Prepends a matrix to the modelview matrix by multiplying it another matrix. */
+        /** Prepends a matrix to the modelview matrix by multiplying it with another matrix. */
         public function prependMatrix(matrix:Matrix):void
         {
             MatrixUtil.prependMatrix(mModelViewMatrix, matrix);
@@ -165,7 +171,7 @@ package starling.core
         }
         
         /** Calculates the product of modelview and projection matrix. 
-         *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
+         *  CAUTION: Use with care! Each call returns the same instance. */
         public function get mvpMatrix():Matrix
         {
 			mMvpMatrix.copyFrom(mModelViewMatrix);
@@ -174,17 +180,24 @@ package starling.core
         }
         
         /** Calculates the product of modelview and projection matrix and saves it in a 3D matrix. 
-         *  CAUTION: Don't save a reference to this object! Each call returns the same instance. */
+         *  CAUTION: Use with care! Each call returns the same instance. */
         public function get mvpMatrix3D():Matrix3D
         {
             return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
         }
         
-        /** Returns the current modelview matrix. CAUTION: not a copy -- use with care! */
+        /** Returns the current modelview matrix.
+         *  CAUTION: Use with care! Each call returns the same instance. */
         public function get modelViewMatrix():Matrix { return mModelViewMatrix; }
         
-        /** Returns the current projection matrix. CAUTION: not a copy -- use with care! */
+        /** Returns the current projection matrix.
+         *  CAUTION: Use with care! Each call returns the same instance. */
         public function get projectionMatrix():Matrix { return mProjectionMatrix; }
+        public function set projectionMatrix(value:Matrix):void 
+        {
+            mProjectionMatrix.copyFrom(value);
+            applyClipRect();
+        }
         
         // blending
         
@@ -210,6 +223,7 @@ package starling.core
         public function set renderTarget(target:Texture):void 
         {
             mRenderTarget = target;
+            applyClipRect();
             
             if (target) Starling.context.setRenderToTexture(target.base);
             else        Starling.context.setRenderToBackBuffer();
@@ -217,8 +231,8 @@ package starling.core
         
         /** Configures the back buffer on the current context3D. By using this method, Starling
          *  can store the size of the back buffer and utilize this information in other methods
-         *  (e.g. the scissor rectangle property). Back buffer width and height can later be
-         *  accessed using the properties with the same name. */
+         *  (e.g. the 'clipRect' property). Back buffer width and height can later be accessed
+         *  using the properties with the same name. */
         public function configureBackBuffer(width:int, height:int, antiAlias:int, 
                                             enableDepthAndStencil:Boolean):void
         {
@@ -243,41 +257,80 @@ package starling.core
         public function get backBufferHeight():int { return mBackBufferHeight; }
         public function set backBufferHeight(value:int):void { mBackBufferHeight = value; }
         
-        // scissor rect
+        // clipping
         
-        /** The scissor rectangle can be used to limit rendering in the current render target to
-         *  a certain area. This method expects the rectangle in stage coordinates
-         *  (different to the context3D method with the same name, which expects pixels).
-         *  Pass <code>null</code> to turn off scissoring.
-         *  CAUTION: not a copy -- use with care! */ 
-        public function get scissorRectangle():Rectangle 
-        { 
-            return mScissorRectangle.isEmpty() ? null : mScissorRectangle; 
+        /** The clipping rectangle can be used to limit rendering in the current render target to
+         *  a certain area. This method expects the rectangle in stage coordinates. Internally,
+         *  it uses the 'scissorRectangle' of stage3D, which works with pixel coordinates. 
+         *  Any pushed rectangle is intersected with the previous rectangle; the method returns
+         *  that intersection. */ 
+        public function pushClipRect(rectangle:Rectangle):Rectangle
+        {
+            if (mClipRectStack.length < mClipRectStackSize + 1)
+                mClipRectStack.push(new Rectangle());
+            
+            mClipRectStack[mClipRectStackSize].copyFrom(rectangle);
+            rectangle = mClipRectStack[mClipRectStackSize];
+            
+            // intersect with the last pushed clip rect
+            if (mClipRectStackSize > 0)
+                RectangleUtil.intersect(rectangle, mClipRectStack[mClipRectStackSize-1], 
+                                        rectangle);
+            
+            ++mClipRectStackSize;
+            applyClipRect();
+            
+            // return the intersected clip rect so callers can skip draw calls if it's empty
+            return rectangle;
         }
         
-        public function set scissorRectangle(value:Rectangle):void
+        /** Restores the clipping rectangle that was last pushed to the stack. */
+        public function popClipRect():void
         {
-            if (value)
+            if (mClipRectStackSize > 0)
             {
-                mScissorRectangle.setTo(value.x, value.y, value.width, value.height);
-
+                --mClipRectStackSize;
+                applyClipRect();
+            }
+        }
+        
+        /** Updates the context3D scissor rectangle using the current clipping rectangle. This
+         *  method is called automatically when either the render target, the projection matrix,
+         *  or the clipping rectangle changes. */
+        public function applyClipRect():void
+        {
+            finishQuadBatch();
+            
+            var context:Context3D = Starling.context;
+            if (context == null) return;
+            
+            if (mClipRectStackSize > 0)
+            {
+                var rect:Rectangle = mClipRectStack[mClipRectStackSize-1];
+                sRectangle.setTo(rect.x, rect.y, rect.width, rect.height);
+                
                 var width:int  = mRenderTarget ? mRenderTarget.root.nativeWidth  : mBackBufferWidth;
                 var height:int = mRenderTarget ? mRenderTarget.root.nativeHeight : mBackBufferHeight;
                 
-                MatrixUtil.transformCoords(mProjectionMatrix, value.x, value.y, sPoint);
+                // convert to pixel coordinates
+                MatrixUtil.transformCoords(mProjectionMatrix, rect.x, rect.y, sPoint);
                 sRectangle.x = Math.max(0, ( sPoint.x + 1) / 2) * width;
                 sRectangle.y = Math.max(0, (-sPoint.y + 1) / 2) * height;
                 
-                MatrixUtil.transformCoords(mProjectionMatrix, value.right, value.bottom, sPoint);
+                MatrixUtil.transformCoords(mProjectionMatrix, rect.right, rect.bottom, sPoint);
                 sRectangle.right  = Math.min(1, ( sPoint.x + 1) / 2) * width;
                 sRectangle.bottom = Math.min(1, (-sPoint.y + 1) / 2) * height;
                 
-                Starling.context.setScissorRectangle(sRectangle);
+                // an empty rectangle is not allowed, so we set it to the smallest possible size
+                // if the bounds are outside the visible area.
+                if (sRectangle.width < 1 || sRectangle.height < 1)
+                    sRectangle.setTo(0, 0, 1, 1);
+                
+                context.setScissorRectangle(sRectangle);
             }
-            else 
+            else
             {
-                mScissorRectangle.setEmpty();
-                Starling.context.setScissorRectangle(null);
+                context.setScissorRectangle(null);
             }
         }
         

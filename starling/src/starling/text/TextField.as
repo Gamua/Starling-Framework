@@ -11,6 +11,7 @@
 package starling.text
 {
     import flash.display.BitmapData;
+    import flash.display.StageQuality;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.text.AntiAliasType;
@@ -231,7 +232,19 @@ package starling.text
             formatText(sNativeTextField, textFormat);
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
-            bitmapData.draw(sNativeTextField, new Matrix(1, 0, 0, 1, 0, int(yOffset)-2));
+            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
+            var drawWithQualityFunc:Function = 
+                "drawWithQuality" in bitmapData ? bitmapData["drawWithQuality"] : null;
+            
+            // Beginning with AIR 3.3, we can force a drawing quality. Since "LOW" produces
+            // wrong output oftentimes, we force "MEDIUM" if possible.
+            
+            if (drawWithQualityFunc is Function)
+                drawWithQualityFunc.call(bitmapData, sNativeTextField, drawMatrix, 
+                                         null, null, null, false, StageQuality.MEDIUM);
+            else
+                bitmapData.draw(sNativeTextField, drawMatrix);
+            
             sNativeTextField.text = "";
             
             // update textBounds rectangle
@@ -586,7 +599,7 @@ package starling.text
         {
             if (!mIsRenderedText)
                 throw(new Error("The TextField.nativeFilters property cannot be used on Bitmap fonts."));
-			
+            
             mNativeFilters = value.concat();
             mRequiresRedraw = true;
         }

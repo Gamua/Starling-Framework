@@ -25,6 +25,7 @@ package starling.core
     import flash.events.MouseEvent;
     import flash.events.TouchEvent;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
@@ -300,8 +301,16 @@ package starling.core
             if (mStage) mStage.dispose();
             if (mSupport) mSupport.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
-            if (mContext && !mShareContext) mContext.dispose();
             if (sCurrent == this) sCurrent = null;
+            if (mContext && !mShareContext) 
+            {
+                // Per default, the context is recreated as long as there are listeners on it.
+                // Beginning with AIR 3.6, we can avoid that with an additional parameter.
+                
+                var disposeContext3D:Function = mContext.dispose;
+                if (disposeContext3D.length == 1) disposeContext3D(false);
+                else disposeContext3D();
+            }
         }
         
         // functions
@@ -499,7 +508,11 @@ package starling.core
         private function onStage3DError(event:ErrorEvent):void
         {
             if (event.errorID == 3702)
-                showFatalError("This application is not correctly embedded (wrong wmode value)");
+            {
+                var mode:String = Capabilities.playerType == "Desktop" ? "renderMode" : "wmode";
+                showFatalError("Context3D not available! Possible reasons: wrong " + mode +
+                               " or missing device support.");
+            }
             else
                 showFatalError("Stage3D error: " + event.text);
         }

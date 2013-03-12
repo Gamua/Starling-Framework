@@ -11,9 +11,13 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
     import starling.events.Event;
+    import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
 
     /** Dispatched on all children when the object is flattened. */
     [Event(name="flatten", type="starling.events.Event")]
@@ -32,7 +36,16 @@ package starling.display
      *  will no longer see any changes in the properties of the children (position, rotation, 
      *  alpha, etc.). To update the object after changes have happened, simply call 
      *  <code>flatten</code> again, or <code>unflatten</code> the object.</p>
+     *  
+     *  <strong>Clipping Rectangle</strong>
      * 
+     *  <p>The <code>clipRect</code> property allows you to clip the visible area of the sprite
+     *  to a rectangular region. Only pixels inside the rectangle will be displayed. This is a very
+     *  fast way to mask objects. However, there is one limitation: the <code>clipRect</code>
+     *  only works with stage-aligned rectangles, i.e. you cannot rotate or skew the rectangle.
+     *  This limitation is inherited from the underlying "scissoring" technique that is used
+     *  internally.</p>
+     *  
      *  @see DisplayObject
      *  @see DisplayObjectContainer
      */
@@ -40,6 +53,12 @@ package starling.display
     {
         private var mFlattenedContents:Vector.<QuadBatch>;
         private var mFlattenRequested:Boolean;
+        private var mClipRect:Rectangle;
+        
+        /** Helper objects. */
+        private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperPoint:Point = new Point();
+        private static var sHelperRect:Rectangle = new Rectangle();
         
         /** Creates an empty sprite. */
         public function Sprite()
@@ -90,9 +109,88 @@ package starling.display
             return (mFlattenedContents != null) || mFlattenRequested; 
         }
         
+        /** The object's clipping rectangle in its local coordinate system.
+         *  Only pixels within that rectangle will be drawn. 
+         *  <strong>Note:</strong> clip rects are axis aligned with the screen, so they
+         *  will not be rotated or skewed if the Sprite is. */
+        public function get clipRect():Rectangle { return mClipRect; }
+        public function set clipRect(value:Rectangle):void 
+        {
+            if (mClipRect && value) mClipRect.copyFrom(value);
+            else mClipRect = (value ? value.clone() : null);
+        }
+
+        /** Returns the bounds of the container's clipRect in the given coordinate space, or
+         *  null if the sprite doens't have a clipRect. */ 
+        public function getClipRect(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        {
+            if (mClipRect == null) return null;
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            var minX:Number =  Number.MAX_VALUE;
+            var maxX:Number = -Number.MAX_VALUE;
+            var minY:Number =  Number.MAX_VALUE;
+            var maxY:Number = -Number.MAX_VALUE;
+            
+            var transMatrix:Matrix = getTransformationMatrix(targetSpace, sHelperMatrix);
+            var x:Number = 0;
+            var y:Number = 0;
+            for (var i:int=0; i<4; ++i)
+            {
+                switch(i)
+                {
+                    case 0: x = mClipRect.left;  y = mClipRect.top;    break;
+                    case 1: x = mClipRect.left;  y = mClipRect.bottom; break;
+                    case 2: x = mClipRect.right; y = mClipRect.top;    break;
+                    case 3: x = mClipRect.right; y = mClipRect.bottom; break;
+                }
+                var transformedPoint:Point = MatrixUtil.transformCoords(transMatrix, x, y, sHelperPoint);
+                minX = Math.min(minX, transformedPoint.x);
+                maxX = Math.max(maxX, transformedPoint.x);
+                minY = Math.min(minY, transformedPoint.y);
+                maxY = Math.max(maxY, transformedPoint.y);
+            }
+            
+            resultRect.setTo(minX, minY, maxX-minX, maxY-minY);
+            return resultRect;
+        }
+        
+        /** @inheritDoc */ 
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        {
+            var bounds:Rectangle = super.getBounds(targetSpace, resultRect);
+            
+            // if we have a scissor rect, intersect it with our bounds
+            if (mClipRect)
+                RectangleUtil.intersect(bounds, getClipRect(targetSpace, sHelperRect), 
+                                        bounds);
+            
+            return bounds;
+        }
+        
+        /** @inheritDoc */
+        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        {
+            if (mClipRect != null && !mClipRect.containsPoint(localPoint))
+                return null;
+            else
+                return super.hitTest(localPoint, forTouch);
+        }
+        
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
+            if (mClipRect)
+            {
+                var clipRect:Rectangle = support.pushClipRect(getClipRect(stage, sHelperRect));
+                if (clipRect.isEmpty())
+                {
+                    // empty clipping bounds - no need to render children.
+                    support.popClipRect();
+                    return;
+                }
+            }
+            
             if (mFlattenedContents || mFlattenRequested)
             {
                 if (mFlattenedContents == null)
@@ -101,6 +199,7 @@ package starling.display
                 if (mFlattenRequested)
                 {
                     QuadBatch.compile(this, mFlattenedContents);
+                    support.applyClipRect(); // compiling filters might change scissor rect. :-\
                     mFlattenRequested = false;
                 }
                 
@@ -120,6 +219,9 @@ package starling.display
                 }
             }
             else super.render(support, parentAlpha);
+            
+            if (mClipRect)
+                support.popClipRect();
         }
     }
 }

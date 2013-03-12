@@ -143,6 +143,7 @@ package starling.display
             {
                 mTexture = value;
                 mVertexData.setPremultipliedAlpha(mTexture.premultipliedAlpha);
+                mVertexDataCache.setPremultipliedAlpha(mTexture.premultipliedAlpha, false);
                 onVertexDataChanged();
             }
         }

@@ -14,6 +14,8 @@ package tests
     
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
     
     import starling.animation.Juggler;
@@ -135,6 +137,20 @@ package tests
             
             assertThat(quad1.rotation, closeTo(0.0, E));
             assertThat(quad2.rotation, closeTo(1.0, E));   
+        }
+        
+        [Test]
+        public function testContainsTweens():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad1:Quad = new Quad(100, 100);
+            var quad2:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad1, 1.0);
+            
+            juggler.add(tween);
+            
+            assertTrue(juggler.containsTweens(quad1));
+            assertFalse(juggler.containsTweens(quad2));
         }
         
         [Test]

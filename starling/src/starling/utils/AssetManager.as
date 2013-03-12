@@ -337,7 +337,7 @@ package starling.utils
             
             function resume():void
             {
-                currentRatio = 1.0 - (mRawAssets.length / numElements);
+                currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
                 
                 if (mRawAssets.length)
                     timeoutID = setTimeout(processNext, 1);
@@ -413,7 +413,7 @@ package starling.utils
                 }
                 else if (asset is Bitmap)
                 {
-                    addTexture(name, Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor));
+                    addBitmapTexture(name, asset as Bitmap);
                     onComplete();
                 }
                 else if (asset is ByteArray)
@@ -504,8 +504,7 @@ package starling.utils
                 var content:Object = event.target.content;
                 
                 if (content is Bitmap)
-                    addTexture(name,
-                        Texture.fromBitmap(content as Bitmap, mUseMipMaps, false, mScaleFactor));
+                    addBitmapTexture(name, content as Bitmap);
                 else
                     throw new Error("Unsupported asset type: " + getQualifiedClassName(content));
                 
@@ -515,7 +514,11 @@ package starling.utils
         
         // helpers
         
-        private function getName(rawAsset:Object):String
+        /** This method is called by 'enqueue' to determine the name under which an asset will be
+         *  accessible; override it if you need a custom naming scheme. Typically, 'rawAsset' is 
+         *  either a String or a FileReference. Note that this method won't be called for embedded
+         *  assets. */
+        protected function getName(rawAsset:Object):String
         {
             var matches:Array;
             var name:String;
@@ -541,6 +544,13 @@ package starling.utils
         protected function log(message:String):void
         {
             if (mVerbose) trace("[AssetManager]", message);
+        }
+        
+        /** This method is called during loading of assets when a bitmap texture is processed. 
+         *  Override it if you want to preprocess the bitmap in some way. */
+        protected function addBitmapTexture(name:String, bitmap:Bitmap):void
+        {
+            addTexture(name, Texture.fromBitmap(bitmap, mUseMipMaps, false, mScaleFactor));
         }
         
         // properties

@@ -66,7 +66,7 @@ package starling.textures
         private var mSupport:RenderSupport;
         
         /** helper object */
-        private static var sScissorRect:Rectangle = new Rectangle();
+        private static var sClipRect:Rectangle = new Rectangle();
         
         /** Creates a new RenderTexture with a certain size. If the texture is persistent, the
          *  contents of the texture remains intact after each draw call, allowing you to use the
@@ -161,9 +161,9 @@ package starling.textures
             }
             
             // limit drawing to relevant area
-            sScissorRect.setTo(0, 0, mActiveTexture.nativeWidth, mActiveTexture.nativeHeight);
+            sClipRect.setTo(0, 0, mActiveTexture.width, mActiveTexture.height);
 
-            mSupport.scissorRectangle = sScissorRect;
+            mSupport.pushClipRect(sClipRect);
             mSupport.renderTarget = mActiveTexture;
             mSupport.clear();
             
@@ -187,7 +187,7 @@ package starling.textures
                 mSupport.finishQuadBatch();
                 mSupport.nextFrame();
                 mSupport.renderTarget = null;
-                mSupport.scissorRectangle = null;
+                mSupport.popClipRect();
             }
         }
         
