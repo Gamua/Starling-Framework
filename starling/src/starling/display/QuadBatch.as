@@ -76,7 +76,11 @@ package starling.display
         private var mSmoothing:String;
         
         private var mVertexData:VertexData;
-        private var mVertexBuffer:VertexBuffer3D;
+		
+        private var mColorVertexBuffer:VertexBuffer3D;
+		private var mPositionVertexBuffer:VertexBuffer3D;
+		private var mTextureVertexBuffer:VertexBuffer3D;
+		
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
 
@@ -107,7 +111,9 @@ package starling.display
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            if (mVertexBuffer) mVertexBuffer.dispose();
+            if (mColorVertexBuffer) mColorVertexBuffer.dispose();
+			if (mPositionVertexBuffer) mPositionVertexBuffer.dispose();
+			if (mTextureVertexBuffer) mTextureVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
             
             super.dispose();
@@ -165,13 +171,22 @@ package starling.display
             var numIndices:int = mIndexData.length;
             var context:Context3D = Starling.context;
 
-            if (mVertexBuffer)    mVertexBuffer.dispose();
+			if (mColorVertexBuffer) mColorVertexBuffer.dispose();
+			if (mPositionVertexBuffer) mPositionVertexBuffer.dispose();
+			if (mTextureVertexBuffer) mTextureVertexBuffer.dispose();
             if (mIndexBuffer)     mIndexBuffer.dispose();
             if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
-            
-            mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
+			
+			mColorVertexBuffer = context.createVertexBuffer(numVertices, 4);
+			mColorVertexBuffer.uploadFromVector(mVertexData.ColorData, 0, numVertices);
+			
+			mPositionVertexBuffer = context.createVertexBuffer(numVertices, 2);
+			if(mTinted)
+				mPositionVertexBuffer.uploadFromVector(mVertexData.PositionData, 0, numVertices);
+			
+			mTextureVertexBuffer = context.createVertexBuffer(numVertices, 2);
+			mTextureVertexBuffer.uploadFromVector(mVertexData.TextureData, 0, numVertices);
             
             mIndexBuffer = context.createIndexBuffer(numIndices);
             mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
@@ -182,14 +197,16 @@ package starling.display
         /** Uploads the raw data of all batched quads to the vertex buffer. */
         private function syncBuffers():void
         {
-            if (mVertexBuffer == null)
+            if (mPositionVertexBuffer == null)
                 createBuffers();
             else
             {
                 // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
                 // this is slower than updating the complete buffer.
-                
-                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+				if (mTinted)
+                	mColorVertexBuffer.uploadFromVector(mVertexData.ColorData, 0, mVertexData.numVertices);
+				mPositionVertexBuffer.uploadFromVector(mVertexData.PositionData, 0, mVertexData.numVertices);
+				mTextureVertexBuffer.uploadFromVector(mVertexData.TextureData, 0, mVertexData.numVertices);
                 mSyncRequired = false;
             }
         }
@@ -219,17 +236,17 @@ package starling.display
             context.setProgram(Starling.current.getProgram(programName));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, sRenderMatrix, true);
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
+            context.setVertexBufferAt(0, mPositionVertexBuffer, 0, 
                                       Context3DVertexBufferFormat.FLOAT_2); 
             
             if (mTexture == null || tinted)
-                context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
+                context.setVertexBufferAt(1, mColorVertexBuffer, 0, 
                                           Context3DVertexBufferFormat.FLOAT_4);
             
             if (mTexture)
             {
                 context.setTextureAt(0, mTexture.base);
-                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, 
+                context.setVertexBufferAt(2, mTextureVertexBuffer, 0, 
                                           Context3DVertexBufferFormat.FLOAT_2);
             }
             
@@ -274,7 +291,8 @@ package starling.display
             if (modelViewMatrix == null)
                 modelViewMatrix = quad.transformationMatrix;
             
-            var tinted:Boolean = texture ? (quad.tinted || parentAlpha != 1.0) : false;
+			var tinted:Boolean =quad.tinted || parentAlpha != 1.0;
+			
             var alpha:Number = parentAlpha * quad.alpha;
             var vertexID:int = mNumQuads * 4;
             
@@ -285,7 +303,8 @@ package starling.display
                 mTexture = texture;
                 mTinted = tinted;
                 mSmoothing = smoothing;
-                mVertexData.setPremultipliedAlpha(quad.premultipliedAlpha);
+                mVertexData.setPremultipliedAlpha(
+                    texture ? texture.premultipliedAlpha : true, false); 
             }
             
             quad.copyVertexDataTo(mVertexData, vertexID);
@@ -321,7 +340,7 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quadBatch.mVertexData.premultipliedAlpha, false);
             }
             
-            quadBatch.mVertexData.copyTo(mVertexData, vertexID, 0, numQuads*4);
+            quadBatch.mVertexData.copyTo(mVertexData,mTinted, vertexID, 0, numQuads*4);
             mVertexData.transformVertex(vertexID, modelViewMatrix, numQuads*4);
             
             if (alpha != 1.0)
