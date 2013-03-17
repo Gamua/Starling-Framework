@@ -21,7 +21,9 @@ package starling.display
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
+    import flash.utils.ByteArray;
     import flash.utils.Dictionary;
+    import flash.utils.Endian;
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
@@ -77,7 +79,7 @@ package starling.display
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
-        private var mIndexData:Vector.<uint>;
+        private var mIndexData:ByteArray;
         private var mIndexBuffer:IndexBuffer3D;
 
         /** Helper objects. */
@@ -90,7 +92,7 @@ package starling.display
         public function QuadBatch()
         {
             mVertexData = new VertexData(0, true);
-            mIndexData = new <uint>[];
+            mIndexData = new ByteArray();
             mNumQuads = 0;
             mTinted = false;
             mSyncRequired = false;
@@ -124,7 +126,8 @@ package starling.display
         {
             var clone:QuadBatch = new QuadBatch();
             clone.mVertexData = mVertexData.clone(0, mNumQuads * 4);
-            clone.mIndexData = mIndexData.slice(0, mNumQuads * 6);
+//            clone.mIndexData = mIndexData.slice(0, mNumQuads * 6);
+            clone.mIndexData.writeBytes(mIndexData);
             clone.mNumQuads = mNumQuads;
             clone.mTinted = mTinted;
             clone.mTexture = mTexture;
@@ -144,17 +147,30 @@ package starling.display
             if (newCapacity <= oldCapacity) return;
             
             mVertexData.numVertices = newCapacity * 4;
-            
+
+//            for (var i:int=oldCapacity; i<newCapacity; ++i)
+//            {
+//                mIndexData[int(i*6  )] = i*4;
+//                mIndexData[int(i*6+1)] = i*4 + 1;
+//                mIndexData[int(i*6+2)] = i*4 + 2;
+//                mIndexData[int(i*6+3)] = i*4 + 1;
+//                mIndexData[int(i*6+4)] = i*4 + 3;
+//                mIndexData[int(i*6+5)] = i*4 + 2;
+//            }
+            mIndexData.endian=Endian.LITTLE_ENDIAN;
             for (var i:int=oldCapacity; i<newCapacity; ++i)
             {
-                mIndexData[int(i*6  )] = i*4;
-                mIndexData[int(i*6+1)] = i*4 + 1;
-                mIndexData[int(i*6+2)] = i*4 + 2;
-                mIndexData[int(i*6+3)] = i*4 + 1;
-                mIndexData[int(i*6+4)] = i*4 + 3;
-                mIndexData[int(i*6+5)] = i*4 + 2;
+                mIndexData.position=i*6*2;
+                mIndexData.writeShort(i*4);
+                mIndexData.writeShort(i*4+1);
+                mIndexData.writeShort(i*4+2);
+                mIndexData.writeShort(i*4+1);
+                mIndexData.writeShort(i*4+3);
+                mIndexData.writeShort(i*4+2);
             }
-            
+
+            mIndexData.position=0;
+
             createBuffers();
             registerPrograms();
         }
@@ -162,20 +178,20 @@ package starling.display
         private function createBuffers():void
         {
             var numVertices:int = mVertexData.numVertices;
-            var numIndices:int = mIndexData.length;
+            var numIndices:int = mIndexData.length>>1;
             var context:Context3D = Starling.context;
 
             if (mVertexBuffer)    mVertexBuffer.dispose();
             if (mIndexBuffer)     mIndexBuffer.dispose();
             if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
-            
+
             mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
-            
+            mVertexBuffer.uploadFromByteArray(mVertexData.rawData,0,0,numVertices);
+
             mIndexBuffer = context.createIndexBuffer(numIndices);
-            mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
-            
+            mIndexBuffer.uploadFromByteArray(mIndexData,0,0,numIndices);
+
             mSyncRequired = false;
         }
         
@@ -189,7 +205,8 @@ package starling.display
                 // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
                 // this is slower than updating the complete buffer.
                 
-                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+//                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+                mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, mVertexData.numVertices);
                 mSyncRequired = false;
             }
         }
@@ -215,24 +232,24 @@ package starling.display
             
             MatrixUtil.convertTo3D(mvpMatrix, sRenderMatrix);
             RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
-            
+
             context.setProgram(Starling.current.getProgram(programName));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, sRenderMatrix, true);
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
-                                      Context3DVertexBufferFormat.FLOAT_2); 
+            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET,
+                                      Context3DVertexBufferFormat.FLOAT_2);
             
             if (mTexture == null || tinted)
-                context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
+                context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET,
                                           Context3DVertexBufferFormat.FLOAT_4);
-            
+
             if (mTexture)
             {
                 context.setTextureAt(0, mTexture.base);
-                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, 
-                                          Context3DVertexBufferFormat.FLOAT_2);
+                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET,
+                                            Context3DVertexBufferFormat.FLOAT_2);
             }
-            
+
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);
             
             if (mTexture)
