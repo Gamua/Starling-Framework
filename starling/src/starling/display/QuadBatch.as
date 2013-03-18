@@ -187,7 +187,7 @@ package starling.display
         }
         
         /** Uploads the raw data of all batched quads to the vertex buffer. */
-        final private function syncBuffers():void
+        private function syncBuffers():void
         {
             if (mVertexBuffer == null)
                 createBuffers();
