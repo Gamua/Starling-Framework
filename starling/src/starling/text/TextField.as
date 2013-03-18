@@ -134,7 +134,7 @@ package starling.text
             super.render(support, parentAlpha);
         }
         
-        private function redrawContents():void
+        public function redrawContents():void
         {
             if (mIsRenderedText) createRenderedContents();
             else                 createComposedContents();
