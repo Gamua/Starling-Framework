@@ -148,15 +148,6 @@ package starling.display
             
             mVertexData.numVertices = newCapacity * 4;
 
-//            for (var i:int=oldCapacity; i<newCapacity; ++i)
-//            {
-//                mIndexData[int(i*6  )] = i*4;
-//                mIndexData[int(i*6+1)] = i*4 + 1;
-//                mIndexData[int(i*6+2)] = i*4 + 2;
-//                mIndexData[int(i*6+3)] = i*4 + 1;
-//                mIndexData[int(i*6+4)] = i*4 + 3;
-//                mIndexData[int(i*6+5)] = i*4 + 2;
-//            }
             mIndexData.endian=Endian.LITTLE_ENDIAN;
             for (var i:int=oldCapacity; i<newCapacity; ++i)
             {
@@ -196,7 +187,7 @@ package starling.display
         }
         
         /** Uploads the raw data of all batched quads to the vertex buffer. */
-        private function syncBuffers():void
+        final private function syncBuffers():void
         {
             if (mVertexBuffer == null)
                 createBuffers();
@@ -204,8 +195,6 @@ package starling.display
             {
                 // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
                 // this is slower than updating the complete buffer.
-                
-//                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
                 mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, mVertexData.numVertices);
                 mSyncRequired = false;
             }

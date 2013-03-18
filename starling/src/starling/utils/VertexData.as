@@ -184,26 +184,26 @@ package starling.utils
             var offset:int = vertexID*BYTES_PER_VERTEX + COLOR_BYTE_OFFSET;
             var color:uint = 0;
 
-            mRawData.position=offset+3*ELEMENTS_SIZE;
+            mRawData.position=int(offset+3*ELEMENTS_SIZE);
             var divisor:Number = mPremultipliedAlpha ? mRawData.readFloat() : 1.0;
+            var multiplier:Number = mPremultipliedAlpha ? alpha : 1.0;
+            var red:Number;
+            var green:Number;
+            var blue:Number;
 
             if (divisor == 0) {}
             else
             {
                 mRawData.position=offset;
-                var red:Number   = mRawData.readFloat() / divisor;
-                var green:Number = mRawData.readFloat() / divisor;
-                var blue:Number  = mRawData.readFloat() / divisor;
-
-                color = (int(red*255) << 16) | (int(green*255) << 8) | int(blue*255);
+                red = mRawData.readFloat() / divisor;
+                green = mRawData.readFloat() / divisor;
+                blue  = mRawData.readFloat() / divisor;
             }
 
-            var multiplier:Number = mPremultipliedAlpha ? alpha : 1.0;
-
             mRawData.position=offset;
-            mRawData.writeFloat(((color >> 16) & 0xff) / 255.0 * multiplier);
-            mRawData.writeFloat(((color >>  8) & 0xff) / 255.0 * multiplier);
-            mRawData.writeFloat(( color        & 0xff) / 255.0 * multiplier);
+            mRawData.writeFloat(red * multiplier);
+            mRawData.writeFloat(green * multiplier);
+            mRawData.writeFloat(blue * multiplier);
             mRawData.writeFloat(alpha);
 
         }

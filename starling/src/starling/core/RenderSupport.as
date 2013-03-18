@@ -107,37 +107,43 @@ package starling.core
         }
         
         /** Changes the modelview matrix to the identity matrix. */
-        public function loadIdentity():void
+        [Inline]
+        final public function loadIdentity():void
         {
             mModelViewMatrix.identity();
         }
         
         /** Prepends a translation to the modelview matrix. */
-        public function translateMatrix(dx:Number, dy:Number):void
+        [Inline]
+        final public function translateMatrix(dx:Number, dy:Number):void
         {
             MatrixUtil.prependTranslation(mModelViewMatrix, dx, dy);
         }
         
         /** Prepends a rotation (angle in radians) to the modelview matrix. */
-        public function rotateMatrix(angle:Number):void
+        [Inline]
+        final public function rotateMatrix(angle:Number):void
         {
             MatrixUtil.prependRotation(mModelViewMatrix, angle);
         }
         
         /** Prepends an incremental scale change to the modelview matrix. */
-        public function scaleMatrix(sx:Number, sy:Number):void
+        [Inline]
+        final public function scaleMatrix(sx:Number, sy:Number):void
         {
             MatrixUtil.prependScale(mModelViewMatrix, sx, sy);
         }
         
         /** Prepends a matrix to the modelview matrix by multiplying it with another matrix. */
-        public function prependMatrix(matrix:Matrix):void
+        [Inline]
+        final public function prependMatrix(matrix:Matrix):void
         {
             MatrixUtil.prependMatrix(mModelViewMatrix, matrix);
         }
         
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
-        public function transformMatrix(object:DisplayObject):void
+        [Inline]
+        final public function transformMatrix(object:DisplayObject):void
         {
             MatrixUtil.prependMatrix(mModelViewMatrix, object.transformationMatrix);
         }
@@ -165,6 +171,7 @@ package starling.core
         }
         
         /** Prepends translation, scale and rotation of an object to a custom matrix. */
+        [Inline]
         public static function transformMatrixForObject(matrix:Matrix, object:DisplayObject):void
         {
             MatrixUtil.prependMatrix(matrix, object.transformationMatrix);
@@ -233,7 +240,7 @@ package starling.core
          *  can store the size of the back buffer and utilize this information in other methods
          *  (e.g. the 'clipRect' property). Back buffer width and height can later be accessed
          *  using the properties with the same name. */
-        public function configureBackBuffer(width:int, height:int, antiAlias:int, 
+        public function configureBackBuffer(width:int, height:int, antiAlias:int,
                                             enableDepthAndStencil:Boolean):void
         {
             mBackBufferWidth  = width;
@@ -263,7 +270,7 @@ package starling.core
          *  a certain area. This method expects the rectangle in stage coordinates. Internally,
          *  it uses the 'scissorRectangle' of stage3D, which works with pixel coordinates. 
          *  Any pushed rectangle is intersected with the previous rectangle; the method returns
-         *  that intersection. */ 
+         *  that intersection. */
         public function pushClipRect(rectangle:Rectangle):Rectangle
         {
             if (mClipRectStack.length < mClipRectStackSize + 1)
@@ -338,7 +345,7 @@ package starling.core
         
         /** Adds a quad to the current batch of unrendered quads. If there is a state change,
          *  all previous quads are rendered at once, and the batch is reset. */
-        public function batchQuad(quad:Quad, parentAlpha:Number, 
+        public function batchQuad(quad:Quad, parentAlpha:Number,
                                   texture:Texture=null, smoothing:String=null):void
         {
             if (mQuadBatches[mCurrentQuadBatchID].isStateChange(quad.tinted, parentAlpha, texture, 
@@ -436,7 +443,8 @@ package starling.core
         public function raiseDrawCount(value:uint=1):void { mDrawCount += value; }
         
         /** Indicates the number of stage3D draw calls. */
-        public function get drawCount():int { return mDrawCount; }
+        [Inline] /** For ASC 2.0 inline support */
+        final public function get drawCount():int { return mDrawCount; }
         
     }
 }
