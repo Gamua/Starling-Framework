@@ -184,6 +184,7 @@ package starling.core
         
         private var mNativeStage:flash.display.Stage;
         private var mNativeOverlay:flash.display.Sprite;
+        private var mNativeStageContentScaleFactor:Number;
         
         private static var sCurrent:Starling;
         private static var sHandleLostContext:Boolean;
@@ -223,6 +224,7 @@ package starling.core
             mNativeOverlay = new Sprite();
             mNativeStage = stage;
             mNativeStage.addChild(mNativeOverlay);
+            mNativeStageContentScaleFactor = 1.0;
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -447,6 +449,11 @@ package starling.core
                     
                     mSupport.configureBackBuffer(mClippedViewPort.width, mClippedViewPort.height,
                         mAntiAliasing, false, mSupportHighResolutions);
+                    
+                    if (mSupportHighResolutions && "contentsScaleFactor" in mNativeStage)
+                        mNativeStageContentScaleFactor = mNativeStage["contentsScaleFactor"];
+                    else
+                        mNativeStageContentScaleFactor = 1.0;
                 }
                 else
                 {
@@ -734,7 +741,7 @@ package starling.core
          *  set of textures depending on the display resolution. */
         public function get contentScaleFactor():Number
         {
-            return (mViewPort.width * mNativeStage.contentsScaleFactor) / mStage.stageWidth;
+            return (mViewPort.width * mNativeStageContentScaleFactor) / mStage.stageWidth;
         }
         
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
