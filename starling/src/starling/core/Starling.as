@@ -175,6 +175,7 @@ package starling.core
         private var mStatsDisplay:StatsDisplay;
         private var mShareContext:Boolean;
         private var mProfile:String;
+        private var mSupportHighResolutions:Boolean;
         private var mContext:Context3D;
         
         private var mViewPort:Rectangle;
@@ -228,6 +229,7 @@ package starling.core
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
             mProfile = profile;
+            mSupportHighResolutions = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mSupport  = new RenderSupport();
             
@@ -413,12 +415,12 @@ package starling.core
                 mContext.present();
         }
         
-        private function updateViewPort(updateAliasing:Boolean=false):void
+        private function updateViewPort(forceUpdate:Boolean=false):void
         {
             // the last set viewport is stored in a variable; that way, people can modify the
             // viewPort directly (without a copy) and we still know if it has changed.
             
-            if (updateAliasing || mPreviousViewPort.width != mViewPort.width || 
+            if (forceUpdate || mPreviousViewPort.width != mViewPort.width || 
                 mPreviousViewPort.height != mViewPort.height ||
                 mPreviousViewPort.x != mViewPort.x || mPreviousViewPort.y != mViewPort.y)
             {
@@ -443,8 +445,8 @@ package starling.core
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
                     
-                    mSupport.configureBackBuffer(
-                        mClippedViewPort.width, mClippedViewPort.height, mAntiAliasing, false);
+                    mSupport.configureBackBuffer(mClippedViewPort.width, mClippedViewPort.height,
+                        mAntiAliasing, false, mSupportHighResolutions);
                 }
                 else
                 {
@@ -732,7 +734,7 @@ package starling.core
          *  set of textures depending on the display resolution. */
         public function get contentScaleFactor():Number
         {
-            return mViewPort.width / mStage.stageWidth;
+            return (mViewPort.width * mNativeStage.contentsScaleFactor) / mStage.stageWidth;
         }
         
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
@@ -824,6 +826,20 @@ package starling.core
         /** The Context3D profile as requested in the constructor. Beware that if you are 
          *  using a shared context, this might not be accurate. */
         public function get profile():String { return mProfile; }
+        
+        /** Indicates that if the device supports HiDPI screens Starling will attempt to allocate
+         *  a larger back buffer than indicated via the viewPort size. Note that this is used
+         *  on Desktop only; mobile AIR apps still use the "requestedDisplayResolution" parameter
+         *  the application descriptor XML. */
+        public function get supportHighResolutions():Boolean { return mSupportHighResolutions; }
+        public function set supportHighResolutions(value:Boolean):void 
+        {
+            if (mSupportHighResolutions != value)
+            {
+                mSupportHighResolutions = value;
+                if (contextValid) updateViewPort(true);
+            }
+        }
         
         // static properties
         

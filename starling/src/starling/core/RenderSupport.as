@@ -234,11 +234,16 @@ package starling.core
          *  (e.g. the 'clipRect' property). Back buffer width and height can later be accessed
          *  using the properties with the same name. */
         public function configureBackBuffer(width:int, height:int, antiAlias:int, 
-                                            enableDepthAndStencil:Boolean):void
+                                            enableDepthAndStencil:Boolean,
+                                            wantsBestResolution:Boolean=false):void
         {
             mBackBufferWidth  = width;
             mBackBufferHeight = height;
-            Starling.context.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
+            
+            var configureBackBuffer:Function = Starling.context.configureBackBuffer;
+            var methodArgs:Array = [width, height, antiAlias, enableDepthAndStencil];
+            if (configureBackBuffer.length > 4) methodArgs.push(wantsBestResolution);
+            configureBackBuffer.apply(Starling.context, methodArgs);
         }
         
         /** The width of the back buffer, as it was configured in the last call to 
