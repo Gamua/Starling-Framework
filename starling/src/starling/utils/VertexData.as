@@ -293,7 +293,7 @@ package starling.utils
             
             if (transformationMatrix == null)
             {
-                for (i=vertexID; i<numVertices; ++i)
+                for (i=0; i<numVertices; ++i)
                 {
                     x = mRawData[offset];
                     y = mRawData[int(offset+1)];
@@ -307,7 +307,7 @@ package starling.utils
             }
             else
             {
-                for (i=vertexID; i<numVertices; ++i)
+                for (i=0; i<numVertices; ++i)
                 {
                     x = mRawData[offset];
                     y = mRawData[int(offset+1)];
