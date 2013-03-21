@@ -345,7 +345,7 @@ package starling.utils
             
             if (transformationMatrix == null)
             {
-                for (i=vertexID; i<numVertices; ++i)
+                for (i=0; i<numVertices; ++i)
                 {
                     mRawData.position=offset;
                     x = mRawData.readFloat();
@@ -360,7 +360,7 @@ package starling.utils
             }
             else
             {
-                for (i=vertexID; i<numVertices; ++i)
+                for (i=0; i<numVertices; ++i)
                 {
                     mRawData.position=offset;
                     x = mRawData.readFloat();
