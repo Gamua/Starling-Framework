@@ -191,10 +191,11 @@ package starling.text
                                       fontSize:Number=-1, color:uint=0xffffff, 
                                       hAlign:String="center", vAlign:String="center",      
                                       autoScale:Boolean=true, 
-                                      kerning:Boolean=true):void
+                                      kerning:Boolean=true,
+                                      leading:Number = 0):void
         {
             var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, fontSize, 
-                                                                   hAlign, vAlign, autoScale, kerning);
+                                                                   hAlign, vAlign, autoScale, kerning, leading);
             var numChars:int = charLocations.length;
             mHelperImage.color = color;
             
@@ -217,7 +218,7 @@ package starling.text
          *  Returns a Vector of CharLocations. */
         private function arrangeChars(width:Number, height:Number, text:String, fontSize:Number=-1,
                                       hAlign:String="center", vAlign:String="center",
-                                      autoScale:Boolean=true, kerning:Boolean=true):Vector.<CharLocation>
+                                      autoScale:Boolean=true, kerning:Boolean=true, leading:Number = 0):Vector.<CharLocation>
         {
             if (text == null || text.length == 0) return new <CharLocation>[];
             if (fontSize < 0) fontSize *= -mSize;
@@ -229,6 +230,7 @@ package starling.text
             var containerWidth:Number;
             var containerHeight:Number;
             var scale:Number;
+            var newLineHeight:Number = mLineHeight + leading;
             
             while (!finished)
             {
@@ -238,7 +240,7 @@ package starling.text
                 
                 lines = new Vector.<Vector.<CharLocation>>();
                 
-                if (mLineHeight <= containerHeight)
+                if (newLineHeight <= containerHeight)
                 {
                     var lastWhiteSpace:int = -1;
                     var lastCharID:int = -1;
@@ -280,6 +282,13 @@ package starling.text
                             currentX += char.xAdvance;
                             lastCharID = charID;
                             
+                            if (currentLine.length == 1)
+                            {
+                                // the first character is not meant to have an xOffset
+                                currentX -= char.xOffset;
+                                charLocation.x -= char.xOffset;
+                            }
+                            
                             if (charLocation.x + char.width > containerWidth)
                             {
                                 // remove characters and add them again to next line
@@ -308,11 +317,11 @@ package starling.text
                             if (lastWhiteSpace == i)
                                 currentLine.pop();
                             
-                            if (currentY + 2*mLineHeight <= containerHeight)
+                            if (currentY + 2*newLineHeight <= containerHeight)
                             {
                                 currentLine = new <CharLocation>[];
                                 currentX = 0;
-                                currentY += mLineHeight;
+                                currentY += newLineHeight;
                                 lastWhiteSpace = -1;
                                 lastCharID = -1;
                             }
@@ -322,7 +331,7 @@ package starling.text
                             }
                         }
                     } // for each char
-                } // if (mLineHeight <= containerHeight)
+                } // if (newLineHeight <= containerHeight)
                 
                 if (autoScale && !finished)
                 {
@@ -337,7 +346,7 @@ package starling.text
             
             var finalLocations:Vector.<CharLocation> = new <CharLocation>[];
             var numLines:int = lines.length;
-            var bottom:Number = currentY + mLineHeight;
+            var bottom:Number = currentY + newLineHeight;
             var yOffset:int = 0;
             
             if (vAlign == VAlign.BOTTOM)      yOffset =  containerHeight - bottom;
@@ -350,10 +359,9 @@ package starling.text
                 
                 if (numChars == 0) continue;
                 
-                var xOffset:int = 0;
                 var lastLocation:CharLocation = line[line.length-1];
-                var right:Number = lastLocation.x - lastLocation.char.xOffset 
-                                                  + lastLocation.char.xAdvance;
+                var right:Number = lastLocation.x + lastLocation.char.width;
+                var xOffset:int = 0;
                 
                 if (hAlign == HAlign.RIGHT)       xOffset =  containerWidth - right;
                 else if (hAlign == HAlign.CENTER) xOffset = (containerWidth - right) / 2;
