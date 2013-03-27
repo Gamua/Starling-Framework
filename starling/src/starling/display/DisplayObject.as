@@ -169,7 +169,7 @@ package starling.display
         {
             super.dispatchEvent(event);
 
-            trace('dispatchEvent',event.type,mEnterFrameEventStatus);
+//            trace('dispatchEvent',event.type,mEnterFrameEventStatus);
             if(event.type==Event.ADDED_TO_STAGE&&mEnterFrameEventStatus==2){
                 // Report to Stage for EnterFrameEvent Events
                 stage.registerEnterFrameEvent(this);
