@@ -85,6 +85,8 @@ import starling.core.starling_internal;
         {
             mEnterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
 
+//            dispatchEvent(mEnterFrameEvent);
+
             // Loop each object with enter frame event
             for(var i:uint=0;i<mEnterFrameEventVector.length;i++)
                 mEnterFrameEventVector[i].dispatchEvent(mEnterFrameEvent);

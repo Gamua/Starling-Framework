@@ -217,10 +217,10 @@ package starling.display
                 }
                 trace('removeEventListener:mEnterFrameEventStatus',mEnterFrameEventStatus);
             }
-            super.addEventListener(type, listener);
+            super.removeEventListener(type, listener);
 
         }
-        
+
         /** Removes the object from its parent, if it has one. */
         public function removeFromParent(dispose:Boolean=false):void
         {
