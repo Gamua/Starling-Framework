@@ -71,12 +71,19 @@ import starling.core.starling_internal;
             mHeight = height;
             mColor = color;
         }
+
+        /** @inheritDoc */
+        public override function dispose():void
+        {
+            mEnterFrameEventVector=null;
+            mEnterFrameEventIndex=null;
+            super.dispose();
+        }
         
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
             mEnterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
-//            broadcastEvent(mEnterFrameEvent);
 
             // Loop each object with enter frame event
             for(var i:uint=0;i<mEnterFrameEventVector.length;i++)
@@ -89,7 +96,9 @@ import starling.core.starling_internal;
         {
             if(mEnterFrameEventIndex[displayObject] == null){
                 mEnterFrameEventIndex[displayObject] = mEnterFrameEventIndex.length;
+                mEnterFrameEventVector.fixed=false;
                 mEnterFrameEventVector.push(displayObject);
+                mEnterFrameEventVector.fixed=true;
             }
         }
 
@@ -98,7 +107,11 @@ import starling.core.starling_internal;
         {
             if(mEnterFrameEventIndex[displayObject] != null){
                 var index:int = mEnterFrameEventIndex[displayObject];
+                mEnterFrameEventVector.fixed=false;
                 mEnterFrameEventVector.slice(index, 1);
+                mEnterFrameEventVector.fixed=true;
+                mEnterFrameEventIndex[displayObject]=null;
+                delete mEnterFrameEventIndex[displayObject];
             }
         }
 
