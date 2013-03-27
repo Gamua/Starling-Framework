@@ -12,8 +12,9 @@ package starling.display
 {
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
-    
-    import starling.core.starling_internal;
+import flash.utils.Dictionary;
+
+import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     
@@ -60,6 +61,8 @@ package starling.display
         private var mHeight:int;
         private var mColor:uint;
         private var mEnterFrameEvent:EnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
+        private var mEnterFrameEventVector:Vector.<DisplayObject> = new Vector.<DisplayObject>();
+        private var mEnterFrameEventIndex:Dictionary=new Dictionary(true);
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -73,7 +76,30 @@ package starling.display
         public function advanceTime(passedTime:Number):void
         {
             mEnterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
-            broadcastEvent(mEnterFrameEvent);
+//            broadcastEvent(mEnterFrameEvent);
+
+            // Loop each object with enter frame event
+            for(var i:uint=0;i<mEnterFrameEventVector.length;i++)
+                mEnterFrameEventVector[i].dispatchEvent(mEnterFrameEvent);
+
+        }
+
+        /** register for enterframe event */
+        public function registerEnterFrameEvent(displayObject:DisplayObject):void
+        {
+            if(mEnterFrameEventIndex[displayObject] == null){
+                mEnterFrameEventIndex[displayObject] = mEnterFrameEventIndex.length;
+                mEnterFrameEventVector.push(displayObject);
+            }
+        }
+
+        /** unregister for enterframe event */
+        public function unregisterEnterFrameEvent(displayObject:DisplayObject):void
+        {
+            if(mEnterFrameEventIndex[displayObject] != null){
+                var index:int = mEnterFrameEventIndex[displayObject];
+                mEnterFrameEventVector.slice(index, 1);
+            }
         }
 
         /** Returns the object that is found topmost beneath a point in stage coordinates, or  

@@ -21,6 +21,7 @@ package starling.display
     import starling.core.RenderSupport;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
+    import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
@@ -130,6 +131,7 @@ package starling.display
         private var mTransformationMatrix:Matrix;
         private var mOrientationChanged:Boolean;
         private var mFilter:FragmentFilter;
+        private var mEnterFrameEventStatus:uint=0;// 0:no event 1:has event and registered 2:need register 3:need unregister
         
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
@@ -159,6 +161,64 @@ package starling.display
         {
             if (mFilter) mFilter.dispose();
             removeEventListeners();
+        }
+
+        /** override */
+        /** check if need to register or unregister enterframe event */
+        public override function dispatchEvent(event:Event):void
+        {
+            super.dispatchEvent(event);
+
+
+            if(event.type==Event.ADDED_TO_STAGE&&mEnterFrameEventStatus==2){
+                // Report to Stage for EnterFrameEvent Events
+                stage.registerEnterFrameEvent(this);
+                mEnterFrameEventStatus=1;
+            } else if(event.type==Event.REMOVED_FROM_STAGE&&mEnterFrameEventStatus==3){
+                // Report to Stage for remove EnterFrameEvent Events
+                stage.unregisterEnterFrameEvent(this);
+                mEnterFrameEventStatus=0;
+            }
+        }
+
+        /** override */
+        /** Set if need to register enterframe event */
+        public override function addEventListener(type:String, listener:Function):void
+        {
+
+            if(type == Event.ENTER_FRAME){
+                if(stage){
+                    // Report to Stage for EnterFrameEvent Events
+                    stage.registerEnterFrameEvent(this);
+                    mEnterFrameEventStatus=1;
+                } else if(mEnterFrameEventStatus!=1&&mEnterFrameEventStatus!=3) {
+                    // Set if need register enter frame event
+                    mEnterFrameEventStatus=2;
+                }
+            }
+
+            super.addEventListener(type, listener);
+
+        }
+
+        /** override */
+        /** Set if need to unregister enterframe event */
+        public override function removeEventListener(type:String, listener:Function):void
+        {
+
+            if(type == Event.ENTER_FRAME){
+                if(stage){
+                    // Report to Stage for EnterFrameEvent Events
+                    stage.unregisterEnterFrameEvent(this);
+                    mEnterFrameEventStatus=0;
+                } else if(mEnterFrameEventStatus==1) {
+                    // Set if need register enter frame event
+                    mEnterFrameEventStatus=2;
+                }
+                trace('removeEventListener:mEnterFrameEventStatus',mEnterFrameEventStatus);
+            }
+            super.addEventListener(type, listener);
+
         }
         
         /** Removes the object from its parent, if it has one. */
@@ -379,32 +439,48 @@ package starling.display
                     {
                         var cos:Number = Math.cos(mRotation);
                         var sin:Number = Math.sin(mRotation);
-                        var a:Number   = mScaleX *  cos;
-                        var b:Number   = mScaleX *  sin;
-                        var c:Number   = mScaleY * -sin;
-                        var d:Number   = mScaleY *  cos;
-                        var tx:Number  = mX - mPivotX * a - mPivotY * c;
-                        var ty:Number  = mY - mPivotX * b - mPivotY * d;
-                        
-                        mTransformationMatrix.setTo(a, b, c, d, tx, ty);
+
+//                        var a:Number   = mScaleX *  cos;
+//                        var b:Number   = mScaleX *  sin;
+//                        var c:Number   = mScaleY * -sin;
+//                        var d:Number   = mScaleY *  cos;
+//                        var tx:Number  = mX - mPivotX * a - mPivotY * c;
+//                        var ty:Number  = mY - mPivotX * b - mPivotY * d;
+//
+//                        mTransformationMatrix.setTo(a, b, c, d, tx, ty);
+
+                        mTransformationMatrix.a = mScaleX * cos;
+                        mTransformationMatrix.b = mScaleX * sin;
+                        mTransformationMatrix.c = -mScaleY * sin;
+                        mTransformationMatrix.d = mScaleY * cos;
+                        mTransformationMatrix.tx = mX - mPivotX * mTransformationMatrix.a - mPivotY * mTransformationMatrix.c;
+                        mTransformationMatrix.ty = mY - mPivotX * mTransformationMatrix.b - mPivotY * mTransformationMatrix.d;
                     }
                 }
                 else
                 {
-                    mTransformationMatrix.identity();
-                    mTransformationMatrix.scale(mScaleX, mScaleY);
-                    MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
-                    mTransformationMatrix.rotate(mRotation);
-                    mTransformationMatrix.translate(mX, mY);
-                    
-                    if (mPivotX != 0.0 || mPivotY != 0.0)
-                    {
-                        // prepend pivot transformation
-                        mTransformationMatrix.tx = mX - mTransformationMatrix.a * mPivotX
-                                                      - mTransformationMatrix.c * mPivotY;
-                        mTransformationMatrix.ty = mY - mTransformationMatrix.b * mPivotX 
-                                                      - mTransformationMatrix.d * mPivotY;
+                    // Check if rotation and do the maths.
+
+                    if(mRotation == 0.0){
+
+                        mTransformationMatrix.a = mScaleX;
+                        mTransformationMatrix.b = 0.0;
+                        mTransformationMatrix.c = 0.0;
+                        mTransformationMatrix.d = mScaleY;
+
+                    } else {
+                        var cos:Number = Math.cos(mRotation);
+                        var sin:Number = Math.sin(mRotation);
+                        mTransformationMatrix.a = mScaleX * cos;
+                        mTransformationMatrix.b = mScaleX * sin;
+                        mTransformationMatrix.c = -mScaleY * cos;
+                        mTransformationMatrix.d = mScaleY * sin;
+
                     }
+
+                    mTransformationMatrix.tx = mX-mPivotX;
+                    mTransformationMatrix.ty = mY-mPivotY;
+
                 }
             }
             
