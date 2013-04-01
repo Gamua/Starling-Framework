@@ -175,6 +175,8 @@ package starling.text
             
             if (mAutoScale)
                 autoScaleNativeTextField(sNativeTextField);
+
+            formatText(sNativeTextField, textFormat);
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
@@ -189,7 +191,6 @@ package starling.text
             else if (mVAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
             else if (mVAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
 
-            formatText(sNativeTextField, textFormat);
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
