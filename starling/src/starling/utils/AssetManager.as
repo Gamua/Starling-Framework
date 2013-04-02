@@ -271,10 +271,10 @@ package starling.utils
                             (typeXml.@name).split("::").pop() + "'"); 
                     
                     for each (childNode in typeXml.constant.(@type == "Class"))
-                        push(rawAsset[childNode.@name], childNode.@name);
+                        enqueueWithName(rawAsset[childNode.@name], childNode.@name);
                     
                     for each (childNode in typeXml.variable.(@type == "Class"))
-                        push(rawAsset[childNode.@name], childNode.@name);
+                        enqueueWithName(rawAsset[childNode.@name], childNode.@name);
                 }
                 else if (getQualifiedClassName(rawAsset) == "flash.filesystem::File")
                 {
@@ -290,7 +290,7 @@ package starling.utils
                         {
                             var extension:String = rawAsset["extension"].toLowerCase();
                             if (SUPPORTED_EXTENSIONS.indexOf(extension) != -1)
-                                push(rawAsset["url"]);
+                                enqueueWithName(rawAsset["url"]);
                             else
                                 log("Ignoring unsupported file '" + rawAsset["name"] + "'");
                         }
@@ -298,24 +298,29 @@ package starling.utils
                 }
                 else if (rawAsset is String)
                 {
-                    push(rawAsset);
+                    enqueueWithName(rawAsset);
                 }
                 else
                 {
                     log("Ignoring unsupported asset type: " + getQualifiedClassName(rawAsset));
                 }
             }
+        }
+        
+        /** Enqueues a single asset with a custom name that can be used to access it later. 
+         *  If you don't pass a name, it's attempted to generate it automatically.
+         *  @returns the name under which the asset was registered. */
+        public function enqueueWithName(asset:Object, name:String=null):String
+        {
+            if (name == null) name = getName(asset);
+            log("Enqueuing '" + name + "'");
             
-            function push(asset:Object, name:String=null):void
-            {
-                if (name == null) name = getName(asset);
-                log("Enqueuing '" + name + "'");
-                
-                mRawAssets.push({ 
-                    name: name, 
-                    asset: asset 
-                });
-            }
+            mRawAssets.push({
+                name: name,
+                asset: asset
+            });
+            
+            return name;
         }
         
         /** Loads all enqueued assets asynchronously. The 'onProgress' function will be called
