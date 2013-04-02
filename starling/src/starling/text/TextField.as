@@ -173,6 +173,8 @@ package starling.text
             if (sNativeTextField.textWidth == 0.0 || sNativeTextField.textHeight == 0.0)
                 sNativeTextField.embedFonts = false;
             
+            formatText(sNativeTextField, textFormat);
+            
             if (mAutoScale)
                 autoScaleNativeTextField(sNativeTextField);
             
@@ -188,8 +190,6 @@ package starling.text
             if (mVAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
             else if (mVAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
             else if (mVAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
-
-            formatText(sNativeTextField, textFormat);
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
