@@ -42,6 +42,7 @@ package starling.utils
         
         private var mScaleFactor:Number;
         private var mUseMipMaps:Boolean;
+        private var mCheckPolicyFile:Boolean;
         private var mVerbose:Boolean;
         
         private var mRawAssets:Array;
@@ -59,6 +60,7 @@ package starling.utils
             mVerbose = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
+            mCheckPolicyFile = false;
             mRawAssets = [];
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
@@ -494,7 +496,7 @@ package starling.utils
                         onComplete();
                         break;
                     default:
-                        var loaderContext:LoaderContext = new LoaderContext();
+                        var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
                         var loader:Loader = new Loader();
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
@@ -574,5 +576,11 @@ package starling.utils
          *  assigned here. */
         public function get scaleFactor():Number { return mScaleFactor; }
         public function set scaleFactor(value:Number):void { mScaleFactor = value; }
+        
+        /** Specifies whether a check should be made for the existence of a URL policy file before
+         *  loading an object from a remote server. More information about this topic can be found 
+         *  in the 'flash.system.LoaderContext' documentation. */
+        public function get checkPolicyFile():Boolean { return mCheckPolicyFile; }
+        public function set checkPolicyFile(value:Boolean):void { mCheckPolicyFile = value; }
     }
 }
