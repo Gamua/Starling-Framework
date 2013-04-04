@@ -1,4 +1,4 @@
-// =================================================================================================
+﻿// =================================================================================================
 //
 //	Starling Framework
 //	Copyright 2011 Gamua OG. All Rights Reserved.
@@ -446,6 +446,15 @@ package starling.display
             {
                 mRotation = 0;
             }
+			
+			if (mPivotX != 0.0 || mPivotY != 0.0)
+			{
+				// prepend pivot transformation
+				mTransformationMatrix.tx = mX - mTransformationMatrix.a * mPivotX
+											  - mTransformationMatrix.c * mPivotY;
+				mTransformationMatrix.ty = mY - mTransformationMatrix.b * mPivotX 
+											  - mTransformationMatrix.d * mPivotY;
+			}
         }
         
         /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
