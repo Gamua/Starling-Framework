@@ -643,13 +643,16 @@ package starling.core
         
         /** Registers a vertex- and fragment-program under a certain name. If the name was already
          *  used, the previous program is overwritten. */
-        public function registerProgram(name:String, vertexProgram:ByteArray, fragmentProgram:ByteArray):void
+        public function registerProgram(name:String, vertexProgram:ByteArray, 
+                                        fragmentProgram:ByteArray):Program3D
         {
             deleteProgram(name);
             
             var program:Program3D = mContext.createProgram();
-            program.upload(vertexProgram, fragmentProgram);            
+            program.upload(vertexProgram, fragmentProgram);
             programs[name] = program;
+            
+            return program;
         }
         
         /** Deletes the vertex- and fragment-programs of a certain name. */
