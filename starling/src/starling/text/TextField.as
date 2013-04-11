@@ -203,7 +203,7 @@ package starling.text
             var textHeight:Number = sNativeTextField.textHeight;
             
             if (mAutoSize == TextFieldAutoSize.SINGLE_LINE)
-                sNativeTextField.width = width = Math.ceil(textWidth + 4);
+                sNativeTextField.width = width = Math.ceil(textWidth + 5);
             else if (mAutoSize == TextFieldAutoSize.MULTI_LINE)
                 sNativeTextField.height = height = Math.ceil(textHeight + 4);
             
