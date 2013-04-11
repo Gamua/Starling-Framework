@@ -124,22 +124,27 @@ package starling.text
         
         private function onFlatten():void
         {
-            if (mRequiresRedraw) redrawContents();
+            if (mRequiresRedraw) redraw();
         }
         
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            if (mRequiresRedraw) redrawContents();
+            if (mRequiresRedraw) redraw();
             super.render(support, parentAlpha);
         }
         
-        private function redrawContents():void
+        /** Forces the text field to be constructed right away. Normally, 
+         *  it will only do so lazily, i.e. before being rendered. */
+        public function redraw():void
         {
-            if (mIsRenderedText) createRenderedContents();
-            else                 createComposedContents();
-            
-            mRequiresRedraw = false;
+            if (mRequiresRedraw)
+            {
+                if (mIsRenderedText) createRenderedContents();
+                else                 createComposedContents();
+                
+                mRequiresRedraw = false;
+            }
         }
         
         private function createRenderedContents():void
@@ -302,7 +307,7 @@ package starling.text
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
-            if (mRequiresRedraw) redrawContents();
+            if (mRequiresRedraw) redraw();
             if (mTextBounds == null) mTextBounds = mQuadBatch.getBounds(mQuadBatch);
             return mTextBounds.clone();
         }
