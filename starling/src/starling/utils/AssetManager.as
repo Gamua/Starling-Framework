@@ -42,6 +42,7 @@ package starling.utils
         
         private var mScaleFactor:Number;
         private var mUseMipMaps:Boolean;
+        private var mCheckPolicyFile:Boolean;
         private var mVerbose:Boolean;
         
         private var mRawAssets:Array;
@@ -59,6 +60,7 @@ package starling.utils
             mVerbose = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
+            mCheckPolicyFile = false;
             mRawAssets = [];
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
@@ -271,10 +273,10 @@ package starling.utils
                             (typeXml.@name).split("::").pop() + "'"); 
                     
                     for each (childNode in typeXml.constant.(@type == "Class"))
-                        push(rawAsset[childNode.@name], childNode.@name);
+                        enqueueWithName(rawAsset[childNode.@name], childNode.@name);
                     
                     for each (childNode in typeXml.variable.(@type == "Class"))
-                        push(rawAsset[childNode.@name], childNode.@name);
+                        enqueueWithName(rawAsset[childNode.@name], childNode.@name);
                 }
                 else if (getQualifiedClassName(rawAsset) == "flash.filesystem::File")
                 {
@@ -290,7 +292,7 @@ package starling.utils
                         {
                             var extension:String = rawAsset["extension"].toLowerCase();
                             if (SUPPORTED_EXTENSIONS.indexOf(extension) != -1)
-                                push(rawAsset["url"]);
+                                enqueueWithName(rawAsset["url"]);
                             else
                                 log("Ignoring unsupported file '" + rawAsset["name"] + "'");
                         }
@@ -298,24 +300,29 @@ package starling.utils
                 }
                 else if (rawAsset is String)
                 {
-                    push(rawAsset);
+                    enqueueWithName(rawAsset);
                 }
                 else
                 {
                     log("Ignoring unsupported asset type: " + getQualifiedClassName(rawAsset));
                 }
             }
+        }
+        
+        /** Enqueues a single asset with a custom name that can be used to access it later. 
+         *  If you don't pass a name, it's attempted to generate it automatically.
+         *  @returns the name under which the asset was registered. */
+        public function enqueueWithName(asset:Object, name:String=null):String
+        {
+            if (name == null) name = getName(asset);
+            log("Enqueuing '" + name + "'");
             
-            function push(asset:Object, name:String=null):void
-            {
-                if (name == null) name = getName(asset);
-                log("Enqueuing '" + name + "'");
-                
-                mRawAssets.push({ 
-                    name: name, 
-                    asset: asset 
-                });
-            }
+            mRawAssets.push({
+                name: name,
+                asset: asset
+            });
+            
+            return name;
         }
         
         /** Loads all enqueued assets asynchronously. The 'onProgress' function will be called
@@ -489,7 +496,7 @@ package starling.utils
                         onComplete();
                         break;
                     default:
-                        var loaderContext:LoaderContext = new LoaderContext();
+                        var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
                         var loader:Loader = new Loader();
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
@@ -569,5 +576,11 @@ package starling.utils
          *  assigned here. */
         public function get scaleFactor():Number { return mScaleFactor; }
         public function set scaleFactor(value:Number):void { mScaleFactor = value; }
+        
+        /** Specifies whether a check should be made for the existence of a URL policy file before
+         *  loading an object from a remote server. More information about this topic can be found 
+         *  in the 'flash.system.LoaderContext' documentation. */
+        public function get checkPolicyFile():Boolean { return mCheckPolicyFile; }
+        public function set checkPolicyFile(value:Boolean):void { mCheckPolicyFile = value; }
     }
 }

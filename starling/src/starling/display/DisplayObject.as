@@ -415,10 +415,10 @@ package starling.display
         {
             mOrientationChanged = false;
             mTransformationMatrix.copyFrom(matrix);
-
+            mPivotX = mPivotY = 0;
+            
             mX = matrix.tx;
             mY = matrix.ty;
-            
             mScaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
             mSkewY  = Math.acos(matrix.a / mScaleX);
             
