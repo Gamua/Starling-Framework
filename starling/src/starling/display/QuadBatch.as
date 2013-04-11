@@ -438,9 +438,7 @@ package starling.display
                 for (i=0; i<numChildren; ++i)
                 {
                     var child:DisplayObject = container.getChildAt(i);
-                    var childVisible:Boolean = child.alpha  != 0.0 && child.visible && 
-                                               child.scaleX != 0.0 && child.scaleY != 0.0;
-                    if (childVisible)
+                    if (child.hasVisibleArea)
                     {
                         var childBlendMode:String = child.blendMode == BlendMode.AUTO ?
                                                     blendMode : child.blendMode;
