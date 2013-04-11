@@ -118,6 +118,24 @@ package tests
         }
         
         [Test]
+        public function testSetTransformationMatrixWithPivot():void
+        {
+            // pivot point information is redundant; instead, x/y properties will be modified.
+            
+            var sprite:Sprite = new Sprite();
+            sprite.pivotX = 50;
+            sprite.pivotY = 20;
+            
+            var matrix:Matrix = sprite.transformationMatrix;
+            sprite.transformationMatrix = matrix;
+            
+            assertThat(sprite.x, closeTo(-50, E));
+            assertThat(sprite.y, closeTo(-20, E));
+            assertThat(sprite.pivotX, closeTo(0.0, E));
+            assertThat(sprite.pivotY, closeTo(0.0, E));
+        }
+        
+        [Test]
         public function testBounds():void
         {
             var quad:Quad = new Quad(10, 20);
