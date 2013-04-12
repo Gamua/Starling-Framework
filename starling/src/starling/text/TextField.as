@@ -368,6 +368,7 @@ package starling.text
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
+            if (mRequiresRedraw) redraw();
             return mHitArea.getBounds(targetSpace, resultRect);
         }
         
