@@ -22,12 +22,12 @@ package starling.text
         /** No auto-sizing will happen. */
         public static const NONE:String = "none";
         
-        /** Best used for single-line text. The text field will keep its height 
-         *  and will grow to the right. */ 
-        public static const SINGLE_LINE:String = "singleLine";
+        /** The text field will grow to the right; no line-breaks will be added.
+         *  The height of the text field remains unchanged. */ 
+        public static const HORIZONTAL:String = "horizontal";
         
-        /** Best used for multi-line text. The text field will keep its width
-         *  and will grow to the bottom. */
-        public static const MULTI_LINE:String = "multiLine";
+        /** The text field will grow to the bottom, adding line-breaks when necessary.
+          * The width of the text field remains unchanged. */
+        public static const VERTICAL:String = "vertical";
     }
 }

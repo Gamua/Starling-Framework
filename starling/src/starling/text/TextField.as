@@ -164,12 +164,12 @@ package starling.text
             var hAlign:String = mHAlign;
             var vAlign:String = mVAlign;
             
-            if (mAutoSize == TextFieldAutoSize.SINGLE_LINE)
+            if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
             {
                 width = int.MAX_VALUE;
                 hAlign = HAlign.LEFT;
             }
-            else if (mAutoSize == TextFieldAutoSize.MULTI_LINE)
+            else if (mAutoSize == TextFieldAutoSize.VERTICAL)
             {
                 height = int.MAX_VALUE;
                 vAlign = VAlign.TOP;
@@ -202,9 +202,9 @@ package starling.text
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
             
-            if (mAutoSize == TextFieldAutoSize.SINGLE_LINE)
+            if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
                 sNativeTextField.width = width = Math.ceil(textWidth + 5);
-            else if (mAutoSize == TextFieldAutoSize.MULTI_LINE)
+            else if (mAutoSize == TextFieldAutoSize.VERTICAL)
                 sNativeTextField.height = height = Math.ceil(textHeight + 4);
             
             var xOffset:Number = 0.0;
@@ -306,12 +306,12 @@ package starling.text
             var hAlign:String = mHAlign;
             var vAlign:String = mVAlign;
             
-            if (mAutoSize == TextFieldAutoSize.SINGLE_LINE)
+            if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
             {
                 width = int.MAX_VALUE;
                 hAlign = HAlign.LEFT;
             }
-            else if (mAutoSize == TextFieldAutoSize.MULTI_LINE)
+            else if (mAutoSize == TextFieldAutoSize.VERTICAL)
             {
                 height = int.MAX_VALUE;
                 vAlign = VAlign.TOP;
@@ -324,7 +324,7 @@ package starling.text
             {
                 mTextBounds = mQuadBatch.getBounds(mQuadBatch, mTextBounds);
                 
-                if (mAutoSize == TextFieldAutoSize.SINGLE_LINE)
+                if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
                     mHitArea.width  = mTextBounds.x + mTextBounds.width;
                 else
                     mHitArea.height = mTextBounds.y + mTextBounds.height;
@@ -549,8 +549,8 @@ package starling.text
         
         /** Specifies the type of auto-sizing the TextField will do.
          *  Note that any auto-sizing will make auto-scaling useless. Furthermore, it has 
-         *  implications on alignment: single-line text will always be left-, multi-line text
-         *  will always be top-aligned. @default "none" */
+         *  implications on alignment: horizontally auto-sized text will always be left-, 
+         *  vertically auto-sized text will always be top-aligned. @default "none" */
         public function get autoSize():String { return mAutoSize; }
         public function set autoSize(value:String):void
         {
