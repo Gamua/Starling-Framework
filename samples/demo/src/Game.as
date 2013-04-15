@@ -50,7 +50,6 @@ package
             
             mLoadingProgress = new ProgressBar(175, 20);
             mLoadingProgress.x = (background.width  - mLoadingProgress.width) / 2;
-            mLoadingProgress.y = (background.height - mLoadingProgress.height) / 2;
             mLoadingProgress.y = background.height * 0.7;
             addChild(mLoadingProgress);
             
