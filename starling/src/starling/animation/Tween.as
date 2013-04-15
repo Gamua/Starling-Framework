@@ -62,6 +62,7 @@ package starling.animation
         
         private var mTotalTime:Number;
         private var mCurrentTime:Number;
+		private var mProgress:Number;
         private var mDelay:Number;
         private var mRoundToInt:Boolean;
         private var mNextTween:Tween;
@@ -87,6 +88,7 @@ package starling.animation
             mTarget = target;
             mCurrentTime = 0;
             mTotalTime = Math.max(0.0001, time);
+			mProgress = 0;
             mDelay = mRepeatDelay = 0.0;
             mOnStart = mOnUpdate = mOnComplete = null;
             mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null;
@@ -108,15 +110,15 @@ package starling.animation
             return this;
         }
         
-        /** Animates the property of the target to a certain value. You can call this method multiple
+        /** Animates the property of an object to a target value. You can call this method multiple
          *  times on one tween. */
-        public function animate(property:String, endValue:Number):void
+        public function animate(property:String, targetValue:Number):void
         {
             if (mTarget == null) return; // tweening null just does nothing.
                    
             mProperties.push(property);
             mStartValues.push(Number.NaN);
-            mEndValues.push(endValue);
+            mEndValues.push(targetValue);
         }
         
         /** Animates the 'scaleX' and 'scaleY' properties of an object simultaneously. */
@@ -161,6 +163,8 @@ package starling.animation
 
             var ratio:Number = mCurrentTime / mTotalTime;
             var reversed:Boolean = mReverse && (mCurrentCycle % 2 == 1);
+			mProgress = reversed ?
+				mTransitionFunc(1.0 - ratio) : mTransitionFunc(ratio);
             var numProperties:int = mStartValues.length;
 
             for (i=0; i<numProperties; ++i)
@@ -171,10 +175,8 @@ package starling.animation
                 var startValue:Number = mStartValues[i];
                 var endValue:Number = mEndValues[i];
                 var delta:Number = endValue - startValue;
-                var transitionValue:Number = reversed ?
-                    mTransitionFunc(1.0 - ratio) : mTransitionFunc(ratio);
                 
-                var currentValue:Number = startValue + transitionValue * delta;
+                var currentValue:Number = startValue + mProgress * delta;
                 if (mRoundToInt) currentValue = Math.round(currentValue);
                 mTarget[mProperties[i]] = currentValue;
             }
@@ -207,15 +209,6 @@ package starling.animation
             
             if (carryOverTime) 
                 advanceTime(carryOverTime);
-        }
-        
-        /** The end value a certain property is animated to. Throws an ArgumentError if the 
-         *  property is not being animated. */
-        public function getEndValue(property:String):Number
-        {
-            var index:int = mProperties.indexOf(property);
-            if (index == -1) throw new ArgumentError("The property '" + property + "' is not animated");
-            else return mEndValues[index] as Number;
         }
         
         /** Indicates if the tween is finished. */
@@ -251,6 +244,9 @@ package starling.animation
         
         /** The time that has passed since the tween was created. */
         public function get currentTime():Number { return mCurrentTime; }
+		
+		/** The current progress between 0 and 1, as calculated by the transition function. **/
+		public function get progress():Number { return mProgress; }
         
         /** The delay before the tween is started. @default 0 */
         public function get delay():Number { return mDelay; }
