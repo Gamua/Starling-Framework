@@ -29,5 +29,8 @@ package starling.text
         /** The text field will grow to the bottom, adding line-breaks when necessary.
           * The width of the text field remains unchanged. */
         public static const VERTICAL:String = "vertical";
+        
+        /** The text field will grow to the right and bottom; no line-breaks will be added. */
+        public static const BOTH_DIRECTIONS:String = "bothDirections";
     }
 }

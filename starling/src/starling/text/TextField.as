@@ -164,12 +164,12 @@ package starling.text
             var hAlign:String = mHAlign;
             var vAlign:String = mVAlign;
             
-            if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
+            if (isHorizontalAutoSize)
             {
                 width = int.MAX_VALUE;
                 hAlign = HAlign.LEFT;
             }
-            else if (mAutoSize == TextFieldAutoSize.VERTICAL)
+            if (isVerticalAutoSize)
             {
                 height = int.MAX_VALUE;
                 vAlign = VAlign.TOP;
@@ -202,9 +202,9 @@ package starling.text
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
             
-            if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
+            if (isHorizontalAutoSize)
                 sNativeTextField.width = width = Math.ceil(textWidth + 5);
-            else if (mAutoSize == TextFieldAutoSize.VERTICAL)
+            if (isVerticalAutoSize)
                 sNativeTextField.height = height = Math.ceil(textHeight + 4);
             
             var xOffset:Number = 0.0;
@@ -306,12 +306,12 @@ package starling.text
             var hAlign:String = mHAlign;
             var vAlign:String = mVAlign;
             
-            if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
+            if (isHorizontalAutoSize)
             {
                 width = int.MAX_VALUE;
                 hAlign = HAlign.LEFT;
             }
-            else if (mAutoSize == TextFieldAutoSize.VERTICAL)
+            if (isVerticalAutoSize)
             {
                 height = int.MAX_VALUE;
                 vAlign = VAlign.TOP;
@@ -324,9 +324,9 @@ package starling.text
             {
                 mTextBounds = mQuadBatch.getBounds(mQuadBatch, mTextBounds);
                 
-                if (mAutoSize == TextFieldAutoSize.HORIZONTAL)
+                if (isHorizontalAutoSize)
                     mHitArea.width  = mTextBounds.x + mTextBounds.width;
-                else
+                if (isVerticalAutoSize)
                     mHitArea.height = mTextBounds.y + mTextBounds.height;
             }
             else
@@ -355,6 +355,18 @@ package starling.text
             rightLine.x  = width  - 1;
             bottomLine.y = height - 1;
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
+        }
+        
+        private function get isHorizontalAutoSize():Boolean
+        {
+            return mAutoSize == TextFieldAutoSize.HORIZONTAL || 
+                   mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+        }
+        
+        private function get isVerticalAutoSize():Boolean
+        {
+            return mAutoSize == TextFieldAutoSize.VERTICAL || 
+                   mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
         
         /** Returns the bounds of the text within the text field. */
