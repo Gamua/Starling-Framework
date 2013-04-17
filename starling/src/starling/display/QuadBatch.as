@@ -339,7 +339,8 @@ package starling.display
         {
             if (mNumQuads == 0) return false;
             else if (mNumQuads + numQuads > 8192) return true; // maximum buffer size
-            else if (mTexture == null && texture == null) return false;
+            else if (mTexture == null && texture == null) 
+                return this.blendMode != blendMode;
             else if (mTexture != null && texture != null)
                 return mTexture.base != texture.base ||
                        mTexture.repeat != texture.repeat ||
