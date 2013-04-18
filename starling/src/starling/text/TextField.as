@@ -77,6 +77,7 @@ package starling.text
         private var mItalic:Boolean;
         private var mUnderline:Boolean;
         private var mAutoScale:Boolean;
+        private var mAutoSize:String;
         private var mKerning:Boolean;
         private var mNativeFilters:Array;
         private var mRequiresRedraw:Boolean;
@@ -104,6 +105,7 @@ package starling.text
             mBorder = null;
             mKerning = true;
             mBold = bold;
+            mAutoSize = TextFieldAutoSize.NONE;
             this.fontName = fontName;
             
             mHitArea = new Quad(width, height);
@@ -124,22 +126,28 @@ package starling.text
         
         private function onFlatten():void
         {
-            if (mRequiresRedraw) redrawContents();
+            if (mRequiresRedraw) redraw();
         }
         
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            if (mRequiresRedraw) redrawContents();
+            if (mRequiresRedraw) redraw();
             super.render(support, parentAlpha);
         }
         
-        private function redrawContents():void
+        /** Forces the text field to be constructed right away. Normally, 
+         *  it will only do so lazily, i.e. before being rendered. */
+        public function redraw():void
         {
-            if (mIsRenderedText) createRenderedContents();
-            else                 createComposedContents();
-            
-            mRequiresRedraw = false;
+            if (mRequiresRedraw)
+            {
+                if (mIsRenderedText) createRenderedContents();
+                else                 createComposedContents();
+                
+                updateBorder();
+                mRequiresRedraw = false;
+            }
         }
         
         private function createRenderedContents():void
@@ -153,9 +161,22 @@ package starling.text
             var scale:Number  = Starling.contentScaleFactor;
             var width:Number  = mHitArea.width  * scale;
             var height:Number = mHitArea.height * scale;
+            var hAlign:String = mHAlign;
+            var vAlign:String = mVAlign;
+            
+            if (isHorizontalAutoSize)
+            {
+                width = int.MAX_VALUE;
+                hAlign = HAlign.LEFT;
+            }
+            if (isVerticalAutoSize)
+            {
+                height = int.MAX_VALUE;
+                vAlign = VAlign.TOP;
+            }
             
             var textFormat:TextFormat = new TextFormat(mFontName, 
-                mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, mHAlign);
+                mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, hAlign);
             textFormat.kerning = mKerning;
             
             sNativeTextField.defaultTextFormat = textFormat;
@@ -181,15 +202,20 @@ package starling.text
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
             
+            if (isHorizontalAutoSize)
+                sNativeTextField.width = width = Math.ceil(textWidth + 5);
+            if (isVerticalAutoSize)
+                sNativeTextField.height = height = Math.ceil(textHeight + 4);
+            
             var xOffset:Number = 0.0;
-            if (mHAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
-            else if (mHAlign == HAlign.CENTER) xOffset = (width - textWidth) / 2.0;
-            else if (mHAlign == HAlign.RIGHT)  xOffset =  width - textWidth - 2;
+            if (hAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
+            else if (hAlign == HAlign.CENTER) xOffset = (width - textWidth) / 2.0;
+            else if (hAlign == HAlign.RIGHT)  xOffset =  width - textWidth - 2;
 
             var yOffset:Number = 0.0;
-            if (mVAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
-            else if (mVAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
-            else if (mVAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
+            if (vAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
+            else if (vAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
+            else if (vAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
             
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
             var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
@@ -211,6 +237,10 @@ package starling.text
             if (mTextBounds == null) mTextBounds = new Rectangle();
             mTextBounds.setTo(xOffset   / scale, yOffset    / scale,
                               textWidth / scale, textHeight / scale);
+            
+            // update hit area
+            mHitArea.width  = width  / scale;
+            mHitArea.height = height / scale;
             
             var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale);
             
@@ -271,11 +301,39 @@ package starling.text
             var bitmapFont:BitmapFont = bitmapFonts[mFontName];
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
             
-            bitmapFont.fillQuadBatch(mQuadBatch,
-                mHitArea.width, mHitArea.height, mText, mFontSize, mColor, mHAlign, mVAlign,
-                mAutoScale, mKerning);
+            var width:Number  = mHitArea.width;
+            var height:Number = mHitArea.height;
+            var hAlign:String = mHAlign;
+            var vAlign:String = mVAlign;
             
-            mTextBounds = null; // will be created on demand
+            if (isHorizontalAutoSize)
+            {
+                width = int.MAX_VALUE;
+                hAlign = HAlign.LEFT;
+            }
+            if (isVerticalAutoSize)
+            {
+                height = int.MAX_VALUE;
+                vAlign = VAlign.TOP;
+            }
+            
+            bitmapFont.fillQuadBatch(mQuadBatch,
+                width, height, mText, mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning);
+            
+            if (mAutoSize != TextFieldAutoSize.NONE)
+            {
+                mTextBounds = mQuadBatch.getBounds(mQuadBatch, mTextBounds);
+                
+                if (isHorizontalAutoSize)
+                    mHitArea.width  = mTextBounds.x + mTextBounds.width;
+                if (isVerticalAutoSize)
+                    mHitArea.height = mTextBounds.y + mTextBounds.height;
+            }
+            else
+            {
+                // hit area doesn't change, text bounds can be created on demand
+                mTextBounds = null;
+            }
         }
         
         private function updateBorder():void
@@ -299,10 +357,22 @@ package starling.text
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }
         
+        private function get isHorizontalAutoSize():Boolean
+        {
+            return mAutoSize == TextFieldAutoSize.HORIZONTAL || 
+                   mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+        }
+        
+        private function get isVerticalAutoSize():Boolean
+        {
+            return mAutoSize == TextFieldAutoSize.VERTICAL || 
+                   mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+        }
+        
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
-            if (mRequiresRedraw) redrawContents();
+            if (mRequiresRedraw) redraw();
             if (mTextBounds == null) mTextBounds = mQuadBatch.getBounds(mQuadBatch);
             return mTextBounds.clone();
         }
@@ -310,6 +380,7 @@ package starling.text
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
+            if (mRequiresRedraw) redraw();
             return mHitArea.getBounds(targetSpace, resultRect);
         }
         
@@ -322,7 +393,6 @@ package starling.text
             
             mHitArea.width = value;
             mRequiresRedraw = true;
-            updateBorder();
         }
         
         /** @inheritDoc */
@@ -330,7 +400,6 @@ package starling.text
         {
             mHitArea.height = value;
             mRequiresRedraw = true;
-            updateBorder();
         }
         
         /** The displayed text. */
@@ -380,7 +449,6 @@ package starling.text
             if (mColor != value)
             {
                 mColor = value;
-                updateBorder();
                 mRequiresRedraw = true;
             }
         }
@@ -487,6 +555,20 @@ package starling.text
             if (mAutoScale != value)
             {
                 mAutoScale = value;
+                mRequiresRedraw = true;
+            }
+        }
+        
+        /** Specifies the type of auto-sizing the TextField will do.
+         *  Note that any auto-sizing will make auto-scaling useless. Furthermore, it has 
+         *  implications on alignment: horizontally auto-sized text will always be left-, 
+         *  vertically auto-sized text will always be top-aligned. @default "none" */
+        public function get autoSize():String { return mAutoSize; }
+        public function set autoSize(value:String):void
+        {
+            if (mAutoSize != value)
+            {
+                mAutoSize = value;
                 mRequiresRedraw = true;
             }
         }

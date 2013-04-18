@@ -314,6 +314,28 @@ package tests
             Assert.assertEquals(1.5, tween.getEndValue("scaleY"));
         }
         
+        [Test]
+        public function testProgress():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            var tween:Tween = new Tween(quad, 1.0, easeIn);
+            Assert.assertEquals(0.0, tween.progress);
+            
+            tween.advanceTime(0.5);
+            assertThat(tween.progress, closeTo(easeIn(0.5), E));
+            
+            tween.advanceTime(0.25);
+            assertThat(tween.progress, closeTo(easeIn(0.75), E));
+            
+            tween.advanceTime(1.0);
+            assertThat(tween.progress, closeTo(easeIn(1.0), E));
+            
+            function easeIn(ratio:Number):Number
+            {
+                return ratio * ratio * ratio;
+            }
+        }
+        
         private function executeTween(time:Number, advanceTime:Number):void
         {
             var quad:Quad = new Quad(100, 100);
