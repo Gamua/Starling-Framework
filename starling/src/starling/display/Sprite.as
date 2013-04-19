@@ -88,7 +88,16 @@ package starling.display
          *  children of a flattened sprite will not be displayed any longer. For this to happen,
          *  either call <code>flatten</code> again, or <code>unflatten</code> the sprite. 
          *  Beware that the actual flattening will not happen right away, but right before the
-         *  next rendering. */
+         *  next rendering. 
+         * 
+         *  <p>When you flatten a sprite, the result of all matrix operations that are otherwise
+         *  executed during rendering are cached. For this reason, a flattened sprite can be
+         *  rendered with much less strain on the CPU. However, a flattened sprite will always
+         *  produce at least one draw call; if it were merged together with other objects, this
+         *  would cause additional matrix operations, and the optimization would have been in vain.
+         *  Thus, don't just blindly flatten all your sprites, but reserve flattening for sprites
+         *  with a big number of children.</p> 
+         */
         public function flatten():void
         {
             mFlattenRequested = true;
