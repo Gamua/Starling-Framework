@@ -48,12 +48,14 @@ package starling.animation
     {
         private var mObjects:Vector.<IAnimatable>;
         private var mElapsedTime:Number;
+        private var mPaused : Boolean;
         
         /** Create an empty juggler. */
         public function Juggler()
         {
             mElapsedTime = 0;
             mObjects = new <IAnimatable>[];
+            mPaused = false;
         }
 
         /** Adds an object to the juggler. */
@@ -187,7 +189,9 @@ package starling.animation
         
         /** Advances all objects by a certain time (in seconds). */
         public function advanceTime(time:Number):void
-        {   
+        {
+            if (mPaused) return;
+            
             var numObjects:int = mObjects.length;
             var currentIndex:int = 0;
             var i:int;
@@ -237,6 +241,10 @@ package starling.animation
         }
         
         /** The total life time of the juggler. */
-        public function get elapsedTime():Number { return mElapsedTime; }        
+        public function get elapsedTime():Number { return mElapsedTime; }
+
+        public function get paused():Boolean { return mPaused; }
+        public function set paused(value:Boolean):void { mPaused = value; }
+        
     }
 }

@@ -173,6 +173,7 @@ package starling.core
         private var mLastFrameTimestamp:Number;
         private var mLeftMouseDown:Boolean;
         private var mStatsDisplay:StatsDisplay;
+        private var mStatsAlpha:Number;
         private var mShareContext:Boolean;
         private var mProfile:String;
         private var mSupportHighResolutions:Boolean;
@@ -779,6 +780,10 @@ package starling.core
                 {
                     mStatsDisplay = new StatsDisplay();
                     mStatsDisplay.touchable = false;
+                    if (!isNaN(mStatsAlpha))
+                    {
+                        mStatsDisplay.alpha = mStatsAlpha;
+                    }
                     mStage.addChild(mStatsDisplay);
                 }
                 
@@ -800,6 +805,18 @@ package starling.core
             {
                 showStatsAt(hAlign, vAlign, scale);
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
+            }
+        }
+
+        public function set statsAlpha(value:Number):void
+        {
+            if (mStatsDisplay == null)
+            {
+                mStatsAlpha = value;
+            }
+            else
+            {
+                mStatsDisplay.alpha = value;
             }
         }
         
