@@ -161,10 +161,11 @@ package starling.display
             removeEventListeners();
         }
         
-        /** Removes the object from its parent, if it has one. */
+        /** Removes the object from its parent, if it has one, and optionally disposes it. */
         public function removeFromParent(dispose:Boolean=false):void
         {
             if (mParent) mParent.removeChild(this, dispose);
+            else if (dispose) this.dispose();
         }
         
         /** Creates a matrix that represents the transformation from the local coordinate system 
