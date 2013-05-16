@@ -71,7 +71,10 @@ package starling.events
                     var remainingListeners:Vector.<Function> = new <Function>[];
                     
                     for (var i:int=0; i<numListeners; ++i)
-                        if (listeners[i] != listener) remainingListeners.push(listeners[i]);
+                    {
+                        var otherListener:Function = listeners[i];
+                        if (otherListener != listener) remainingListeners.push(otherListener);
+                    }
                     
                     mEventListeners[type] = remainingListeners;
                 }
