@@ -215,7 +215,7 @@ package starling.display
                     // Set if need register enter frame event
                     mEnterFrameEventStatus=2;
                 }
-                trace('removeEventListener:mEnterFrameEventStatus',mEnterFrameEventStatus);
+//                trace('removeEventListener:mEnterFrameEventStatus',mEnterFrameEventStatus);
             }
             super.removeEventListener(type, listener);
 
