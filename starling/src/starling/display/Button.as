@@ -25,6 +25,8 @@ package starling.display
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
+    /** Dispatched when the user presses the button. Bubbles. */ //TRAN
+    [Event(name="triggered_down", type="starling.events.Event")]
     
     /** A simple button composed of an image and, optionally, text.
      *  
@@ -120,6 +122,7 @@ package starling.display
                 mContents.x = (1.0 - mScaleWhenDown) / 2.0 * mBackground.width;
                 mContents.y = (1.0 - mScaleWhenDown) / 2.0 * mBackground.height;
                 mIsDown = true;
+                dispatchEventWith(Event.TRIGGERED_DOWN, true);
             }
             else if (touch.phase == TouchPhase.MOVED && mIsDown)
             {
