@@ -49,6 +49,8 @@ package starling.events
         public static const REMOVED_FROM_STAGE:String = "removedFromStage";
         /** Event type for a triggered button. */
         public static const TRIGGERED:String = "triggered";
+        /** Event type for a pressed(and held) button. whatever you do should be stopped with Event.TRIGGERED (e.g. a looping sound)*/
+        public static const TRIGGERED_DOWN:String = "triggered_down";//TRAN
         /** Event type for a display object that is being flattened. */
         public static const FLATTEN:String = "flatten";
         /** Event type for a resized Flash Player. */
