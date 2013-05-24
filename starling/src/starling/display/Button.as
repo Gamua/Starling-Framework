@@ -27,6 +27,8 @@ package starling.display
     [Event(name="triggered", type="starling.events.Event")]
     /** Dispatched when the user presses the button. Bubbles. */ //TRAN
     [Event(name="triggered_down", type="starling.events.Event")]
+    /** Dispatched when the user releases the button outside of target area. */ //TRAN
+    [Event(name="triggered_outside", type="starling.events.Event")]
     
     /** A simple button composed of an image and, optionally, text.
      *  
@@ -133,6 +135,7 @@ package starling.display
                     touch.globalX > buttonRect.x + buttonRect.width + MAX_DRAG_DIST ||
                     touch.globalY > buttonRect.y + buttonRect.height + MAX_DRAG_DIST)
                 {
+                    dispatchEventWith(Event.TRIGGERED_OUTSIDE, true);
                     resetContents();
                 }
             }
