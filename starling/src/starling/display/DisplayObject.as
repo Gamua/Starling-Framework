@@ -423,10 +423,12 @@ package starling.display
             mScaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
             mSkewY  = Math.acos(matrix.a / mScaleX);
             
+            var cnt:int = 0;
             if (!isEquivalent(matrix.b, mScaleX * Math.sin(mSkewY)))
             {
                 mScaleX *= -1;
                 mSkewY = Math.acos(matrix.a / mScaleX);
+                cnt++;
             }
             
             mScaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
@@ -436,12 +438,23 @@ package starling.display
             {
                 mScaleY *= -1;
                 mSkewX = Math.acos(matrix.d / mScaleY);
+                cnt++;
             }
             
             if (isEquivalent(mSkewX, mSkewY))
             {
                 mRotation = mSkewX;
                 mSkewX = mSkewY = 0;
+
+                // While visually equivalent, if both scaleX and scaleY were
+                // inverted while setting this matrix, this can cause weird
+                // behavior if someone stored external state, such as in a
+                // two-finger drag handler.
+                if (cnt==2) {
+                  mScaleX *= -1;
+                  mScaleY *= -1;
+                  mRotation += (mRotation < Math.PI) ? Math.PI : -Math.PI;
+                }
             }
             else
             {
