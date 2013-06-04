@@ -66,6 +66,9 @@ package starling.filters
      */ 
     public class FragmentFilter
     {
+        /** The minimum size of a filter texture. */
+        private const MIN_TEXTURE_SIZE:int = 64;
+        
         /** All filter processing is expected to be done with premultiplied alpha. */
         protected const PMA:Boolean = true;
         
@@ -204,7 +207,7 @@ package starling.filters
             if (context == null) throw new MissingContextError();
             
             // the bounds of the object in stage coordinates 
-            calculateBounds(object, stage, !intoCache, sBounds);
+            calculateBounds(object, stage, mResolution * scale, !intoCache, sBounds);
             
             if (sBounds.isEmpty())
             {
@@ -214,7 +217,7 @@ package starling.filters
             
             updateBuffers(context, sBounds);
             updatePassTextures(sBounds.width, sBounds.height, mResolution * scale);
-
+            
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
@@ -340,7 +343,6 @@ package starling.filters
         private function updatePassTextures(width:int, height:int, scale:Number):void
         {
             var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
-            
             var needsUpdate:Boolean = mPassTextures == null || 
                 mPassTextures.length != numPassTextures ||
                 mPassTextures[0].width != width || mPassTextures[0].height != height;  
@@ -371,7 +373,7 @@ package starling.filters
         
         /** Calculates the bounds of the filter in stage coordinates, while making sure that the 
          *  according textures will have powers of two. */
-        private function calculateBounds(object:DisplayObject, stage:Stage, 
+        private function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
                                          intersectWithStage:Boolean, resultRect:Rectangle):void
         {
             // optimize for full-screen effects
@@ -389,15 +391,16 @@ package starling.filters
             if (!resultRect.isEmpty())
             {    
                 // the bounds are a rectangle around the object, in stage coordinates,
-                // and with an optional margin. To fit into a POT-texture, it will grow towards
-                // the right and bottom.
-                var deltaMargin:Number = mResolution == 1.0 ? 0.0 : 1.0 / mResolution; // avoid hard edges
-                resultRect.x -= mMarginX + deltaMargin;
-                resultRect.y -= mMarginY + deltaMargin;
-                resultRect.width  += 2 * (mMarginX + deltaMargin);
-                resultRect.height += 2 * (mMarginY + deltaMargin);
-                resultRect.width  = getNextPowerOfTwo(resultRect.width  * mResolution) / mResolution;
-                resultRect.height = getNextPowerOfTwo(resultRect.height * mResolution) / mResolution;
+                // and with an optional margin. 
+                var deltaMargin:Number = (scale == 1.0 ? 0.0 : 1.0 / scale); // avoid hard edges
+                resultRect.inflate(mMarginX + deltaMargin, mMarginY + deltaMargin);
+                
+                // To fit into a POT-texture, we extend it towards the right and bottom.
+                var minSize:int = MIN_TEXTURE_SIZE / scale;
+                var minWidth:Number  = Math.max(minSize, resultRect.width);
+                var minHeight:Number = Math.max(minSize, resultRect.height); 
+                resultRect.width  = getNextPowerOfTwo(minWidth  * scale) / scale;
+                resultRect.height = getNextPowerOfTwo(minHeight * scale) / scale;
             }
         }
         
