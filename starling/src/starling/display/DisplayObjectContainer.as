@@ -243,6 +243,34 @@ package starling.display
             mChildren = mChildren.sort(compareFunction);
         }
         
+        /** Sorts the children using a stable sort algorithm, which means that ordering is
+         *  preserved for objects that are "equal" according to the function. 
+         * 
+         *  This is slightly less performant than the sortChildren method, but it prevents the 
+         *  flickering that can occur when depth-sorting children with the same depth value. */
+        public function stableSortChildren(compareFunction:Function):void
+        {
+            // insertion sort implementation
+            var nn :int = mChildren.length;
+            for (var i :int = 1; i < nn; i++) 
+            {
+                var a :DisplayObject = mChildren[i];
+                var j :int = i - 1;
+                var b :DisplayObject = mChildren[j];
+                
+                if (compareFunction(a, b) >= 0) continue;
+                
+                mChildren[i] = b;
+                for (j--; j >= 0; j--) 
+                {
+                    b = mChildren[j];
+                    if (compareFunction(a, b) >= 0) break;
+                    mChildren[j + 1] = b;
+                }
+                mChildren[j + 1] = a;
+            }
+        }
+        
         /** Determines if a certain object is a child of the container (recursively). */
         public function contains(child:DisplayObject):Boolean
         {
