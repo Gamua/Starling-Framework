@@ -411,7 +411,7 @@ package starling.display
                     // if so, we compare them. Otherwise, we know that the merge must
                     // take the element from the left vector. */
                     if (l < startIndex + halfLength && 
-                        (r == endIndex || compareFunc(input[l], input[r]) >= 0))
+                        (r == endIndex || compareFunc(input[l], input[r]) <= 0))
                     {
                         buffer[i] = input[l];
                         l++;
