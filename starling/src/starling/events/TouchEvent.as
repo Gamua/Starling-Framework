@@ -105,13 +105,29 @@ package starling.events
             return result;
         }
         
-        /** Returns a touch that originated over a certain target. */
-        public function getTouch(target:DisplayObject, phase:String=null):Touch
+        /** Returns a touch that originated over a certain target. 
+         * 
+         *  @param target   The object that was touched; may also be a parent of the actual
+         *                  touch-target.
+         *  @param phase    The phase the touch must be in, or null if you don't care.
+         *  @param id       The ID of the requested touch, or -1 if you don't care.
+         */
+        public function getTouch(target:DisplayObject, phase:String=null, id:int=-1):Touch
         {
             getTouches(target, phase, sTouches);
-            if (sTouches.length) 
+            var numTouches:int = sTouches.length;
+            
+            if (numTouches > 0) 
             {
-                var touch:Touch = sTouches[0];
+                var touch:Touch = null;
+                
+                if (id < 0) touch = sTouches[0];
+                else
+                {
+                    for (var i:int=0; i<numTouches; ++i)
+                        if (sTouches[i].id == id) { touch = sTouches[i]; break; }
+                }
+                
                 sTouches.length = 0;
                 return touch;
             }
