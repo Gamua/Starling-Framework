@@ -89,6 +89,16 @@ package starling.core
                             "\nDRW: " + Math.max(0, mDrawCount - 2); // ignore self 
         }
         
+        public override function render(support:RenderSupport, parentAlpha:Number):void
+        {
+            // The display should always be rendered with two draw calls, so that we can
+            // always reduce the draw count by that number to get the number produced by the 
+            // actual content.
+            
+            support.finishQuadBatch();
+            super.render(support, parentAlpha);
+        }
+        
         /** The number of Stage3D draw calls per second. */
         public function get drawCount():int { return mDrawCount; }
         public function set drawCount(value:int):void { mDrawCount = value; }
