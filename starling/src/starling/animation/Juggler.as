@@ -85,6 +85,12 @@ package starling.animation
             var index:int = mObjects.indexOf(object);
             if (index != -1) mObjects[index] = null;
         }
+
+        /** Determines if an object has been added to the juggler. */
+        public function isJuggling(object:IAnimatable):Boolean
+        {
+            return mObjects.indexOf(object) >= 0;
+        }
         
         /** Removes all tweens with a certain target. */
         public function removeTweens(target:Object):void

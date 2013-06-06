@@ -117,6 +117,24 @@ package starling.events
             }
             else return null;
         }
+
+        /** Returns a touch that has a certain id and originated over a certain target. */
+        public function getTouchByID(id:int, target:DisplayObject, phase:String = null):Touch
+        {
+            getTouches(target, phase, sTouches);
+            var numTouches:int = sTouches.length;
+            for(var i:int=0; i<numTouches; ++i)
+            {
+                var touch:Touch = sTouches[i];
+                if(touch.id == id)
+                {
+                    sTouches.length = 0;
+                    return touch;
+                }
+            }
+            sTouches.length = 0;
+            return null;
+        }
         
         /** Indicates if a target is currently being touched or hovered over. */
         public function interactsWith(target:DisplayObject):Boolean
