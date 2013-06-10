@@ -76,7 +76,7 @@ package starling.display
             addChild(mContents);
             addEventListener(TouchEvent.TOUCH, onTouch);
             
-            if (text.length != 0) this.text = text;
+            this.text = text;
         }
         
         private function resetContents():void
@@ -96,7 +96,6 @@ package starling.display
                 mTextField.hAlign = HAlign.CENTER;
                 mTextField.touchable = false;
                 mTextField.autoScale = true;
-                mContents.addChild(mTextField);
             }
             
             mTextField.width  = mTextBounds.width;
@@ -165,10 +164,24 @@ package starling.display
         public function get text():String { return mTextField ? mTextField.text : ""; }
         public function set text(value:String):void
         {
-            createTextField();
-            mTextField.text = value;
+            if (value.length == 0)
+            {
+                if (mTextField)
+                {
+                    mTextField.text = value;
+                    mTextField.removeFromParent();
+                }
+            }
+            else
+            {
+                createTextField();
+                mTextField.text = value;
+                
+                if (mTextField.parent == null)
+                    mContents.addChild(mTextField);
+            }
         }
-       
+        
         /** The name of the font displayed on the button. May be a system font or a registered 
           * bitmap font. */
         public function get fontName():String { return mTextField ? mTextField.fontName : "Verdana"; }
