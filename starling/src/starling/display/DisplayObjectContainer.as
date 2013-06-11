@@ -71,6 +71,7 @@ package starling.display
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperPoint:Point = new Point();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
+        private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         
         // construction
         
@@ -240,7 +241,9 @@ package starling.display
          *  of the Vector class). */
         public function sortChildren(compareFunction:Function):void
         {
-            mChildren = mChildren.sort(compareFunction);
+            sSortBuffer.length = mChildren.length;
+            mergeSort(mChildren, compareFunction, 0, mChildren.length, sSortBuffer);
+            sSortBuffer.length = 0;
         }
         
         /** Determines if a certain object is a child of the container (recursively). */
@@ -253,6 +256,8 @@ package starling.display
             }
             return false;
         }
+        
+        // other methods
         
         /** @inheritDoc */ 
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
@@ -373,6 +378,57 @@ package starling.display
             Event.toPool(event);
         }
         
+        /** The number of children of this container. */
+        public function get numChildren():int { return mChildren.length; }
+        
+        // helpers
+        
+        private static function mergeSort(input:Vector.<DisplayObject>, compareFunc:Function, 
+                                          startIndex:int, length:int, 
+                                          buffer:Vector.<DisplayObject>):void
+        {
+            // This is a port of the C++ merge sort algorithm shown here:
+            // http://www.cprogramming.com/tutorial/computersciencetheory/mergesort.html
+            
+            if (length <= 1) return;
+            else
+            {
+                var i:int = 0;
+                var endIndex:int = startIndex + length;
+                var halfLength:int = length / 2;
+                var l:int = startIndex;              // current position in the left subvector
+                var r:int = startIndex + halfLength; // current position in the right subvector
+                
+                // sort each subvector
+                mergeSort(input, compareFunc, startIndex, halfLength, buffer);
+                mergeSort(input, compareFunc, startIndex + halfLength, length - halfLength, buffer);
+                
+                // merge the vectors, using the buffer vector for temporary storage
+                for (i = 0; i < length; i++)
+                {
+                    // Check to see if any elements remain in the left vector; 
+                    // if so, we check if there are any elements left in the right vector;
+                    // if so, we compare them. Otherwise, we know that the merge must
+                    // take the element from the left vector. */
+                    if (l < startIndex + halfLength && 
+                        (r == endIndex || compareFunc(input[l], input[r]) <= 0))
+                    {
+                        buffer[i] = input[l];
+                        l++;
+                    }
+                    else
+                    {
+                        buffer[i] = input[r];
+                        r++;
+                    }
+                }
+                
+                // copy the sorted subvector back to the input
+                for(i = startIndex; i < endIndex; i++)
+                    input[i] = buffer[int(i - startIndex)];
+            }
+        }
+        
         private function getChildEventListeners(object:DisplayObject, eventType:String, 
                                                 listeners:Vector.<DisplayObject>):void
         {
@@ -390,8 +446,5 @@ package starling.display
                     getChildEventListeners(children[i], eventType, listeners);
             }
         }
-        
-        /** The number of children of this container. */
-        public function get numChildren():int { return mChildren.length; }        
     }
 }
