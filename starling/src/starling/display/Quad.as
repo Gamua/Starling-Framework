@@ -51,16 +51,21 @@ package starling.display
                              premultipliedAlpha:Boolean=true)
         {
             mTinted = color != 0xffffff;
+			initVertexData(width, height, color, premultipliedAlpha);
             
-            mVertexData = new VertexData(4, premultipliedAlpha);
-            mVertexData.setPosition(0, 0.0, 0.0);
-            mVertexData.setPosition(1, width, 0.0);
-            mVertexData.setPosition(2, 0.0, height);
-            mVertexData.setPosition(3, width, height);            
-            mVertexData.setUniformColor(color);
-            
-            onVertexDataChanged();
         }
+		
+		protected function initVertexData (width:Number, height:Number, color:uint=0xffffff,
+										   premultipliedAlpha:Boolean=true):void {
+			mVertexData = new VertexData(4, premultipliedAlpha);
+			mVertexData.setPosition(0, 0.0, 0.0);
+			mVertexData.setPosition(1, width, 0.0);
+			mVertexData.setPosition(2, 0.0, height);
+			mVertexData.setPosition(3, width, height);            
+			mVertexData.setUniformColor(color);
+			
+			onVertexDataChanged();
+		}
         
         /** Call this method after manually changing the contents of 'mVertexData'. */
         protected function onVertexDataChanged():void

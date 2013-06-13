@@ -10,3 +10,6 @@ starling/doc/html/
 
 # OS X folders
 .DS_Store
+
+# Version control files
+.svn
