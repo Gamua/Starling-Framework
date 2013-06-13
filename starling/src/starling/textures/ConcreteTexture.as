@@ -17,6 +17,7 @@ package starling.textures
     
     import starling.core.Starling;
     import starling.events.Event;
+    import starling.utils.getNextPowerOfTwo;
 
     /** A ConcreteTexture wraps a Stage3D texture object, storing the properties of the texture. */
     public class ConcreteTexture extends Texture
@@ -75,12 +76,19 @@ package starling.textures
             var context:Context3D = Starling.context;
             var bitmapData:BitmapData = mData as BitmapData;
             var atfData:AtfData = mData as AtfData;
-            var nativeTexture:flash.display3D.textures.Texture;
+            var nativeTexture:flash.display3D.textures.TextureBase;
+            var isPot:Boolean = mWidth  == getNextPowerOfTwo(mWidth) && 
+                                mHeight == getNextPowerOfTwo(mHeight);
             
             if (bitmapData)
             {
-                nativeTexture = context.createTexture(mWidth, mHeight, 
-                    Context3DTextureFormat.BGRA, mOptimizedForRenderTexture);
+                if (isPot)
+                    nativeTexture = context.createTexture(mWidth, mHeight, 
+                        Context3DTextureFormat.BGRA, mOptimizedForRenderTexture);
+                else
+                    nativeTexture = context["createRectangleTexture"](mWidth, mHeight,
+                        Context3DTextureFormat.BGRA, mOptimizedForRenderTexture);
+                
                 Texture.uploadBitmapData(nativeTexture, bitmapData, mMipMapping);
             }
             else if (atfData)
