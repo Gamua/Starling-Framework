@@ -13,6 +13,7 @@ package starling.textures
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
+    import flash.display3D.Context3DProfile;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
     import flash.events.Event;
@@ -126,29 +127,46 @@ package starling.textures
                                               optimizeForRenderToTexture:Boolean=false,
                                               scale:Number=1):Texture
         {
-            var origWidth:int   = data.width;
-            var origHeight:int  = data.height;
-            var legalWidth:int  = getNextPowerOfTwo(origWidth);
-            var legalHeight:int = getNextPowerOfTwo(origHeight);
-            var context:Context3D = Starling.context;
             var potData:BitmapData;
+            var nativeTexture:flash.display3D.textures.TextureBase;
+            var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
             
-            var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
-                legalWidth, legalHeight, Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
+            var origWidth:int  = data.width;
+            var origHeight:int = data.height;
+            var potWidth:int   = getNextPowerOfTwo(origWidth);
+            var potHeight:int  = getNextPowerOfTwo(origHeight);
+            var isPot:Boolean  = (origWidth == potWidth && origHeight == potHeight);
+            var useRectTexture:Boolean = !isPot && !generateMipMaps &&
+                Starling.current.profile != Context3DProfile.BASELINE_CONSTRAINED &&
+                "createRectangleTexture" in context;
             
-            if (legalWidth > origWidth || legalHeight > origHeight)
+            if (useRectTexture)
             {
-                potData = new BitmapData(legalWidth, legalHeight, true, 0);
-                potData.copyPixels(data, data.rect, sOrigin);
-                data = potData;
+                // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
+                // methods only through those lookups, we stay compatible with older SDKs.
+                
+                nativeTexture = context["createRectangleTexture"](origWidth, origHeight, 
+                    Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
+            }
+            else
+            {
+                nativeTexture = context.createTexture(potWidth, potHeight, 
+                    Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
+            
+                if (potWidth > origWidth || potHeight > origHeight)
+                {
+                    potData = new BitmapData(potWidth, potHeight, true, 0);
+                    potData.copyPixels(data, data.rect, sOrigin);
+                    data = potData;
+                }
             }
             
             uploadBitmapData(nativeTexture, data, generateMipMaps);
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, Context3DTextureFormat.BGRA, legalWidth, legalHeight,
+                nativeTexture, Context3DTextureFormat.BGRA, data.width, data.height,
                 generateMipMaps, true, optimizeForRenderToTexture, scale);
             
             if (Starling.handleLostContext)
@@ -156,7 +174,7 @@ package starling.textures
             else if (potData)
                 potData.dispose();
             
-            if (origWidth == legalWidth && origHeight == legalHeight)
+            if (isPot || useRectTexture)
                 return concreteTexture;
             else
                 return new SubTexture(concreteTexture, 
@@ -296,41 +314,54 @@ package starling.textures
         }
         
         /** @private Uploads the bitmap data to the native texture, optionally creating mipmaps. */
-        internal static function uploadBitmapData(nativeTexture:flash.display3D.textures.Texture,
+        internal static function uploadBitmapData(nativeTexture:TextureBase,
                                                   data:BitmapData, generateMipmaps:Boolean):void
         {
-            nativeTexture.uploadFromBitmapData(data);
-            
-            if (generateMipmaps && data.width > 1 && data.height > 1)
+            if (nativeTexture is flash.display3D.textures.Texture)
             {
-                var currentWidth:int  = data.width  >> 1;
-                var currentHeight:int = data.height >> 1;
-                var level:int = 1;
-                var canvas:BitmapData = new BitmapData(currentWidth, currentHeight, true, 0);
-                var transform:Matrix = new Matrix(.5, 0, 0, .5);
-                var bounds:Rectangle = new Rectangle();
+                var potTexture:flash.display3D.textures.Texture = 
+                    nativeTexture as flash.display3D.textures.Texture;
                 
-                while (currentWidth >= 1 || currentHeight >= 1)
+                potTexture.uploadFromBitmapData(data);
+                
+                if (generateMipmaps && data.width > 1 && data.height > 1)
                 {
-                    bounds.width = currentWidth; bounds.height = currentHeight;
-                    canvas.fillRect(bounds, 0);
-                    canvas.draw(data, transform, null, null, null, true);
-                    nativeTexture.uploadFromBitmapData(canvas, level++);
-                    transform.scale(0.5, 0.5);
-                    currentWidth  = currentWidth  >> 1;
-                    currentHeight = currentHeight >> 1;
+                    var currentWidth:int  = data.width  >> 1;
+                    var currentHeight:int = data.height >> 1;
+                    var level:int = 1;
+                    var canvas:BitmapData = new BitmapData(currentWidth, currentHeight, true, 0);
+                    var transform:Matrix = new Matrix(.5, 0, 0, .5);
+                    var bounds:Rectangle = new Rectangle();
+                    
+                    while (currentWidth >= 1 || currentHeight >= 1)
+                    {
+                        bounds.width = currentWidth; bounds.height = currentHeight;
+                        canvas.fillRect(bounds, 0);
+                        canvas.draw(data, transform, null, null, null, true);
+                        potTexture.uploadFromBitmapData(canvas, level++);
+                        transform.scale(0.5, 0.5);
+                        currentWidth  = currentWidth  >> 1;
+                        currentHeight = currentHeight >> 1;
+                    }
+                    
+                    canvas.dispose();
                 }
-                
-                canvas.dispose();
+            }
+            else // if (nativeTexture is RectangleTexture)
+            {
+                nativeTexture["uploadFromBitmapData"](data);
             }
         }
         
         /** @private Uploads ATF data from a ByteArray to a native texture. */
-        internal static function uploadAtfData(nativeTexture:flash.display3D.textures.Texture, 
+        internal static function uploadAtfData(nativeTexture:flash.display3D.textures.TextureBase, 
                                                data:ByteArray, offset:int=0, 
                                                async:Boolean=false):void
         {
-            nativeTexture.uploadCompressedTextureFromByteArray(data, offset, async);
+            var potTexture:flash.display3D.textures.Texture = 
+                    nativeTexture as flash.display3D.textures.Texture;
+            
+            potTexture.uploadCompressedTextureFromByteArray(data, offset, async);
         }
         
         // properties
