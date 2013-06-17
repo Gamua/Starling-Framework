@@ -28,7 +28,10 @@ package starling.textures
             var signature:String = String.fromCharCode(data[0], data[1], data[2]);
             if (signature != "ATF") throw new ArgumentError("Invalid ATF data");
             
-            switch (data[6])
+            if (data[6] == 255) data.position = 12; // new file version
+            else                data.position =  6; // old file version
+            
+            switch (data.readUnsignedByte())
             {
                 case 0:
                 case 1: mFormat = Context3DTextureFormat.BGRA; break;
@@ -40,9 +43,9 @@ package starling.textures
                 default: throw new Error("Invalid ATF format");
             }
             
-            mWidth = Math.pow(2, data[7]); 
-            mHeight = Math.pow(2, data[8]);
-            mNumTextures = data[9];
+            mWidth = Math.pow(2, data.readUnsignedByte()); 
+            mHeight = Math.pow(2, data.readUnsignedByte());
+            mNumTextures = data.readUnsignedByte();
             mData = data;
         }
         
