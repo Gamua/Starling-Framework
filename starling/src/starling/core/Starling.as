@@ -559,7 +559,7 @@ package starling.core
             if (!mStarted) return;
             
             makeCurrent();
-            mStage.dispatchEvent(new starling.events.KeyboardEvent(
+            mStage.broadcastEvent(new starling.events.KeyboardEvent(
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey));
         }
