@@ -322,7 +322,7 @@ package starling.text
             
             if (mAutoSize != TextFieldAutoSize.NONE)
             {
-                mTextBounds = mQuadBatch.getBounds(mQuadBatch, mTextBounds);
+                mTextBounds = boundsFromQuads(mQuadBatch, mTextBounds);
                 
                 if (isHorizontalAutoSize)
                     mHitArea.width  = mTextBounds.x + mTextBounds.width;
@@ -373,7 +373,7 @@ package starling.text
         public function get textBounds():Rectangle
         {
             if (mRequiresRedraw) redraw();
-            if (mTextBounds == null) mTextBounds = mQuadBatch.getBounds(mQuadBatch);
+            if (mTextBounds == null) mTextBounds = boundsFromQuads(mQuadBatch);
             return mTextBounds.clone();
         }
         
@@ -624,6 +624,17 @@ package starling.text
             }
             
             return fonts;
+        }
+
+        /** Returns the bounds of the given quad batch, or empty bounds if the batch is empty.
+         *  This prevents empty TextFields from having nonsense bounds. */
+        private static function boundsFromQuads (quads :QuadBatch, bounds :Rectangle = null) :Rectangle
+        {
+            if (quads.numQuads > 0) bounds = quads.getBounds(quads, bounds);
+            else if (!bounds) bounds = new Rectangle();
+            else bounds.setTo(0, 0, 0, 0);
+
+            return bounds;
         }
     }
 }
