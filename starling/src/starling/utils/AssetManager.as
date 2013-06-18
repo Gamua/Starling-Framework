@@ -328,7 +328,7 @@ package starling.utils
         /** Loads all enqueued assets asynchronously. The 'onProgress' function will be called
          *  with a 'ratio' between '0.0' and '1.0', with '1.0' meaning that it's complete.
          *
-         *  @param onProgress: <code>function(ratio:Number):void;</code> 
+         *  @param onProgress: <code>function(ratio:Number, xmlsProcessed:Boolean):void;</code> 
          */
         public function loadQueue(onProgress:Function):void
         {
@@ -336,6 +336,8 @@ package starling.utils
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
             var xmls:Vector.<XML> = new <XML>[];
+            var xmlsCount:uint = 0;
+            var xmlsProcessedCount:uint = 0;
             var numElements:int = mRawAssets.length;
             var currentRatio:Number = 0.0;
             var timeoutID:uint;
@@ -345,14 +347,28 @@ package starling.utils
             function resume():void
             {
                 currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
+                xmlsCount = xmls.length;
                 
                 if (mRawAssets.length)
+                {
                     timeoutID = setTimeout(processNext, 1);
-                else
-                    processXmls();
+                }
+                else if (xmlsProcessedCount < xmlsCount)
+                {
+                    if (xmlsProcessedCount == 0)
+                    {
+                        // xmls are processed seperately at the end, because the textures they reference
+                        // have to be available for other XMLs. Texture atlases are processed first:
+                        // that way, their textures can be referenced, too.
+                        xmls.sort(function(a:XML, b:XML):int { 
+                            return a.localName() == "TextureAtlas" ? -1 : 1; 
+                        });
+                    }
+                    timeoutID = setTimeout(processNextXml, 1);
+                }
                 
                 if (onProgress != null)
-                    onProgress(currentRatio);
+                    onProgress(currentRatio, xmlsProcessedCount == xmlsCount);
             }
             
             function processNext():void
@@ -362,45 +378,40 @@ package starling.utils
                 loadRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
             }
             
-            function processXmls():void
+            function processNextXml():void
             {
-                // xmls are processed seperately at the end, because the textures they reference
-                // have to be available for other XMLs. Texture atlases are processed first:
-                // that way, their textures can be referenced, too.
-                
-                xmls.sort(function(a:XML, b:XML):int { 
-                    return a.localName() == "TextureAtlas" ? -1 : 1; 
-                });
-                
-                for each (var xml:XML in xmls)
+                clearTimeout(timeoutID);
+                var xml:XML = xmls[xmlsProcessedCount];
+                var name:String;
+                var rootNode:String = xml.localName();
+
+                if (rootNode == "TextureAtlas")
                 {
-                    var name:String;
-                    var rootNode:String = xml.localName();
-                    
-                    if (rootNode == "TextureAtlas")
-                    {
-                        name = getName(xml.@imagePath.toString());
-                        
-                        var atlasTexture:Texture = getTexture(name);
-                        addTextureAtlas(name, new TextureAtlas(atlasTexture, xml));
-                        removeTexture(name, false);
-                    }
-                    else if (rootNode == "font")
-                    {
-                        name = getName(xml.pages.page.@file.toString());
-                        
-                        var fontTexture:Texture = getTexture(name);
-                        TextField.registerBitmapFont(new BitmapFont(fontTexture, xml));
-                        removeTexture(name, false);
-                    }
-                    else
-                        throw new Error("XML contents not recognized: " + rootNode);
+    				name = getName(xml.@imagePath.toString());
+
+                    var atlasTexture:Texture = getTexture(name);
+                    addTextureAtlas(name, new TextureAtlas(atlasTexture, xml));
+                    removeTexture(name, false);
                 }
+                else if (rootNode == "font")
+                {
+                    name = getName(xml.pages.page.@file.toString());
+
+                    var fontTexture:Texture = getTexture(name);
+                    TextField.registerBitmapFont(new BitmapFont(fontTexture, xml));
+                    removeTexture(name, false);
+                }
+                else
+                    throw new Error("XML contents not recognized: " + rootNode);
+
+                xmlsProcessedCount++;
+                resume();
             }
             
             function progress(ratio:Number):void
             {
-                onProgress(currentRatio + (1.0 / numElements) * Math.min(1.0, ratio) * 0.99);
+                onProgress(currentRatio + (1.0 / numElements) * Math.min(1.0, ratio) * 0.99, 
+                           xmlsProcessedCount == xmlsCount);
             }
         }
         
