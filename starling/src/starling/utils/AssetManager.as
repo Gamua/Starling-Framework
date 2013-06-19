@@ -336,8 +336,8 @@ package starling.utils
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
             var xmls:Vector.<XML> = new <XML>[];
-            var xmlsCount:uint = 0;
-            var xmlsProcessedCount:uint = 0;
+            var numXmls:uint = 0;
+            var numXmlsProcessed:uint = 0;
             var numElements:int = mRawAssets.length;
             var currentRatio:Number = 0.0;
             var timeoutID:uint;
@@ -347,15 +347,15 @@ package starling.utils
             function resume():void
             {
                 currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
-                xmlsCount = xmls.length;
+                numXmls = xmls.length;
                 
                 if (mRawAssets.length)
                 {
                     timeoutID = setTimeout(processNext, 1);
                 }
-                else if (xmlsProcessedCount < xmlsCount)
+                else if (numXmlsProcessed < numXmls)
                 {
-                    if (xmlsProcessedCount == 0)
+                    if (numXmlsProcessed == 0)
                     {
                         // xmls are processed seperately at the end, because the textures they reference
                         // have to be available for other XMLs. Texture atlases are processed first:
@@ -368,7 +368,7 @@ package starling.utils
                 }
                 
                 if (onProgress != null)
-                    onProgress(currentRatio, xmlsProcessedCount == xmlsCount);
+                    onProgress(currentRatio, numXmlsProcessed == numXmls && currentRatio == 1);
             }
             
             function processNext():void
@@ -381,13 +381,13 @@ package starling.utils
             function processNextXml():void
             {
                 clearTimeout(timeoutID);
-                var xml:XML = xmls[xmlsProcessedCount];
+                var xml:XML = xmls[numXmlsProcessed];
                 var name:String;
                 var rootNode:String = xml.localName();
 
                 if (rootNode == "TextureAtlas")
                 {
-    				name = getName(xml.@imagePath.toString());
+                    name = getName(xml.@imagePath.toString());
 
                     var atlasTexture:Texture = getTexture(name);
                     addTextureAtlas(name, new TextureAtlas(atlasTexture, xml));
@@ -404,14 +404,14 @@ package starling.utils
                 else
                     throw new Error("XML contents not recognized: " + rootNode);
 
-                xmlsProcessedCount++;
+                numXmlsProcessed++;
                 resume();
             }
             
             function progress(ratio:Number):void
             {
-                onProgress(currentRatio + (1.0 / numElements) * Math.min(1.0, ratio) * 0.99, 
-                           xmlsProcessedCount == xmlsCount);
+                var overallRatio:Number = currentRatio + (1.0 / numElements) * Math.min(1.0, ratio) * 0.99; 
+                onProgress(overallRatio, numXmlsProcessed == numXmls && overallRatio == 1);
             }
         }
         
