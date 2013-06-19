@@ -10,8 +10,9 @@
 
 package tests
 {
+    import flash.geom.Matrix;
     import flash.geom.Point;
-    import flash.geom.Vector3D;
+    import flash.geom.Rectangle;
     
     import flexunit.framework.Assert;
     
@@ -152,6 +153,32 @@ package tests
             vd.getTexCoords(1, texCoords);
             Assert.assertEquals(0.33, texCoords.x);
             Assert.assertEquals(0.66, texCoords.y);
+        }
+        
+        [Test]
+        public function testGetBounds():void
+        {
+            var vd:VertexData = new VertexData(0);
+            var bounds:Rectangle = vd.getBounds();
+            var expectedBounds:Rectangle = new Rectangle();
+            
+            Helpers.compareRectangles(expectedBounds, bounds);
+            
+            vd.numVertices = 2;
+            vd.setPosition(0, -10, -5);
+            vd.setPosition(1, 10, 5);
+            
+            bounds = vd.getBounds();
+            expectedBounds = new Rectangle(-10, -5, 20, 10);
+            
+            Helpers.compareRectangles(expectedBounds, bounds);
+            
+            var matrix:Matrix = new Matrix();
+            matrix.translate(10, 5);
+            bounds = vd.getBounds(matrix);
+            expectedBounds = new Rectangle(0, 0, 20, 10);
+            
+            Helpers.compareRectangles(expectedBounds, bounds);
         }
     }
 }

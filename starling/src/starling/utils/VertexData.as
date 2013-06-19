@@ -286,42 +286,56 @@ package starling.utils
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
             
-            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
-            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            var x:Number, y:Number, i:int;
-            
-            if (transformationMatrix == null)
+            if (numVertices == 0)
             {
-                for (i=0; i<numVertices; ++i)
+                if (transformationMatrix == null)
+                    resultRect.setEmpty();
+                else
                 {
-                    x = mRawData[offset];
-                    y = mRawData[int(offset+1)];
-                    offset += ELEMENTS_PER_VERTEX;
-                    
-                    minX = minX < x ? minX : x;
-                    maxX = maxX > x ? maxX : x;
-                    minY = minY < y ? minY : y;
-                    maxY = maxY > y ? maxY : y;
+                    MatrixUtil.transformCoords(transformationMatrix, 0, 0, sHelperPoint);
+                    resultRect.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
                 }
             }
             else
             {
-                for (i=0; i<numVertices; ++i)
+                var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+                var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+                var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+                var x:Number, y:Number, i:int;
+                
+                if (transformationMatrix == null)
                 {
-                    x = mRawData[offset];
-                    y = mRawData[int(offset+1)];
-                    offset += ELEMENTS_PER_VERTEX;
-                    
-                    MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
-                    minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
-                    maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
-                    minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
-                    maxY = maxY > sHelperPoint.y ? maxY : sHelperPoint.y;
+                    for (i=0; i<numVertices; ++i)
+                    {
+                        x = mRawData[offset];
+                        y = mRawData[int(offset+1)];
+                        offset += ELEMENTS_PER_VERTEX;
+                        
+                        minX = minX < x ? minX : x;
+                        maxX = maxX > x ? maxX : x;
+                        minY = minY < y ? minY : y;
+                        maxY = maxY > y ? maxY : y;
+                    }
                 }
+                else
+                {
+                    for (i=0; i<numVertices; ++i)
+                    {
+                        x = mRawData[offset];
+                        y = mRawData[int(offset+1)];
+                        offset += ELEMENTS_PER_VERTEX;
+                        
+                        MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
+                        minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
+                        maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
+                        minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
+                        maxY = maxY > sHelperPoint.y ? maxY : sHelperPoint.y;
+                    }
+                }
+                
+                resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             }
             
-            resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             return resultRect;
         }
         
