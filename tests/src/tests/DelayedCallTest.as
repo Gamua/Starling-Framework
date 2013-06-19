@@ -10,8 +10,6 @@
 
 package tests
 {
-    import flexunit.framework.Assert;
-    
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertTrue;
