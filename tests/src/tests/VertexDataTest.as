@@ -13,12 +13,15 @@ package tests
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.ByteArray;
     
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
+    import starling.utils.Color;
     import starling.utils.VertexData;
     
     public class VertexDataTest
@@ -52,14 +55,14 @@ package tests
             Assert.assertEquals(4, vd.numVertices);
         }
         
-        [Test(expects="RangeError")]
+        [Test(expects="Error")]
         public function testBoundsLow():void
         {
             var vd:VertexData = new VertexData(3);
             vd.getColor(-1);
         }
         
-        [Test(expects="RangeError")]
+        [Test(expects="Error")]
         public function testBoundsHigh():void
         {
             var vd:VertexData = new VertexData(3);
@@ -100,23 +103,24 @@ package tests
             
             // check premultiplied alpha
             
-            var alpha:Number = 0.5;
+            var alpha:Number = 0.8;
+            var red:int   = 80;
+            var green:int = 60;
+            var blue:int  = 40;
+            var rgb:uint = Color.rgb(red, green, blue);
             
-            vd.setColor(2, 0x445566);
+            vd.setColor(2, rgb);
             vd.setAlpha(2, alpha);
-            Assert.assertEquals(0x445566, vd.getColor(2));
+            Assert.assertEquals(rgb, vd.getColor(2));
             Assert.assertEquals(1.0, vd.getAlpha(1));
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            var data:Vector.<Number> = vd.rawData;
-            var red:Number   = 0x44 / 255.0;
-            var green:Number = 0x55 / 255.0;
-            var blue:Number  = 0x66 / 255.0;
-            var offset:int = VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET;
+            var data:ByteArray = vd.rawData;
+            var offset:int = (VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET) * 4;
             
-            assertThat(data[offset  ], closeTo(red * alpha, E));
-            assertThat(data[offset+1], closeTo(green * alpha, E));
-            assertThat(data[offset+2], closeTo(blue * alpha, E));
+            assertEquals(data[offset  ], int(red   * alpha));
+            assertEquals(data[offset+1], int(green * alpha));
+            assertEquals(data[offset+2], int(blue  * alpha));
             
             // changing the pma setting should update contents
             
@@ -127,14 +131,14 @@ package tests
             Assert.assertEquals(0x112233, vd.getColor(1));
             Assert.assertEquals(1.0, vd.getAlpha(0));
             
-            vd.setColor(2, 0x445566);
-            vd.setAlpha(2, 0.5);
-            Assert.assertEquals(0x445566, vd.getColor(2));
-            Assert.assertEquals(0.5, vd.getAlpha(2));
+            vd.setColor(2, rgb);
+            vd.setAlpha(2, alpha);
+            Assert.assertEquals(rgb, vd.getColor(2));
+            Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            assertThat(data[offset  ], closeTo(red, E));
-            assertThat(data[offset+1], closeTo(green, E));
-            assertThat(data[offset+2], closeTo(blue, E));
+            assertEquals(data[offset  ], red);
+            assertEquals(data[offset+1], green);
+            assertEquals(data[offset+2], blue);
         }
         
         [Test]
@@ -147,12 +151,12 @@ package tests
             var texCoords:Point = new Point();
             
             vd.getTexCoords(0, texCoords);
-            Assert.assertEquals(0.25, texCoords.x);
-            Assert.assertEquals(0.75, texCoords.y);
+            assertThat(texCoords.x, closeTo(0.25, E));
+            assertThat(texCoords.y, closeTo(0.75, E));
             
             vd.getTexCoords(1, texCoords);
-            Assert.assertEquals(0.33, texCoords.x);
-            Assert.assertEquals(0.66, texCoords.y);
+            assertThat(texCoords.x, closeTo(0.33, E));
+            assertThat(texCoords.y, closeTo(0.66, E));
         }
         
         [Test]
@@ -179,6 +183,60 @@ package tests
             expectedBounds = new Rectangle(0, 0, 20, 10);
             
             Helpers.compareRectangles(expectedBounds, bounds);
+        }
+        
+        [Test]
+        public function testCopyTo():void
+        {
+            var vd1:VertexData = new VertexData(2, false);
+            vd1.setPosition(0, 1, 2);
+            vd1.setColor(0, 0xaabbcc);
+            vd1.setTexCoords(0, 0.1, 0.2);
+            vd1.setPosition(1, 3, 4);
+            vd1.setColor(1, 0x334455);
+            vd1.setTexCoords(1, 0.3, 0.4);
+            
+            var vd2:VertexData = new VertexData(2, false);
+            vd1.copyTo(vd2);
+            
+            Helpers.compareByteArrays(vd1.rawData, vd2.rawData);
+            assertEquals(vd1.numVertices, vd2.numVertices);
+            
+            vd1.copyTo(vd2, 2);
+            assertEquals(4, vd2.numVertices);
+            
+            vd1.rawData.position = 0;
+            vd2.rawData.position = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
+            
+            for (var i:int=0; i<2; ++i)
+                for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j)
+                    assertEquals(vd1.rawData.readUnsignedInt(), vd2.rawData.readUnsignedInt());
+        }
+        
+        [Test]
+        public function testTransformVertex():void
+        {
+            var vd:VertexData = new VertexData(2);
+            vd.setPosition(0, 10, 20);
+            vd.setPosition(1, 30, 40);
+            
+            var matrix:Matrix = new Matrix();
+            matrix.translate(5, 6);
+
+            var position:Point = new Point();
+            vd.transformVertex(0, matrix, 1);
+            vd.getPosition(0, position);
+            Helpers.comparePoints(position, new Point(15, 26));
+            vd.getPosition(1, position);
+            Helpers.comparePoints(position, new Point(30, 40));
+            
+            matrix.identity();
+            matrix.scale(0.5, 0.25);
+            vd.transformVertex(1, matrix, 1);
+            vd.getPosition(0, position);
+            Helpers.comparePoints(position, new Point(15, 26));
+            vd.getPosition(1, position);
+            Helpers.comparePoints(position, new Point(15, 10));
         }
     }
 }

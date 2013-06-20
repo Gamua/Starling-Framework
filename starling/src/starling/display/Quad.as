@@ -56,7 +56,7 @@ package starling.display
             mVertexData.setPosition(0, 0.0, 0.0);
             mVertexData.setPosition(1, width, 0.0);
             mVertexData.setPosition(2, 0.0, height);
-            mVertexData.setPosition(3, width, height);            
+            mVertexData.setPosition(3, width, height);
             mVertexData.setUniformColor(color);
             
             onVertexDataChanged();
@@ -155,9 +155,10 @@ package starling.display
         }
         
         /** Copies the raw vertex data to a VertexData instance. */
-        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
+        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0,
+                                         matrix:Matrix=null):void
         {
-            mVertexData.copyTo(targetData, targetVertexID);
+            mVertexData.copyTo(targetData, targetVertexID, 0, 4, matrix);
         }
         
         /** @inheritDoc */

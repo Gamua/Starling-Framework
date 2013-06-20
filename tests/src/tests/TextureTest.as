@@ -48,7 +48,7 @@ package tests
             subTexture = new SubTexture(texture, new Rectangle(0, 0, rootWidth, rootHeight));            
             adjustedVertexData = vertexData.clone(); 
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            Helpers.compareVectors(vertexData.rawData, adjustedVertexData.rawData);
+            Helpers.compareByteArrays(vertexData.rawData, adjustedVertexData.rawData);
             
             // test subtexture with 50% of the size of the base texture
             subTexture = new SubTexture(texture,

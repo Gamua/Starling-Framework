@@ -171,7 +171,7 @@ package starling.display
             if (context == null)  throw new MissingContextError();
             
             mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
+            mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, numVertices);
             
             mIndexBuffer = context.createIndexBuffer(numIndices);
             mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
@@ -186,10 +186,9 @@ package starling.display
                 createBuffers();
             else
             {
-                // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
+                // as last parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
                 // this is slower than updating the complete buffer.
-                
-                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+                mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, mVertexData.numVertices);
                 mSyncRequired = false;
             }
         }
@@ -224,7 +223,7 @@ package starling.display
             
             if (mTexture == null || tinted)
                 context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
-                                          Context3DVertexBufferFormat.FLOAT_4);
+                                          Context3DVertexBufferFormat.BYTES_4);
             
             if (mTexture)
             {
@@ -287,8 +286,7 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quad.premultipliedAlpha);
             }
             
-            quad.copyVertexDataTo(mVertexData, vertexID);
-            mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
+            quad.copyVertexDataTo(mVertexData, vertexID, modelViewMatrix);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
@@ -320,8 +318,7 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quadBatch.mVertexData.premultipliedAlpha, false);
             }
             
-            quadBatch.mVertexData.copyTo(mVertexData, vertexID, 0, numQuads*4);
-            mVertexData.transformVertex(vertexID, modelViewMatrix, numQuads*4);
+            quadBatch.mVertexData.copyTo(mVertexData, vertexID, 0, numQuads*4, modelViewMatrix);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, numQuads*4);

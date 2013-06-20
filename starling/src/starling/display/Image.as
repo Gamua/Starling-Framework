@@ -11,6 +11,7 @@
 package starling.display
 {
     import flash.display.Bitmap;
+    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
@@ -119,7 +120,8 @@ package starling.display
         
         /** Copies the raw vertex data to a VertexData instance.
          *  The texture coordinates are already in the format required for rendering. */ 
-        public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
+        public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0, 
+                                                  matrix:Matrix=null):void
         {
             if (mVertexDataCacheInvalid)
             {
@@ -128,7 +130,7 @@ package starling.display
                 mTexture.adjustVertexData(mVertexDataCache, 0, 4);
             }
             
-            mVertexDataCache.copyTo(targetData, targetVertexID);
+            mVertexDataCache.copyTo(targetData, targetVertexID, 0, 4, matrix);
         }
         
         /** The texture that is displayed on the quad. */
