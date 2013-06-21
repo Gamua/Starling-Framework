@@ -264,7 +264,7 @@ package starling.display
         
         /** Adds a quad to the batch. The first quad determines the state of the batch,
          *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
-         *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
+         *  make sure they share that state (e.g. with the 'isStateChange' method), or reset
          *  the batch. */ 
         public function addQuad(quad:Quad, parentAlpha:Number=1.0, texture:Texture=null, 
                                 smoothing:String=null, modelViewMatrix:Matrix=null, 
