@@ -171,10 +171,8 @@ package starling.utils
         /** Updates the RGB color values of a vertex (alpha is not changed). */ 
         public function setColor(vertexID:int, color:uint):void
         {   
-            trace(this);
             var alpha:Number = getAlpha(vertexID);
             setColorAndAlpha(vertexID, color, alpha);
-            trace(this);
         }
         
         /** Returns the RGB color of a vertex (no alpha). */
