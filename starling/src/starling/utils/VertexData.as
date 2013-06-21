@@ -179,9 +179,9 @@ package starling.utils
         public function getColor(vertexID:int):uint
         {
             mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
-            var rgba:uint = mRawData.readUnsignedInt();
+            var rgba:uint = switchEndian(mRawData.readUnsignedInt());
             if (mPremultipliedAlpha) rgba = unmultiplyAlpha(rgba);
-            return ((rgba & 0xffffff00) >> 8) & 0xffffff;
+            return (rgba >> 8) & 0xffffff;
         }
         
         /** Updates the alpha value of a vertex (range 0-1). */
@@ -195,7 +195,7 @@ package starling.utils
         public function getAlpha(vertexID:int):Number
         {
             mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
-            var rgba:uint = mRawData.readUnsignedInt();
+            var rgba:uint = switchEndian(mRawData.readUnsignedInt());
             return (rgba & 0xff) / 255.0;
         }
         
@@ -392,7 +392,16 @@ package starling.utils
         [Inline]
         private final function createRGBA(color:uint, alpha:Number):uint
         {
-            return (color & 0xffffff) << 8 | (int(alpha * 255.0) & 0xff);
+            return ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff);
+        }
+        
+        [Inline]
+        private final function switchEndian(value:uint):uint
+        {
+            return ( value        & 0xff) << 24 |
+                   ((value >>  8) & 0xff) << 16 |
+                   ((value >> 16) & 0xff) <<  8 |
+                   ((value >> 24) & 0xff);
         }
         
         private function setColorAndAlpha(vertexID:int, color:uint, alpha:Number):void
@@ -402,7 +411,7 @@ package starling.utils
             if (mPremultipliedAlpha) rgba = premultiplyAlpha(rgba);
             
             mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
-            mRawData.writeUnsignedInt(rgba);
+            mRawData.writeUnsignedInt(switchEndian(rgba));
         }
         
         private final function premultiplyAlpha(rgba:uint):uint
@@ -412,9 +421,9 @@ package starling.utils
             if (alpha == 1.0) return rgba;
             else
             {
-                var r:uint = (((rgba & 0xff000000) >> 24) & 0xff) * alpha;
-                var g:uint = (((rgba & 0x00ff0000) >> 16) & 0xff) * alpha;
-                var b:uint = (((rgba & 0x0000ff00) >>  8) & 0xff) * alpha;
+                var r:uint = ((rgba >> 24) & 0xff) * alpha;
+                var g:uint = ((rgba >> 16) & 0xff) * alpha;
+                var b:uint = ((rgba >>  8) & 0xff) * alpha;
                 
                 return (r & 0xff) << 24 |
                        (g & 0xff) << 16 |
@@ -430,9 +439,9 @@ package starling.utils
             if (alpha == 0.0 || alpha == 1.0) return rgba;
             else
             {
-                var r:uint = (((rgba & 0xff000000) >> 24) & 0xff) / alpha;
-                var g:uint = (((rgba & 0x00ff0000) >> 16) & 0xff) / alpha;
-                var b:uint = (((rgba & 0x0000ff00) >>  8) & 0xff) / alpha;
+                var r:uint = ((rgba >> 24) & 0xff) / alpha;
+                var g:uint = ((rgba >> 16) & 0xff) / alpha;
+                var b:uint = ((rgba >>  8) & 0xff) / alpha;
                 
                 return (r & 0xff) << 24 |
                        (g & 0xff) << 16 |
@@ -461,7 +470,8 @@ package starling.utils
             return false;
         }
         
-        /** Changes the way alpha and color values are stored. Updates all exisiting vertices. */
+        /** Changes the way alpha and color values are stored. Optionally updates all exisiting 
+          * vertices. */
         public function setPremultipliedAlpha(value:Boolean, updateData:Boolean=true):void
         {
             if (value == mPremultipliedAlpha) return;
@@ -475,11 +485,11 @@ package starling.utils
                 for (var i:int=0; i<mNumVertices; ++i)
                 {
                     mRawData.position = offset;
-                    oldColor = mRawData.readUnsignedInt();
+                    oldColor = switchEndian(mRawData.readUnsignedInt());
                     newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
                     
                     mRawData.position = offset;
-                    mRawData.writeUnsignedInt(newColor);
+                    mRawData.writeUnsignedInt(switchEndian(newColor));
                     
                     offset += BYTES_PER_VERTEX;
                 }
