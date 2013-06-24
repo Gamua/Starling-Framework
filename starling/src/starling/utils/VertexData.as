@@ -125,7 +125,7 @@ package starling.utils
                 
                 for (var i:int=0; i<numVertices; ++i)
                 {
-                    // transform position
+                    // write transformed position
                     
                     x = mRawData.readFloat();
                     y = mRawData.readFloat();
@@ -135,9 +135,8 @@ package starling.utils
                     
                     // copy rest
                     
-                    targetRawData.writeUnsignedInt(mRawData.readUnsignedInt()); // color
-                    targetRawData.writeUnsignedInt(mRawData.readUnsignedInt()); // texCoords (u)
-                    targetRawData.writeUnsignedInt(mRawData.readUnsignedInt()); // texCoords (v)
+                    targetRawData.writeBytes(mRawData, mRawData.position, 12);
+                    mRawData.position += 12;
                 }
             }
         }
