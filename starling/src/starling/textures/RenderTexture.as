@@ -80,6 +80,7 @@ package starling.textures
             var nativeWidth:int  = getNextPowerOfTwo(width  * scale);
             var nativeHeight:int = getNextPowerOfTwo(height * scale);
             mActiveTexture = Texture.empty(width, height, PMA, true, scale);
+            mActiveTexture.root.onRestore = mActiveTexture.root.clear;
             
             super(mActiveTexture, new Rectangle(0, 0, width, height), true);
             
@@ -89,6 +90,7 @@ package starling.textures
             if (persistent)
             {
                 mBufferTexture = Texture.empty(width, height, PMA, true, scale);
+                mBufferTexture.root.onRestore = mBufferTexture.root.clear;
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
