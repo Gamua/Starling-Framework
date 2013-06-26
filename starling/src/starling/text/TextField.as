@@ -150,6 +150,8 @@ package starling.text
             }
         }
         
+        // TrueType font rendering
+        
         private function createRenderedContents():void
         {
             if (mQuadBatch)
@@ -158,7 +160,46 @@ package starling.text
                 mQuadBatch = null; 
             }
             
+            if (mTextBounds == null) 
+                mTextBounds = new Rectangle();
+            
             var scale:Number  = Starling.contentScaleFactor;
+            var bitmapData:BitmapData = renderText(scale, mTextBounds);
+            
+            mHitArea.width  = bitmapData.width  / scale;
+            mHitArea.height = bitmapData.height / scale;
+            
+            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale);
+            texture.root.onRestore = function():void
+            {
+                texture.root.uploadBitmapData(renderText(scale, mTextBounds));
+            };
+            
+            bitmapData.dispose();
+            
+            if (mImage == null) 
+            {
+                mImage = new Image(texture);
+                mImage.touchable = false;
+                addChild(mImage);
+            }
+            else 
+            { 
+                mImage.texture.dispose();
+                mImage.texture = texture; 
+                mImage.readjustSize(); 
+            }
+        }
+
+        /** formatText is called immediately before the text is rendered. The intent of formatText
+         *  is to be overridden in a subclass, so that you can provide custom formatting for TextField.
+         *  <code>textField</code> is the flash.text.TextField object that you can specially format;
+         *  <code>textFormat</code> is the default TextFormat for <code>textField</code>.
+         */
+        protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
+
+        private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
+        {
             var width:Number  = mHitArea.width  * scale;
             var height:Number = mHitArea.height * scale;
             var hAlign:String = mHAlign;
@@ -211,7 +252,7 @@ package starling.text
             if (hAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
             else if (hAlign == HAlign.CENTER) xOffset = (width - textWidth) / 2.0;
             else if (hAlign == HAlign.RIGHT)  xOffset =  width - textWidth - 2;
-
+            
             var yOffset:Number = 0.0;
             if (vAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
             else if (vAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
@@ -234,37 +275,12 @@ package starling.text
             sNativeTextField.text = "";
             
             // update textBounds rectangle
-            if (mTextBounds == null) mTextBounds = new Rectangle();
-            mTextBounds.setTo(xOffset   / scale, yOffset    / scale,
-                              textWidth / scale, textHeight / scale);
+            resultTextBounds.setTo(xOffset   / scale, yOffset    / scale,
+                                   textWidth / scale, textHeight / scale);
             
-            // update hit area
-            mHitArea.width  = width  / scale;
-            mHitArea.height = height / scale;
-            
-            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale);
-            
-            if (mImage == null) 
-            {
-                mImage = new Image(texture);
-                mImage.touchable = false;
-                addChild(mImage);
-            }
-            else 
-            { 
-                mImage.texture.dispose();
-                mImage.texture = texture; 
-                mImage.readjustSize(); 
-            }
+            return bitmapData;
         }
-
-        /** formatText is called immediately before the text is rendered. The intent of formatText
-         *  is to be overridden in a subclass, so that you can provide custom formatting for TextField.
-         *  <code>textField</code> is the flash.text.TextField object that you can specially format;
-         *  <code>textFormat</code> is the default TextFormat for <code>textField</code>.
-         */
-        protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
-
+        
         private function autoScaleNativeTextField(textField:flash.text.TextField):void
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
@@ -280,6 +296,8 @@ package starling.text
                 textField.setTextFormat(format);
             }
         }
+        
+        // bitmap font composition
         
         private function createComposedContents():void
         {
@@ -336,6 +354,8 @@ package starling.text
             }
         }
         
+        // helpers
+        
         private function updateBorder():void
         {
             if (mBorder == null) return;
@@ -356,6 +376,8 @@ package starling.text
             bottomLine.y = height - 1;
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }
+        
+        // properties
         
         private function get isHorizontalAutoSize():Boolean
         {
