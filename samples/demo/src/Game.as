@@ -1,5 +1,6 @@
 package 
 {
+    import flash.system.System;
     import flash.ui.Keyboard;
     import flash.utils.getDefinitionByName;
     
@@ -75,6 +76,10 @@ package
         
         private function showMainMenu():void
         {
+            // now would be a good time for a clean-up 
+            System.pauseForGCIfCollectionImminent(0);
+            System.gc();
+            
             if (mMainMenu == null)
                 mMainMenu = new MainMenu();
             
