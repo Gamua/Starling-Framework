@@ -108,6 +108,46 @@ package starling.textures
             // override in subclasses
         }
         
+        /** Creates a texture object from an embedded asset class. Textures created with this
+         *  method will be restored directly from the asset class in case of a context loss,
+         *  which guarantees a very economic memory usage.  
+         * 
+         *  @param assetClass  must contain either a Bitmap or a ByteArray with ATF data.
+         *  @param mipMaps     for Bitmaps, indicates if mipMaps will be created;
+         *                     for ATF data, indicates if the contained mipMaps will be used.
+         *  @param scale       the scale factor of the created texture. 
+         */
+        public static function fromEmbeddedAsset(assetClass:Class, mipMaps:Boolean=true,
+                                                 scale:Number=1):Texture
+        {
+            var texture:Texture;
+            var asset:Object = new assetClass();
+            
+            if (asset is Bitmap)
+            {
+                texture = Texture.fromBitmap(asset as Bitmap, mipMaps, false, scale);
+                texture.root.onRestore = function():void
+                {
+                    texture.root.uploadBitmap(new assetClass());
+                };
+            }
+            else if (asset is ByteArray)
+            {
+                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMaps);
+                texture.root.onRestore = function():void
+                {
+                    texture.root.uploadAtfData(new assetClass()); 
+                };
+            }
+            else
+            {
+                throw new ArgumentError("Invalid asset type: " + getQualifiedClassName(asset));
+            }
+            
+            asset = null; // avoid that object stays in memory (through 'onRestore' functions)
+            return texture;
+        }
+        
         /** Creates a texture object from a bitmap.
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
         public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,

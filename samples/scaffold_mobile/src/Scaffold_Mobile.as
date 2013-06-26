@@ -79,7 +79,8 @@ package
             // Note that we cannot embed "Default.png" (or its siblings), because any embedded
             // files will vanish from the application package, and those are picked up by the OS!
             
-            var background:Bitmap = scaleFactor == 1 ? new Background() : new BackgroundHD();
+            var backgroundClass:Class = scaleFactor == 1 ? Background : BackgroundHD;
+            var background:Bitmap = new backgroundClass();
             Background = BackgroundHD = null; // no longer needed!
             
             background.x = viewPort.x;
@@ -102,8 +103,9 @@ package
                 {
                     mStarling.removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
                     removeChild(background);
+                    background = null;
                     
-                    var bgTexture:Texture = Texture.fromBitmap(background, false, false, scaleFactor);
+                    var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass, false, scaleFactor);
                     
                     app.start(bgTexture, assets);
                     mStarling.start();
