@@ -24,6 +24,7 @@ package starling.utils
     import starling.core.Starling;
     import starling.text.BitmapFont;
     import starling.text.TextField;
+    import starling.textures.AtfData;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
     
@@ -359,7 +360,7 @@ package starling.utils
             {
                 var assetInfo:Object = mRawAssets.pop();
                 clearTimeout(timeoutID);
-                loadRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
+                processRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
             }
             
             function processXmls():void
@@ -404,14 +405,13 @@ package starling.utils
             }
         }
         
-        private function loadRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
-                                      onProgress:Function, onComplete:Function):void
+        private function processRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
+                                         onProgress:Function, onComplete:Function):void
         {
-            var extension:String = null;
-            
-            if (rawAsset is Class)
+            loadRawAsset(name, rawAsset, onProgress, function(asset:Object):void
             {
-                var asset:Object = new rawAsset();
+                var texture:Texture;
+                var bytes:ByteArray;
                 
                 if (asset is Sound)
                 {
@@ -420,18 +420,34 @@ package starling.utils
                 }
                 else if (asset is Bitmap)
                 {
-                    addBitmapTexture(name, asset as Bitmap);
+                    texture = Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor);
+                    texture.root.onRestore = function():void
+                    {
+                        loadRawAsset(name, rawAsset, null, function(asset:Object):void
+                        {
+                            texture.root.uploadBitmap(asset as Bitmap);
+                        });
+                    };
+
+                    addTexture(name, texture);
                     onComplete();
                 }
                 else if (asset is ByteArray)
                 {
-                    var bytes:ByteArray = asset as ByteArray;
-                    var signature:String = String.fromCharCode(bytes[0], bytes[1], bytes[2]);
+                    bytes = asset as ByteArray;
                     
-                    if (signature == "ATF")
+                    if (AtfData.isAtfData(bytes))
                     {
-                        addTexture(name, Texture.fromAtfData(asset as ByteArray, mScaleFactor, 
-                            mUseMipMaps, onComplete));
+                        texture = Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete);
+                        texture.root.onRestore = function():void
+                        {
+                            loadRawAsset(name, rawAsset, null, function(asset:Object):void
+                            {
+                                texture.root.uploadAtfData(asset as ByteArray, 0, true);
+                            });
+                        };
+                        
+                        addTexture(name, texture);
                     }
                     else
                     {
@@ -439,11 +455,35 @@ package starling.utils
                         onComplete();
                     }
                 }
+                else if (asset is XML)
+                {
+                    xmls.push(new XML(bytes));
+                    onComplete();
+                }
+                else if (asset == null)
+                {
+                    onComplete();
+                }
                 else
                 {
                     log("Ignoring unsupported asset type: " + getQualifiedClassName(asset));
                     onComplete();
                 }
+                
+                // avoid that objects stay in memory (through 'onRestore' functions)
+                asset = null;
+                bytes = null;
+            });
+        }
+        
+        private function loadRawAsset(name:String, rawAsset:Object, 
+                                      onProgress:Function, onComplete:Function):void
+        {
+            var extension:String = null;
+            
+            if (rawAsset is Class)
+            {
+                onComplete(new rawAsset());
             }
             else if (rawAsset is String)
             {
@@ -461,12 +501,13 @@ package starling.utils
             function onIoError(event:IOErrorEvent):void
             {
                 log("IO error: " + event.text);
-                onComplete();
+                onComplete(null);
             }
             
             function onLoadProgress(event:ProgressEvent):void
             {
-                onProgress(event.bytesLoaded / event.bytesTotal);
+                if (onProgress != null)
+                    onProgress(event.bytesLoaded / event.bytesTotal);
             }
             
             function onUrlLoaderComplete(event:Event):void
@@ -476,24 +517,20 @@ package starling.utils
                 var sound:Sound;
                 
                 urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
-                urlLoader.removeEventListener(ProgressEvent.PROGRESS, onProgress);
+                urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
                 
                 switch (extension)
                 {
                     case "atf":
-                        addTexture(name, Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete));
-                        break;
                     case "fnt":
                     case "xml":
-                        xmls.push(new XML(bytes));
-                        onComplete();
+                        onComplete(bytes);
                         break;
                     case "mp3":
                         sound = new Sound();
                         sound.loadCompressedDataFromByteArray(bytes, bytes.length);
-                        addSound(name, sound);
-                        onComplete();
+                        onComplete(sound);
                         break;
                     default:
                         var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
@@ -508,14 +545,7 @@ package starling.utils
             function onLoaderComplete(event:Event):void
             {
                 event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
-                var content:Object = event.target.content;
-                
-                if (content is Bitmap)
-                    addBitmapTexture(name, content as Bitmap);
-                else
-                    throw new Error("Unsupported asset type: " + getQualifiedClassName(content));
-                
-                onComplete();
+                onComplete(event.target.content);
             }
         }
         
@@ -551,13 +581,6 @@ package starling.utils
         protected function log(message:String):void
         {
             if (mVerbose) trace("[AssetManager]", message);
-        }
-        
-        /** This method is called during loading of assets when a bitmap texture is processed. 
-         *  Override it if you want to preprocess the bitmap in some way. */
-        protected function addBitmapTexture(name:String, bitmap:Bitmap):void
-        {
-            addTexture(name, Texture.fromBitmap(bitmap, mUseMipMaps, false, mScaleFactor));
         }
         
         // properties

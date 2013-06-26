@@ -10,10 +10,12 @@
 
 package starling.textures
 {
+    import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     
@@ -21,6 +23,7 @@ package starling.textures
     import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.events.Event;
+    import starling.utils.Color;
     import starling.utils.getNextPowerOfTwo;
 
     /** A ConcreteTexture wraps a Stage3D texture object, storing the properties of the texture. */
@@ -36,6 +39,9 @@ package starling.textures
         private var mScale:Number;
         private var mOnRestore:Function;
         private var mDataUploaded:Boolean;
+        
+        /** helper object */
+        private static var sOrigin:Point = new Point();
         
         /** Creates a ConcreteTexture object from a TextureBase, storing information about size,
          *  mip-mapping, and if the channels contain premultiplied alpha values. */
@@ -66,10 +72,28 @@ package starling.textures
         
         // texture data upload
         
-        /** Uploads bitmap data to the texture, optionally creating mipmaps. Note that the
-         *  size of the bitmap data must be exactly the same as the original texture size. */
-        public function uploadBitmapData(data:BitmapData, generateMipmaps:Boolean):void
+        /** Uploads a bitmap to the texture. The existing contents will be replaced.
+         *  If the size of the bitmap does not match the size of the texture, the bitmap will be
+         *  cropped or filled up with transparent pixels */
+        public function uploadBitmap(bitmap:Bitmap):void
         {
+            uploadBitmapData(bitmap.bitmapData);
+        }
+        
+        /** Uploads bitmap data to the texture. The existing contents will be replaced.
+         *  If the size of the bitmap does not match the size of the texture, the bitmap will be
+         *  cropped or filled up with transparent pixels */
+        public function uploadBitmapData(data:BitmapData):void
+        {
+            var potData:BitmapData;
+            
+            if (data.width != mWidth || data.height != mHeight)
+            {
+                potData = new BitmapData(mWidth, mHeight, true, 0);
+                potData.copyPixels(data, data.rect, sOrigin);
+                data = potData;
+            }
+            
             if (mBase is flash.display3D.textures.Texture)
             {
                 var potTexture:flash.display3D.textures.Texture = 
@@ -77,7 +101,7 @@ package starling.textures
                 
                 potTexture.uploadFromBitmapData(data);
                 
-                if (generateMipmaps && data.width > 1 && data.height > 1)
+                if (mMipMapping && data.width > 1 && data.height > 1)
                 {
                     var currentWidth:int  = data.width  >> 1;
                     var currentHeight:int = data.height >> 1;
@@ -105,6 +129,7 @@ package starling.textures
                 mBase["uploadFromBitmapData"](data);
             }
             
+            if (potData) potData.dispose();
             mDataUploaded = true;
         }
         
@@ -135,6 +160,7 @@ package starling.textures
                                                           mOptimizedForRenderTexture);
             
             // a chance to upload texture data
+            mDataUploaded = false;
             mOnRestore();
             
             // if no texture has been uploaded (yet), we init the texture with transparent pixels.
@@ -144,10 +170,15 @@ package starling.textures
         /** Clears the texture with a certain color and alpha value. The previous contents of the
          *  texture is wiped out. Beware: this method resets the render target to the back buffer; 
          *  don't call it from within a render method. */ 
-        public function clear(color:uint=0xffffff, alpha:Number=0.0):void
+        public function clear(color:uint=0x0, alpha:Number=0.0):void
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
+            
+            if (mPremultipliedAlpha && alpha < 1.0)
+                color = Color.rgb(Color.getRed(color)   * alpha,
+                                  Color.getGreen(color) * alpha,
+                                  Color.getBlue(color)  * alpha);
             
             context.setRenderToTexture(mBase);
             RenderSupport.clear(color, alpha);

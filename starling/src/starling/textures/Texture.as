@@ -17,7 +17,6 @@ package starling.textures
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
     import flash.events.Event;
-    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
@@ -88,9 +87,6 @@ package starling.textures
         private var mFrame:Rectangle;
         private var mRepeat:Boolean;
         
-        /** helper object */
-        private static var sOrigin:Point = new Point();
-        
         /** @private */
         public function Texture()
         {
@@ -127,12 +123,12 @@ package starling.textures
                                               optimizeForRenderToTexture:Boolean=false,
                                               scale:Number=1):Texture
         {
-            var potData:BitmapData;
             var nativeTexture:flash.display3D.textures.TextureBase;
             var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
             
+            var width:int, height:int;
             var origWidth:int  = data.width;
             var origHeight:int = data.height;
             var potWidth:int   = getNextPowerOfTwo(origWidth);
@@ -144,38 +140,33 @@ package starling.textures
             
             if (useRectTexture)
             {
+                width  = origWidth;
+                height = origHeight;
+                
                 // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
                 // methods only through those lookups, we stay compatible with older SDKs.
-                
-                nativeTexture = context["createRectangleTexture"](origWidth, origHeight, 
+                nativeTexture = context["createRectangleTexture"](width, height, 
                     Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
             }
             else
             {
-                nativeTexture = context.createTexture(potWidth, potHeight, 
+                width  = potWidth;
+                height = potHeight;
+                nativeTexture = context.createTexture(width, height, 
                     Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
-            
-                if (potWidth > origWidth || potHeight > origHeight)
-                {
-                    potData = new BitmapData(potWidth, potHeight, true, 0);
-                    potData.copyPixels(data, data.rect, sOrigin);
-                    data = potData;
-                }
             }
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, Context3DTextureFormat.BGRA, data.width, data.height,
+                nativeTexture, Context3DTextureFormat.BGRA, width, height,
                 generateMipMaps, true, optimizeForRenderToTexture, scale);
             
-            concreteTexture.uploadBitmapData(data, generateMipMaps);
+            concreteTexture.uploadBitmapData(data);
             
             if (Starling.handleLostContext)
                 concreteTexture.onRestore = function():void
                 {
-                    concreteTexture.uploadBitmapData(data, generateMipMaps);
+                    concreteTexture.uploadBitmapData(data);
                 };
-            else if (potData)
-                potData.dispose();
             
             if (isPot || useRectTexture)
                 return concreteTexture;
