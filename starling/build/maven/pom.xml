@@ -12,7 +12,7 @@
 	<properties>
 		<flexmojos.version>4.2-beta</flexmojos.version>
 		<flex.framework.version>4.6.0.23201</flex.framework.version>
-		<playerglobal.version>11.1</playerglobal.version>
+		<playerglobal.version>11.4</playerglobal.version>
 	</properties>
 
 	<ciManagement>
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>com.adobe.flash.framework</groupId>
       <artifactId>playerglobal</artifactId>
-      <version>11.4</version>
+      <version>${playerglobal.version}</version>
       <type>swc</type>
 		</dependency>
 	</dependencies>
