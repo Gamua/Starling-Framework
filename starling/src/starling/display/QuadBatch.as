@@ -410,6 +410,7 @@ package starling.display
                 quadBatchID = 0;
                 objectAlpha = 1.0;
                 blendMode = object.blendMode;
+                ignoreCurrentFilter = true;
                 if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
                 else quadBatches[0].reset();
             }
