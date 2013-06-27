@@ -214,6 +214,7 @@ package starling.display
         public function setChildIndex(child:DisplayObject, index:int):void
         {
             var oldIndex:int = getChildIndex(child);
+            if (oldIndex == index) return;
             if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
             mChildren.splice(oldIndex, 1);
             mChildren.splice(index, 0, child);
