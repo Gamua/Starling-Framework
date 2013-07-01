@@ -670,8 +670,11 @@ package starling.utils
             for (var i:int=0, len:int=bytes.length; i<len; ++i)
             {
                 var byte:int = bytes[i];
-                if (byte == 10 || byte == 13 || byte == 32) continue; // \n, \r, space
-                else return byte == wanted; 
+                
+                if      (i==0 && (byte == 0xfe || byte == 0xff)) continue; // UTF-16 BOM
+                else if (i==1 && (byte == 0xfe || byte == 0xff)) continue; // UTF-16 BOM
+                else if (byte == 0 || byte == 10 || byte == 13 || byte == 32) continue; // null, \n, \r, space
+                else return byte == wanted;
             }
             
             return false;
