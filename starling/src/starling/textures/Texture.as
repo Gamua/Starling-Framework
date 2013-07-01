@@ -139,7 +139,7 @@ package starling.textures
          *                     render target
          *  @param scale:      the scale factor of the created texture. 
          */
-        public static function fromEmbeddedAsset(assetClass:Class, mipMaps:Boolean=true,
+        public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
                                                  optimizeForRenderToTexture:Boolean=false,
                                                  scale:Number=1):Texture
         {
@@ -148,7 +148,7 @@ package starling.textures
             
             if (asset is Bitmap)
             {
-                texture = Texture.fromBitmap(asset as Bitmap, mipMaps, false, scale);
+                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -156,7 +156,7 @@ package starling.textures
             }
             else if (asset is ByteArray)
             {
-                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMaps);
+                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadAtfData(new assetClass()); 
@@ -277,7 +277,8 @@ package starling.textures
          *  
          *  @param width:  in points; number of pixels depends on scale parameter
          *  @param height: in points; number of pixels depends on scale parameter
-         *  @param premultipliedAlpha: the PMA format you will use the texture with
+         *  @param premultipliedAlpha: the PMA format you will use the texture with. If you will
+         *                 use the texture for bitmap data, use "true"; for ATF data, use "false".
          *  @param mipMapping: indicates if mipmaps should be used for this texture. When you upload
          *                 bitmap data, this decides if mipmaps will be created; when you upload ATF
          *                 data, this decides if mipmaps inside the ATF file will be displayed.
