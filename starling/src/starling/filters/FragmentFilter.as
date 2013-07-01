@@ -232,7 +232,7 @@ package starling.filters
                     "This limitation will be removed in a future Stage3D version.");
             
             if (intoCache) 
-                cacheTexture = Texture.empty(sBounds.width, sBounds.height, PMA, true, 
+                cacheTexture = Texture.empty(sBounds.width, sBounds.height, PMA, false, true, 
                                              mResolution * scale);
             
             // draw the original object into a texture
@@ -362,7 +362,7 @@ package starling.filters
                 }
                 
                 for (var i:int=0; i<numPassTextures; ++i)
-                    mPassTextures[i] = Texture.empty(width, height, PMA, true, scale);
+                    mPassTextures[i] = Texture.empty(width, height, PMA, false, true, scale);
             }
         }
         
