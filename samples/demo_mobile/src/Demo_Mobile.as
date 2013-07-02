@@ -105,8 +105,8 @@ package
                 background = null;
                 
                 var game:Game = mStarling.root as Game;
-                var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass, false, scaleFactor); 
-                
+                var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass,
+                                                                  false, false, scaleFactor); 
                 game.start(bgTexture, assets);
                 mStarling.start();
             });

@@ -105,7 +105,8 @@ package
                     removeChild(background);
                     background = null;
                     
-                    var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass, false, scaleFactor);
+                    var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass, 
+                                                                      false, false, scaleFactor);
                     
                     app.start(bgTexture, assets);
                     mStarling.start();
