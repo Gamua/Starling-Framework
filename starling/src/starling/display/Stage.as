@@ -19,6 +19,7 @@ package starling.display
     import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
     
     use namespace starling_internal;
     
@@ -161,6 +162,24 @@ package starling.display
         public override function set rotation(value:Number):void
         {
             throw new IllegalOperationError("Cannot rotate stage");
+        }
+        
+        /** @private */
+        public override function set skewX(value:Number):void
+        {
+            throw new IllegalOperationError("Cannot skew stage");
+        }
+        
+        /** @private */
+        public override function set skewY(value:Number):void
+        {
+            throw new IllegalOperationError("Cannot skew stage");
+        }
+        
+        /** @private */
+        public override function set filter(value:FragmentFilter):void
+        {
+            throw new IllegalOperationError("Cannot add filter to stage. Add it to 'root' instead!");
         }
         
         /** The background color of the stage. */
