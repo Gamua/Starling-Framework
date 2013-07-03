@@ -15,7 +15,7 @@ package starling.errors
     public class MissingContextError extends Error
     {
         /** Creates a new MissingContextError object. */
-        public function MissingContextError(message:*="", id:*=0)
+        public function MissingContextError(message:*="Starling context is missing", id:*=0)
         {
             super(message, id);
         }
