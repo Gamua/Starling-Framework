@@ -376,11 +376,20 @@ package starling.filters
         private function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
                                          intersectWithStage:Boolean, resultRect:Rectangle):void
         {
-            // optimize for full-screen effects
+            var marginX:Number, marginY:Number;
+            
             if (object == stage || object == Starling.current.root)
+            {
+                // optimize for full-screen effects
+                marginX = marginY = 0;
                 resultRect.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+            }
             else
+            {
+                marginX = mMarginX;
+                marginY = mMarginY;
                 object.getBounds(stage, resultRect);
+            }
             
             if (intersectWithStage)
             {
@@ -392,8 +401,7 @@ package starling.filters
             {    
                 // the bounds are a rectangle around the object, in stage coordinates,
                 // and with an optional margin. 
-                var deltaMargin:Number = (scale == 1.0 ? 0.0 : 1.0 / scale); // avoid hard edges
-                resultRect.inflate(mMarginX + deltaMargin, mMarginY + deltaMargin);
+                resultRect.inflate(marginX, marginY);
                 
                 // To fit into a POT-texture, we extend it towards the right and bottom.
                 var minSize:int = MIN_TEXTURE_SIZE / scale;
