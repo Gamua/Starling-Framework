@@ -1,18 +1,24 @@
 <?xml version="1.0"?>
 <project name="starling" basedir="../.." default="build">
 
-  <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.6/sdks/4.6.0" />
-  <property name="deploy.dir" location="bin"/>
-  <property name="src.dir" location="src" />
+<property file="C:\meez\svn.donnerwood\meeznation\trunk\build.properties" />
 
-  <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
- 
-  <target name="build" description="Builds the library (.swc file)">
-    <mkdir dir="${deploy.dir}"/>
-    <compc output="${deploy.dir}/${ant.project.name}.swc">
-      <include-sources dir="${src.dir}" includes="*"/>
-  	  <arg value="-swf-version=17" />
-    </compc>
-  </target>
-  
+<property name="deploy.dir" location="C:\meez\svn.donnerwood\meeznation\trunk\mobile\lib\starling"/>
+<property name="src.dir" location="src" />
+<property name="config.xml" location="./build/ant/config.xml"/>
+
+<import file="C:\meez\svn.donnerwood\meeznation\trunk\support\ant\flex.xml"/>
+
+<target name="build" description="Builds the library (.swc file)">
+<mkdir dir="${deploy.dir}"/>
+
+	<compc 
+		src="${src.dir}"
+		configxml="${config.xml}"
+		debug="false"
+		output="${deploy.dir}/${ant.project.name}.swc">
+	</compc>
+
+</target>
+	
 </project>
