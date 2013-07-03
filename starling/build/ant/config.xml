@@ -1,0 +1,8 @@
+<flex-config xmlns="http://www.adobe.com/2006/flex-config">
+    <compiler>
+		<define>
+			<name>CONFIG::debug</name>
+			<value>true</value>
+		</define> 
+    </compiler>
+</flex-config>
