@@ -10,9 +10,12 @@
 
 package starling.display
 {
+    import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
     
+    import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
@@ -92,6 +95,30 @@ package starling.display
             var target:DisplayObject = super.hitTest(localPoint, forTouch);
             if (target == null) target = this;
             return target;
+        }
+        
+        /** Draws the complete stage into a BitmapData object. If you don't pass a parameter, the
+         *  object will be created for you. If you pass a BitmapData object to the method, it
+         *  should have the size of the back buffer (which is accessible via the respective
+         *  properties on the Starling instance). */
+        public function drawToBitmapData(destination:BitmapData=null):BitmapData
+        {
+            var support:RenderSupport = new RenderSupport();
+            var star:Starling = Starling.current;
+            
+            if (destination == null)
+                destination = new BitmapData(star.backBufferWidth, star.backBufferHeight);
+            
+            support.renderTarget = null;
+            support.setOrthographicProjection(0, 0, mWidth, mHeight);
+            support.clear(mColor, 1);
+            render(support, 1.0);
+            support.finishQuadBatch();
+            
+            Starling.current.context.drawToBitmapData(destination);
+            Starling.current.context.present(); // required on some platforms to avoid flickering
+            
+            return destination;
         }
         
         /** @private */
