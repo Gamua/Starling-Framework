@@ -328,7 +328,7 @@ package starling.display
          *  rectangle instead of creating a new object. */ 
         public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            throw new AbstractMethodError("Method needs to be implemented in subclass");
+            throw new AbstractMethodError();
             return null;
         }
         
@@ -370,7 +370,7 @@ package starling.display
          *  @param parentAlpha The accumulated alpha value from the object's parent up to the stage. */
         public function render(support:RenderSupport, parentAlpha:Number):void
         {
-            throw new AbstractMethodError("Method needs to be implemented in subclass");
+            throw new AbstractMethodError();
         }
         
         /** Indicates if an object occupies any visible area. (Which is the case when its 'alpha', 

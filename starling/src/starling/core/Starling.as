@@ -446,12 +446,12 @@ import starling.display.DisplayObject;
                     // set the backbuffer to a very small size first, to be on the safe side.
                     
                     if (mProfile == "baselineConstrained")
-                        mSupport.configureBackBuffer(32, 32, mAntiAliasing, false);
+                        configureBackBuffer(32, 32, mAntiAliasing, false);
                     
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
                     
-                    mSupport.configureBackBuffer(mClippedViewPort.width, mClippedViewPort.height,
+                    configureBackBuffer(mClippedViewPort.width, mClippedViewPort.height,
                         mAntiAliasing, false, mSupportHighResolutions);
                     
                     if (mSupportHighResolutions && "contentsScaleFactor" in mNativeStage)
@@ -459,12 +459,19 @@ import starling.display.DisplayObject;
                     else
                         mNativeStageContentScaleFactor = 1.0;
                 }
-                else
-                {
-                    mSupport.backBufferWidth  = mClippedViewPort.width;
-                    mSupport.backBufferHeight = mClippedViewPort.height;
-                }
             }
+        }
+        
+        /** Configures the back buffer while automatically keeping backwards compatibility with
+         *  AIR versions that do not support the "wantsBestResolution" argument. */
+        private function configureBackBuffer(width:int, height:int, antiAlias:int, 
+                                             enableDepthAndStencil:Boolean,
+                                             wantsBestResolution:Boolean=false):void
+        {
+            var configureBackBuffer:Function = mContext.configureBackBuffer;
+            var methodArgs:Array = [width, height, antiAlias, enableDepthAndStencil];
+            if (configureBackBuffer.length > 4) methodArgs.push(wantsBestResolution);
+            configureBackBuffer.apply(mContext, methodArgs);
         }
 
         private function updateNativeOverlay():void
@@ -570,7 +577,7 @@ import starling.display.DisplayObject;
             if (!mStarted) return;
             
             makeCurrent();
-            mStage.dispatchEvent(new starling.events.KeyboardEvent(
+            mStage.broadcastEvent(new starling.events.KeyboardEvent(
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey));
         }
@@ -718,6 +725,14 @@ import starling.display.DisplayObject;
             return sContextData[mStage3D] as Dictionary;
         }
         
+        /** Returns the actual width (in pixels) of the back buffer. This can differ from the
+         *  width of the viewPort rectangle if it is partly outside the native stage. */
+        public function get backBufferWidth():int { return mClippedViewPort.width; }
+        
+        /** Returns the actual height (in pixels) of the back buffer. This can differ from the
+         *  height of the viewPort rectangle if it is partly outside the native stage. */
+        public function get backBufferHeight():int { return mClippedViewPort.height; }
+        
         /** Indicates if multitouch simulation with "Shift" and "Ctrl"/"Cmd"-keys is enabled. 
          *  @default false */
         public function get simulateMultitouch():Boolean { return mSimulateMultitouch; }
@@ -815,29 +830,17 @@ import starling.display.DisplayObject;
         }
         
         /** The Starling stage object, which is the root of the display tree that is rendered. */
-        public function get stage():Stage
-        {
-            return mStage;
-        }
+        public function get stage():Stage { return mStage; }
 
         /** The Flash Stage3D object Starling renders into. */
-        public function get stage3D():Stage3D
-        {
-            return mStage3D;
-        }
+        public function get stage3D():Stage3D { return mStage3D; }
         
         /** The Flash (2D) stage object Starling renders beneath. */
-        public function get nativeStage():flash.display.Stage
-        {
-            return mNativeStage;
-        }
+        public function get nativeStage():flash.display.Stage { return mNativeStage; }
         
         /** The instance of the root class provided in the constructor. Available as soon as 
          *  the event 'ROOT_CREATED' has been dispatched. */
-        public function get root():DisplayObject
-        {
-            return mRoot;
-        }
+        public function get root():DisplayObject { return mRoot; }
         
         /** Indicates if the Context3D render calls are managed externally to Starling, 
          *  to allow other frameworks to share the Stage3D instance. @default false */

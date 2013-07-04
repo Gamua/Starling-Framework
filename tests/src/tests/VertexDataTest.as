@@ -10,12 +10,14 @@
 
 package tests
 {
+    import flash.geom.Matrix;
     import flash.geom.Point;
-    import flash.geom.Vector3D;
+    import flash.geom.Rectangle;
     
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
     import starling.utils.VertexData;
@@ -146,12 +148,96 @@ package tests
             var texCoords:Point = new Point();
             
             vd.getTexCoords(0, texCoords);
-            Assert.assertEquals(0.25, texCoords.x);
-            Assert.assertEquals(0.75, texCoords.y);
+            assertThat(texCoords.x, closeTo(0.25, E));
+            assertThat(texCoords.y, closeTo(0.75, E));
             
             vd.getTexCoords(1, texCoords);
-            Assert.assertEquals(0.33, texCoords.x);
-            Assert.assertEquals(0.66, texCoords.y);
+            assertThat(texCoords.x, closeTo(0.33, E));
+            assertThat(texCoords.y, closeTo(0.66, E));
+        }
+        
+        [Test]
+        public function testGetBounds():void
+        {
+            var vd:VertexData = new VertexData(0);
+            var bounds:Rectangle = vd.getBounds();
+            var expectedBounds:Rectangle = new Rectangle();
+            
+            Helpers.compareRectangles(expectedBounds, bounds);
+            
+            vd.numVertices = 2;
+            vd.setPosition(0, -10, -5);
+            vd.setPosition(1, 10, 5);
+            
+            bounds = vd.getBounds();
+            expectedBounds = new Rectangle(-10, -5, 20, 10);
+            
+            Helpers.compareRectangles(expectedBounds, bounds);
+            
+            var matrix:Matrix = new Matrix();
+            matrix.translate(10, 5);
+            bounds = vd.getBounds(matrix);
+            expectedBounds = new Rectangle(0, 0, 20, 10);
+            
+            Helpers.compareRectangles(expectedBounds, bounds);
+        }
+        
+        [Test]
+        public function testCopyTo():void
+        {
+            var vd1:VertexData = new VertexData(2, false);
+            vd1.setPosition(0, 1, 2);
+            vd1.setColor(0, 0xaabbcc);
+            vd1.setTexCoords(0, 0.1, 0.2);
+            vd1.setPosition(1, 3, 4);
+            vd1.setColor(1, 0x334455);
+            vd1.setTexCoords(1, 0.3, 0.4);
+            
+            var vd2:VertexData = new VertexData(2, false);
+            vd1.copyTo(vd2);
+            
+            Helpers.compareVectors(vd1.rawData, vd2.rawData);
+            assertEquals(vd1.numVertices, vd2.numVertices);
+
+            vd2.numVertices = 4;
+            vd1.copyTo(vd2, 2);
+            assertEquals(4, vd2.numVertices);
+            
+            for (var i:int=0; i<2; ++i)
+            {
+                for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j)
+                {
+                    var vd1Value:Number = vd1.rawData[VertexData.ELEMENTS_PER_VERTEX * i + j];
+                    var vd2Value:Number = vd2.rawData[VertexData.ELEMENTS_PER_VERTEX * (2+i) + j];
+                    assertThat(vd1Value, closeTo(vd2Value, E));
+                }
+            }
+        }
+        
+        [Test]
+        public function testTransformVertex():void
+        {
+            var vd:VertexData = new VertexData(2);
+            vd.setPosition(0, 10, 20);
+            vd.setPosition(1, 30, 40);
+            
+            var matrix:Matrix = new Matrix();
+            matrix.translate(5, 6);
+            
+            var position:Point = new Point();
+            vd.transformVertex(0, matrix, 1);
+            vd.getPosition(0, position);
+            Helpers.comparePoints(position, new Point(15, 26));
+            vd.getPosition(1, position);
+            Helpers.comparePoints(position, new Point(30, 40));
+            
+            matrix.identity();
+            matrix.scale(0.5, 0.25);
+            vd.transformVertex(1, matrix, 1);
+            vd.getPosition(0, position);
+            Helpers.comparePoints(position, new Point(15, 26));
+            vd.getPosition(1, position);
+            Helpers.comparePoints(position, new Point(15, 10));
         }
     }
 }

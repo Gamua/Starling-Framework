@@ -10,13 +10,16 @@
 
 package starling.display
 {
+    import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
-import flash.utils.Dictionary;
-
-import starling.core.starling_internal;
+    
+    import starling.core.RenderSupport;
+    import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
     
     use namespace starling_internal;
     
@@ -61,8 +64,6 @@ import starling.core.starling_internal;
         private var mHeight:int;
         private var mColor:uint;
         private var mEnterFrameEvent:EnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
-        private var mEnterFrameEventVector:Vector.<DisplayObject> = new Vector.<DisplayObject>();
-        private var mEnterFrameEventIndex:Dictionary=new Dictionary(true);
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -71,50 +72,12 @@ import starling.core.starling_internal;
             mHeight = height;
             mColor = color;
         }
-
-        /** @inheritDoc */
-        public override function dispose():void
-        {
-            mEnterFrameEventVector=null;
-            mEnterFrameEventIndex=null;
-            super.dispose();
-        }
         
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
             mEnterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
-
-//            dispatchEvent(mEnterFrameEvent);
-
-            // Loop each object with enter frame event
-            for(var i:uint=0;i<mEnterFrameEventVector.length;i++)
-                mEnterFrameEventVector[i].dispatchEvent(mEnterFrameEvent);
-
-        }
-
-        /** register for enterframe event */
-        public function registerEnterFrameEvent(displayObject:DisplayObject):void
-        {
-            if(mEnterFrameEventIndex[displayObject] == null){
-                mEnterFrameEventIndex[displayObject] = mEnterFrameEventIndex.length;
-                mEnterFrameEventVector.fixed=false;
-                mEnterFrameEventVector.push(displayObject);
-                mEnterFrameEventVector.fixed=true;
-            }
-        }
-
-        /** unregister for enterframe event */
-        public function unregisterEnterFrameEvent(displayObject:DisplayObject):void
-        {
-            if(mEnterFrameEventIndex[displayObject] != null){
-                var index:int = mEnterFrameEventIndex[displayObject];
-                mEnterFrameEventVector.fixed=false;
-                mEnterFrameEventVector.slice(index, 1);
-                mEnterFrameEventVector.fixed=true;
-                mEnterFrameEventIndex[displayObject]=null;
-                delete mEnterFrameEventIndex[displayObject];
-            }
+            broadcastEvent(mEnterFrameEvent);
         }
 
         /** Returns the object that is found topmost beneath a point in stage coordinates, or  
@@ -133,6 +96,30 @@ import starling.core.starling_internal;
             var target:DisplayObject = super.hitTest(localPoint, forTouch);
             if (target == null) target = this;
             return target;
+        }
+        
+        /** Draws the complete stage into a BitmapData object. If you don't pass a parameter, the
+         *  object will be created for you. If you pass a BitmapData object to the method, it
+         *  should have the size of the back buffer (which is accessible via the respective
+         *  properties on the Starling instance). */
+        public function drawToBitmapData(destination:BitmapData=null):BitmapData
+        {
+            var support:RenderSupport = new RenderSupport();
+            var star:Starling = Starling.current;
+            
+            if (destination == null)
+                destination = new BitmapData(star.backBufferWidth, star.backBufferHeight);
+            
+            support.renderTarget = null;
+            support.setOrthographicProjection(0, 0, mWidth, mHeight);
+            support.clear(mColor, 1);
+            render(support, 1.0);
+            support.finishQuadBatch();
+            
+            Starling.current.context.drawToBitmapData(destination);
+            Starling.current.context.present(); // required on some platforms to avoid flickering
+            
+            return destination;
         }
         
         /** @private */
@@ -175,6 +162,24 @@ import starling.core.starling_internal;
         public override function set rotation(value:Number):void
         {
             throw new IllegalOperationError("Cannot rotate stage");
+        }
+        
+        /** @private */
+        public override function set skewX(value:Number):void
+        {
+            throw new IllegalOperationError("Cannot skew stage");
+        }
+        
+        /** @private */
+        public override function set skewY(value:Number):void
+        {
+            throw new IllegalOperationError("Cannot skew stage");
+        }
+        
+        /** @private */
+        public override function set filter(value:FragmentFilter):void
+        {
+            throw new IllegalOperationError("Cannot add filter to stage. Add it to 'root' instead!");
         }
         
         /** The background color of the stage. */

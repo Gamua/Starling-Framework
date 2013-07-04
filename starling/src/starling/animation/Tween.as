@@ -168,7 +168,7 @@ package starling.animation
 
             for (i=0; i<numProperties; ++i)
             {                
-                if (isNaN(mStartValues[i])) 
+                if (mStartValues[i] != mStartValues[i]) // isNaN check - "isNaN" causes allocation! 
                     mStartValues[i] = mTarget[mProperties[i]] as Number;
                 
                 var startValue:Number = mStartValues[i];

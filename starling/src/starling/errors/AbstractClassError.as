@@ -15,7 +15,7 @@ package starling.errors
     public class AbstractClassError extends Error
     {
         /** Creates a new AbstractClassError object. */
-        public function AbstractClassError(message:*="", id:*=0)
+        public function AbstractClassError(message:*="Cannot instantiate abstract class", id:*=0)
         {
             super(message, id);
         }

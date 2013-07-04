@@ -252,8 +252,8 @@ package starling.filters
             if (mBlurX == 0 && mBlurY == 0) mBlurX = 0.001;
             
             numPasses = Math.ceil(mBlurX) + Math.ceil(mBlurY);
-            marginX = 4 + Math.ceil(mBlurX);
-            marginY = 4 + Math.ceil(mBlurY); 
+            marginX = (3 + Math.ceil(mBlurX)) / resolution;
+            marginY = (3 + Math.ceil(mBlurY)) / resolution;
         }
         
         /** A uniform color will replace the RGB values of the input color, while the alpha
