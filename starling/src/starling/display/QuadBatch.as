@@ -70,6 +70,7 @@ package starling.display
         
         private var mNumQuads:int;
         private var mSyncRequired:Boolean;
+        private var mBatchable:Boolean;
 
         private var mTinted:Boolean;
         private var mTexture:Texture;
@@ -94,6 +95,7 @@ package starling.display
             mNumQuads = 0;
             mTinted = false;
             mSyncRequired = false;
+            mBatchable = false;
             
             // Handle lost context. We use the conventional event here (not the one from Starling)
             // so we're able to create a weak event listener; this avoids memory leaks when people 
@@ -368,9 +370,14 @@ package starling.display
         {
             if (mNumQuads)
             {
-                support.finishQuadBatch();
-                support.raiseDrawCount();
-                renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
+                if (mBatchable)
+                    support.batchQuadBatch(this, parentAlpha);
+                else
+                {
+                    support.finishQuadBatch();
+                    support.raiseDrawCount();
+                    renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
+                }
             }
         }
         
@@ -507,11 +514,28 @@ package starling.display
         
         // properties
         
+        /** Returns the number of quads that have been added to the batch. */
         public function get numQuads():int { return mNumQuads; }
+        
+        /** Indicates if any vertices have a non-white color or are not fully opaque. */
         public function get tinted():Boolean { return mTinted; }
+        
+        /** The texture that is used for rendering, or null for pure quads. Note that this is the
+         *  texture instance of the first added quad; subsequently added quads may use a different
+         *  instance, as long as the base texture is the same. */ 
         public function get texture():Texture { return mTexture; }
+        
+        /** The TextureSmoothing used for rendering. */
         public function get smoothing():String { return mSmoothing; }
+        
+        /** Indicates if the rgb values are stored premultiplied with the alpha value. */
         public function get premultipliedAlpha():Boolean { return mVertexData.premultipliedAlpha; }
+        
+        /** Indicates if the batch itself should be batched on rendering. This makes sense only
+         *  if it contains only a small number of quads (we recommend no more than 16). Otherwise,
+         *  the CPU costs will exceed any gains you get from avoiding the additional draw call. */
+        public function get batchable():Boolean { return mBatchable; }
+        public function set batchable(value:Boolean):void { mBatchable = value; } 
         
         private function get capacity():int { return mVertexData.numVertices / 4; }
         

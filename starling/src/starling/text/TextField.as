@@ -60,7 +60,15 @@ package starling.text
      *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
      *        71squared or <a href="http://http://www.bmglyph.com">bmGlyph</a> (both commercial). 
      *        They support Starling natively.</li>
-     *  </ul> 
+     *  </ul>
+     * 
+     *  <strong>Batching of TextFields</strong>
+     *  
+     *  <p>Most TextFields will require exactly one draw call. The exception is a TextField that
+     *  uses a bitmap font and contains no more than 16 characters: in that case, Starling will
+     *  batch multiple text fields together on rendering (if they are to be rendered one after
+     *  the other). For longer texts, the batching would take up more CPU time than what is saved
+     *  by avoiding the draw call.</p>
      */
     public class TextField extends DisplayObjectContainer
     {
@@ -155,7 +163,7 @@ package starling.text
         private function createRenderedContents():void
         {
             if (mQuadBatch)
-            { 
+            {
                 mQuadBatch.removeFromParent(true); 
                 mQuadBatch = null; 
             }
@@ -337,6 +345,9 @@ package starling.text
             
             bitmapFont.fillQuadBatch(mQuadBatch,
                 width, height, mText, mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning);
+            
+            // For short texts, it's worth to batch them!
+            mQuadBatch.batchable = mQuadBatch.numQuads <= 16;
             
             if (mAutoSize != TextFieldAutoSize.NONE)
             {
