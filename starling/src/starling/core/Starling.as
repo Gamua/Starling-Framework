@@ -39,7 +39,8 @@ package starling.core
     import flash.utils.setTimeout;
     
     import starling.animation.Juggler;
-    import starling.display.DisplayObject;
+import starling.core.Starling;
+import starling.display.DisplayObject;
     import starling.display.Stage;
     import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
@@ -153,6 +154,9 @@ package starling.core
     {
         /** The version of the Starling framework. */
         public static const VERSION:String = "1.3";
+
+        /** handle bug on kindle fire **/
+        public static var lock:Boolean=false;
         
         /** The key for the shader programs stored in 'contextData' */
         private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
@@ -528,6 +532,12 @@ package starling.core
         
         private function onContextCreated(event:Event):void
         {
+            // Solve problem of double lost context in kindle fire
+            if(Starling.lock){
+                Starling.lock=false;
+                event.stopImmediatePropagation();
+            } else {
+
             if (!Starling.handleLostContext && mContext)
             {
                 stop();
@@ -539,6 +549,7 @@ package starling.core
             else
             {
                 initialize();
+            }
             }
         }
         
