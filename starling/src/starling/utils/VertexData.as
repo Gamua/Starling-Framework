@@ -337,7 +337,7 @@ package starling.utils
             if (resultRect == null) resultRect = new Rectangle();
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
-            
+
             if (numVertices == 0)
             {
                 if (transformationMatrix == null)
@@ -352,16 +352,17 @@ package starling.utils
             {
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-                var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+                var offset:int = vertexID*BYTES_PER_VERTEX + POSITION_OFFSET;
                 var x:Number, y:Number, i:int;
-                
+
                 if (transformationMatrix == null)
                 {
                     for (i=0; i<numVertices; ++i)
                     {
-                        x = mRawData[offset];
-                        y = mRawData[int(offset+1)];
-                        offset += ELEMENTS_PER_VERTEX;
+                        mRawData.position=offset;
+                        x=mRawData.readFloat();
+                        y=mRawData.readFloat();
+                        offset += BYTES_PER_VERTEX;
                         
                         minX = minX < x ? minX : x;
                         maxX = maxX > x ? maxX : x;
@@ -373,9 +374,10 @@ package starling.utils
                 {
                     for (i=0; i<numVertices; ++i)
                     {
-                        x = mRawData[offset];
-                        y = mRawData[int(offset+1)];
-                        offset += ELEMENTS_PER_VERTEX;
+                        mRawData.position=offset;
+                        x=mRawData.readFloat();
+                        y=mRawData.readFloat();
+                        offset += BYTES_PER_VERTEX;
                         
                         MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
                         minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
@@ -387,7 +389,7 @@ package starling.utils
                 
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             }
-            
+
             return resultRect;
         }
         

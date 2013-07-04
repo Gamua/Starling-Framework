@@ -165,63 +165,63 @@ package starling.display
             removeEventListeners();
         }
 
-        /** override */
-        /** check if need to register or unregister enterframe event */
-        public override function dispatchEvent(event:Event):void
-        {
-            super.dispatchEvent(event);
-
-//            trace('dispatchEvent',event.type,mEnterFrameEventStatus);
-            if(event.type==Event.ADDED_TO_STAGE&&mEnterFrameEventStatus==2){
-                // Report to Stage for EnterFrameEvent Events
-                stage.registerEnterFrameEvent(this);
-                mEnterFrameEventStatus=1;
-            } else if(event.type==Event.REMOVED_FROM_STAGE&&mEnterFrameEventStatus==3){
-                // Report to Stage for remove EnterFrameEvent Events
-                stage.unregisterEnterFrameEvent(this);
-                mEnterFrameEventStatus=0;
-            }
-        }
-
-        /** override */
-        /** Set if need to register enterframe event */
-        public override function addEventListener(type:String, listener:Function):void
-        {
-
-            if(type == Event.ENTER_FRAME){
-                if(stage){
-                    // Report to Stage for EnterFrameEvent Events
-                    stage.registerEnterFrameEvent(this);
-                    mEnterFrameEventStatus=1;
-                } else if(mEnterFrameEventStatus!=1&&mEnterFrameEventStatus!=3) {
-                    // Set if need register enter frame event
-                    mEnterFrameEventStatus=2;
-                }
-            }
-
-            super.addEventListener(type, listener);
-
-        }
-
-        /** override */
-        /** Set if need to unregister enterframe event */
-        public override function removeEventListener(type:String, listener:Function):void
-        {
-
-            if(type == Event.ENTER_FRAME){
-                if(stage){
-                    // Report to Stage for EnterFrameEvent Events
-                    stage.unregisterEnterFrameEvent(this);
-                    mEnterFrameEventStatus=0;
-                } else if(mEnterFrameEventStatus==1) {
-                    // Set if need register enter frame event
-                    mEnterFrameEventStatus=2;
-                }
-//                trace('removeEventListener:mEnterFrameEventStatus',mEnterFrameEventStatus);
-            }
-            super.removeEventListener(type, listener);
-
-        }
+//        /** override */
+//        /** check if need to register or unregister enterframe event */
+//        public override function dispatchEvent(event:Event):void
+//        {
+//            super.dispatchEvent(event);
+//
+////            trace('dispatchEvent',event.type,mEnterFrameEventStatus);
+//            if(event.type==Event.ADDED_TO_STAGE&&mEnterFrameEventStatus==2){
+//                // Report to Stage for EnterFrameEvent Events
+//                stage.registerEnterFrameEvent(this);
+//                mEnterFrameEventStatus=1;
+//            } else if(event.type==Event.REMOVED_FROM_STAGE&&mEnterFrameEventStatus==3){
+//                // Report to Stage for remove EnterFrameEvent Events
+//                stage.unregisterEnterFrameEvent(this);
+//                mEnterFrameEventStatus=0;
+//            }
+//        }
+//
+//        /** override */
+//        /** Set if need to register enterframe event */
+//        public override function addEventListener(type:String, listener:Function):void
+//        {
+//
+//            if(type == Event.ENTER_FRAME){
+//                if(stage){
+//                    // Report to Stage for EnterFrameEvent Events
+//                    stage.registerEnterFrameEvent(this);
+//                    mEnterFrameEventStatus=1;
+//                } else if(mEnterFrameEventStatus!=1&&mEnterFrameEventStatus!=3) {
+//                    // Set if need register enter frame event
+//                    mEnterFrameEventStatus=2;
+//                }
+//            }
+//
+//            super.addEventListener(type, listener);
+//
+//        }
+//
+//        /** override */
+//        /** Set if need to unregister enterframe event */
+//        public override function removeEventListener(type:String, listener:Function):void
+//        {
+//
+//            if(type == Event.ENTER_FRAME){
+//                if(stage){
+//                    // Report to Stage for EnterFrameEvent Events
+//                    stage.unregisterEnterFrameEvent(this);
+//                    mEnterFrameEventStatus=0;
+//                } else if(mEnterFrameEventStatus==1) {
+//                    // Set if need register enter frame event
+//                    mEnterFrameEventStatus=2;
+//                }
+////                trace('removeEventListener:mEnterFrameEventStatus',mEnterFrameEventStatus);
+//            }
+//            super.removeEventListener(type, listener);
+//
+//        }
 
         /** Removes the object from its parent, if it has one. */
         public function removeFromParent(dispose:Boolean=false):void
