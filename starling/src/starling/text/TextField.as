@@ -41,7 +41,7 @@ package starling.text
      *  <p>There are two types of fonts that can be displayed:</p>
      *  
      *  <ul>
-     *    <li>Standard true type fonts. This renders the text just like a conventional Flash
+     *    <li>Standard TrueType fonts. This renders the text just like a conventional Flash
      *        TextField. It is recommended to embed the font, since you cannot be sure which fonts
      *        are available on the client system, and since this enhances rendering quality. 
      *        Simply pass the font name to the corresponding property.</li>
@@ -64,11 +64,16 @@ package starling.text
      * 
      *  <strong>Batching of TextFields</strong>
      *  
-     *  <p>Most TextFields will require exactly one draw call. The exception is a TextField that
-     *  uses a bitmap font and contains no more than 16 characters: in that case, Starling will
-     *  batch multiple text fields together on rendering (if they are to be rendered one after
-     *  the other). For longer texts, the batching would take up more CPU time than what is saved
-     *  by avoiding the draw call.</p>
+     *  <p>Normally, TextFields will require exactly one draw call. For TrueType fonts, you cannot
+     *  avoid that; bitmap fonts, however, may be batched if you enable the "batchable" property.
+     *  This makes sense if you have several TextFields with short texts that are rendered one
+     *  after the other (e.g. subsequent children of the same sprite), or if your bitmap font
+     *  texture is in your main texture atlas.</p>
+     *  
+     *  <p>The recommendation is to activate "batchable" if it reduces your draw calls (use the
+     *  StatsDisplay to check this) AND if the TextFields contain no more than about 10-15
+     *  characters (per TextField). For longer texts, the batching would take up more CPU time
+     *  than what is saved by avoiding the draw calls.</p>
      */
     public class TextField extends DisplayObjectContainer
     {
@@ -91,6 +96,7 @@ package starling.text
         private var mRequiresRedraw:Boolean;
         private var mIsRenderedText:Boolean;
         private var mTextBounds:Rectangle;
+        private var mBatchable:Boolean;
         
         private var mHitArea:DisplayObject;
         private var mBorder:DisplayObjectContainer;
@@ -346,8 +352,7 @@ package starling.text
             bitmapFont.fillQuadBatch(mQuadBatch,
                 width, height, mText, mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning);
             
-            // For short texts, it's worth to batch them!
-            mQuadBatch.batchable = mQuadBatch.numQuads <= 16;
+            mQuadBatch.batchable = mBatchable;
             
             if (mAutoSize != TextFieldAutoSize.NONE)
             {
@@ -604,6 +609,17 @@ package starling.text
                 mAutoSize = value;
                 mRequiresRedraw = true;
             }
+        }
+        
+        /** Indicates if TextField should be batched on rendering. This works only with bitmap
+         *  fonts, and it makes sense only for TextFields with no more than 10-15 characters.
+         *  Otherwise, the CPU costs will exceed any gains you get from avoiding the additional
+         *  draw call. */
+        public function get batchable():Boolean { return mBatchable; }
+        public function set batchable(value:Boolean):void
+        { 
+            mBatchable = value;
+            if (mQuadBatch) mQuadBatch.batchable = value;
         }
 
         /** The native Flash BitmapFilters to apply to this TextField. 
