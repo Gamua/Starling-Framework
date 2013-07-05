@@ -15,7 +15,6 @@ package starling.text
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.text.AntiAliasType;
-    import flash.text.TextField;
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
     

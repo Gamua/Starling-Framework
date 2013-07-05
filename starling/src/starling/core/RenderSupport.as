@@ -380,7 +380,7 @@ package starling.core
          *  twice the number of used batches. Only executed when there are at least 16 batches. */
         private function trimQuadBatches():void
         {
-            var numUsedBatches:int  = mCurrentQuadBatchID + 1
+            var numUsedBatches:int  = mCurrentQuadBatchID + 1;
             var numTotalBatches:int = mQuadBatches.length;
             
             if (numTotalBatches >= 16 && numTotalBatches > 2*numUsedBatches)
