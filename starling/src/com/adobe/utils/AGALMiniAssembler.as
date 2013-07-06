@@ -109,7 +109,6 @@ package com.adobe.utils
 			initregmap(version, ignorelimits); 
 			
 			var lines:Array = source.replace( /[\f\n\r\v]+/g, "\n" ).split( "\n" );
-			var nest:int = 0;
 			var nops:int = 0;
 			var i:int;
 			var lng:int = lines.length;
@@ -554,7 +553,6 @@ package com.adobe.utils
 		private static const REGMAP:Dictionary					= new Dictionary();
 		private static const SAMPLEMAP:Dictionary				= new Dictionary();
 		
-		private static const MAX_NESTING:int					= 4;
 		private static const MAX_OPCODES:int					= 2048;
 		
 		private static const FRAGMENT:String					= "fragment";

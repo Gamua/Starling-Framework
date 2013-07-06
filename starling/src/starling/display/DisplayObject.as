@@ -19,6 +19,7 @@ package starling.display
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
     import starling.events.Event;
@@ -428,6 +429,60 @@ package starling.display
             while (angle < -Math.PI) angle += Math.PI * 2.0;
             while (angle >  Math.PI) angle -= Math.PI * 2.0;
             return angle;
+        }
+        
+        // enter frame event optimization
+        
+        // To avoid looping through the complete display tree each frame to find out who's
+        // listening to ENTER_FRAME events, we manage a list of them manually in the Stage class.
+        // We need to take care that (a) it must be dispatched only when the object is
+        // part of the stage, (b) it must not cause memory leaks when the user forgets to call
+        // dispose and (c) it must work even when the user listens to the event more than once.
+        
+        public override function addEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && !hasEventListener(type))
+            {
+                addEventListener(Event.ADDED_TO_STAGE, addEnterFrameListener);
+                addEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListener);
+                if (this.stage) addEnterFrameListener();
+            }
+            
+            super.addEventListener(type, listener);
+        }
+        
+        public override function removeEventListener(type:String, listener:Function):void
+        {
+            super.removeEventListener(type, listener);
+            
+            if (type == Event.ENTER_FRAME && !hasEventListener(type))
+            {
+                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListener);
+                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListener);
+                removeEnterFrameListener();
+            }
+        }
+        
+        public override function removeEventListeners(type:String=null):void
+        {
+            super.removeEventListeners(type);
+            
+            if (type == null || type == Event.ENTER_FRAME)
+            {
+                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListener);
+                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListener);
+                removeEnterFrameListener();
+            }
+        }
+        
+        private function addEnterFrameListener():void
+        {
+            Starling.current.stage.addEnterFrameListener(this);
+        }
+        
+        private function removeEnterFrameListener():void
+        {
+            Starling.current.stage.removeEnterFrameListener(this);
         }
         
         // properties

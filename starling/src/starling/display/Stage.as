@@ -13,6 +13,7 @@ package starling.display
     import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
+    import flash.utils.Dictionary;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -63,7 +64,8 @@ package starling.display
         private var mWidth:int;
         private var mHeight:int;
         private var mColor:uint;
-        private var mEnterFrameEvent:EnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
+        private var mEnterFrameEvent:EnterFrameEvent;
+        private var mEnterFrameListeners:Dictionary;
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -71,6 +73,8 @@ package starling.display
             mWidth = width;
             mHeight = height;
             mColor = color;
+            mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
+            mEnterFrameListeners = new Dictionary(true);
         }
         
         /** @inheritDoc */
@@ -121,6 +125,30 @@ package starling.display
             
             return destination;
         }
+        
+        // enter frame event optimization
+        
+        internal function addEnterFrameListener(listener:DisplayObject):void
+        {
+            mEnterFrameListeners[listener] = null;
+        }
+        
+        internal function removeEnterFrameListener(listener:DisplayObject):void
+        {
+            delete mEnterFrameListeners[listener];
+        }
+        
+        public override function broadcastEvent(event:Event):void
+        {
+            if (event.type == Event.ENTER_FRAME)
+            {
+                for (var listener:DisplayObject in mEnterFrameListeners)
+                    listener.dispatchEvent(event);
+            }
+            else super.broadcastEvent(event);
+        }
+        
+        // properties
         
         /** @private */
         public override function set width(value:Number):void 

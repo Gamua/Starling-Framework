@@ -199,7 +199,7 @@ package starling.textures
         public function get onRestore():Function { return mOnRestore; }
         public function set onRestore(value:Function):void
         { 
-            if (mOnRestore == null && value != null)
+            if (Starling.handleLostContext && mOnRestore == null && value != null)
                 Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             else if (value == null)
                 Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
