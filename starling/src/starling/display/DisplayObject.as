@@ -384,9 +384,9 @@ package starling.display
         {
             if (type == Event.ENTER_FRAME && !hasEventListener(type))
             {
-                addEventListener(Event.ADDED_TO_STAGE, addEnterFrameListener);
-                addEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListener);
-                if (this.stage) addEnterFrameListener();
+                addEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
+                addEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
+                if (this.stage) addEnterFrameListenerToStage();
             }
             
             super.addEventListener(type, listener);
@@ -398,9 +398,9 @@ package starling.display
             
             if (type == Event.ENTER_FRAME && !hasEventListener(type))
             {
-                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListener);
-                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListener);
-                removeEnterFrameListener();
+                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
+                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
+                removeEnterFrameListenerFromStage();
             }
         }
         
@@ -410,18 +410,18 @@ package starling.display
             
             if (type == null || type == Event.ENTER_FRAME)
             {
-                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListener);
-                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListener);
-                removeEnterFrameListener();
+                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
+                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
+                removeEnterFrameListenerFromStage();
             }
         }
         
-        private function addEnterFrameListener():void
+        private function addEnterFrameListenerToStage():void
         {
             Starling.current.stage.addEnterFrameListener(this);
         }
         
-        private function removeEnterFrameListener():void
+        private function removeEnterFrameListenerFromStage():void
         {
             Starling.current.stage.removeEnterFrameListener(this);
         }
