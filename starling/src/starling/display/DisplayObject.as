@@ -378,7 +378,7 @@ package starling.display
         // listening to ENTER_FRAME events, we manage a list of them manually in the Stage class.
         // We need to take care that (a) it must be dispatched only when the object is
         // part of the stage, (b) it must not cause memory leaks when the user forgets to call
-        // dispose and (c) it must work even when the user listens to the event more than once.
+        // dispose and (c) there might be multiple listeners for this event.
         
         public override function addEventListener(type:String, listener:Function):void
         {

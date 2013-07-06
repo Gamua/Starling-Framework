@@ -13,7 +13,6 @@ package starling.display
     import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
-    import flash.utils.Dictionary;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -65,7 +64,7 @@ package starling.display
         private var mHeight:int;
         private var mColor:uint;
         private var mEnterFrameEvent:EnterFrameEvent;
-        private var mEnterFrameListeners:Dictionary;
+        private var mEnterFrameListeners:Array;
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -74,7 +73,7 @@ package starling.display
             mHeight = height;
             mColor = color;
             mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
-            mEnterFrameListeners = new Dictionary(true);
+            mEnterFrameListeners = [];
         }
         
         /** @inheritDoc */
@@ -128,24 +127,30 @@ package starling.display
         
         // enter frame event optimization
         
+        /** @private */
         internal function addEnterFrameListener(listener:DisplayObject):void
         {
-            mEnterFrameListeners[listener] = null;
+            mEnterFrameListeners.push(listener);
         }
         
+        /** @private */
         internal function removeEnterFrameListener(listener:DisplayObject):void
         {
-            delete mEnterFrameListeners[listener];
+            var index:int = mEnterFrameListeners.indexOf(listener);
+            if (index >= 0) mEnterFrameListeners.splice(index, 1); 
         }
         
-        public override function broadcastEvent(event:Event):void
+        /** @private */
+        internal override function getChildEventListeners(object:DisplayObject, eventType:String, 
+                                                          listeners:Vector.<DisplayObject>):void
         {
-            if (event.type == Event.ENTER_FRAME)
-            {
-                for (var listener:DisplayObject in mEnterFrameListeners)
-                    listener.dispatchEvent(event);
-            }
-            else super.broadcastEvent(event);
+            // if you're asking why "mEnterFrameListeners" is an Array, not a Vector --
+            // the answer is hidden below. ;-)
+            
+            if (eventType == Event.ENTER_FRAME && object == this)
+                listeners.push.apply(listeners, mEnterFrameListeners);
+            else
+                super.getChildEventListeners(object, eventType, listeners);
         }
         
         // properties
