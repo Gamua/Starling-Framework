@@ -64,7 +64,7 @@ package starling.display
         private var mHeight:int;
         private var mColor:uint;
         private var mEnterFrameEvent:EnterFrameEvent;
-        private var mEnterFrameListeners:Array;
+        private var mEnterFrameListeners:Vector.<DisplayObject>;
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -73,7 +73,7 @@ package starling.display
             mHeight = height;
             mColor = color;
             mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
-            mEnterFrameListeners = [];
+            mEnterFrameListeners = new <DisplayObject>[];
         }
         
         /** @inheritDoc */
@@ -144,11 +144,11 @@ package starling.display
         internal override function getChildEventListeners(object:DisplayObject, eventType:String, 
                                                           listeners:Vector.<DisplayObject>):void
         {
-            // if you're asking why "mEnterFrameListeners" is an Array, not a Vector --
-            // the answer is hidden below. ;-)
-            
             if (eventType == Event.ENTER_FRAME && object == this)
-                listeners.push.apply(listeners, mEnterFrameListeners);
+            {
+                for (var i:int=0, length:int=mEnterFrameListeners.length; i<length; ++i)
+                    listeners.push(mEnterFrameListeners[i]); 
+            }
             else
                 super.getChildEventListeners(object, eventType, listeners);
         }
