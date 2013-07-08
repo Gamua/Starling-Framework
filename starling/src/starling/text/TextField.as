@@ -67,31 +67,31 @@ package starling.text
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
         
-        private var mFontSize:Number;
-        private var mColor:uint;
-        private var mText:String;
-        private var mFontName:String;
-        private var mHAlign:String;
-        private var mVAlign:String;
-        private var mBold:Boolean;
-        private var mItalic:Boolean;
-        private var mUnderline:Boolean;
-        private var mAutoScale:Boolean;
-        private var mAutoSize:String;
-        private var mKerning:Boolean;
-        private var mNativeFilters:Array;
-        private var mRequiresRedraw:Boolean;
+        protected var mFontSize:Number;
+        protected var mColor:uint;
+        protected var mText:String;
+        protected var mFontName:String;
+        protected var mHAlign:String;
+        protected var mVAlign:String;
+        protected var mBold:Boolean;
+        protected var mItalic:Boolean;
+        protected var mUnderline:Boolean;
+        protected var mAutoScale:Boolean;
+        protected var mAutoSize:String;
+        protected var mKerning:Boolean;
+        protected var mNativeFilters:Array;
+        protected var mRequiresRedraw:Boolean;
         private var mIsRenderedText:Boolean;
-        private var mTextBounds:Rectangle;
+        protected var mTextBounds:Rectangle;
         
-        private var mHitArea:DisplayObject;
+        protected var mHitArea:DisplayObject;
         private var mBorder:DisplayObjectContainer;
         
-        private var mImage:Image;
-        private var mQuadBatch:QuadBatch;
+        protected var mImage:Image;
+        protected var mQuadBatch:QuadBatch;
         
         // this object will be used for text rendering
-        private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
+        protected static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
         
         /** Create a new text field with the given properties. */
         public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
@@ -150,7 +150,7 @@ package starling.text
             }
         }
         
-        private function createRenderedContents():void
+        protected function createRenderedContents():void
         {
             if (mQuadBatch)
             { 
@@ -265,7 +265,7 @@ package starling.text
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
 
-        private function autoScaleNativeTextField(textField:flash.text.TextField):void
+        protected function autoScaleNativeTextField(textField:flash.text.TextField):void
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
             var maxHeight:int = textField.height - 4;
@@ -281,7 +281,7 @@ package starling.text
             }
         }
         
-        private function createComposedContents():void
+        protected function createComposedContents():void
         {
             if (mImage) 
             { 
@@ -357,13 +357,13 @@ package starling.text
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }
         
-        private function get isHorizontalAutoSize():Boolean
+        protected function get isHorizontalAutoSize():Boolean
         {
             return mAutoSize == TextFieldAutoSize.HORIZONTAL || 
                    mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
         
-        private function get isVerticalAutoSize():Boolean
+        protected function get isVerticalAutoSize():Boolean
         {
             return mAutoSize == TextFieldAutoSize.VERTICAL || 
                    mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
@@ -613,7 +613,7 @@ package starling.text
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work
          *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
-        private static function get bitmapFonts():Dictionary
+        protected static function get bitmapFonts():Dictionary
         {
             var fonts:Dictionary = Starling.current.contextData[BITMAP_FONT_DATA_NAME] as Dictionary;
             
