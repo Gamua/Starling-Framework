@@ -170,7 +170,7 @@ package starling.events
                     if (mVisitedObjects.indexOf(chainElement) == -1)
                     {
                         var stopPropagation:Boolean = chainElement.invokeEvent(this);
-                        mVisitedObjects.push(chainElement);
+                        mVisitedObjects[mVisitedObjects.length] = chainElement;
                         if (stopPropagation) break;
                     }
                 }
