@@ -141,10 +141,10 @@ package starling.events
                 return false;
             else
             {
-                var touches:Vector.<Touch> = getTouches(target);
+                getTouches(target, null, sTouches);
                 
-                for (var i:int=touches.length-1; i>=0; --i)
-                    if (touches[i].phase != TouchPhase.ENDED)
+                for (var i:int=sTouches.length-1; i>=0; --i)
+                    if (sTouches[i].phase != TouchPhase.ENDED)
                         return true;
                 
                 return false;

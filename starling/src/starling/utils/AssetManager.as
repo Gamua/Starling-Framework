@@ -14,6 +14,7 @@ package starling.utils
     import flash.net.URLRequest;
     import flash.system.ImageDecodingPolicy;
     import flash.system.LoaderContext;
+    import flash.system.System;
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     import flash.utils.clearTimeout;
@@ -62,6 +63,7 @@ package starling.utils
         private var mSounds:Dictionary;
         private var mXmls:Dictionary;
         private var mObjects:Dictionary;
+        private var mByteArrays:Dictionary;
         
         /** helper objects */
         private var sNames:Vector.<String> = new <String>[];
@@ -80,6 +82,7 @@ package starling.utils
             mSounds = new Dictionary();
             mXmls = new Dictionary();
             mObjects = new Dictionary();
+            mByteArrays = new Dictionary();
         }
         
         /** Disposes all contained textures. */
@@ -193,6 +196,19 @@ package starling.utils
             return getDictionaryKeys(mObjects, prefix, result);
         }
         
+        /** Returns a byte array with a certain name, or null if it's not found. */
+        public function getByteArray(name:String):ByteArray
+        {
+            return mByteArrays[name];
+        }
+        
+        /** Returns all byte array names that start with a certain string, sorted alphabetically. 
+         *  If you pass a result vector, the names will be added to that vector. */
+        public function getByteArrayNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        {
+            return getDictionaryKeys(mByteArrays, prefix, result);
+        }
+        
         // direct adding
         
         /** Register a texture under a certain name. It will be available right away. */
@@ -250,11 +266,24 @@ package starling.utils
             mObjects[name] = object;
         }
         
+        /** Register a byte array under a certain name. It will be available right away. */
+        public function addByteArray(name:String, byteArray:ByteArray):void
+        {
+            log("Adding byte array '" + name + "'");
+            
+            if (name in mObjects)
+                log("Warning: name was already in use; the previous byte array will be replaced.");
+            
+            mByteArrays[name] = byteArray;
+        }
+        
         // removing
         
         /** Removes a certain texture, optionally disposing it. */
         public function removeTexture(name:String, dispose:Boolean=true):void
         {
+            log("Removing texture '" + name + "'");
+            
             if (dispose && name in mTextures)
                 mTextures[name].dispose();
             
@@ -264,6 +293,8 @@ package starling.utils
         /** Removes a certain texture atlas, optionally disposing it. */
         public function removeTextureAtlas(name:String, dispose:Boolean=true):void
         {
+            log("Removing texture atlas '" + name + "'");
+            
             if (dispose && name in mAtlases)
                 mAtlases[name].dispose();
             
@@ -273,12 +304,44 @@ package starling.utils
         /** Removes a certain sound. */
         public function removeSound(name:String):void
         {
+            log("Removing sound '"+ name + "'");
             delete mSounds[name];
+        }
+        
+        /** Removes a certain Xml object, optionally disposing it. */
+        public function removeXml(name:String, dispose:Boolean=true):void
+        {
+            log("Removing xml '"+ name + "'");
+            
+            if (dispose && name in mXmls)
+                System.disposeXML(mXmls[name]);
+            
+            delete mXmls[name];
+        }
+        
+        /** Removes a certain object. */
+        public function removeObject(name:String):void
+        {
+            log("Removing object '"+ name + "'");
+            delete mObjects[name];
+        }
+        
+        /** Removes a certain byte array, optionally disposing its memory right away. */
+        public function removeByteArray(name:String, dispose:Boolean=true):void
+        {
+            log("Removing byte array '"+ name + "'");
+            
+            if (dispose && name in mByteArrays)
+                mByteArrays[name].clear();
+            
+            delete mByteArrays[name];
         }
         
         /** Removes assets of all types and empties the queue. */
         public function purge():void
         {
+            log("Purging all assets, emptying queue");
+            
             for each (var texture:Texture in mTextures)
                 texture.dispose();
             
@@ -289,6 +352,9 @@ package starling.utils
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
             mSounds = new Dictionary();
+            mXmls = new Dictionary();
+            mObjects = new Dictionary();
+            mByteArrays = new Dictionary();
         }
         
         // queued adding
@@ -458,6 +524,8 @@ package starling.utils
                     }
                     else
                         throw new Error("XML contents not recognized: " + rootNode);
+                    
+                    System.disposeXML(xml);
                 }
             }
             
@@ -490,9 +558,11 @@ package starling.utils
                         loadRawAsset(name, rawAsset, null, function(asset:Object):void
                         {
                             texture.root.uploadBitmap(asset as Bitmap);
+                            asset.bitmapData.dispose();
                         });
                     };
 
+                    asset.bitmapData.dispose();
                     addTexture(name, texture);
                     onComplete();
                 }
@@ -508,23 +578,27 @@ package starling.utils
                             loadRawAsset(name, rawAsset, null, function(asset:Object):void
                             {
                                 texture.root.uploadAtfData(asset as ByteArray, 0, true);
+                                asset.clear();
                             });
                         };
                         
+                        bytes.clear();
                         addTexture(name, texture);
                     }
                     else if (byteArrayStartsWith(bytes, "{"))
                     {
                         addObject(name, JSON.parse(bytes.readUTFBytes(bytes.length)));
+                        bytes.clear();
                         onComplete();
                     }
                     else if (byteArrayStartsWith(bytes, "<"))
                     {
                         process(new XML(bytes));
+                        bytes.clear();
                     }
                     else
                     {
-                        log("Ignoring " + name + ": data not recognized.");
+                        addByteArray(name, bytes);
                         onComplete();
                     }
                 }
@@ -612,6 +686,7 @@ package starling.utils
                     case "mp3":
                         sound = new Sound();
                         sound.loadCompressedDataFromByteArray(bytes, bytes.length);
+                        bytes.clear();
                         onComplete(sound);
                         break;
                     default:
