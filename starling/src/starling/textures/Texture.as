@@ -303,7 +303,7 @@ package starling.textures
             var potHeight:int  = getNextPowerOfTwo(origHeight);
             var isPot:Boolean  = (origWidth == potWidth && origHeight == potHeight);
             var useRectTexture:Boolean = !isPot && !mipMapping &&
-                Starling.current.profile != Context3DProfile.BASELINE_CONSTRAINED &&
+                Starling.current.profile != "baselineConstrained" &&
                 "createRectangleTexture" in context;
             
             if (useRectTexture)

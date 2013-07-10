@@ -137,20 +137,22 @@ package starling.events
         /** Indicates if a target is currently being touched or hovered over. */
         public function interactsWith(target:DisplayObject):Boolean
         {
-            if (getTouch(target) == null)
-                return false;
-            else
+            var result:Boolean = false;
+            getTouches(target, null, sTouches);
+            
+            for (var i:int=sTouches.length-1; i>=0; --i)
             {
-                getTouches(target, null, sTouches);
-                
-                for (var i:int=sTouches.length-1; i>=0; --i)
-                    if (sTouches[i].phase != TouchPhase.ENDED)
-                        return true;
-                
-                return false;
+                if (sTouches[i].phase != TouchPhase.ENDED)
+                {
+                    result = true;
+                    break;
+                }
             }
+            
+            sTouches.length = 0;
+            return result;
         }
-
+        
         // custom dispatching
         
         /** @private
@@ -170,7 +172,7 @@ package starling.events
                     if (mVisitedObjects.indexOf(chainElement) == -1)
                     {
                         var stopPropagation:Boolean = chainElement.invokeEvent(this);
-                        mVisitedObjects.push(chainElement);
+                        mVisitedObjects[mVisitedObjects.length] = chainElement;
                         if (stopPropagation) break;
                     }
                 }
