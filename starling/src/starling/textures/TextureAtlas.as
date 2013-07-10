@@ -59,7 +59,7 @@ package starling.textures
         private var mTextureFrames:Dictionary;
         
         /** helper objects */
-        private var sNames:Vector.<String> = new <String>[];
+        private static var sNames:Vector.<String> = new <String>[];
         
         /** Create a texture atlas from a texture by parsing the regions from an XML file. */
         public function TextureAtlas(texture:Texture, atlasXml:XML=null)
