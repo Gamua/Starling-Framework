@@ -66,7 +66,7 @@ package starling.utils
         private var mByteArrays:Dictionary;
         
         /** helper objects */
-        private var sNames:Vector.<String> = new <String>[];
+        private static var sNames:Vector.<String> = new <String>[];
         
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
@@ -634,6 +634,7 @@ package starling.utils
                                       onProgress:Function, onComplete:Function):void
         {
             var extension:String = null;
+            var urlLoader:URLLoader = null;
             
             if (rawAsset is Class)
             {
@@ -644,7 +645,7 @@ package starling.utils
                 var url:String = rawAsset as String;
                 extension = url.split(".").pop().toLowerCase().split("?")[0];
                 
-                var urlLoader:URLLoader = new URLLoader();
+                urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
@@ -666,7 +667,6 @@ package starling.utils
             
             function onUrlLoaderComplete(event:Event):void
             {
-                var urlLoader:URLLoader = event.target as URLLoader;
                 var bytes:ByteArray = urlLoader.data as ByteArray;
                 var sound:Sound;
                 
@@ -694,13 +694,14 @@ package starling.utils
                         var loader:Loader = new Loader();
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
-                        loader.loadBytes(urlLoader.data as ByteArray, loaderContext);
+                        loader.loadBytes(bytes, loaderContext);
                         break;
                 }
             }
             
             function onLoaderComplete(event:Event):void
             {
+                urlLoader.data.clear();
                 event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
                 onComplete(event.target.content);
             }
