@@ -405,8 +405,8 @@ package starling.filters
                 
                 // To fit into a POT-texture, we extend it towards the right and bottom.
                 var minSize:int = MIN_TEXTURE_SIZE / scale;
-                var minWidth:Number  = Math.max(minSize, resultRect.width);
-                var minHeight:Number = Math.max(minSize, resultRect.height); 
+                var minWidth:Number  = resultRect.width  > minSize ? resultRect.width  : minSize;
+                var minHeight:Number = resultRect.height > minSize ? resultRect.height : minSize;
                 resultRect.width  = getNextPowerOfTwo(minWidth  * scale) / scale;
                 resultRect.height = getNextPowerOfTwo(minHeight * scale) / scale;
             }

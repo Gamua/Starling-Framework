@@ -290,14 +290,14 @@ package starling.core
                     height = Starling.current.backBufferHeight;
                 }
                 
-                // convert to pixel coordinates
+                // convert to pixel coordinates (matrix transformation ends up in range [-1, 1])
                 MatrixUtil.transformCoords(mProjectionMatrix, rect.x, rect.y, sPoint);
-                sRectangle.x = Math.max(0, ( sPoint.x + 1) / 2) * width;
-                sRectangle.y = Math.max(0, (-sPoint.y + 1) / 2) * height;
+                sRectangle.x = sPoint.x > -1 ? (( sPoint.x + 1) / 2) * width  : 0.0;
+                sRectangle.y = sPoint.y > -1 ? ((-sPoint.y + 1) / 2) * height : 0.0;
                 
                 MatrixUtil.transformCoords(mProjectionMatrix, rect.right, rect.bottom, sPoint);
-                sRectangle.right  = Math.min(1, ( sPoint.x + 1) / 2) * width;
-                sRectangle.bottom = Math.min(1, (-sPoint.y + 1) / 2) * height;
+                sRectangle.right  = sPoint.x < 1 ? (( sPoint.x + 1) / 2) * width  : width;
+                sRectangle.bottom = sPoint.y < 1 ? ((-sPoint.y + 1) / 2) * height : height;
                 
                 // an empty rectangle is not allowed, so we set it to the smallest possible size
                 // if the bounds are outside the visible area.

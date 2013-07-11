@@ -101,14 +101,14 @@ package starling.core
                     
                     // hovering touches need special handling (see below)
                     if (touch && touch.phase == TouchPhase.HOVER && touch.target)
-                        sHoveringTouchData.push({ 
+                        sHoveringTouchData[sHoveringTouchData.length] = { 
                             touch: touch, 
                             target: touch.target, 
                             bubbleChain: touch.bubbleChain 
-                        });
+                        }; // avoiding 'push'
                     
                     processTouch.apply(this, touchArgs);
-                    sProcessedTouchIDs.push(touchID);
+                    sProcessedTouchIDs[sProcessedTouchIDs.length] = touchID; // avoiding 'push'
                 }
                 
                 // the same touch event will be dispatched to all targets; 
