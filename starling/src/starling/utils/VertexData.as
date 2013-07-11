@@ -393,15 +393,10 @@ package starling.utils
         public function set numVertices(value:int):void
         {
             mRawData.fixed = false;
+            mRawData.length = value * ELEMENTS_PER_VERTEX;
             
-            var i:int;
-            var delta:int = value - mNumVertices;
-            
-            for (i=0; i<delta; ++i)
-                mRawData.push(0, 0,  0, 0, 0, 1,  0, 0); // alpha should be '1' per default
-            
-            for (i=0; i<-(delta*ELEMENTS_PER_VERTEX); ++i)
-                mRawData.pop();
+            for (var i:int=mNumVertices; i<value; ++i) // alpha should be '1' per default
+                mRawData[int(i * ELEMENTS_PER_VERTEX + COLOR_OFFSET + 3)] = 1.0;
             
             mNumVertices = value;
             mRawData.fixed = true;
