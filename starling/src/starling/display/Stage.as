@@ -147,7 +147,7 @@ package starling.display
             if (eventType == Event.ENTER_FRAME && object == this)
             {
                 for (var i:int=0, length:int=mEnterFrameListeners.length; i<length; ++i)
-                    listeners.push(mEnterFrameListeners[i]); 
+                    listeners[listeners.length] = mEnterFrameListeners[i]; // avoiding 'push' 
             }
             else
                 super.getChildEventListeners(object, eventType, listeners);

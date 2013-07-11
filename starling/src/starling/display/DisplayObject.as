@@ -281,7 +281,7 @@ package starling.display
             
             while (currentObject)
             {
-                sAncestors.push(currentObject);
+                sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
                 currentObject = currentObject.mParent;
             }
             

@@ -100,7 +100,7 @@ package starling.events
                 var correctPhase:Boolean = (phase == null || phase == touch.phase);
                     
                 if (correctTarget && correctPhase)
-                    result.push(touch);
+                    result[result.length] = touch; // avoiding 'push'
             }
             return result;
         }
