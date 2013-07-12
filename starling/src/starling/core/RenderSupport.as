@@ -14,6 +14,7 @@ package starling.core
     
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
+    import flash.display3D.Context3DTextureFormat;
     import flash.display3D.Program3D;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -26,6 +27,7 @@ package starling.core
     import starling.display.QuadBatch;
     import starling.errors.MissingContextError;
     import starling.textures.Texture;
+    import starling.textures.TextureSmoothing;
     import starling.utils.Color;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
@@ -440,6 +442,29 @@ package starling.core
                 sAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShader));
             
             return resultProgram;
+        }
+        
+        /** Returns the flags that are required for AGAL texture lookup, 
+         *  including the '&lt;' and '&gt;' delimiters. */
+        public static function getTextureLookupFlags(format:String, mipMapping:Boolean,
+                                                     repeat:Boolean=false,
+                                                     smoothing:String="bilinear"):String
+        {
+            var options:Array = ["2d", repeat ? "repeat" : "clamp"];
+            
+            if (format == Context3DTextureFormat.COMPRESSED)
+                options.push("dxt1");
+            else if (format == "compressedAlpha")
+                options.push("dxt5");
+            
+            if (smoothing == TextureSmoothing.NONE)
+                options.push("nearest", mipMapping ? "mipnearest" : "mipnone");
+            else if (smoothing == TextureSmoothing.BILINEAR)
+                options.push("linear", mipMapping ? "mipnearest" : "mipnone");
+            else
+                options.push("linear", mipMapping ? "miplinear" : "mipnone");
+            
+            return "<" + options.join() + ">";
         }
         
         // statistics

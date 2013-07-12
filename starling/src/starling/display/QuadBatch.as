@@ -611,25 +611,14 @@ package starling.display
                         {
                             for each (var format:String in formats)
                             {
-                                var options:Array = ["2d", repeat ? "repeat" : "clamp"];
-                                
-                                if (format == Context3DTextureFormat.COMPRESSED)
-                                    options.push("dxt1");
-                                else if (format == "compressedAlpha")
-                                    options.push("dxt5");
-                                
-                                if (smoothing == TextureSmoothing.NONE)
-                                    options.push("nearest", mipmap ? "mipnearest" : "mipnone");
-                                else if (smoothing == TextureSmoothing.BILINEAR)
-                                    options.push("linear", mipmap ? "mipnearest" : "mipnone");
-                                else
-                                    options.push("linear", mipmap ? "miplinear" : "mipnone");
+                                var flags:String = RenderSupport.getTextureLookupFlags(
+                                    format, mipmap, repeat, smoothing);
                                 
                                 target.registerProgram(
                                     getImageProgramName(tinted, mipmap, repeat, format, smoothing),
                                     assembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode),
                                     assembler.assemble(Context3DProgramType.FRAGMENT,
-                                        fragmentProgramCode.replace("???", options.join()))
+                                        fragmentProgramCode.replace("<???>", flags))
                                 );
                             }
                         }
