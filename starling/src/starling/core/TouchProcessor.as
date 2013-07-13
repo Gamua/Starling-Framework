@@ -107,7 +107,9 @@ package starling.core
                             bubbleChain: touch.bubbleChain 
                         }; // avoiding 'push'
                     
-                    processTouch.apply(this, touchArgs);
+                    processTouch(touchArgs[0], touchArgs[1], touchArgs[2], touchArgs[3],
+                                 touchArgs[4], touchArgs[5], touchArgs[6]);
+                    
                     sProcessedTouchIDs[sProcessedTouchIDs.length] = touchID; // avoiding 'push'
                 }
                 
