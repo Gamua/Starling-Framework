@@ -157,7 +157,7 @@ package starling.events
         starling_internal static function toPool(event:Event):void
         {
             event.mData = event.mTarget = event.mCurrentTarget = null;
-            sEventPool.push(event);
+            sEventPool[sEventPool.length] = event; // avoiding 'push'
         }
         
         /** @private */
