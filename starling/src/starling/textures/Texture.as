@@ -13,7 +13,6 @@ package starling.textures
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
-    import flash.display3D.Context3DProfile;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
     import flash.events.Event;
@@ -348,7 +347,11 @@ package starling.textures
         }
         
         /** Converts texture coordinates and vertex positions of raw vertex data into the format 
-         *  required for rendering. */
+         *  required for rendering. While the texture coordinates of an image always use the
+         *  range <code>[0, 1]</code>, the actual coordinates could be different: you
+         *  might be working with a SubTexture or a texture frame. This method
+         *  adjusts the texture and vertex coordinates accordingly.
+         */
         public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
             if (mFrame)
@@ -364,6 +367,24 @@ package starling.textures
                 vertexData.translateVertex(vertexID + 2, -mFrame.x, -deltaBottom);
                 vertexData.translateVertex(vertexID + 3, -deltaRight, -deltaBottom);
             }
+        }
+        
+        /** Converts texture coordinates into the format required for rendering. While the texture
+         *  coordinates of an image always use the range <code>[0, 1]</code>, the actual
+         *  coordinates could be different: you might be working with a SubTexture. This method
+         *  adjusts the coordinates accordingly.
+         *
+         *  @param texCoords: a vector containing UV coordinates (optionally, among other data).
+         *                    U and V coordinates always have to come in pairs. The vector is
+         *                    modified in place.
+         *  @param startIndex: the index of the first U coordinate in the vector.
+         *  @param stride: the distance (in vector elements) of consecutive UV pairs.
+         *  @param count: the number of UV pairs that should be adjusted, or "-1" for all of them.
+         */
+        public function adjustTexCoords(texCoords:Vector.<Number>,
+                                        startIndex:int=0, stride:int=0, count:int=-1):void
+        {
+            // override in subclasses
         }
         
         // properties
