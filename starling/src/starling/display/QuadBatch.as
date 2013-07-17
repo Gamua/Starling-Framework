@@ -533,7 +533,8 @@ package starling.display
         
         /** Indicates if the batch itself should be batched on rendering. This makes sense only
          *  if it contains only a small number of quads (we recommend no more than 16). Otherwise,
-         *  the CPU costs will exceed any gains you get from avoiding the additional draw call. */
+         *  the CPU costs will exceed any gains you get from avoiding the additional draw call.
+         *  @default false */
         public function get batchable():Boolean { return mBatchable; }
         public function set batchable(value:Boolean):void { mBatchable = value; } 
         
