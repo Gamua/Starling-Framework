@@ -107,6 +107,13 @@ package starling.display
             onVertexDataChanged();
         }
         
+        /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
+        public function setTexCoordsTo(vertexID:int, u:Number, v:Number):void
+        {
+            mVertexData.setTexCoords(vertexID, u, v);
+            onVertexDataChanged();
+        }
+        
         /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. 
          *  If you pass a 'resultPoint', the result will be stored in this point instead of 
          *  creating a new object.*/

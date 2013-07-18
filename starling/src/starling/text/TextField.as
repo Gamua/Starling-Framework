@@ -613,7 +613,7 @@ package starling.text
         /** Indicates if TextField should be batched on rendering. This works only with bitmap
          *  fonts, and it makes sense only for TextFields with no more than 10-15 characters.
          *  Otherwise, the CPU costs will exceed any gains you get from avoiding the additional
-         *  draw call. */
+         *  draw call. @default false */
         public function get batchable():Boolean { return mBatchable; }
         public function set batchable(value:Boolean):void
         { 

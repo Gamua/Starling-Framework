@@ -89,6 +89,23 @@ package starling.textures
                                            clipY + sTexCoords.y * clipHeight);
             }
         }
+
+        /** @inheritDoc */
+        public override function adjustTexCoords(texCoords:Vector.<Number>,
+                                                 startIndex:int=0, stride:int=0, count:int=-1):void
+        {
+            if (count < 0)
+                count = (texCoords.length - startIndex - 2) / (stride + 2) + 1;
+            
+            var index:int = startIndex;
+            for (var i:int=0; i<count; ++i)
+            {
+                texCoords[index] = mRootClipping.x + texCoords[index] * mRootClipping.width;
+                index += 1;
+                texCoords[index] = mRootClipping.y + texCoords[index] * mRootClipping.height;
+                index += 1 + stride;
+            }
+        }
         
         /** The texture which the subtexture is based on. */ 
         public function get parent():Texture { return mParent; }
