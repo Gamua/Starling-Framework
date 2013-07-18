@@ -254,7 +254,7 @@ package starling.textures
          *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          */
-        public static function fromColor(width:int, height:int, color:uint=0xffffffff,
+        public static function fromColor(width:Number, height:Number, color:uint=0xffffffff,
                                          optimizeForRenderToTexture:Boolean=false, 
                                          scale:Number=-1):Texture
         {
@@ -284,7 +284,7 @@ package starling.textures
          *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target 
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          */
-        public static function empty(width:int, height:int, premultipliedAlpha:Boolean=true,
+        public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
                                      mipMapping:Boolean=true, optimizeForRenderToTexture:Boolean=false,
                                      scale:Number=-1):Texture
         {
