@@ -43,6 +43,7 @@ package starling.core
         /** Helper objects. */
         private static var sProcessedTouchIDs:Vector.<int> = new <int>[];
         private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
+        private static var sHelperPoint:Point = new Point();
         
         public function TouchProcessor(stage:Stage)
         {
@@ -100,14 +101,16 @@ package starling.core
                     
                     // hovering touches need special handling (see below)
                     if (touch && touch.phase == TouchPhase.HOVER && touch.target)
-                        sHoveringTouchData.push({ 
+                        sHoveringTouchData[sHoveringTouchData.length] = { 
                             touch: touch, 
                             target: touch.target, 
                             bubbleChain: touch.bubbleChain 
-                        });
+                        }; // avoiding 'push'
                     
-                    processTouch.apply(this, touchArgs);
-                    sProcessedTouchIDs.push(touchID);
+                    processTouch(touchArgs[0], touchArgs[1], touchArgs[2], touchArgs[3],
+                                 touchArgs[4], touchArgs[5], touchArgs[6]);
+                    
+                    sProcessedTouchIDs[sProcessedTouchIDs.length] = touchID; // avoiding 'push'
                 }
                 
                 // the same touch event will be dispatched to all targets; 
@@ -177,7 +180,6 @@ package starling.core
         private function processTouch(touchID:int, phase:String, globalX:Number, globalY:Number,
                                       pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
-            var position:Point = new Point(globalX, globalY);
             var touch:Touch = getCurrentTouch(touchID);
             
             if (touch == null)
@@ -193,7 +195,10 @@ package starling.core
             touch.setSize(width, height);
             
             if (phase == TouchPhase.HOVER || phase == TouchPhase.BEGAN)
-                touch.setTarget(mStage.hitTest(position, true));
+            {
+                sHelperPoint.setTo(globalX, globalY);
+                touch.setTarget(mStage.hitTest(sHelperPoint, true));
+            }
             
             if (phase == TouchPhase.BEGAN)
                 processTap(touch);

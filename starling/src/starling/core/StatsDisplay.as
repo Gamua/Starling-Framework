@@ -26,6 +26,8 @@ package starling.core
      *  the number of draw calls per frame. The display is updated automatically once per frame. */
     internal class StatsDisplay extends Sprite
     {
+        private const UPDATE_INTERVAL:Number = 0.5;
+        
         private var mBackground:Quad;
         private var mTextField:TextField;
         
@@ -71,7 +73,7 @@ package starling.core
             mTotalTime += event.passedTime;
             mFrameCount++;
             
-            if (mTotalTime > 1.0)
+            if (mTotalTime > UPDATE_INTERVAL)
             {
                 update();
                 mFrameCount = mTotalTime = 0;
@@ -86,7 +88,7 @@ package starling.core
             
             mTextField.text = "FPS: " + mFps.toFixed(mFps < 100 ? 1 : 0) + 
                             "\nMEM: " + mMemory.toFixed(mMemory < 100 ? 1 : 0) +
-                            "\nDRW: " + Math.max(0, mDrawCount - 2); // ignore self 
+                            "\nDRW: " + (mTotalTime > 0 ? mDrawCount-2 : mDrawCount); // ignore self 
         }
         
         public override function render(support:RenderSupport, parentAlpha:Number):void
@@ -103,7 +105,7 @@ package starling.core
         public function get drawCount():int { return mDrawCount; }
         public function set drawCount(value:int):void { mDrawCount = value; }
         
-        /** The current frames per second (updated once per second). */
+        /** The current frames per second (updated twice per second). */
         public function get fps():Number { return mFps; }
         public function set fps(value:Number):void { mFps = value; }
         

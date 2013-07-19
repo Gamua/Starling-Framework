@@ -332,10 +332,10 @@ package starling.utils
                         y = mRawData.readFloat();
                         offset += BYTES_PER_VERTEX;
                         
-                        minX = minX < x ? minX : x;
-                        maxX = maxX > x ? maxX : x;
-                        minY = minY < y ? minY : y;
-                        maxY = maxY > y ? maxY : y;
+                        if (minX > x) minX = x;
+                        if (maxX < x) maxX = x;
+                        if (minY > y) minY = y;
+                        if (maxY < y) maxY = y;
                     }
                 }
                 else
@@ -348,10 +348,11 @@ package starling.utils
                         offset += BYTES_PER_VERTEX;
                         
                         MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
-                        minX = minX < sHelperPoint.x ? minX : sHelperPoint.x;
-                        maxX = maxX > sHelperPoint.x ? maxX : sHelperPoint.x;
-                        minY = minY < sHelperPoint.y ? minY : sHelperPoint.y;
-                        maxY = maxY > sHelperPoint.y ? maxY : sHelperPoint.y;
+                        
+                        if (minX > sHelperPoint.x) minX = sHelperPoint.x;
+                        if (maxX < sHelperPoint.x) maxX = sHelperPoint.x;
+                        if (minY > sHelperPoint.y) minY = sHelperPoint.y;
+                        if (maxY < sHelperPoint.y) maxY = sHelperPoint.y;
                     }
                 }
                 
@@ -504,16 +505,10 @@ package starling.utils
         public function get numVertices():int { return mNumVertices; }
         public function set numVertices(value:int):void
         {
-            var i:int;
-            var pos:int;
-            
             mRawData.length = value * BYTES_PER_VERTEX; 
             
-            for (i=mNumVertices; i<value; ++i)
-            {
-                pos = i * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES + 3;
-                mRawData[pos] = 0xff; // alpha = '1'
-            }
+            for (var i:int=mNumVertices; i<value; ++i)  // alpha should be '1' per default
+                mRawData[int(i * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES + 3)] = 0xff;
             
             mNumVertices = value;
         }

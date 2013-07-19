@@ -14,6 +14,7 @@ package starling.utils
     import flash.net.URLRequest;
     import flash.system.ImageDecodingPolicy;
     import flash.system.LoaderContext;
+    import flash.system.System;
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     import flash.utils.clearTimeout;
@@ -24,6 +25,7 @@ package starling.utils
     import starling.core.Starling;
     import starling.text.BitmapFont;
     import starling.text.TextField;
+    import starling.textures.AtfData;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
     
@@ -32,13 +34,23 @@ package starling.utils
      *  you to deal with assets in a unified way, no matter if they are loaded from a file, 
      *  directory, URL, or from an embedded object.
      *  
-     *  <p>If you load files from disk, the following types are supported:
-     *  <code>png, jpg, atf, mp3, xml, fnt</code></p>
-     */    
+     *  <p>The class can deal with the following media types:
+     *  <ul>
+     *    <li>Textures, either from Bitmaps or ATF data</li>
+     *    <li>Texture atlases</li>
+     *    <li>Bitmap Fonts</li>
+     *    <li>XML data</li>
+     *    <li>JSON data</li>
+     *  </ul>
+     *  </p>
+     *  
+     *  <p>For more information on how to add assets from different sources, read the documentation
+     *  of the "enqueue()" method.</p>
+     */
     public class AssetManager
     {
         private const SUPPORTED_EXTENSIONS:Vector.<String> = 
-            new <String>["png", "jpg", "jpeg", "atf", "mp3", "xml", "fnt"]; 
+            new <String>["png", "jpg", "jpeg", "gif", "atf", "mp3", "xml", "fnt", "pex", "json"]; 
         
         private var mScaleFactor:Number;
         private var mUseMipMaps:Boolean;
@@ -49,9 +61,12 @@ package starling.utils
         private var mTextures:Dictionary;
         private var mAtlases:Dictionary;
         private var mSounds:Dictionary;
+        private var mXmls:Dictionary;
+        private var mObjects:Dictionary;
+        private var mByteArrays:Dictionary;
         
         /** helper objects */
-        private var sNames:Vector.<String> = new <String>[];
+        private static var sNames:Vector.<String> = new <String>[];
         
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
@@ -65,6 +80,9 @@ package starling.utils
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
             mSounds = new Dictionary();
+            mXmls = new Dictionary();
+            mObjects = new Dictionary();
+            mByteArrays = new Dictionary();
         }
         
         /** Disposes all contained textures. */
@@ -112,11 +130,7 @@ package starling.utils
         /** Returns all texture names that start with a certain string, sorted alphabetically. */
         public function getTextureNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
         {
-            if (result == null) result = new <String>[];
-            
-            for (var name:String in mTextures)
-                if (name.indexOf(prefix) == 0)
-                    result.push(name);                
+            result = getDictionaryKeys(mTextures, prefix, result);
             
             for each (var atlas:TextureAtlas in mAtlases)
                 atlas.getNames(prefix, result);
@@ -131,22 +145,17 @@ package starling.utils
             return mAtlases[name] as TextureAtlas;
         }
         
-        /** Returns a sound with a certain name. */
+        /** Returns a sound with a certain name, or null if it's not found. */
         public function getSound(name:String):Sound
         {
             return mSounds[name];
         }
         
-        /** Returns all sound names that start with a certain string, sorted alphabetically. */
-        public function getSoundNames(prefix:String=""):Vector.<String>
+        /** Returns all sound names that start with a certain string, sorted alphabetically.
+         *  If you pass a result vector, the names will be added to that vector. */
+        public function getSoundNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
         {
-            var names:Vector.<String> = new <String>[];
-            
-            for (var name:String in mSounds)
-                if (name.indexOf(prefix) == 0)
-                    names.push(name);
-            
-            return names.sort(Array.CASEINSENSITIVE);
+            return getDictionaryKeys(mSounds, prefix, result);
         }
         
         /** Generates a new SoundChannel object to play back the sound. This method returns a 
@@ -158,6 +167,46 @@ package starling.utils
                 return getSound(name).play(startTime, loops, transform);
             else 
                 return null;
+        }
+        
+        /** Returns an XML with a certain name, or null if it's not found. */
+        public function getXml(name:String):XML
+        {
+            return mXmls[name];
+        }
+        
+        /** Returns all XML names that start with a certain string, sorted alphabetically. 
+         *  If you pass a result vector, the names will be added to that vector. */
+        public function getXmlNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        {
+            return getDictionaryKeys(mXmls, prefix, result);
+        }
+
+        /** Returns an object with a certain name, or null if it's not found. Enqueued JSON
+         *  data is parsed and can be accessed with this method. */
+        public function getObject(name:String):Object
+        {
+            return mObjects[name];
+        }
+        
+        /** Returns all object names that start with a certain string, sorted alphabetically. 
+         *  If you pass a result vector, the names will be added to that vector. */
+        public function getObjectNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        {
+            return getDictionaryKeys(mObjects, prefix, result);
+        }
+        
+        /** Returns a byte array with a certain name, or null if it's not found. */
+        public function getByteArray(name:String):ByteArray
+        {
+            return mByteArrays[name];
+        }
+        
+        /** Returns all byte array names that start with a certain string, sorted alphabetically. 
+         *  If you pass a result vector, the names will be added to that vector. */
+        public function getByteArrayNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        {
+            return getDictionaryKeys(mByteArrays, prefix, result);
         }
         
         // direct adding
@@ -195,11 +244,46 @@ package starling.utils
             mSounds[name] = sound;
         }
         
+        /** Register an XML object under a certain name. It will be available right away. */
+        public function addXml(name:String, xml:XML):void
+        {
+            log("Adding XML '" + name + "'");
+            
+            if (name in mXmls)
+                log("Warning: name was already in use; the previous XML will be replaced.");
+
+            mXmls[name] = xml;
+        }
+        
+        /** Register an arbitrary object under a certain name. It will be available right away. */
+        public function addObject(name:String, object:Object):void
+        {
+            log("Adding object '" + name + "'");
+            
+            if (name in mObjects)
+                log("Warning: name was already in use; the previous object will be replaced.");
+            
+            mObjects[name] = object;
+        }
+        
+        /** Register a byte array under a certain name. It will be available right away. */
+        public function addByteArray(name:String, byteArray:ByteArray):void
+        {
+            log("Adding byte array '" + name + "'");
+            
+            if (name in mObjects)
+                log("Warning: name was already in use; the previous byte array will be replaced.");
+            
+            mByteArrays[name] = byteArray;
+        }
+        
         // removing
         
         /** Removes a certain texture, optionally disposing it. */
         public function removeTexture(name:String, dispose:Boolean=true):void
         {
+            log("Removing texture '" + name + "'");
+            
             if (dispose && name in mTextures)
                 mTextures[name].dispose();
             
@@ -209,6 +293,8 @@ package starling.utils
         /** Removes a certain texture atlas, optionally disposing it. */
         public function removeTextureAtlas(name:String, dispose:Boolean=true):void
         {
+            log("Removing texture atlas '" + name + "'");
+            
             if (dispose && name in mAtlases)
                 mAtlases[name].dispose();
             
@@ -218,12 +304,44 @@ package starling.utils
         /** Removes a certain sound. */
         public function removeSound(name:String):void
         {
+            log("Removing sound '"+ name + "'");
             delete mSounds[name];
+        }
+        
+        /** Removes a certain Xml object, optionally disposing it. */
+        public function removeXml(name:String, dispose:Boolean=true):void
+        {
+            log("Removing xml '"+ name + "'");
+            
+            if (dispose && name in mXmls)
+                System.disposeXML(mXmls[name]);
+            
+            delete mXmls[name];
+        }
+        
+        /** Removes a certain object. */
+        public function removeObject(name:String):void
+        {
+            log("Removing object '"+ name + "'");
+            delete mObjects[name];
+        }
+        
+        /** Removes a certain byte array, optionally disposing its memory right away. */
+        public function removeByteArray(name:String, dispose:Boolean=true):void
+        {
+            log("Removing byte array '"+ name + "'");
+            
+            if (dispose && name in mByteArrays)
+                mByteArrays[name].clear();
+            
+            delete mByteArrays[name];
         }
         
         /** Removes assets of all types and empties the queue. */
         public function purge():void
         {
+            log("Purging all assets, emptying queue");
+            
             for each (var texture:Texture in mTextures)
                 texture.dispose();
             
@@ -234,6 +352,9 @@ package starling.utils
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
             mSounds = new Dictionary();
+            mXmls = new Dictionary();
+            mObjects = new Dictionary();
+            mByteArrays = new Dictionary();
         }
         
         // queued adding
@@ -243,17 +364,24 @@ package starling.utils
          *  
          *  <ul>
          *    <li>Strings containing an URL to a local or remote resource. Supported types:
-         *        <code>png, jpg, atf, mp3, fnt, xml</code> (texture atlas).</li>
+         *        <code>png, jpg, gif, atf, mp3, xml, fnt, pex, json</code>.</li>
          *    <li>Instances of the File class (AIR only) pointing to a directory or a file.
          *        Directories will be scanned recursively for all supported types.</li>
          *    <li>Classes that contain <code>static</code> embedded assets.</li>
          *  </ul>
          *  
-         *  Suitable object names are extracted automatically: A file named "image.png" will be
+         *  <p>Suitable object names are extracted automatically: A file named "image.png" will be
          *  accessible under the name "image". When enqueuing embedded assets via a class, 
          *  the variable name of the embedded object will be used as its name. An exception
          *  are texture atlases: they will have the same name as the actual texture they are
-         *  referencing.
+         *  referencing.</p>
+         *  
+         *  <p>XMLs that contain texture atlases or bitmap fonts are processed directly: fonts are
+         *  registered at the TextField class, atlas textures can be acquired with the
+         *  "getTexture()" method. All other XMLs are available via "getXml()".</p>
+         *  
+         *  <p>If you pass in JSON data, it will be parsed into an object and will be available via
+         *  "getObject()".</p>   
          */
         public function enqueue(...rawAssets):void
         {
@@ -359,7 +487,7 @@ package starling.utils
             {
                 var assetInfo:Object = mRawAssets.pop();
                 clearTimeout(timeoutID);
-                loadRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
+                processRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
             }
             
             function processXmls():void
@@ -388,6 +516,7 @@ package starling.utils
                     else if (rootNode == "font")
                     {
                         name = getName(xml.pages.page.@file.toString());
+                        log("Adding bitmap font '" + name + "'");
                         
                         var fontTexture:Texture = getTexture(name);
                         TextField.registerBitmapFont(new BitmapFont(fontTexture, xml));
@@ -395,6 +524,8 @@ package starling.utils
                     }
                     else
                         throw new Error("XML contents not recognized: " + rootNode);
+                    
+                    System.disposeXML(xml);
                 }
             }
             
@@ -404,14 +535,15 @@ package starling.utils
             }
         }
         
-        private function loadRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
-                                      onProgress:Function, onComplete:Function):void
+        private function processRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
+                                         onProgress:Function, onComplete:Function):void
         {
-            var extension:String = null;
+            loadRawAsset(name, rawAsset, onProgress, process); 
             
-            if (rawAsset is Class)
+            function process(asset:Object):void
             {
-                var asset:Object = new rawAsset();
+                var texture:Texture;
+                var bytes:ByteArray;
                 
                 if (asset is Sound)
                 {
@@ -420,37 +552,100 @@ package starling.utils
                 }
                 else if (asset is Bitmap)
                 {
-                    addBitmapTexture(name, asset as Bitmap);
+                    texture = Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor);
+                    texture.root.onRestore = function():void
+                    {
+                        loadRawAsset(name, rawAsset, null, function(asset:Object):void
+                        {
+                            texture.root.uploadBitmap(asset as Bitmap);
+                            asset.bitmapData.dispose();
+                        });
+                    };
+
+                    asset.bitmapData.dispose();
+                    addTexture(name, texture);
                     onComplete();
                 }
                 else if (asset is ByteArray)
                 {
-                    var bytes:ByteArray = asset as ByteArray;
-                    var signature:String = String.fromCharCode(bytes[0], bytes[1], bytes[2]);
+                    bytes = asset as ByteArray;
                     
-                    if (signature == "ATF")
+                    if (AtfData.isAtfData(bytes))
                     {
-                        addTexture(name, Texture.fromAtfData(asset as ByteArray, mScaleFactor, 
-                            mUseMipMaps, onComplete));
+                        texture = Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete);
+                        texture.root.onRestore = function():void
+                        {
+                            loadRawAsset(name, rawAsset, null, function(asset:Object):void
+                            {
+                                texture.root.uploadAtfData(asset as ByteArray, 0, true);
+                                asset.clear();
+                            });
+                        };
+                        
+                        bytes.clear();
+                        addTexture(name, texture);
+                    }
+                    else if (byteArrayStartsWith(bytes, "{"))
+                    {
+                        addObject(name, JSON.parse(bytes.readUTFBytes(bytes.length)));
+                        bytes.clear();
+                        onComplete();
+                    }
+                    else if (byteArrayStartsWith(bytes, "<"))
+                    {
+                        process(new XML(bytes));
+                        bytes.clear();
                     }
                     else
                     {
-                        xmls.push(new XML(bytes));
+                        addByteArray(name, bytes);
                         onComplete();
                     }
+                }
+                else if (asset is XML)
+                {
+                    var xml:XML = asset as XML;
+                    var rootNode:String = xml.localName();
+                    
+                    if (rootNode == "TextureAtlas" || rootNode == "font")
+                        xmls.push(xml);
+                    else
+                        addXml(name, xml);
+                    
+                    onComplete();
+                }
+                else if (asset == null)
+                {
+                    onComplete();
                 }
                 else
                 {
                     log("Ignoring unsupported asset type: " + getQualifiedClassName(asset));
                     onComplete();
                 }
+                
+                // avoid that objects stay in memory (through 'onRestore' functions)
+                asset = null;
+                bytes = null;
+            }
+        }
+        
+        private function loadRawAsset(name:String, rawAsset:Object, 
+                                      onProgress:Function, onComplete:Function):void
+        {
+            var extension:String = null;
+            var urlLoader:URLLoader = null;
+            
+            if (rawAsset is Class)
+            {
+                onComplete(new rawAsset());
             }
             else if (rawAsset is String)
             {
                 var url:String = rawAsset as String;
                 extension = url.split(".").pop().toLowerCase().split("?")[0];
                 
-                var urlLoader:URLLoader = new URLLoader();
+                urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
@@ -461,61 +656,54 @@ package starling.utils
             function onIoError(event:IOErrorEvent):void
             {
                 log("IO error: " + event.text);
-                onComplete();
+                onComplete(null);
             }
             
             function onLoadProgress(event:ProgressEvent):void
             {
-                onProgress(event.bytesLoaded / event.bytesTotal);
+                if (onProgress != null)
+                    onProgress(event.bytesLoaded / event.bytesTotal);
             }
             
             function onUrlLoaderComplete(event:Event):void
             {
-                var urlLoader:URLLoader = event.target as URLLoader;
                 var bytes:ByteArray = urlLoader.data as ByteArray;
                 var sound:Sound;
                 
                 urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
-                urlLoader.removeEventListener(ProgressEvent.PROGRESS, onProgress);
+                urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
                 
                 switch (extension)
                 {
                     case "atf":
-                        addTexture(name, Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete));
-                        break;
                     case "fnt":
+                    case "json":
+                    case "pex":
                     case "xml":
-                        xmls.push(new XML(bytes));
-                        onComplete();
+                        onComplete(bytes);
                         break;
                     case "mp3":
                         sound = new Sound();
                         sound.loadCompressedDataFromByteArray(bytes, bytes.length);
-                        addSound(name, sound);
-                        onComplete();
+                        bytes.clear();
+                        onComplete(sound);
                         break;
                     default:
                         var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
                         var loader:Loader = new Loader();
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
-                        loader.loadBytes(urlLoader.data as ByteArray, loaderContext);
+                        loader.loadBytes(bytes, loaderContext);
                         break;
                 }
             }
             
             function onLoaderComplete(event:Event):void
             {
+                urlLoader.data.clear();
                 event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
-                var content:Object = event.target.content;
-                
-                if (content is Bitmap)
-                    addBitmapTexture(name, content as Bitmap);
-                else
-                    throw new Error("Unsupported asset type: " + getQualifiedClassName(content));
-                
-                onComplete();
+                onComplete(event.target.content);
             }
         }
         
@@ -553,11 +741,34 @@ package starling.utils
             if (mVerbose) trace("[AssetManager]", message);
         }
         
-        /** This method is called during loading of assets when a bitmap texture is processed. 
-         *  Override it if you want to preprocess the bitmap in some way. */
-        protected function addBitmapTexture(name:String, bitmap:Bitmap):void
+        private function byteArrayStartsWith(bytes:ByteArray, char:String):Boolean
         {
-            addTexture(name, Texture.fromBitmap(bitmap, mUseMipMaps, false, mScaleFactor));
+            var wanted:int = char.charCodeAt(0);
+            
+            for (var i:int=0, len:int=bytes.length; i<len; ++i)
+            {
+                var byte:int = bytes[i];
+                
+                if      (i==0 && (byte == 0xfe || byte == 0xff)) continue; // UTF-16 BOM
+                else if (i==1 && (byte == 0xfe || byte == 0xff)) continue; // UTF-16 BOM
+                else if (byte == 0 || byte == 10 || byte == 13 || byte == 32) continue; // null, \n, \r, space
+                else return byte == wanted;
+            }
+            
+            return false;
+        }
+        
+        private function getDictionaryKeys(dictionary:Dictionary, prefix:String,
+                                           result:Vector.<String>=null):Vector.<String>
+        {
+            if (result == null) result = new <String>[];
+            
+            for (var name:String in dictionary)
+                if (name.indexOf(prefix) == 0)
+                    result.push(name);
+            
+            result.sort(Array.CASEINSENSITIVE);
+            return result;
         }
         
         // properties

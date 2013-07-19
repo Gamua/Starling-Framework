@@ -27,10 +27,10 @@ package starling.utils
         {
             if (resultRect == null) resultRect = new Rectangle();
             
-            var left:Number   = Math.max(rect1.x, rect2.x);
-            var right:Number  = Math.min(rect1.x + rect1.width, rect2.x + rect2.width);
-            var top:Number    = Math.max(rect1.y, rect2.y);
-            var bottom:Number = Math.min(rect1.y + rect1.height, rect2.y + rect2.height);
+            var left:Number   = rect1.x      > rect2.x      ? rect1.x      : rect2.x;
+            var right:Number  = rect1.right  < rect2.right  ? rect1.right  : rect2.right;
+            var top:Number    = rect1.y      > rect2.y      ? rect1.y      : rect2.y;
+            var bottom:Number = rect1.bottom < rect2.bottom ? rect1.bottom : rect2.bottom;
             
             if (left > right || top > bottom)
                 resultRect.setEmpty();

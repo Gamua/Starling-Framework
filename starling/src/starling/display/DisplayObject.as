@@ -19,8 +19,10 @@ package starling.display
     import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
+    import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
@@ -220,7 +222,7 @@ package starling.display
             
             while (currentObject)
             {
-                sAncestors.push(currentObject);
+                sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
                 currentObject = currentObject.mParent;
             }
             
@@ -268,7 +270,7 @@ package starling.display
          *  rectangle instead of creating a new object. */ 
         public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            throw new AbstractMethodError("Method needs to be implemented in subclass");
+            throw new AbstractMethodError();
             return null;
         }
         
@@ -310,7 +312,7 @@ package starling.display
          *  @param parentAlpha The accumulated alpha value from the object's parent up to the stage. */
         public function render(support:RenderSupport, parentAlpha:Number):void
         {
-            throw new AbstractMethodError("Method needs to be implemented in subclass");
+            throw new AbstractMethodError();
         }
         
         /** Indicates if an object occupies any visible area. (Which is the case when its 'alpha', 
@@ -368,6 +370,60 @@ package starling.display
             while (angle < -Math.PI) angle += Math.PI * 2.0;
             while (angle >  Math.PI) angle -= Math.PI * 2.0;
             return angle;
+        }
+        
+        // enter frame event optimization
+        
+        // To avoid looping through the complete display tree each frame to find out who's
+        // listening to ENTER_FRAME events, we manage a list of them manually in the Stage class.
+        // We need to take care that (a) it must be dispatched only when the object is
+        // part of the stage, (b) it must not cause memory leaks when the user forgets to call
+        // dispose and (c) there might be multiple listeners for this event.
+        
+        public override function addEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && !hasEventListener(type))
+            {
+                addEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
+                addEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
+                if (this.stage) addEnterFrameListenerToStage();
+            }
+            
+            super.addEventListener(type, listener);
+        }
+        
+        public override function removeEventListener(type:String, listener:Function):void
+        {
+            super.removeEventListener(type, listener);
+            
+            if (type == Event.ENTER_FRAME && !hasEventListener(type))
+            {
+                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
+                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
+                removeEnterFrameListenerFromStage();
+            }
+        }
+        
+        public override function removeEventListeners(type:String=null):void
+        {
+            super.removeEventListeners(type);
+            
+            if (type == null || type == Event.ENTER_FRAME)
+            {
+                removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
+                removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
+                removeEnterFrameListenerFromStage();
+            }
+        }
+        
+        private function addEnterFrameListenerToStage():void
+        {
+            Starling.current.stage.addEnterFrameListener(this);
+        }
+        
+        private function removeEnterFrameListenerFromStage():void
+        {
+            Starling.current.stage.removeEnterFrameListener(this);
         }
         
         // properties
