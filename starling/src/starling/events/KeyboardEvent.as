@@ -35,6 +35,7 @@ package starling.events
         private var mAltKey:Boolean;
         private var mCtrlKey:Boolean;
         private var mShiftKey:Boolean;
+        private var mIsDefaultPrevented:Boolean = false;
         
         /** Creates a new KeyboardEvent. */
         public function KeyboardEvent(type:String, charCode:uint=0, keyCode:uint=0, 
@@ -70,5 +71,12 @@ package starling.events
         
         /** Indicates whether the Shift key modifier is active (true) or inactive (false). */
         public function get shiftKey():Boolean { return mShiftKey; }
+
+        public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
+
+        public function preventDefault():void
+        {
+            mIsDefaultPrevented = true;
+        }
     }
 }
