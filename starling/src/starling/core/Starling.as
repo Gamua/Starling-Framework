@@ -565,15 +565,15 @@ package starling.core
         {
             if (!mStarted) return;
             
-            makeCurrent();
             var keyEvent:starling.events.KeyboardEvent = new starling.events.KeyboardEvent(
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey);
+            
+            makeCurrent();
             mStage.broadcastEvent(keyEvent);
-            if(keyEvent.isDefaultPrevented())
-            {
+            
+            if (keyEvent.isDefaultPrevented())
             	event.preventDefault();
-            }
         }
         
         private function onResize(event:Event):void
