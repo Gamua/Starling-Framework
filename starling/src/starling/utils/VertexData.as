@@ -109,19 +109,17 @@ package starling.utils
                 targetData.mNumVertices = targetVertexID + numVertices;
             
             // todo: check/convert pma
-            
+
+            var x:Number, y:Number;
             var targetRawData:ByteArray = targetData.mRawData;
             targetRawData.position = targetVertexID * BYTES_PER_VERTEX;
+            targetRawData.writeBytes(mRawData, vertexID * BYTES_PER_VERTEX,
+                                            numVertices * BYTES_PER_VERTEX);
             
-            if (matrix == null)
+            if (matrix)
             {
-                targetRawData.writeBytes(mRawData, vertexID * BYTES_PER_VERTEX,
-                                                numVertices * BYTES_PER_VERTEX);
-            }
-            else
-            {
-                var x:Number, y:Number;
                 mRawData.position = vertexID * BYTES_PER_VERTEX;
+                targetRawData.position = targetVertexID * BYTES_PER_VERTEX;
                 
                 for (var i:int=0; i<numVertices; ++i)
                 {
@@ -135,7 +133,7 @@ package starling.utils
                     
                     // copy rest
                     
-                    targetRawData.writeBytes(mRawData, mRawData.position, 12);
+                    targetRawData.position += 12;
                     mRawData.position += 12;
                 }
             }
