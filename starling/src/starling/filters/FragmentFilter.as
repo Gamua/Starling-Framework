@@ -110,6 +110,7 @@ import flash.utils.getQualifiedClassName;
         /** helper objects. */
         private var mProjMatrix:Matrix = new Matrix();
         private static var sBounds:Rectangle  = new Rectangle();
+        private static var sBoundsPot:Rectangle = new Rectangle();
         private static var sStageBounds:Rectangle = new Rectangle();
         private static var sTransformationMatrix:Matrix = new Matrix();
         
@@ -206,6 +207,7 @@ import flash.utils.getQualifiedClassName;
         private function renderPasses(object:DisplayObject, support:RenderSupport, 
                                       parentAlpha:Number, intoCache:Boolean=false):QuadBatch
         {
+            var passTexture:Texture;
             var cacheTexture:Texture = null;
             var stage:Stage = object.stage;
             var context:Context3D = Starling.context;
@@ -215,7 +217,7 @@ import flash.utils.getQualifiedClassName;
             if (context == null) throw new MissingContextError();
             
             // the bounds of the object in stage coordinates 
-            calculateBounds(object, stage, mResolution * scale, !intoCache, sBounds);
+            calculateBounds(object, stage, mResolution * scale, !intoCache, sBounds, sBoundsPot);
             
             if (sBounds.isEmpty())
             {
@@ -223,8 +225,8 @@ import flash.utils.getQualifiedClassName;
                 return intoCache ? new QuadBatch() : null; 
             }
             
-            updateBuffers(context, sBounds);
-            updatePassTextures(sBounds.width, sBounds.height, mResolution * scale);
+            updateBuffers(context, sBoundsPot);
+            updatePassTextures(sBoundsPot.width, sBoundsPot.height, mResolution * scale);
             
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
@@ -240,20 +242,21 @@ import flash.utils.getQualifiedClassName;
                     "This limitation will be removed in a future Stage3D version.");
             
             if (intoCache) 
-                cacheTexture = Texture.empty(sBounds.width, sBounds.height, PMA, false, true, 
+                cacheTexture = Texture.empty(sBoundsPot.width, sBoundsPot.height, PMA, false, true, 
                                              mResolution * scale);
             
             // draw the original object into a texture
             support.renderTarget = mPassTextures[0];
             support.clear();
             support.blendMode = BlendMode.NORMAL;
-            support.setOrthographicProjection(sBounds.x, sBounds.y, sBounds.width, sBounds.height);
+            support.setOrthographicProjection(sBounds.x, sBounds.y, sBoundsPot.width, sBoundsPot.height);
             object.render(support, parentAlpha);
             support.finishQuadBatch();
             
             // prepare drawing of actual filter passes
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
+            support.pushClipRect(sBounds);
             
             context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
                                       Context3DVertexBufferFormat.FLOAT_2);
@@ -288,8 +291,7 @@ import flash.utils.getQualifiedClassName;
                     }
                 }
                 
-                var passTexture:Texture = getPassTexture(i);
-                
+                passTexture = getPassTexture(i);
                 context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, mMvpConstantID, 
                                                       support.mvpMatrix3D, true);
                 context.setTextureAt(mBaseTextureID, passTexture.base);
@@ -305,6 +307,7 @@ import flash.utils.getQualifiedClassName;
             context.setTextureAt(mBaseTextureID, null);
             
             support.popMatrix();
+            support.popClipRect();
             
             if (intoCache)
             {
@@ -379,10 +382,14 @@ import flash.utils.getQualifiedClassName;
             return mPassTextures[pass % 2];
         }
         
-        /** Calculates the bounds of the filter in stage coordinates, while making sure that the 
-         *  according textures will have powers of two. */
+        /** Calculates the bounds of the filter in stage coordinates. The method calculates two
+         *  rectangles: one with the exact filter bounds, the other with an extended rectangle that
+         *  will yield to a POT size when multiplied with the current scale factor / resolution.
+         */
         private function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
-                                         intersectWithStage:Boolean, resultRect:Rectangle):void
+                                         intersectWithStage:Boolean, 
+                                         resultRect:Rectangle,
+                                         resultPotRect:Rectangle):void
         {
             var marginX:Number, marginY:Number;
             
@@ -415,8 +422,10 @@ import flash.utils.getQualifiedClassName;
                 var minSize:int = MIN_TEXTURE_SIZE / scale;
                 var minWidth:Number  = resultRect.width  > minSize ? resultRect.width  : minSize;
                 var minHeight:Number = resultRect.height > minSize ? resultRect.height : minSize;
-                resultRect.width  = getNextPowerOfTwo(minWidth  * scale) / scale;
-                resultRect.height = getNextPowerOfTwo(minHeight * scale) / scale;
+                resultPotRect.setTo(
+                    resultRect.x, resultRect.y,
+                    getNextPowerOfTwo(minWidth  * scale) / scale,
+                    getNextPowerOfTwo(minHeight * scale) / scale);
             }
         }
         
