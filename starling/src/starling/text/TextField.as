@@ -12,6 +12,7 @@ package starling.text
 {
     import flash.display.BitmapData;
     import flash.display.StageQuality;
+    import flash.display3D.Context3DTextureFormat;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.text.AntiAliasType;
@@ -178,11 +179,12 @@ package starling.text
             
             var scale:Number  = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
+            var format:String = Context3DTextureFormat.BGRA_PACKED;
             
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
             
-            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale);
+            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
             texture.root.onRestore = function():void
             {
                 texture.root.uploadBitmapData(renderText(scale, mTextBounds));
