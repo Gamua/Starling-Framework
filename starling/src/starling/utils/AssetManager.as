@@ -589,7 +589,7 @@ package starling.utils
                         bytes.clear();
                         addTexture(name, texture);
                     }
-                    else if (byteArrayStartsWith(bytes, "{"))
+                    else if (byteArrayStartsWith(bytes, "{") || byteArrayStartsWith(bytes, "["))
                     {
                         addObject(name, JSON.parse(bytes.readUTFBytes(bytes.length)));
                         bytes.clear();
