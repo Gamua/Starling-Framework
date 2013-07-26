@@ -179,7 +179,8 @@ package starling.text
             
             var scale:Number  = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
-            var format:String = Context3DTextureFormat.BGRA_PACKED;
+            var format:String = "BGRA_PACKED" in Context3DTextureFormat ? 
+                                "bgraPacked4444" : "bgra";
             
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
