@@ -290,10 +290,11 @@ package starling.textures
                                                 optimizeForRenderToTexture, scale, format);
             texture.root.clear(color, Color.getAlpha(color) / 255.0);
             
-            texture.root.onRestore = function():void
-            {
-                texture.root.clear(color, Color.getAlpha(color) / 255.0);
-            };
+            if (Starling.handleLostContext)
+                texture.root.onRestore = function():void
+                {
+                    texture.root.clear(color, Color.getAlpha(color) / 255.0);
+                };
             
             return texture;
         }
