@@ -96,7 +96,6 @@ package scenes
             var map:BitmapData = new BitmapData(width*scale, height*scale, false);
             map.perlinNoise(20*scale, 20*scale, 3, 5, false, true);
             var texture:Texture = Texture.fromBitmapData(map, false, false, scale);
-            map.dispose();
             return texture;
         }
     }
