@@ -216,12 +216,10 @@ package starling.textures
                                                 format);
             
             texture.root.uploadBitmapData(data);
-            
-            if (Starling.handleLostContext)
-                texture.root.onRestore = function():void
-                {
-                    texture.root.uploadBitmapData(data);
-                };
+            texture.root.onRestore = function():void
+            {
+                texture.root.uploadBitmapData(data);
+            };
             
             return texture;
         }
@@ -255,12 +253,10 @@ package starling.textures
                 nativeTexture.addEventListener(eventType, onTextureReady);
             
             concreteTexture.uploadAtfData(data, 0, async);
-            
-            if (Starling.handleLostContext) 
-                concreteTexture.onRestore = function():void
-                {
-                    concreteTexture.uploadAtfData(data, 0, async);
-                };
+            concreteTexture.onRestore = function():void
+            {
+                concreteTexture.uploadAtfData(data, 0, async);
+            };
             
             return concreteTexture;
             
@@ -289,12 +285,10 @@ package starling.textures
             var texture:Texture = Texture.empty(width, height, true, false, 
                                                 optimizeForRenderToTexture, scale, format);
             texture.root.clear(color, Color.getAlpha(color) / 255.0);
-            
-            if (Starling.handleLostContext)
-                texture.root.onRestore = function():void
-                {
-                    texture.root.clear(color, Color.getAlpha(color) / 255.0);
-                };
+            texture.root.onRestore = function():void
+            {
+                texture.root.clear(color, Color.getAlpha(color) / 255.0);
+            };
             
             return texture;
         }
@@ -358,8 +352,7 @@ package starling.textures
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
                 actualWidth, actualHeight, mipMapping, true, optimizeForRenderToTexture, scale);
             
-            if (Starling.handleLostContext)
-                concreteTexture.onRestore = concreteTexture.clear;
+            concreteTexture.onRestore = concreteTexture.clear;
             
             if (isPot || useRectTexture)
                 return concreteTexture;

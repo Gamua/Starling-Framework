@@ -193,18 +193,20 @@ package starling.textures
         public function get optimizedForRenderTexture():Boolean { return mOptimizedForRenderTexture; }
         
         /** If Starling's "handleLostContext" setting is enabled, the function that you provide
-         *  here will be called after a context loss. On execution, a new base texture will 
-         *  already have been created; however, it will be empty. Call one of the "upload..." 
-         *  methods from within the callbacks to restore the actual texture data. */ 
+         *  here will be called after a context loss. On execution, a new base texture will
+         *  already have been created; however, it will be empty. Call one of the "upload..."
+         *  methods from within the callbacks to restore the actual texture data. */
         public function get onRestore():Function { return mOnRestore; }
         public function set onRestore(value:Function):void
-        { 
-            if (Starling.handleLostContext && mOnRestore == null && value != null)
-                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
-            else if (value == null)
-                Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+        {
+            Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            mOnRestore = value; 
+            if (Starling.handleLostContext && value)
+            {
+                mOnRestore = value;
+                Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            }
+            else mOnRestore = null;
         }
         
         /** @inheritDoc */
