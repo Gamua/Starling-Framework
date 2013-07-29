@@ -35,6 +35,7 @@ package starling.events
         private var mAltKey:Boolean;
         private var mCtrlKey:Boolean;
         private var mShiftKey:Boolean;
+        private var mIsDefaultPrevented:Boolean;
         
         /** Creates a new KeyboardEvent. */
         public function KeyboardEvent(type:String, charCode:uint=0, keyCode:uint=0, 
@@ -49,6 +50,20 @@ package starling.events
             mAltKey = altKey;
             mShiftKey = shiftKey;
         }
+        
+        // prevent default
+        
+        /** Cancels the keyboard event's default behavior. This will be forwarded to the native
+         *  flash KeyboardEvent. */
+        public function preventDefault():void
+        {
+            mIsDefaultPrevented = true;
+        }
+        
+        /** Checks whether the preventDefault() method has been called on the event. */
+        public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
+        
+        // properties
         
         /** Contains the character code of the key. */
         public function get charCode():uint { return mCharCode; }

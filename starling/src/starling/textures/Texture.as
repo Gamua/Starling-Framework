@@ -132,22 +132,23 @@ package starling.textures
          *  which guarantees a very economic memory usage.  
          * 
          *  @param assetClass: must contain either a Bitmap or a ByteArray with ATF data.
-         *  @param mipMaps:    for Bitmaps, indicates if mipMaps will be created;
-         *                     for ATF data, indicates if the contained mipMaps will be used.
+         *  @param mipMaps: for Bitmaps, indicates if mipMaps will be created;
+         *                  for ATF data, indicates if the contained mipMaps will be used.
          *  @param optimizeForRenderToTexture: indicates if this texture will be used as 
-         *                     render target
-         *  @param scale:      the scale factor of the created texture. 
+         *                  render target
+         *  @param scale:   the scale factor of the created texture.
+         *  @param format:  the context3D texture format to use. Ignored for ATF data.
          */
         public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
                                                  optimizeForRenderToTexture:Boolean=false,
-                                                 scale:Number=1):Texture
+                                                 scale:Number=1, format:String="bgra"):Texture
         {
             var texture:Texture;
             var asset:Object = new assetClass();
             
             if (asset is Bitmap)
             {
-                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale);
+                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale, format);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -171,39 +172,62 @@ package starling.textures
         }
         
         /** Creates a texture object from a bitmap.
-         *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
-        public static function fromBitmap(data:Bitmap, generateMipMaps:Boolean=true,
+         *  Beware: you must not dispose the bitmap's data if Starling should handle a lost device
+         *  context alternatively, you can handle restoration yourself via "texture.root.onRestore".
+         * 
+         *  @param bitmap:  the texture will be created with the bitmap data of this object.
+         *  @param mipMaps: indicates if mipMaps will be created.
+         *  @param optimizeForRenderToTexture: indicates if this texture will be used as
+         *                  render target
+         *  @param scale:   the scale factor of the created texture. This affects the reported
+         *                  width and height of the texture object.
+         *  @param format:  the context3D texture format to use. Pass one of the packed or
+         *                  compressed formats to save memory (at the price of reduced image
+         *                  quality). 
+         */
+        public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true,
                                           optimizeForRenderToTexture:Boolean=false,
-                                          scale:Number=1):Texture
+                                          scale:Number=1, format:String="bgra"):Texture
         {
-            return fromBitmapData(data.bitmapData, generateMipMaps, optimizeForRenderToTexture, scale);
+            return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture, 
+                                  scale, format);
         }
         
-        /** Creates a texture from bitmap data. 
-         *  Beware: you must not dispose 'data' if Starling should handle a lost device context. */
+        /** Creates a texture object from bitmap data.
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
+         *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
+         * 
+         *  @param bitmap:  the texture will be created with the bitmap data of this object.
+         *  @param mipMaps: indicates if mipMaps will be created.
+         *  @param optimizeForRenderToTexture: indicates if this texture will be used as 
+         *                  render target
+         *  @param scale:   the scale factor of the created texture. This affects the reported
+         *                  width and height of the texture object.
+         *  @param format:  the context3D texture format to use. Pass one of the packed or
+         *                  compressed formats to save memory (at the price of reduced image
+         *                  quality).
+         */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
                                               optimizeForRenderToTexture:Boolean=false,
-                                              scale:Number=1):Texture
+                                              scale:Number=1, format:String="bgra"):Texture
         {
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true, 
-                                                generateMipMaps, optimizeForRenderToTexture, scale);
+                                                generateMipMaps, optimizeForRenderToTexture, scale,
+                                                format);
             
             texture.root.uploadBitmapData(data);
-            
-            // TODO: add documentation about lost context handling vs. this method
-            
-            if (Starling.handleLostContext)
-                texture.root.onRestore = function():void
-                {
-                    texture.root.uploadBitmapData(data);
-                };
+            texture.root.onRestore = function():void
+            {
+                texture.root.uploadBitmapData(data);
+            };
             
             return texture;
         }
         
         /** Creates a texture from the compressed ATF format. If you don't want to use any embedded
          *  mipmaps, you can disable them by setting "useMipMaps" to <code>false</code>.
-         *  Beware: you must not dispose 'data' if Starling should handle a lost device context.
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
+         *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          *  
          *  <p>If you pass a function for the 'loadAsync' parameter, the method will return
          *  immediately, while the texture will be created asynchronously. It can be used as soon
@@ -229,12 +253,10 @@ package starling.textures
                 nativeTexture.addEventListener(eventType, onTextureReady);
             
             concreteTexture.uploadAtfData(data, 0, async);
-            
-            if (Starling.handleLostContext) 
-                concreteTexture.onRestore = function():void
-                {
-                    concreteTexture.uploadAtfData(data, 0, async);
-                };
+            concreteTexture.onRestore = function():void
+            {
+                concreteTexture.uploadAtfData(data, 0, async);
+            };
             
             return concreteTexture;
             
@@ -253,15 +275,16 @@ package starling.textures
          *  @param color:  expected in ARGB format (inlude alpha!)
          *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         *  @param format: the context3D texture format to use. Pass one of the packed or
+         *                 compressed formats to save memory.
          */
         public static function fromColor(width:Number, height:Number, color:uint=0xffffffff,
                                          optimizeForRenderToTexture:Boolean=false, 
-                                         scale:Number=-1):Texture
+                                         scale:Number=-1, format:String="bgra"):Texture
         {
             var texture:Texture = Texture.empty(width, height, true, false, 
-                                                optimizeForRenderToTexture, scale);
+                                                optimizeForRenderToTexture, scale, format);
             texture.root.clear(color, Color.getAlpha(color) / 255.0);
-            
             texture.root.onRestore = function():void
             {
                 texture.root.clear(color, Color.getAlpha(color) / 255.0);
@@ -283,10 +306,12 @@ package starling.textures
          *                 data, this decides if mipmaps inside the ATF file will be displayed.
          *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target 
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         *  @param format: the context3D texture format to use. Pass one of the packed or
+         *                 compressed formats to save memory (at the price of reduced image quality).
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
                                      mipMapping:Boolean=true, optimizeForRenderToTexture:Boolean=false,
-                                     scale:Number=-1):Texture
+                                     scale:Number=-1, format:String="bgra"):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
@@ -303,7 +328,7 @@ package starling.textures
             var isPot:Boolean  = (origWidth == potWidth && origHeight == potHeight);
             var useRectTexture:Boolean = !isPot && !mipMapping &&
                 Starling.current.profile != "baselineConstrained" &&
-                "createRectangleTexture" in context;
+                "createRectangleTexture" in context && format.indexOf("compressed") == -1;
             
             if (useRectTexture)
             {
@@ -312,24 +337,22 @@ package starling.textures
                 
                 // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
                 // methods only through those lookups, we stay compatible with older SDKs.
-                nativeTexture = context["createRectangleTexture"](actualWidth, actualHeight, 
-                    Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
+                nativeTexture = context["createRectangleTexture"](
+                    actualWidth, actualHeight, format, optimizeForRenderToTexture);
             }
             else
             {
                 actualWidth  = potWidth;
                 actualHeight = potHeight;
                 
-                nativeTexture = context.createTexture(actualWidth, actualHeight, 
-                    Context3DTextureFormat.BGRA, optimizeForRenderToTexture);
+                nativeTexture = context.createTexture(actualWidth, actualHeight, format,
+                                                      optimizeForRenderToTexture);
             }
             
-            var concreteTexture:ConcreteTexture = new ConcreteTexture(
-                nativeTexture, Context3DTextureFormat.BGRA, actualWidth, actualHeight,
-                mipMapping, true, optimizeForRenderToTexture, scale);
+            var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
+                actualWidth, actualHeight, mipMapping, true, optimizeForRenderToTexture, scale);
             
-            if (Starling.handleLostContext)
-                concreteTexture.onRestore = concreteTexture.clear;
+            concreteTexture.onRestore = concreteTexture.clear;
             
             if (isPot || useRectTexture)
                 return concreteTexture;
@@ -339,7 +362,8 @@ package starling.textures
         
         /** Creates a texture that contains a region (in pixels) of another texture. The new
          *  texture will reference the base texture; no data is duplicated. */
-        public static function fromTexture(texture:Texture, region:Rectangle=null, frame:Rectangle=null):Texture
+        public static function fromTexture(texture:Texture, region:Rectangle=null,
+                                           frame:Rectangle=null):Texture
         {
             var subTexture:Texture = new SubTexture(texture, region);   
             subTexture.mFrame = frame;

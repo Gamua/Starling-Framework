@@ -399,12 +399,31 @@ package tests
         [Test]
         public function testAddExistingChild():void
         {
+            var stage:Stage = new Stage(400, 300);
             var sprite:Sprite = new Sprite();
             var quad:Quad = new Quad(100, 100);
+            quad.addEventListener(Event.ADDED, onAdded);
+            quad.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+            quad.addEventListener(Event.REMOVED, onRemoved);
+            quad.addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
+            
+            stage.addChild(sprite);
             sprite.addChild(quad);
+            Assert.assertEquals(1, mAdded);
+            Assert.assertEquals(1, mAddedToStage);
+            
+            // add same child again
             sprite.addChild(quad);
+            
+            // nothing should change, actually.
             Assert.assertEquals(1, sprite.numChildren);
             Assert.assertEquals(0, sprite.getChildIndex(quad));
+            
+            // since the parent does not change, no events should be dispatched 
+            Assert.assertEquals(1, mAdded);
+            Assert.assertEquals(1, mAddedToStage);
+            Assert.assertEquals(0, mRemoved);
+            Assert.assertEquals(0, mRemovedFromStage);
         }
         
         [Test]
