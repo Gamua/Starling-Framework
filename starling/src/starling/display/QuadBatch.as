@@ -288,7 +288,7 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quad.premultipliedAlpha);
             }
             
-            quad.copyVertexDataTo(mVertexData, vertexID, modelViewMatrix);
+            quad.copyVertexDataTransformedTo(mVertexData, vertexID, modelViewMatrix);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
@@ -320,7 +320,8 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quadBatch.mVertexData.premultipliedAlpha, false);
             }
             
-            quadBatch.mVertexData.copyTo(mVertexData, vertexID, 0, numQuads*4, modelViewMatrix);
+            quadBatch.mVertexData.copyTransformedTo(mVertexData, vertexID, modelViewMatrix,
+                                                    0, numQuads*4);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, numQuads*4);

@@ -127,8 +127,17 @@ package starling.display
         
         /** Copies the raw vertex data to a VertexData instance.
          *  The texture coordinates are already in the format required for rendering. */ 
-        public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0, 
-                                                  matrix:Matrix=null):void
+        public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
+        {
+            copyVertexDataTransformedTo(targetData, targetVertexID, null);
+        }
+        
+        /** Transforms the vertex positions of the raw vertex data by a certain matrix
+         *  and copies the result to another VertexData instance.
+         *  The texture coordinates are already in the format required for rendering. */
+        public override function copyVertexDataTransformedTo(targetData:VertexData,
+                                                             targetVertexID:int=0,
+                                                             matrix:Matrix=null):void
         {
             if (mVertexDataCacheInvalid)
             {
@@ -137,7 +146,7 @@ package starling.display
                 mTexture.adjustVertexData(mVertexDataCache, 0, 4);
             }
             
-            mVertexDataCache.copyTo(targetData, targetVertexID, 0, 4, matrix);
+            mVertexDataCache.copyTransformedTo(targetData, targetVertexID, matrix);
         }
         
         /** The texture that is displayed on the quad. */

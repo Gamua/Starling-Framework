@@ -99,8 +99,17 @@ package starling.utils
         /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices') 
          *  of this instance to another vertex data object, starting at a certain index. */
         public function copyTo(targetData:VertexData, targetVertexID:int=0,
-                               vertexID:int=0, numVertices:int=-1,
-                               matrix:Matrix=null):void
+                               vertexID:int=0, numVertices:int=-1):void
+        {
+            copyTransformedTo(targetData, targetVertexID, null, vertexID, numVertices);
+        }
+
+        /** Transforms the vertex position of this instance by a certain matrix and copies the
+         *  result to another VertexData instance. Limit the operation to a range of vertices
+         *  via the 'vertexID' and 'numVertices' parameters. */
+        public function copyTransformedTo(targetData:VertexData, targetVertexID:int=0,
+                                          matrix:Matrix=null,
+                                          vertexID:int=0, numVertices:int=-1):void
         {
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
@@ -108,7 +117,8 @@ package starling.utils
             if (targetData.mNumVertices < targetVertexID + numVertices)
                 targetData.mNumVertices = targetVertexID + numVertices;
             
-            // todo: check/convert pma
+            // It's fastest to copy the complete range in one call
+            // and then overwrite only the transformed positions.
 
             var x:Number, y:Number;
             var targetRawData:ByteArray = targetData.mRawData;

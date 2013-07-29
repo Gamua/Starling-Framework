@@ -155,10 +155,17 @@ package starling.display
         }
         
         /** Copies the raw vertex data to a VertexData instance. */
-        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0,
-                                         matrix:Matrix=null):void
+        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
-            mVertexData.copyTo(targetData, targetVertexID, 0, 4, matrix);
+            mVertexData.copyTo(targetData, targetVertexID);
+        }
+        
+        /** Transforms the vertex positions of the raw vertex data by a certain matrix and
+         *  copies the result to another VertexData instance. */
+        public function copyVertexDataTransformedTo(targetData:VertexData, targetVertexID:int=0,
+                                                    matrix:Matrix=null):void
+        {
+            mVertexData.copyTransformedTo(targetData, targetVertexID, matrix);
         }
         
         /** @inheritDoc */
