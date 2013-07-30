@@ -10,9 +10,9 @@
 	<version>1.4-SNAPSHOT</version>
 
 	<properties>
-		<flexmojos.version>4.2-beta</flexmojos.version>
-		<flex.framework.version>4.6.0.23201</flex.framework.version>
-		<playerglobal.version>11.4</playerglobal.version>
+		<flexmojos.version>6.0.1</flexmojos.version>
+		<flex.framework.version>4.9.1.1447119</flex.framework.version>
+		<playerglobal.version>11.7</playerglobal.version>
 	</properties>
 
 	<ciManagement>
@@ -27,7 +27,7 @@
 			<plugin>
 				<groupId>net.flexmojos.oss</groupId>
 				<artifactId>flexmojos-maven-plugin</artifactId>
-				<version>6.0.0</version>
+				<version>${flexmojos.version}</version>
 				<extensions>true</extensions>
 				<configuration>
 					<storepass/>
@@ -36,7 +36,7 @@
 				</configuration>
 				<dependencies>
 					<dependency>
-						<groupId>com.adobe.flex</groupId>
+						<groupId>org.apache.flex</groupId>
 						<artifactId>compiler</artifactId>
 						<version>${flex.framework.version}</version>
 						<type>pom</type>
@@ -49,17 +49,17 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.adobe.flex.framework</groupId>
+			<groupId>org.apache.flex.framework</groupId>
 			<artifactId>flex-framework</artifactId>
 			<version>${flex.framework.version}</version>
 			<type>pom</type>
 		</dependency>
-    <dependency>
-      <groupId>com.adobe.flash.framework</groupId>
-      <artifactId>playerglobal</artifactId>
-      <version>${playerglobal.version}</version>
-      <type>swc</type>
-		</dependency>
+    	<dependency>
+    		<groupId>com.adobe.flash.framework</groupId>
+    		<artifactId>playerglobal</artifactId>
+    		<version>${playerglobal.version}</version>
+    		<type>swc</type>
+    	</dependency>
 	</dependencies>
 
 	<repositories>
