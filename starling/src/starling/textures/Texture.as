@@ -230,7 +230,7 @@ package starling.textures
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          *  
          *  <p>If you pass a function for the 'loadAsync' parameter, the method will return
-         *  immediately, while the texture will be created asynchronously. It can be used as soon
+         *  immediately, while the texture will be decoded asynchronously. It can be used as soon
          *  as the callback has been executed. This is the expected function definition:
          *  <code>function(texture:Texture):void;</code></p> */ 
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true, 
