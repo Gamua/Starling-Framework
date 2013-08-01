@@ -616,12 +616,21 @@ package starling.core
             else
             {
                 var touchEvent:TouchEvent = event as TouchEvent;
-                globalX = touchEvent.stageX;
-                globalY = touchEvent.stageY;
-                touchID = touchEvent.touchPointID;
-                pressure = touchEvent.pressure;
-                width = touchEvent.sizeX;
-                height = touchEvent.sizeY;
+            
+                // On a system that supports both mouse and touch input, the primary touch point
+                // is dispatched as mouse event as well. Since we don't want to listen to that
+                // event twice, we ignore the primary touch in that case.
+                
+                if (Mouse.supportsCursor && touchEvent.isPrimaryTouchPoint) return;
+                else
+                {
+                    globalX  = touchEvent.stageX;
+                    globalY  = touchEvent.stageY;
+                    touchID  = touchEvent.touchPointID;
+                    pressure = touchEvent.pressure;
+                    width    = touchEvent.sizeX;
+                    height   = touchEvent.sizeY;
+                }
             }
             
             // figure out touch phase
@@ -646,9 +655,15 @@ package starling.core
         
         private function get touchEventTypes():Array
         {
-            return Mouse.supportsCursor || !multitouchEnabled ?
-                [ MouseEvent.MOUSE_DOWN,  MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP ] :
-                [ TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END ];  
+            var types:Array = [];
+            
+            if (multitouchEnabled)
+                types.push(TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END);
+            
+            if (!multitouchEnabled || Mouse.supportsCursor)
+                types.push(MouseEvent.MOUSE_DOWN,  MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP);
+                
+            return types;
         }
         
         // program management
