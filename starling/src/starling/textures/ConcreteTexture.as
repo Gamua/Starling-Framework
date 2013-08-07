@@ -163,7 +163,7 @@ package starling.textures
                 potTexture.removeEventListener(eventType, onTextureReady);
                 
                 var callback:Function = async as Function;
-                if (callback)
+                if (callback != null)
                 {
                     if (callback.length == 1) callback(self);
                     else callback();
