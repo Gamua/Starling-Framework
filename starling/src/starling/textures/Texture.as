@@ -15,7 +15,6 @@ package starling.textures
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
-    import flash.events.Event;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
@@ -229,19 +228,15 @@ package starling.textures
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          *  
-         *  <p>If you pass a function for the 'loadAsync' parameter, the method will return
-         *  immediately, while the texture will be created asynchronously. It can be used as soon
-         *  as the callback has been executed. This is the expected function definition:
-         *  <code>function(texture:Texture):void;</code></p> */ 
+         *  <p>If the 'async' parameter contains a callback function, the texture is decoded
+         *  asynchronously. It can only be used when the callback has been executed. This is the
+         *  expected function definition: <code>function(texture:Texture):void;</code></p> */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true, 
-                                           loadAsync:Function=null):Texture
+                                           async:Function=null):Texture
         {
-            const eventType:String = "textureReady"; // defined here for backwards compatibility
-            
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            var async:Boolean = loadAsync != null;
             var atfData:AtfData = new AtfData(data);
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                 atfData.width, atfData.height, atfData.format, false);
@@ -249,23 +244,13 @@ package starling.textures
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1, 
                 false, false, scale);
             
-            if (async)
-                nativeTexture.addEventListener(eventType, onTextureReady);
-            
             concreteTexture.uploadAtfData(data, 0, async);
             concreteTexture.onRestore = function():void
             {
-                concreteTexture.uploadAtfData(data, 0, async);
+                concreteTexture.uploadAtfData(data, 0);
             };
             
             return concreteTexture;
-            
-            function onTextureReady(event:Event):void
-            {
-                nativeTexture.removeEventListener(eventType, onTextureReady);
-                if (loadAsync.length == 1) loadAsync(concreteTexture);
-                else loadAsync();
-            }
         }
         
         /** Creates a texture with a certain size and color.
@@ -350,7 +335,8 @@ package starling.textures
             }
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
-                actualWidth, actualHeight, mipMapping, true, optimizeForRenderToTexture, scale);
+                actualWidth, actualHeight, mipMapping, premultipliedAlpha,
+                optimizeForRenderToTexture, scale);
             
             concreteTexture.onRestore = concreteTexture.clear;
             
