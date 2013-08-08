@@ -131,12 +131,15 @@ package starling.utils
             
             if (matrix)
             {
-                mRawData.position = vertexID * BYTES_PER_VERTEX;
-                targetRawData.position = targetVertexID * BYTES_PER_VERTEX;
+                var sourcePos:int = vertexID * BYTES_PER_VERTEX;
+                var targetPos:int = targetVertexID * BYTES_PER_VERTEX;
                 
                 for (var i:int=0; i<numVertices; ++i)
                 {
                     // write transformed position
+                    
+                    mRawData.position = sourcePos;
+                    targetRawData.position = targetPos;
                     
                     x = mRawData.readFloat();
                     y = mRawData.readFloat();
@@ -144,10 +147,8 @@ package starling.utils
                     targetRawData.writeFloat(matrix.a * x + matrix.c * y + matrix.tx);
                     targetRawData.writeFloat(matrix.d * y + matrix.b * x + matrix.ty);
                     
-                    // copy rest
-                    
-                    targetRawData.position += 12;
-                    mRawData.position += 12;
+                    sourcePos += 20;
+                    targetPos += 20;
                 }
             }
         }

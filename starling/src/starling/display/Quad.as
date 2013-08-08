@@ -165,7 +165,7 @@ package starling.display
         public function copyVertexDataTransformedTo(targetData:VertexData, targetVertexID:int=0,
                                                     matrix:Matrix=null):void
         {
-            mVertexData.copyTransformedTo(targetData, targetVertexID, matrix);
+            mVertexData.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
         }
         
         /** @inheritDoc */

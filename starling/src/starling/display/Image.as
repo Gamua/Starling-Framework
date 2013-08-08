@@ -146,7 +146,7 @@ package starling.display
                 mTexture.adjustVertexData(mVertexDataCache, 0, 4);
             }
             
-            mVertexDataCache.copyTransformedTo(targetData, targetVertexID, matrix);
+            mVertexDataCache.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
         }
         
         /** The texture that is displayed on the quad. */
