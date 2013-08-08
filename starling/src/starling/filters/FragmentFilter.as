@@ -20,7 +20,9 @@ package starling.filters
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
-    import flash.utils.getQualifiedClassName;
+import flash.utils.ByteArray;
+import flash.utils.Endian;
+import flash.utils.getQualifiedClassName;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -99,7 +101,7 @@ package starling.filters
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
-        private var mIndexData:Vector.<uint>;
+        private var mIndexData:ByteArray;
         private var mIndexBuffer:IndexBuffer3D;
         
         private var mCacheRequested:Boolean;
@@ -135,9 +137,15 @@ package starling.filters
             mVertexData.setTexCoords(1, 1, 0);
             mVertexData.setTexCoords(2, 0, 1);
             mVertexData.setTexCoords(3, 1, 1);
-            
-            mIndexData = new <uint>[0, 1, 2, 1, 3, 2];
-            mIndexData.fixed = true;
+
+            mIndexData = new ByteArray();
+            mIndexData.endian=Endian.LITTLE_ENDIAN;
+            mIndexData.writeShort(0);
+            mIndexData.writeShort(1);
+            mIndexData.writeShort(2);
+            mIndexData.writeShort(1);
+            mIndexData.writeShort(3);
+            mIndexData.writeShort(2);
             
             createPrograms();
             
@@ -337,10 +345,10 @@ package starling.filters
             {
                 mVertexBuffer = context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
                 mIndexBuffer  = context.createIndexBuffer(6);
-                mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
+                mIndexBuffer.uploadFromByteArray(mIndexData, 0, 0, 6);
             }
-            
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, 4);
+
+            mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, 4);
         }
         
         private function updatePassTextures(width:int, height:int, scale:Number):void
