@@ -44,23 +44,26 @@ package starling.utils
      */ 
     public class VertexData 
     {
-        /** The total number of elements stored per vertex, one element being 4 bytes of data.  */
+        /** The number of bytes per element. Positions and texture coordinates take up one
+         *  element per component; color data is stored in a single element. */
+        public static const BYTES_PER_ELEMENT:int = 4;
+        
+        /** The total number of elements stored per vertex (in units of 32 bits).  */
         public static const ELEMENTS_PER_VERTEX:int = 5;
         
-        /** The offset of position data (x, y) within a vertex. */
+        /** The offset of position data (x, y) within a vertex (in units of 32 bits). */
         public static const POSITION_OFFSET:int = 0;
         
-        /** The offset of color data (one RGBA uint) within a vertex. */ 
+        /** The offset of color data (one RGBA uint) within a vertex (in units of 32 bits). */
         public static const COLOR_OFFSET:int = 2;
         
-        /** The offset of texture coordinates (u, v) within a vertex. */
+        /** The offset of texture coordinates (u, v) within a vertex (in units of 32 bits). */
         public static const TEXCOORD_OFFSET:int = 3;
         
-        private static const BYTES_PER_ELEMENT:int = 4;
-        private static const BYTES_PER_VERTEX:int = ELEMENTS_PER_VERTEX * BYTES_PER_ELEMENT;
-        private static const POSITION_OFFSET_IN_BYTES:int = POSITION_OFFSET * BYTES_PER_ELEMENT;
-        private static const COLOR_OFFSET_IN_BYTES:int = COLOR_OFFSET * BYTES_PER_ELEMENT;
-        private static const TEXCOORD_OFFSET_IN_BYTES:int = TEXCOORD_OFFSET * BYTES_PER_ELEMENT;
+        private static const BYTES_PER_VERTEX:int         = ELEMENTS_PER_VERTEX * BYTES_PER_ELEMENT;
+        private static const POSITION_OFFSET_IN_BYTES:int = POSITION_OFFSET     * BYTES_PER_ELEMENT;
+        private static const COLOR_OFFSET_IN_BYTES:int    = COLOR_OFFSET        * BYTES_PER_ELEMENT;
+        private static const TEXCOORD_OFFSET_IN_BYTES:int = TEXCOORD_OFFSET     * BYTES_PER_ELEMENT;
         
         private static const MIN_ALPHA_PMA:Number = 5.0 / 255.0;
         private static const MIN_ALPHA:Number = 0.0;
@@ -370,6 +373,7 @@ package starling.utils
             return resultRect;
         }
         
+        /** Creates a string that contains the values of all included vertices. */
         public function toString():String
         {
             mRawData.position = 0;
