@@ -156,7 +156,7 @@ package starling.utils
         /** Appends the vertices from another VertexData object. */
         public function append(data:VertexData):void
         {
-            mRawData.position = mNumVertices;
+            mRawData.position = mNumVertices * BYTES_PER_VERTEX;;
             mRawData.writeBytes(data.mRawData);
             mNumVertices += data.mNumVertices;
         }
