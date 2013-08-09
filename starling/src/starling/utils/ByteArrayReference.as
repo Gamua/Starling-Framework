@@ -9,11 +9,16 @@ package starling.utils
 		private var _length :uint;
 		
 		public function ByteArrayReference (bytes :uint) {
+			// TODO: alloc here
 			_bytes = new ByteArray();
 			_bytes.endian = Endian.LITTLE_ENDIAN;
 			resize(bytes, true);
 			_bytes.position = 0;
 			_offset = 0;
+		}
+		
+		public function dispose () :void {
+			// TODO: dealloc here
 		}
 		
 		public function writeBytes (source :ByteArrayReference, offset :uint = 0, length :uint = 0) :void {
@@ -25,7 +30,11 @@ package starling.utils
 		}
 		
 		public function set position (value :uint) :void {
-			_bytes.position = value + _offset;
+			if (value < _length || value == 0) {
+				_bytes.position = value + _offset;
+			} else {
+				throw new Error("Byte array reference out of bounds: got " + value + ", max " + (_length - 1));
+			}
 		}
 		
 		public function get raw () :ByteArray {

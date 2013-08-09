@@ -62,6 +62,13 @@ package starling.display
             onVertexDataChanged();
         }
         
+		/** @inheritDoc */
+		public override function dispose():void
+		{
+			mVertexData.dispose();
+			super.dispose();
+		}
+		
         /** Call this method after manually changing the contents of 'mVertexData'. */
         protected function onVertexDataChanged():void
         {

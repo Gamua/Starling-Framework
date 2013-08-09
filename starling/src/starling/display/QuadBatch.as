@@ -111,6 +111,7 @@ package starling.display
             
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
+			mVertexData.dispose();
             
             super.dispose();
         }

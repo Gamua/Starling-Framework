@@ -81,6 +81,12 @@ package starling.utils
             mPremultipliedAlpha = premultipliedAlpha;
             this.numVertices = numVertices;
         }
+		
+		/** Deallocates vertex data */
+		public function dispose():void
+		{
+			mRawData.dispose();
+		}
 
         /** Creates a duplicate of either the complete vertex data object, or of a subset. 
          *  To clone all vertices, set 'numVertices' to '-1'. */

@@ -153,6 +153,7 @@ package starling.filters
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             if (mVertexBuffer) mVertexBuffer.dispose();
             if (mIndexBuffer)  mIndexBuffer.dispose();
+			mVertexData.dispose();
             disposePassTextures();
             disposeCache();
         }
