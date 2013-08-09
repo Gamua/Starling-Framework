@@ -52,23 +52,22 @@ package starling.events
         private var mPressure:Number;
         private var mWidth:Number;
         private var mHeight:Number;
+        private var mUpdated:Boolean;
         private var mBubbleChain:Vector.<EventDispatcher>;
         
         /** Helper object. */
         private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a new Touch object. */
-        public function Touch(id:int, globalX:Number, globalY:Number, phase:String, target:DisplayObject)
+        public function Touch(id:int, globalX:Number, globalY:Number, phase:String)
         {
             mID = id;
             mGlobalX = mPreviousGlobalX = globalX;
             mGlobalY = mPreviousGlobalY = globalY;
             mTapCount = 0;
             mPhase = phase;
-            mTarget = target;
             mPressure = mWidth = mHeight = 1.0;
             mBubbleChain = new <EventDispatcher>[];
-            updateBubbleChain();
         }
         
         /** Converts the current location of a touch to the local coordinate system of a display 
@@ -121,7 +120,7 @@ package starling.events
         /** Creates a clone of the Touch object. */
         public function clone():Touch
         {
-            var clone:Touch = new Touch(mID, mGlobalX, mGlobalY, mPhase, mTarget);
+            var clone:Touch = new Touch(mID, mGlobalX, mGlobalY, mPhase);
             clone.mPreviousGlobalX = mPreviousGlobalX;
             clone.mPreviousGlobalY = mPreviousGlobalY;
             clone.mTapCount = mTapCount;
@@ -129,6 +128,7 @@ package starling.events
             clone.mPressure = mPressure;
             clone.mWidth = mWidth;
             clone.mHeight = mHeight;
+            clone.setTarget(mTarget);
             return clone;
         }
         
@@ -194,6 +194,9 @@ package starling.events
         /** Height of the contact area. 
          *  If the device does not support detecting the pressure, the value is 1.0. */
         public function get height():Number { return mHeight; }
+
+        /** True if this is a new Touch or an existing Touch that was just updated. */
+        public function get updated():Boolean { return mUpdated; }
         
         // internal methods
         
@@ -212,10 +215,13 @@ package starling.events
         }
         
         /** @private */
-        starling_internal function setTarget(value:DisplayObject):void 
-        { 
-            mTarget = value;
-            updateBubbleChain();
+        starling_internal function setTarget(value:DisplayObject):void
+        {
+            if (mTarget != value)
+            {
+                mTarget = value;
+                updateBubbleChain();
+            }
         }
         
         /** @private */
@@ -245,5 +251,8 @@ package starling.events
         
         /** @private */
         starling_internal function setPressure(value:Number):void { mPressure = value; }
+
+        /** @private */
+        starling_internal function setUpdated(value:Boolean):void { mUpdated = value; }
     }
 }

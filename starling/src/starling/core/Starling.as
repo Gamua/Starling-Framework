@@ -573,7 +573,7 @@ package starling.core
             mStage.broadcastEvent(keyEvent);
             
             if (keyEvent.isDefaultPrevented())
-            	event.preventDefault();
+                event.preventDefault();
         }
         
         private function onResize(event:Event):void
@@ -874,6 +874,19 @@ package starling.core
             }
         }
         
+        /** The TouchProcessor is passed all mouse and touch input and is responsible for
+         *  dispatching TouchEvents to the Starling display tree. If you want to handle these
+         *  types of input manually, pass your own custom subclass to this property. */
+        public function get touchProcessor():TouchProcessor { return mTouchProcessor; }
+        public function set touchProcessor(value:TouchProcessor):void
+        {
+            if (value != mTouchProcessor)
+            {
+                mTouchProcessor.dispose();
+                mTouchProcessor = value;
+            }
+        }
+
         // static properties
         
         /** The currently active Starling instance. */
