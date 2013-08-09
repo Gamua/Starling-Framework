@@ -238,5 +238,42 @@ package tests
             vd.getPosition(1, position);
             Helpers.comparePoints(position, new Point(15, 10));
         }
+        
+        [Test]
+        public function testAppend():void
+        {
+            var vd1:VertexData = new VertexData(2);
+            vd1.setPosition(0, 0, 1);
+            vd1.setTexCoords(0, 0.0, 0.1);
+            vd1.setColor(0, 0xf);
+            vd1.setPosition(1, 2, 3);
+            vd1.setTexCoords(1, 0.2, 0.3);
+            vd1.setColor(1, 0xf0);
+            
+            var vd2:VertexData = new VertexData(1);
+            vd2.setPosition(0, 4, 5);
+            vd2.setTexCoords(0, 0.4, 0.5);
+            vd2.setColor(0, 0xf00);
+            
+            vd1.append(vd2);
+            
+            for (var i:int=0; i<3; ++i)
+            {
+                var expectedPosition:Point = new Point(i*2, i*2+1);
+                var position:Point = new Point();
+                vd1.getPosition(i, position);
+                Helpers.comparePoints(expectedPosition, position);
+                
+                var expectedTexCoords:Point = new Point(i*0.2, i*0.2+0.1);
+                var texCoords:Point = new Point();
+                vd1.getTexCoords(i, texCoords);
+                Helpers.comparePoints(expectedTexCoords, texCoords);
+                
+                var expectedColor:uint = 0xf << (i*4);
+                var color:uint = vd1.getColor(i);
+                
+                assertEquals(color, vd1.getColor(i));
+            }
+        }
     }
 }
