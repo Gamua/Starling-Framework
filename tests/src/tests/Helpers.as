@@ -20,6 +20,8 @@ package tests
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
+    
+    import starling.utils.ByteArrayReference;
 
     internal class Helpers
     {
@@ -64,7 +66,16 @@ package tests
                 assertEquals(b1.readByte(), b2.readByte());
         }
         
-        public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void
+		public static function compareByteArrayReferences(b1:ByteArrayReference, b2:ByteArrayReference):void
+		{
+			assertEquals(b1.length, b2.length);
+			b1.position = b2.position = 0;
+			
+			while (b1.bytesAvailable)
+				assertEquals(b1.raw.readByte(), b2.raw.readByte());
+		}
+
+		public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void
         {
             assertThat(matrix1.a,  closeTo(matrix2.a,  e));
             assertThat(matrix1.b,  closeTo(matrix2.b,  e));
