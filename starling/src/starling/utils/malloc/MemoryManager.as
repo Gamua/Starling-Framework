@@ -56,6 +56,9 @@ package starling.utils.malloc
 		}
 
 		public function allocate (length :uint) :uint {
+			if (length == 0) {
+				throw new Error("Cannot perform empty allocation!");
+			}
 
 			var newRecord :AllocationRecord = mAlloc.allocate(length);
 			if (newRecord == null) {
@@ -83,7 +86,10 @@ package starling.utils.malloc
 			}
 			
 			var newPosition :uint = allocate(newLength);
-			// todo: get rid of oldLength, that should come from segment records
+			if (oldLength == 0) {
+				return newPosition; // no need for copies
+			}
+
 			mHeap.position = newPosition;
 			mHeap.writeBytes(mHeap, oldPosition, oldLength); // is this right?
 			
@@ -92,7 +98,6 @@ package starling.utils.malloc
 		}
 		
 		public function free (pos :uint) :void {
-			trace(pos);
 			mAlloc.free(pos);
 		}
 		

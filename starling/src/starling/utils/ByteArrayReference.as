@@ -16,6 +16,9 @@ package starling.utils
 		public const TEST_OFFSET :uint = 128;
 		
 		public function ByteArrayReference (bytes :uint) {
+			
+			if (bytes < 4) { bytes = 4; } // allocate at least a word
+			
 			var mem :MemoryManager = MemoryManager.instance;
 			_bytes = mem.heap;
 			_offset = mem.allocate(bytes);
