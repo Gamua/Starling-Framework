@@ -341,7 +341,7 @@ package starling.filters
                 mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
             }
             
-            mVertexBuffer.uploadFromByteArray(mVertexData.rawData.raw, mVertexData.rawData.rawOffset, 0, 4);
+            mVertexBuffer.uploadFromByteArray(mVertexData.rawData.raw, mVertexData.rawData.calculateRawAddress(0), 0, 4);
         }
         
         private function updatePassTextures(width:int, height:int, scale:Number):void

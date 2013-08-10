@@ -1,5 +1,6 @@
 package starling.utils
 {
+	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
 
@@ -27,6 +28,7 @@ package starling.utils
 			mHeap.length = heapSize;
 			mHeap.position = 0;
 			
+			ApplicationDomain.currentDomain.domainMemory = mHeap;
 			mInstance = this;
 		}
 		

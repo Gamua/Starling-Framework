@@ -1,6 +1,5 @@
 package starling.utils
 {
-	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
 	
 	import avm2.intrinsics.memory.lf32;
@@ -19,11 +18,6 @@ package starling.utils
 			_bytes = mem.heap;
 			_offset = mem.allocate(bytes);
 			_length = bytes;
-//			_bytes = new ByteArray();
-//			_bytes.length = bytes + 1024; // test
-//			_bytes.endian = Endian.LITTLE_ENDIAN;
-//			_offset = 0;
-//			_length = bytes;
 		}
 		
 		public function dispose () :void {
@@ -47,21 +41,7 @@ package starling.utils
 			_bytes.writeBytes(source._bytes, rawSourcePos, length);
 		}
 		
-//		public function get position () :uint {
-//			return _bytes.position - _offset;
-//		}
-//		
-//		public function set position (value :uint) :void {
-//			var rawMaxPos :uint = (_length + _offset) - 1;
-//			var rawPos :uint = value + _offset;
-//			if (rawPos <= rawMaxPos || value == 0) {
-//				_bytes.position = rawPos;
-//			} else {
-//				throw new Error("Byte array reference out of bounds: got " + value + ", max " + (rawMaxPos - _offset));
-//			}
-//		}
-		
-		public function calculateRawAddress (pos :uint) :uint {
+		[Inline] public final function calculateRawAddress (pos :uint) :uint {
 			return _offset + pos;
 		}
 		
@@ -69,30 +49,20 @@ package starling.utils
 			return _bytes;
 		}
 		
-		public function get rawOffset () :uint {
-			return _offset;
-		}
-		
 		public function get length () :uint {
 			return _length;
 		}
 		
 		public function readUnsignedInt (pos :uint) :uint {
-			ApplicationDomain.currentDomain.domainMemory = raw;
-			var loc :uint = _offset + pos;
-			return li32(loc);
+			return li32(_offset + pos);
 		}
 		
 		public function readByte (pos :uint) :uint {
-			ApplicationDomain.currentDomain.domainMemory = raw;
-			var loc :uint = _offset + pos;
-			return li8(loc);
+			return li8(_offset + pos);
 		}
 
 		public function readFloat (pos :uint) :Number {
-			ApplicationDomain.currentDomain.domainMemory = raw;
-			var loc :uint = _offset + pos;
-			return lf32(loc);
+			return lf32(_offset + pos);
 		}
 
 		public function resize (size :uint, planned :Boolean = false) :void {
@@ -101,22 +71,13 @@ package starling.utils
 			}
 			
 			if (! planned) {
-				trace("PROBLEM! RESIZE TO SIZE", size);
+				// trace("RESIZE TO SIZE", size);
 			}
 
 			// allocate more memory (expensive!)
 			var newOffset :uint = MemoryManager.instance.reallocate(_offset, _length, size);
 			_offset = newOffset;
 			_length = size;
-
-//			var old :ByteArray = _bytes;
-//			_bytes = new ByteArray();
-//			_bytes.endian = Endian.LITTLE_ENDIAN;
-//			_bytes.length = size;
-//			_offset = 0;
-//			_length = size;
-//			_bytes.writeBytes(old, 0, old.length);
-
 		}
 	}
 }

@@ -116,7 +116,7 @@ package tests
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
             var data:ByteArray = vd.rawData.raw;
-            var offset:int = vd.rawData.rawOffset + (VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET) * 4;
+            var offset:int = vd.rawData.calculateRawAddress(0) + (VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET) * 4;
             
             assertEquals(data[offset  ], int(red   * alpha));
             assertEquals(data[offset+1], int(green * alpha));
