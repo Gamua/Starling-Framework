@@ -73,10 +73,12 @@ package tests
 			var b2pos :uint = 0;
 			
 			while (b1pos < b1.length) {
-				b1.position = b1pos++;
-				var b1value :int = b1.raw.readByte();
-				b2.position = b2pos++;
-				var b2value :int = b2.raw.readByte();
+//				b1.position = b1pos++;
+//				var b1value :int = b1.raw.readByte();
+//				b2.position = b2pos++;
+//				var b2value :int = b2.raw.readByte();
+				var b1value :int = b1.readByte(b1pos++);
+				var b2value :int = b2.readByte(b2pos++);
 				assertEquals(b1value, b2value);
 			}
 		}

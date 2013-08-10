@@ -10,19 +10,19 @@
 
 package tests
 {
-    import flash.geom.Matrix;
-    import flash.geom.Point;
-    import flash.geom.Rectangle;
-    import flash.utils.ByteArray;
-    
-    import flexunit.framework.Assert;
-    
-    import org.flexunit.assertThat;
-    import org.flexunit.asserts.assertEquals;
-    import org.hamcrest.number.closeTo;
-    
-    import starling.utils.Color;
-    import starling.utils.VertexData;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.utils.ByteArray;
+	
+	import flexunit.framework.Assert;
+	
+	import org.flexunit.assertThat;
+	import org.flexunit.asserts.assertEquals;
+	import org.hamcrest.number.closeTo;
+	
+	import starling.utils.Color;
+	import starling.utils.VertexData;
     
     public class VertexDataTest
     {
@@ -207,15 +207,16 @@ package tests
             
             var vd1pos :uint = 0;
             var vd2pos :uint = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
-            
             for (var i:int=0; i<2; ++i) {
                 for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j) {
-					vd1.rawData.position = vd1pos;
-					var vd1val :uint = vd1.rawData.raw.readUnsignedInt();
-					
-					vd2.rawData.position = vd2pos;
-					var vd2val :uint = vd2.rawData.raw.readUnsignedInt();
-                    
+//					vd1.rawData.position = vd1pos;
+//					var vd1val :uint = vd1.rawData.raw.readUnsignedInt();
+//					
+//					vd2.rawData.position = vd2pos;
+//					var vd2val :uint = vd2.rawData.raw.readUnsignedInt();
+
+					var vd1val :uint = vd1.rawData.readUnsignedInt(vd1pos);
+					var vd2val :uint = vd2.rawData.readUnsignedInt(vd2pos);
 					assertEquals(vd1val, vd2val);
 					vd1pos += 4;
 					vd2pos += 4;
