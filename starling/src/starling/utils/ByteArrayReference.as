@@ -21,7 +21,14 @@ package starling.utils
 			// TODO: dealloc here
 		}
 		
-		public function writeBytes (source :ByteArrayReference, offset :uint = 0, length :uint = 0) :void {
+		public function appendBytes (source :ByteArrayReference, offset :uint = 0, length :uint = 0) :void {
+			var end :uint = _length;
+			resize(_length + length);
+			position = end;
+			overwriteBytes(source, offset, length);
+		}
+		
+		public function overwriteBytes (source :ByteArrayReference, offset :uint = 0, length :uint = 0) :void {
 			_bytes.writeBytes(source._bytes, offset + _offset, length);
 		}
 		

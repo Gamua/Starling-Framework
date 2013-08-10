@@ -97,8 +97,8 @@ package starling.utils
             
             var clone:VertexData = new VertexData(numVertices, mPremultipliedAlpha);
             clone.mNumVertices = numVertices;
-            clone.mRawData.writeBytes(mRawData, vertexID * BYTES_PER_VERTEX, 
-                                             numVertices * BYTES_PER_VERTEX);
+            clone.mRawData.overwriteBytes(mRawData, vertexID * BYTES_PER_VERTEX, 
+                                          numVertices * BYTES_PER_VERTEX);
             return clone;
         }
         
@@ -120,16 +120,16 @@ package starling.utils
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
             
-            if (targetData.mNumVertices < targetVertexID + numVertices)
-                targetData.mNumVertices = targetVertexID + numVertices;
+            if (targetData.numVertices < targetVertexID + numVertices)
+                targetData.numVertices = targetVertexID + numVertices;
             
             // It's fastest to copy the complete range in one call
             // and then overwrite only the transformed positions.
 
             var x:Number, y:Number;
             var targetRawData:ByteArrayReference = targetData.mRawData;
-            targetRawData.position = targetVertexID * BYTES_PER_VERTEX;
-            targetRawData.writeBytes(mRawData, vertexID * BYTES_PER_VERTEX,
+			targetRawData.position = targetVertexID * BYTES_PER_VERTEX;
+			targetRawData.overwriteBytes(mRawData, vertexID * BYTES_PER_VERTEX,
                                             numVertices * BYTES_PER_VERTEX);
             
             if (matrix)
@@ -159,8 +159,7 @@ package starling.utils
         /** Appends the vertices from another VertexData object. */
         public function append(data:VertexData):void
         {
-            mRawData.position = mNumVertices * BYTES_PER_VERTEX;;
-            mRawData.writeBytes(data.mRawData);
+            mRawData.appendBytes(data.mRawData, 0, data.mRawData.length);
             mNumVertices += data.mNumVertices;
         }
         
