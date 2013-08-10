@@ -8,13 +8,14 @@ package starling.utils
 		private var _offset :uint;
 		private var _length :uint;
 		
+		public const TEST_OFFSET :uint = 128;
 		public function ByteArrayReference (bytes :uint) {
 			// TODO: alloc here
 			_bytes = new ByteArray();
 			_bytes.endian = Endian.LITTLE_ENDIAN;
 			resize(bytes, true);
-			_bytes.position = 0;
-			_offset = 0;
+			_bytes.position = TEST_OFFSET;
+			_offset = TEST_OFFSET;
 		}
 		
 		public function dispose () :void {
@@ -37,10 +38,11 @@ package starling.utils
 		}
 		
 		public function set position (value :uint) :void {
-			if (value < _length || value == 0) {
+			var maxpos :uint = (_length + _offset) - 1;
+			if (value <= maxpos || value == 0) {
 				_bytes.position = value + _offset;
 			} else {
-				throw new Error("Byte array reference out of bounds: got " + value + ", max " + (_length - 1));
+				throw new Error("Byte array reference out of bounds: got " + value + ", max " + maxpos);
 			}
 		}
 		
@@ -62,14 +64,15 @@ package starling.utils
 		
 		public function resize (size :uint, planned :Boolean = false) :void {
 			if (_length == size) {
-				return; // useless resize
+				return; // useless resize, ignore it
 			}
 			
 			if (! planned) {
 				trace("PROBLEM! RESIZE TO SIZE", size);
 			}
+			
 			// TODO FIXME - realloc here
-			_bytes.length = size;
+			_bytes.length = size + TEST_OFFSET;
 			this._length = size;
 		}
 	}
