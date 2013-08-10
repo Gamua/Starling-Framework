@@ -48,6 +48,23 @@ package starling.utils.malloc
 			return null;
 		}
 		
+		/** Frees the specified range by moving it to the free list (does not actually clear the data).
+		 * Current implementation is O(n) in the size of the used list. */
+		public function free (position :uint) :void {
+			var index :int = findIndex(usedList, position);
+			if (index < 0) {
+				throw new Error("Invalid call to free at position" + position);
+			}
+			
+			var item :AllocationRecord = usedList[index];
+			usedList.splice(index, 1);
+			pushAndSort(freeList, item);
+			
+			var freeListIndex :int = freeList.indexOf(item);
+			attemptMerge(freeList, freeListIndex);
+			attemptMerge(freeList, freeListIndex - 1);
+		}
+		
 		/** Takes the last free record (if one exists), and extends it to the new heap length */
 		public function onHeapGrowth () :void {
 			var lastFreeElement :AllocationRecord = (freeList.length == 0) ? null : freeList[freeList.length - 1];
@@ -75,6 +92,16 @@ package starling.utils.malloc
 			pushAndSort(freeList, new AllocationRecord(start, length));
 		}
 		
+		private function findIndex (list :Vector.<AllocationRecord>, startpos :uint) :uint {
+			for (var i :int = 0, len :int = list.length; i < len; i++) {
+				if (list[i].start == startpos) {
+					return i;
+				}
+			}
+			
+			return -1;
+		}
+		
 		private function pushAndSort (list :Vector.<AllocationRecord>, element :AllocationRecord) :void {
 			list[list.length] = element;
 			if (list.length < 2) {
@@ -91,6 +118,20 @@ package starling.utils.malloc
 				// otherwise swap them and continue
 				list[i + 1] = first;
 				list[i] = second;
+			}
+		}
+		
+		private function attemptMerge (list :Vector.<AllocationRecord>, index :uint) :void {
+			if (index < 0 || index >= (list.length - 1)) {
+				return; // not possible
+			}
+			
+			var first :AllocationRecord = list[index];
+			var second :AllocationRecord = list[index + 1];
+			if ((first.start + first.length) == second.start) {
+				// merge these two by getting rid of the second one
+				first.length += second.length;
+				list.splice(index + 1, 1);
 			}
 		}
 	}

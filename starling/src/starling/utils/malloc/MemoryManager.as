@@ -74,7 +74,7 @@ package starling.utils.malloc
 			// make sure to let the allocator know
 			mAlloc.onHeapGrowth();
 			
-			trace("HEAP GROWN TO", mHeap.length);
+			// trace("HEAP GROWN TO", mHeap.length);
 		}
 		
 		public function reallocate (oldPosition :uint, oldLength :uint, newLength :uint) :uint {
@@ -92,8 +92,8 @@ package starling.utils.malloc
 		}
 		
 		public function free (pos :uint) :void {
-			// one day, this function will do something.
-			// today is not that day.
+			trace(pos);
+			mAlloc.free(pos);
 		}
 		
 		public function get heap () :ByteArray {

@@ -41,7 +41,51 @@ package tests
 			
 			MemoryManager.instance.dispose();
 		}
-		
+
+		[Test]
+		public function testFreeAndMerge () :void {
+			
+			var mem :MemoryManager = new MemoryManager(1024);
+			
+			var first :uint = mem.allocate(10);
+			var second :uint = mem.allocate(10);
+			var third :uint = mem.allocate(10);
+			
+			assertEquals(0, first);
+			assertEquals(10, second);
+			assertEquals(20, third);
+			verifyAllocatorState(mem);
+			
+			// free the first one
+			mem.free(first);
+			// make sure we have it back on the free list
+			verifyElement(mem.allocator.freeList, 0, 0, 10);
+			verifyElement(mem.allocator.freeList, 1, 30, 1024 - 30);
+			// and not on used list
+			verifyElement(mem.allocator.usedList, 0, 10, 10);
+			verifyElement(mem.allocator.usedList, 1, 20, 10);
+			
+			verifyAllocatorState(mem);
+
+			// free the second one
+			mem.free(second);
+			// make sure the first two got merged
+			verifyElement(mem.allocator.freeList, 0, 0, 20);
+			verifyElement(mem.allocator.freeList, 1, 30, 1024 - 30);
+			// and the used list should be smaller
+			verifyElement(mem.allocator.usedList, 0, 20, 10);
+			verifyAllocatorState(mem);
+			
+			// free the last one
+			mem.free(third);
+			// make sure everything got merged again
+			verifyElement(mem.allocator.freeList, 0, 0, 1024);
+			assertEquals(0, mem.allocator.usedList.length);
+			verifyAllocatorState(mem);
+
+			MemoryManager.instance.dispose();
+		}
+
 		[Test]
 		public function testHeapGrowth () :void {
 			
