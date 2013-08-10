@@ -6,8 +6,8 @@ package starling.utils
 
 	public class MemoryManager
 	{
-		// TODO: pull this out into a configuration variable
-		public static const HEAPSIZE :uint = 1024 * 1024;
+		public static const HEAP_GROWTH_FACTOR :Number = 1.5;
+		public static const INITIAL_HEAP_SIZE :uint = 128 * 1024;
 		
 		private static var mInstance :MemoryManager;
 
@@ -16,7 +16,7 @@ package starling.utils
 		
 		public static function get instance () :MemoryManager {
 			if (mInstance == null) {
-				mInstance = new MemoryManager(HEAPSIZE);
+				mInstance = new MemoryManager(INITIAL_HEAP_SIZE);
 			}
 			return mInstance;
 		}
@@ -26,7 +26,6 @@ package starling.utils
 			mHeap = new ByteArray();
 			mHeap.endian = Endian.LITTLE_ENDIAN;
 			mHeap.length = heapSize;
-			mHeap.position = 0;
 			
 			ApplicationDomain.currentDomain.domainMemory = mHeap;
 			mInstance = this;
@@ -38,6 +37,13 @@ package starling.utils
 		}
 		
 		public function allocate (length :uint) :uint {
+			if (mTempNextFreeBlockIndex + length > mHeap.length) {
+				// this allocate would cause the backing ByteArray to grow,
+				// so let's trigger it manually and re-point domain memory at it
+				mHeap.length *= HEAP_GROWTH_FACTOR;
+				ApplicationDomain.currentDomain.domainMemory = mHeap;
+			}
+			
 			var pos :uint = mTempNextFreeBlockIndex;
 			mTempNextFreeBlockIndex += length;
 			return pos;
