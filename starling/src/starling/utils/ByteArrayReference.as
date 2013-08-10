@@ -6,6 +6,8 @@ package starling.utils
 	import avm2.intrinsics.memory.li32;
 	import avm2.intrinsics.memory.li8;
 	
+	import starling.utils.malloc.MemoryManager;
+	
 	public class ByteArrayReference {
 		private var _bytes :ByteArray;
 		private var _offset :uint;

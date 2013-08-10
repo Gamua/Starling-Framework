@@ -1,4 +1,4 @@
-package starling.utils
+package starling.utils.malloc
 {
 	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
@@ -7,12 +7,12 @@ package starling.utils
 	public class MemoryManager
 	{
 		public static const HEAP_GROWTH_FACTOR :Number = 1.5;
-		public static const INITIAL_HEAP_SIZE :uint = 128 * 1024;
+		public static const INITIAL_HEAP_SIZE :uint = 1024 * 1024;
 		
 		private static var mInstance :MemoryManager;
 
+		private var mAlloc :Allocator;
 		private var mHeap :ByteArray;
-		private var mTempNextFreeBlockIndex :uint = 0;
 		
 		public static function get instance () :MemoryManager {
 			if (mInstance == null) {
@@ -21,32 +21,60 @@ package starling.utils
 			return mInstance;
 		}
 		
+		public static function get isInitialized () :Boolean {
+			return mInstance != null;
+		}
+		
+		
 		public function MemoryManager(heapSize :uint)
 		{
 			mHeap = new ByteArray();
 			mHeap.endian = Endian.LITTLE_ENDIAN;
 			mHeap.length = heapSize;
 			
+			mAlloc = new Allocator(this);
+
 			ApplicationDomain.currentDomain.domainMemory = mHeap;
 			mInstance = this;
 		}
 		
 		public function dispose () :void {
-			mHeap.clear();
-			mHeap = null;
-		}
-		
-		public function allocate (length :uint) :uint {
-			if (mTempNextFreeBlockIndex + length > mHeap.length) {
-				// this allocate would cause the backing ByteArray to grow,
-				// so let's trigger it manually and re-point domain memory at it
-				mHeap.length *= HEAP_GROWTH_FACTOR;
-				ApplicationDomain.currentDomain.domainMemory = mHeap;
-			}
+			mInstance = null;
+			ApplicationDomain.currentDomain.domainMemory = null;
 			
-			var pos :uint = mTempNextFreeBlockIndex;
-			mTempNextFreeBlockIndex += length;
-			return pos;
+			mAlloc.dispose();
+			mAlloc = null;
+
+			mHeap.clear();
+			mHeap = null;			
+		}
+
+		/** This is only used in testing, should not be accessed directly.
+		 * Use allocate() and free() instead. */
+		public function get allocator () :Allocator {
+			return mAlloc;
+		}
+
+		public function allocate (length :uint) :uint {
+
+			var newRecord :AllocationRecord = mAlloc.allocate(length);
+			if (newRecord == null) {
+				// we ran out of space, or the heap is too fragmented. let's get more space
+				growHeap();
+				newRecord = mAlloc.allocate(length);
+			}
+
+			return newRecord.start;
+		}
+
+		private function growHeap () :void {
+			mHeap.length *= HEAP_GROWTH_FACTOR;
+			// need to repoint domain memory at the new heap
+			ApplicationDomain.currentDomain.domainMemory = mHeap;
+			// make sure to let the allocator know
+			mAlloc.onHeapGrowth();
+			
+			trace("HEAP GROWN TO", mHeap.length);
 		}
 		
 		public function reallocate (oldPosition :uint, oldLength :uint, newLength :uint) :uint {
@@ -71,5 +99,7 @@ package starling.utils
 		public function get heap () :ByteArray {
 			return mHeap;
 		}
+		
+		
 	}
 }

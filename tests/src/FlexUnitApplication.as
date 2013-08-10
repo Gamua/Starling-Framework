@@ -6,6 +6,7 @@ package
 	
 	import flexunit.flexui.FlexUnitTestRunnerUIAS;
 	
+	import tests.AllocatorTest;
 	import tests.BlendModeTest;
 	import tests.ColorTest;
 	import tests.DelayedCallTest;
@@ -49,6 +50,7 @@ package
 			testsToRun.push(tests.DisplayObjectTest);
 			testsToRun.push(tests.BlendModeTest);
 			testsToRun.push(tests.MovieClipTest);
+			testsToRun.push(tests.AllocatorTest);
 			testsToRun.push(tests.RectangleUtilTest);
 			testsToRun.push(tests.VertexDataTest);
 			testsToRun.push(tests.EventTest);
