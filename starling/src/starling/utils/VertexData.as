@@ -191,8 +191,13 @@ package starling.utils
         /** Returns the RGB color of a vertex (no alpha). */
         public function getColor(vertexID:int):uint
         {
+			if (vertexID < 0) {
+				throw new Error("Out of bounds!");
+			}
+			
             mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
-            var rgba:uint = switchEndian(mRawData.raw.readUnsignedInt());
+			var color:uint = mRawData.raw.readUnsignedInt();
+            var rgba:uint = switchEndian(color);
             if (mPremultipliedAlpha) rgba = unmultiplyAlpha(rgba);
             return (rgba >> 8) & 0xffffff;
         }
@@ -298,7 +303,7 @@ package starling.utils
             {
                 var offset:int = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES + 3;
                 var oldAlpha:Number;
-				var oldPosition:Number = mRawData.position;
+				var oldPosition:Number = mRawData.raw.position;
 				
                 for (i=0; i<numVertices; ++i)
                 {
@@ -309,7 +314,7 @@ package starling.utils
                     offset += BYTES_PER_VERTEX;
                 }
 				
-				mRawData.position = oldPosition;
+				mRawData.raw.position = oldPosition;
             }
         }
         
@@ -525,8 +530,8 @@ package starling.utils
         public function get numVertices():int { return mNumVertices; }
         public function set numVertices(value:int):void
         {
-			var oldPosition :uint = mRawData.position;
             mRawData.resize(value * BYTES_PER_VERTEX); 
+			var oldPosition :uint = mRawData.raw.position;
             
             for (var i:int=mNumVertices; i<value; ++i) { // alpha should be '1' per default
 				mRawData.position = int(i * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES + 3);
@@ -534,7 +539,7 @@ package starling.utils
 			}
             
             mNumVertices = value;
-			mRawData.position = oldPosition;
+			mRawData.raw.position = oldPosition;
         }
         
         /** The raw vertex data; not a copy! */

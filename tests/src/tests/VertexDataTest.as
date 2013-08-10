@@ -205,12 +205,22 @@ package tests
             vd1.copyTo(vd2, 2);
             assertEquals(4, vd2.numVertices);
             
-            vd1.rawData.position = 0;
-            vd2.rawData.position = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
+            var vd1pos :uint = 0;
+            var vd2pos :uint = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
             
-            for (var i:int=0; i<2; ++i)
-                for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j)
-                    assertEquals(vd1.rawData.raw.readUnsignedInt(), vd2.rawData.raw.readUnsignedInt());
+            for (var i:int=0; i<2; ++i) {
+                for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j) {
+					vd1.rawData.position = vd1pos;
+					var vd1val :uint = vd1.rawData.raw.readUnsignedInt();
+					
+					vd2.rawData.position = vd2pos;
+					var vd2val :uint = vd2.rawData.raw.readUnsignedInt();
+                    
+					assertEquals(vd1val, vd2val);
+					vd1pos += 4;
+					vd2pos += 4;
+				}
+			}
         }
         
         [Test]

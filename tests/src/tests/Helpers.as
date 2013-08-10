@@ -69,10 +69,16 @@ package tests
 		public static function compareByteArrayReferences(b1:ByteArrayReference, b2:ByteArrayReference):void
 		{
 			assertEquals(b1.length, b2.length);
-			b1.position = b2.position = 0;
+			var b1pos :uint = 0;
+			var b2pos :uint = 0;
 			
-			while (b1.bytesAvailable)
-				assertEquals(b1.raw.readByte(), b2.raw.readByte());
+			while (b1pos < b1.length) {
+				b1.position = b1pos++;
+				var b1value :int = b1.raw.readByte();
+				b2.position = b2pos++;
+				var b2value :int = b2.raw.readByte();
+				assertEquals(b1value, b2value);
+			}
 		}
 
 		public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void
