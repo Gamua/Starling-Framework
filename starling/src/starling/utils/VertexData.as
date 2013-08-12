@@ -179,6 +179,17 @@ package starling.utils
             position.y = mRawData.readFloat();
         }
         
+        /** Updates the RGB color and alpha value of a vertex in one step. */
+        public function setColorAndAlpha(vertexID:int, color:uint, alpha:Number):void
+        {
+            alpha = clamp(alpha, mPremultipliedAlpha ? MIN_ALPHA_PMA : MIN_ALPHA, MAX_ALPHA);
+            var rgba:uint = createRGBA(color, alpha);
+            if (mPremultipliedAlpha) rgba = premultiplyAlpha(rgba);
+            
+            mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
+            mRawData.writeUnsignedInt(switchEndian(rgba));
+        }
+        
         /** Updates the RGB color values of a vertex (alpha is not changed). */ 
         public function setColor(vertexID:int, color:uint):void
         {   
@@ -415,16 +426,6 @@ package starling.utils
                    ((value >>  8) & 0xff) << 16 |
                    ((value >> 16) & 0xff) <<  8 |
                    ((value >> 24) & 0xff);
-        }
-        
-        private function setColorAndAlpha(vertexID:int, color:uint, alpha:Number):void
-        {
-            alpha = clamp(alpha, mPremultipliedAlpha ? MIN_ALPHA_PMA : MIN_ALPHA, MAX_ALPHA);
-            var rgba:uint = createRGBA(color, alpha);
-            if (mPremultipliedAlpha) rgba = premultiplyAlpha(rgba);
-            
-            mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
-            mRawData.writeUnsignedInt(switchEndian(rgba));
         }
         
         private final function premultiplyAlpha(rgba:uint):uint
