@@ -79,11 +79,11 @@ package starling.textures
             
             super(mActiveTexture, new Rectangle(0, 0, width, height), true);
             
-            var nativeWidth:int  = mActiveTexture.root.width;
-            var nativeHeight:int = mActiveTexture.root.height;
+            var rootWidth:Number  = mActiveTexture.root.width;
+            var rootHeight:Number = mActiveTexture.root.height;
             
             mSupport = new RenderSupport();
-            mSupport.setOrthographicProjection(0, 0, nativeWidth, nativeHeight);
+            mSupport.setOrthographicProjection(0, 0, rootWidth, rootHeight);
             
             if (persistent)
             {
