@@ -203,19 +203,19 @@ package starling.events
         /** @private 
          *  Dispatches a touch event along the current bubble chain (which is updated each time
          *  a target is set). */
-        starling_internal function dispatchEvent(event:TouchEvent):void
+        internal function dispatchEvent(event:TouchEvent):void
         {
             if (mTarget) event.dispatch(mBubbleChain);
         }
         
         /** @private */
-        starling_internal function get bubbleChain():Vector.<EventDispatcher>
+        internal function get bubbleChain():Vector.<EventDispatcher>
         {
             return mBubbleChain.concat();
         }
         
         /** @private */
-        starling_internal function setTarget(value:DisplayObject):void
+        internal function setTarget(value:DisplayObject):void
         {
             if (mTarget != value)
             {
@@ -225,7 +225,7 @@ package starling.events
         }
         
         /** @private */
-        starling_internal function setPosition(globalX:Number, globalY:Number):void
+        internal function setPosition(globalX:Number, globalY:Number):void
         {
             mPreviousGlobalX = mGlobalX;
             mPreviousGlobalY = mGlobalY;
@@ -234,25 +234,25 @@ package starling.events
         }
         
         /** @private */
-        starling_internal function setSize(width:Number, height:Number):void 
+        internal function setSize(width:Number, height:Number):void 
         { 
             mWidth = width;
             mHeight = height;
         }
         
         /** @private */
-        starling_internal function setPhase(value:String):void { mPhase = value; }
+        internal function setPhase(value:String):void { mPhase = value; }
         
         /** @private */
-        starling_internal function setTapCount(value:int):void { mTapCount = value; }
+        internal function setTapCount(value:int):void { mTapCount = value; }
         
         /** @private */
-        starling_internal function setTimestamp(value:Number):void { mTimestamp = value; }
+        internal function setTimestamp(value:Number):void { mTimestamp = value; }
         
         /** @private */
-        starling_internal function setPressure(value:Number):void { mPressure = value; }
+        internal function setPressure(value:Number):void { mPressure = value; }
 
         /** @private */
-        starling_internal function setUpdated(value:Boolean):void { mUpdated = value; }
+        internal function setUpdated(value:Boolean):void { mUpdated = value; }
     }
 }

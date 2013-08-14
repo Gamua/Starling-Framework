@@ -8,19 +8,13 @@
 //
 // =================================================================================================
 
-package starling.core
+package starling.events
 {
     import flash.geom.Point;
     import flash.utils.getDefinitionByName;
     
     import starling.display.Stage;
-    import starling.events.KeyboardEvent;
-    import starling.events.Touch;
-    import starling.events.TouchEvent;
-    import starling.events.TouchPhase;
 
-    use namespace starling_internal;
-    
     /** The TouchProcessor is used to convert mouse and touch events of the conventional
      *  Flash stage to Starling's TouchEvents.
      *  
