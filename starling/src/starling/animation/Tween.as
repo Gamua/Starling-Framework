@@ -120,6 +120,17 @@ package starling.animation
             mStartValues.push(Number.NaN);
             mEndValues.push(endValue);
         }
+		
+		/** Animates multiple properties of the target to multiple values,
+		 *  as specified in an Object with name-value pairs.
+		 *  Note: <code>properties</code> Object can be used multiple times
+		 * 	without interfering with existing animations.*/
+		public function animateProperties(properties:Object):void
+		{
+			for (var prop:String in properties) {
+				animate(prop, properties[prop]);
+			}
+		}
         
         /** Animates the 'scaleX' and 'scaleY' properties of an object simultaneously. */
         public function scaleTo(factor:Number):void
