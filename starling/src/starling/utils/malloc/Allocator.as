@@ -1,13 +1,14 @@
 package starling.utils.malloc
 {
+	/** This class manages allocation of subranges of a managed heap. */
 	public class Allocator
 	{
-		private var mMemory :MemoryManager;
+		private var mMemory :DomainMemoryManager;
 		
 		public var freeList :Vector.<AllocationRecord>;
 		public var usedList :Vector.<AllocationRecord>;
 
-		public function Allocator (memory :MemoryManager)
+		public function Allocator (memory :DomainMemoryManager)
 		{
 			mMemory = memory;
 			freeList = new <AllocationRecord> [ ];
@@ -22,7 +23,7 @@ package starling.utils.malloc
 		}
 		
 		/** Allocates a new element from the free list, taking the first element of sufficient size,
-		 * splitting it if necessary. */
+		 * splitting it if necessary. Current implementation is O(n) in the size of the free list. */
 		public function allocate (size :uint) :AllocationRecord {
 			for (var i :int = 0, len :int = freeList.length; i < len; i++) {
 				var candidate :AllocationRecord = freeList[i];
@@ -92,6 +93,8 @@ package starling.utils.malloc
 			pushAndSort(freeList, new AllocationRecord(start, length));
 		}
 		
+		/** Given a free or used list, and a starting memory range position, returns the array index of the 
+		 * allocation record for that starting position. O(n) in list size. */
 		private function findIndex (list :Vector.<AllocationRecord>, startpos :uint) :uint {
 			for (var i :int = 0, len :int = list.length; i < len; i++) {
 				if (list[i].start == startpos) {
@@ -102,6 +105,8 @@ package starling.utils.malloc
 			return -1;
 		}
 		
+		/** Appends the specified element to the end of the list, and then bubbles it up
+		 * towards the beginning, to ensure that all records are sorted by their start field. O(n) in list size. */
 		private function pushAndSort (list :Vector.<AllocationRecord>, element :AllocationRecord) :void {
 			list[list.length] = element;
 			if (list.length < 2) {
@@ -120,7 +125,10 @@ package starling.utils.malloc
 				list[i] = second;
 			}
 		}
-		
+
+		/** Takes a free list, and an index to an element in that list. Attempts first to merge
+		 * items at index and index+1, then items at index-1 and index. Merge will happen if
+		 * the first and second items are exactly adjacent. */
 		private function attemptMerge (list :Vector.<AllocationRecord>, index :uint) :void {
 			if (index < 0 || index >= (list.length - 1)) {
 				return; // not possible

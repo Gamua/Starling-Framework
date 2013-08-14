@@ -7,31 +7,39 @@ package tests
 	
 	import starling.utils.malloc.AllocationRecord;
 	import starling.utils.malloc.Allocator;
-	import starling.utils.malloc.MemoryManager;
+	import starling.utils.malloc.DomainMemoryManager;
 
 	public class AllocatorTest
 	{
+		[BeforeClass]
+		public static function prepare () :void {
+			// clean up from other tests
+			if (DomainMemoryManager.isInitialized) {
+				DomainMemoryManager.instance.dispose();
+			}
+		}
+		
 		[Test]
 		public function testCreateAndDispose () :void {
 			
-			if (MemoryManager.isInitialized) {
-				MemoryManager.instance.dispose();
+			if (DomainMemoryManager.isInitialized) {
+				DomainMemoryManager.instance.dispose();
 			}
 			
-			assertFalse(MemoryManager.isInitialized);
+			assertFalse(DomainMemoryManager.isInitialized);
 			
-			var alloc :Allocator = MemoryManager.instance.allocator;
-			assertTrue(MemoryManager.isInitialized);
-			assertNotNull(MemoryManager.instance);
+			var alloc :Allocator = DomainMemoryManager.instance.allocator;
+			assertTrue(DomainMemoryManager.isInitialized);
+			assertNotNull(DomainMemoryManager.instance);
 			
-			MemoryManager.instance.dispose();
-			assertFalse(MemoryManager.isInitialized);
+			DomainMemoryManager.instance.dispose();
+			assertFalse(DomainMemoryManager.isInitialized);
 		}
 		
 		[Test]
 		public function testAllocation () :void {
 			
-			var mem :MemoryManager = new MemoryManager(1024);
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024);
 			
 			// test simple allocation
 			var pos :uint = mem.allocate(10);
@@ -39,13 +47,13 @@ package tests
 			verifyElement(mem.allocator.freeList, 0, 10, 1024 - 10);
 			verifyAllocatorState(mem);
 			
-			MemoryManager.instance.dispose();
+			DomainMemoryManager.instance.dispose();
 		}
 
 		[Test]
 		public function testFreeAndMerge () :void {
 			
-			var mem :MemoryManager = new MemoryManager(1024);
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024);
 			
 			var first :uint = mem.allocate(10);
 			var second :uint = mem.allocate(10);
@@ -83,13 +91,13 @@ package tests
 			assertEquals(0, mem.allocator.usedList.length);
 			verifyAllocatorState(mem);
 
-			MemoryManager.instance.dispose();
+			DomainMemoryManager.instance.dispose();
 		}
 
 		[Test]
 		public function testHeapGrowth () :void {
 			
-			var mem :MemoryManager = new MemoryManager(1024);
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024);
 			
 			var pos :uint = mem.allocate(1024);
 			assertEquals(0, pos);
@@ -109,7 +117,7 @@ package tests
 			verifyElement(mem.allocator.usedList, 2, 1024 + 128, 512);
 			verifyAllocatorState(mem);
 			
-			MemoryManager.instance.dispose();
+			DomainMemoryManager.instance.dispose();
 		}
 
 		private function verifyElement (list :Vector.<AllocationRecord>, index :uint, start :uint, length :uint) :void {
@@ -117,7 +125,7 @@ package tests
 			assertEquals(length, list[index].length);
 		}
 		
-		private function verifyAllocatorState (mem :MemoryManager) :void {
+		private function verifyAllocatorState (mem :DomainMemoryManager) :void {
 			verifySortOrder(mem.allocator.freeList);
 			verifySortOrder(mem.allocator.usedList);
 		}
