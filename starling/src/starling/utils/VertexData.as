@@ -70,13 +70,10 @@ package starling.utils
         private static const COLOR_OFFSET_IN_BYTES:int    = COLOR_OFFSET        * BYTES_PER_ELEMENT;
         private static const TEXCOORD_OFFSET_IN_BYTES:int = TEXCOORD_OFFSET     * BYTES_PER_ELEMENT;
         
-        private static const MIN_ALPHA_PMA:Number = 5.0 / 255.0;
-        private static const MIN_ALPHA:Number = 0.0;
-        private static const MAX_ALPHA:Number = 1.0;
-        
         private var mRawData:ByteArrayReference;
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
+        private var mMinAlpha:Number;
 
         /** Helper object. */
         private static var sHelperPoint:Point = new Point();
@@ -85,7 +82,7 @@ package starling.utils
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
         {
             mRawData = new ByteArrayReference(numVertices * BYTES_PER_VERTEX);
-            mPremultipliedAlpha = premultipliedAlpha;
+            this.premultipliedAlpha = premultipliedAlpha;
             this.numVertices = numVertices;
         }
 		
@@ -182,6 +179,19 @@ package starling.utils
 			var pos :uint = mRawData.calculateRawAddress(vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES);
 			position.x = lf32(pos);
 			position.y = lf32(pos + 4);
+        }
+        
+        /** Updates the RGB color and alpha value of a vertex in one step. */
+        public function setColorAndAlpha(vertexID:int, color:uint, alpha:Number):void
+        {
+            if (alpha < mMinAlpha) alpha = mMinAlpha;
+            if (alpha > 1.0)       alpha = 1.0;
+            
+            var rgba:uint = ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff)
+            if (mPremultipliedAlpha && alpha != 1.0) rgba = premultiplyAlpha(rgba);
+            
+			var pos :uint = mRawData.calculateRawAddress(vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES);
+			si32(switchEndian(rgba), pos);
         }
         
         /** Updates the RGB color values of a vertex (alpha is not changed). */ 
@@ -405,18 +415,6 @@ package starling.utils
         // helpers
         
         [Inline]
-        private final function clamp(value:Number, min:Number, max:Number):Number
-        {
-            return value < min ? min : (value > max ? max : value);
-        }
-        
-        [Inline]
-        private final function createRGBA(color:uint, alpha:Number):uint
-        {
-            return ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff);
-        }
-        
-        [Inline]
         private final function switchEndian(value:uint):uint
         {
             return ( value        & 0xff) << 24 |
@@ -425,49 +423,39 @@ package starling.utils
                    ((value >> 24) & 0xff);
         }
         
-        private function setColorAndAlpha(vertexID:int, color:uint, alpha:Number):void
-        {
-            alpha = clamp(alpha, mPremultipliedAlpha ? MIN_ALPHA_PMA : MIN_ALPHA, MAX_ALPHA);
-            var rgba:uint = createRGBA(color, alpha);
-            if (mPremultipliedAlpha) rgba = premultiplyAlpha(rgba);
-            
-			var pos :uint = mRawData.calculateRawAddress(vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES);
-			si32(switchEndian(rgba), pos);
-        }
-        
         private final function premultiplyAlpha(rgba:uint):uint
         {
-            var alpha:Number = (rgba & 0xff) / 255.0;
+            var alpha:uint = rgba & 0xff;
             
-            if (alpha == 1.0) return rgba;
+            if (alpha == 0xff) return rgba;
             else
             {
-                var r:uint = ((rgba >> 24) & 0xff) * alpha;
-                var g:uint = ((rgba >> 16) & 0xff) * alpha;
-                var b:uint = ((rgba >>  8) & 0xff) * alpha;
+                var factor:Number = alpha / 255.0;
+                var r:uint = ((rgba >> 24) & 0xff) * factor;
+                var g:uint = ((rgba >> 16) & 0xff) * factor;
+                var b:uint = ((rgba >>  8) & 0xff) * factor;
                 
                 return (r & 0xff) << 24 |
                        (g & 0xff) << 16 |
-                       (b & 0xff) <<  8 |
-                       (rgba & 0xff);
+                       (b & 0xff) <<  8 | alpha;
             }
         }
         
         private final function unmultiplyAlpha(rgba:uint):uint
         {
-            var alpha:Number = (rgba & 0xff) / 255.0;
+            var alpha:uint = rgba & 0xff;
             
-            if (alpha == 0.0 || alpha == 1.0) return rgba;
+            if (alpha == 0xff || alpha == 0x0) return rgba;
             else
             {
-                var r:uint = ((rgba >> 24) & 0xff) / alpha;
-                var g:uint = ((rgba >> 16) & 0xff) / alpha;
-                var b:uint = ((rgba >>  8) & 0xff) / alpha;
+                var factor:Number = alpha / 255.0;
+                var r:uint = ((rgba >> 24) & 0xff) / factor;
+                var g:uint = ((rgba >> 16) & 0xff) / factor;
+                var b:uint = ((rgba >>  8) & 0xff) / factor;
                 
                 return (r & 0xff) << 24 |
                        (g & 0xff) << 16 |
-                       (b & 0xff) <<  8 |
-                       (rgba & 0xff);
+                       (b & 0xff) <<  8 | alpha;
             }
         }
         
@@ -494,9 +482,7 @@ package starling.utils
           * vertices. */
         public function setPremultipliedAlpha(value:Boolean, updateData:Boolean=true):void
         {
-            if (value == mPremultipliedAlpha) return;
-            
-            if (updateData)
+            if (updateData && value != mPremultipliedAlpha)
             {
                 var offset:int = mRawData.calculateRawAddress(COLOR_OFFSET_IN_BYTES);
                 var oldColor:uint;
@@ -513,10 +499,17 @@ package starling.utils
             }
             
             mPremultipliedAlpha = value;
+            mMinAlpha = value ? 5.0 / 255.0 : 0.0;
         }
         
-        /** Indicates if the rgb values are stored premultiplied with the alpha value. */
+        /** Indicates if the rgb values are stored premultiplied with the alpha value. 
+         *  If you change this value, the color data is updated accordingly. If you don't want
+         *  that, use the 'setPremultipliedAlpha' method instead. */
         public function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
+        public function set premultipliedAlpha(value:Boolean):void
+        {
+            setPremultipliedAlpha(value);
+        }
         
         /** The total number of vertices. */
         public function get numVertices():int { return mNumVertices; }
