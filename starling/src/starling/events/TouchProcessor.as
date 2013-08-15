@@ -90,7 +90,6 @@ package starling.events
         public function advanceTime(passedTime:Number):void
         {
             var i:int;
-            var touchID:int;
             var touch:Touch;
             
             mElapsedTime += passedTime;
@@ -126,7 +125,7 @@ package starling.events
                                 touchArgs[0], touchArgs[1], touchArgs[2], touchArgs[3],
                                 touchArgs[4], touchArgs[5], touchArgs[6]);
                     
-                    sProcessedTouchIDs[sProcessedTouchIDs.length] = touchID; // avoiding 'push'
+                    sProcessedTouchIDs[sProcessedTouchIDs.length] = touch.id; // avoiding 'push'
                     touch.setUpdated(true);
                 }
 
