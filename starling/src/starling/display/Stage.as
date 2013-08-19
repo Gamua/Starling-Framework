@@ -26,12 +26,6 @@ package starling.display
     /** Dispatched when the Flash container is resized. */
     [Event(name="resize", type="starling.events.ResizeEvent")]
     
-    /** Dispatched when a key on the keyboard is released. */
-    [Event(name="keyUp", type="starling.events.KeyboardEvent")]
-    
-    /** Dispatched when a key on the keyboard is pressed. */
-    [Event(name="keyDown", type="starling.events.KeyboardEvent")]
-    
     /** A Stage represents the root of the display tree.  
      *  Only objects that are direct or indirect children of the stage will be rendered.
      * 
