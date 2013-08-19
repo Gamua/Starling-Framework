@@ -32,16 +32,27 @@ package starling.display
     
     /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
+    
     /** Dispatched when an object is connected to the stage (directly or indirectly). */
     [Event(name="addedToStage", type="starling.events.Event")]
+    
     /** Dispatched when an object is removed from its parent. */
     [Event(name="removed", type="starling.events.Event")]
+    
     /** Dispatched when an object is removed from the stage and won't be rendered any longer. */ 
     [Event(name="removedFromStage", type="starling.events.Event")]
+    
     /** Dispatched once every frame on every object that is connected to the stage. */ 
     [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
+    
     /** Dispatched when an object is touched. Bubbles. */
     [Event(name="touch", type="starling.events.TouchEvent")]
+    
+    /** Dispatched when a key on the keyboard is released. */
+    [Event(name="keyUp", type="starling.events.KeyboardEvent")]
+    
+    /** Dispatched when a key on the keyboard is pressed. */
+    [Event(name="keyDown", type="starling.events.KeyboardEvent")]
     
     /**
      *  The DisplayObject class is the base class for all objects that are rendered on the 
