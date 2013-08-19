@@ -13,6 +13,7 @@ package starling.events
     import flash.geom.Point;
     import flash.utils.getDefinitionByName;
     
+    import starling.display.DisplayObject;
     import starling.display.Stage;
 
     /** The TouchProcessor is used to convert mouse and touch events of the conventional
@@ -33,20 +34,24 @@ package starling.events
      *  
      *  <strong>Subclassing TouchProcessor</strong>
      *  
-     *  <p>You can extend the TouchProcessor class if you want to handle touch and mouse input
-     *  manually. You'll probably want to override the "processTouches" method; that way,
-     *  input analysis will be done automatically and you're just responsible for dispatching
-     *  your own events. If you need more control, you can override the "advanceTime" method,
-     *  as well.</p>
+     *  <p>You can extend the TouchProcessor if you need to have more control over touch and
+     *  mouse input. For example, you could filter the touches by overriding the "processTouches"
+     *  method, throwing away any touches you're not interested in and passing the rest to the
+     *  super implementation.</p>
      *  
-     *  <p>Pass an instance of your subclass to "Starling.touchProcessor".</p>
+     *  <p>To use your custom TouchProcessor, assign it to the "Starling.touchProcessor"
+     *  property.</p>
+     *  
+     *  <p>Note that you should not dispatch TouchEvents yourself, since they are
+     *  much more complex to handle than conventional events (e.g. it must be made sure that an
+     *  object receives a TouchEvent only once, even if it's manipulated with several fingers).
+     *  Always use the base implementation of "processTouches" to let them be dispatched. That
+     *  said: you can always dispatch your own custom events, of course.</p>
      */
     public class TouchProcessor
     {
-        private static const MULTITAP_TIME:Number = 0.3;
-        private static const MULTITAP_DISTANCE:Number = 25;
-        
         private var mStage:Stage;
+        private var mRoot:DisplayObject;
         private var mElapsedTime:Number;
         private var mTouchMarker:TouchMarker;
         
@@ -55,17 +60,19 @@ package starling.events
         private var mLastTaps:Vector.<Touch>;
         
         private var mShiftDown:Boolean = false;
-        private var mCtrlDown:Boolean = false;
+        private var mCtrlDown:Boolean  = false;
+        private var mMultitapTime:Number = 0.3;
+        private var mMultitapDistance:Number = 25;
         
         /** Helper objects. */
-        private static var sProcessedTouchIDs:Vector.<int> = new <int>[];
+        private static var sUpdatedTouches:Vector.<Touch> = new <Touch>[];
         private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
         private static var sHelperPoint:Point = new Point();
         
         /** Creates a new TouchProcessor that will dispatch events to the given stage. */
         public function TouchProcessor(stage:Stage)
         {
-            mStage = stage;
+            mRoot = mStage = stage;
             mElapsedTime = 0.0;
             mCurrentTouches = new <Touch>[];
             mQueue = new <Array>[];
@@ -98,53 +105,46 @@ package starling.events
             if (mLastTaps.length > 0)
             {
                 for (i=mLastTaps.length-1; i>=0; --i)
-                    if (mElapsedTime - mLastTaps[i].timestamp > MULTITAP_TIME)
+                    if (mElapsedTime - mLastTaps[i].timestamp > mMultitapTime)
                         mLastTaps.splice(i, 1);
             }
             
             while (mQueue.length > 0)
             {
-                sProcessedTouchIDs.length = 0;
-
                 // Set touches that were new or moving to phase 'stationary'.
-                // Moving into the STATIONARY state doesn't generate touch events, so we don't
-                // set the 'updated' flag on these touches.
                 for each (touch in mCurrentTouches)
-                {
-                    touch.setUpdated(false);
                     if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED)
-                        touch.setPhase(TouchPhase.STATIONARY);
-                }
+                        touch.phase = TouchPhase.STATIONARY;
 
                 // analyze new touches, but each ID only once
-                while (mQueue.length > 0 && 
-                    sProcessedTouchIDs.indexOf(mQueue[mQueue.length-1][0]) == -1)
+                while (mQueue.length > 0 &&
+                      !containsTouchWithID(sUpdatedTouches, mQueue[mQueue.length-1][0]))
                 {
                     var touchArgs:Array = mQueue.pop();
                     touch = createOrUpdateTouch(
                                 touchArgs[0], touchArgs[1], touchArgs[2], touchArgs[3],
                                 touchArgs[4], touchArgs[5], touchArgs[6]);
                     
-                    sProcessedTouchIDs[sProcessedTouchIDs.length] = touch.id; // avoiding 'push'
-                    touch.setUpdated(true);
+                    sUpdatedTouches[sUpdatedTouches.length] = touch; // avoiding 'push'
                 }
 
                 // process the current set of touches (i.e. dispatch touch events)
-                processTouches(mCurrentTouches, mShiftDown, mCtrlDown);
+                processTouches(sUpdatedTouches, mShiftDown, mCtrlDown);
 
                 // remove ended touches
                 for (i=mCurrentTouches.length-1; i>=0; --i)
                     if (mCurrentTouches[i].phase == TouchPhase.ENDED)
                         mCurrentTouches.splice(i, 1);
+                
+                sUpdatedTouches.length = 0;
             }
         }
         
         /** Dispatches TouchEvents to the display objects that are affected by the list of
-         *  given touches. Called internally by "advanceTime".
+         *  given touches. Called internally by "advanceTime". To calculate updated targets,
+         *  the method will call "hitTest" on the "root" object.
          *  
-         *  @param touches:   a list of <em>all</em> current touches. Touches that were just
-         *                    created or updated as a result of new input will have their "updated"
-         *                    properties set to true.
+         *  @param touches:   a list of all touches that have changed just now.
          *  @param shiftDown: indicates if the shift key was down when the touches occurred.
          *  @param CtrlDown:  indicates if the ctrl or cmd key was down when the touches occurred.
          */
@@ -161,8 +161,6 @@ package starling.events
             // hit test our updated touches
             for each (touch in touches)
             {
-                if (!touch.updated) continue;
-                
                 // hovering touches need special handling (see below)
                 if (touch.phase == TouchPhase.HOVER && touch.target)
                     sHoveringTouchData[sHoveringTouchData.length] = {
@@ -174,7 +172,7 @@ package starling.events
                 if (touch.phase == TouchPhase.HOVER || touch.phase == TouchPhase.BEGAN)
                 {
                     sHelperPoint.setTo(touch.globalX, touch.globalY);
-                    touch.setTarget(mStage.hitTest(sHelperPoint, true));
+                    touch.target = mRoot.hitTest(sHelperPoint, true);
                 }
             }
             
@@ -186,8 +184,7 @@ package starling.events
             
             // dispatch events for the rest of our updated touches
             for each (touch in touches)
-                if (touch.updated)
-                    touch.dispatchEvent(touchEvent);
+                touch.dispatchEvent(touchEvent);
         }
         
         /** Enqueues a new touch our mouse event with the given properties. */
@@ -244,15 +241,17 @@ package starling.events
             
             if (touch == null)
             {
-                touch = new Touch(touchID, globalX, globalY, phase);
+                touch = new Touch(touchID);
                 addCurrentTouch(touch);
             }
             
-            touch.setPosition(globalX, globalY);
-            touch.setPhase(phase);
-            touch.setTimestamp(mElapsedTime);
-            touch.setPressure(pressure);
-            touch.setSize(width, height);
+            touch.globalX = globalX;
+            touch.globalY = globalY;
+            touch.phase = phase;
+            touch.timestamp = mElapsedTime;
+            touch.pressure = pressure;
+            touch.width  = width;
+            touch.height = height;
 
             if (phase == TouchPhase.BEGAN)
                 updateTapCount(touch);
@@ -263,7 +262,7 @@ package starling.events
         private function updateTapCount(touch:Touch):void
         {
             var nearbyTap:Touch = null;
-            var minSqDist:Number = MULTITAP_DISTANCE * MULTITAP_DISTANCE;
+            var minSqDist:Number = mMultitapDistance * mMultitapDistance;
             
             for each (var tap:Touch in mLastTaps)
             {
@@ -278,12 +277,12 @@ package starling.events
             
             if (nearbyTap)
             {
-                touch.setTapCount(nearbyTap.tapCount + 1);
+                touch.tapCount = nearbyTap.tapCount + 1;
                 mLastTaps.splice(mLastTaps.indexOf(nearbyTap), 1);
             }
             else
             {
-                touch.setTapCount(1);
+                touch.tapCount = 1;
             }
             
             mLastTaps.push(touch.clone());
@@ -302,7 +301,16 @@ package starling.events
         {
             for each (var touch:Touch in mCurrentTouches)
                 if (touch.id == touchID) return touch;
+            
             return null;
+        }
+        
+        private function containsTouchWithID(touches:Vector.<Touch>, touchID:int):Boolean
+        {
+            for each (var touch:Touch in touches)
+                if (touch.id == touchID) return true;
+            
+            return false;
         }
         
         /** Indicates if it multitouch simulation should be activated. When the user presses
@@ -325,13 +333,32 @@ package starling.events
                 mTouchMarker = null;
             }
         }
+        
+        /** The time period (in seconds) in which two touches must occur to be recognized as
+         *  a multitap gesture. */
+        public function get multitapTime():Number { return mMultitapTime; }
+        public function set multitapTime(value:Number):void { mMultitapTime = value; }
+        
+        /** The distance (in points) describing how close two touches must be to each other to
+         *  be recognized as a multitap gesture. */
+        public function get multitapDistance():Number { return mMultitapDistance; }
+        public function set multitapDistance(value:Number):void { mMultitapDistance = value; }
 
-        /** The stage object to which the touch events will be dispatched. */
+        /** The base object that will be used for hit testing. Per default, this reference points
+         *  to the stage; however, you can limit touch processing to certain parts of your game
+         *  by assigning a different object. */
+        public function get root():DisplayObject { return mRoot; }
+        public function set root(value:DisplayObject):void { mRoot = value; }
+        
+        /** The stage object to which the touch objects are (per default) dispatched. */
         public function get stage():Stage { return mStage; }
         
-        /** Contains a vector of arrays with the arguments that were passed to the "enqueue"
+        /** A vector of arrays with the arguments that were passed to the "enqueue"
          *  method (the oldest being at the end of the vector). */
         protected function get queue():Vector.<Array> { return mQueue; }
+        
+        /** The list of all currently active touches. */
+        protected function get currentTouches():Vector.<Touch> { return mCurrentTouches; }
         
         // keyboard handling
         
@@ -353,12 +380,14 @@ package starling.events
                     if (mouseTouch)
                         mTouchMarker.moveMarker(mouseTouch.globalX, mouseTouch.globalY);
                     
-                    // end active touch ...
                     if (wasCtrlDown && mockedTouch && mockedTouch.phase != TouchPhase.ENDED)
+                    {
+                        // end active touch ...
                         mQueue.unshift([1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
-                        // ... or start new one
+                    }
                     else if (mCtrlDown && mouseTouch)
                     {
+                        // ... or start new one
                         if (mouseTouch.phase == TouchPhase.HOVER || mouseTouch.phase == TouchPhase.ENDED)
                             mQueue.unshift([1, TouchPhase.HOVER, mTouchMarker.mockX, mTouchMarker.mockY]);
                         else
@@ -402,8 +431,7 @@ package starling.events
                     if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
                         touch.phase == TouchPhase.STATIONARY)
                     {
-                        touch.setPhase(TouchPhase.ENDED);
-                        touch.setUpdated(true);
+                        touch.phase = TouchPhase.ENDED;
                     }
                 }
 
