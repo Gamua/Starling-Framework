@@ -13,6 +13,8 @@ package starling.utils
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.ByteArray;
+    import flash.utils.Endian;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
      *  to Stage3D vertex buffers. <em>You only have to work with this class if you create display 
@@ -42,21 +44,31 @@ package starling.utils
      */ 
     public class VertexData 
     {
-        /** The total number of elements (Numbers) stored per vertex. */
-        public static const ELEMENTS_PER_VERTEX:int = 8;
+        /** The number of bytes per element. Positions and texture coordinates take up one
+         *  element per component; color data is stored in a single element. */
+        public static const BYTES_PER_ELEMENT:int = 4;
         
-        /** The offset of position data (x, y) within a vertex. */
+        /** The total number of elements stored per vertex (in units of 32 bits).  */
+        public static const ELEMENTS_PER_VERTEX:int = 5;
+        
+        /** The offset of position data (x, y) within a vertex (in units of 32 bits). */
         public static const POSITION_OFFSET:int = 0;
         
-        /** The offset of color data (r, g, b, a) within a vertex. */ 
+        /** The offset of color data (one RGBA uint) within a vertex (in units of 32 bits). */
         public static const COLOR_OFFSET:int = 2;
         
-        /** The offset of texture coordinates (u, v) within a vertex. */
-        public static const TEXCOORD_OFFSET:int = 6;
+        /** The offset of texture coordinates (u, v) within a vertex (in units of 32 bits). */
+        public static const TEXCOORD_OFFSET:int = 3;
         
-        private var mRawData:Vector.<Number>;
+        private static const BYTES_PER_VERTEX:int         = ELEMENTS_PER_VERTEX * BYTES_PER_ELEMENT;
+        private static const POSITION_OFFSET_IN_BYTES:int = POSITION_OFFSET     * BYTES_PER_ELEMENT;
+        private static const COLOR_OFFSET_IN_BYTES:int    = COLOR_OFFSET        * BYTES_PER_ELEMENT;
+        private static const TEXCOORD_OFFSET_IN_BYTES:int = TEXCOORD_OFFSET     * BYTES_PER_ELEMENT;
+        
+        private var mRawData:ByteArray;
         private var mPremultipliedAlpha:Boolean;
         private var mNumVertices:int;
+        private var mMinAlpha:Number;
 
         /** Helper object. */
         private static var sHelperPoint:Point = new Point();
@@ -64,8 +76,9 @@ package starling.utils
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
         {
-            mRawData = new <Number>[];
-            mPremultipliedAlpha = premultipliedAlpha;
+            mRawData = new ByteArray();
+            mRawData.endian = Endian.LITTLE_ENDIAN;
+            this.premultipliedAlpha = premultipliedAlpha;
             this.numVertices = numVertices;
         }
 
@@ -77,10 +90,9 @@ package starling.utils
                 numVertices = mNumVertices - vertexID;
             
             var clone:VertexData = new VertexData(0, mPremultipliedAlpha);
-            clone.mNumVertices = numVertices; 
-            clone.mRawData = mRawData.slice(vertexID * ELEMENTS_PER_VERTEX, 
-                                            numVertices * ELEMENTS_PER_VERTEX); 
-            clone.mRawData.fixed = true;
+            clone.mNumVertices = numVertices;
+            clone.mRawData.writeBytes(mRawData, vertexID * BYTES_PER_VERTEX, 
+                                             numVertices * BYTES_PER_VERTEX);
             return clone;
         }
         
@@ -89,34 +101,61 @@ package starling.utils
         public function copyTo(targetData:VertexData, targetVertexID:int=0,
                                vertexID:int=0, numVertices:int=-1):void
         {
+            copyTransformedTo(targetData, targetVertexID, null, vertexID, numVertices);
+        }
+
+        /** Transforms the vertex position of this instance by a certain matrix and copies the
+         *  result to another VertexData instance. Limit the operation to a range of vertices
+         *  via the 'vertexID' and 'numVertices' parameters. */
+        public function copyTransformedTo(targetData:VertexData, targetVertexID:int=0,
+                                          matrix:Matrix=null,
+                                          vertexID:int=0, numVertices:int=-1):void
+        {
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
             
-            // todo: check/convert pma
+            if (targetData.mNumVertices < targetVertexID + numVertices)
+                targetData.mNumVertices = targetVertexID + numVertices;
             
-            var targetRawData:Vector.<Number> = targetData.mRawData;
-            var targetIndex:int = targetVertexID * ELEMENTS_PER_VERTEX;
-            var sourceIndex:int = vertexID * ELEMENTS_PER_VERTEX;
-            var dataLength:int = numVertices * ELEMENTS_PER_VERTEX;
+            // It's fastest to copy the complete range in one call
+            // and then overwrite only the transformed positions.
+
+            var x:Number, y:Number;
+            var targetRawData:ByteArray = targetData.mRawData;
+            targetRawData.position = targetVertexID * BYTES_PER_VERTEX;
+            targetRawData.writeBytes(mRawData, vertexID * BYTES_PER_VERTEX,
+                                            numVertices * BYTES_PER_VERTEX);
             
-            for (var i:int=sourceIndex; i<dataLength; ++i)
-                targetRawData[int(targetIndex++)] = mRawData[i];
+            if (matrix)
+            {
+                var sourcePos:int = vertexID * BYTES_PER_VERTEX;
+                var targetPos:int = targetVertexID * BYTES_PER_VERTEX;
+                
+                for (var i:int=0; i<numVertices; ++i)
+                {
+                    // write transformed position
+                    
+                    mRawData.position = sourcePos;
+                    targetRawData.position = targetPos;
+                    
+                    x = mRawData.readFloat();
+                    y = mRawData.readFloat();
+                    
+                    targetRawData.writeFloat(matrix.a * x + matrix.c * y + matrix.tx);
+                    targetRawData.writeFloat(matrix.d * y + matrix.b * x + matrix.ty);
+                    
+                    sourcePos += 20;
+                    targetPos += 20;
+                }
+            }
         }
         
         /** Appends the vertices from another VertexData object. */
         public function append(data:VertexData):void
         {
-            mRawData.fixed = false;
-            
-            var targetIndex:int = mRawData.length;
-            var rawData:Vector.<Number> = data.mRawData;
-            var rawDataLength:int = rawData.length;
-            
-            for (var i:int=0; i<rawDataLength; ++i)
-                mRawData[int(targetIndex++)] = rawData[i];
-            
-            mNumVertices += data.numVertices;
-            mRawData.fixed = true;
+            mRawData.position = mNumVertices * BYTES_PER_VERTEX;;
+            mRawData.writeBytes(data.mRawData);
+            mNumVertices += data.mNumVertices;
         }
         
         // functions
@@ -124,85 +163,77 @@ package starling.utils
         /** Updates the position values of a vertex. */
         public function setPosition(vertexID:int, x:Number, y:Number):void
         {
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            mRawData[offset] = x;
-            mRawData[int(offset+1)] = y;
+            mRawData.position = vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES;
+            mRawData.writeFloat(x);
+            mRawData.writeFloat(y);
         }
         
         /** Returns the position of a vertex. */
         public function getPosition(vertexID:int, position:Point):void
         {
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            position.x = mRawData[offset];
-            position.y = mRawData[int(offset+1)];
+            mRawData.position = vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES;
+            position.x = mRawData.readFloat();
+            position.y = mRawData.readFloat();
         }
         
-        /** Updates the RGB color values of a vertex. */ 
+        /** Updates the RGB color and alpha value of a vertex in one step. */
+        public function setColorAndAlpha(vertexID:int, color:uint, alpha:Number):void
+        {
+            if (alpha < mMinAlpha) alpha = mMinAlpha;
+            if (alpha > 1.0)       alpha = 1.0;
+            
+            var rgba:uint = ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff)
+            if (mPremultipliedAlpha && alpha != 1.0) rgba = premultiplyAlpha(rgba);
+            
+            mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
+            mRawData.writeUnsignedInt(switchEndian(rgba));
+        }
+        
+        /** Updates the RGB color values of a vertex (alpha is not changed). */ 
         public function setColor(vertexID:int, color:uint):void
         {   
-            var offset:int = getOffset(vertexID) + COLOR_OFFSET;
-            var multiplier:Number = mPremultipliedAlpha ? mRawData[int(offset+3)] : 1.0;
-            mRawData[offset]        = ((color >> 16) & 0xff) / 255.0 * multiplier;
-            mRawData[int(offset+1)] = ((color >>  8) & 0xff) / 255.0 * multiplier;
-            mRawData[int(offset+2)] = ( color        & 0xff) / 255.0 * multiplier;
+            var alpha:Number = getAlpha(vertexID);
+            setColorAndAlpha(vertexID, color, alpha);
         }
         
         /** Returns the RGB color of a vertex (no alpha). */
         public function getColor(vertexID:int):uint
         {
-            var offset:int = getOffset(vertexID) + COLOR_OFFSET;
-            var divisor:Number = mPremultipliedAlpha ? mRawData[int(offset+3)] : 1.0;
-            
-            if (divisor == 0) return 0;
-            else
-            {
-                var red:Number   = mRawData[offset]        / divisor;
-                var green:Number = mRawData[int(offset+1)] / divisor;
-                var blue:Number  = mRawData[int(offset+2)] / divisor;
-                
-                return (int(red*255) << 16) | (int(green*255) << 8) | int(blue*255);
-            }
+            mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
+            var rgba:uint = switchEndian(mRawData.readUnsignedInt());
+            if (mPremultipliedAlpha) rgba = unmultiplyAlpha(rgba);
+            return (rgba >> 8) & 0xffffff;
         }
         
         /** Updates the alpha value of a vertex (range 0-1). */
         public function setAlpha(vertexID:int, alpha:Number):void
         {
-            var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
-            
-            if (mPremultipliedAlpha)
-            {
-                if (alpha < 0.001) alpha = 0.001; // zero alpha would wipe out all color data
-                var color:uint = getColor(vertexID);
-                mRawData[offset] = alpha;
-                setColor(vertexID, color);
-            }
-            else
-            {
-                mRawData[offset] = alpha;
-            }
+            var color:uint = getColor(vertexID);
+            setColorAndAlpha(vertexID, color, alpha);
         }
         
         /** Returns the alpha value of a vertex in the range 0-1. */
         public function getAlpha(vertexID:int):Number
         {
-            var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
-            return mRawData[offset];
+            mRawData.position = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES;
+            var rgba:uint = switchEndian(mRawData.readUnsignedInt());
+            return (rgba & 0xff) / 255.0;
         }
         
         /** Updates the texture coordinates of a vertex (range 0-1). */
         public function setTexCoords(vertexID:int, u:Number, v:Number):void
         {
-            var offset:int = getOffset(vertexID) + TEXCOORD_OFFSET;
-            mRawData[offset]        = u;
-            mRawData[int(offset+1)] = v;
+            mRawData.position = vertexID * BYTES_PER_VERTEX + TEXCOORD_OFFSET_IN_BYTES;
+            mRawData.writeFloat(u);
+            mRawData.writeFloat(v);
         }
         
         /** Returns the texture coordinates of a vertex in the range 0-1. */
         public function getTexCoords(vertexID:int, texCoords:Point):void
         {
-            var offset:int = getOffset(vertexID) + TEXCOORD_OFFSET;
-            texCoords.x = mRawData[offset];
-            texCoords.y = mRawData[int(offset+1)];
+            mRawData.position = vertexID * BYTES_PER_VERTEX + TEXCOORD_OFFSET_IN_BYTES;
+            texCoords.x = mRawData.readFloat();
+            texCoords.y = mRawData.readFloat();
         }
         
         // utility functions
@@ -210,26 +241,36 @@ package starling.utils
         /** Translate the position of a vertex by a certain offset. */
         public function translateVertex(vertexID:int, deltaX:Number, deltaY:Number):void
         {
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
-            mRawData[offset]        += deltaX;
-            mRawData[int(offset+1)] += deltaY;
+            var x:Number, y:Number;
+            var position:int = vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES;
+            
+            mRawData.position = position;
+            x = mRawData.readFloat() + deltaX;
+            y = mRawData.readFloat() + deltaY;
+            
+            mRawData.position = position;
+            mRawData.writeFloat(x);
+            mRawData.writeFloat(y);
         }
 
         /** Transforms the position of subsequent vertices by multiplication with a 
          *  transformation matrix. */
         public function transformVertex(vertexID:int, matrix:Matrix, numVertices:int=1):void
         {
-            var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+            var position:int = vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES;
+            var x:Number, y:Number;
             
             for (var i:int=0; i<numVertices; ++i)
             {
-                var x:Number = mRawData[offset];
-                var y:Number = mRawData[int(offset+1)];
+                mRawData.position = position;
+                x = mRawData.readFloat();
+                y = mRawData.readFloat();
                 
-                mRawData[offset]        = matrix.a * x + matrix.c * y + matrix.tx;
-                mRawData[int(offset+1)] = matrix.d * y + matrix.b * x + matrix.ty;
+                mRawData.position = position;
+                mRawData.writeFloat(matrix.a * x + matrix.c * y + matrix.tx);
+                mRawData.writeFloat(matrix.d * y + matrix.b * x + matrix.ty);
                 
-                offset += ELEMENTS_PER_VERTEX;
+                position += BYTES_PER_VERTEX;
             }
         }
         
@@ -247,10 +288,10 @@ package starling.utils
                 setAlpha(i, alpha);
         }
         
-        /** Multiplies the alpha value of subsequent vertices with a certain delta. */
-        public function scaleAlpha(vertexID:int, alpha:Number, numVertices:int=1):void
+        /** Multiplies the alpha value of subsequent vertices with a certain factor. */
+        public function scaleAlpha(vertexID:int, factor:Number, numVertices:int=1):void
         {
-            if (alpha == 1.0) return;
+            if (factor == 1.0) return;
             if (numVertices < 0 || vertexID + numVertices > mNumVertices)
                 numVertices = mNumVertices - vertexID;
              
@@ -259,19 +300,20 @@ package starling.utils
             if (mPremultipliedAlpha)
             {
                 for (i=0; i<numVertices; ++i)
-                    setAlpha(vertexID+i, getAlpha(vertexID+i) * alpha);
+                    setAlpha(vertexID+i, getAlpha(vertexID+i) * factor);
             }
             else
             {
-                var offset:int = getOffset(vertexID) + COLOR_OFFSET + 3;
+                var offset:int = vertexID * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES + 3;
+                var oldAlpha:Number;
+                
                 for (i=0; i<numVertices; ++i)
-                    mRawData[int(offset + i*ELEMENTS_PER_VERTEX)] *= alpha;
+                {
+                    oldAlpha = mRawData[offset] / 255.0;
+                    mRawData[offset] = int(oldAlpha * factor * 255.0);
+                    offset += BYTES_PER_VERTEX;
+                }
             }
-        }
-        
-        private function getOffset(vertexID:int):int
-        {
-            return vertexID * ELEMENTS_PER_VERTEX;
         }
         
         /** Calculates the bounds of the vertices, which are optionally transformed by a matrix. 
@@ -300,16 +342,17 @@ package starling.utils
             {
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-                var offset:int = getOffset(vertexID) + POSITION_OFFSET;
+                var offset:int = vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES;
                 var x:Number, y:Number, i:int;
                 
                 if (transformationMatrix == null)
                 {
                     for (i=0; i<numVertices; ++i)
                     {
-                        x = mRawData[offset];
-                        y = mRawData[int(offset+1)];
-                        offset += ELEMENTS_PER_VERTEX;
+                        mRawData.position = offset;
+                        x = mRawData.readFloat();
+                        y = mRawData.readFloat();
+                        offset += BYTES_PER_VERTEX;
                         
                         if (minX > x) minX = x;
                         if (maxX < x) maxX = x;
@@ -321,9 +364,10 @@ package starling.utils
                 {
                     for (i=0; i<numVertices; ++i)
                     {
-                        x = mRawData[offset];
-                        y = mRawData[int(offset+1)];
-                        offset += ELEMENTS_PER_VERTEX;
+                        mRawData.position = offset;
+                        x = mRawData.readFloat();
+                        y = mRawData.readFloat();
+                        offset += BYTES_PER_VERTEX;
                         
                         MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
                         
@@ -340,69 +384,142 @@ package starling.utils
             return resultRect;
         }
         
+        /** Creates a string that contains the values of all included vertices. */
+        public function toString():String
+        {
+            mRawData.position = 0;
+            var result:String = "[VertexData \n";
+            
+            for (var i:int=0; i<numVertices; ++i)
+            {
+                result += "  [Vertex " + i + ": " +
+                          "x=" + mRawData.readFloat().toFixed(1) + ", " +
+                          "y=" + mRawData.readFloat().toFixed(1) + ", " +
+                          "rgba=" + mRawData.readUnsignedInt().toString(16) + ", " +
+                          "u=" + mRawData.readFloat().toFixed(3) + ", " +
+                          "v=" + mRawData.readFloat().toFixed(3) + "]" +
+                          (i == numVertices-1 ? "\n" : ",\n");
+            }
+            
+            return result + "]";
+        }
+        
+        // helpers
+        
+        [Inline]
+        private final function switchEndian(value:uint):uint
+        {
+            return ( value        & 0xff) << 24 |
+                   ((value >>  8) & 0xff) << 16 |
+                   ((value >> 16) & 0xff) <<  8 |
+                   ((value >> 24) & 0xff);
+        }
+        
+        private final function premultiplyAlpha(rgba:uint):uint
+        {
+            var alpha:uint = rgba & 0xff;
+            
+            if (alpha == 0xff) return rgba;
+            else
+            {
+                var factor:Number = alpha / 255.0;
+                var r:uint = ((rgba >> 24) & 0xff) * factor;
+                var g:uint = ((rgba >> 16) & 0xff) * factor;
+                var b:uint = ((rgba >>  8) & 0xff) * factor;
+                
+                return (r & 0xff) << 24 |
+                       (g & 0xff) << 16 |
+                       (b & 0xff) <<  8 | alpha;
+            }
+        }
+        
+        private final function unmultiplyAlpha(rgba:uint):uint
+        {
+            var alpha:uint = rgba & 0xff;
+            
+            if (alpha == 0xff || alpha == 0x0) return rgba;
+            else
+            {
+                var factor:Number = alpha / 255.0;
+                var r:uint = ((rgba >> 24) & 0xff) / factor;
+                var g:uint = ((rgba >> 16) & 0xff) / factor;
+                var b:uint = ((rgba >>  8) & 0xff) / factor;
+                
+                return (r & 0xff) << 24 |
+                       (g & 0xff) << 16 |
+                       (b & 0xff) <<  8 | alpha;
+            }
+        }
+        
         // properties
         
         /** Indicates if any vertices have a non-white color or are not fully opaque. */
         public function get tinted():Boolean
         {
-            var offset:int = COLOR_OFFSET;
+            var offset:int = COLOR_OFFSET_IN_BYTES;
             
             for (var i:int=0; i<mNumVertices; ++i)
             {
-                for (var j:int=0; j<4; ++j)
-                    if (mRawData[int(offset+j)] != 1.0) return true;
-
-                offset += ELEMENTS_PER_VERTEX;
+                mRawData.position = offset;
+                
+                if (mRawData.readUnsignedInt() != 0xffffffff) 
+                    return true;
+                
+                offset += BYTES_PER_VERTEX;
             }
             
             return false;
         }
         
-        /** Changes the way alpha and color values are stored. Updates all exisiting vertices. */
+        /** Changes the way alpha and color values are stored. Optionally updates all exisiting 
+          * vertices. */
         public function setPremultipliedAlpha(value:Boolean, updateData:Boolean=true):void
         {
-            if (value == mPremultipliedAlpha) return;
-            
-            if (updateData)
+            if (updateData && value != mPremultipliedAlpha)
             {
-                var dataLength:int = mNumVertices * ELEMENTS_PER_VERTEX;
+                var offset:int = COLOR_OFFSET_IN_BYTES;
+                var oldColor:uint;
+                var newColor:uint;
                 
-                for (var i:int=COLOR_OFFSET; i<dataLength; i += ELEMENTS_PER_VERTEX)
+                for (var i:int=0; i<mNumVertices; ++i)
                 {
-                    var alpha:Number = mRawData[int(i+3)];
-                    var divisor:Number = mPremultipliedAlpha ? alpha : 1.0;
-                    var multiplier:Number = value ? alpha : 1.0;
+                    mRawData.position = offset;
+                    oldColor = switchEndian(mRawData.readUnsignedInt());
+                    newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
                     
-                    if (divisor != 0)
-                    {
-                        mRawData[i]        = mRawData[i]        / divisor * multiplier;
-                        mRawData[int(i+1)] = mRawData[int(i+1)] / divisor * multiplier;
-                        mRawData[int(i+2)] = mRawData[int(i+2)] / divisor * multiplier;
-                    }
+                    mRawData.position = offset;
+                    mRawData.writeUnsignedInt(switchEndian(newColor));
+                    
+                    offset += BYTES_PER_VERTEX;
                 }
             }
             
             mPremultipliedAlpha = value;
+            mMinAlpha = value ? 5.0 / 255.0 : 0.0;
         }
         
-        /** Indicates if the rgb values are stored premultiplied with the alpha value. */
+        /** Indicates if the rgb values are stored premultiplied with the alpha value. 
+         *  If you change this value, the color data is updated accordingly. If you don't want
+         *  that, use the 'setPremultipliedAlpha' method instead. */
         public function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
+        public function set premultipliedAlpha(value:Boolean):void
+        {
+            setPremultipliedAlpha(value);
+        }
         
         /** The total number of vertices. */
         public function get numVertices():int { return mNumVertices; }
         public function set numVertices(value:int):void
         {
-            mRawData.fixed = false;
-            mRawData.length = value * ELEMENTS_PER_VERTEX;
+            mRawData.length = value * BYTES_PER_VERTEX; 
             
-            for (var i:int=mNumVertices; i<value; ++i) // alpha should be '1' per default
-                mRawData[int(i * ELEMENTS_PER_VERTEX + COLOR_OFFSET + 3)] = 1.0;
+            for (var i:int=mNumVertices; i<value; ++i)  // alpha should be '1' per default
+                mRawData[int(i * BYTES_PER_VERTEX + COLOR_OFFSET_IN_BYTES + 3)] = 0xff;
             
             mNumVertices = value;
-            mRawData.fixed = true;
         }
         
         /** The raw vertex data; not a copy! */
-        public function get rawData():Vector.<Number> { return mRawData; }
+        public function get rawData():ByteArray { return mRawData; }
     }
 }

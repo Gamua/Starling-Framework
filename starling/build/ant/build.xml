@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="starling" basedir="../.." default="build">
 
-  <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.6/sdks/4.6.0" />
+  <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
   <property name="deploy.dir" location="bin"/>
   <property name="src.dir" location="src" />
 
@@ -11,7 +11,6 @@
     <mkdir dir="${deploy.dir}"/>
     <compc output="${deploy.dir}/${ant.project.name}.swc">
       <include-sources dir="${src.dir}" includes="*"/>
-  	  <arg value="-swf-version=17" />
     </compc>
   </target>
   

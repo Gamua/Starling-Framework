@@ -173,7 +173,7 @@ package starling.display
             if (context == null)  throw new MissingContextError();
             
             mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, numVertices);
+            mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, numVertices);
             
             mIndexBuffer = context.createIndexBuffer(numIndices);
             mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
@@ -188,10 +188,9 @@ package starling.display
                 createBuffers();
             else
             {
-                // as 3rd parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
+                // as last parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
                 // this is slower than updating the complete buffer.
-                
-                mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, mVertexData.numVertices);
+                mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, mVertexData.numVertices);
                 mSyncRequired = false;
             }
         }
@@ -226,7 +225,7 @@ package starling.display
             
             if (mTexture == null || tinted)
                 context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
-                                          Context3DVertexBufferFormat.FLOAT_4);
+                                          Context3DVertexBufferFormat.BYTES_4);
             
             if (mTexture)
             {
@@ -267,7 +266,7 @@ package starling.display
         
         /** Adds a quad to the batch. The first quad determines the state of the batch,
          *  i.e. the values for texture, smoothing and blendmode. When you add additional quads,  
-         *  make sure they share that state (e.g. with the 'isStageChange' method), or reset
+         *  make sure they share that state (e.g. with the 'isStateChange' method), or reset
          *  the batch. */ 
         public function addQuad(quad:Quad, parentAlpha:Number=1.0, texture:Texture=null, 
                                 smoothing:String=null, modelViewMatrix:Matrix=null, 
@@ -289,8 +288,7 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quad.premultipliedAlpha);
             }
             
-            quad.copyVertexDataTo(mVertexData, vertexID);
-            mVertexData.transformVertex(vertexID, modelViewMatrix, 4);
+            quad.copyVertexDataTransformedTo(mVertexData, vertexID, modelViewMatrix);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, 4);
@@ -322,8 +320,8 @@ package starling.display
                 mVertexData.setPremultipliedAlpha(quadBatch.mVertexData.premultipliedAlpha, false);
             }
             
-            quadBatch.mVertexData.copyTo(mVertexData, vertexID, 0, numQuads*4);
-            mVertexData.transformVertex(vertexID, modelViewMatrix, numQuads*4);
+            quadBatch.mVertexData.copyTransformedTo(mVertexData, vertexID, modelViewMatrix,
+                                                    0, numQuads*4);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlpha(vertexID, alpha, numQuads*4);
