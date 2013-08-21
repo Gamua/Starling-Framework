@@ -2,16 +2,33 @@
 <project name="starling" basedir="../.." default="build">
 
   <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
-  <property name="deploy.dir" location="bin"/>
+  <property name="deploy.dir" location="bin" />
   <property name="src.dir" location="src" />
 
   <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
- 
-  <target name="build" description="Builds the library (.swc file)">
-    <mkdir dir="${deploy.dir}"/>
+
+  <target name="build" description="Builds the library (.swc file), including ASDoc code hints">
+    <tempfile property="temp.dir" destDir="${java.io.tmpdir}" prefix="${ant.project.name}-doc-xml-" />
+    <!-- compile starling.swc -->
+    <mkdir dir="${deploy.dir}" />
     <compc output="${deploy.dir}/${ant.project.name}.swc">
-      <include-sources dir="${src.dir}" includes="*"/>
+      <include-sources dir="${src.dir}" includes="*" />
     </compc>
+    <!-- call asdoc to generate dita xml files -->
+    <asdoc output="${temp.dir}" lenient="true" failonerror="true" keep-xml="true" skip-xsl="true" fork="true">
+      <compiler.source-path path-element="${basedir}/src" />
+      <doc-sources path-element="${basedir}/src" />
+    </asdoc>
+    <!-- update swc with asdoc xml -->
+    <zip destfile="${deploy.dir}/${ant.project.name}.swc" update="true">
+      <zipfileset dir="${temp.dir}/tempdita" prefix="docs">
+        <include name="*.*"/>
+        <exclude name="ASDoc_Config.xml" />
+        <exclude name="overviews.xml" />
+      </zipfileset>
+    </zip>
+    <!-- delete temporary data -->
+    <delete dir="${temp.dir}" failonerror="false" includeEmptyDirs="true" />
   </target>
   
 </project>
