@@ -8,12 +8,13 @@
 //
 // =================================================================================================
 
-package starling.core
+package starling.events
 {
     import flash.display.BitmapData;
     import flash.display.Shape;
     import flash.geom.Point;
     
+    import starling.core.Starling;
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.textures.Texture;

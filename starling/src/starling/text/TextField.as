@@ -332,7 +332,7 @@ package starling.text
             else
                 mQuadBatch.reset();
             
-            var bitmapFont:BitmapFont = bitmapFonts[mFontName];
+            var bitmapFont:BitmapFont = getBitmapFont(mFontName);
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
             
             var width:Number  = mHitArea.width;
@@ -465,7 +465,7 @@ package starling.text
                 
                 mFontName = value;
                 mRequiresRedraw = true;
-                mIsRenderedText = bitmapFonts[value] == undefined;
+                mIsRenderedText = getBitmapFont(value) == null;
             }
         }
         
@@ -637,29 +637,32 @@ package starling.text
         }
         
         /** Makes a bitmap font available at any TextField in the current stage3D context.
-         *  The font is identified by its <code>name</code>.
+         *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you 
          *  can pass a custom name, as well. @returns the name of the font. */
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;
-            bitmapFonts[name] = bitmapFont;
+            bitmapFonts[name.toLowerCase()] = bitmapFont;
             return name;
         }
         
         /** Unregisters the bitmap font and, optionally, disposes it. */
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
+            name = name.toLowerCase();
+            
             if (dispose && bitmapFonts[name] != undefined)
                 bitmapFonts[name].dispose();
             
             delete bitmapFonts[name];
         }
         
-        /** Returns a registered bitmap font (or null, if the font has not been registered). */
+        /** Returns a registered bitmap font (or null, if the font has not been registered). 
+         *  The name is not case sensitive. */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return bitmapFonts[name];
+            return bitmapFonts[name.toLowerCase()];
         }
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work

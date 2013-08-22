@@ -44,6 +44,7 @@ package starling.core
     import starling.events.EventDispatcher;
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
+    import starling.events.TouchProcessor;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
     
@@ -152,7 +153,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "1.3";
+        public static const VERSION:String = "1.4";
         
         /** The key for the shader programs stored in 'contextData' */
         private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
@@ -573,7 +574,7 @@ package starling.core
             mStage.broadcastEvent(keyEvent);
             
             if (keyEvent.isDefaultPrevented())
-            	event.preventDefault();
+                event.preventDefault();
         }
         
         private function onResize(event:Event):void
@@ -651,6 +652,10 @@ package starling.core
             
             // enqueue touch in touch processor
             mTouchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
+            
+            // allow objects that depend on mouse-over state to be updated immediately
+            if (event.type == MouseEvent.MOUSE_UP)
+                mTouchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
         
         private function get touchEventTypes():Array
@@ -874,6 +879,19 @@ package starling.core
             }
         }
         
+        /** The TouchProcessor is passed all mouse and touch input and is responsible for
+         *  dispatching TouchEvents to the Starling display tree. If you want to handle these
+         *  types of input manually, pass your own custom subclass to this property. */
+        public function get touchProcessor():TouchProcessor { return mTouchProcessor; }
+        public function set touchProcessor(value:TouchProcessor):void
+        {
+            if (value != mTouchProcessor)
+            {
+                mTouchProcessor.dispose();
+                mTouchProcessor = value;
+            }
+        }
+
         // static properties
         
         /** The currently active Starling instance. */
