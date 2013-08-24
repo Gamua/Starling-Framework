@@ -3,6 +3,9 @@ package starling.utils.malloc
 	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
+	
+	import avm2.intrinsics.memory.li32;
+	import avm2.intrinsics.memory.si32;
 
 	/**
 	 * Manages a domain memory heap, from which the user can request specific sub-ranges
@@ -13,18 +16,23 @@ package starling.utils.malloc
 	 */
 	public class DomainMemoryManager
 	{
+		public static const DEFAULT_DEBUG_OPTION :Boolean = false;
+		
 		public static const HEAP_GROWTH_FACTOR :Number = 1.5;
 		public static const INITIAL_HEAP_SIZE :uint = 1024 * 1024;
 		
 		private static var mInstance :DomainMemoryManager;
 
+		/** Debug mode? */
+		private var mDebug :Boolean;
+		
 		private var mAlloc :Allocator;
 		private var mHeap :ByteArray;
 		
 		/** Returns an instance to the singleton DomainMemoryManager, creating one if needed. */
 		public static function get instance () :DomainMemoryManager {
 			if (mInstance == null) {
-				mInstance = new DomainMemoryManager(INITIAL_HEAP_SIZE);
+				mInstance = new DomainMemoryManager(INITIAL_HEAP_SIZE, DEFAULT_DEBUG_OPTION);
 			}
 			return mInstance;
 		}
@@ -37,17 +45,19 @@ package starling.utils.malloc
 		/** Creates a new instance of the domain memory manager, with specified initial heap size 
 		 * (which will be scaled up automatically if needed). Also registers this instance
 		 * as the global singleton instance. */
-		public function DomainMemoryManager(heapSize :uint)
+		public function DomainMemoryManager (heapSize :uint, debug :Boolean)
 		{
 			if (isInitialized) {
 				throw new Error("DomainMemoryManager singleton instance already exists! Dispose it first.");
 			}
+		
+			mDebug = debug;
 			
 			mHeap = new ByteArray();
 			mHeap.endian = Endian.LITTLE_ENDIAN;
 			mHeap.length = heapSize;
 			
-			mAlloc = new Allocator(this);
+			mAlloc = new Allocator(this, (debug ? 4 : 0));
 
 			ApplicationDomain.currentDomain.domainMemory = mHeap;
 			
@@ -66,16 +76,14 @@ package starling.utils.malloc
 			mHeap = null;			
 		}
 
+		/** Is this running in debug mode? If so, sentinels will be added around allocation records */
+		public function get debug () :Boolean { return mDebug; }
+		
 		/** Getter for the byte array that contains the entire heap. Use with caution! */
-		public function get heap () :ByteArray {
-			return mHeap;
-		}
+		public function get heap () :ByteArray { return mHeap; }
 
-		/** This is only used in testing, should not be accessed directly.
-		 * Use allocate() and free() instead. */
-		public function get allocator () :Allocator {
-			return mAlloc;
-		}
+		/** This is only used in testing, should not be accessed directly. Use allocate() and free() instead. */
+		public function get allocator () :Allocator { return mAlloc; }
 
 		/** Allocates a memory range of given length in bytes, and returns its starting index
 		 * in the heap. It's the caller's responsibility to not access bytes outside the range
@@ -92,7 +100,12 @@ package starling.utils.malloc
 				newRecord = mAlloc.allocate(length);
 			}
 
-			return newRecord.start;
+			// if in debug mode, set up sentinels
+			if (mDebug) {
+				addSentinels(newRecord);
+			}
+			
+			return newRecord.datastart;
 		}
 
 		/** Helper function, extends the heap if it's been exhausted (whether to usage or fragmentation) */
@@ -129,8 +142,34 @@ package starling.utils.malloc
 		
 		/** Releases the memory range starting at given index for future use.
 		 * Note that released memory will not be set to null or otherwise manipulated. */
-		public function free (index :uint) :void {
-			mAlloc.free(index);
-		}		
+		public function free (position :uint) :void {
+			if (mDebug) {
+				var item :AllocationRecord = mAlloc.findUsedNodeAt(position);
+				if (item != null) {
+					checkSentinels(item);
+				}
+			}
+			
+			mAlloc.free(position);
+		}	
+		
+		/** Adds sentinels before and after */
+		private function addSentinels (rec :AllocationRecord) :void {
+			si32(0xcccccccc, rec.start);
+			si32(0xcdcdcdcd, rec.start + rec.size - 4); 
+		}
+		
+		/** Checks sentinels to make sure they didn't get overwritten */
+		private function checkSentinels (rec :AllocationRecord) :void {
+			var before :uint = li32(rec.start);
+			var after :uint = li32(rec.start + rec.size - 4);
+			if (before != 0xcccccccc || after != 0xcdcdcdcd) {
+				throw new Error("Buffer overrun of allocation record at " + rec.datastart + ", length " + rec.datasize);
+			}
+			
+			si32(0, rec.start);
+			si32(0, rec.start + rec.size - 4); 
+		}
+		
 	}
 }

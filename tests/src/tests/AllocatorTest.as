@@ -37,51 +37,65 @@ package tests
 		}
 		
 		[Test]
-		public function testAllocation () :void {
+		public function testAllocationVariants () :void {
+			testAllocation(false);
+			testAllocation(true);
+		}
+		
+		public function testAllocation (debug :Boolean) :void {
+			var sentinelSize :uint = debug ? 4 : 0;
+			var nodeOverhead :uint = sentinelSize * 2;
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024, debug);
 			
-			var mem :DomainMemoryManager = new DomainMemoryManager(1024);
-			
-			// test simple allocation
+			// test simple allocation, make sure sentinels are there
 			var pos :uint = mem.allocate(10);
-			assertEquals(0, pos);
-			verifyElement(mem.allocator.freeList, 0, 10, 1024 - 10);
+			assertEquals(sentinelSize, pos); // with sentinel
+			verifyElement(mem.allocator.usedList, 0, 0, 10 + nodeOverhead);
+			verifyElement(mem.allocator.freeList, 0, 10 + nodeOverhead, 1024 - (10 + nodeOverhead));
 			verifyAllocatorState(mem);
+			verifySentinels(mem);
 			
 			DomainMemoryManager.instance.dispose();
 		}
 
 		[Test]
-		public function testFreeAndMerge () :void {
-			
-			var mem :DomainMemoryManager = new DomainMemoryManager(1024);
+		public function testFreeAndMergeVariants () :void {
+			testFreeAndMerge(false);
+			testFreeAndMerge(true);
+		}
+		
+		public function testFreeAndMerge (debug :Boolean) :void {
+			var sentinelSize :uint = debug ? 4 : 0;
+			var nodeOverhead :uint = sentinelSize * 2;
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024, debug);
 			
 			var first :uint = mem.allocate(10);
 			var second :uint = mem.allocate(10);
 			var third :uint = mem.allocate(10);
 			
-			assertEquals(0, first);
-			assertEquals(10, second);
-			assertEquals(20, third);
+			assertEquals(0 + sentinelSize, first);
+			assertEquals(10 + sentinelSize + nodeOverhead, second);
+			assertEquals(20 + sentinelSize + 2 * nodeOverhead, third);
 			verifyAllocatorState(mem);
 			
 			// free the first one
 			mem.free(first);
 			// make sure we have it back on the free list
-			verifyElement(mem.allocator.freeList, 0, 0, 10);
-			verifyElement(mem.allocator.freeList, 1, 30, 1024 - 30);
+			verifyElement(mem.allocator.freeList, 0, 0, 10 + nodeOverhead);
+			verifyElement(mem.allocator.freeList, 1, 30 + 3 * nodeOverhead, 1024 - (30 + 3 * nodeOverhead));
 			// and not on used list
-			verifyElement(mem.allocator.usedList, 0, 10, 10);
-			verifyElement(mem.allocator.usedList, 1, 20, 10);
+			verifyElement(mem.allocator.usedList, 0, 10 + 1 * nodeOverhead, 10 + nodeOverhead);
+			verifyElement(mem.allocator.usedList, 1, 20 + 2 * nodeOverhead, 10 + nodeOverhead);
 			
 			verifyAllocatorState(mem);
 
 			// free the second one
 			mem.free(second);
 			// make sure the first two got merged
-			verifyElement(mem.allocator.freeList, 0, 0, 20);
-			verifyElement(mem.allocator.freeList, 1, 30, 1024 - 30);
+			verifyElement(mem.allocator.freeList, 0, 0, 20 + 2 * nodeOverhead); // <-- two merged ones
+			verifyElement(mem.allocator.freeList, 1, 30 + 3 * nodeOverhead, 1024 - (30 + 3 * nodeOverhead));
 			// and the used list should be smaller
-			verifyElement(mem.allocator.usedList, 0, 20, 10);
+			verifyElement(mem.allocator.usedList, 0, 20 + 2 * nodeOverhead, 10 + nodeOverhead);
 			verifyAllocatorState(mem);
 			
 			// free the last one
@@ -95,9 +109,30 @@ package tests
 		}
 
 		[Test]
+		public function testSentinelDetectsBufferOverrun () :void {
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024, true);
+			
+			var caughtOverrun :Boolean = false;
+			var pos :uint = mem.allocate(4 * 4);
+			mem.heap.position = pos;
+			for (var i :int = 0; i <= 4; i++) { // buffer overrun! off by one
+				mem.heap.writeInt(0xdeadbeef);
+			}
+
+			try {
+				mem.free(pos);
+			} catch (e :Error) {
+				caughtOverrun = true;
+			}
+			
+			assertTrue(caughtOverrun);
+			DomainMemoryManager.instance.dispose();
+		}
+		
+		[Test]
 		public function testHeapGrowth () :void {
 			
-			var mem :DomainMemoryManager = new DomainMemoryManager(1024);
+			var mem :DomainMemoryManager = new DomainMemoryManager(1024, false);
 			
 			var pos :uint = mem.allocate(1024);
 			assertEquals(0, pos);
@@ -120,9 +155,9 @@ package tests
 			DomainMemoryManager.instance.dispose();
 		}
 
-		private function verifyElement (list :Vector.<AllocationRecord>, index :uint, start :uint, length :uint) :void {
-			assertEquals(start, list[index].start);
-			assertEquals(length, list[index].length);
+		private function verifyElement (list :Vector.<AllocationRecord>, index :uint, realstart :uint, reallength :uint) :void {
+			assertEquals(realstart, list[index].start);
+			assertEquals(reallength, list[index].size);
 		}
 		
 		private function verifyAllocatorState (mem :DomainMemoryManager) :void {
@@ -137,6 +172,22 @@ package tests
 					assertTrue(start < list[i].start);
 					start = list[i].start;
 				}
+			}
+		}
+		
+		public function verifySentinels (mem :DomainMemoryManager) :void {
+			if (mem.debug) {
+				verifyEachSentinel(mem, mem.allocator.usedList, 0xcccccccc, 0xcdcdcdcd);
+				verifyEachSentinel(mem, mem.allocator.freeList, 0x00000000, 0x00000000);
+			}
+		}
+		
+		public function verifyEachSentinel (mem :DomainMemoryManager, list :Vector.<AllocationRecord>, before :uint, after :uint) :void {
+			for each (var rec :AllocationRecord in list) {
+				mem.heap.position = rec.start;
+				assertEquals(before, mem.heap.readUnsignedInt());
+				mem.heap.position = rec.datastart + rec.datasize;
+				assertEquals(after, mem.heap.readUnsignedInt());
 			}
 		}
 	}

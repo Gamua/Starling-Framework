@@ -3,14 +3,20 @@ package starling.utils.malloc
 	/** This class manages allocation of subranges of a managed heap. */
 	public class Allocator
 	{
+		/** If running in debug mode, this sentinel will be added before and after each allocated chunk. */
+		private var mSentinelSize :uint = 0;
+		
+		/** Reference back to the memory manager */
 		private var mMemory :DomainMemoryManager;
 		
 		public var freeList :Vector.<AllocationRecord>;
 		public var usedList :Vector.<AllocationRecord>;
 
-		public function Allocator (memory :DomainMemoryManager)
+		public function Allocator (memory :DomainMemoryManager, sentinelsize :uint)
 		{
 			mMemory = memory;
+			mSentinelSize = sentinelsize;
+			
 			freeList = new <AllocationRecord> [ ];
 			usedList = new <AllocationRecord> [ ];
 			onHeapGrowth();
@@ -25,21 +31,23 @@ package starling.utils.malloc
 		/** Allocates a new element from the free list, taking the first element of sufficient size,
 		 * splitting it if necessary. Current implementation is O(n) in the size of the free list. */
 		public function allocate (size :uint) :AllocationRecord {
+			var realsize :uint = size + 2 * mSentinelSize;
+			
 			for (var i :int = 0, len :int = freeList.length; i < len; i++) {
 				var candidate :AllocationRecord = freeList[i];
 				
-				if (candidate.length == size) {
-					// found one that's exactly right, move it from free list to used list
+				// do we have one that's exactly right? move it from free list to used list.
+				if (candidate.size == realsize) {
 					freeList.splice(i, 1);
 					pushAndSort(usedList, candidate);
 					return candidate;
 				}
 				
-				if (candidate.length > size) {
-					// found a larger one, split it. candidate becomes the 'leftovers' after split
-					var newrecord :AllocationRecord = new AllocationRecord(candidate.start, size);
-					candidate.start += size;
-					candidate.length -= size;
+				// do we have a larger one that can fit this data inside it?
+				// if so, split it. candidate becomes the 'leftovers' after split.
+				if (candidate.size > (realsize + 2 * mSentinelSize)) { // additional 2 * sentinel for the new record
+					var newrecord :AllocationRecord = new AllocationRecord(candidate.start, realsize, mSentinelSize);
+					candidate.setSize(candidate.start + realsize, candidate.size - realsize, mSentinelSize);
 					pushAndSort(usedList, newrecord);
 					return newrecord;
 				}
@@ -54,7 +62,7 @@ package starling.utils.malloc
 		public function free (position :uint) :void {
 			var index :int = findIndex(usedList, position);
 			if (index < 0) {
-				throw new Error("Invalid call to free at position" + position);
+				throw new Error("Invalid call to free at position " + position);
 			}
 			
 			var item :AllocationRecord = usedList[index];
@@ -66,23 +74,36 @@ package starling.utils.malloc
 			attemptMerge(freeList, freeListIndex - 1);
 		}
 		
+		/** Retrieves used node at the specified allocation position, or null if not found */
+		public function findUsedNodeAt (position :uint) :AllocationRecord {
+			var index :int = findIndex(usedList, position);
+			return (index >= 0) ? usedList[index] : null;
+		}
+		
 		/** Takes the last free record (if one exists), and extends it to the new heap length */
 		public function onHeapGrowth () :void {
-			var lastFreeElement :AllocationRecord = (freeList.length == 0) ? null : freeList[freeList.length - 1];
 			
-			if (lastFreeElement != null) {
-				// extend the last free element
-				lastFreeElement.length = mMemory.heap.length - lastFreeElement.start;
+			var lastFreeElement :AllocationRecord = (freeList.length == 0) ? null : freeList[freeList.length - 1];
+			var lastUsedElement :AllocationRecord = (usedList.length == 0) ? null : usedList[usedList.length - 1];
+
+			// can we extend the last free node across the new heap?
+			// (make sure the last free node is actually the last node in the heap)
+			var shouldExtendLastFreeElement :Boolean = 
+				(lastFreeElement != null && 
+				 (lastUsedElement == null || lastFreeElement.nextstart > lastUsedElement.nextstart));
+			
+			if (shouldExtendLastFreeElement) {
+				// extend the last free node
+				lastFreeElement.setSize(lastFreeElement.start, mMemory.heap.length - lastFreeElement.start, mSentinelSize);
 				return; // EARLY RETURN!
 			}
 			
 			// we're going to add a new free node
-			
 			var start :uint, length :uint;
-			if (usedList.length > 0) {
-				// the heap is completely full. this is not likely, but let's deal with it
-				var lastUsedElement :AllocationRecord = usedList[usedList.length - 1];
-				start = lastUsedElement.start + lastUsedElement.length;
+			
+			if (lastUsedElement != null) {
+				// the old heap ended on a used node. this is not likely, but let's deal with it
+				start = lastUsedElement.nextstart;
 				
 			} else {
 				// both used and free lists are empty, we're initializing for the first time
@@ -90,14 +111,14 @@ package starling.utils.malloc
 			}
 
 			length = mMemory.heap.length - start;
-			pushAndSort(freeList, new AllocationRecord(start, length));
+			pushAndSort(freeList, new AllocationRecord(start, length, mSentinelSize));
 		}
 		
 		/** Given a free or used list, and a starting memory range position, returns the array index of the 
 		 * allocation record for that starting position. O(n) in list size. */
 		private function findIndex (list :Vector.<AllocationRecord>, startpos :uint) :uint {
 			for (var i :int = 0, len :int = list.length; i < len; i++) {
-				if (list[i].start == startpos) {
+				if (list[i].datastart == startpos) {
 					return i;
 				}
 			}
@@ -136,9 +157,9 @@ package starling.utils.malloc
 			
 			var first :AllocationRecord = list[index];
 			var second :AllocationRecord = list[index + 1];
-			if ((first.start + first.length) == second.start) {
+			if (first.nextstart == second.start) {
 				// merge these two by getting rid of the second one
-				first.length += second.length;
+				first.setSize(first.start, first.size + second.size, mSentinelSize);
 				list.splice(index + 1, 1);
 			}
 		}
