@@ -72,6 +72,13 @@ package starling.display
             }
         }
         
+		/** @inheritDoc */
+		public override function dispose():void
+		{
+			mVertexDataCache.dispose();
+			super.dispose();
+		}
+
         /** Creates an Image with a texture that is created from a bitmap object. */
         public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true, 
                                           scale:Number=1):Image

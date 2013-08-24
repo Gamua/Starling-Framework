@@ -205,7 +205,7 @@ package starling.events
          *  
          *  <p>On OS X, we get mouse events from outside the stage; on Windows, we do not.
          *  This method enqueues an artificial hover point that is just outside the stage.
-         *  That way, objects listening for HOVERs over them will get notified everywhere.
+         *  That way, objects listening for HOVERs over them will get notified everywhere.</p>
          */
         public function enqueueMouseLeftStage():void
         {

@@ -10,19 +10,19 @@
 
 package tests
 {
-    import flash.geom.Matrix;
-    import flash.geom.Point;
-    import flash.geom.Rectangle;
-    import flash.utils.ByteArray;
-    
-    import flexunit.framework.Assert;
-    
-    import org.flexunit.assertThat;
-    import org.flexunit.asserts.assertEquals;
-    import org.hamcrest.number.closeTo;
-    
-    import starling.utils.Color;
-    import starling.utils.VertexData;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.utils.ByteArray;
+	
+	import flexunit.framework.Assert;
+	
+	import org.flexunit.assertThat;
+	import org.flexunit.asserts.assertEquals;
+	import org.hamcrest.number.closeTo;
+	
+	import starling.utils.Color;
+	import starling.utils.VertexData;
     
     public class VertexDataTest
     {
@@ -115,8 +115,8 @@ package tests
             Assert.assertEquals(1.0, vd.getAlpha(1));
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            var data:ByteArray = vd.rawData;
-            var offset:int = (VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET) * 4;
+            var data:ByteArray = vd.rawData.raw;
+            var offset:int = vd.rawData.calculateRawAddress(0) + (VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET) * 4;
             
             assertEquals(data[offset  ], int(red   * alpha));
             assertEquals(data[offset+1], int(green * alpha));
@@ -199,18 +199,23 @@ package tests
             var vd2:VertexData = new VertexData(2, false);
             vd1.copyTo(vd2);
             
-            Helpers.compareByteArrays(vd1.rawData, vd2.rawData);
+            Helpers.compareByteArrayReferences(vd1.rawData, vd2.rawData);
             assertEquals(vd1.numVertices, vd2.numVertices);
             
             vd1.copyTo(vd2, 2);
             assertEquals(4, vd2.numVertices);
             
-            vd1.rawData.position = 0;
-            vd2.rawData.position = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
-            
-            for (var i:int=0; i<2; ++i)
-                for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j)
-                    assertEquals(vd1.rawData.readUnsignedInt(), vd2.rawData.readUnsignedInt());
+            var vd1pos :uint = 0;
+            var vd2pos :uint = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
+            for (var i:int=0; i<2; ++i) {
+                for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j) {
+					var vd1val :uint = vd1.rawData.readUnsignedInt(vd1pos);
+					var vd2val :uint = vd2.rawData.readUnsignedInt(vd2pos);
+					assertEquals(vd1val, vd2val);
+					vd1pos += 4;
+					vd2pos += 4;
+				}
+			}
         }
         
         [Test]
