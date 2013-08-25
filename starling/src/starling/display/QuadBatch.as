@@ -66,6 +66,9 @@ package starling.display
      */ 
     public class QuadBatch extends DisplayObject
     {
+        /** The maximum number of quads that can be displayed by one QuadBatch. */
+        public static const MAX_NUM_QUADS:int = 8192;
+        
         private static const QUAD_PROGRAM_NAME:String = "QB_q";
         
         private var mNumQuads:int;
@@ -338,7 +341,7 @@ package starling.display
                                       smoothing:String, blendMode:String, numQuads:int=1):Boolean
         {
             if (mNumQuads == 0) return false;
-            else if (mNumQuads + numQuads > 8192) return true; // maximum buffer size
+            else if (mNumQuads + numQuads > MAX_NUM_QUADS) return true; // maximum buffer size
             else if (mTexture == null && texture == null) 
                 return this.blendMode != blendMode;
             else if (mTexture != null && texture != null)
@@ -348,6 +351,13 @@ package starling.display
                        mTinted != (tinted || parentAlpha != 1.0) ||
                        this.blendMode != blendMode;
             else return true;
+        }
+        
+        /** Transforms the vertices of a certain quad by the given matrix. */
+        public function transformQuadAt(index:int, matrix:Matrix):void
+        {
+            mVertexData.transformVertex(index * 4, matrix, 4);
+            mSyncRequired = true;
         }
         
         // display object methods
