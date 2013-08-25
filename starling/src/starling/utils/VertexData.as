@@ -258,9 +258,10 @@ package starling.utils
         public function transformVertex(vertexID:int, matrix:Matrix, numVertices:int=1):void
         {
             var position:int = vertexID * BYTES_PER_VERTEX + POSITION_OFFSET_IN_BYTES;
+            var endPosition:int = position + (numVertices * BYTES_PER_VERTEX);
             var x:Number, y:Number;
             
-            for (var i:int=0; i<numVertices; ++i)
+            while (position < endPosition)
             {
                 mRawData.position = position;
                 x = mRawData.readFloat();
