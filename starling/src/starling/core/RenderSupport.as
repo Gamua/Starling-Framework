@@ -303,7 +303,7 @@ package starling.core
                 
                 // an empty rectangle is not allowed, so we set it to the smallest possible size
                 // if the bounds are outside the visible area.
-                if (sRectangle.width < 1 || sRectangle.height < 1)
+                if (sRectangle.right < 1 || sRectangle.bottom < 1)
                     sRectangle.setTo(0, 0, 1, 1);
                 
                 context.setScissorRectangle(sRectangle);

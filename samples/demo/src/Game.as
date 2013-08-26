@@ -1,5 +1,6 @@
 package 
 {
+    import flash.geom.Rectangle;
     import flash.system.System;
     import flash.ui.Keyboard;
     import flash.utils.getDefinitionByName;
@@ -9,9 +10,12 @@ package
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
+    import starling.display.Quad;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.KeyboardEvent;
+    import starling.events.TouchEvent;
+    import starling.filters.ColorMatrixFilter;
     import starling.textures.Texture;
     import starling.utils.AssetManager;
     
@@ -26,6 +30,7 @@ package
         private var mLoadingProgress:ProgressBar;
         private var mMainMenu:MainMenu;
         private var mCurrentScene:Scene;
+        private var _container:Sprite;
         
         private static var sAssets:AssetManager;
         
@@ -33,9 +38,41 @@ package
         {
             // nothing to do here -- Startup will call "start" immediately.
         }
+                
+        private function addFilterQuad( _x:Number, _y:Number ):void 
+        {
+            var quad:Quad = new Quad( 160, 160, 0xffffff * Math.random() );
+            quad.x = _x;
+            quad.y = _y;
+            quad.filter = new ColorMatrixFilter();
+            
+            _container.addChild(quad);
+            
+            quad.addEventListener(TouchEvent.TOUCH, function (e:TouchEvent):void
+            {
+                quad.y += 5;
+            });
+        }
         
         public function start(background:Texture, assets:AssetManager):void
         {
+            this.x = 100;
+            this.y = 100;
+            
+            _container = new Sprite();
+            addChild(_container);
+            
+            addFilterQuad(0, 0.1);
+//            addFilterQuad(0, 160);
+//            addFilterQuad(0, 320);
+//            addFilterQuad(0, 480.1);
+            
+            _container.clipRect = new Rectangle( 0, 0, 484, 480.2 );
+            
+            
+            
+            return;
+            
             sAssets = assets;
             
             // The background is passed into this method for two reasons:
