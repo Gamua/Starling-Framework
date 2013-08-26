@@ -61,6 +61,8 @@ package starling.events
         public static const ROOT_CREATED:String = "rootCreated";
         /** Event type for an animated object that requests to be removed from the juggler. */
         public static const REMOVE_FROM_JUGGLER:String = "removeFromJuggler";
+        /** Event type that is dispatched by the AssetManager after a context loss. */
+        public static const TEXTURES_RESTORED:String = "texturesRestored";
         
         /** An event type to be utilized in custom events. Not used by Starling right now. */
         public static const CHANGE:String = "change";

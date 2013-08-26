@@ -208,9 +208,15 @@ package starling.textures
                                   Color.getBlue(color)  * alpha);
             
             context.setRenderToTexture(mBase);
-            RenderSupport.clear(color, alpha);
-            context.setRenderToBackBuffer();
             
+            // we wrap the clear call in a try/catch block as a workaround for a problem of
+            // FP 11.8 plugin/projector: calling clear on a compressed texture doesn't work there
+            // (while it *does* work on iOS + Android).
+            
+            try { RenderSupport.clear(color, alpha); }
+            catch (e:Error) {}
+            
+            context.setRenderToBackBuffer();
             mDataUploaded = true;
         }
         

@@ -2,7 +2,6 @@ package starling.utils
 {
     import flash.display.Bitmap;
     import flash.display.Loader;
-    import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
     import flash.media.Sound;
@@ -23,11 +22,16 @@ package starling.utils
     import flash.utils.setTimeout;
     
     import starling.core.Starling;
+    import starling.events.Event;
+    import starling.events.EventDispatcher;
     import starling.text.BitmapFont;
     import starling.text.TextField;
     import starling.textures.AtfData;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
+    
+    /** Dispatched when all textures have been restored after a context loss. */
+    [Event(name="texturesRestored", type="starling.events.Event")]
     
     /** The AssetManager handles loading and accessing a variety of asset types. You can 
      *  add assets directly (via the 'add...' methods) or asynchronously via a queue. This allows
@@ -47,7 +51,7 @@ package starling.utils
      *  <p>For more information on how to add assets from different sources, read the documentation
      *  of the "enqueue()" method.</p>
      */
-    public class AssetManager
+    public class AssetManager extends EventDispatcher
     {
         private const SUPPORTED_EXTENSIONS:Vector.<String> = 
             new <String>["png", "jpg", "jpeg", "gif", "atf", "mp3", "xml", "fnt", "pex", "json"]; 
@@ -56,6 +60,8 @@ package starling.utils
         private var mUseMipMaps:Boolean;
         private var mCheckPolicyFile:Boolean;
         private var mVerbose:Boolean;
+        private var mNumLostTextures:int;
+        private var mRestoredTextures:int;
         
         private var mRawAssets:Array;
         private var mTextures:Dictionary;
@@ -555,12 +561,17 @@ package starling.utils
                     texture = Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor);
                     texture.root.onRestore = function():void
                     {
+                        mNumLostTextures++;
                         loadRawAsset(name, rawAsset, null, function(asset:Object):void
                         {
                             try { texture.root.uploadBitmap(asset as Bitmap); }
                             catch (e:Error) { log("Texture restoration failed: " + e.message); }
                             
                             asset.bitmapData.dispose();
+                            mRestoredTextures++;
+                            
+                            if (mNumLostTextures == mRestoredTextures)
+                                dispatchEventWith(Event.TEXTURES_RESTORED);
                         });
                     };
 
@@ -577,12 +588,17 @@ package starling.utils
                         texture = Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete);
                         texture.root.onRestore = function():void
                         {
+                            mNumLostTextures++;
                             loadRawAsset(name, rawAsset, null, function(asset:Object):void
                             {
                                 try { texture.root.uploadAtfData(asset as ByteArray, 0, true); }
                                 catch (e:Error) { log("Texture restoration failed: " + e.message); }
                                 
                                 asset.clear();
+                                mRestoredTextures++;
+                                
+                                if (mNumLostTextures == mRestoredTextures)
+                                    dispatchEventWith(Event.TEXTURES_RESTORED);
                             });
                         };
                         
@@ -642,7 +658,7 @@ package starling.utils
             
             if (rawAsset is Class)
             {
-                onComplete(new rawAsset());
+                setTimeout(onComplete, 1, new rawAsset());
             }
             else if (rawAsset is String)
             {
@@ -669,7 +685,7 @@ package starling.utils
                     onProgress(event.bytesLoaded / event.bytesTotal);
             }
             
-            function onUrlLoaderComplete(event:Event):void
+            function onUrlLoaderComplete(event:Object):void
             {
                 var bytes:ByteArray = urlLoader.data as ByteArray;
                 var sound:Sound;
@@ -703,7 +719,7 @@ package starling.utils
                 }
             }
             
-            function onLoaderComplete(event:Event):void
+            function onLoaderComplete(event:Object):void
             {
                 urlLoader.data.clear();
                 event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
@@ -762,7 +778,7 @@ package starling.utils
             return false;
         }
         
-        private function getDictionaryKeys(dictionary:Dictionary, prefix:String,
+        private function getDictionaryKeys(dictionary:Dictionary, prefix:String="",
                                            result:Vector.<String>=null):Vector.<String>
         {
             if (result == null) result = new <String>[];
