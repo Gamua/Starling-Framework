@@ -11,7 +11,7 @@
         <!-- The main SWF or HTML file of the application. Required. -->
         <content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
         
-        <!-- The initial aspect ratio ("portrait" or "landscape"). Optional. -->
+        <!-- The initial aspect ratio ("portrait", "landscape", or "any"). Optional. -->
         <aspectRatio>portrait</aspectRatio>
 
         <!-- Whether the app will begin auto-orienting on launch. Optional. Default false -->
