@@ -13,6 +13,7 @@ package tests
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.ByteArray;
     
     import flexunit.framework.Assert;
     
@@ -114,12 +115,12 @@ package tests
             Assert.assertEquals(1.0, vd.getAlpha(1));
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            var data:Vector.<Number> = vd.rawData;
-            var offset:int = VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET;
+            var data:ByteArray = vd.rawData;
+            var offset:int = (VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET) * 4;
             
-            assertThat(data[offset  ], closeTo(red   / 255.0 * alpha, E));
-            assertThat(data[offset+1], closeTo(green / 255.0 * alpha, E));
-            assertThat(data[offset+2], closeTo(blue  / 255.0 * alpha, E));
+            assertEquals(data[offset  ], int(red   * alpha));
+            assertEquals(data[offset+1], int(green * alpha));
+            assertEquals(data[offset+2], int(blue  * alpha));
             
             // changing the pma setting should update contents
             
@@ -135,9 +136,9 @@ package tests
             Assert.assertEquals(rgb, vd.getColor(2));
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            assertThat(data[offset  ], closeTo(red   / 255.0, E));
-            assertThat(data[offset+1], closeTo(green / 255.0, E));
-            assertThat(data[offset+2], closeTo(blue  / 255.0, E));
+            assertEquals(data[offset  ], red);
+            assertEquals(data[offset+1], green);
+            assertEquals(data[offset+2], blue);
         }
         
         [Test]
@@ -198,18 +199,18 @@ package tests
             var vd2:VertexData = new VertexData(2, false);
             vd1.copyTo(vd2);
             
-            Helpers.compareVectors(vd1.rawData, vd2.rawData);
+            Helpers.compareByteArrays(vd1.rawData, vd2.rawData);
             assertEquals(vd1.numVertices, vd2.numVertices);
             
-            vd2.numVertices = 4;
             vd1.copyTo(vd2, 2);
             assertEquals(4, vd2.numVertices);
             
+            vd1.rawData.position = 0;
+            vd2.rawData.position = VertexData.ELEMENTS_PER_VERTEX * 4 * 2;
+            
             for (var i:int=0; i<2; ++i)
                 for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j)
-                    assertEquals(
-                        vd1.rawData[   i  * VertexData.ELEMENTS_PER_VERTEX + j], 
-                        vd2.rawData[(2+i) * VertexData.ELEMENTS_PER_VERTEX + j]);
+                    assertEquals(vd1.rawData.readUnsignedInt(), vd2.rawData.readUnsignedInt());
         }
         
         [Test]
