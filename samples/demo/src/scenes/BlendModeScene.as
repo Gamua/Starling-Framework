@@ -1,14 +1,9 @@
 package scenes
 {
-    import flash.geom.Rectangle;
-    
     import starling.display.BlendMode;
     import starling.display.Button;
     import starling.display.Image;
-    import starling.display.Quad;
-    import starling.display.Sprite;
     import starling.events.Event;
-    import starling.filters.ColorMatrixFilter;
     import starling.text.TextField;
 
     public class BlendModeScene extends Scene
@@ -16,8 +11,6 @@ package scenes
         private var mButton:Button;
         private var mImage:Image;
         private var mInfoText:TextField;
-        
-        private var _container:Sprite;
         
         private var mBlendModes:Array = [
             BlendMode.NORMAL,
