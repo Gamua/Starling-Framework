@@ -1,6 +1,16 @@
 Starling: Changelog
 ===================
 
+version 1.4 RC2 - 2013-08-19
+---------------------------
+- temporarily reverted VertexData class from ByteArray to Vector because of memory issues.
+  ByteArrays will be tackled with Starling 1.5.
+- added Event.TEXTURES_RESTORED, dispatched by AssetManager after context loss
+- added 'transformQuadAt' method to QuadBatch
+- updated build-file to include ASDoc data in starling SWC
+- fixed UTF-8/16/32 recognition in AssetManager
+- fixed that clipping rectangle sometimes did not intersect framebuffer, leading to an error
+
 version 1.4 RC - 2013-08-19
 ---------------------------
 
