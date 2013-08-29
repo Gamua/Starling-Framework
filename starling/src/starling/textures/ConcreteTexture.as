@@ -21,6 +21,7 @@ package starling.textures
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.utils.Color;
@@ -175,16 +176,7 @@ package starling.textures
         
         private function onContextCreated():void
         {
-            var context:Context3D = Starling.context;
-            var isPot:Boolean = mWidth  == getNextPowerOfTwo(mWidth) && 
-                                mHeight == getNextPowerOfTwo(mHeight);
-            
-            if (isPot)
-                mBase = context.createTexture(mWidth, mHeight, mFormat, 
-                                              mOptimizedForRenderTexture);
-            else
-                mBase = context["createRectangleTexture"](mWidth, mHeight, mFormat,
-                                                          mOptimizedForRenderTexture);
+			starling_internal::createBase();
             
             // a chance to upload texture data
             mDataUploaded = false;
@@ -193,6 +185,21 @@ package starling.textures
             // if no texture has been uploaded (yet), we init the texture with transparent pixels.
             if (!mDataUploaded) clear();
         }
+		
+		/** Create TextureBase object. */		
+		starling_internal function createBase():void
+		{
+			var context:Context3D = Starling.context;
+			var isPot:Boolean = mWidth  == getNextPowerOfTwo(mWidth) && 
+				mHeight == getNextPowerOfTwo(mHeight);
+			
+			if (isPot)
+				mBase = context.createTexture(mWidth, mHeight, mFormat, 
+					mOptimizedForRenderTexture);
+			else
+				mBase = context["createRectangleTexture"](mWidth, mHeight, mFormat,
+					mOptimizedForRenderTexture);
+		}
         
         /** Clears the texture with a certain color and alpha value. The previous contents of the
          *  texture is wiped out. Beware: this method resets the render target to the back buffer; 
