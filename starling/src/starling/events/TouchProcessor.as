@@ -155,7 +155,7 @@ package starling.events
             
             // the same touch event will be dispatched to all targets;
             // the 'dispatch' method will make sure each bubble target is visited only once.
-            var touchEvent:TouchEvent = new TouchEvent(TouchEvent.TOUCH, touches, shiftDown, ctrlDown);
+            var touchEvent:TouchEvent = new TouchEvent(TouchEvent.TOUCH, mCurrentTouches, shiftDown, ctrlDown);
             var touch:Touch;
             
             // hit test our updated touches
