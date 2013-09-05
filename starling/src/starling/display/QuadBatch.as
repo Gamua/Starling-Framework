@@ -112,8 +112,20 @@ package starling.display
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            if (mIndexBuffer)  mIndexBuffer.dispose();
+            // Reset vertex and index data
+            mVertexData.numVertices = 0;
+            mIndexData.length = 0;
+            
+            if (mVertexBuffer)
+            {
+                mVertexBuffer.dispose();
+                mVertexBuffer = null;
+            }
+            if (mIndexBuffer) 
+            {
+                mIndexBuffer.dispose();
+                mIndexBuffer = null;
+            }
             
             super.dispose();
         }
@@ -170,8 +182,16 @@ package starling.display
             var numIndices:int = mIndexData.length;
             var context:Context3D = Starling.context;
 
-            if (mVertexBuffer)    mVertexBuffer.dispose();
-            if (mIndexBuffer)     mIndexBuffer.dispose();
+            if (mVertexBuffer)
+            {
+                mVertexBuffer.dispose();
+                mVertexBuffer = null;
+            }
+            if (mIndexBuffer)
+            {
+                mIndexBuffer.dispose();
+                mIndexBuffer = null;
+            }
             if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
             
