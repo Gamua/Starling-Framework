@@ -56,8 +56,8 @@ package starling.core
         private var mClipRectStack:Vector.<Rectangle>;
         private var mClipRectStackSize:int;
         
-        private var mQuadBatches:Vector.<QuadBatch>;
-        private var mCurrentQuadBatchID:int;
+        private var mDisposeQuadBatch:Boolean;
+		private var mQuadBatch:QuadBatch;
         
         /** helper objects */
         private static var sPoint:Point = new Point();
@@ -80,8 +80,7 @@ package starling.core
             mBlendMode = BlendMode.NORMAL;
             mClipRectStack = new <Rectangle>[];
             
-            mCurrentQuadBatchID = 0;
-            mQuadBatches = new <QuadBatch>[new QuadBatch()];
+            mQuadBatch = new QuadBatch();
             
             loadIdentity();
             setOrthographicProjection(0, 0, 400, 300);
@@ -90,8 +89,7 @@ package starling.core
         /** Disposes all quad batches. */
         public function dispose():void
         {
-            for each (var quadBatch:QuadBatch in mQuadBatches)
-                quadBatch.dispose();
+            mQuadBatch.dispose();
         }
         
         // matrix manipulation
@@ -321,14 +319,12 @@ package starling.core
         public function batchQuad(quad:Quad, parentAlpha:Number, 
                                   texture:Texture=null, smoothing:String=null):void
         {
-            if (mQuadBatches[mCurrentQuadBatchID].isStateChange(quad.tinted, parentAlpha, texture, 
-                                                                smoothing, mBlendMode))
+            if (mQuadBatch.isStateChange(quad.tinted, parentAlpha, texture, smoothing, mBlendMode))
             {
                 finishQuadBatch();
             }
             
-            mQuadBatches[mCurrentQuadBatchID].addQuad(quad, parentAlpha, texture, smoothing, 
-                                                      mModelViewMatrix, mBlendMode);
+            mQuadBatch.addQuad(quad, parentAlpha, texture, smoothing, mModelViewMatrix, mBlendMode);
         }
         
         /** Adds a batch of quads to the current batch of unrendered quads. If there is a state 
@@ -339,31 +335,24 @@ package starling.core
          *  expensive than what you save by avoiding the draw call.</p> */
         public function batchQuadBatch(quadBatch:QuadBatch, parentAlpha:Number):void
         {
-            if (mQuadBatches[mCurrentQuadBatchID].isStateChange(
+            if (mQuadBatch.isStateChange(
                 quadBatch.tinted, parentAlpha, quadBatch.texture, quadBatch.smoothing, mBlendMode))
             {
                 finishQuadBatch();
             }
             
-            mQuadBatches[mCurrentQuadBatchID].addQuadBatch(quadBatch, parentAlpha, 
-                                                           mModelViewMatrix, mBlendMode);
+            mQuadBatch.addQuadBatch(quadBatch, parentAlpha, mModelViewMatrix, mBlendMode);
         }
         
         /** Renders the current quad batch and resets it. */
         public function finishQuadBatch():void
         {
-            var currentBatch:QuadBatch = mQuadBatches[mCurrentQuadBatchID];
-            
-            if (currentBatch.numQuads != 0)
+            if (mQuadBatch.numQuads != 0)
             {
-                currentBatch.renderCustom(mProjectionMatrix);
-                currentBatch.reset();
+                mQuadBatch.renderCustom(mProjectionMatrix);
+                mQuadBatch.reset();
                 
-                ++mCurrentQuadBatchID;
                 ++mDrawCount;
-                
-                if (mQuadBatches.length <= mCurrentQuadBatchID)
-                    mQuadBatches.push(new QuadBatch());
             }
         }
         
@@ -371,27 +360,25 @@ package starling.core
         public function nextFrame():void
         {
             resetMatrix();
-            trimQuadBatches();
             
-            mCurrentQuadBatchID = 0;
             mBlendMode = BlendMode.NORMAL;
             mDrawCount = 0;
-        }
-
-        /** Disposes redundant quad batches if the number of allocated batches is more than
-         *  twice the number of used batches. Only executed when there are at least 16 batches. */
-        private function trimQuadBatches():void
-        {
-            var numUsedBatches:int  = mCurrentQuadBatchID + 1;
-            var numTotalBatches:int = mQuadBatches.length;
             
-            if (numTotalBatches >= 16 && numTotalBatches > 2*numUsedBatches)
-            {
-                var numToRemove:int = numTotalBatches - numUsedBatches;
-                for (var i:int=0; i<numToRemove; ++i)
-                    mQuadBatches.pop().dispose();
-            }
+            if(mDisposeQuadBatch)
+			{
+				mQuadBatch.dispose();
+				mDisposeQuadBatch = false;
+			}
         }
+        
+        /** Will dispose the current QuadBatch on the next frame. This is useful to release the memory
+		 * 	of the QuadBatch's index and vertex buffers after they have been accumulating after
+		 * multiple renders. This is very useful when switching in-game scenes to set memory back
+		 * down. */
+		public function disposeQuadBatch():void
+		{
+			mDisposeQuadBatch = true;
+		}
         
         // other helper methods
         
