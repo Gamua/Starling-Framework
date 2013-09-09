@@ -1,15 +1,16 @@
 // =================================================================================================
 //
-//	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//  Starling Framework
+//  Copyright 2011 Gamua OG. All Rights Reserved.
 //
-//	This program is free software. You can redistribute and/or modify it
-//	in accordance with the terms of the accompanying license agreement.
+//  This program is free software. You can redistribute and/or modify it
+//  in accordance with the terms of the accompanying license agreement.
 //
 // =================================================================================================
 
 package starling.events
 {
+    import flash.events.IEventDispatcher;
     import flash.utils.Dictionary;
     
     import starling.core.starling_internal;
@@ -35,7 +36,7 @@ package starling.events
      *  @see Event
      *  @see starling.display.DisplayObject DisplayObject
      */
-    public class EventDispatcher
+    public class EventDispatcher implements IEventDispatcher
     {
         private var mEventListeners:Dictionary;
         
@@ -47,7 +48,7 @@ package starling.events
         {  }
         
         /** Registers an event listener at a certain object. */
-        public function addEventListener(type:String, listener:Function):void
+        public function addEventListener(type:String, listener:Function, notSupported:Boolean = false, notSupported2:int = 0, notSupported3:Boolean = false):void
         {
             if (mEventListeners == null)
                 mEventListeners = new Dictionary();
@@ -60,7 +61,7 @@ package starling.events
         }
         
         /** Removes an event listener from the object. */
-        public function removeEventListener(type:String, listener:Function):void
+        public function removeEventListener(type:String, listener:Function, notSupported:Boolean = false):void
         {
             if (mEventListeners)
             {
@@ -95,30 +96,56 @@ package starling.events
          *  If an event with enabled 'bubble' property is dispatched to a display object, it will 
          *  travel up along the line of parents, until it either hits the root object or someone
          *  stops its propagation manually. */
-        public function dispatchEvent(event:Event):void
+        public function dispatchEvent(event:flash.events.Event):Boolean
         {
+            var starlingEvent:starling.events.Event = event as starling.events.Event;
+            if(!starlingEvent)
+            {
+                throw new ArgumentError("Starling events must be of type starling.events.Event");
+            }
             var bubbles:Boolean = event.bubbles;
             
-            if (!bubbles && (mEventListeners == null || !(event.type in mEventListeners)))
-                return; // no need to do anything
+            if (!bubbles && (mEventListeners == null || !(starlingEvent.type in mEventListeners)))
+                return false; // no need to do anything
             
             // we save the current target and restore it later;
             // this allows users to re-dispatch events without creating a clone.
             
-            var previousTarget:EventDispatcher = event.target;
-            event.setTarget(this);
+            var previousTarget:EventDispatcher = EventDispatcher(starlingEvent.target);
+            starlingEvent.setTarget(this);
             
-            if (bubbles && this is DisplayObject) bubbleEvent(event);
-            else                                  invokeEvent(event);
+            if (bubbles && this is DisplayObject) bubbleEvent(starlingEvent);
+            else                                  invokeEvent(starlingEvent);
             
-            if (previousTarget) event.setTarget(previousTarget);
+            if (previousTarget) starlingEvent.setTarget(previousTarget);
+            return event.isDefaultPrevented();
+        }
+
+        /** Returns if there are listeners registered for a certain event type on this object or
+         *  on any objects that an event of the specified type can bubble to. */
+        public function willTrigger(type:String):Boolean
+        {
+            var element:DisplayObject = this as DisplayObject;
+            if(!element)
+            {
+                return this.hasEventListener(type);
+            }
+            do
+            {
+                if(element.hasEventListener(type))
+                {
+                    return true;
+                }
+            }
+            while ((element = element.parent) != null)
+            return false;
         }
         
         /** @private
          *  Invokes an event on the current object. This method does not do any bubbling, nor
          *  does it back-up and restore the previous target on the event. The 'dispatchEvent' 
          *  method uses this method internally. */
-        internal function invokeEvent(event:Event):Boolean
+        internal function invokeEvent(event:starling.events.Event):Boolean
         {
             var listeners:Vector.<Function> = mEventListeners ?
                 mEventListeners[event.type] as Vector.<Function> : null;
@@ -154,7 +181,7 @@ package starling.events
         }
         
         /** @private */
-        internal function bubbleEvent(event:Event):void
+        internal function bubbleEvent(event:starling.events.Event):void
         {
             // we determine the bubble chain before starting to invoke the listeners.
             // that way, changes done by the listeners won't affect the bubble chain.
@@ -186,7 +213,7 @@ package starling.events
         {
             if (bubbles || hasEventListener(type)) 
             {
-                var event:Event = Event.fromPool(type, bubbles, data);
+                var event:starling.events.Event = Event.fromPool(type, bubbles, data);
                 dispatchEvent(event);
                 Event.toPool(event);
             }

@@ -1,10 +1,10 @@
 // =================================================================================================
 //
-//	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//  Starling Framework
+//  Copyright 2011 Gamua OG. All Rights Reserved.
 //
-//	This program is free software. You can redistribute and/or modify it
-//	in accordance with the terms of the accompanying license agreement.
+//  This program is free software. You can redistribute and/or modify it
+//  in accordance with the terms of the accompanying license agreement.
 //
 // =================================================================================================
 
@@ -54,13 +54,13 @@ package starling.events
         
         /** Cancels the keyboard event's default behavior. This will be forwarded to the native
          *  flash KeyboardEvent. */
-        public function preventDefault():void
+        override public function preventDefault():void
         {
             mIsDefaultPrevented = true;
         }
         
         /** Checks whether the preventDefault() method has been called on the event. */
-        public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
+        override public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
         
         // properties
         
