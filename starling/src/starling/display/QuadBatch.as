@@ -349,11 +349,78 @@ package starling.display
             else return true;
         }
         
+        // utility methods for manual vertex-modification
+        
         /** Transforms the vertices of a certain quad by the given matrix. */
-        public function transformQuadAt(index:int, matrix:Matrix):void
+        public function transformQuad(quadID:int, matrix:Matrix):void
         {
-            mVertexData.transformVertex(index * 4, matrix, 4);
+            mVertexData.transformVertex(quadID * 4, matrix, 4);
             mSyncRequired = true;
+        }
+        
+        /** Returns the color of one vertex of a specific quad. */
+        public function getVertexColor(quadID:int, vertexID:int):uint
+        {
+            return mVertexData.getColor(quadID * 4 + vertexID);
+        }
+        
+        /** Updates the color of one vertex of a specific quad. */
+        public function setVertexColor(quadID:int, vertexID:int, color:uint):void
+        {
+            mVertexData.setColor(quadID * 4 + vertexID, color);
+            mSyncRequired = true;
+        }
+        
+        /** Returns the alpha value of one vertex of a specific quad. */
+        public function getVertexAlpha(quadID:int, vertexID:int):Number
+        {
+            return mVertexData.getAlpha(quadID * 4 + vertexID);
+        }
+        
+        /** Updates the alpha value of one vertex of a specific quad. */
+        public function setVertexAlpha(quadID:int, vertexID:int, alpha:Number):void
+        {
+            mVertexData.setAlpha(quadID * 4 + vertexID, alpha);
+            mSyncRequired = true;
+        }
+        
+        /** Returns the color of the first vertex of a specific quad. */
+        public function getQuadColor(quadID:int):uint
+        {
+            return mVertexData.getColor(quadID * 4);
+        }
+        
+        /** Updates the color of a specific quad. */
+        public function setQuadColor(quadID:int, color:uint):void
+        {
+            for (var i:int=0; i<4; ++i)
+                mVertexData.setColor(quadID * 4 + i, color);
+            
+            mSyncRequired = true;
+        }
+        
+        /** Returns the alpha value of the first vertex of a specific quad. */
+        public function getQuadAlpha(quadID:int):Number
+        {
+            return mVertexData.getAlpha(quadID * 4);
+        }
+        
+        /** Updates the alpha value of a specific quad. */
+        public function setQuadAlpha(quadID:int, alpha:Number):void
+        {
+            for (var i:int=0; i<4; ++i)
+                mVertexData.setAlpha(quadID * 4 + i, alpha);
+            
+            mSyncRequired = true;
+        }
+        
+        /** Calculates the bounds of a specific quad, optionally transformed by a matrix.
+         *  If you pass a 'resultRect', the result will be stored in this rectangle
+         *  instead of creating a new object. */
+        public function getQuadBounds(quadID:int, transformationMatrix:Matrix=null,
+                                      resultRect:Rectangle=null):Rectangle
+        {
+            return mVertexData.getBounds(transformationMatrix, quadID * 4, 4, resultRect);
         }
         
         // display object methods
