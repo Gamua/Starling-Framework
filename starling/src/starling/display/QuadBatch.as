@@ -116,8 +116,11 @@ package starling.display
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            if (mIndexBuffer)  mIndexBuffer.dispose();
+            mVertexData.numVertices = 0;
+            mIndexData.length = 0;
+            
+            if (mVertexBuffer) { mVertexBuffer.dispose(); mVertexBuffer = null; }
+            if (mIndexBuffer)  { mIndexBuffer.dispose();  mIndexBuffer = null; }
             
             super.dispose();
         }
