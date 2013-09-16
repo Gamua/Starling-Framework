@@ -640,6 +640,7 @@ package starling.display
             }
             
             createBuffers();
+            registerPrograms();
         }
         
         // program management
