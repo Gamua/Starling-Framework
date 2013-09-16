@@ -264,6 +264,10 @@ package starling.text
             if (isVerticalAutoSize)
                 sNativeTextField.height = height = Math.ceil(textHeight + 4);
             
+            // avoid invalid texture size
+            if (width  < 1) width  = 1.0;
+            if (height < 1) height = 1.0;
+            
             var xOffset:Number = 0.0;
             if (hAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
             else if (hAlign == HAlign.CENTER) xOffset = (width - textWidth) / 2.0;
