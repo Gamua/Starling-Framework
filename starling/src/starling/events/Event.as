@@ -10,15 +10,14 @@
 
 package starling.events
 {
-    import flash.errors.IllegalOperationError;
-    import flash.events.Event;
-    import flash.events.EventPhase;
-    import flash.utils.getQualifiedClassName;
-    
-    import starling.core.starling_internal;
-    import starling.utils.formatString;
-    
-    use namespace starling_internal;
+	import flash.events.Event;
+	import flash.events.EventPhase;
+	import flash.utils.getQualifiedClassName;
+
+	import starling.core.starling_internal;
+	import starling.utils.formatString;
+
+	use namespace starling_internal;
 
     [Exclude(name="clone",kind="method")]
 
@@ -130,10 +129,10 @@ package starling.events
         /** Indicates if the event has been cancelled. */
         override public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
 
-        /** Not supported. */
+        /** Clones the event instance. */
         override public function clone():flash.events.Event
         {
-            throw new IllegalOperationError("The clone() method is not supported by starling.events.Event");
+			return new starling.events.Event(mType, mBubbles, mData, mCancelable );
         }
         
         /** Returns a description of the event, containing type and bubble information. */
