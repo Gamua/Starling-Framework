@@ -79,10 +79,14 @@ package starling.display
         private var mTexture:Texture;
         private var mSmoothing:String;
         
-        private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
         private var mIndexBuffer:IndexBuffer3D;
+        
+        /** The raw vertex data of the quad. After modifying its contents, call
+         *  'onVertexDataChanged' to upload the changes to the vertex buffers. Don't change the
+         *  size of this object manually; instead, use the 'capacity' property of the QuadBatch. */
+        protected var mVertexData:VertexData;
 
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -112,8 +116,11 @@ package starling.display
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            if (mIndexBuffer)  mIndexBuffer.dispose();
+            mVertexData.numVertices = 0;
+            mIndexData.length = 0;
+            
+            if (mVertexBuffer) { mVertexBuffer.dispose(); mVertexBuffer = null; }
+            if (mIndexBuffer)  { mIndexBuffer.dispose();  mIndexBuffer = null; }
             
             super.dispose();
         }
@@ -122,6 +129,12 @@ package starling.display
         {
             createBuffers();
             registerPrograms();
+        }
+        
+        /** Call this method after manually changing the contents of 'mVertexData'. */
+        protected function onVertexDataChanged():void
+        {
+            mSyncRequired = true;
         }
         
         /** Creates a duplicate of the QuadBatch object. */
@@ -140,28 +153,10 @@ package starling.display
             return clone;
         }
         
-        private function expand(newCapacity:int=-1):void
+        private function expand():void
         {
-            var oldCapacity:int = capacity;
-            
-            if (newCapacity <  0) newCapacity = oldCapacity * 2;
-            if (newCapacity == 0) newCapacity = 16;
-            if (newCapacity <= oldCapacity) return;
-            
-            mVertexData.numVertices = newCapacity * 4;
-            
-            for (var i:int=oldCapacity; i<newCapacity; ++i)
-            {
-                mIndexData[int(i*6  )] = i*4;
-                mIndexData[int(i*6+1)] = i*4 + 1;
-                mIndexData[int(i*6+2)] = i*4 + 2;
-                mIndexData[int(i*6+3)] = i*4 + 1;
-                mIndexData[int(i*6+4)] = i*4 + 3;
-                mIndexData[int(i*6+5)] = i*4 + 2;
-            }
-            
-            createBuffers();
-            registerPrograms();
+            var oldCapacity:int = this.capacity;
+            this.capacity = oldCapacity < 8 ? 16 : oldCapacity * 2;
         }
         
         private function createBuffers():void
@@ -184,11 +179,15 @@ package starling.display
             mSyncRequired = false;
         }
         
-        /** Uploads the raw data of all batched quads to the vertex buffer. */
+        /** Uploads the raw data of all batched quads to the vertex buffer; furthermore,
+         *  registers the required programs if they haven't been registered yet. */
         private function syncBuffers():void
         {
             if (mVertexBuffer == null)
+            {
+                registerPrograms();
                 createBuffers();
+            }
             else
             {
                 // as last parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
@@ -313,7 +312,7 @@ package starling.display
             var vertexID:int = mNumQuads * 4;
             var numQuads:int = quadBatch.numQuads;
             
-            if (mNumQuads + numQuads > capacity) expand(mNumQuads + numQuads);
+            if (mNumQuads + numQuads > capacity) capacity = mNumQuads + numQuads;
             if (mNumQuads == 0) 
             {
                 this.blendMode = blendMode ? blendMode : quadBatch.blendMode;
@@ -353,11 +352,78 @@ package starling.display
             else return true;
         }
         
+        // utility methods for manual vertex-modification
+        
         /** Transforms the vertices of a certain quad by the given matrix. */
-        public function transformQuadAt(index:int, matrix:Matrix):void
+        public function transformQuad(quadID:int, matrix:Matrix):void
         {
-            mVertexData.transformVertex(index * 4, matrix, 4);
+            mVertexData.transformVertex(quadID * 4, matrix, 4);
             mSyncRequired = true;
+        }
+        
+        /** Returns the color of one vertex of a specific quad. */
+        public function getVertexColor(quadID:int, vertexID:int):uint
+        {
+            return mVertexData.getColor(quadID * 4 + vertexID);
+        }
+        
+        /** Updates the color of one vertex of a specific quad. */
+        public function setVertexColor(quadID:int, vertexID:int, color:uint):void
+        {
+            mVertexData.setColor(quadID * 4 + vertexID, color);
+            mSyncRequired = true;
+        }
+        
+        /** Returns the alpha value of one vertex of a specific quad. */
+        public function getVertexAlpha(quadID:int, vertexID:int):Number
+        {
+            return mVertexData.getAlpha(quadID * 4 + vertexID);
+        }
+        
+        /** Updates the alpha value of one vertex of a specific quad. */
+        public function setVertexAlpha(quadID:int, vertexID:int, alpha:Number):void
+        {
+            mVertexData.setAlpha(quadID * 4 + vertexID, alpha);
+            mSyncRequired = true;
+        }
+        
+        /** Returns the color of the first vertex of a specific quad. */
+        public function getQuadColor(quadID:int):uint
+        {
+            return mVertexData.getColor(quadID * 4);
+        }
+        
+        /** Updates the color of a specific quad. */
+        public function setQuadColor(quadID:int, color:uint):void
+        {
+            for (var i:int=0; i<4; ++i)
+                mVertexData.setColor(quadID * 4 + i, color);
+            
+            mSyncRequired = true;
+        }
+        
+        /** Returns the alpha value of the first vertex of a specific quad. */
+        public function getQuadAlpha(quadID:int):Number
+        {
+            return mVertexData.getAlpha(quadID * 4);
+        }
+        
+        /** Updates the alpha value of a specific quad. */
+        public function setQuadAlpha(quadID:int, alpha:Number):void
+        {
+            for (var i:int=0; i<4; ++i)
+                mVertexData.setAlpha(quadID * 4 + i, alpha);
+            
+            mSyncRequired = true;
+        }
+        
+        /** Calculates the bounds of a specific quad, optionally transformed by a matrix.
+         *  If you pass a 'resultRect', the result will be stored in this rectangle
+         *  instead of creating a new object. */
+        public function getQuadBounds(quadID:int, transformationMatrix:Matrix=null,
+                                      resultRect:Rectangle=null):Rectangle
+        {
+            return mVertexData.getBounds(transformationMatrix, quadID * 4, 4, resultRect);
         }
         
         // display object methods
@@ -546,7 +612,36 @@ package starling.display
         public function get batchable():Boolean { return mBatchable; }
         public function set batchable(value:Boolean):void { mBatchable = value; } 
         
-        private function get capacity():int { return mVertexData.numVertices / 4; }
+        /** Indicates the number of quads for which space is allocated (vertex- and index-buffers).
+         *  If you add more quads than what fits into the current capacity, the QuadBatch is
+         *  expanded automatically. However, if you know beforehand how many vertices you need,
+         *  you can manually set the right capacity with this method. */
+        public function get capacity():int { return mVertexData.numVertices / 4; }
+        public function set capacity(value:int):void
+        {
+            var oldCapacity:int = capacity;
+            
+            if (value == oldCapacity) return;
+            else if (value == 0) throw new Error("Capacity must be > 0");
+            else if (value > MAX_NUM_QUADS) value = MAX_NUM_QUADS;
+            if (mNumQuads > value) mNumQuads = value;
+            
+            mVertexData.numVertices = value * 4;
+            mIndexData.length = value * 6;
+            
+            for (var i:int=oldCapacity; i<value; ++i)
+            {
+                mIndexData[int(i*6  )] = i*4;
+                mIndexData[int(i*6+1)] = i*4 + 1;
+                mIndexData[int(i*6+2)] = i*4 + 2;
+                mIndexData[int(i*6+3)] = i*4 + 1;
+                mIndexData[int(i*6+4)] = i*4 + 3;
+                mIndexData[int(i*6+5)] = i*4 + 2;
+            }
+            
+            createBuffers();
+            registerPrograms();
+        }
         
         // program management
         
