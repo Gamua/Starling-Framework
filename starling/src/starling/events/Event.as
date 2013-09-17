@@ -91,9 +91,9 @@ package starling.events
         private var mStopsPropagation:Boolean;
         private var mStopsImmediatePropagation:Boolean;
         private var mData:Object;
-		private var mEventPhase:uint = EventPhase.AT_TARGET;
-		private var mCancelable:Boolean;
-		private var mIsDefaultPrevented:Boolean;
+        private var mEventPhase:uint = EventPhase.AT_TARGET;
+        private var mCancelable:Boolean;
+        private var mIsDefaultPrevented:Boolean;
         
         /** Creates an event object that can be passed to listeners. */
         public function Event(type:String, bubbles:Boolean=false, data:Object=null, cancelable:Boolean=false)
@@ -102,7 +102,7 @@ package starling.events
             mType = type;
             mBubbles = bubbles;
             mData = data;
-			mCancelable = cancelable;
+            mCancelable = cancelable;
         }
         
         /** Prevents listeners at the next bubble stage from receiving the event. */
@@ -117,15 +117,15 @@ package starling.events
             mStopsPropagation = mStopsImmediatePropagation = true;
         }
 
-		/** Prevents the default behavior if the event is cancelable. */
-		override public function preventDefault():void
-		{
-			if (!mCancelable)
-			{
-				return;
-			}
-			mIsDefaultPrevented = true;
-		}
+        /** Prevents the default behavior if the event is cancelable. */
+        override public function preventDefault():void
+        {
+            if (!mCancelable)
+            {
+                return;
+            }
+            mIsDefaultPrevented = true;
+        }
 
         /** Indicates if the event has been cancelled. */
         override public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
@@ -181,8 +181,8 @@ package starling.events
         /** @private */
         internal function get stopsImmediatePropagation():Boolean { return mStopsImmediatePropagation; }
 
-		/** @private */
-		internal function setEventPhase(value:uint):void { mEventPhase = value; }
+        /** @private */
+        internal function setEventPhase(value:uint):void { mEventPhase = value; }
         
         // event pooling
         
@@ -207,11 +207,11 @@ package starling.events
             mType = type;
             mBubbles = bubbles;
             mData = data;
-			mCancelable = cancelable;
+            mCancelable = cancelable;
             mTarget = mCurrentTarget = null;
             mStopsPropagation = mStopsImmediatePropagation = false;
-			mEventPhase = EventPhase.AT_TARGET;
-			mIsDefaultPrevented = false;
+            mEventPhase = EventPhase.AT_TARGET;
+            mIsDefaultPrevented = false;
             return this;
         }
     }

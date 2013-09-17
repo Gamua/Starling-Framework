@@ -10,8 +10,8 @@
 
 package starling.events
 {
-	import flash.events.EventPhase;
-	import flash.events.IEventDispatcher;
+    import flash.events.EventPhase;
+    import flash.events.IEventDispatcher;
     import flash.utils.Dictionary;
     
     import starling.core.starling_internal;
@@ -117,10 +117,10 @@ package starling.events
             
             if (bubbles && this is DisplayObject) bubbleEvent(starlingEvent);
             else
-			{
-				starlingEvent.setEventPhase(EventPhase.AT_TARGET);
-				invokeEvent(starlingEvent);
-			}
+            {
+                starlingEvent.setEventPhase(EventPhase.AT_TARGET);
+                invokeEvent(starlingEvent);
+            }
             
             if (previousTarget) starlingEvent.setTarget(previousTarget);
             return event.isDefaultPrevented();
@@ -195,27 +195,27 @@ package starling.events
             var element:DisplayObject = this as DisplayObject;
             var length:int = 0;
 
-			event.setEventPhase(EventPhase.AT_TARGET);
-			var stopPropagation:Boolean = element.invokeEvent(event);
-			if (stopPropagation)
-			{
-				return;
-			}
-			if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); }
-			else chain = new <EventDispatcher>[];
+            event.setEventPhase(EventPhase.AT_TARGET);
+            var stopPropagation:Boolean = element.invokeEvent(event);
+            if (stopPropagation)
+            {
+                return;
+            }
+            if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); }
+            else chain = new <EventDispatcher>[];
 
-			while ((element = element.parent) != null)
-				chain[int(length++)] = element;
+            while ((element = element.parent) != null)
+                chain[int(length++)] = element;
 
-			event.setEventPhase(EventPhase.BUBBLING_PHASE);
-			for (var i:int=0; i<length; ++i)
-			{
-				stopPropagation = chain[i].invokeEvent(event);
-				if (stopPropagation) break;
-			}
+            event.setEventPhase(EventPhase.BUBBLING_PHASE);
+            for (var i:int=0; i<length; ++i)
+            {
+                stopPropagation = chain[i].invokeEvent(event);
+                if (stopPropagation) break;
+            }
 
-			chain.length = 0;
-			sBubbleChains.push(chain);
+            chain.length = 0;
+            sBubbleChains.push(chain);
         }
         
         /** Dispatches an event with the given parameters to all objects that have registered 
@@ -228,9 +228,9 @@ package starling.events
                 var event:starling.events.Event = Event.fromPool(type, bubbles, data, cancelable);
                 var result:Boolean = dispatchEvent(event);
                 Event.toPool(event);
-				return result;
+                return result;
             }
-			return false;
+            return false;
         }
         
         /** Returns if there are listeners registered for a certain event type. */
