@@ -24,7 +24,6 @@ package starling.events
     [Exclude(name="isDefaultPrevented",kind="method")]
     [Exclude(name="preventDefault",kind="method")]
     [Exclude(name="cancelable",kind="property")]
-    [Exclude(name="eventPhase",kind="property")]
 
     /** Event objects are passed as parameters to event listeners when an event occurs.  
      *  This is Starling's version of the Flash Event class. 
@@ -95,6 +94,7 @@ package starling.events
         private var mStopsPropagation:Boolean;
         private var mStopsImmediatePropagation:Boolean;
         private var mData:Object;
+		private var mEventPhase:uint = EventPhase.AT_TARGET;
         
         /** Creates an event object that can be passed to listeners. */
         public function Event(type:String, bubbles:Boolean=false, data:Object=null)
@@ -142,8 +142,8 @@ package starling.events
         /** Not supported. */
         override public function get cancelable():Boolean { return false; }
 
-        /** Not supported. */
-        override public function get eventPhase():uint { return EventPhase.AT_TARGET; }
+        /** Indicates if the event is being dispatched by its target or if the event is bubbling. */
+        override public function get eventPhase():uint { return mEventPhase; }
         
         /** The object that dispatched the event. */
         override public function get target():Object { return mTarget; }
@@ -173,6 +173,9 @@ package starling.events
         
         /** @private */
         internal function get stopsImmediatePropagation():Boolean { return mStopsImmediatePropagation; }
+
+		/** @private */
+		internal function setEventPhase(value:uint):void { mEventPhase = value; }
         
         // event pooling
         
@@ -199,6 +202,7 @@ package starling.events
             mData = data;
             mTarget = mCurrentTarget = null;
             mStopsPropagation = mStopsImmediatePropagation = false;
+			mEventPhase = EventPhase.AT_TARGET;
             return this;
         }
     }

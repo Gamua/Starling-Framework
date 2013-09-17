@@ -10,7 +10,8 @@
 
 package starling.events
 {
-    import flash.events.IEventDispatcher;
+	import flash.events.EventPhase;
+	import flash.events.IEventDispatcher;
     import flash.utils.Dictionary;
     
     import starling.core.starling_internal;
@@ -189,18 +190,24 @@ package starling.events
             var chain:Vector.<EventDispatcher>;
             var element:DisplayObject = this as DisplayObject;
             var length:int = 1;
-            
-            if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); chain[0] = element; }
-            else chain = new <EventDispatcher>[element];
-            
-            while ((element = element.parent) != null)
-                chain[int(length++)] = element;
 
-            for (var i:int=0; i<length; ++i)
-            {
-                var stopPropagation:Boolean = chain[i].invokeEvent(event);
-                if (stopPropagation) break;
-            }
+			event.setEventPhase(EventPhase.AT_TARGET);
+			var stopPropagation:Boolean = element.invokeEvent(event);
+			if (!stopPropagation)
+			{
+				if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); }
+				else chain = new <EventDispatcher>[];
+
+				while ((element = element.parent) != null)
+					chain[int(length++)] = element;
+
+				event.setEventPhase(EventPhase.BUBBLING_PHASE);
+				for (var i:int=0; i<length; ++i)
+				{
+					stopPropagation = chain[i].invokeEvent(event);
+					if (stopPropagation) break;
+				}
+			}
             
             chain.length = 0;
             sBubbleChains.push(chain);
