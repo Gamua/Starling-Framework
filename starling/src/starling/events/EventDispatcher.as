@@ -209,14 +209,16 @@ package starling.events
         /** Dispatches an event with the given parameters to all objects that have registered 
          *  listeners for the given type. The method uses an internal pool of event objects to 
          *  avoid allocations. */
-        public function dispatchEventWith(type:String, bubbles:Boolean=false, data:Object=null):void
+        public function dispatchEventWith(type:String, bubbles:Boolean=false, data:Object=null):Boolean
         {
             if (bubbles || hasEventListener(type)) 
             {
                 var event:starling.events.Event = Event.fromPool(type, bubbles, data);
-                dispatchEvent(event);
+                var result:Boolean = dispatchEvent(event);
                 Event.toPool(event);
+				return result;
             }
+			return false;
         }
         
         /** Returns if there are listeners registered for a certain event type. */
