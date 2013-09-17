@@ -10,14 +10,14 @@
 
 package starling.events
 {
-	import flash.events.Event;
-	import flash.events.EventPhase;
-	import flash.utils.getQualifiedClassName;
+    import flash.events.Event;
+    import flash.events.EventPhase;
+    import flash.utils.getQualifiedClassName;
 
-	import starling.core.starling_internal;
-	import starling.utils.formatString;
+    import starling.core.starling_internal;
+    import starling.utils.formatString;
 
-	use namespace starling_internal;
+    use namespace starling_internal;
 
     [Exclude(name="clone",kind="method")]
 
@@ -132,7 +132,7 @@ package starling.events
         /** Clones the event instance. */
         override public function clone():flash.events.Event
         {
-			return new starling.events.Event(mType, mBubbles, mData, mCancelable );
+            return new starling.events.Event(mType, mBubbles, mData, mCancelable );
         }
         
         /** Returns a description of the event, containing type and bubble information. */
