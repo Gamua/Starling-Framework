@@ -21,9 +21,6 @@ package starling.events
     use namespace starling_internal;
 
     [Exclude(name="clone",kind="method")]
-    [Exclude(name="isDefaultPrevented",kind="method")]
-    [Exclude(name="preventDefault",kind="method")]
-    [Exclude(name="cancelable",kind="property")]
 
     /** Event objects are passed as parameters to event listeners when an event occurs.  
      *  This is Starling's version of the Flash Event class. 
@@ -95,14 +92,17 @@ package starling.events
         private var mStopsImmediatePropagation:Boolean;
         private var mData:Object;
 		private var mEventPhase:uint = EventPhase.AT_TARGET;
+		private var mCancelable:Boolean;
+		private var mIsDefaultPrevented:Boolean;
         
         /** Creates an event object that can be passed to listeners. */
-        public function Event(type:String, bubbles:Boolean=false, data:Object=null)
+        public function Event(type:String, bubbles:Boolean=false, data:Object=null, cancelable:Boolean=false)
         {
             super(type, bubbles, false);
             mType = type;
             mBubbles = bubbles;
             mData = data;
+			mCancelable = cancelable;
         }
         
         /** Prevents listeners at the next bubble stage from receiving the event. */
@@ -117,11 +117,18 @@ package starling.events
             mStopsPropagation = mStopsImmediatePropagation = true;
         }
 
-        /** Not supported. */
-        override public function isDefaultPrevented():Boolean
-        {
-            return false;
-        }
+		/** Prevents the default behavior if the event is cancelable. */
+		override public function preventDefault():void
+		{
+			if (!mCancelable)
+			{
+				return;
+			}
+			mIsDefaultPrevented = true;
+		}
+
+        /** Indicates if the event has been cancelled. */
+        override public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
 
         /** Not supported. */
         override public function clone():flash.events.Event
@@ -139,8 +146,8 @@ package starling.events
         /** Indicates if event will bubble. */
         override public function get bubbles():Boolean { return mBubbles; }
 
-        /** Not supported. */
-        override public function get cancelable():Boolean { return false; }
+        /** Indicates if the event may be canceled. */
+        override public function get cancelable():Boolean { return mCancelable; }
 
         /** Indicates if the event is being dispatched by its target or if the event is bubbling. */
         override public function get eventPhase():uint { return mEventPhase; }
@@ -180,10 +187,10 @@ package starling.events
         // event pooling
         
         /** @private */
-        starling_internal static function fromPool(type:String, bubbles:Boolean=false, data:Object=null):starling.events.Event
+        starling_internal static function fromPool(type:String, bubbles:Boolean=false, data:Object=null, cancelable:Boolean=false):starling.events.Event
         {
             if (!sEventPool) sEventPool = new <starling.events.Event>[];
-            if (sEventPool.length) return sEventPool.pop().reset(type, bubbles, data);
+            if (sEventPool.length) return sEventPool.pop().reset(type, bubbles, data, cancelable);
             else return new starling.events.Event(type, bubbles, data);
         }
         
@@ -195,14 +202,16 @@ package starling.events
         }
         
         /** @private */
-        starling_internal function reset(type:String, bubbles:Boolean=false, data:Object=null):starling.events.Event
+        starling_internal function reset(type:String, bubbles:Boolean=false, data:Object=null, cancelable:Boolean=false):starling.events.Event
         {
             mType = type;
             mBubbles = bubbles;
             mData = data;
+			mCancelable = cancelable;
             mTarget = mCurrentTarget = null;
             mStopsPropagation = mStopsImmediatePropagation = false;
 			mEventPhase = EventPhase.AT_TARGET;
+			mIsDefaultPrevented = false;
             return this;
         }
     }

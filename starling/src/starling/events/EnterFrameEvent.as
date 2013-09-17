@@ -25,7 +25,7 @@ package starling.events
         /** Creates an enter frame event with the passed time. */
         public function EnterFrameEvent(type:String, passedTime:Number, bubbles:Boolean=false)
         {
-            super(type, bubbles, passedTime);
+            super(type, bubbles, passedTime, false);
         }
         
         /** The time that has passed since the last frame (in seconds). */

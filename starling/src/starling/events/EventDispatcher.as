@@ -116,7 +116,11 @@ package starling.events
             starlingEvent.setTarget(this);
             
             if (bubbles && this is DisplayObject) bubbleEvent(starlingEvent);
-            else                                  invokeEvent(starlingEvent);
+            else
+			{
+				starlingEvent.setEventPhase(EventPhase.AT_TARGET);
+				invokeEvent(starlingEvent);
+			}
             
             if (previousTarget) starlingEvent.setTarget(previousTarget);
             return event.isDefaultPrevented();
@@ -189,38 +193,39 @@ package starling.events
             
             var chain:Vector.<EventDispatcher>;
             var element:DisplayObject = this as DisplayObject;
-            var length:int = 1;
+            var length:int = 0;
 
 			event.setEventPhase(EventPhase.AT_TARGET);
 			var stopPropagation:Boolean = element.invokeEvent(event);
-			if (!stopPropagation)
+			if (stopPropagation)
 			{
-				if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); }
-				else chain = new <EventDispatcher>[];
-
-				while ((element = element.parent) != null)
-					chain[int(length++)] = element;
-
-				event.setEventPhase(EventPhase.BUBBLING_PHASE);
-				for (var i:int=0; i<length; ++i)
-				{
-					stopPropagation = chain[i].invokeEvent(event);
-					if (stopPropagation) break;
-				}
+				return;
 			}
-            
-            chain.length = 0;
-            sBubbleChains.push(chain);
+			if (sBubbleChains.length > 0) { chain = sBubbleChains.pop(); }
+			else chain = new <EventDispatcher>[];
+
+			while ((element = element.parent) != null)
+				chain[int(length++)] = element;
+
+			event.setEventPhase(EventPhase.BUBBLING_PHASE);
+			for (var i:int=0; i<length; ++i)
+			{
+				stopPropagation = chain[i].invokeEvent(event);
+				if (stopPropagation) break;
+			}
+
+			chain.length = 0;
+			sBubbleChains.push(chain);
         }
         
         /** Dispatches an event with the given parameters to all objects that have registered 
          *  listeners for the given type. The method uses an internal pool of event objects to 
          *  avoid allocations. */
-        public function dispatchEventWith(type:String, bubbles:Boolean=false, data:Object=null):Boolean
+        public function dispatchEventWith(type:String, bubbles:Boolean=false, data:Object=null, cancelable:Boolean=false):Boolean
         {
             if (bubbles || hasEventListener(type)) 
             {
-                var event:starling.events.Event = Event.fromPool(type, bubbles, data);
+                var event:starling.events.Event = Event.fromPool(type, bubbles, data, cancelable);
                 var result:Boolean = dispatchEvent(event);
                 Event.toPool(event);
 				return result;

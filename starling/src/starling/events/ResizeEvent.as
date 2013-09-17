@@ -32,7 +32,7 @@ package starling.events
         /** Creates a new ResizeEvent. */
         public function ResizeEvent(type:String, width:int, height:int, bubbles:Boolean=false)
         {
-        	super(type, bubbles, new Point(width, height));
+        	super(type, bubbles, new Point(width, height), false);
         }
         
         /** The updated width of the player. */

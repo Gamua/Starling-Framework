@@ -70,7 +70,7 @@ package starling.events
         public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
         {
-            super(type, bubbles, touches);
+            super(type, bubbles, touches, false);
             
             mShiftKey = shiftKey;
             mCtrlKey = ctrlKey;
