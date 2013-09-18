@@ -546,7 +546,7 @@ package starling.core
         {
             if (!Starling.handleLostContext && mContext)
             {
-                stop(true);
+                stop();
                 event.stopImmediatePropagation();
                 showFatalError("Fatal error: The application lost the device context!");
                 trace("[Starling] The device context was lost. " + 
