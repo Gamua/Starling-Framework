@@ -119,7 +119,7 @@ package
                 flash.events.Event.ACTIVATE, function (e:*):void { mStarling.start(); });
             
             NativeApplication.nativeApplication.addEventListener(
-                flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(); });
+                flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(true); });
         }
     }
 }
