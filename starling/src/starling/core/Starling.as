@@ -165,7 +165,6 @@ package starling.core
         private var mRootClass:Class;
         private var mRoot:DisplayObject;
         private var mJuggler:Juggler;
-        private var mStarted:Boolean;        
         private var mSupport:RenderSupport;
         private var mTouchProcessor:TouchProcessor;
         private var mAntiAliasing:int;
@@ -178,6 +177,8 @@ package starling.core
         private var mProfile:String;
         private var mSupportHighResolutions:Boolean;
         private var mContext:Context3D;
+        private var mStarted:Boolean;
+        private var mRendering:Boolean;
         
         private var mViewPort:Rectangle;
         private var mPreviousViewPort:Rectangle;
@@ -508,16 +509,23 @@ package starling.core
          *  call that method manually.) */
         public function start():void 
         { 
-            mStarted = true; 
+            mStarted = mRendering = true;
             mLastFrameTimestamp = getTimer() / 1000.0;
         }
         
-        /** Stops all logic processing and freezes the game in its current state. The content
-         *  is still being rendered once per frame, though, because otherwise the conventional
-         *  display list would no longer be updated. */
-        public function stop():void 
+        /** Stops all logic and input processing, effectively freezing the app in its current state.
+         *  Per default, rendering will continue: that's because the classic display list
+         *  is only updated when stage3D is. (If Starling stopped rendering, conventional Flash
+         *  contents would freeze, as well.)
+         *  
+         *  <p>However, if you don't need classic Flash contents, you can stop rendering, too.
+         *  On some mobile systems (e.g. iOS), you are even required to do so if you have
+         *  activated background code execution.</p>
+         */
+        public function stop(suspendRendering:Boolean=false):void
         { 
-            mStarted = false; 
+            mStarted = false;
+            mRendering = !suspendRendering;
         }
         
         // event handlers
@@ -558,7 +566,7 @@ package starling.core
             if (!mShareContext)
             {
                 if (mStarted) nextFrame();
-                else          render();
+                else if (mRendering) render();
             }
         }
         
