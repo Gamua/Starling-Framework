@@ -289,7 +289,7 @@ package starling.core
          *  event listeners. */
         public function dispose():void
         {
-            stop();
+            stop(true);
             
             mNativeStage.removeEventListener(Event.ENTER_FRAME, onEnterFrame, false);
             mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
@@ -546,7 +546,7 @@ package starling.core
         {
             if (!Starling.handleLostContext && mContext)
             {
-                stop();
+                stop(true);
                 event.stopImmediatePropagation();
                 showFatalError("Fatal error: The application lost the device context!");
                 trace("[Starling] The device context was lost. " + 
