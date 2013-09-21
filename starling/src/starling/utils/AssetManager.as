@@ -60,6 +60,7 @@ package starling.utils
         private var mUseMipMaps:Boolean;
         private var mCheckPolicyFile:Boolean;
         private var mVerbose:Boolean;
+        private var mAbortLoading:Boolean;
         private var mNumLostTextures:int;
         private var mRestoredTextures:int;
         
@@ -78,10 +79,9 @@ package starling.utils
          *  how enqueued bitmaps will be converted to textures. */
         public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
-            mVerbose = false;
+            mVerbose = mCheckPolicyFile = mAbortLoading = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
-            mCheckPolicyFile = false;
             mRawAssets = [];
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
@@ -343,18 +343,25 @@ package starling.utils
             delete mByteArrays[name];
         }
         
-        /** Removes assets of all types and empties the queue. */
+        /** Empties the queue and aborts any pending load operations. */
+        public function purgeQueue():void
+        {
+            mAbortLoading = true;
+            mRawAssets.length = 0;
+        }
+        
+        /** Removes assets of all types, empties the queue and aborts any pending load operations.*/
         public function purge():void
         {
             log("Purging all assets, emptying queue");
+            purgeQueue();
             
             for each (var texture:Texture in mTextures)
                 texture.dispose();
             
             for each (var atlas:TextureAtlas in mAtlases)
                 atlas.dispose();
-            
-            mRawAssets.length = 0;
+
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
             mSounds = new Dictionary();
@@ -474,10 +481,14 @@ package starling.utils
             var currentRatio:Number = 0.0;
             var timeoutID:uint;
             
+            mAbortLoading = false;
             resume();
             
             function resume():void
             {
+                if (mAbortLoading)
+                    return;
+                
                 currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
                 
                 if (mRawAssets.length)
@@ -551,7 +562,11 @@ package starling.utils
                 var texture:Texture;
                 var bytes:ByteArray;
                 
-                if (asset is Sound)
+                if (mAbortLoading)
+                {
+                    onComplete();
+                }
+                else if (asset is Sound)
                 {
                     addSound(name, asset as Sound);
                     onComplete();
