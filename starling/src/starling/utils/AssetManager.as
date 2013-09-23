@@ -64,9 +64,6 @@ package starling.utils
      */
     public class AssetManager extends EventDispatcher
     {
-        private const KNOWN_EXTENSIONS:Vector.<String> = 
-            new <String>["png", "jpg", "jpeg", "gif", "atf", "mp3", "xml", "fnt", "pex", "json"]; 
-        
         private var mScaleFactor:Number;
         private var mUseMipMaps:Boolean;
         private var mCheckPolicyFile:Boolean;
@@ -443,10 +440,7 @@ package starling.utils
                         else
                         {
                             var extension:String = rawAsset["extension"].toLowerCase();
-                            if (KNOWN_EXTENSIONS.indexOf(extension) != -1)
-                                enqueueWithName(rawAsset["url"]);
-                            else
-                                log("Ignoring unsupported file '" + rawAsset["name"] + "'");
+                            enqueueWithName(rawAsset["url"]);
                         }
                     }
                 }
@@ -722,25 +716,24 @@ package starling.utils
                 
                 switch (extension)
                 {
-                    case "atf":
-                    case "fnt":
-                    case "json":
-                    case "pex":
-                    case "xml":
-                        onComplete(bytes);
-                        break;
                     case "mp3":
                         sound = new Sound();
                         sound.loadCompressedDataFromByteArray(bytes, bytes.length);
                         bytes.clear();
                         onComplete(sound);
                         break;
-                    default:
+                    case "jpg":
+                    case "jpeg":
+                    case "png":
+                    case "gif":
                         var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
                         var loader:Loader = new Loader();
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
                         loader.loadBytes(bytes, loaderContext);
+                        break;
+                    default: // any XML / JSON / binary data 
+                        onComplete(bytes);
                         break;
                 }
             }
