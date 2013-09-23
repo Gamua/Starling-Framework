@@ -43,17 +43,28 @@ package starling.utils
      *    <li>Textures, either from Bitmaps or ATF data</li>
      *    <li>Texture atlases</li>
      *    <li>Bitmap Fonts</li>
+     *    <li>Sounds</li>
      *    <li>XML data</li>
      *    <li>JSON data</li>
+     *    <li>ByteArrays</li>
      *  </ul>
      *  </p>
      *  
      *  <p>For more information on how to add assets from different sources, read the documentation
      *  of the "enqueue()" method.</p>
+     * 
+     *  <strong>Context Loss</strong>
+     *  
+     *  <p>When the stage3D context is lost (and you have enabled 'Starling.handleLostContext'),
+     *  the AssetManager will automatically restore all loaded textures. To save memory, it will
+     *  get them from their original sources. Since this is done asynchronously, your images might
+     *  not reappear all at once, but during a timeframe of several seconds. If you want, you can
+     *  pause your game during that time; the AssetManager dispatches an "Event.TEXTURES_RESTORED"
+     *  event when all textures have been restored.</p>
      */
     public class AssetManager extends EventDispatcher
     {
-        private const SUPPORTED_EXTENSIONS:Vector.<String> = 
+        private const KNOWN_EXTENSIONS:Vector.<String> = 
             new <String>["png", "jpg", "jpeg", "gif", "atf", "mp3", "xml", "fnt", "pex", "json"]; 
         
         private var mScaleFactor:Number;
@@ -432,7 +443,7 @@ package starling.utils
                         else
                         {
                             var extension:String = rawAsset["extension"].toLowerCase();
-                            if (SUPPORTED_EXTENSIONS.indexOf(extension) != -1)
+                            if (KNOWN_EXTENSIONS.indexOf(extension) != -1)
                                 enqueueWithName(rawAsset["url"]);
                             else
                                 log("Ignoring unsupported file '" + rawAsset["name"] + "'");
