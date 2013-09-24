@@ -385,10 +385,12 @@ package starling.utils
          *  
          *  <ul>
          *    <li>Strings containing an URL to a local or remote resource. Supported types:
-         *        <code>png, jpg, gif, atf, mp3, xml, fnt, pex, json</code>.</li>
+         *        <code>png, jpg, gif, atf, mp3, xml, fnt, json, binary</code>.</li>
          *    <li>Instances of the File class (AIR only) pointing to a directory or a file.
          *        Directories will be scanned recursively for all supported types.</li>
          *    <li>Classes that contain <code>static</code> embedded assets.</li>
+         *    <li>If the file extension is not recognized, the data is analyzed to see if
+         *        contains XML or JSON data. If it's neither, it is stored as ByteArray.</li>
          *  </ul>
          *  
          *  <p>Suitable object names are extracted automatically: A file named "image.png" will be
@@ -402,7 +404,7 @@ package starling.utils
          *  "getTexture()" method. All other XMLs are available via "getXml()".</p>
          *  
          *  <p>If you pass in JSON data, it will be parsed into an object and will be available via
-         *  "getObject()".</p>   
+         *  "getObject()".</p>
          */
         public function enqueue(...rawAssets):void
         {
@@ -438,10 +440,7 @@ package starling.utils
                         if (rawAsset["isDirectory"])
                             enqueue.apply(this, rawAsset["getDirectoryListing"]());
                         else
-                        {
-                            var extension:String = rawAsset["extension"].toLowerCase();
                             enqueueWithName(rawAsset["url"]);
-                        }
                     }
                 }
                 else if (rawAsset is String)
