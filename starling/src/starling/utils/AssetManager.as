@@ -835,7 +835,7 @@ package starling.utils
         protected function get queue():Array { return mQueue; }
         
         /** Returns the number of raw assets that have been enqueued, but not yet loaded. */
-        public function get queueLength():int { return mQueue.length; }
+        public function get numQueuedAssets():int { return mQueue.length; }
         
         /** When activated, the class will trace information about added/enqueued assets. */
         public function get verbose():Boolean { return mVerbose; }
