@@ -61,7 +61,9 @@ package starling.core
         
         /** helper objects */
         private static var sPoint:Point = new Point();
-        private static var sRectangle:Rectangle = new Rectangle();
+        private static var sClipRect:Rectangle = new Rectangle();
+        private static var sBufferRect:Rectangle = new Rectangle();
+        private static var sScissorRect:Rectangle = new Rectangle();
         private static var sAssembler:AGALMiniAssembler = new AGALMiniAssembler();
         
         // construction
@@ -279,7 +281,6 @@ package starling.core
             {
                 var width:int, height:int;
                 var rect:Rectangle = mClipRectStack[mClipRectStackSize-1];
-                sRectangle.setTo(rect.x, rect.y, rect.width, rect.height);
                 
                 if (mRenderTarget)
                 {
@@ -294,19 +295,21 @@ package starling.core
                 
                 // convert to pixel coordinates (matrix transformation ends up in range [-1, 1])
                 MatrixUtil.transformCoords(mProjectionMatrix, rect.x, rect.y, sPoint);
-                sRectangle.x = sPoint.x > -1 ? (( sPoint.x + 1) / 2) * width  : 0.0;
-                sRectangle.y = sPoint.y > -1 ? ((-sPoint.y + 1) / 2) * height : 0.0;
+                sClipRect.x = (sPoint.x * 0.5 + 0.5) * width;
+                sClipRect.y = (0.5 - sPoint.y * 0.5) * height;
                 
                 MatrixUtil.transformCoords(mProjectionMatrix, rect.right, rect.bottom, sPoint);
-                sRectangle.right  = sPoint.x < 1 ? (( sPoint.x + 1) / 2) * width  : width;
-                sRectangle.bottom = sPoint.y < 1 ? ((-sPoint.y + 1) / 2) * height : height;
+                sClipRect.right  = (sPoint.x * 0.5 + 0.5) * width;
+                sClipRect.bottom = (0.5 - sPoint.y * 0.5) * height;
+                
+                sBufferRect.setTo(0, 0, width, height);
+                RectangleUtil.intersect(sClipRect, sBufferRect, sScissorRect);
                 
                 // an empty rectangle is not allowed, so we set it to the smallest possible size
-                // if the bounds are outside the visible area.
-                if (sRectangle.right < 1 || sRectangle.bottom < 1)
-                    sRectangle.setTo(0, 0, 1, 1);
+                if (sScissorRect.width < 1 || sScissorRect.height < 1)
+                    sScissorRect.setTo(0, 0, 1, 1);
                 
-                context.setScissorRectangle(sRectangle);
+                context.setScissorRectangle(sScissorRect);
             }
             else
             {
