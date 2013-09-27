@@ -70,7 +70,7 @@ package starling.utils
         private var mVerbose:Boolean;
         private var mAbortLoading:Boolean;
         private var mNumLostTextures:int;
-        private var mRestoredTextures:int;
+        private var mNumRestoredTextures:int;
         
         private var mQueue:Array;
         private var mTextures:Dictionary;
@@ -587,9 +587,9 @@ package starling.utils
                             catch (e:Error) { log("Texture restoration failed: " + e.message); }
                             
                             asset.bitmapData.dispose();
-                            mRestoredTextures++;
+                            mNumRestoredTextures++;
                             
-                            if (mNumLostTextures == mRestoredTextures)
+                            if (mNumLostTextures == mNumRestoredTextures)
                                 dispatchEventWith(Event.TEXTURES_RESTORED);
                         });
                     };
@@ -614,9 +614,9 @@ package starling.utils
                                 catch (e:Error) { log("Texture restoration failed: " + e.message); }
                                 
                                 asset.clear();
-                                mRestoredTextures++;
+                                mNumRestoredTextures++;
                                 
-                                if (mNumLostTextures == mRestoredTextures)
+                                if (mNumLostTextures == mNumRestoredTextures)
                                     dispatchEventWith(Event.TEXTURES_RESTORED);
                             });
                         };
