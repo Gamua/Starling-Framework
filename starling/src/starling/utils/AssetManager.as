@@ -72,7 +72,7 @@ package starling.utils
         private var mNumLostTextures:int;
         private var mRestoredTextures:int;
         
-        private var mRawAssets:Array;
+        private var mQueue:Array;
         private var mTextures:Dictionary;
         private var mAtlases:Dictionary;
         private var mSounds:Dictionary;
@@ -90,7 +90,7 @@ package starling.utils
             mVerbose = mCheckPolicyFile = mAbortLoading = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
-            mRawAssets = [];
+            mQueue = [];
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
             mSounds = new Dictionary();
@@ -355,7 +355,7 @@ package starling.utils
         public function purgeQueue():void
         {
             mAbortLoading = true;
-            mRawAssets.length = 0;
+            mQueue.length = 0;
         }
         
         /** Removes assets of all types, empties the queue and aborts any pending load operations.*/
@@ -462,7 +462,7 @@ package starling.utils
             if (name == null) name = getName(asset);
             log("Enqueuing '" + name + "'");
             
-            mRawAssets.push({
+            mQueue.push({
                 name: name,
                 asset: asset
             });
@@ -481,7 +481,7 @@ package starling.utils
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
             var xmls:Vector.<XML> = new <XML>[];
-            var numElements:int = mRawAssets.length;
+            var numElements:int = mQueue.length;
             var currentRatio:Number = 0.0;
             var timeoutID:uint;
             
@@ -493,9 +493,9 @@ package starling.utils
                 if (mAbortLoading)
                     return;
                 
-                currentRatio = mRawAssets.length ? 1.0 - (mRawAssets.length / numElements) : 1.0;
+                currentRatio = mQueue.length ? 1.0 - (mQueue.length / numElements) : 1.0;
                 
-                if (mRawAssets.length)
+                if (mQueue.length)
                     timeoutID = setTimeout(processNext, 1);
                 else
                     processXmls();
@@ -506,7 +506,7 @@ package starling.utils
             
             function processNext():void
             {
-                var assetInfo:Object = mRawAssets.pop();
+                var assetInfo:Object = mQueue.pop();
                 clearTimeout(timeoutID);
                 processRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
             }
@@ -829,6 +829,13 @@ package starling.utils
         }
         
         // properties
+        
+        /** The queue contains one 'Object' for each enqueued asset. Each object has 'asset'
+         *  and 'name' properties, pointing to the raw asset and its name, respectively. */
+        protected function get queue():Array { return mQueue; }
+        
+        /** Returns the number of raw assets that have been enqueued, but not yet loaded. */
+        public function get queueLength():int { return mQueue.length; }
         
         /** When activated, the class will trace information about added/enqueued assets. */
         public function get verbose():Boolean { return mVerbose; }
