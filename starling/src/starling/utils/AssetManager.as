@@ -532,24 +532,33 @@ package starling.utils
                 for each (var xml:XML in xmls)
                 {
                     var name:String;
+                    var texture:Texture;
                     var rootNode:String = xml.localName();
                     
                     if (rootNode == "TextureAtlas")
                     {
                         name = getName(xml.@imagePath.toString());
+                        texture = getTexture(name);
                         
-                        var atlasTexture:Texture = getTexture(name);
-                        addTextureAtlas(name, new TextureAtlas(atlasTexture, xml));
-                        removeTexture(name, false);
+                        if (texture)
+                        {
+                            addTextureAtlas(name, new TextureAtlas(texture, xml));
+                            removeTexture(name, false);
+                        }
+                        else log("Cannot create atlas: texture '" + name + "' is missing.");
                     }
                     else if (rootNode == "font")
                     {
                         name = getName(xml.pages.page.@file.toString());
-                        log("Adding bitmap font '" + name + "'");
+                        texture = getTexture(name);
                         
-                        var fontTexture:Texture = getTexture(name);
-                        TextField.registerBitmapFont(new BitmapFont(fontTexture, xml), name);
-                        removeTexture(name, false);
+                        if (texture)
+                        {
+                            log("Adding bitmap font '" + name + "'");
+                            TextField.registerBitmapFont(new BitmapFont(texture, xml), name);
+                            removeTexture(name, false);
+                        }
+                        else log("Cannot create bitmap font: texture '" + name + "' is missing.");
                     }
                     else
                         throw new Error("XML contents not recognized: " + rootNode);
