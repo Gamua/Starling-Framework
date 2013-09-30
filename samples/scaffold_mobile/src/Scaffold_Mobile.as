@@ -99,14 +99,14 @@ package
             mStarling.enableErrorChecking = Capabilities.isDebugger;
             
             mStarling.addEventListener(starling.events.Event.ROOT_CREATED, 
-                function onRootCreated(event:Object, app:Root):void
+                function(event:Object, app:Root):void
                 {
-                    mStarling.removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
+                    mStarling.removeEventListener(starling.events.Event.ROOT_CREATED, arguments.callee);
                     removeChild(background);
                     background = null;
                     
-                    var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass, 
-                                                                      false, false, scaleFactor);
+                    var bgTexture:Texture = Texture.fromEmbeddedAsset(
+                        backgroundClass, false, false, scaleFactor);
                     
                     app.start(bgTexture, assets);
                     mStarling.start();
