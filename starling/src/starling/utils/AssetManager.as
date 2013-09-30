@@ -68,11 +68,13 @@ package starling.utils
         private var mUseMipMaps:Boolean;
         private var mCheckPolicyFile:Boolean;
         private var mVerbose:Boolean;
-        private var mAbortLoading:Boolean;
         private var mNumLostTextures:int;
         private var mNumRestoredTextures:int;
         
         private var mQueue:Array;
+        private var mIsLoading:Boolean;
+        private var mTimeoutID:uint;
+        
         private var mTextures:Dictionary;
         private var mAtlases:Dictionary;
         private var mSounds:Dictionary;
@@ -87,7 +89,7 @@ package starling.utils
          *  how enqueued bitmaps will be converted to textures. */
         public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
-            mVerbose = mCheckPolicyFile = mAbortLoading = false;
+            mVerbose = mCheckPolicyFile = mIsLoading = false;
             mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
             mQueue = [];
@@ -354,8 +356,9 @@ package starling.utils
         /** Empties the queue and aborts any pending load operations. */
         public function purgeQueue():void
         {
-            mAbortLoading = true;
+            mIsLoading = false;
             mQueue.length = 0;
+            clearTimeout(mTimeoutID);
         }
         
         /** Removes assets of all types, empties the queue and aborts any pending load operations.*/
@@ -480,25 +483,30 @@ package starling.utils
             if (Starling.context == null)
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
+            if (mIsLoading)
+                throw new Error("The queue is already being processed");
+            
             var xmls:Vector.<XML> = new <XML>[];
             var numElements:int = mQueue.length;
             var currentRatio:Number = 0.0;
-            var timeoutID:uint;
             
-            mAbortLoading = false;
+            mIsLoading = true;
             resume();
             
             function resume():void
             {
-                if (mAbortLoading)
+                if (!mIsLoading)
                     return;
                 
                 currentRatio = mQueue.length ? 1.0 - (mQueue.length / numElements) : 1.0;
                 
                 if (mQueue.length)
-                    timeoutID = setTimeout(processNext, 1);
+                    mTimeoutID = setTimeout(processNext, 1);
                 else
+                {
                     processXmls();
+                    mIsLoading = false;
+                }
                 
                 if (onProgress != null)
                     onProgress(currentRatio);
@@ -507,7 +515,7 @@ package starling.utils
             function processNext():void
             {
                 var assetInfo:Object = mQueue.pop();
-                clearTimeout(timeoutID);
+                clearTimeout(mTimeoutID);
                 processRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
             }
             
@@ -566,7 +574,7 @@ package starling.utils
                 var texture:Texture;
                 var bytes:ByteArray;
                 
-                if (mAbortLoading)
+                if (!mIsLoading)
                 {
                     onComplete();
                 }
