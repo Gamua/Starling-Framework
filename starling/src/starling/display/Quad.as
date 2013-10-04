@@ -42,6 +42,7 @@ package starling.display
         
         /** Helper objects. */
         private static var sHelperPoint:Point = new Point();
+        private static var sHelperPoint2:Point = new Point();
         private static var sHelperMatrix:Matrix = new Matrix();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
@@ -71,30 +72,7 @@ package starling.display
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            if (resultRect == null) resultRect = new Rectangle();
-            
-            if (targetSpace == this) // optimization
-            {
-                mVertexData.getPosition(3, sHelperPoint);
-                resultRect.setTo(0.0, 0.0, sHelperPoint.x, sHelperPoint.y);
-            }
-            else if (targetSpace == parent && rotation == 0.0) // optimization
-            {
-                var scaleX:Number = this.scaleX;
-                var scaleY:Number = this.scaleY;
-                mVertexData.getPosition(3, sHelperPoint);
-                resultRect.setTo(x - pivotX * scaleX,      y - pivotY * scaleY,
-                                 sHelperPoint.x * scaleX, sHelperPoint.y * scaleY);
-                if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
-                if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
-            }
-            else
-            {
-                getTransformationMatrix(targetSpace, sHelperMatrix);
-                mVertexData.getBounds(sHelperMatrix, 0, 4, resultRect);
-            }
-            
-            return resultRect;
+            return getBoundsImpl(targetSpace, resultRect, mVertexData);
         }
         
         /** Returns the color of a vertex at a certain index. */
@@ -180,5 +158,43 @@ package starling.display
         /** Indicates if the rgb values are stored premultiplied with the alpha value; this can
          *  affect the rendering. (Most developers don't have to care, though.) */
         public function get premultipliedAlpha():Boolean { return mVertexData.premultipliedAlpha; }
+        
+        /** Returns a rectangle that completely encloses a quand with a given vertex data as it
+         *  appears in another coordinate system. If you pass a 'resultRectangle', the result
+         *  will be stored in this rectangle instead of creating a new object. */
+        protected function getBoundsImpl(targetSpace:DisplayObject, resultRect:Rectangle, vertexData:VertexData):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+            
+            if (targetSpace == this) // optimization
+            {
+                // 0-vertex should be taken into consideration since it is not allways (0,0). See Texture.adjustVertexData for example.
+                mVertexData.getPosition(3, sHelperPoint);
+                mVertexData.getPosition(0, sHelperPoint2);
+                resultRect.x = sHelperPoint2.x;
+                resultRect.y = sHelperPoint2.y;
+                resultRect.width = sHelperPoint.x - sHelperPoint2.x;
+                resultRect.height = sHelperPoint.y - sHelperPoint2.y;
+            }
+            else if (targetSpace == parent && rotation == 0.0) // optimization
+            {
+                // 0-vertex should be taken into consideration since it is not allways (0,0). See Texture.adjustVertexData for example.
+                var scaleX:Number = this.scaleX;
+                var scaleY:Number = this.scaleY;
+                mVertexData.getPosition(3, sHelperPoint);
+                mVertexData.getPosition(0, sHelperPoint2);
+                resultRect.setTo(x + (sHelperPoint2.x - pivotX) * scaleX, y + (sHelperPoint2.y - pivotY) * scaleY,
+                                 (sHelperPoint.x - sHelperPoint2.x) * scaleX, (sHelperPoint.y - sHelperPoint2.y) * scaleY);
+                if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
+                if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
+            }
+            else
+            {
+                getTransformationMatrix(targetSpace, sHelperMatrix);
+                mVertexData.getBounds(sHelperMatrix, 0, 4, resultRect);
+            }
+            
+            return resultRect;
+        }
     }
 }

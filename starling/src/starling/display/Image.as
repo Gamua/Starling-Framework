@@ -148,6 +148,19 @@ package starling.display
             
             mVertexDataCache.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
         }
+
+        /** @inheritDoc */
+        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        {
+            if (mVertexDataCacheInvalid)
+            {
+                mVertexDataCacheInvalid = false;
+                mVertexData.copyTo(mVertexDataCache);
+                mTexture.adjustVertexData(mVertexDataCache, 0, 4);
+            }
+            
+            return getBoundsImpl(targetSpace, resultRect, mVertexDataCache);
+        }
         
         /** The texture that is displayed on the quad. */
         public function get texture():Texture { return mTexture; }
