@@ -193,10 +193,11 @@ package starling.textures
         starling_internal function createBase():void
         {
             var context:Context3D = Starling.context;
-            var isPot:Boolean = mWidth  == getNextPowerOfTwo(mWidth) && 
-                                mHeight == getNextPowerOfTwo(mHeight);
+			var useRectTexture:Boolean = !mMipMapping &&
+				Starling.current.profile != "baselineConstrained" &&
+				"createRectangleTexture" in context && mFormat.indexOf("compressed") == -1;
             
-            if (isPot)
+            if (!useRectTexture)
                 mBase = context.createTexture(mWidth, mHeight, mFormat, 
                                               mOptimizedForRenderTexture);
             else
