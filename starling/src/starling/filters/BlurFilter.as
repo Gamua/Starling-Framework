@@ -14,6 +14,7 @@ package starling.filters
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
     
+    import starling.core.Starling;
     import starling.textures.Texture;
     import starling.utils.Color;
 
@@ -24,7 +25,9 @@ package starling.filters
      */
     public class BlurFilter extends FragmentFilter
     {
-        private const MAX_SIGMA:Number = 2.0;
+        private static const NORMAL_PROGRAM_NAME:String = "BF_n";
+        private static const TINTED_PROGRAM_NAME:String = "BF_t";
+        private static const MAX_SIGMA:Number = 2.0;
         
         private var mNormalProgram:Program3D;
         private var mTintedProgram:Program3D;
@@ -85,15 +88,6 @@ package starling.filters
             return glow;
         }
         
-        /** @inheritDoc */
-        public override function dispose():void
-        {
-            if (mNormalProgram) mNormalProgram.dispose();
-            if (mTintedProgram) mTintedProgram.dispose();
-            
-            super.dispose();
-        }
-        
         /** @private */
         protected override function createPrograms():void
         {
@@ -103,12 +97,18 @@ package starling.filters
         
         private function createProgram(tinted:Boolean):Program3D
         {
+            var programName:String = tinted ? TINTED_PROGRAM_NAME : NORMAL_PROGRAM_NAME;
+            var target:Starling = Starling.current;
+            
+            if (target.hasProgram(programName))
+                return target.getProgram(programName);
+            
             // vc0-3 - mvp matrix
             // vc4   - kernel offset
             // va0   - position 
             // va1   - texture coords
             
-            var vertexProgramCode:String =
+            var vertexShader:String =
                 "m44 op, va0, vc0       \n" + // 4x4 matrix transform to output space
                 "mov v0, va1            \n" + // pos:  0 |
                 "sub v1, va1, vc4.zwxx  \n" + // pos: -2 |
@@ -123,7 +123,7 @@ package starling.filters
             // ft0-4 - pixel color from texture
             // ft5   - output color
             
-            var fragmentProgramCode:String =
+            var fragmentShader:String =
                 "tex ft0,  v0, fs0 <2d, clamp, linear, mipnone> \n" +  // read center pixel
                 "mul ft5, ft0, fc0.xxxx                         \n" +  // multiply with center weight
                 
@@ -142,15 +142,15 @@ package starling.filters
                 "tex ft4,  v4, fs0 <2d, clamp, linear, mipnone> \n" +  // read pixel +2
                 "mul ft4, ft4, fc0.zzzz                         \n";   // multiply with weight
 
-            if (tinted) fragmentProgramCode +=
+            if (tinted) fragmentShader +=
                 "add ft5, ft5, ft4                              \n" + // add to output color
                 "mul ft5.xyz, fc1.xyz, ft5.www                  \n" + // set rgb with correct alpha
                 "mul oc, ft5, fc1.wwww                          \n";  // multiply alpha
             
-            else fragmentProgramCode +=
+            else fragmentShader +=
                 "add  oc, ft5, ft4                              \n";   // add to output color
             
-            return assembleAgal(fragmentProgramCode, vertexProgramCode);
+            return target.registerProgramFromSource(programName, vertexShader, fragmentShader);
         }
         
         /** @private */
