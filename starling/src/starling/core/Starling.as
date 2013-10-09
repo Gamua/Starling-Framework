@@ -681,15 +681,28 @@ package starling.core
         
         // program management
         
-        /** Registers a vertex- and fragment-program under a certain name. If the name was already
-         *  used, the previous program is overwritten. */
-        public function registerProgram(name:String, vertexProgram:ByteArray, 
-                                        fragmentProgram:ByteArray):Program3D
+        /** Registers a compiled shader-program under a certain name.
+         *  If the name was already used, the previous program is overwritten. */
+        public function registerProgram(name:String, vertexShader:ByteArray,
+                                        fragmentShader:ByteArray):Program3D
         {
             deleteProgram(name);
             
             var program:Program3D = mContext.createProgram();
-            program.upload(vertexProgram, fragmentProgram);
+            program.upload(vertexShader, fragmentShader);
+            programs[name] = program;
+            
+            return program;
+        }
+        
+        /** Compiles a shader-program and registers it under a certain name.
+         *  If the name was already used, the previous program is overwritten. */
+        public function registerProgramFromSource(name:String, vertexShader:String,
+                                                  fragmentShader:String):Program3D
+        {
+            deleteProgram(name);
+            
+            var program:Program3D = RenderSupport.assembleAgal(vertexShader, fragmentShader);
             programs[name] = program;
             
             return program;
