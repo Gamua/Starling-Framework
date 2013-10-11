@@ -17,6 +17,7 @@ package starling.filters
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
     
+    import starling.core.Starling;
     import starling.textures.Texture;
     
     /** The ColorMatrixFilter class lets you apply a 4x5 matrix transformation on the RGBA color 
@@ -42,10 +43,10 @@ package starling.filters
     public class ColorMatrixFilter extends FragmentFilter
     {
         private var mShaderProgram:Program3D;
-        
         private var mUserMatrix:Vector.<Number>;   // offset in range 0-255
         private var mShaderMatrix:Vector.<Number>; // offset in range 0-1, changed order
         
+        private static const PROGRAM_NAME:String = "CMF";
         private static const MIN_COLOR:Vector.<Number> = new <Number>[0, 0, 0, 0.0001];
         private static const IDENTITY:Array = [1,0,0,0,0,  0,1,0,0,0,  0,0,1,0,0,  0,0,0,1,0];
         private static const LUMA_R:Number = 0.299;
@@ -67,30 +68,33 @@ package starling.filters
             this.matrix = matrix;
         }
         
-        /** @inheritDoc */
-        public override function dispose():void
-        {
-            if (mShaderProgram) mShaderProgram.dispose();
-            super.dispose();
-        }
-        
         /** @private */
         protected override function createPrograms():void
         {
-            // fc0-3: matrix
-            // fc4:   offset
-            // fc5:   minimal allowed color value
+            var target:Starling = Starling.current;
             
-            var fragmentProgramCode:String =
-                "tex ft0, v0,  fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
-                "max ft0, ft0, fc5              \n" + // avoid division through zero in next step
-                "div ft0.xyz, ft0.xyz, ft0.www  \n" + // restore original (non-PMA) RGB values
-                "m44 ft0, ft0, fc0              \n" + // multiply color with 4x4 matrix
-                "add ft0, ft0, fc4              \n" + // add offset
-                "mul ft0.xyz, ft0.xyz, ft0.www  \n" + // multiply with alpha again (PMA)
-                "mov oc, ft0                    \n";  // copy to output
-            
-            mShaderProgram = assembleAgal(fragmentProgramCode);
+            if (target.hasProgram(PROGRAM_NAME))
+            {
+                mShaderProgram = target.getProgram(PROGRAM_NAME);
+            }
+            else
+            {
+                // fc0-3: matrix
+                // fc4:   offset
+                // fc5:   minimal allowed color value
+                
+                var fragmentShader:String =
+                    "tex ft0, v0,  fs0 <2d, clamp, linear, mipnone>  \n" + // read texture color
+                    "max ft0, ft0, fc5              \n" + // avoid division through zero in next step
+                    "div ft0.xyz, ft0.xyz, ft0.www  \n" + // restore original (non-PMA) RGB values
+                    "m44 ft0, ft0, fc0              \n" + // multiply color with 4x4 matrix
+                    "add ft0, ft0, fc4              \n" + // add offset
+                    "mul ft0.xyz, ft0.xyz, ft0.www  \n" + // multiply with alpha again (PMA)
+                    "mov oc, ft0                    \n";  // copy to output
+                
+                mShaderProgram = target.registerProgramFromSource(PROGRAM_NAME,
+                    STD_VERTEX_SHADER, fragmentShader);
+            }
         }
         
         /** @private */

@@ -10,23 +10,21 @@
 
 package starling.display
 {
+    import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Point;
     
+    import starling.core.RenderSupport;
+    import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
     
     use namespace starling_internal;
     
     /** Dispatched when the Flash container is resized. */
     [Event(name="resize", type="starling.events.ResizeEvent")]
-    
-    /** Dispatched when a key on the keyboard is released. */
-    [Event(name="keyUp", type="starling.events.KeyboardEvent")]
-    
-    /** Dispatched when a key on the keyboard is pressed. */
-    [Event(name="keyDown", type="starling.events.KeyboardEvent")]
     
     /** A Stage represents the root of the display tree.  
      *  Only objects that are direct or indirect children of the stage will be rendered.
@@ -59,7 +57,8 @@ package starling.display
         private var mWidth:int;
         private var mHeight:int;
         private var mColor:uint;
-        private var mEnterFrameEvent:EnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
+        private var mEnterFrameEvent:EnterFrameEvent;
+        private var mEnterFrameListeners:Vector.<DisplayObject>;
         
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -67,6 +66,8 @@ package starling.display
             mWidth = width;
             mHeight = height;
             mColor = color;
+            mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
+            mEnterFrameListeners = new <DisplayObject>[];
         }
         
         /** @inheritDoc */
@@ -93,6 +94,60 @@ package starling.display
             if (target == null) target = this;
             return target;
         }
+        
+        /** Draws the complete stage into a BitmapData object. If you don't pass a parameter, the
+         *  object will be created for you. If you pass a BitmapData object to the method, it
+         *  should have the size of the back buffer (which is accessible via the respective
+         *  properties on the Starling instance). */
+        public function drawToBitmapData(destination:BitmapData=null):BitmapData
+        {
+            var support:RenderSupport = new RenderSupport();
+            var star:Starling = Starling.current;
+            
+            if (destination == null)
+                destination = new BitmapData(star.backBufferWidth, star.backBufferHeight);
+            
+            support.renderTarget = null;
+            support.setOrthographicProjection(0, 0, mWidth, mHeight);
+            support.clear(mColor, 1);
+            render(support, 1.0);
+            support.finishQuadBatch();
+            
+            Starling.current.context.drawToBitmapData(destination);
+            Starling.current.context.present(); // required on some platforms to avoid flickering
+            
+            return destination;
+        }
+        
+        // enter frame event optimization
+        
+        /** @private */
+        internal function addEnterFrameListener(listener:DisplayObject):void
+        {
+            mEnterFrameListeners.push(listener);
+        }
+        
+        /** @private */
+        internal function removeEnterFrameListener(listener:DisplayObject):void
+        {
+            var index:int = mEnterFrameListeners.indexOf(listener);
+            if (index >= 0) mEnterFrameListeners.splice(index, 1); 
+        }
+        
+        /** @private */
+        internal override function getChildEventListeners(object:DisplayObject, eventType:String, 
+                                                          listeners:Vector.<DisplayObject>):void
+        {
+            if (eventType == Event.ENTER_FRAME && object == this)
+            {
+                for (var i:int=0, length:int=mEnterFrameListeners.length; i<length; ++i)
+                    listeners[listeners.length] = mEnterFrameListeners[i]; // avoiding 'push' 
+            }
+            else
+                super.getChildEventListeners(object, eventType, listeners);
+        }
+        
+        // properties
         
         /** @private */
         public override function set width(value:Number):void 
@@ -134,6 +189,24 @@ package starling.display
         public override function set rotation(value:Number):void
         {
             throw new IllegalOperationError("Cannot rotate stage");
+        }
+        
+        /** @private */
+        public override function set skewX(value:Number):void
+        {
+            throw new IllegalOperationError("Cannot skew stage");
+        }
+        
+        /** @private */
+        public override function set skewY(value:Number):void
+        {
+            throw new IllegalOperationError("Cannot skew stage");
+        }
+        
+        /** @private */
+        public override function set filter(value:FragmentFilter):void
+        {
+            throw new IllegalOperationError("Cannot add filter to stage. Add it to 'root' instead!");
         }
         
         /** The background color of the stage. */

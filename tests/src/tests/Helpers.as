@@ -14,6 +14,7 @@ package tests
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
+    import flash.utils.ByteArray;
     
     import org.flexunit.Assert;
     import org.flexunit.assertThat;
@@ -52,6 +53,15 @@ package tests
             
             for (var i:int=0; i<vector1.length; ++i)
                 assertThat(vector1[i], closeTo(vector2[i], e));
+        }
+        
+        public static function compareByteArrays(b1:ByteArray, b2:ByteArray):void
+        {
+            assertEquals(b1.length, b2.length);
+            b1.position = b2.position = 0;
+            
+            while (b1.bytesAvailable)
+                assertEquals(b1.readByte(), b2.readByte());
         }
         
         public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void

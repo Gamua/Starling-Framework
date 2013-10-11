@@ -20,6 +20,7 @@ package tests
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
+    import starling.utils.Color;
     import starling.utils.VertexData;
     
     public class VertexDataTest
@@ -53,14 +54,14 @@ package tests
             Assert.assertEquals(4, vd.numVertices);
         }
         
-        [Test(expects="RangeError")]
+        [Test(expects="Error")]
         public function testBoundsLow():void
         {
             var vd:VertexData = new VertexData(3);
             vd.getColor(-1);
         }
         
-        [Test(expects="RangeError")]
+        [Test(expects="Error")]
         public function testBoundsHigh():void
         {
             var vd:VertexData = new VertexData(3);
@@ -101,23 +102,24 @@ package tests
             
             // check premultiplied alpha
             
-            var alpha:Number = 0.5;
+            var alpha:Number = 0.8;
+            var red:int   = 80;
+            var green:int = 60;
+            var blue:int  = 40;
+            var rgb:uint = Color.rgb(red, green, blue);
             
-            vd.setColor(2, 0x445566);
+            vd.setColor(2, rgb);
             vd.setAlpha(2, alpha);
-            Assert.assertEquals(0x445566, vd.getColor(2));
+            Assert.assertEquals(rgb, vd.getColor(2));
             Assert.assertEquals(1.0, vd.getAlpha(1));
             Assert.assertEquals(alpha, vd.getAlpha(2));
             
             var data:Vector.<Number> = vd.rawData;
-            var red:Number   = 0x44 / 255.0;
-            var green:Number = 0x55 / 255.0;
-            var blue:Number  = 0x66 / 255.0;
             var offset:int = VertexData.ELEMENTS_PER_VERTEX * 2 + VertexData.COLOR_OFFSET;
             
-            assertThat(data[offset  ], closeTo(red * alpha, E));
-            assertThat(data[offset+1], closeTo(green * alpha, E));
-            assertThat(data[offset+2], closeTo(blue * alpha, E));
+            assertThat(data[offset  ], closeTo(red   / 255.0 * alpha, E));
+            assertThat(data[offset+1], closeTo(green / 255.0 * alpha, E));
+            assertThat(data[offset+2], closeTo(blue  / 255.0 * alpha, E));
             
             // changing the pma setting should update contents
             
@@ -128,14 +130,14 @@ package tests
             Assert.assertEquals(0x112233, vd.getColor(1));
             Assert.assertEquals(1.0, vd.getAlpha(0));
             
-            vd.setColor(2, 0x445566);
-            vd.setAlpha(2, 0.5);
-            Assert.assertEquals(0x445566, vd.getColor(2));
-            Assert.assertEquals(0.5, vd.getAlpha(2));
+            vd.setColor(2, rgb);
+            vd.setAlpha(2, alpha);
+            Assert.assertEquals(rgb, vd.getColor(2));
+            Assert.assertEquals(alpha, vd.getAlpha(2));
             
-            assertThat(data[offset  ], closeTo(red, E));
-            assertThat(data[offset+1], closeTo(green, E));
-            assertThat(data[offset+2], closeTo(blue, E));
+            assertThat(data[offset  ], closeTo(red   / 255.0, E));
+            assertThat(data[offset+1], closeTo(green / 255.0, E));
+            assertThat(data[offset+2], closeTo(blue  / 255.0, E));
         }
         
         [Test]
@@ -198,20 +200,16 @@ package tests
             
             Helpers.compareVectors(vd1.rawData, vd2.rawData);
             assertEquals(vd1.numVertices, vd2.numVertices);
-
+            
             vd2.numVertices = 4;
             vd1.copyTo(vd2, 2);
             assertEquals(4, vd2.numVertices);
             
             for (var i:int=0; i<2; ++i)
-            {
                 for (var j:int=0; j<VertexData.ELEMENTS_PER_VERTEX; ++j)
-                {
-                    var vd1Value:Number = vd1.rawData[VertexData.ELEMENTS_PER_VERTEX * i + j];
-                    var vd2Value:Number = vd2.rawData[VertexData.ELEMENTS_PER_VERTEX * (2+i) + j];
-                    assertThat(vd1Value, closeTo(vd2Value, E));
-                }
-            }
+                    assertEquals(
+                        vd1.rawData[   i  * VertexData.ELEMENTS_PER_VERTEX + j], 
+                        vd2.rawData[(2+i) * VertexData.ELEMENTS_PER_VERTEX + j]);
         }
         
         [Test]
@@ -223,7 +221,7 @@ package tests
             
             var matrix:Matrix = new Matrix();
             matrix.translate(5, 6);
-            
+
             var position:Point = new Point();
             vd.transformVertex(0, matrix, 1);
             vd.getPosition(0, position);
@@ -238,6 +236,43 @@ package tests
             Helpers.comparePoints(position, new Point(15, 26));
             vd.getPosition(1, position);
             Helpers.comparePoints(position, new Point(15, 10));
+        }
+        
+        [Test]
+        public function testAppend():void
+        {
+            var vd1:VertexData = new VertexData(2);
+            vd1.setPosition(0, 0, 1);
+            vd1.setTexCoords(0, 0.0, 0.1);
+            vd1.setColor(0, 0xf);
+            vd1.setPosition(1, 2, 3);
+            vd1.setTexCoords(1, 0.2, 0.3);
+            vd1.setColor(1, 0xf0);
+            
+            var vd2:VertexData = new VertexData(1);
+            vd2.setPosition(0, 4, 5);
+            vd2.setTexCoords(0, 0.4, 0.5);
+            vd2.setColor(0, 0xf00);
+            
+            vd1.append(vd2);
+            
+            for (var i:int=0; i<3; ++i)
+            {
+                var expectedPosition:Point = new Point(i*2, i*2+1);
+                var position:Point = new Point();
+                vd1.getPosition(i, position);
+                Helpers.comparePoints(expectedPosition, position);
+                
+                var expectedTexCoords:Point = new Point(i*0.2, i*0.2+0.1);
+                var texCoords:Point = new Point();
+                vd1.getTexCoords(i, texCoords);
+                Helpers.comparePoints(expectedTexCoords, texCoords);
+                
+                var expectedColor:uint = 0xf << (i*4);
+                var color:uint = vd1.getColor(i);
+                
+                assertEquals(color, vd1.getColor(i));
+            }
         }
     }
 }

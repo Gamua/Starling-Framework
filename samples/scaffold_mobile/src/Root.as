@@ -1,5 +1,7 @@
 package
 {
+    import flash.system.System;
+    
     import starling.core.Starling;
     import starling.display.Image;
     import starling.display.Sprite;
@@ -63,6 +65,10 @@ package
                     {
                         progressBar.removeFromParent(true);
                         showScene(Menu);
+                        
+                        // now would be a good time for a clean-up 
+                        System.pauseForGCIfCollectionImminent(0);
+                        System.gc();
                     }, 0.15);
             });
         }

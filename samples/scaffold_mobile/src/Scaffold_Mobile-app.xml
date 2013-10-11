@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/3.7">
+<application xmlns="http://ns.adobe.com/air/application/3.8">
 
     <id>com.gamua.starling.scaffold</id> <!-- Bundle Identifier. Required. -->
     <filename>Scaffold</filename> <!-- Used as the filename for the application. Required. -->
@@ -11,7 +11,7 @@
         <!-- The main SWF or HTML file of the application. Required. -->
         <content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
         
-        <!-- The initial aspect ratio ("portrait" or "landscape"). Optional. -->
+        <!-- The aspect ratio ("portrait", "landscape", or "any"). Optional. -->
         <aspectRatio>portrait</aspectRatio>
 
         <!-- Whether the app will begin auto-orienting on launch. Optional. Default false -->
@@ -29,7 +29,6 @@
 
         <!-- Whether or not to pan when a soft keyboard is raised or lowered (either "pan" or "none").  Optional.  Defaults "pan." -->
         <!-- <softKeyboardBehavior></softKeyboardBehavior> -->
-    <visible>true</visible>
     </initialWindow>
 
     <!-- Languages supported by application. Only these languages can be specified. -->

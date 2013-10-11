@@ -1,11 +1,17 @@
 package scenes
 {
+    import flash.display.BitmapData;
+    import flash.display.BitmapDataChannel;
+    
+    import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
     import starling.events.Event;
     import starling.filters.BlurFilter;
     import starling.filters.ColorMatrixFilter;
+    import starling.filters.DisplacementMapFilter;
     import starling.text.TextField;
+    import starling.textures.Texture;
 
     public class FilterScene extends Scene
     {
@@ -16,8 +22,6 @@ package scenes
         
         public function FilterScene()
         {
-            initFilters();
-            
             mButton = new Button(Game.assets.getTexture("button_normal"), "Switch Filter");
             mButton.x = int(Constants.CenterX - mButton.width / 2);
             mButton.y = 15;
@@ -34,6 +38,7 @@ package scenes
             mInfoText.y = 330;
             addChild(mInfoText);
             
+            initFilters();
             onButtonTriggered();
         }
         
@@ -54,6 +59,11 @@ package scenes
                 ["Drop Shadow", BlurFilter.createDropShadow()],
                 ["Glow", BlurFilter.createGlow()]
             ];
+            
+            var displacementFilter:DisplacementMapFilter = new DisplacementMapFilter(
+                createDisplacementMap(mImage.width, mImage.height), null,
+                BitmapDataChannel.RED, BitmapDataChannel.GREEN, 25, 25);
+            mFilterInfos.push(["Displacement Map", displacementFilter]);
             
             var invertFilter:ColorMatrixFilter = new ColorMatrixFilter();
             invertFilter.invert();
@@ -78,6 +88,15 @@ package scenes
             var hueFilter:ColorMatrixFilter = new ColorMatrixFilter();
             hueFilter.adjustHue(1);
             mFilterInfos.push(["Hue", hueFilter]);
+        }
+        
+        private function createDisplacementMap(width:Number, height:Number):Texture
+        {
+            var scale:Number = Starling.contentScaleFactor;
+            var map:BitmapData = new BitmapData(width*scale, height*scale, false);
+            map.perlinNoise(20*scale, 20*scale, 3, 5, false, true);
+            var texture:Texture = Texture.fromBitmapData(map, false, false, scale);
+            return texture;
         }
     }
 }

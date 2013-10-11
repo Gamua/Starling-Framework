@@ -20,7 +20,6 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
-    import starling.utils.getNextPowerOfTwo;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
      * 
@@ -75,20 +74,21 @@ package starling.textures
          *  for one draw (or drawBundled) call, you should deactivate it. */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true, scale:Number=-1)
         {
-            if (scale <= 0) scale = Starling.contentScaleFactor; 
-            
-            var nativeWidth:int  = getNextPowerOfTwo(width  * scale);
-            var nativeHeight:int = getNextPowerOfTwo(height * scale);
-            mActiveTexture = Texture.empty(width, height, PMA, true, scale);
+            mActiveTexture = Texture.empty(width, height, PMA, false, true, scale);
+            mActiveTexture.root.onRestore = mActiveTexture.root.clear;
             
             super(mActiveTexture, new Rectangle(0, 0, width, height), true);
             
+            var rootWidth:Number  = mActiveTexture.root.width;
+            var rootHeight:Number = mActiveTexture.root.height;
+            
             mSupport = new RenderSupport();
-            mSupport.setOrthographicProjection(0, 0, nativeWidth/scale, nativeHeight/scale);
+            mSupport.setOrthographicProjection(0, 0, rootWidth, rootHeight);
             
             if (persistent)
             {
-                mBufferTexture = Texture.empty(width, height, PMA, true, scale);
+                mBufferTexture = Texture.empty(width, height, PMA, false, true, scale);
+                mBufferTexture.root.onRestore = mBufferTexture.root.clear;
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
