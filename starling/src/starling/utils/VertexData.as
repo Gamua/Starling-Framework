@@ -456,11 +456,13 @@ package starling.utils
         public function get numVertices():int { return mNumVertices; }
         public function set numVertices(value:int):void
         {
-            mRawData.fixed = false;
-            mRawData.length = value * ELEMENTS_PER_VERTEX;
-            
-            for (var i:int=mNumVertices; i<value; ++i) // alpha should be '1' per default
-                mRawData[int(i * ELEMENTS_PER_VERTEX + COLOR_OFFSET + 3)] = 1.0;
+			var startIndex:int = mRawData.length + COLOR_OFFSET + 3;
+			mRawData.fixed = false;
+			mRawData.length = value * ELEMENTS_PER_VERTEX;
+			
+			var rawDataLength:int = mRawData.length;
+			for (var i:int = startIndex; i < rawDataLength; i += ELEMENTS_PER_VERTEX) // alpha should be '1' per default
+				mRawData[i] = 1.0;
             
             mNumVertices = value;
             mRawData.fixed = true;
