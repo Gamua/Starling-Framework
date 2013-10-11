@@ -459,8 +459,11 @@ package starling.utils
             mRawData.fixed = false;
             mRawData.length = value * ELEMENTS_PER_VERTEX;
             
-            for (var i:int=mNumVertices; i<value; ++i) // alpha should be '1' per default
-                mRawData[int(i * ELEMENTS_PER_VERTEX + COLOR_OFFSET + 3)] = 1.0;
+            var startIndex:int = mNumVertices * ELEMENTS_PER_VERTEX + COLOR_OFFSET + 3;
+            var endIndex:int = mRawData.length;
+            
+            for (var i:int=startIndex; i<endIndex; i += ELEMENTS_PER_VERTEX)
+                mRawData[i] = 1.0; // alpha should be '1' per default
             
             mNumVertices = value;
             mRawData.fixed = true;
