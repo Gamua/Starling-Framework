@@ -1,6 +1,19 @@
 Starling: Changelog
 ===================
 
+version 1.4.1 - 2013-10-15
+--------------------------
+
+- added public 'AssetManager.numQueuedAssets' property
+- added protected 'AssetManager.queue' property
+- added 'Starling.registerProgramFromSource' method
+- optimized text rendering on buttons by enabling their 'batchable' property
+- optimized fragment filter construction by caching shader programs (thanks to IonSwitz)
+- optimized 'VertexData.numVertices' setter (thanks to hamidhomatash)
+- fixed erroneous 'clipRect' when it was completely outside the stage bounds
+- fixed error in 'AssetManager.loadQueue' when 'purgeQueue' was called during active timout
+- fixed anonymous function for FDT compatibility of Scaffold project
+
 version 1.4 - 2013-09-23
 ------------------------
 
