@@ -201,7 +201,7 @@ public class TextField extends DisplayObjectContainer {
     protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {
     }
 
-    private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData {
+    protected function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData {
         var width:Number = mHitArea.width * scale;
         var height:Number = mHitArea.height * scale;
         var hAlign:String = mHAlign;
@@ -381,7 +381,7 @@ public class TextField extends DisplayObjectContainer {
 
     // properties
 
-    private function get isHorizontalAutoSize():Boolean {
+    protected function get isHorizontalAutoSize():Boolean {
         return mAutoSize == TextFieldAutoSize.HORIZONTAL ||
                 mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
     }
