@@ -322,8 +322,9 @@ package starling.text
         private function createComposedContents():void
         {
             if (mImage) 
-            { 
+            {
                 mImage.removeFromParent(true); 
+                mImage.texture.dispose();
                 mImage = null; 
             }
             
