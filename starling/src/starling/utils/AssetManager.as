@@ -777,6 +777,7 @@ package starling.utils
             {
                 name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
+                name = name.split("?")[0]; // remove URL parameters like "?v=123"
                 matches = /(.*[\\\/])?(.+)(\.[\w]{1,4})/.exec(name);
                 
                 if (matches && matches.length == 4) return matches[2];
