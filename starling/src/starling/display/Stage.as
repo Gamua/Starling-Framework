@@ -97,6 +97,10 @@ package starling.display
         
         /** Draws the complete stage into a BitmapData object.
          *
+         *  <p>If you encounter problems with transparency, start Starling in BASELINE profile
+         *  (or higher). BASELINE_CONSTRAINED might not support transparency on all platforms.
+         *  </p>
+         *
          *  @param destination: If you pass null, the object will be created for you.
          *                      If you pass a BitmapData object, it should have the size of the
          *                      back buffer (which is accessible via the respective properties
