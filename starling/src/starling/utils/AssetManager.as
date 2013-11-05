@@ -443,7 +443,7 @@ package starling.utils
                         if (rawAsset["isDirectory"])
                             enqueue.apply(this, rawAsset["getDirectoryListing"]());
                         else
-                            enqueueWithName(rawAsset["url"]);
+                            enqueueWithName(rawAsset);
                     }
                 }
                 else if (rawAsset is String)
@@ -462,6 +462,9 @@ package starling.utils
          *  @returns the name under which the asset was registered. */
         public function enqueueWithName(asset:Object, name:String=null):String
         {
+            if (getQualifiedClassName(asset) == "flash.filesystem::File")
+                asset = asset["url"];
+            
             if (name == null) name = getName(asset);
             log("Enqueuing '" + name + "'");
             
