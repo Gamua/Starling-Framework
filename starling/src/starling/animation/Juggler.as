@@ -133,15 +133,20 @@ package starling.animation
         }
         
         /** Delays the execution of a function until <code>delay</code> seconds have passed.
-         *  Creates an object of type 'DelayedCall' internally and returns it. Remove that object
-         *  from the juggler to cancel the function call. */
-        public function delayCall(call:Function, delay:Number, ...args):DelayedCall
+         *  The internally used 'DelayedCall' instance is taken from an object pool. This method
+         *  provides a convenient alternative for creating and adding a DelayedCall manually. */
+        public function delayCall(call:Function, delay:Number, ...args):void
         {
-            if (call == null) return null;
+            if (call == null) return;
             
-            var delayedCall:DelayedCall = new DelayedCall(call, delay, args);
+            var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, delay, args);
+            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
             add(delayedCall);
-            return delayedCall;
+        }
+        
+        private function onPooledDelayedCallComplete(event:Event):void
+        {
+            DelayedCall.starling_internal::toPool(event.target as DelayedCall);
         }
         
         /** Utilizes a tween to animate the target object over <code>time</code> seconds. Internally,

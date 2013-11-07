@@ -252,5 +252,34 @@ package tests
             function onComplete():void { completeCount++; }
             function onStart():void { startCount++; }
         }
+        
+        [Test]
+        public function testDelayedCallConvenienceMethod():void
+        {
+            var juggler:Juggler = new Juggler();
+            var counter:int = 0;
+            
+            juggler.delayCall(raiseCounter, 1.0);
+            juggler.delayCall(raiseCounter, 2.0, 2);
+            
+            juggler.advanceTime(0.5);
+            assertEquals(0, counter);
+            
+            juggler.advanceTime(1.0);
+            assertEquals(1, counter);
+            
+            juggler.advanceTime(1.0);
+            assertEquals(3, counter);
+            
+            juggler.delayCall(raiseCounter, 1.0, 3);
+            
+            juggler.advanceTime(1.0);
+            assertEquals(6, counter);
+            
+            function raiseCounter(byValue:int=1):void
+            {
+                counter += byValue;
+            }
+        }
     }
 }
