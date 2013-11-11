@@ -359,6 +359,7 @@ package starling.utils
             mIsLoading = false;
             mQueue.length = 0;
             clearTimeout(mTimeoutID);
+            dispatchEventWith(Event.CANCEL);
         }
         
         /** Removes assets of all types, empties the queue and aborts any pending load operations.*/
@@ -498,9 +499,6 @@ package starling.utils
             
             function resume():void
             {
-                if (!mIsLoading)
-                    return;
-                
                 currentRatio = mQueue.length ? 1.0 - (mQueue.length / numElements) : 1.0;
                 
                 if (mQueue.length)
@@ -579,16 +577,19 @@ package starling.utils
         private function processRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
                                          onProgress:Function, onComplete:Function):void
         {
-            loadRawAsset(name, rawAsset, onProgress, process); 
+            var canceled:Boolean = false;
+            
+            addEventListener(Event.CANCEL, cancel);
+            loadRawAsset(name, rawAsset, progress, process);
             
             function process(asset:Object):void
             {
                 var texture:Texture;
                 var bytes:ByteArray;
                 
-                if (!mIsLoading)
+                if (canceled)
                 {
-                    onComplete();
+                    // do nothing
                 }
                 else if (asset is Sound)
                 {
@@ -686,6 +687,18 @@ package starling.utils
                 // avoid that objects stay in memory (through 'onRestore' functions)
                 asset = null;
                 bytes = null;
+                
+                removeEventListener(Event.CANCEL, cancel);
+            }
+            
+            function progress(ratio:Number):void
+            {
+                if (!canceled) onProgress(ratio);
+            }
+            
+            function cancel():void
+            {
+                canceled = true;
             }
         }
         
