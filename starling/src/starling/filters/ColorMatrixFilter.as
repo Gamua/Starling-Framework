@@ -213,13 +213,14 @@ package starling.filters
                                       m5:Number, m6:Number, m7:Number, m8:Number, m9:Number, 
                                       m10:Number, m11:Number, m12:Number, m13:Number, m14:Number, 
                                       m15:Number, m16:Number, m17:Number, m18:Number, m19:Number
-                                      ):void
+                                      ):ColorMatrixFilter
         {
             sTmpMatrix2.length = 0;
             sTmpMatrix2.push(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, 
                 m10, m11, m12, m13, m14, m15, m16, m17, m18, m19);
             
             concat(sTmpMatrix2);
+            return this;
         }
 
         private function copyMatrix(from:Vector.<Number>, to:Vector.<Number>):void
