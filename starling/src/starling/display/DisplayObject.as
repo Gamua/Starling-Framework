@@ -145,7 +145,6 @@ package starling.display
         private var mTransformationMatrix:Matrix;
         private var mOrientationChanged:Boolean;
         private var mFilter:FragmentFilter;
-        private var mLastDispatchedStageEventType:String;
         
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
@@ -384,24 +383,14 @@ package starling.display
             return angle;
         }
         
-        // stage event optimization
+        // stage event handling
         
         public override function dispatchEvent(event:Event):void
         {
-            // These events must always be dispatched alternately. E.g. it must not be allowed
-            // that an object receives two "REMOVED_FROM_STAGE" events in direct succession.
-            
-            var eventType:String = event.type;
-            
-            if ((eventType == Event.ADDED_TO_STAGE || eventType == Event.REMOVED_FROM_STAGE))
-            {
-                if (mLastDispatchedStageEventType == eventType)
-                    return;
-                else
-                    mLastDispatchedStageEventType = eventType;
-            }
-            
-            super.dispatchEvent(event);
+            if (event.type == Event.REMOVED_FROM_STAGE && stage == null)
+                return; // special check to avoid double-dispatch of RfS-event.
+            else
+                super.dispatchEvent(event);
         }
         
         // enter frame event optimization
