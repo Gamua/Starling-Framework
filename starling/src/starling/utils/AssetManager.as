@@ -70,6 +70,7 @@ package starling.utils
         private var mVerbose:Boolean;
         private var mNumLostTextures:int;
         private var mNumRestoredTextures:int;
+        private var mStarling:Starling;
         
         private var mQueue:Array;
         private var mIsLoading:Boolean;
@@ -89,8 +90,9 @@ package starling.utils
          *  how enqueued bitmaps will be converted to textures. */
         public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
+            mStarling = Starling.current;
             mVerbose = mCheckPolicyFile = mIsLoading = false;
-            mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
+            mScaleFactor = scaleFactor > 0 ? scaleFactor : mStarling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
             mQueue = [];
             mTextures = new Dictionary();
@@ -484,7 +486,7 @@ package starling.utils
          */
         public function loadQueue(onProgress:Function):void
         {
-            if (Starling.context == null)
+            if (mStarling.context == null)
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
             if (mIsLoading)
@@ -586,6 +588,10 @@ package starling.utils
             {
                 var texture:Texture;
                 var bytes:ByteArray;
+                
+                // the 'current' instance might have changed by now
+                // if we're running in a set-up with multiple instances.
+                mStarling.makeCurrent();
                 
                 if (canceled)
                 {
