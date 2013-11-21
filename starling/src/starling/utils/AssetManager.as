@@ -90,9 +90,8 @@ package starling.utils
          *  how enqueued bitmaps will be converted to textures. */
         public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
-            mStarling = Starling.current;
             mVerbose = mCheckPolicyFile = mIsLoading = false;
-            mScaleFactor = scaleFactor > 0 ? scaleFactor : mStarling.contentScaleFactor;
+            mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
             mUseMipMaps = useMipmaps;
             mQueue = [];
             mTextures = new Dictionary();
@@ -482,11 +481,18 @@ package starling.utils
         /** Loads all enqueued assets asynchronously. The 'onProgress' function will be called
          *  with a 'ratio' between '0.0' and '1.0', with '1.0' meaning that it's complete.
          *
+         *  <p>When you call this method, the manager will save a reference to "Starling.current";
+         *  all textures that are loaded will be accessible only from within this instance. Thus,
+         *  if you are working with more than one Starling instance, be sure to call
+         *  "setCurrent()" on the appropriate instance before processing the queue.</p>
+         *
          *  @param onProgress: <code>function(ratio:Number):void;</code> 
          */
         public function loadQueue(onProgress:Function):void
         {
-            if (mStarling.context == null)
+            mStarling = Starling.current;
+            
+            if (mStarling == null || mStarling.context == null)
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
             if (mIsLoading)
