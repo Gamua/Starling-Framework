@@ -484,7 +484,7 @@ package starling.utils
          *  <p>When you call this method, the manager will save a reference to "Starling.current";
          *  all textures that are loaded will be accessible only from within this instance. Thus,
          *  if you are working with more than one Starling instance, be sure to call
-         *  "setCurrent()" on the appropriate instance before processing the queue.</p>
+         *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
          *
          *  @param onProgress: <code>function(ratio:Number):void;</code> 
          */
