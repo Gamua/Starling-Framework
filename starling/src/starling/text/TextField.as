@@ -97,6 +97,8 @@ package starling.text
         private var mIsRenderedText:Boolean;
         private var mTextBounds:Rectangle;
         private var mBatchable:Boolean;
+        private var mBackground:Boolean;
+        private var mBackgroundColor:uint;
         
         private var mHitArea:DisplayObject;
         private var mBorder:DisplayObjectContainer;
@@ -245,6 +247,8 @@ package starling.text
             sNativeTextField.wordWrap = true;            
             sNativeTextField.text = mText;
             sNativeTextField.embedFonts = true;
+            sNativeTextField.background = mBackground;
+            sNativeTextField.backgroundColor = mBackgroundColor;
             sNativeTextField.filters = mNativeFilters;
             
             // we try embedded fonts first, non-embedded fonts are just a fallback
@@ -614,6 +618,28 @@ package starling.text
             if (mAutoSize != value)
             {
                 mAutoSize = value;
+                mRequiresRedraw = true;
+            }
+        }
+        
+        /** Specifies whether the text field has a background fill. */
+        public function get background():Boolean { return mBackground; }
+        public function set background(value:uint):void 
+        {
+            if (mBackground != value)
+            {
+                mBackground = value;
+                mRequiresRedraw = true;
+            }
+        }
+        
+        /** The color of the text field background. */
+        public function get backgroundColor():uint { return mBackgroundColor; }
+        public function set backgroundColor(value:uint):void 
+        {
+            if (mBackgroundClor != value) 
+            { 
+                mBackgroundColor = value;
                 mRequiresRedraw = true;
             }
         }
