@@ -138,8 +138,8 @@ package starling.display
         /** Sets the colors of all vertices to a certain value. */
         public function set color(value:uint):void 
         {
-            for (var i:int=0; i<4; ++i)
-                setVertexColor(i, value);
+            mVertexData.setUniformColor(value);
+            onVertexDataChanged();
             
             if (value != 0xffffff || alpha != 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;

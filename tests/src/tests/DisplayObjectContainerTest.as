@@ -544,6 +544,42 @@ package tests
             }
         }
         
+        [Test]
+        public function testRepeatedStageRemovedEvent():void
+        {
+            var stage:Stage = new Stage(100, 100);
+            var grandParent:Sprite = new Sprite();
+            var parent:Sprite = new Sprite();
+            var child:Sprite = new Sprite();
+            
+            stage.addChild(grandParent);
+            grandParent.addChild(parent);
+            parent.addChild(child);
+            
+            grandParent.addEventListener(Event.REMOVED_FROM_STAGE, onGrandParentRemovedFromStage);
+            child.addEventListener(Event.REMOVED_FROM_STAGE, onChildRemovedFromStage);
+            
+            // in this set-up, the child could receive the REMOVED_FROM_STAGE event more than
+            // once -- which must be avoided. Furthermore, "stage" must always be accessible
+            // in such an event handler.
+            
+            var childRemovedCount:int = 0;
+            grandParent.removeFromParent();
+            
+            function onGrandParentRemovedFromStage():void
+            {
+                parent.removeFromParent();
+            }
+            
+            function onChildRemovedFromStage():void
+            {
+                Assert.assertNotNull(child.stage);
+                Assert.assertEquals(0, childRemovedCount);
+                
+                childRemovedCount++;
+            }
+        }
+        
         private function onAdded(event:Event):void { mAdded++; }
         private function onAddedToStage(event:Event):void { mAddedToStage++; }
         private function onAddedChild(event:Event):void { mAddedChild++; }
