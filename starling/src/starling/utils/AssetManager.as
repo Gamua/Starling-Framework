@@ -70,6 +70,7 @@ package starling.utils
         private var mVerbose:Boolean;
         private var mNumLostTextures:int;
         private var mNumRestoredTextures:int;
+        private var mStarling:Starling;
         
         private var mQueue:Array;
         private var mIsLoading:Boolean;
@@ -359,6 +360,7 @@ package starling.utils
             mIsLoading = false;
             mQueue.length = 0;
             clearTimeout(mTimeoutID);
+            dispatchEventWith(Event.CANCEL);
         }
         
         /** Removes assets of all types, empties the queue and aborts any pending load operations.*/
@@ -443,7 +445,7 @@ package starling.utils
                         if (rawAsset["isDirectory"])
                             enqueue.apply(this, rawAsset["getDirectoryListing"]());
                         else
-                            enqueueWithName(rawAsset["url"]);
+                            enqueueWithName(rawAsset);
                     }
                 }
                 else if (rawAsset is String)
@@ -462,6 +464,9 @@ package starling.utils
          *  @returns the name under which the asset was registered. */
         public function enqueueWithName(asset:Object, name:String=null):String
         {
+            if (getQualifiedClassName(asset) == "flash.filesystem::File")
+                asset = asset["url"];
+            
             if (name == null) name = getName(asset);
             log("Enqueuing '" + name + "'");
             
@@ -476,11 +481,18 @@ package starling.utils
         /** Loads all enqueued assets asynchronously. The 'onProgress' function will be called
          *  with a 'ratio' between '0.0' and '1.0', with '1.0' meaning that it's complete.
          *
+         *  <p>When you call this method, the manager will save a reference to "Starling.current";
+         *  all textures that are loaded will be accessible only from within this instance. Thus,
+         *  if you are working with more than one Starling instance, be sure to call
+         *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
+         *
          *  @param onProgress: <code>function(ratio:Number):void;</code> 
          */
         public function loadQueue(onProgress:Function):void
         {
-            if (Starling.context == null)
+            mStarling = Starling.current;
+            
+            if (mStarling == null || mStarling.context == null)
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
             if (mIsLoading)
@@ -495,9 +507,6 @@ package starling.utils
             
             function resume():void
             {
-                if (!mIsLoading)
-                    return;
-                
                 currentRatio = mQueue.length ? 1.0 - (mQueue.length / numElements) : 1.0;
                 
                 if (mQueue.length)
@@ -576,16 +585,23 @@ package starling.utils
         private function processRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
                                          onProgress:Function, onComplete:Function):void
         {
-            loadRawAsset(name, rawAsset, onProgress, process); 
+            var canceled:Boolean = false;
+            
+            addEventListener(Event.CANCEL, cancel);
+            loadRawAsset(name, rawAsset, progress, process);
             
             function process(asset:Object):void
             {
                 var texture:Texture;
                 var bytes:ByteArray;
                 
-                if (!mIsLoading)
+                // the 'current' instance might have changed by now
+                // if we're running in a set-up with multiple instances.
+                mStarling.makeCurrent();
+                
+                if (canceled)
                 {
-                    onComplete();
+                    // do nothing
                 }
                 else if (asset is Sound)
                 {
@@ -683,6 +699,18 @@ package starling.utils
                 // avoid that objects stay in memory (through 'onRestore' functions)
                 asset = null;
                 bytes = null;
+                
+                removeEventListener(Event.CANCEL, cancel);
+            }
+            
+            function progress(ratio:Number):void
+            {
+                if (!canceled) onProgress(ratio);
+            }
+            
+            function cancel():void
+            {
+                canceled = true;
             }
         }
         
@@ -699,7 +727,7 @@ package starling.utils
             else if (rawAsset is String)
             {
                 var url:String = rawAsset as String;
-                extension = url.split(".").pop().toLowerCase().split("?")[0];
+                extension = url.split("?")[0].split(".").pop().toLowerCase();
                 
                 urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
@@ -777,6 +805,7 @@ package starling.utils
             {
                 name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
+                name = name.split("?")[0]; // remove URL parameters like "?v=123"
                 matches = /(.*[\\\/])?(.+)(\.[\w]{1,4})/.exec(name);
                 
                 if (matches && matches.length == 4) return matches[2];
