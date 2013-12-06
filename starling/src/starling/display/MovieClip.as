@@ -32,7 +32,7 @@ package starling.display
      *  appears.</p>
      *  
      *  <p>The methods <code>play</code> and <code>pause</code> control playback of the movie. You
-     *  will receive an event of type <code>Event.MovieCompleted</code> when the movie finished
+     *  will receive an event of type <code>Event.COMPLETE</code> when the movie finished
      *  playback. If the movie is looping, the event is dispatched once per loop.</p>
      *  
      *  <p>As any animated object, a movie clip has to be added to a juggler (or have its 

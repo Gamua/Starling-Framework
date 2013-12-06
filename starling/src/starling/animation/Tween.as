@@ -73,7 +73,7 @@ package starling.animation
         
         /** Creates a tween with a target, duration (in seconds) and a transition function.
          *  @param target the object that you want to animate
-         *  @param time the duration of the Tween
+         *  @param time the duration of the Tween (in seconds)
          *  @param transition can be either a String (e.g. one of the constants defined in the
          *         Transitions class) or a function. Look up the 'Transitions' class for a   
          *         documentation about the required function signature. */ 
@@ -151,10 +151,13 @@ package starling.animation
             var restTime:Number = mTotalTime - mCurrentTime;
             var carryOverTime:Number = time > restTime ? time - restTime : 0.0;
             
-            mCurrentTime = Math.min(mTotalTime, mCurrentTime + time);
+            mCurrentTime += time;
             
-            if (mCurrentTime <= 0) return; // the delay is not over yet
-
+            if (mCurrentTime <= 0) 
+                return; // the delay is not over yet
+            else if (mCurrentTime > mTotalTime) 
+                mCurrentTime = mTotalTime;
+            
             if (mCurrentCycle < 0 && previousTime <= 0 && mCurrentTime > 0)
             {
                 mCurrentCycle++;
@@ -168,7 +171,7 @@ package starling.animation
 
             for (i=0; i<numProperties; ++i)
             {                
-                if (isNaN(mStartValues[i])) 
+                if (mStartValues[i] != mStartValues[i]) // isNaN check - "isNaN" causes allocation! 
                     mStartValues[i] = mTarget[mProperties[i]] as Number;
                 
                 var startValue:Number = mStartValues[i];
@@ -250,13 +253,13 @@ package starling.animation
         /** The total time the tween will take per repetition (in seconds). */
         public function get totalTime():Number { return mTotalTime; }
         
-        /** The time that has passed since the tween was created. */
+        /** The time that has passed since the tween was created (in seconds). */
         public function get currentTime():Number { return mCurrentTime; }
         
         /** The current progress between 0 and 1, as calculated by the transition function. */
         public function get progress():Number { return mProgress; } 
         
-        /** The delay before the tween is started. @default 0 */
+        /** The delay before the tween is started (in seconds). @default 0 */
         public function get delay():Number { return mDelay; }
         public function set delay(value:Number):void 
         { 
@@ -269,7 +272,7 @@ package starling.animation
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
         
-        /** The amount of time to wait between repeat cycles, in seconds. @default 0 */
+        /** The amount of time to wait between repeat cycles (in seconds). @default 0 */
         public function get repeatDelay():Number { return mRepeatDelay; }
         public function set repeatDelay(value:Number):void { mRepeatDelay = value; }
         

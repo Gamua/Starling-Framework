@@ -399,12 +399,31 @@ package tests
         [Test]
         public function testAddExistingChild():void
         {
+            var stage:Stage = new Stage(400, 300);
             var sprite:Sprite = new Sprite();
             var quad:Quad = new Quad(100, 100);
+            quad.addEventListener(Event.ADDED, onAdded);
+            quad.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+            quad.addEventListener(Event.REMOVED, onRemoved);
+            quad.addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
+            
+            stage.addChild(sprite);
             sprite.addChild(quad);
+            Assert.assertEquals(1, mAdded);
+            Assert.assertEquals(1, mAddedToStage);
+            
+            // add same child again
             sprite.addChild(quad);
+            
+            // nothing should change, actually.
             Assert.assertEquals(1, sprite.numChildren);
             Assert.assertEquals(0, sprite.getChildIndex(quad));
+            
+            // since the parent does not change, no events should be dispatched 
+            Assert.assertEquals(1, mAdded);
+            Assert.assertEquals(1, mAddedToStage);
+            Assert.assertEquals(0, mRemoved);
+            Assert.assertEquals(0, mRemovedFromStage);
         }
         
         [Test]
@@ -522,6 +541,42 @@ package tests
                 // stage should still be accessible in event listener
                 Assert.assertNotNull(sprite.stage);
                 mRemovedFromStage++;
+            }
+        }
+        
+        [Test]
+        public function testRepeatedStageRemovedEvent():void
+        {
+            var stage:Stage = new Stage(100, 100);
+            var grandParent:Sprite = new Sprite();
+            var parent:Sprite = new Sprite();
+            var child:Sprite = new Sprite();
+            
+            stage.addChild(grandParent);
+            grandParent.addChild(parent);
+            parent.addChild(child);
+            
+            grandParent.addEventListener(Event.REMOVED_FROM_STAGE, onGrandParentRemovedFromStage);
+            child.addEventListener(Event.REMOVED_FROM_STAGE, onChildRemovedFromStage);
+            
+            // in this set-up, the child could receive the REMOVED_FROM_STAGE event more than
+            // once -- which must be avoided. Furthermore, "stage" must always be accessible
+            // in such an event handler.
+            
+            var childRemovedCount:int = 0;
+            grandParent.removeFromParent();
+            
+            function onGrandParentRemovedFromStage():void
+            {
+                parent.removeFromParent();
+            }
+            
+            function onChildRemovedFromStage():void
+            {
+                Assert.assertNotNull(child.stage);
+                Assert.assertEquals(0, childRemovedCount);
+                
+                childRemovedCount++;
             }
         }
         

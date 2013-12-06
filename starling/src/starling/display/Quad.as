@@ -56,7 +56,7 @@ package starling.display
             mVertexData.setPosition(0, 0.0, 0.0);
             mVertexData.setPosition(1, width, 0.0);
             mVertexData.setPosition(2, 0.0, height);
-            mVertexData.setPosition(3, width, height);            
+            mVertexData.setPosition(3, width, height);
             mVertexData.setUniformColor(color);
             
             onVertexDataChanged();
@@ -138,8 +138,8 @@ package starling.display
         /** Sets the colors of all vertices to a certain value. */
         public function set color(value:uint):void 
         {
-            for (var i:int=0; i<4; ++i)
-                setVertexColor(i, value);
+            mVertexData.setUniformColor(value);
+            onVertexDataChanged();
             
             if (value != 0xffffff || alpha != 1.0) mTinted = true;
             else mTinted = mVertexData.tinted;
@@ -158,6 +158,14 @@ package starling.display
         public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
         {
             mVertexData.copyTo(targetData, targetVertexID);
+        }
+        
+        /** Transforms the vertex positions of the raw vertex data by a certain matrix and
+         *  copies the result to another VertexData instance. */
+        public function copyVertexDataTransformedTo(targetData:VertexData, targetVertexID:int=0,
+                                                    matrix:Matrix=null):void
+        {
+            mVertexData.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
         }
         
         /** @inheritDoc */

@@ -80,7 +80,8 @@ package
             // Note that we cannot embed "Default.png" (or its siblings), because any embedded
             // files will vanish from the application package, and those are picked up by the OS!
             
-            var background:Bitmap = scaleFactor == 1 ? new Background() : new BackgroundHD();
+            var backgroundClass:Class = scaleFactor == 1 ? Background : BackgroundHD;
+            var background:Bitmap = new backgroundClass();
             Background = BackgroundHD = null; // no longer needed!
             
             background.x = viewPort.x;
@@ -101,10 +102,11 @@ package
             mStarling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
             {
                 removeChild(background);
+                background = null;
                 
                 var game:Game = mStarling.root as Game;
-                var bgTexture:Texture = Texture.fromBitmap(background, false, false, scaleFactor);
-                
+                var bgTexture:Texture = Texture.fromEmbeddedAsset(backgroundClass,
+                                                                  false, false, scaleFactor); 
                 game.start(bgTexture, assets);
                 mStarling.start();
             });
@@ -116,7 +118,7 @@ package
                 flash.events.Event.ACTIVATE, function (e:*):void { mStarling.start(); });
             
             NativeApplication.nativeApplication.addEventListener(
-                flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(); });
+                flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(true); });
         }
         
     }

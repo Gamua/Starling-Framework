@@ -15,12 +15,11 @@ package starling.events
      *  <p>This is Starling's version of the Flash KeyboardEvent class. It contains the same 
      *  properties as the Flash equivalent.</p> 
      * 
-     *  <p>To be notified of keyboard events, add an event listener to the Starling stage. Children
-     *  of the stage won't be notified of keybaord input. Starling has no concept of a "Focus"
-     *  like native Flash.</p>
+     *  <p>To be notified of keyboard events, add an event listener to any display object that
+     *  is part of your display tree. Starling has no concept of a "Focus" like native Flash.</p>
      *  
      *  @see starling.display.Stage
-     */  
+     */
     public class KeyboardEvent extends Event
     {
         /** Event type for a key that was released. */
@@ -35,6 +34,7 @@ package starling.events
         private var mAltKey:Boolean;
         private var mCtrlKey:Boolean;
         private var mShiftKey:Boolean;
+        private var mIsDefaultPrevented:Boolean;
         
         /** Creates a new KeyboardEvent. */
         public function KeyboardEvent(type:String, charCode:uint=0, keyCode:uint=0, 
@@ -49,6 +49,20 @@ package starling.events
             mAltKey = altKey;
             mShiftKey = shiftKey;
         }
+        
+        // prevent default
+        
+        /** Cancels the keyboard event's default behavior. This will be forwarded to the native
+         *  flash KeyboardEvent. */
+        public function preventDefault():void
+        {
+            mIsDefaultPrevented = true;
+        }
+        
+        /** Checks whether the preventDefault() method has been called on the event. */
+        public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
+        
+        // properties
         
         /** Contains the character code of the key. */
         public function get charCode():uint { return mCharCode; }

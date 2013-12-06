@@ -96,6 +96,7 @@ package starling.display
                 mTextField.hAlign = HAlign.CENTER;
                 mTextField.touchable = false;
                 mTextField.autoScale = true;
+                mTextField.batchable = true;
             }
             
             mTextField.width  = mTextBounds.width;

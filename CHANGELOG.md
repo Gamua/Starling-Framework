@@ -1,6 +1,88 @@
 Starling: Changelog
 ===================
 
+version 1.4.1 - 2013-10-15
+--------------------------
+
+- added public 'AssetManager.numQueuedAssets' property
+- added protected 'AssetManager.queue' property
+- added 'Starling.registerProgramFromSource' method
+- optimized text rendering on buttons by enabling their 'batchable' property
+- optimized fragment filter construction by caching shader programs (thanks to IonSwitz)
+- optimized 'VertexData.numVertices' setter (thanks to hamidhomatash)
+- fixed erroneous 'clipRect' when it was completely outside the stage bounds
+- fixed error in 'AssetManager.loadQueue' when 'purgeQueue' was called during active timout
+- fixed anonymous function for FDT compatibility of Scaffold project
+
+version 1.4 - 2013-09-23
+------------------------
+
+- added 'Sprite.clipRect' property for simple rectangular masking (thanks to Tim Conkling)
+- added 'DisplacementMapFilter'
+- added support for 'HiDPI' (i.e. retina MacBooks)
+- added support for RectangleTextures introduced in AIR 3.8
+- added support for updated ATF file format
+- added 'Texture.root.onRestore()' for manual texture restoration on context loss
+- added 'Texture.fromEmbeddedAsset()'
+- added 'TextField.autoSize' (thanks to Tim Conkling)
+- added 'AssetManager.enqueueWithName()' for custom naming of assets
+- added protected 'AssetManager.getName()' for custom naming rules in subclasses
+- added protected 'TextField.formatText()' for subclassing (thanks to Grant Mathews)
+- added support for generic XML, ByteArrays and JSON data to AssetManager
+- added 'Stage.drawToBitmapData()' method for game screenshots
+- added 'TextureAtlas.texture' property
+- added 'Tween.getEndValue()' (thanks to Josh Tynjala)
+- added 'Tween.getProgress()'
+- added 'Quad.premultipliedAlpha' (for consistency)
+- added 'AssetManager.checkPolicyFile'
+- added 'AssetManager.purgeQueue()' method: empties the queue & stops all pending load operations
+- added Event.TEXTURES_RESTORED, dispatched by AssetManager after context loss
+- added 'TextField.redraw()' method to force immediate drawing of contents
+- added 'DisplayObject.alignPivot()' for simple object alignment
+- added optional 'id' paramter to 'TouchEvent.getTouch()' method
+- added optional QuadBatch batching via 'QuadBatch.batchable'
+- added 'RenderSupport.getTextureLookupFlags()'
+- added 'Image.setTexCoordsTo()' method
+- added 'Texture.adjustTexCoords()' method
+- added support for all new Stage3D texture formats (including runtime compression on Desktop)
+- added support for custom TouchProcessors (thanks to Tim Conkling)
+- added 'suspendRendering' argument to 'Starling.stop()' method (for AIR 3.9 background execution)
+- added more vertex & quad manipulation methods to QuadBatch
+- optimized broadcast of ENTER_FRAME event
+- optimized rendering by doing copy-transform simultaneously
+- optimized 'DisplayObject.transformationMatrix' calculations (thanks to Ville Koskela)
+- optimized hidden object allocations on iOS (thanks to Nisse Bryngfors & Adobe Scout)
+- optimized handling of texture recreation in case of a context loss (requires much less memory)
+- optimized usage of QuadBatches used during rendering (now trimming them)
+- optimized 'Button' by removing TextField when text is empty String
+- optimized 'DisplayObjectContainer.setChildIndex()' (thanks to Josh Tynjala)
+- updated filename / URL parsing of AssetManager to be more robust (thanks to peerobo)
+- updated Keyboard events: they are now broadcasted to all display objects
+- updated 'transporter_chief.rb' to use 'iOS-deploy' instead of 'fruitstrap'
+- updated the region a filter draws into (now limited to object bounds + margin)
+- updated bitmap font registration to be case insensitive
+- updated AssetManager to use texture file name as name for bitmap font
+- updated QuadBatch: 'QuadBatch.mVertexData' is now protected, analog to 'Quad'
+- updated Ant build-file to include ASDoc data in starling SWC
+- fixed multitouch support on devices with both mouse and touch screen
+- fixed that AssetManager sometimes never finished loading the queue
+- fixed 'MovieClip.totalTime' calculations to avoid floating point errors
+- fixed some problems with special cases within 'MovieClip.advanceTime()'
+- fixed layout of monospace bitmap fonts
+- fixed unwanted context3D-recreation in 'Starling.dispose()' (thanks to Sebastian Marketsmüller)
+- fixed various errors in VertexData (thanks to hamidhomatash)
+- fixed missing pivotX/Y-updates in 'DisplayObject.transformationMatrix' setter
+- fixed native TextField padding value
+- fixed that small filtered objects would cause frequent texture uploads
+- fixed that 'DisplayObjectContainer.sortChildren()' used an unstable sorting algorithm
+- fixed 'VertexData.getBounds()' for empty object
+- fixed recursion error when applying filter on flattened object
+- fixed dispatching of ADDED events when child was re-added to the same parent
+- fixed missing HOVER event after ended Touches (caused hand-cursor to appear only after movement)
+- fixed that clipping rectangle sometimes did not intersect framebuffer, leading to an error
+- fixed TextField errors when the TextField-area was empty
+- fixed UTF-8/16/32 recognition in AssetManager
+
 version 1.3 - 2013-01-14
 ------------------------
 

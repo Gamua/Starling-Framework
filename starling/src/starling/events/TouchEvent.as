@@ -100,7 +100,7 @@ package starling.events
                 var correctPhase:Boolean = (phase == null || phase == touch.phase);
                     
                 if (correctTarget && correctPhase)
-                    result.push(touch);
+                    result[result.length] = touch; // avoiding 'push'
             }
             return result;
         }
@@ -137,26 +137,28 @@ package starling.events
         /** Indicates if a target is currently being touched or hovered over. */
         public function interactsWith(target:DisplayObject):Boolean
         {
-            if (getTouch(target) == null)
-                return false;
-            else
+            var result:Boolean = false;
+            getTouches(target, null, sTouches);
+            
+            for (var i:int=sTouches.length-1; i>=0; --i)
             {
-                var touches:Vector.<Touch> = getTouches(target);
-                
-                for (var i:int=touches.length-1; i>=0; --i)
-                    if (touches[i].phase != TouchPhase.ENDED)
-                        return true;
-                
-                return false;
+                if (sTouches[i].phase != TouchPhase.ENDED)
+                {
+                    result = true;
+                    break;
+                }
             }
+            
+            sTouches.length = 0;
+            return result;
         }
-
+        
         // custom dispatching
         
         /** @private
          *  Dispatches the event along a custom bubble chain. During the lifetime of the event,
          *  each object is visited only once. */
-        starling_internal function dispatch(chain:Vector.<EventDispatcher>):void
+        internal function dispatch(chain:Vector.<EventDispatcher>):void
         {
             if (chain && chain.length)
             {
@@ -170,7 +172,7 @@ package starling.events
                     if (mVisitedObjects.indexOf(chainElement) == -1)
                     {
                         var stopPropagation:Boolean = chainElement.invokeEvent(this);
-                        mVisitedObjects.push(chainElement);
+                        mVisitedObjects[mVisitedObjects.length] = chainElement;
                         if (stopPropagation) break;
                     }
                 }

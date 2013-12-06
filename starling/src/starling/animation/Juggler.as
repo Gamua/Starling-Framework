@@ -132,8 +132,8 @@ package starling.animation
             }
         }
         
-        /** Delays the execution of a function until a certain time has passed. Creates an
-         *  object of type 'DelayedCall' internally and returns it. Remove that object
+        /** Delays the execution of a function until <code>delay</code> seconds have passed.
+         *  Creates an object of type 'DelayedCall' internally and returns it. Remove that object
          *  from the juggler to cancel the function call. */
         public function delayCall(call:Function, delay:Number, ...args):DelayedCall
         {
@@ -144,8 +144,8 @@ package starling.animation
             return delayedCall;
         }
         
-        /** Utilizes a tween to animate the target object over a certain time. Internally, this
-         *  method uses a tween instance (taken from an object pool) that is added to the
+        /** Utilizes a tween to animate the target object over <code>time</code> seconds. Internally,
+         *  this method uses a tween instance (taken from an object pool) that is added to the
          *  juggler right away. This method provides a convenient alternative for creating 
          *  and adding a tween manually.
          *  
@@ -236,7 +236,7 @@ package starling.animation
                 add(tween.nextTween);
         }
         
-        /** The total life time of the juggler. */
+        /** The total life time of the juggler (in seconds). */
         public function get elapsedTime():Number { return mElapsedTime; }        
     }
 }

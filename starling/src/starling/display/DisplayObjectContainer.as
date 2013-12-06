@@ -112,20 +112,27 @@ package starling.display
             
             if (index >= 0 && index <= numChildren)
             {
-                child.removeFromParent();
-                
-                // 'splice' creates a temporary object, so we avoid it if it's not necessary
-                if (index == numChildren) mChildren.push(child);
-                else                      mChildren.splice(index, 0, child);
-                
-                child.setParent(this);
-                child.dispatchEventWith(Event.ADDED, true);
-                
-                if (stage)
+                if (child.parent == this)
                 {
-                    var container:DisplayObjectContainer = child as DisplayObjectContainer;
-                    if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
-                    else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
+                    setChildIndex(child, index); // avoids dispatching events
+                }
+                else
+                {
+                    child.removeFromParent();
+                    
+                    // 'splice' creates a temporary object, so we avoid it if it's not necessary
+                    if (index == numChildren) mChildren[numChildren] = child;
+                    else                      mChildren.splice(index, 0, child);
+                    
+                    child.setParent(this);
+                    child.dispatchEventWith(Event.ADDED, true);
+                    
+                    if (stage)
+                    {
+                        var container:DisplayObjectContainer = child as DisplayObjectContainer;
+                        if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
+                        else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
+                    }
                 }
                 
                 return child;
@@ -214,6 +221,7 @@ package starling.display
         public function setChildIndex(child:DisplayObject, index:int):void
         {
             var oldIndex:int = getChildIndex(child);
+            if (oldIndex == index) return;
             if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
             mChildren.splice(oldIndex, 1);
             mChildren.splice(index, 0, child);
@@ -429,13 +437,14 @@ package starling.display
             }
         }
         
-        private function getChildEventListeners(object:DisplayObject, eventType:String, 
-                                                listeners:Vector.<DisplayObject>):void
+        /** @private */
+        internal function getChildEventListeners(object:DisplayObject, eventType:String, 
+                                                 listeners:Vector.<DisplayObject>):void
         {
             var container:DisplayObjectContainer = object as DisplayObjectContainer;
             
             if (object.hasEventListener(eventType))
-                listeners.push(object);
+                listeners[listeners.length] = object; // avoiding 'push'                
             
             if (container)
             {
