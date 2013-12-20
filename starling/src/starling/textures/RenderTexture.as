@@ -77,7 +77,7 @@ package starling.textures
             mActiveTexture = Texture.empty(width, height, PMA, false, true, scale);
             mActiveTexture.root.onRestore = mActiveTexture.root.clear;
             
-            super(mActiveTexture, new Rectangle(0, 0, width, height), true);
+            super(mActiveTexture, new Rectangle(0, 0, width, height), true, null, false);
             
             var rootWidth:Number  = mActiveTexture.root.width;
             var rootHeight:Number = mActiveTexture.root.height;

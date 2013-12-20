@@ -102,7 +102,6 @@ package starling.textures
      */ 
     public class Texture
     {
-        private var mFrame:Rectangle;
         private var mRepeat:Boolean;
         
         /** @private */
@@ -349,11 +348,9 @@ package starling.textures
         /** Creates a texture that contains a region (in pixels) of another texture. The new
          *  texture will reference the base texture; no data is duplicated. */
         public static function fromTexture(texture:Texture, region:Rectangle=null,
-                                           frame:Rectangle=null):Texture
+                                           frame:Rectangle=null, rotated:Boolean=false):Texture
         {
-            var subTexture:Texture = new SubTexture(texture, region);   
-            subTexture.mFrame = frame;
-            return subTexture;
+            return new SubTexture(texture, region, false, frame, rotated);
         }
         
         /** Converts texture coordinates and vertex positions of raw vertex data into the format 
@@ -364,19 +361,7 @@ package starling.textures
          */
         public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
-            if (mFrame)
-            {
-                if (count != 4) 
-                    throw new ArgumentError("Textures with a frame can only be used on quads");
-                
-                var deltaRight:Number  = mFrame.width  + mFrame.x - width;
-                var deltaBottom:Number = mFrame.height + mFrame.y - height;
-                
-                vertexData.translateVertex(vertexID,     -mFrame.x, -mFrame.y);
-                vertexData.translateVertex(vertexID + 1, -deltaRight, -mFrame.y);
-                vertexData.translateVertex(vertexID + 2, -mFrame.x, -deltaBottom);
-                vertexData.translateVertex(vertexID + 3, -deltaRight, -deltaBottom);
-            }
+            // override in subclass
         }
         
         /** Converts texture coordinates into the format required for rendering. While the texture
@@ -400,14 +385,9 @@ package starling.textures
         // properties
         
         /** The texture frame (see class description). */
-        public function get frame():Rectangle 
+        public function get frame():Rectangle
         { 
-            return mFrame ? mFrame.clone() : new Rectangle(0, 0, width, height);
-            
-            // the frame property is readonly - set the frame in the 'fromTexture' method.
-            // why is it readonly? To be able to efficiently cache the texture coordinates on
-            // rendering, textures need to be immutable (except 'repeat', which is not cached,
-            // anyway).
+            return new Rectangle(0, 0, width, height);
         }
         
         /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.

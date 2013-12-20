@@ -111,5 +111,22 @@ package starling.utils
             
             return 1.0 / divisor;
         }
+        
+        /** If the rectangle contains negative values for width or height, all coordinates
+         *  are adjusted so that the rectangle describes the same region with positive values. */
+        public static function normalize(rect:Rectangle):void
+        {
+            if (rect.width < 0)
+            {
+                rect.width = -rect.width;
+                rect.x -= rect.width;
+            }
+            
+            if (rect.height < 0)
+            {
+                rect.height = -rect.height;
+                rect.y -= rect.height;
+            }
+        }
     }
 }
