@@ -227,12 +227,7 @@ package starling.filters
             // save original projection matrix and render target
             mProjMatrix.copyFrom(support.projectionMatrix); 
             var previousRenderTarget:Texture = support.renderTarget;
-            
-            if (previousRenderTarget)
-                throw new IllegalOperationError(
-                    "It's currently not possible to stack filters! " +
-                    "This limitation will be removed in a future Stage3D version.");
-            
+
             if (intoCache) 
                 cacheTexture = Texture.empty(sBoundsPot.width, sBoundsPot.height, PMA, false, true, 
                                              mResolution * scale);
@@ -266,17 +261,17 @@ package starling.filters
                 }
                 else // final pass
                 {
-                    if (intoCache)
+                    if (intoCache || previousRenderTarget)
                     {
                         // draw into cache texture
-                        support.renderTarget = cacheTexture;
+                        support.renderTarget = cacheTexture ? cacheTexture: previousRenderTarget;
                         support.clear();
                     }
                     else
                     {
                         // draw into back buffer, at original (stage) coordinates
                         support.projectionMatrix = mProjMatrix;
-                        support.renderTarget = previousRenderTarget;
+                        support.renderTarget = null;
                         support.translateMatrix(mOffsetX, mOffsetY);
                         support.blendMode = object.blendMode;
                         support.applyBlendMode(PMA);
@@ -378,10 +373,10 @@ package starling.filters
          *  rectangles: one with the exact filter bounds, the other with an extended rectangle that
          *  will yield to a POT size when multiplied with the current scale factor / resolution.
          */
-        private function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
-                                         intersectWithStage:Boolean, 
-                                         resultRect:Rectangle,
-                                         resultPotRect:Rectangle):void
+        protected function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
+                                           intersectWithStage:Boolean, 
+                                           resultRect:Rectangle,
+                                           resultPotRect:Rectangle):void
         {
             var marginX:Number, marginY:Number;
             
