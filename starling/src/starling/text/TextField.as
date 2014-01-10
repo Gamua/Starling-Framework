@@ -80,6 +80,10 @@ package starling.text
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
         
+        // the texture format that is used for TTF rendering
+        private static var sDefaultTextureFormat:String =
+            "BGRA_PACKED" in Context3DTextureFormat ? "bgraPacked4444" : "bgra";
+            
         private var mFontSize:Number;
         private var mColor:uint;
         private var mText:String;
@@ -179,8 +183,7 @@ package starling.text
             
             var scale:Number  = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
-            var format:String = "BGRA_PACKED" in Context3DTextureFormat ? 
-                                "bgraPacked4444" : "bgra";
+            var format:String = sDefaultTextureFormat;
             
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
@@ -642,6 +645,16 @@ package starling.text
             
             mNativeFilters = value.concat();
             mRequiresRedraw = true;
+        }
+        
+        /** The Context3D texture format that is used for rendering of all TrueType texts.
+         *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good
+         *  compromise between quality and memory consumption; use <pre>BGRA</pre> for
+         *  the highest quality. */
+        public static function get defaultTextureFormat():String { return sDefaultTextureFormat; }
+        public static function set defaultTextureFormat(value:String):void
+        {
+            sDefaultTextureFormat = value;
         }
         
         /** Makes a bitmap font available at any TextField in the current stage3D context.
