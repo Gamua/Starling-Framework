@@ -642,7 +642,7 @@ package com.adobe.utils
 		// samplers
 		private static const D2:String							= "2d";
 		private static const D3:String							= "3d";
-		private static const CUBE:String						= "cube";
+		private static const CUBE:String						= "figure";
 		private static const MIPNEAREST:String					= "mipnearest";
 		private static const MIPLINEAR:String					= "miplinear";
 		private static const MIPNONE:String						= "mipnone";
