@@ -136,17 +136,19 @@ package starling.textures
          *                  render target
          *  @param scale:   the scale factor of the created texture.
          *  @param format:  the context3D texture format to use. Ignored for ATF data.
+         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
                                                  optimizeForRenderToTexture:Boolean=false,
-                                                 scale:Number=1, format:String="bgra"):Texture
+                                                 scale:Number=1, format:String="bgra",
+                                                 repeat:Boolean=false):Texture
         {
             var texture:Texture;
             var asset:Object = new assetClass();
             
             if (asset is Bitmap)
             {
-                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale, format);
+                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale, format, repeat);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -154,7 +156,7 @@ package starling.textures
             }
             else if (asset is ByteArray)
             {
-                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping);
+                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null, repeat);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadAtfData(new assetClass()); 
@@ -182,13 +184,15 @@ package starling.textures
          *  @param format:  the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality). 
+         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true,
                                           optimizeForRenderToTexture:Boolean=false,
-                                          scale:Number=1, format:String="bgra"):Texture
+                                          scale:Number=1, format:String="bgra",
+                                          repeat:Boolean=false):Texture
         {
             return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture, 
-                                  scale, format);
+                                  scale, format, repeat);
         }
         
         /** Creates a texture object from bitmap data.
@@ -204,14 +208,16 @@ package starling.textures
          *  @param format:  the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
+         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
                                               optimizeForRenderToTexture:Boolean=false,
-                                              scale:Number=1, format:String="bgra"):Texture
+                                              scale:Number=1, format:String="bgra",
+                                              repeat:Boolean=false):Texture
         {
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true, 
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
-                                                format);
+                                                format, repeat);
             
             texture.root.uploadBitmapData(data);
             texture.root.onRestore = function():void
@@ -231,7 +237,7 @@ package starling.textures
          *  asynchronously. It can only be used when the callback has been executed. This is the
          *  expected function definition: <code>function(texture:Texture):void;</code></p> */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true, 
-                                           async:Function=null):Texture
+                                           async:Function=null, repeat:Boolean=false):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -241,7 +247,7 @@ package starling.textures
                 atfData.width, atfData.height, atfData.format, false);
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1, 
-                false, false, scale);
+                false, false, scale, repeat);
             
             concreteTexture.uploadAtfData(data, 0, async);
             concreteTexture.onRestore = function():void
@@ -292,10 +298,11 @@ package starling.textures
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format: the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory (at the price of reduced image quality).
+         *  @param repeat: the repeat mode of the texture. Only useful for power-of-two textures.
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
                                      mipMapping:Boolean=true, optimizeForRenderToTexture:Boolean=false,
-                                     scale:Number=-1, format:String="bgra"):Texture
+                                     scale:Number=-1, format:String="bgra", repeat:Boolean=false):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
@@ -310,7 +317,7 @@ package starling.textures
             var potWidth:int   = getNextPowerOfTwo(origWidth);
             var potHeight:int  = getNextPowerOfTwo(origHeight);
             var isPot:Boolean  = (origWidth == potWidth && origHeight == potHeight);
-            var useRectTexture:Boolean = !isPot && !mipMapping &&
+            var useRectTexture:Boolean = !mipMapping && !repeat &&
                 Starling.current.profile != "baselineConstrained" &&
                 "createRectangleTexture" in context && format.indexOf("compressed") == -1;
             
@@ -335,7 +342,7 @@ package starling.textures
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
                 actualWidth, actualHeight, mipMapping, premultipliedAlpha,
-                optimizeForRenderToTexture, scale);
+                optimizeForRenderToTexture, scale, repeat);
             
             concreteTexture.onRestore = concreteTexture.clear;
             
@@ -393,8 +400,7 @@ package starling.textures
         /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
          *  Note: this only works in textures with sidelengths that are powers of two and 
          *  that are not loaded from a texture atlas (i.e. no subtextures). @default false */
-        public function get repeat():Boolean { return mRepeat; }
-        public function set repeat(value:Boolean):void { mRepeat = value; }
+        public function get repeat():Boolean { return false; }
         
         /** The width of the texture in points. */
         public function get width():Number { return 0; }
