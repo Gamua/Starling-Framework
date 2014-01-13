@@ -636,6 +636,15 @@ package starling.display
             }
         }
         
+        /** The x,y coordinates of the object's origin in it's own coordinate space (default: 0,0) */
+        public function get pivot():Point { return new Point( mPivotX, mPivotY ); }
+        public function set pivot(value:Point):void 
+        {
+            pivotX = value.x;
+            pivotY = value.y;
+        }
+        
+        
         /** The horizontal scale factor. '1' means no scale, negative values flip the object. */
         public function get scaleX():Number { return mScaleX; }
         public function set scaleX(value:Number):void 
