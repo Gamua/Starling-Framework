@@ -102,8 +102,6 @@ package starling.textures
      */ 
     public class Texture
     {
-        private var mRepeat:Boolean;
-        
         /** @private */
         public function Texture()
         {
@@ -112,8 +110,6 @@ package starling.textures
             {
                 throw new AbstractClassError();
             }
-            
-            mRepeat = false;
         }
         
         /** Disposes the underlying texture data. Note that not all textures need to be disposed: 
