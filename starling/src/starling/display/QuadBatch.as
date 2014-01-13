@@ -67,7 +67,7 @@ package starling.display
     public class QuadBatch extends DisplayObject
     {
         /** The maximum number of quads that can be displayed by one QuadBatch. */
-        public static const MAX_NUM_QUADS:int = 8192;
+        public static const MAX_NUM_QUADS:int = 16383;
         
         private static const QUAD_PROGRAM_NAME:String = "QB_q";
         
