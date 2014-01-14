@@ -18,9 +18,7 @@ package starling.textures
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
-    import flash.utils.clearTimeout;
     import flash.utils.getQualifiedClassName;
-    import flash.utils.setTimeout;
     
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
