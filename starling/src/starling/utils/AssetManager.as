@@ -29,6 +29,7 @@ package starling.utils
     import starling.textures.AtfData;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
+    import starling.textures.TextureOptions;
     
     /** Dispatched when all textures have been restored after a context loss. */
     [Event(name="texturesRestored", type="starling.events.Event")]
@@ -64,8 +65,7 @@ package starling.utils
      */
     public class AssetManager extends EventDispatcher
     {
-        private var mScaleFactor:Number;
-        private var mUseMipMaps:Boolean;
+        private var mDefaultTextureOptions:TextureOptions;
         private var mCheckPolicyFile:Boolean;
         private var mVerbose:Boolean;
         private var mNumLostTextures:int;
@@ -90,9 +90,8 @@ package starling.utils
          *  how enqueued bitmaps will be converted to textures. */
         public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
         {
+            mDefaultTextureOptions = new TextureOptions(scaleFactor, useMipmaps);
             mVerbose = mCheckPolicyFile = mIsLoading = false;
-            mScaleFactor = scaleFactor > 0 ? scaleFactor : Starling.contentScaleFactor;
-            mUseMipMaps = useMipmaps;
             mQueue = [];
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
@@ -459,20 +458,30 @@ package starling.utils
             }
         }
         
-        /** Enqueues a single asset with a custom name that can be used to access it later. 
-         *  If you don't pass a name, it's attempted to generate it automatically.
-         *  @returns the name under which the asset was registered. */
-        public function enqueueWithName(asset:Object, name:String=null):String
+        /** Enqueues a single asset with a custom name that can be used to access it later.
+         *  If the asset is a texture, you can also add custom texture options.
+         *  
+         *  @param asset:   The asset that will be enqueued; accepts the same objects as the
+         *                  'enqueue' method.
+         *  @param name:    The name under which the asset will be found later. If you pass null or
+         *                  omit the parameter, it's attempted to generate a name automatically.
+         *  @param options: Custom options that will be used if 'asset' points to texture data.
+         *  @returns:       the name under which the asset was registered. */
+        public function enqueueWithName(asset:Object, name:String=null,
+                                        options:TextureOptions=null):String
         {
             if (getQualifiedClassName(asset) == "flash.filesystem::File")
                 asset = asset["url"];
             
             if (name == null) name = getName(asset);
+            if (options == null) options = mDefaultTextureOptions;
+            
             log("Enqueuing '" + name + "'");
             
             mQueue.push({
                 name: name,
-                asset: asset
+                asset: asset,
+                options: options
             });
             
             return name;
@@ -525,7 +534,8 @@ package starling.utils
             {
                 var assetInfo:Object = mQueue.pop();
                 clearTimeout(mTimeoutID);
-                processRawAsset(assetInfo.name, assetInfo.asset, xmls, progress, resume);
+                processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
+                                xmls, progress, resume);
             }
             
             function processXmls():void
@@ -582,7 +592,8 @@ package starling.utils
             }
         }
         
-        private function processRawAsset(name:String, rawAsset:Object, xmls:Vector.<XML>,
+        private function processRawAsset(name:String, rawAsset:Object, options:TextureOptions,
+                                         xmls:Vector.<XML>,
                                          onProgress:Function, onComplete:Function):void
         {
             var canceled:Boolean = false;
@@ -610,7 +621,7 @@ package starling.utils
                 }
                 else if (asset is Bitmap)
                 {
-                    texture = Texture.fromBitmap(asset as Bitmap, mUseMipMaps, false, mScaleFactor);
+                    texture = Texture.fromData(asset, options);
                     texture.root.onRestore = function():void
                     {
                         mNumLostTextures++;
@@ -637,7 +648,8 @@ package starling.utils
                     
                     if (AtfData.isAtfData(bytes))
                     {
-                        texture = Texture.fromAtfData(bytes, mScaleFactor, mUseMipMaps, onComplete);
+                        options.onReady = onComplete;
+                        texture = Texture.fromData(bytes, options);
                         texture.root.onRestore = function():void
                         {
                             mNumLostTextures++;
@@ -890,13 +902,13 @@ package starling.utils
         /** For bitmap textures, this flag indicates if mip maps should be generated when they 
          *  are loaded; for ATF textures, it indicates if mip maps are valid and should be
          *  used. */
-        public function get useMipMaps():Boolean { return mUseMipMaps; }
-        public function set useMipMaps(value:Boolean):void { mUseMipMaps = value; }
+        public function get useMipMaps():Boolean { return mDefaultTextureOptions.mipMapping; }
+        public function set useMipMaps(value:Boolean):void { mDefaultTextureOptions.mipMapping = value; }
         
         /** Textures that are created from Bitmaps or ATF files will have the scale factor 
          *  assigned here. */
-        public function get scaleFactor():Number { return mScaleFactor; }
-        public function set scaleFactor(value:Number):void { mScaleFactor = value; }
+        public function get scaleFactor():Number { return mDefaultTextureOptions.scale; }
+        public function set scaleFactor(value:Number):void { mDefaultTextureOptions.scale = value; }
         
         /** Specifies whether a check should be made for the existence of a URL policy file before
          *  loading an object from a remote server. More information about this topic can be found 

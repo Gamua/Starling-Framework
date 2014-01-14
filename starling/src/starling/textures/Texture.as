@@ -18,7 +18,9 @@ package starling.textures
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
+    import flash.utils.clearTimeout;
     import flash.utils.getQualifiedClassName;
+    import flash.utils.setTimeout;
     
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
@@ -119,6 +121,43 @@ package starling.textures
         public function dispose():void
         { 
             // override in subclasses
+        }
+        
+        /** Creates a texture object from any of the supported data types, using the specified
+         *  options.
+         * 
+         *  @param data:    Either an embedded asset class, a Bitmap, BitmapData, or a ByteArray
+         *                  with ATF data.
+         *  @param options: Specifies options about the texture settings, e.g. scale factor.
+         */
+        public static function fromData(data:Object, options:TextureOptions=null):Texture
+        {
+            var texture:Texture = null;
+            
+            if (data is Bitmap)  data = (data as Bitmap).bitmapData;
+            if (options == null) options = new TextureOptions();
+            
+            if (data is Class)
+            {
+                texture = fromEmbeddedAsset(data as Class,
+                    options.mipMapping, options.optimizeForRenderToTexture, options.scale,
+                    options.format, options.repeat);
+            }
+            else if (data is BitmapData)
+            {
+                texture = fromBitmapData(data as BitmapData,
+                    options.mipMapping, options.optimizeForRenderToTexture, options.scale,
+                    options.format, options.repeat);
+            }
+            else if (data is ByteArray)
+            {
+                texture = fromAtfData(data as ByteArray,
+                    options.scale, options.mipMapping, options.onReady, options.repeat);
+            }
+            else
+                throw new ArgumentError("Unsupported 'data' type: " + getQualifiedClassName(data));
+            
+            return texture;
         }
         
         /** Creates a texture object from an embedded asset class. Textures created with this
