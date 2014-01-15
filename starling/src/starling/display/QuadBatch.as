@@ -94,22 +94,19 @@ package starling.display
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         private static var sRenderMatrix:Matrix3D = new Matrix3D();
         
-        /** Program arrays */
-        private static const MAX_NUM_PROGRAMS : uint = 128;
-        private var mPrograms : Vector.<Program3D> = new Vector.<Program3D>(MAX_NUM_PROGRAMS);
+        /** Program strings to help when we create a new program */
         private static const sBasicVertexProgram : Vector.<String> = new <String>[
                 "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
-                "mul v0, va1, vc0 \n" + // multiply alpha (vc0) with color (va1)
                 "mov v1, va2      \n"   // pass texture coordinates to fragment program
               ,
                 "m44 op, va0, vc1 \n" + // 4x4 matrix transform to output clipspace
+                "mul v0, va1, vc0 \n" + // multiply alpha (vc0) with color (va1)
                 "mov v1, va2      \n"]; // pass texture coordinates to fragment program
         private static const sBasicFragmentProgram : Vector.<String> = new <String>[
-                "tex ft1,  v1, fs0 <???> \n" + // sample texture 0
-                "mul  oc, ft1,  v0       \n"   // multiply color with texel color
+                "tex  oc,  v1, fs0 <???> \n"   // sample texture 0
               ,
-                "tex  oc,  v1, fs0 <???> \n"]; // sample texture 0
-
+                "tex ft1,  v1, fs0 <???> \n" + // sample texture 0
+                "mul  oc, ft1,  v0       \n"]; // multiply color with texel color
                 
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
@@ -658,15 +655,13 @@ package starling.display
         
         private function getProgram(tinted:Boolean) : Program3D
         {
-            // get the bitfield for this program
-            var bitField:uint = 0;
-            if (!mTexture)
+            var target:Starling = Starling.current;
+            // get the name: default to the quad unless we have a texture
+            var programName:String = QUAD_PROGRAM_NAME;
+            if (mTexture)
             {
-                // it's just a quad
-                bitField = MAX_NUM_PROGRAMS-1; // all 1s = quad program
-            }
-            else
-            {
+                // get the bitfield for this program to work out the name
+                var bitField:uint = 0;
                 if (tinted)                                                 bitField |= 1;
                 if (mTexture.mipMapping)                                    bitField |= 1 << 1;
                 if (mTexture.repeat)                                        bitField |= 1 << 2;
@@ -674,17 +669,19 @@ package starling.display
                 else if (mSmoothing == TextureSmoothing.TRILINEAR)          bitField |= 1 << 4;
                 if (mTexture.format == Context3DTextureFormat.COMPRESSED)   bitField |= 1 << 5;
                 else if (mTexture.format == "compressedAlpha")              bitField |= 1 << 6;
+                programName = "QB_i." + bitField.toString(16);
             }
-            
-            var prog = mPrograms[bitField];
+
+            // retreive the program from our main dictionary
+            var prog : Program3D = target.getProgram(programName);
             if (!prog)
             {
                 // create it
                 var assembler:AGALMiniAssembler = new AGALMiniAssembler();
                 var vertexProgramCode:String;
                 var fragmentProgramCode:String;
-                
-                // special case:
+
+                // special case for no texture i.e. quad
                 if (!mTexture)
                 {
                     // quad
@@ -694,23 +691,22 @@ package starling.display
                     fragmentProgramCode =
                         "mov oc, v0       \n";  // output color
                 }
+                // image types:
                 else
                 {
-                    // from our static strings using the lsb (tinted)
-                    vertexProgramCode = sBasicVertexProgram[bitField & 1];
-                    var tmpFragment : String = sBasicFragmentProgram[bitField & 1];
-                    
+                    // from our static strings using the "tinted" field
+                    vertexProgramCode = sBasicVertexProgram[int(tinted)];
+                    var tmpFragment : String = sBasicFragmentProgram[int(tinted)];
+
                     // replace the ???
                     var flags:String = RenderSupport.getTextureLookupFlags(
                         mTexture.format, mTexture.mipMapping, mTexture.repeat, mSmoothing);
                     fragmentProgramCode = tmpFragment.replace("<???>", flags);
-                    
                 }
-                // we need a name still for the core.Starling object to use in the cache
-                prog = Starling.current.registerProgram("QB_i." + bitField.toString(16),
+                // create the program
+                prog = target.registerProgram(programName,
                                     assembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode),
                                     assembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode) );
-                mPrograms[bitField] = prog;
             }
             return prog;
         }
