@@ -206,11 +206,15 @@ package starling.core
          *                    already contains a context, <code>sharedContext</code> will be set
          *                    to <code>true</code>. @default the first available Stage3D.
          *  @param renderMode Use this parameter to force "software" rendering. 
-         *  @param profile    The Context3DProfile that should be requested.
+         *  @param profile    The Context3D profile that should be requested. If you pass a single
+         *                    String, this profile is enforced; alternatively, you can pass an
+         *                    Array/Vector of profiles, from which the best available will
+         *                    be chosen. The default ('auto') makes Starling pick the best
+         *                    available profile automatically.
          */
         public function Starling(rootClass:Class, stage:flash.display.Stage, 
                                  viewPort:Rectangle=null, stage3D:Stage3D=null,
-                                 renderMode:String="auto", profile:String="baselineConstrained") 
+                                 renderMode:String="auto", profile:Object="auto")
         {
             if (stage == null) throw new ArgumentError("Stage must not be null");
             if (rootClass == null) throw new ArgumentError("Root class must not be null");
@@ -233,7 +237,6 @@ package starling.core
             mAntiAliasing = 0;
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
-            mProfile = profile;
             mSupportHighResolutions = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mSupport  = new RenderSupport();
@@ -269,20 +272,7 @@ package starling.core
             else
             {
                 mShareContext = false;
-                
-                try
-                {
-                    // "Context3DProfile" is only available starting with Flash Player 11.4/AIR 3.4.
-                    // to stay compatible with older versions, we check if the parameter is available.
-                    
-                    var requestContext3D:Function = mStage3D.requestContext3D;
-                    if (requestContext3D.length == 1) requestContext3D(renderMode);
-                    else requestContext3D(renderMode, profile);
-                }
-                catch (e:Error)
-                {
-                    showFatalError("Context3D error: " + e.message);
-                }
+                requestContext3D(stage3D, renderMode, profile);
             }
         }
         
@@ -324,6 +314,45 @@ package starling.core
         
         // functions
         
+        private function requestContext3D(stage3D:Stage3D, renderMode:String, profile:Object):void
+        {
+            var supportsProfileArray:Boolean = "requestContext3DMatchingProfiles" in stage3D;
+            var profiles:Vector.<String>;
+            
+            if (profile == "auto")
+                profiles = new <String>["baselineConstrained", "baseline", "baselineExtended"];
+            else if (profile is String)
+                profiles = new <String>[profile as String];
+            else if (profile is Array)
+            {
+                profiles = new <String>[];
+                
+                for (var i:int=0; i<profile.length; ++i)
+                    profiles[i] = profile[i];
+            }
+            
+            try
+            {
+                if (profiles.length == 1 || !supportsProfileArray)
+                {
+                    mProfile = profiles[0];
+                    stage3D.requestContext3D(renderMode, mProfile);
+                }
+                else
+                {
+                    if (renderMode != "auto")
+                        trace("[Starling] Warning: Automatic profile selection " +
+                              "forces renderMode to 'auto'.");
+                    
+                    stage3D["requestContext3DMatchingProfiles"](profiles);
+                }
+            }
+            catch (e:Error)
+            {
+                showFatalError("Context3D error: " + e.message);
+            }
+        }
+        
         private function initialize():void
         {
             makeCurrent();
@@ -340,6 +369,9 @@ package starling.core
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
             contextData[PROGRAM_DATA_NAME] = new Dictionary();
+            
+            if (mProfile == null)
+                mProfile = mContext["profile"];
             
             updateViewPort(true);
             
