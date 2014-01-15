@@ -466,7 +466,7 @@ package starling.utils
          *  @param name:    The name under which the asset will be found later. If you pass null or
          *                  omit the parameter, it's attempted to generate a name automatically.
          *  @param options: Custom options that will be used if 'asset' points to texture data.
-         *  @returns:       the name under which the asset was registered. */
+         *  @return         the name under which the asset was registered. */
         public function enqueueWithName(asset:Object, name:String=null,
                                         options:TextureOptions=null):String
         {
