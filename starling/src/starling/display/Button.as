@@ -83,7 +83,8 @@ package starling.display
         public override function dispose():void
         {
             // text field might be disconnected from parent, so we have to dispose it manually
-            mTextField.dispose();
+            if (mTextField)
+                mTextField.dispose();
             
             super.dispose();
         }
