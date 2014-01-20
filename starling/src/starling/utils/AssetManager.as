@@ -109,6 +109,12 @@ package starling.utils
             
             for each (var atlas:TextureAtlas in mAtlases)
                 atlas.dispose();
+            
+            for each (var xml:XML in mXmls)
+                System.disposeXML(xml);
+            
+            for each (var byteArray:ByteArray in mByteArrays)
+                byteArray.clear();
         }
         
         // retrieving
@@ -227,29 +233,40 @@ package starling.utils
         
         // direct adding
         
-        /** Register a texture under a certain name. It will be available right away. */
+        /** Register a texture under a certain name. It will be available right away.
+         *  If the name was already taken, the existing texture will be disposed and replaced
+         *  by the new one. */
         public function addTexture(name:String, texture:Texture):void
         {
             log("Adding texture '" + name + "'");
             
             if (name in mTextures)
+            {
                 log("Warning: name was already in use; the previous texture will be replaced.");
+                mTextures[name].dispose();
+            }
             
             mTextures[name] = texture;
         }
         
-        /** Register a texture atlas under a certain name. It will be available right away. */
+        /** Register a texture atlas under a certain name. It will be available right away. 
+         *  If the name was already taken, the existing atlas will be disposed and replaced
+         *  by the new one. */
         public function addTextureAtlas(name:String, atlas:TextureAtlas):void
         {
             log("Adding texture atlas '" + name + "'");
             
             if (name in mAtlases)
+            {
                 log("Warning: name was already in use; the previous atlas will be replaced.");
+                mAtlases[name].dispose();
+            }
             
             mAtlases[name] = atlas;
         }
         
-        /** Register a sound under a certain name. It will be available right away. */
+        /** Register a sound under a certain name. It will be available right away.
+         *  If the name was already taken, the existing sound will be replaced by the new one. */
         public function addSound(name:String, sound:Sound):void
         {
             log("Adding sound '" + name + "'");
@@ -260,18 +277,24 @@ package starling.utils
             mSounds[name] = sound;
         }
         
-        /** Register an XML object under a certain name. It will be available right away. */
+        /** Register an XML object under a certain name. It will be available right away.
+         *  If the name was already taken, the existing XML will be disposed and replaced
+         *  by the new one. */
         public function addXml(name:String, xml:XML):void
         {
             log("Adding XML '" + name + "'");
             
             if (name in mXmls)
+            {
                 log("Warning: name was already in use; the previous XML will be replaced.");
+                System.disposeXML(mXmls[name]);
+            }
 
             mXmls[name] = xml;
         }
         
-        /** Register an arbitrary object under a certain name. It will be available right away. */
+        /** Register an arbitrary object under a certain name. It will be available right away. 
+         *  If the name was already taken, the existing object will be replaced by the new one. */
         public function addObject(name:String, object:Object):void
         {
             log("Adding object '" + name + "'");
@@ -282,13 +305,18 @@ package starling.utils
             mObjects[name] = object;
         }
         
-        /** Register a byte array under a certain name. It will be available right away. */
+        /** Register a byte array under a certain name. It will be available right away.
+         *  If the name was already taken, the existing byte array will be cleared and replaced
+         *  by the new one. */
         public function addByteArray(name:String, byteArray:ByteArray):void
         {
             log("Adding byte array '" + name + "'");
             
-            if (name in mObjects)
+            if (name in mByteArrays)
+            {
                 log("Warning: name was already in use; the previous byte array will be replaced.");
+                mByteArrays[name].clear();
+            }
             
             mByteArrays[name] = byteArray;
         }
@@ -366,13 +394,9 @@ package starling.utils
         public function purge():void
         {
             log("Purging all assets, emptying queue");
+            
             purgeQueue();
-            
-            for each (var texture:Texture in mTextures)
-                texture.dispose();
-            
-            for each (var atlas:TextureAtlas in mAtlases)
-                atlas.dispose();
+            dispose();
 
             mTextures = new Dictionary();
             mAtlases = new Dictionary();
