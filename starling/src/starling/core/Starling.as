@@ -316,13 +316,18 @@ package starling.core
         
         private function requestContext3D(stage3D:Stage3D, renderMode:String, profile:Object):void
         {
+            const AVAILABLE_PROFILES:Vector.<String> =
+                new <String>["baselineConstrained", "baseline", "baselineExtended"];
+            
             var supportsProfileArray:Boolean = "requestContext3DMatchingProfiles" in stage3D;
             var profiles:Vector.<String>;
             
             if (profile == "auto")
-                profiles = new <String>["baselineConstrained", "baseline", "baselineExtended"];
+                profiles = AVAILABLE_PROFILES;
             else if (profile is String)
                 profiles = new <String>[profile as String];
+            else if (profile is Vector.<String>)
+                profiles = profile as Vector.<String>;
             else if (profile is Array)
             {
                 profiles = new <String>[];
@@ -330,6 +335,14 @@ package starling.core
                 for (var i:int=0; i<profile.length; ++i)
                     profiles[i] = profile[i];
             }
+            else
+            {
+                throw new ArgumentError("Profile must be of type 'String', 'Array', " +
+                    "or 'Vector.<String>'");
+            }
+            
+            // sort from lowest to highest profile
+            profiles.sort(compareProfiles);
             
             try
             {
@@ -350,6 +363,16 @@ package starling.core
             catch (e:Error)
             {
                 showFatalError("Context3D error: " + e.message);
+            }
+            
+            function compareProfiles(a:String, b:String):int
+            {
+                var indexA:int = AVAILABLE_PROFILES.indexOf(a);
+                var indexB:int = AVAILABLE_PROFILES.indexOf(b);
+                
+                if (indexA < indexB) return -1;
+                else if (indexA > indexB) return 1;
+                else return 0;
             }
         }
         
