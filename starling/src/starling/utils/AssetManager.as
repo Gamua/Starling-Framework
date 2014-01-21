@@ -638,10 +638,32 @@ package starling.utils
                 {
                     // do nothing
                 }
+                else if (asset == null)
+                {
+                    onComplete();
+                }
                 else if (asset is Sound)
                 {
                     addSound(name, asset as Sound);
                     onComplete();
+                }
+                else if (asset is XML)
+                {
+                    var xml:XML = asset as XML;
+                    var rootNode:String = xml.localName();
+                    
+                    if (rootNode == "TextureAtlas" || rootNode == "font")
+                        xmls.push(xml);
+                    else
+                        addXml(name, xml);
+                    
+                    onComplete();
+                }
+                else if (mStarling.context.driverInfo == "Disposed")
+                {
+                    log("Context lost while processing assets, retrying ...");
+                    setTimeout(process, 1, asset);
+                    return; // to keep CANCEL event listener intact
                 }
                 else if (asset is Bitmap)
                 {
@@ -709,22 +731,6 @@ package starling.utils
                         addByteArray(name, bytes);
                         onComplete();
                     }
-                }
-                else if (asset is XML)
-                {
-                    var xml:XML = asset as XML;
-                    var rootNode:String = xml.localName();
-                    
-                    if (rootNode == "TextureAtlas" || rootNode == "font")
-                        xmls.push(xml);
-                    else
-                        addXml(name, xml);
-                    
-                    onComplete();
-                }
-                else if (asset == null)
-                {
-                    onComplete();
                 }
                 else
                 {
