@@ -81,6 +81,25 @@ package starling.core
      * 
      *  <p>It will now render the contents of the "Game" class in the frame rate that is set up for
      *  the application (as defined in the Flash stage).</p> 
+     * 
+     *  <strong>Context3D Profiles</strong>
+     * 
+     *  <p>Stage3D supports different rendering profiles, and Starling works with all of them. The
+     *  last parameter of the Starling constructor allows you to choose which profile you want.
+     *  The following profiles are available:</p>
+     * 
+     *  <ul>
+     *    <li>BASELINE_CONSTRAINED: provides the broadest hardware reach. If you develop for the
+     *        browser, this is the profile you should test with.</li>
+     *    <li>BASELINE: recommend for any mobile application, as it allows Starling to use a more
+     *        memory efficient texture type (RectangleTextures). It also supports more complex
+     *        AGAL code.</li>
+     *    <li>BASELINE_EXTENDED: adds support for textures up to 4096x4096 pixels. This is
+     *        especially useful on mobile devices with very high resolutions.</li>
+     *  </ul>
+     *  
+     *  <p>The recommendation is to deploy your app with the profile "auto" (which makes Starling
+     *  pick the best available of those three), but test it in all available profiles.</p>
      *  
      *  <strong>Accessing the Starling object</strong>
      * 
@@ -120,7 +139,9 @@ package starling.core
      *  sleep), Starling's stage3D render context may be lost. Starling can recover from a lost
      *  context if the class property "handleLostContext" is set to "true". Keep in mind, however, 
      *  that this comes at the price of increased memory consumption; Starling will cache textures 
-     *  in RAM to be able to restore them when the context is lost.</p> 
+     *  in RAM to be able to restore them when the context is lost. (Except if you use the
+     *  'AssetManager' for your textures. It is smart enough to recreate a texture directly
+     *  from its origin.)</p> 
      *  
      *  <p>In case you want to react to a context loss, Starling dispatches an event with
      *  the type "Event.CONTEXT3D_CREATE" when the context is restored. You can recreate any 
@@ -201,20 +222,28 @@ package starling.core
          *                    Starling stage.
          *  @param stage      The Flash (2D) stage.
          *  @param viewPort   A rectangle describing the area into which the content will be 
-         *                    rendered. @default stage size
+         *                    rendered. Default: stage size
          *  @param stage3D    The Stage3D object into which the content will be rendered. If it 
          *                    already contains a context, <code>sharedContext</code> will be set
-         *                    to <code>true</code>. @default the first available Stage3D.
+         *                    to <code>true</code>. Default: the first available Stage3D.
          *  @param renderMode Use this parameter to force "software" rendering. 
-         *  @param profile    The Context3D profile that should be requested. If you pass a single
-         *                    String, this profile is enforced; alternatively, you can pass an
-         *                    Array/Vector of profiles, from which the best available will
-         *                    be chosen. The default ('auto') makes Starling pick the best
-         *                    available profile automatically.
+         *  @param profile    The Context3D profile that should be requested.
+         *
+         *                    <ul>
+         *                    <li>If you pass a profile String, this profile is enforced.</li>
+         *                    <li>Pass an Array/Vector of profiles to make Starling pick the best
+         *                        available profile from this list.</li>
+         *                    <li>Pass the String "auto" to make Starling pick the best available
+         *                        profile automatically.</li>
+         *                    </ul>
+         *
+         *                    <p>Beware that automatic profile selection is only available starting
+         *                    with AIR 4. If you use "auto" or an Array/Vector, and the AIR version
+         *                    is smaller than that, the lowest profile will be used.</p>
          */
         public function Starling(rootClass:Class, stage:flash.display.Stage, 
                                  viewPort:Rectangle=null, stage3D:Stage3D=null,
-                                 renderMode:String="auto", profile:Object="auto")
+                                 renderMode:String="auto", profile:Object="baselineConstrained")
         {
             if (stage == null) throw new ArgumentError("Stage must not be null");
             if (rootClass == null) throw new ArgumentError("Root class must not be null");
@@ -341,13 +370,13 @@ package starling.core
                     "or 'Vector.<String>'");
             }
             
-            // sort from lowest to highest profile
-            profiles.sort(compareProfiles);
-            
             try
             {
                 if (profiles.length == 1 || !supportsProfileArray)
                 {
+                    // sort profiles ascending
+                    profiles.sort(compareProfiles);
+                    
                     mProfile = profiles[0];
                     stage3D.requestContext3D(renderMode, mProfile);
                 }
