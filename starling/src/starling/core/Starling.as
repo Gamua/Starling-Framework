@@ -294,6 +294,12 @@ package starling.core
             
             if (mStage3D.context3D && mStage3D.context3D.driverInfo != "Disposed")
             {
+                if (profile == "auto" || profile is Array || profile is Vector.<String>)
+                    throw new ArgumentError("When sharing the context3D, the actual profile has " +
+                        "to be passed as last argument to the Starling constructor");
+                else
+                    mProfile = profile as String;
+                
                 mShareContext = true;
                 setTimeout(initialize, 1); // we don't call it right away, because Starling should
                                            // behave the same way with or without a shared context
@@ -971,7 +977,7 @@ package starling.core
         public function set shareContext(value : Boolean) : void { mShareContext = value; }
         
         /** The Context3D profile as requested in the constructor. Beware that if you are 
-         *  using a shared context, this might not be accurate. */
+         *  using a shared context, this is simply what you passed to the Starling constructor. */
         public function get profile():String { return mProfile; }
         
         /** Indicates that if the device supports HiDPI screens Starling will attempt to allocate
