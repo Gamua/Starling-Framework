@@ -162,6 +162,12 @@ package starling.textures
             return clipping;
         }
         
+        /** The matrix that is used to transform the texture coordinates into the coordinate
+         *  space of the parent texture (used internally by the "adjust..."-methods).
+         *
+         *  @returns CAUTION: not a copy, but the actual object! Do not modify! */
+        public function get transformationMatrix():Matrix { return mTransformationMatrix; }
+        
         /** @inheritDoc */
         public override function get base():TextureBase { return mParent.base; }
         
