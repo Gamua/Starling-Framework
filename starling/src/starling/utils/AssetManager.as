@@ -659,7 +659,7 @@ package starling.utils
                     
                     onComplete();
                 }
-                else if (mStarling.context.driverInfo == "Disposed")
+                else if (Starling.handleLostContext && mStarling.context.driverInfo == "Disposed")
                 {
                     log("Context lost while processing assets, retrying ...");
                     setTimeout(process, 1, asset);
