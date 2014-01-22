@@ -352,7 +352,7 @@ package starling.core
         private function requestContext3D(stage3D:Stage3D, renderMode:String, profile:Object):void
         {
             const AVAILABLE_PROFILES:Vector.<String> =
-                new <String>["baselineConstrained", "baseline", "baselineExtended"];
+                new <String>["baselineExtended", "baseline", "baselineConstrained"];
             
             var supportsProfileArray:Boolean = "requestContext3DMatchingProfiles" in stage3D;
             var profiles:Vector.<String>;
@@ -380,10 +380,10 @@ package starling.core
             {
                 if (profiles.length == 1 || !supportsProfileArray)
                 {
-                    // sort profiles ascending
+                    // sort profiles descending
                     profiles.sort(compareProfiles);
                     
-                    mProfile = profiles[0];
+                    mProfile = profiles.pop();
                     stage3D.requestContext3D(renderMode, mProfile);
                 }
                 else
