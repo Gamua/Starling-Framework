@@ -383,7 +383,7 @@ package starling.core
                     // sort profiles descending
                     profiles.sort(compareProfiles);
                     
-                    mProfile = profiles.pop();
+                    mProfile = profiles[profiles.length-1];
                     stage3D.requestContext3D(renderMode, mProfile);
                 }
                 else
