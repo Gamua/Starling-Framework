@@ -489,9 +489,6 @@ package starling.core
             updateNativeOverlay();
             mSupport.nextFrame();
             
-            if (!mShareContext)
-                RenderSupport.clear(mStage.color, 1.0);
-            
             var scaleX:Number = mViewPort.width  / mStage.stageWidth;
             var scaleY:Number = mViewPort.height / mStage.stageHeight;
             
@@ -504,6 +501,9 @@ package starling.core
                 mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
                 mClippedViewPort.width  / scaleX, 
                 mClippedViewPort.height / scaleY);
+            
+            if (!mShareContext)
+                RenderSupport.clear(mStage.color, 1.0);
             
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
