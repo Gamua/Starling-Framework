@@ -213,10 +213,14 @@ package starling.text
             }
         }
 
-        /** formatText is called immediately before the text is rendered. The intent of formatText
-         *  is to be overridden in a subclass, so that you can provide custom formatting for TextField.
-         *  <code>textField</code> is the flash.text.TextField object that you can specially format;
-         *  <code>textFormat</code> is the default TextFormat for <code>textField</code>.
+        /** This method is called immediately before the text is rendered. The intent of
+         *  'formatText' is to be overridden in a subclass, so that you can provide custom
+         *  formatting for the TextField. In the overriden method, call 'setFormat' (either
+         *  over a range of characters or the complete TextField) to modify the format to
+         *  your needs.
+         *  
+         *  @param textField:  the flash.text.TextField object that you can format.
+         *  @param textFormat: the default text format that's currently set on the text field.
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
 
