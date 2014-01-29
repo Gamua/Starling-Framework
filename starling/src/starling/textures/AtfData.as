@@ -46,6 +46,16 @@ package starling.textures
             mHeight = Math.pow(2, data.readUnsignedByte());
             mNumTextures = data.readUnsignedByte();
             mData = data;
+            
+            // version 2 of the new file format contains information about
+            // the "-e" and "-n" parameters of png2atf
+            
+            if (data[5] != 0 && data[6] == 255)
+            {
+                var emptyMipmaps:Boolean = (data[5] & 0x01) == 1;
+                var numTextures:int  = data[5] >> 1 & 0x7f;
+                mNumTextures = emptyMipmaps ? 1 : numTextures;
+            }
         }
         
         public static function isAtfData(data:ByteArray):Boolean

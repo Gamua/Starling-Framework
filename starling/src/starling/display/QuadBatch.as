@@ -118,6 +118,7 @@ package starling.display
             
             mVertexData.numVertices = 0;
             mIndexData.length = 0;
+            mNumQuads = 0;
             
             if (mVertexBuffer) { mVertexBuffer.dispose(); mVertexBuffer = null; }
             if (mIndexBuffer)  { mIndexBuffer.dispose();  mIndexBuffer = null; }

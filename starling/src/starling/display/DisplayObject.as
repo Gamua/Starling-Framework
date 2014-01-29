@@ -383,6 +383,16 @@ package starling.display
             return angle;
         }
         
+        // stage event handling
+        
+        public override function dispatchEvent(event:Event):void
+        {
+            if (event.type == Event.REMOVED_FROM_STAGE && stage == null)
+                return; // special check to avoid double-dispatch of RfS-event.
+            else
+                super.dispatchEvent(event);
+        }
+        
         // enter frame event optimization
         
         // To avoid looping through the complete display tree each frame to find out who's
@@ -714,10 +724,12 @@ package starling.display
         public function get name():String { return mName; }
         public function set name(value:String):void { mName = value; }
         
-        /** The filter that is attached to the display object. The starling.filters 
+        /** The filter that is attached to the display object. The starling.filters
          *  package contains several classes that define specific filters you can use. 
          *  Beware that you should NOT use the same filter on more than one object (for 
-         *  performance reasons). */ 
+         *  performance reasons). Furthermore, when you set this property to 'null' or
+         *  assign a different filter, the previous filter is NOT disposed automatically
+         *  (since you might want to reuse it). */
         public function get filter():FragmentFilter { return mFilter; }
         public function set filter(value:FragmentFilter):void { mFilter = value; }
         
