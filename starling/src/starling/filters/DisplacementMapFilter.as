@@ -32,7 +32,7 @@ package starling.filters
      *
      *  <p>The filter uses the following formula:</p>
      *  <listing>dstPixel[x, y] = srcPixel[x + ((componentX(x, y) - 128) &#42; scaleX) / 256, 
-     *                      y + ((componentY(x, y) - 128) &#42; scaleY) / 256)]
+     *                      y + ((componentY(x, y) - 128) &#42; scaleY) / 256]
      *  </listing>
      *  
      *  <p>Where <code>componentX(x, y)</code> gets the componentX property color value from the 
