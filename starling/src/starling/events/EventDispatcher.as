@@ -68,15 +68,13 @@ package starling.events
                 if (listeners)
                 {
                     var numListeners:int = listeners.length;
-                    var remainingListeners:Vector.<Function> = new <Function>[];
                     
-                    for (var i:int=0; i<numListeners; ++i)
+                    for (var i:int=numListeners-1; i>=0; i--)
                     {
-                        var otherListener:Function = listeners[i];
-                        if (otherListener != listener) remainingListeners.push(otherListener);
+                        if (listeners[i] == listener) {
+                            listeners.splice(i,1);
+                        }
                     }
-                    
-                    mEventListeners[type] = remainingListeners;
                 }
             }
         }
