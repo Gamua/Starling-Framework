@@ -104,7 +104,6 @@ package tests
             var subTexture:SubTexture;
             var subSubTexture:SubTexture;
             var texCoords:Vector.<Number>;
-            var adjustedVertexData:VertexData;            
             var texture:ConcreteTexture =
                 new ConcreteTexture(null, null, rootWidth, rootHeight, false, false);
             
