@@ -98,8 +98,8 @@ package starling.textures
                 if (count != 4)
                     throw new ArgumentError("Textures with a frame can only be used on quads");
                 
-                var deltaRight:Number  = mFrame.width  + mFrame.x - width;
-                var deltaBottom:Number = mFrame.height + mFrame.y - height;
+                var deltaRight:Number  = mFrame.width  + mFrame.x - mWidth;
+                var deltaBottom:Number = mFrame.height + mFrame.y - mHeight;
                 
                 vertexData.translateVertex(vertexID,     -mFrame.x, -mFrame.y);
                 vertexData.translateVertex(vertexID + 1, -deltaRight, -mFrame.y);
