@@ -47,6 +47,10 @@ package starling.display
         private var mSounds:Vector.<Sound>;
         private var mDurations:Vector.<Number>;
         private var mStartTimes:Vector.<Number>;
+
+        private var mSectionTotalFrame:Number;
+        private var mSectionStartFrame:Number;
+        private var mSectionEndFrame:Number;
         
         private var mDefaultFrameDuration:Number;
         private var mCurrentTime:Number;
@@ -83,7 +87,12 @@ package starling.display
             mSounds = new Vector.<Sound>(numFrames);
             mDurations = new Vector.<Number>(numFrames);
             mStartTimes = new Vector.<Number>(numFrames);
-            
+
+            // Init section var
+            mSectionStartFrame=0;
+            mSectionTotalFrame=0;
+            mSectionEndFrame=0;
+
             for (var i:int=0; i<numFrames; ++i)
             {
                 mDurations[i] = mDefaultFrameDuration;
@@ -175,10 +184,19 @@ package starling.display
         }
         
         // playback methods
-        
+
         /** Starts playback. Beware that the clip has to be added to a juggler, too! */
-        public function play():void
+        public function play(start:int=0,length:uint=0):void
         {
+
+            mSectionTotalFrame=length;
+
+            // Set current start frame
+            this.sectionStartFrame=start;
+
+            // Set currentFrame to startFrame
+            this.currentFrame=mSectionStartFrame;
+
             mPlaying = true;
         }
         
@@ -192,7 +210,8 @@ package starling.display
         public function stop():void
         {
             mPlaying = false;
-            currentFrame = 0;
+//            currentFrame = 0;
+            currentFrame = mSectionStartFrame;
         }
         
         // helpers
@@ -221,50 +240,105 @@ package starling.display
             var breakAfterFrame:Boolean = false;
             var hasCompleteListener:Boolean = hasEventListener(Event.COMPLETE); 
             var dispatchCompleteEvent:Boolean = false;
-            var totalTime:Number = this.totalTime;
-            
-            if (mLoop && mCurrentTime >= totalTime)
-            { 
-                mCurrentTime = 0.0; 
-                mCurrentFrame = 0; 
-            }
-            
-            if (mCurrentTime < totalTime)
-            {
-                mCurrentTime += passedTime;
-                finalFrame = mTextures.length - 1;
-                
-                while (mCurrentTime > mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
+            var totalTime:Number;// = this.totalTime;
+
+            // if mSectionTotalFrame >0
+            if(mSectionTotalFrame>0){
+
+                var sectionEndTime:Number=mStartTimes[mSectionEndFrame] + mDurations[mSectionEndFrame];
+
+                totalTime = sectionEndTime-mStartTimes[mSectionStartFrame];
+
+                if (mLoop && mCurrentTime >= sectionEndTime)
                 {
-                    if (mCurrentFrame == finalFrame)
+                    mCurrentTime = mStartTimes[int(mSectionStartFrame-1)];
+                    mCurrentFrame = mSectionStartFrame;
+                }
+
+                if (mCurrentTime < sectionEndTime)
+                {
+                    mCurrentTime += passedTime;
+                    finalFrame = mSectionEndFrame;
+
+                    while (mCurrentTime > mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
                     {
-                        if (mLoop && !hasCompleteListener)
+                        if (mCurrentFrame == finalFrame)
                         {
-                            mCurrentTime -= totalTime;
-                            mCurrentFrame = 0;
+                            if (mLoop && !hasCompleteListener)
+                            {
+                                mCurrentTime -= totalTime;
+                                mCurrentFrame = mSectionStartFrame;
+                            }
+                            else
+                            {
+                                breakAfterFrame = true;
+                                restTime = mCurrentTime - totalTime;
+                                dispatchCompleteEvent = hasCompleteListener;
+                                mCurrentFrame = finalFrame;
+                                mCurrentTime = totalTime;
+                            }
                         }
                         else
                         {
-                            breakAfterFrame = true;
-                            restTime = mCurrentTime - totalTime;
-                            dispatchCompleteEvent = hasCompleteListener;
-                            mCurrentFrame = finalFrame;
-                            mCurrentTime = totalTime;
+                            mCurrentFrame++;
                         }
+
+                        var sound:Sound = mSounds[mCurrentFrame];
+                        if (sound) sound.play();
+                        if (breakAfterFrame) break;
                     }
-                    else
-                    {
-                        mCurrentFrame++;
-                    }
-                    
-                    var sound:Sound = mSounds[mCurrentFrame];
-                    if (sound) sound.play();
-                    if (breakAfterFrame) break;
+
+                    // special case when we reach *exactly* the total time.
+                    if (mCurrentFrame == finalFrame && mCurrentTime == sectionEndTime)
+                        dispatchCompleteEvent = hasCompleteListener;
                 }
-                
-                // special case when we reach *exactly* the total time.
-                if (mCurrentFrame == finalFrame && mCurrentTime == totalTime)
-                    dispatchCompleteEvent = hasCompleteListener;
+            } else {
+
+                totalTime = this.totalTime;
+
+                if (mLoop && mCurrentTime >= totalTime)
+                {
+                    mCurrentTime = 0.0;
+                    mCurrentFrame = 0;
+                }
+
+                if (mCurrentTime < totalTime)
+                {
+                    mCurrentTime += passedTime;
+                    finalFrame = mTextures.length - 1;
+
+                    while (mCurrentTime > mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
+                    {
+                        if (mCurrentFrame == finalFrame)
+                        {
+                            if (mLoop && !hasCompleteListener)
+                            {
+                                mCurrentTime -= totalTime;
+                                mCurrentFrame = 0;
+                            }
+                            else
+                            {
+                                breakAfterFrame = true;
+                                restTime = mCurrentTime - totalTime;
+                                dispatchCompleteEvent = hasCompleteListener;
+                                mCurrentFrame = finalFrame;
+                                mCurrentTime = totalTime;
+                            }
+                        }
+                        else
+                        {
+                            mCurrentFrame++;
+                        }
+
+                        var sound:Sound = mSounds[mCurrentFrame];
+                        if (sound) sound.play();
+                        if (breakAfterFrame) break;
+                    }
+
+                    // special case when we reach *exactly* the total time.
+                    if (mCurrentFrame == finalFrame && mCurrentTime == totalTime)
+                        dispatchCompleteEvent = hasCompleteListener;
+                }
             }
             
             if (mCurrentFrame != previousFrame)
@@ -291,6 +365,12 @@ package starling.display
             var numFrames:int = mTextures.length;
             return mStartTimes[int(numFrames-1)] + mDurations[int(numFrames-1)];
         }
+
+//        /** The total duration of the clip in seconds. */
+//        public function get totalSectionTime():Number
+//        {
+//            return mStartTimes[int(mSectionEndFrame-1)] + mDurations[int(mSectionEndFrame-1)]-mDurations[int(mSectionEndFrame-1)];
+//        }
         
         /** The time that has passed since the clip was started (each loop starts at zero). */
         public function get currentTime():Number { return mCurrentTime; }
@@ -315,8 +395,37 @@ package starling.display
             texture = mTextures[mCurrentFrame];
             if (mSounds[mCurrentFrame]) mSounds[mCurrentFrame].play();
         }
-        
-        /** The default number of frames per second. Individual frames can have different 
+
+        /** The frame number where section start. */
+        public function get sectionStartFrame():int { return mSectionStartFrame; }
+        public function set sectionStartFrame(value:int):void
+        {
+            // Set value
+            mSectionStartFrame=value;
+
+            // Clamp the sectionLength
+            if(mSectionStartFrame+mSectionTotalFrame>mTextures.length) mSectionTotalFrame=mTextures.length-mSectionStartFrame;
+
+            // Set End frame
+            mSectionEndFrame=mSectionStartFrame+mSectionTotalFrame-1;
+        }
+
+        /** Total number of frames for current section. */
+        public function get sectionTotalFrame():uint { return mSectionTotalFrame; }
+        public function set sectionTotalFrame(value:uint):void
+        {
+            // Set value
+            mSectionTotalFrame=value;
+
+            // Clamp the sectionLength
+            if(mSectionStartFrame+mSectionTotalFrame>mTextures.length) mSectionTotalFrame=mTextures.length-mSectionStartFrame;
+
+            // Set End frame
+            mSectionEndFrame=mSectionStartFrame+mSectionTotalFrame-1;
+
+        }
+
+        /** The default number of frames per second. Individual frames can have different
          *  durations. If you change the fps, the durations of all frames will be scaled 
          *  relatively to the previous value. */
         public function get fps():Number { return 1.0 / mDefaultFrameDuration; }
