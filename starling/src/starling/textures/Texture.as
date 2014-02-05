@@ -453,7 +453,7 @@ package starling.textures
         /** The Stage3D texture object the texture is based on. */
         public function get base():TextureBase { return null; }
         
-        /** The concrete (power-of-two) texture the texture is based on. */
+        /** The concrete texture the texture is based on. */
         public function get root():ConcreteTexture { return null; }
         
         /** The <code>Context3DTextureFormat</code> of the underlying texture data. */
