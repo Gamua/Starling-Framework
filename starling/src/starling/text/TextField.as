@@ -13,7 +13,9 @@ package starling.text
     import flash.display.BitmapData;
     import flash.display.StageQuality;
     import flash.display3D.Context3DTextureFormat;
+    import flash.filters.BitmapFilter;
     import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.text.AntiAliasType;
     import flash.text.TextFormat;
@@ -31,6 +33,7 @@ package starling.text
     import starling.textures.Texture;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
+    import starling.utils.deg2rad;
 
     /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
      *  
@@ -83,7 +86,7 @@ package starling.text
         // the texture format that is used for TTF rendering
         private static var sDefaultTextureFormat:String =
             "BGRA_PACKED" in Context3DTextureFormat ? "bgraPacked4444" : "bgra";
-            
+
         private var mFontSize:Number;
         private var mColor:uint;
         private var mText:String;
@@ -268,7 +271,7 @@ package starling.text
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
-            
+
             if (isHorizontalAutoSize)
                 sNativeTextField.width = width = Math.ceil(textWidth + 5);
             if (isVerticalAutoSize)
@@ -278,18 +281,23 @@ package starling.text
             if (width  < 1) width  = 1.0;
             if (height < 1) height = 1.0;
             
-            var xOffset:Number = 0.0;
-            if (hAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
-            else if (hAlign == HAlign.CENTER) xOffset = (width - textWidth) / 2.0;
-            else if (hAlign == HAlign.RIGHT)  xOffset =  width - textWidth - 2;
+            var textOffsetX:Number = 0.0;
+            if (hAlign == HAlign.LEFT)        textOffsetX = 2; // flash adds a 2 pixel offset
+            else if (hAlign == HAlign.CENTER) textOffsetX = (width - textWidth) / 2.0;
+            else if (hAlign == HAlign.RIGHT)  textOffsetX =  width - textWidth - 2;
+
+            var textOffsetY:Number = 0.0;
+            if (vAlign == VAlign.TOP)         textOffsetY = 2; // flash adds a 2 pixel offset
+            else if (vAlign == VAlign.CENTER) textOffsetY = (height - textHeight) / 2.0;
+            else if (vAlign == VAlign.BOTTOM) textOffsetY =  height - textHeight - 2;
             
-            var yOffset:Number = 0.0;
-            if (vAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
-            else if (vAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
-            else if (vAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
+            // if 'nativeFilters' are in use, the text field might grow beyond its bounds
+            var filterOffset:Point = calculateFilterOffset(sNativeTextField, hAlign, vAlign);
             
+            // finally: draw text field to bitmap data
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
-            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
+            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1,
+                filterOffset.x, filterOffset.y + int(textOffsetY)-2);
             var drawWithQualityFunc:Function = 
                 "drawWithQuality" in bitmapData ? bitmapData["drawWithQuality"] : null;
             
@@ -305,7 +313,8 @@ package starling.text
             sNativeTextField.text = "";
             
             // update textBounds rectangle
-            resultTextBounds.setTo(xOffset   / scale, yOffset    / scale,
+            resultTextBounds.setTo((textOffsetX + filterOffset.x) / scale,
+                                   (textOffsetY + filterOffset.y) / scale,
                                    textWidth / scale, textHeight / scale);
             
             return bitmapData;
@@ -325,6 +334,49 @@ package starling.text
                 format.size = size--;
                 textField.setTextFormat(format);
             }
+        }
+        
+        private function calculateFilterOffset(textField:flash.text.TextField,
+                                               hAlign:String, vAlign:String):Point
+        {
+            var resultOffset:Point = new Point();
+            var filters:Array = textField.filters;
+            
+            if (filters != null && filters.length > 0)
+            {
+                var textWidth:Number  = textField.textWidth;
+                var textHeight:Number = textField.textHeight;
+                var bounds:Rectangle  = new Rectangle();
+                
+                for each (var filter:BitmapFilter in filters)
+                {
+                    var blurX:Number    = "blurX"    in filter ? filter["blurX"]    : 0;
+                    var blurY:Number    = "blurY"    in filter ? filter["blurY"]    : 0;
+                    var angleDeg:Number = "angle"    in filter ? filter["angle"]    : 0;
+                    var distance:Number = "distance" in filter ? filter["distance"] : 0;
+                    var angle:Number = deg2rad(angleDeg);
+                    var marginX:Number = blurX * 1.33; // that's an empirical value
+                    var marginY:Number = blurY * 1.33;
+                    var offsetX:Number  = Math.cos(angle) * distance - marginX / 2.0;
+                    var offsetY:Number  = Math.sin(angle) * distance - marginY / 2.0;
+                    var filterBounds:Rectangle = new Rectangle(
+                        offsetX, offsetY, textWidth + marginX, textHeight + marginY);
+                    
+                    bounds = bounds.union(filterBounds);
+                }
+                
+                if (hAlign == HAlign.LEFT && bounds.x < 0)
+                    resultOffset.x = -bounds.x;
+                else if (hAlign == HAlign.RIGHT && bounds.y > 0)
+                    resultOffset.x = -(bounds.right - textWidth);
+                
+                if (vAlign == VAlign.TOP && bounds.y < 0)
+                    resultOffset.y = -bounds.y;
+                else if (vAlign == VAlign.BOTTOM && bounds.y > 0)
+                    resultOffset.y = -(bounds.bottom - textHeight);
+            }
+            
+            return resultOffset;
         }
         
         // bitmap font composition
