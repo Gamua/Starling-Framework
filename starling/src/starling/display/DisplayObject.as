@@ -378,8 +378,9 @@ package starling.display
         private final function normalizeAngle(angle:Number):Number
         {
             // move into range [-180 deg, +180 deg]
-            while (angle < -Math.PI) angle += Math.PI * 2.0;
-            while (angle >  Math.PI) angle -= Math.PI * 2.0;
+            angle = (angle + Math.PI) % (Math.PI * 2);
+            if (angle < 0) angle = Math.PI * 2 - (-angle % (Math.PI * 2));
+            angle -= Math.PI;
             return angle;
         }
         
