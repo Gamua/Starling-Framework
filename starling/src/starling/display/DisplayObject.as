@@ -124,6 +124,8 @@ package starling.display
      */
     public class DisplayObject extends EventDispatcher
     {
+        private static const TWO_PI:Number = Math.PI * 2.0;
+        
         // members
         
         private var mX:Number;
@@ -377,9 +379,13 @@ package starling.display
         
         private final function normalizeAngle(angle:Number):Number
         {
-            // move into range [-180 deg, +180 deg]
-            while (angle < -Math.PI) angle += Math.PI * 2.0;
-            while (angle >  Math.PI) angle -= Math.PI * 2.0;
+            // move to equivalent value in range [0 deg, 360 deg] without a loop
+            angle = angle % TWO_PI;
+
+            // move to [-180 deg, +180 deg]
+            if (angle < -Math.PI) angle += TWO_PI;
+            if (angle >  Math.PI) angle -= TWO_PI;
+
             return angle;
         }
         
