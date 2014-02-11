@@ -114,13 +114,11 @@ package starling.display
         public override function dispose():void
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            destroyBuffers();
             
             mVertexData.numVertices = 0;
             mIndexData.length = 0;
             mNumQuads = 0;
-            
-            if (mVertexBuffer) { mVertexBuffer.dispose(); mVertexBuffer = null; }
-            if (mIndexBuffer)  { mIndexBuffer.dispose();  mIndexBuffer = null; }
             
             super.dispose();
         }
@@ -160,12 +158,12 @@ package starling.display
         
         private function createBuffers():void
         {
+            destroyBuffers();
+
             var numVertices:int = mVertexData.numVertices;
             var numIndices:int = mIndexData.length;
             var context:Context3D = Starling.context;
 
-            if (mVertexBuffer)    mVertexBuffer.dispose();
-            if (mIndexBuffer)     mIndexBuffer.dispose();
             if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
             
@@ -178,6 +176,21 @@ package starling.display
             mSyncRequired = false;
         }
         
+        private function destroyBuffers():void
+        {
+            if (mVertexBuffer)
+            {
+                mVertexBuffer.dispose();
+                mVertexBuffer = null;
+            }
+
+            if (mIndexBuffer)
+            {
+                mIndexBuffer.dispose();
+                mIndexBuffer = null;
+            }
+        }
+
         /** Uploads the raw data of all batched quads to the vertex buffer. */
         private function syncBuffers():void
         {
@@ -632,10 +645,11 @@ package starling.display
                 mIndexData[int(i*6+4)] = i*4 + 3;
                 mIndexData[int(i*6+5)] = i*4 + 2;
             }
-            
-            createBuffers();
+
+            destroyBuffers();
+            mSyncRequired = true;
         }
-        
+
         // program management
         
         private function getProgram(tinted:Boolean):Program3D
