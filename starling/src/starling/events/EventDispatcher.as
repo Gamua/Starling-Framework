@@ -67,16 +67,16 @@ package starling.events
                 var listeners:Vector.<Function> = mEventListeners[type] as Vector.<Function>;
                 if (listeners)
                 {
-                    var numListeners:int = listeners.length;
-                    var remainingListeners:Vector.<Function> = new <Function>[];
-                    
-                    for (var i:int=0; i<numListeners; ++i)
+                    var index:int  = listeners.indexOf(listener);
+                    if (index != -1)
                     {
-                        var otherListener:Function = listeners[i];
-                        if (otherListener != listener) remainingListeners.push(otherListener);
+                        // we must not modify the original vector!
+                        // (see comment in 'invokeEvent')
+
+                        listeners = listeners.slice();
+                        listeners.splice(index, 1);
+                        mEventListeners[type] = listeners;
                     }
-                    
-                    mEventListeners[type] = remainingListeners;
                 }
             }
         }
