@@ -65,13 +65,14 @@ package starling.events
             if (mEventListeners)
             {
                 var listeners:Vector.<Function> = mEventListeners[type] as Vector.<Function>;
-                if (listeners)
+                var numListeners:int = listeners.length;
+
+                if (listeners && numListeners > 0)
                 {
                     // we must not modify the original vector, but work on a copy.
                     // (see comment in 'invokeEvent')
 
                     var index:int = 0;
-                    var numListeners:int = listeners.length;
                     var restListeners:Vector.<Function> = new Vector.<Function>(numListeners-1);
 
                     for (var i:int=0; i<numListeners; ++i)
