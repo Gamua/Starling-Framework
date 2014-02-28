@@ -495,7 +495,7 @@ package starling.utils
                                         options:TextureOptions=null):String
         {
             if (getQualifiedClassName(asset) == "flash.filesystem::File")
-                asset = asset["url"];
+                asset = unescape(asset["url"]);
             
             if (name == null) name = getName(asset);
             if (options == null) options = mDefaultTextureOptions;
