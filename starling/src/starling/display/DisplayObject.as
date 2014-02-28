@@ -527,8 +527,13 @@ package starling.display
             mSkewX = Math.atan(-matrix.c / matrix.d);
             mSkewY = Math.atan( matrix.b / matrix.a);
             
-            mScaleX = matrix.a / Math.cos(mSkewY);
-            mScaleY = matrix.d / Math.cos(mSkewX);
+            var cos_mSkewX:Number = Math.cos(mSkewX);
+            var cos_mSkewY:Number = Math.cos(mSkewY);
+
+            mScaleX = (cos_mSkewY == 0.0) ?  matrix.b / Math.sin(mSkewY)
+                                          :  matrix.a / cos_mSkewY;
+            mScaleY = (cos_mSkewX == 0.0) ? -matrix.c / Math.sin(mSkewX)
+                                          :  matrix.d / cos_mSkewX;
             
             if (isEquivalent(mSkewX, mSkewY))
             {
