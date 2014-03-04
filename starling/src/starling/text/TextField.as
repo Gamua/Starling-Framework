@@ -32,6 +32,7 @@ package starling.text
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.HAlign;
+    import starling.utils.RectangleUtil;
     import starling.utils.VAlign;
     import starling.utils.deg2rad;
 
@@ -105,13 +106,14 @@ package starling.text
         private var mTextBounds:Rectangle;
         private var mBatchable:Boolean;
         
-        private var mHitArea:DisplayObject;
+        private var mHitArea:Rectangle;
         private var mBorder:DisplayObjectContainer;
         
         private var mImage:Image;
         private var mQuadBatch:QuadBatch;
         
-        // this object will be used for text rendering
+        /** Helper objects. */
+        private static var sHelperMatrix:Matrix = new Matrix();
         private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
         
         /** Create a new text field with the given properties. */
@@ -127,11 +129,8 @@ package starling.text
             mKerning = true;
             mBold = bold;
             mAutoSize = TextFieldAutoSize.NONE;
+            mHitArea = new Rectangle(0, 0, width, height);
             this.fontName = fontName;
-            
-            mHitArea = new Quad(width, height);
-            mHitArea.alpha = 0.0;
-            addChild(mHitArea);
             
             addEventListener(Event.FLATTEN, onFlatten);
         }
@@ -488,7 +487,8 @@ package starling.text
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             if (mRequiresRedraw) redraw();
-            return mHitArea.getBounds(targetSpace, resultRect);
+            getTransformationMatrix(targetSpace, sHelperMatrix);
+            return RectangleUtil.getBounds(mHitArea, sHelperMatrix, resultRect);
         }
         
         /** @inheritDoc */
