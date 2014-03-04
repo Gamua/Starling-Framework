@@ -117,25 +117,31 @@ package starling.textures
          *                      properties for position, scale, and rotation. If it is not null,
          *                      the object will be drawn in the orientation depicted by the matrix.
          *  @param alpha        The object's alpha value will be multiplied with this value.
+         *  @param antiAliasing Only supported beginning with AIR 13, and only on Desktop.
+         *                      Values range from 0 (no antialiasing) to 4 (best quality).
          */
-        public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
+        public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0,
+                             antiAliasing:int=0):void
         {
             if (object == null) return;
             
             if (mDrawing)
                 render(object, matrix, alpha);
             else
-                renderBundled(render, object, matrix, alpha);
+                renderBundled(render, object, matrix, alpha, antiAliasing);
         }
         
         /** Bundles several calls to <code>draw</code> together in a block. This avoids buffer 
          *  switches and allows you to draw multiple objects into a non-persistent texture.
+         *  Note that the 'antiAliasing' setting provided here overrides those provided in
+         *  individual 'draw' calls.
          *  
          *  @param drawingBlock: a callback with the form: <pre>function():void;</pre>
-         */
-        public function drawBundled(drawingBlock:Function):void
+         *  @param antiAliasing: Only supported beginning with AIR 13, and only on Desktop.
+         *                       Values range from 0 (no antialiasing) to 4 (best quality). */
+        public function drawBundled(drawingBlock:Function, antiAliasing:int=0):void
         {
-            renderBundled(drawingBlock);
+            renderBundled(drawingBlock, null, null, 1.0, antiAliasing);
         }
         
         private function render(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
@@ -150,7 +156,8 @@ package starling.textures
         }
         
         private function renderBundled(renderBlock:Function, object:DisplayObject=null,
-                                       matrix:Matrix=null, alpha:Number=1.0):void
+                                       matrix:Matrix=null, alpha:Number=1.0,
+                                       antiAliasing:int=0):void
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -171,7 +178,7 @@ package starling.textures
             sClipRect.setTo(0, 0, mActiveTexture.width, mActiveTexture.height);
 
             mSupport.pushClipRect(sClipRect);
-            mSupport.renderTarget = mActiveTexture;
+            mSupport.setRenderTarget(mActiveTexture, antiAliasing);
             mSupport.clear();
             
             // draw buffer
