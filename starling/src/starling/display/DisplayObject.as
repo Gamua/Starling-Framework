@@ -528,7 +528,11 @@ package starling.display
             
             mSkewX = Math.atan(-matrix.c / matrix.d);
             mSkewY = Math.atan( matrix.b / matrix.a);
-            
+
+            // NaN check ("isNaN" causes allocation)
+            if (mSkewX != mSkewX) mSkewX = 0.0;
+            if (mSkewY != mSkewY) mSkewY = 0.0;
+
             mScaleY = (mSkewX > -PI_Q && mSkewX < PI_Q) ?  matrix.d / Math.cos(mSkewX)
                                                         : -matrix.c / Math.sin(mSkewX);
             mScaleX = (mSkewY > -PI_Q && mSkewY < PI_Q) ?  matrix.a / Math.cos(mSkewY)
