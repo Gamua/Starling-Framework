@@ -174,6 +174,24 @@ package starling.filters
                 0, 0, 0, 1, 0);
         }
         
+        
+        //This is a similar effect to "colorize" in Photoshop Hue/Saturation
+        public function adjustHueColorize(value:Number):void
+        {
+            value *= Math.PI;
+            
+            var cos:Number = Math.cos(value);
+            var sin:Number = Math.sin(value);
+            
+            concatValues(
+                cos + sin, cos + sin, cos + sin, 0, 0,
+                cos + sin * 0.143, cos + (sin * 0.14), (sin * -0.283), 0, 0,
+                 -sin , 0, cos, 0, 0,
+                0, 0, 0, 1, 0);
+        }
+        
+        
+        
         // matrix manipulation
         
         /** Changes the filter matrix back to the identity matrix. */
