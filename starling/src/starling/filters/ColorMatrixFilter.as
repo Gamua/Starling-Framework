@@ -173,6 +173,24 @@ package starling.filters
                 ((LUMA_R + (cos * -(LUMA_R))) + (sin * -((1 - LUMA_R)))), ((LUMA_G + (cos * -(LUMA_G))) + (sin * LUMA_G)), ((LUMA_B + (cos * (1 - LUMA_B))) + (sin * LUMA_B)), 0, 0,
                 0, 0, 0, 1, 0);
         }
+
+	/** Apply a Tint like the in Flash */
+	public function applyTint(color : uint, amount : Number = 1) : void {
+            var r : Number = ((color >> 16) & 0xFF) / 255;
+            var g : Number = ((color >> 8) & 0xFF) / 255;
+            var b : Number = (color & 0xFF) / 255;
+            var q : Number = 1 - amount;
+            
+            var rA : Number = amount * r;
+            var gA : Number = amount * g;
+            var bA : Number = amount * b;
+            				
+			concatValues(q + rA * LUMA_R, rA * LUMA_G, rA * LUMA_B, 0, 0,
+                                   gA * LUMA_R, q + gA * LUMA_G, gA * LUMA_B, 0, 0,
+                                   bA * LUMA_R, bA * LUMA_G, q + bA * LUMA_B, 0, 0,
+                                   0, 0, 0, 1, 0);
+        }
+
         
         // matrix manipulation
         
