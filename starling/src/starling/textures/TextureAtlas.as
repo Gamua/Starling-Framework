@@ -118,8 +118,11 @@ package starling.textures
         public function getTextures(prefix:String="", result:Vector.<Texture>=null):Vector.<Texture>
         {
             if (result == null) result = new <Texture>[];
+
+            getNames(prefix, sNames);
+            sNames.sort(Array.CASEINSENSITIVE);
             
-            for each (var name:String in getNames(prefix, sNames)) 
+            for each (var name:String in sNames)
                 result.push(getTexture(name)); 
 
             sNames.length = 0;
@@ -134,8 +137,7 @@ package starling.textures
             for (var name:String in mTextureInfos)
                 if (name.indexOf(prefix) == 0)
                     result.push(name);
-            
-            result.sort(Array.CASEINSENSITIVE);
+
             return result;
         }
         

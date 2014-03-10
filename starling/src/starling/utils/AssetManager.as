@@ -16,7 +16,6 @@ package starling.utils
     import flash.system.System;
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
-    import flash.utils.clearTimeout;
     import flash.utils.describeType;
     import flash.utils.getQualifiedClassName;
     import flash.utils.setTimeout;
@@ -74,7 +73,6 @@ package starling.utils
         
         private var mQueue:Array;
         private var mIsLoading:Boolean;
-        private var mTimeoutID:uint;
         
         private var mTextures:Dictionary;
         private var mAtlases:Dictionary;
@@ -83,6 +81,9 @@ package starling.utils
         private var mObjects:Dictionary;
         private var mByteArrays:Dictionary;
         
+        private var mMaxConnections:int = 5;
+        private var mCurrentConnections:int;
+
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
         
@@ -386,7 +387,6 @@ package starling.utils
         {
             mIsLoading = false;
             mQueue.length = 0;
-            clearTimeout(mTimeoutID);
             dispatchEventWith(Event.CANCEL);
         }
         
@@ -535,21 +535,31 @@ package starling.utils
             var numElements:int = mQueue.length;
             var currentRatio:Number = 0.0;
             
+            var loadedElements:int = 0;
+            var processedElements:int = 0;
             mIsLoading = true;
             resume();
             
             function resume():void
             {
-                currentRatio = mQueue.length ? 1.0 - (mQueue.length / numElements) : 1.0;
+                if (!mIsLoading)
+                    return;
                 
-                if (mQueue.length)
-                    mTimeoutID = setTimeout(processNext, 1);
-                else
+                var numElements:int = loadedElements + mQueue.length;
+
+                currentRatio = numElements ? 1.0 * processedElements / numElements : 1;
+
+                if (currentRatio == 1)
                 {
                     processXmls();
                     mIsLoading = false;
                 }
                 
+                while (mCurrentConnections < mMaxConnections && mQueue.length)
+                {
+                    processNext();
+                }
+
                 if (onProgress != null)
                     onProgress(currentRatio);
             }
@@ -557,9 +567,12 @@ package starling.utils
             function processNext():void
             {
                 var assetInfo:Object = mQueue.pop();
-                clearTimeout(mTimeoutID);
-                processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
-                                xmls, progress, resume);
+                ++loadedElements;
+                processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options, xmls, progress, function():void
+                {
+                    ++processedElements;
+                    resume();
+                });
             }
             
             function processXmls():void
@@ -764,13 +777,14 @@ package starling.utils
             
             if (rawAsset is Class)
             {
-                setTimeout(onComplete, 1, new rawAsset());
+                onComplete(new rawAsset());
             }
             else if (rawAsset is String)
             {
                 var url:String = rawAsset as String;
                 extension = url.split("?")[0].split(".").pop().toLowerCase();
                 
+                mCurrentConnections++;
                 urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
@@ -782,6 +796,7 @@ package starling.utils
             function onIoError(event:IOErrorEvent):void
             {
                 log("IO error: " + event.text);
+                mCurrentConnections--;
                 onComplete(null);
             }
             
@@ -806,6 +821,7 @@ package starling.utils
                         sound = new Sound();
                         sound.loadCompressedDataFromByteArray(bytes, bytes.length);
                         bytes.clear();
+                        mCurrentConnections--;
                         onComplete(sound);
                         break;
                     case "jpg":
@@ -819,6 +835,7 @@ package starling.utils
                         loader.loadBytes(bytes, loaderContext);
                         break;
                     default: // any XML / JSON / binary data 
+                        mCurrentConnections--;
                         onComplete(bytes);
                         break;
                 }
@@ -826,6 +843,7 @@ package starling.utils
             
             function onLoaderComplete(event:Object):void
             {
+                mCurrentConnections--;
                 urlLoader.data.clear();
                 event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
                 onComplete(event.target.content);
@@ -945,5 +963,15 @@ package starling.utils
          *  in the 'flash.system.LoaderContext' documentation. */
         public function get checkPolicyFile():Boolean { return mCheckPolicyFile; }
         public function set checkPolicyFile(value:Boolean):void { mCheckPolicyFile = value; }
+
+        public function get maxConnections():int
+        {
+            return mMaxConnections;
+        }
+
+        public function set maxConnections(value:int):void
+        {
+            mMaxConnections = value;
+        }
     }
 }
