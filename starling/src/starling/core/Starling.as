@@ -46,6 +46,7 @@ package starling.core
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
     import starling.utils.HAlign;
+    import starling.utils.SystemUtil;
     import starling.utils.VAlign;
     
     /** Dispatched when a new render context is created. */
@@ -250,6 +251,7 @@ package starling.core
             if (viewPort == null) viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
             if (stage3D == null) stage3D = stage.stage3Ds[0];
             
+            SystemUtil.initialize();
             makeCurrent();
             
             mRootClass = rootClass;
