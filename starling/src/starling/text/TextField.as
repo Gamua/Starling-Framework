@@ -491,6 +491,7 @@ package starling.text
             return RectangleUtil.getBounds(mHitArea, sHelperMatrix, resultRect);
         }
         
+        /** @inheritDoc */
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable)) return null;
