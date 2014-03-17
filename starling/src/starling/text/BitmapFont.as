@@ -285,6 +285,10 @@ package starling.text
                             
                             if (charLocation.x + char.width > containerWidth)
                             {
+                                // when autoscaling, we must not split a word in half -> restart
+                                if (autoScale && lastWhiteSpace == -1)
+                                    break;
+
                                 // remove characters and add them again to next line
                                 var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
                                 var removeIndex:int = currentLine.length - numCharsToRemove;
