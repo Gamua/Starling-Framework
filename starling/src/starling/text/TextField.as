@@ -491,6 +491,13 @@ package starling.text
             return RectangleUtil.getBounds(mHitArea, sHelperMatrix, resultRect);
         }
         
+        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        {
+            if (forTouch && (!visible || !touchable)) return null;
+            else if (mHitArea.containsPoint(localPoint)) return this;
+            else return null;
+        }
+
         /** @inheritDoc */
         public override function set width(value:Number):void
         {
