@@ -11,6 +11,7 @@
 package starling.textures
 {
     import flash.display3D.Context3D;
+    import flash.display3D.VertexBuffer3D;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
@@ -20,6 +21,7 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
+    import starling.utils.getNextPowerOfTwo;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
      * 
@@ -55,6 +57,7 @@ package starling.textures
      */
     public class RenderTexture extends SubTexture
     {
+        private const CONTEXT_POT_SUPPORT_KEY:String = "RenderTexture.supportsNonPotDimensions";
         private const PMA:Boolean = true;
         
         private var mActiveTexture:Texture;
@@ -74,7 +77,19 @@ package starling.textures
          *  texture only for one draw (or drawBundled) call, you should deactivate it. */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true, scale:Number=-1)
         {
-            mActiveTexture = Texture.empty(width, height, PMA, false, true, scale);
+            // TODO: when Adobe has fixed this bug on the iPad 1, we can remove 'legalWidth/Height'
+            //       and just pass on the original values.
+
+            var legalWidth:int  = width;
+            var legalHeight:int = height;
+
+            if (!supportsNonPotDimensions)
+            {
+                legalWidth  = getNextPowerOfTwo(width);
+                legalHeight = getNextPowerOfTwo(height);
+            }
+
+            mActiveTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
             mActiveTexture.root.onRestore = mActiveTexture.root.clear;
             
             super(mActiveTexture, new Rectangle(0, 0, width, height), true, null, false);
@@ -87,7 +102,7 @@ package starling.textures
             
             if (persistent)
             {
-                mBufferTexture = Texture.empty(width, height, PMA, false, true, scale);
+                mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
                 mBufferTexture.root.onRestore = mBufferTexture.root.clear;
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
@@ -217,6 +232,56 @@ package starling.textures
             mSupport.renderTarget = null;
         }
         
+        // workaround for iPad 1
+
+        /** On the iPad 1 (and maybe other hardware?) clearing a non-POT RectangleTexture causes
+         *  an error in the next "createVertexBuffer" call. Thus, we're forced to make this
+         *  really ... elegant check here. */
+        private function get supportsNonPotDimensions():Boolean
+        {
+            var target:Starling = Starling.current;
+            var context:Context3D = Starling.context;
+            var support:Object = target.contextData[CONTEXT_POT_SUPPORT_KEY];
+
+            if (support == null)
+            {
+                if (target.profile != "baselineConstrained" && "createRectangleTexture" in context)
+                {
+                    var texture:TextureBase;
+                    var buffer:VertexBuffer3D;
+
+                    try
+                    {
+                        texture = context["createRectangleTexture"](2, 3, "bgra", true);
+                        context.setRenderToTexture(texture);
+                        context.clear();
+                        context.setRenderToBackBuffer();
+                        context.createVertexBuffer(1, 1);
+                        support = true;
+                    }
+                    catch (e:Error)
+                    {
+                        support = false;
+                    }
+                    finally
+                    {
+                        if (texture) texture.dispose();
+                        if (buffer) buffer.dispose();
+                    }
+                }
+                else
+                {
+                    support = false;
+                }
+
+                target.contextData[CONTEXT_POT_SUPPORT_KEY] = support;
+            }
+
+            return support;
+        }
+
+        // properties
+
         /** Indicates if the texture is persistent over multiple draw calls. */
         public function get isPersistent():Boolean { return mBufferTexture != null; }
         
