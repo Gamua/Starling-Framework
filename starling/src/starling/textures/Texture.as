@@ -350,9 +350,8 @@ package starling.textures
             var potWidth:int   = getNextPowerOfTwo(origWidth);
             var potHeight:int  = getNextPowerOfTwo(origHeight);
             var isPot:Boolean  = (origWidth == potWidth && origHeight == potHeight);
-            var useRectTexture:Boolean = !mipMapping && !repeat &&
-                Starling.current.profile != "baselineConstrained" &&
-                "createRectangleTexture" in context && format.indexOf("compressed") == -1;
+            var useRectTexture:Boolean = Starling.current.supportRectangleTextures &&
+                !mipMapping && !repeat && format.indexOf("compressed") == -1;
             
             if (useRectTexture)
             {

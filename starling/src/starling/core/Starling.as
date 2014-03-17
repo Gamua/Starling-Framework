@@ -18,6 +18,8 @@ package starling.core
     import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DTriangleFace;
     import flash.display3D.Program3D;
+    import flash.display3D.VertexBuffer3D;
+    import flash.display3D.textures.TextureBase;
     import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
     import flash.events.Event;
@@ -197,7 +199,6 @@ package starling.core
         private var mStatsDisplay:StatsDisplay;
         private var mShareContext:Boolean;
         private var mProfile:String;
-        private var mSupportHighResolutions:Boolean;
         private var mContext:Context3D;
         private var mStarted:Boolean;
         private var mRendering:Boolean;
@@ -211,6 +212,9 @@ package starling.core
         private var mNativeOverlay:flash.display.Sprite;
         private var mNativeStageContentScaleFactor:Number;
         
+        private var mSupportHighResolutions:Boolean;
+        private var mSupportRectangleTextures:Object;
+
         private static var sCurrent:Starling;
         private static var sHandleLostContext:Boolean;
         private static var sContextData:Dictionary = new Dictionary(true);
@@ -269,6 +273,7 @@ package starling.core
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
             mSupportHighResolutions = false;
+            mSupportRectangleTextures = null;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mSupport  = new RenderSupport();
             
@@ -418,6 +423,7 @@ package starling.core
             makeCurrent();
             
             initializeGraphicsAPI();
+            initializeRectangleTextureSupport();
             initializeRoot();
             
             mTouchProcessor.simulateMultitouch = mSimulateMultitouch;
@@ -453,6 +459,45 @@ package starling.core
             }
         }
         
+        private function initializeRectangleTextureSupport():void
+        {
+            if (mSupportRectangleTextures == null)
+            {
+                if (mProfile != "baselineConstrained" && "createRectangleTexture" in mContext)
+                {
+                    var texture:TextureBase;
+                    var buffer:VertexBuffer3D;
+
+                    try
+                    {
+                        // On the iPad 1 (and maybe other hardware?) clearing a non-POT
+                        // RectangleTexture causes an error in the next "createVertexBuffer" call.
+                        // Thus, we're forced to make this really elegant check here. *sigh*
+
+                        texture = mContext["createRectangleTexture"](2, 3, "bgra", true);
+                        mContext.setRenderToTexture(texture);
+                        mContext.clear();
+                        mContext.setRenderToBackBuffer();
+                        mContext.createVertexBuffer(1, 1);
+                        mSupportRectangleTextures = true;
+                    }
+                    catch (e:Error)
+                    {
+                        mSupportRectangleTextures = false;
+                    }
+                    finally
+                    {
+                        if (texture) texture.dispose();
+                        if (buffer) buffer.dispose();
+                    }
+                }
+                else
+                {
+                    mSupportRectangleTextures = false;
+                }
+            }
+        }
+
         /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
          *  and <code>render()</code>. */ 
         public function nextFrame():void
@@ -982,6 +1027,15 @@ package starling.core
          *  using a shared context, this is simply what you passed to the Starling constructor. */
         public function get profile():String { return mProfile; }
         
+        /** Indicates if the current environment and context support stage3D's RectangleTextures.
+         *  Generally, this is the case beginning with Flash 11.8 / AIR 3.8 when using at least
+         *  "baseline" profile. However, there's a known bug that renders them unusable on some
+         *  hardware (iPad 1); this method checks for that bug, too.
+         *
+         *  <p>Starling uses RectangleTextures (if supported) automatically behind the scenes, so
+         *  you normally don't need to care about this.</p> */
+        public function get supportRectangleTextures():Boolean { return mSupportRectangleTextures; }
+
         /** Indicates that if the device supports HiDPI screens Starling will attempt to allocate
          *  a larger back buffer than indicated via the viewPort size. Note that this is used
          *  on Desktop only; mobile AIR apps still use the "requestedDisplayResolution" parameter
