@@ -227,7 +227,7 @@ package starling.text
             if (text == null || text.length == 0) return new <CharLocation>[];
             if (fontSize < 0) fontSize *= -mSize;
             
-            var lines:Vector.<Vector.<CharLocation>>;
+            var lines:Array = [];
             var finished:Boolean = false;
             var charLocation:CharLocation;
             var numChars:int;
@@ -237,11 +237,10 @@ package starling.text
             
             while (!finished)
             {
+                lines.length = 0;
                 scale = fontSize / mSize;
                 containerWidth  = width / scale;
                 containerHeight = height / scale;
-                
-                lines = new Vector.<Vector.<CharLocation>>();
                 
                 if (mLineHeight <= containerHeight)
                 {
@@ -334,14 +333,9 @@ package starling.text
                 } // if (mLineHeight <= containerHeight)
                 
                 if (autoScale && !finished && fontSize > 3)
-                {
                     fontSize -= 1;
-                    lines.length = 0;
-                }
                 else
-                {
                     finished = true; 
-                }
             } // while (!finished)
             
             var finalLocations:Vector.<CharLocation> = new <CharLocation>[];
