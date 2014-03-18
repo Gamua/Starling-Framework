@@ -109,6 +109,8 @@ package starling.text
         {
             var scale:Number = mTexture.scale;
             var frame:Rectangle = mTexture.frame;
+            var frameX:Number = frame ? frame.x : 0;
+            var frameY:Number = frame ? frame.y : 0;
             
             mName = fontXml.info.attribute("face");
             mSize = parseFloat(fontXml.info.attribute("size")) / scale;
@@ -132,8 +134,8 @@ package starling.text
                 var xAdvance:Number = parseFloat(charElement.attribute("xadvance")) / scale;
                 
                 var region:Rectangle = new Rectangle();
-                region.x = parseFloat(charElement.attribute("x")) / scale + frame.x;
-                region.y = parseFloat(charElement.attribute("y")) / scale + frame.y;
+                region.x = parseFloat(charElement.attribute("x")) / scale + frameX;
+                region.y = parseFloat(charElement.attribute("y")) / scale + frameY;
                 region.width  = parseFloat(charElement.attribute("width")) / scale;
                 region.height = parseFloat(charElement.attribute("height")) / scale;
                 
