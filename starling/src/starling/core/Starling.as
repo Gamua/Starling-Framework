@@ -18,8 +18,6 @@ package starling.core
     import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DTriangleFace;
     import flash.display3D.Program3D;
-    import flash.display3D.VertexBuffer3D;
-    import flash.display3D.textures.TextureBase;
     import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
     import flash.events.Event;
@@ -202,7 +200,6 @@ package starling.core
         private var mContext:Context3D;
         private var mStarted:Boolean;
         private var mRendering:Boolean;
-        private var mContextValid:Boolean;
         private var mSupportHighResolutions:Boolean;
         
         private var mViewPort:Rectangle;
@@ -321,8 +318,6 @@ package starling.core
         {
             stop(true);
 
-            mContextValid = false;
-            
             mNativeStage.removeEventListener(Event.ENTER_FRAME, onEnterFrame, false);
             mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
             mNativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
@@ -471,7 +466,7 @@ package starling.core
          *  and processes touches. */
         public function advanceTime(passedTime:Number):void
         {
-            if (!mContextValid)
+            if (!contextValid)
                 return;
             
             makeCurrent();
@@ -485,7 +480,7 @@ package starling.core
          *  it is presented. This can be avoided by enabling <code>shareContext</code>.*/ 
         public function render():void
         {
-            if (!mContextValid)
+            if (!contextValid)
                 return;
             
             makeCurrent();
@@ -660,8 +655,6 @@ package starling.core
         
         private function onEnterFrame(event:Event):void
         {
-            mContextValid = (mContext && mContext.driverInfo != "Disposed");
-            
             // On mobile, the native display list is only updated on stage3D draw calls. 
             // Thus, we render even when Starling is paused.
             
@@ -891,7 +884,7 @@ package starling.core
             if (mAntiAliasing != value)
             {
                 mAntiAliasing = value;
-                if (mContextValid) updateViewPort(true);
+                if (contextValid) updateViewPort(true);
             }
         }
         
@@ -994,7 +987,7 @@ package starling.core
             if (mSupportHighResolutions != value)
             {
                 mSupportHighResolutions = value;
-                if (mContextValid) updateViewPort(true);
+                if (contextValid) updateViewPort(true);
             }
         }
         
@@ -1009,6 +1002,14 @@ package starling.core
                 mTouchProcessor.dispose();
                 mTouchProcessor = value;
             }
+        }
+        
+        /** Indicates if the Context3D object is currently valid (i.e. it hasn't been lost or
+         *  disposed). Beware that each call to this method causes a String allocation (due to
+         *  internal code Starling can't avoid), so do not call this method too often. */
+        public function get contextValid():Boolean
+        {
+            return mContext && mContext.driverInfo != "Disposed"
         }
 
         // static properties
