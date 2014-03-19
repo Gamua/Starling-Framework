@@ -19,6 +19,7 @@ package starling.filters
     
     import starling.core.Starling;
     import starling.textures.Texture;
+    import starling.utils.Color;
     
     /** The ColorMatrixFilter class lets you apply a 4x5 matrix transformation on the RGBA color 
      *  and alpha values of every pixel in the input image to produce a result with a new set 
@@ -174,6 +175,27 @@ package starling.filters
                 0, 0, 0, 1, 0);
         }
         
+        /** Tints the image in a certain color, analog to what can be done in Flash Pro.
+         *  @param color: the RGB color with which the image should be tinted.
+         *  @param amount: the intensity with which tinting should be applied. Range (0, 1). */
+        public function tint(color:uint, amount:Number=1.0):void
+        {
+            var r:Number = Color.getRed(color)   / 255.0;
+            var g:Number = Color.getGreen(color) / 255.0;
+            var b:Number = Color.getBlue(color)  / 255.0;
+            var q:Number = 1 - amount;
+
+            var rA:Number = amount * r;
+            var gA:Number = amount * g;
+            var bA:Number = amount * b;
+
+            concatValues(
+                q + rA * LUMA_R, rA * LUMA_G, rA * LUMA_B, 0, 0,
+                gA * LUMA_R, q + gA * LUMA_G, gA * LUMA_B, 0, 0,
+                bA * LUMA_R, bA * LUMA_G, q + bA * LUMA_B, 0, 0,
+                0, 0, 0, 1, 0);
+        }
+
         // matrix manipulation
         
         /** Changes the filter matrix back to the identity matrix. */
