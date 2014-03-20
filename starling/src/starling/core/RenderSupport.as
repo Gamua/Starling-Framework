@@ -223,10 +223,20 @@ package starling.core
         public function get renderTarget():Texture { return mRenderTarget; }
         public function set renderTarget(target:Texture):void 
         {
+            setRenderTarget(target);
+        }
+
+        /** Changes the the current render target.
+         *  @param target       Either a texture or 'null' to render into the back buffer.
+         *  @param antiAliasing Only supported for textures, beginning with AIR 13, and only on
+         *                      Desktop. Values range from 0 (no antialiasing) to 4 (best quality).
+         */
+        public function setRenderTarget(target:Texture, antiAliasing:int=0):void
+        {
             mRenderTarget = target;
             applyClipRect();
             
-            if (target) Starling.context.setRenderToTexture(target.base);
+            if (target) Starling.context.setRenderToTexture(target.base, false, antiAliasing);
             else        Starling.context.setRenderToBackBuffer();
         }
         

@@ -109,6 +109,8 @@ package starling.text
         {
             var scale:Number = mTexture.scale;
             var frame:Rectangle = mTexture.frame;
+            var frameX:Number = frame ? frame.x : 0;
+            var frameY:Number = frame ? frame.y : 0;
             
             mName = fontXml.info.attribute("face");
             mSize = parseFloat(fontXml.info.attribute("size")) / scale;
@@ -132,8 +134,8 @@ package starling.text
                 var xAdvance:Number = parseFloat(charElement.attribute("xadvance")) / scale;
                 
                 var region:Rectangle = new Rectangle();
-                region.x = parseFloat(charElement.attribute("x")) / scale + frame.x;
-                region.y = parseFloat(charElement.attribute("y")) / scale + frame.y;
+                region.x = parseFloat(charElement.attribute("x")) / scale + frameX;
+                region.y = parseFloat(charElement.attribute("y")) / scale + frameY;
                 region.width  = parseFloat(charElement.attribute("width")) / scale;
                 region.height = parseFloat(charElement.attribute("height")) / scale;
                 
@@ -225,7 +227,7 @@ package starling.text
             if (text == null || text.length == 0) return new <CharLocation>[];
             if (fontSize < 0) fontSize *= -mSize;
             
-            var lines:Vector.<Vector.<CharLocation>>;
+            var lines:Array = [];
             var finished:Boolean = false;
             var charLocation:CharLocation;
             var numChars:int;
@@ -235,11 +237,10 @@ package starling.text
             
             while (!finished)
             {
+                lines.length = 0;
                 scale = fontSize / mSize;
                 containerWidth  = width / scale;
                 containerHeight = height / scale;
-                
-                lines = new Vector.<Vector.<CharLocation>>();
                 
                 if (mLineHeight <= containerHeight)
                 {
@@ -285,6 +286,10 @@ package starling.text
                             
                             if (charLocation.x + char.width > containerWidth)
                             {
+                                // when autoscaling, we must not split a word in half -> restart
+                                if (autoScale && lastWhiteSpace == -1)
+                                    break;
+
                                 // remove characters and add them again to next line
                                 var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
                                 var removeIndex:int = currentLine.length - numCharsToRemove;
@@ -328,14 +333,9 @@ package starling.text
                 } // if (mLineHeight <= containerHeight)
                 
                 if (autoScale && !finished && fontSize > 3)
-                {
                     fontSize -= 1;
-                    lines.length = 0;
-                }
                 else
-                {
                     finished = true; 
-                }
             } // while (!finished)
             
             var finalLocations:Vector.<CharLocation> = new <CharLocation>[];

@@ -91,5 +91,19 @@ package tests
                 RectangleUtil.fit(new Rectangle(0, 0, 800, 800), into, ScaleMode.NO_BORDER),
                 new Rectangle(50, 0, 200, 200));
         }
+        
+        [Test]
+        public function testNormalize():void
+        {
+            var rect:Rectangle = new Rectangle(50, 100, -50, -100);
+            RectangleUtil.normalize(rect);
+            
+            Helpers.compareRectangles(rect, new Rectangle(0, 0, 50, 100));
+            
+            rect = new Rectangle(1, 2, 3, 4);
+            RectangleUtil.normalize(rect);
+            
+            Helpers.compareRectangles(rect, new Rectangle(1, 2, 3, 4));
+        }
     }
 }

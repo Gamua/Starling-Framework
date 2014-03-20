@@ -25,7 +25,6 @@ package starling.textures
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.utils.Color;
-    import starling.utils.getNextPowerOfTwo;
     
     use namespace starling_internal;
 
@@ -40,6 +39,7 @@ package starling.textures
         private var mPremultipliedAlpha:Boolean;
         private var mOptimizedForRenderTexture:Boolean;
         private var mScale:Number;
+        private var mRepeat:Boolean;
         private var mOnRestore:Function;
         private var mDataUploaded:Boolean;
         
@@ -51,7 +51,7 @@ package starling.textures
         public function ConcreteTexture(base:TextureBase, format:String, width:int, height:int, 
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
                                         optimizedForRenderTexture:Boolean=false,
-                                        scale:Number=1)
+                                        scale:Number=1, repeat:Boolean=false)
         {
             mScale = scale <= 0 ? 1.0 : scale;
             mBase = base;
@@ -61,6 +61,7 @@ package starling.textures
             mMipMapping = mipMapping;
             mPremultipliedAlpha = premultipliedAlpha;
             mOptimizedForRenderTexture = optimizedForRenderTexture;
+            mRepeat = repeat;
             mOnRestore = null;
             mDataUploaded = false;
         }
@@ -127,7 +128,7 @@ package starling.textures
                     canvas.dispose();
                 }
             }
-            else // if (nativeTexture is RectangleTexture)
+            else // if (mBase is RectangleTexture)
             {
                 mBase["uploadFromBitmapData"](data);
             }
@@ -154,6 +155,9 @@ package starling.textures
             var isAsync:Boolean = async is Function || async === true;
             var potTexture:flash.display3D.textures.Texture = 
                   mBase as flash.display3D.textures.Texture;
+            
+            if (potTexture == null)
+                throw new Error("This texture type does not support ATF data");
             
             if (async is Function)
                 potTexture.addEventListener(eventType, onTextureReady);
@@ -193,13 +197,11 @@ package starling.textures
         starling_internal function createBase():void
         {
             var context:Context3D = Starling.context;
-            var isPot:Boolean = mWidth  == getNextPowerOfTwo(mWidth) && 
-                                mHeight == getNextPowerOfTwo(mHeight);
             
-            if (isPot)
+            if (mBase is flash.display3D.textures.Texture)
                 mBase = context.createTexture(mWidth, mHeight, mFormat, 
                                               mOptimizedForRenderTexture);
-            else
+            else // if (mBase is RectangleTexture)
                 mBase = context["createRectangleTexture"](mWidth, mHeight, mFormat,
                                                           mOptimizedForRenderTexture);
             
@@ -283,5 +285,8 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
+        
+        /** @inheritDoc */
+        public override function get repeat():Boolean { return mRepeat; }
     }
 }
