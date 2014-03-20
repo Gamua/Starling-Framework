@@ -463,7 +463,7 @@ package starling.display
          *  In that case, Starling will apply the matrix, but not update the corresponding 
          *  properties.</p>
          * 
-         *  @returns CAUTION: not a copy, but the actual object! */
+         *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix():Matrix
         {
             if (mOrientationChanged)

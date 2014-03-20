@@ -427,7 +427,7 @@ package starling.textures
         /** The texture frame if it has one (see class description), otherwise <code>null</code>.
          *  Only SubTextures can have a frame.
          *
-         *  @returns CAUTION: not a copy, but the actual object! Do not modify! */
+         *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
         public function get frame():Rectangle { return null; }
         
         /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.

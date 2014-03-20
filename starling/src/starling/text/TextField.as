@@ -724,7 +724,7 @@ package starling.text
         /** Makes a bitmap font available at any TextField in the current stage3D context.
          *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you 
-         *  can pass a custom name, as well. @returns the name of the font. */
+         *  can pass a custom name, as well. @return the name of the font. */
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;

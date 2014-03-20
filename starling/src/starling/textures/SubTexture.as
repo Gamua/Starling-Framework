@@ -60,7 +60,7 @@ package starling.textures
                 region = new Rectangle(0, 0, parentTexture.width, parentTexture.height);
             
             mParent = parentTexture;
-            mFrame = frame;
+            mFrame = frame ? frame.clone() : null;
             mOwnsParent = ownsParent;
             mWidth  = rotated ? region.height : region.width;
             mHeight = rotated ? region.width  : region.height;
@@ -165,7 +165,7 @@ package starling.textures
         /** The matrix that is used to transform the texture coordinates into the coordinate
          *  space of the parent texture (used internally by the "adjust..."-methods).
          *
-         *  @returns CAUTION: not a copy, but the actual object! Do not modify! */
+         *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
         public function get transformationMatrix():Matrix { return mTransformationMatrix; }
         
         /** @inheritDoc */
