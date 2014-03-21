@@ -437,6 +437,7 @@ package starling.events
 
             // purge touches
             mCurrentTouches.length = 0;
+            mQueue.length = 0;
         }
     }
 }
