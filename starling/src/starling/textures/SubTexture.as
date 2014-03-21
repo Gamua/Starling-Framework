@@ -29,6 +29,7 @@ package starling.textures
         private var mParent:Texture;
         private var mOwnsParent:Boolean;
         private var mFrame:Rectangle;
+        private var mRotated:Boolean;
         private var mWidth:Number;
         private var mHeight:Number;
         private var mTransformationMatrix:Matrix;
@@ -62,6 +63,7 @@ package starling.textures
             mParent = parentTexture;
             mFrame = frame ? frame.clone() : null;
             mOwnsParent = ownsParent;
+            mRotated = rotated;
             mWidth  = rotated ? region.height : region.width;
             mHeight = rotated ? region.width  : region.height;
             mTransformationMatrix = new Matrix();
@@ -145,6 +147,9 @@ package starling.textures
         /** Indicates if the parent texture is disposed when this object is disposed. */
         public function get ownsParent():Boolean { return mOwnsParent; }
         
+        /** If true, the SubTexture will show the parent region rotated by 90 degrees (CCW). */
+        public function get rotated():Boolean { return mRotated; }
+
         /** The clipping rectangle, which is the region provided on initialization 
          *  scaled into [0.0, 1.0]. */
         public function get clipping():Rectangle
