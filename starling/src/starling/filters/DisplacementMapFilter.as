@@ -187,8 +187,8 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
             
-            var mapX:Number = mMapPoint.x   / mapTexture.nativeWidth;
-            var mapY:Number = mMapPoint.y   / mapTexture.nativeHeight;
+            var mapX:Number = mMapPoint.x   / mapTexture.width;
+            var mapY:Number = mMapPoint.y   / mapTexture.height;
             var maxU:Number = textureWidth  / mapTexture.nativeWidth;
             var maxV:Number = textureHeight / mapTexture.nativeHeight;
             
