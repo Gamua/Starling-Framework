@@ -96,19 +96,24 @@ package starling.textures
          *  (e.g. to support a different file format). */
         protected function parseAtlasXml(atlasXml:XML):void
         {
-            var scale:Number = mAtlasTexture.scale;
+			// If the sml attribute "forceScale" is set, do not use mAtlasTexture.scale.
+			// This is useful when the Atlas is rescalable (ie. a swf)
+			var ratio:Number = Number(atlasXml.@forceScale);
+			if(ratio <= 1e-10)
+				ratio = mAtlasTexture.scale;
+            var scale:Number = 1.0 / ratio; // Precompute the reciprocal value
             
             for each (var subTexture:XML in atlasXml.SubTexture)
             {
                 var name:String        = subTexture.attribute("name");
-                var x:Number           = parseFloat(subTexture.attribute("x")) / scale;
-                var y:Number           = parseFloat(subTexture.attribute("y")) / scale;
-                var width:Number       = parseFloat(subTexture.attribute("width")) / scale;
-                var height:Number      = parseFloat(subTexture.attribute("height")) / scale;
-                var frameX:Number      = parseFloat(subTexture.attribute("frameX")) / scale;
-                var frameY:Number      = parseFloat(subTexture.attribute("frameY")) / scale;
-                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth")) / scale;
-                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) / scale;
+                var x:Number           = parseFloat(subTexture.attribute("x")) * scale;
+                var y:Number           = parseFloat(subTexture.attribute("y")) * scale;
+                var width:Number       = parseFloat(subTexture.attribute("width")) * scale;
+                var height:Number      = parseFloat(subTexture.attribute("height")) * scale;
+                var frameX:Number      = parseFloat(subTexture.attribute("frameX")) * scale;
+                var frameY:Number      = parseFloat(subTexture.attribute("frameY")) * scale;
+                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth")) * scale;
+                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) * scale;
                 var rotated:Boolean    = parseBool(subTexture.attribute("rotated"));
                 
                 var region:Rectangle = new Rectangle(x, y, width, height);
