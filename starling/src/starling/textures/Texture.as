@@ -12,9 +12,11 @@ package starling.textures
 {
     import flash.display.Bitmap;
     import flash.display.BitmapData;
+    import flash.display.DisplayObject;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
+    import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
@@ -152,6 +154,12 @@ package starling.textures
                 texture = fromAtfData(data as ByteArray,
                     options.scale, options.mipMapping, options.onReady, options.repeat);
             }
+            else if (data is DisplayObject)
+            {
+                texture = fromDisplayObjectData(data as DisplayObject,
+					options.mipMapping, options.optimizeForRenderToTexture, options.scale,
+					options.format, options.repeat);
+            }
             else
                 throw new ArgumentError("Unsupported 'data' type: " + getQualifiedClassName(data));
             
@@ -227,7 +235,39 @@ package starling.textures
             return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture, 
                                   scale, format, repeat);
         }
-        
+        /** Creates a texture object from DisplayObject data.
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
+         *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
+         * 
+         *  @param dis:     the texture will be created with the DisplayObject data of this object.
+         *  @param mipMaps: indicates if mipMaps will be created.
+         *  @param optimizeForRenderToTexture: indicates if this texture will be used as 
+         *                  render target
+         *  @param scale:   the scale factor of the created texture. This affects the reported
+         *                  width and height of the texture object.
+         *  @param format:  the context3D texture format to use. Pass one of the packed or
+         *                  compressed formats to save memory (at the price of reduced image
+         *                  quality).
+         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
+         */
+        public static function fromDisplayObjectData(dis:DisplayObject, generateMipMaps:Boolean=true,
+                                              optimizeForRenderToTexture:Boolean=false,
+                                              scale:Number=1, format:String="bgra",
+                                              repeat:Boolean=false):Texture
+		{
+			var texture:Texture;
+			// Allow the use of DisplayObjects. This allows to use swf loaded media.
+			var w:int = int(dis.width * scale);
+			var h:int = int(dis.height * scale);
+			var bd:BitmapData = new BitmapData(w, h, true, 0); 
+			var mat:Matrix = new Matrix();
+			mat.scale(scale,scale);
+			bd.draw(dis, mat); // Draw using the scale factor
+			texture = fromBitmapData(bd, generateMipMaps, optimizeForRenderToTexture,
+				scale, format, repeat);
+			return texture;
+		}
+		
         /** Creates a texture object from bitmap data.
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
@@ -240,7 +280,8 @@ package starling.textures
          *                  width and height of the texture object.
          *  @param format:  the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
-         *                  quality).
+         *                  quality). Packed texture formats will be used as fallbacks for 
+		 * 	                unsupported compressed formats. 
          *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
@@ -248,16 +289,37 @@ package starling.textures
                                               scale:Number=1, format:String="bgra",
                                               repeat:Boolean=false):Texture
         {
-            var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true, 
-                                                generateMipMaps, optimizeForRenderToTexture, scale,
-                                                format, repeat);
-            
-            texture.root.uploadBitmapData(data);
-            texture.root.onRestore = function():void
-            {
-                texture.root.uploadBitmapData(data);
-            };
-            
+            var texture:Texture;
+			for(var i:int=0; i < 3; ++i) {
+				try {
+					texture = Texture.empty(data.width / scale, data.height / scale, true, 
+		                                                generateMipMaps, optimizeForRenderToTexture, scale,
+		                                                format, repeat);
+		            if(!texture)
+						throw new Error("Cant create a texture \"" + format + "\" of real size " + data.width + "x" + data.height);
+		            texture.root.uploadBitmapData(data);
+				} catch (e:Error) {
+					trace("Texture upload failed: " + e.message);
+					texture.dispose();
+					texture = null;
+					if(format == "compressed") // If compressed format is not supported, use the alternative "bgrPacked565"
+						format = "bgrPacked565";
+					else if(format == "compressedAlpha") // If compressed format with alpha is not supported, use the alternative "bgraPacked4444"
+						format = "bgraPacked4444";
+					else if(format == "bgrPacked565" || format == "bgraPacked4444") // If packed formats are not supported, use the generic "bgra"
+						format = "bgra";
+					else if(format = "bgra") // There is a real problem if no "bgra" format is admited (memory starved?)
+						break;
+					continue;
+				}
+				break;
+			}
+			
+			if(texture) { 
+	            texture.root.onRestore = function():void {
+	                texture.root.uploadBitmapData(data);
+	            };
+			}
             return texture;
         }
         
