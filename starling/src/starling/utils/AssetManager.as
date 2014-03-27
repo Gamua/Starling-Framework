@@ -34,6 +34,9 @@ package starling.utils
     /** Dispatched when all textures have been restored after a context loss. */
     [Event(name="texturesRestored", type="starling.events.Event")]
     
+    /** Dispatched when an url loader has finished loading.*/
+    [Event(name="urlLoaded", type="starling.events.Event")]
+    
     /** The AssetManager handles loading and accessing a variety of asset types. You can 
      *  add assets directly (via the 'add...' methods) or asynchronously via a queue. This allows
      *  you to deal with assets in a unified way, no matter if they are loaded from a file, 
@@ -793,6 +796,9 @@ package starling.utils
             
             function onUrlLoaderComplete(event:Object):void
             {
+                // Trigger an URL_LOADED event when an url loader has finished loading
+                dispatchEventWith('urlLoaded', urlLoader);
+            
                 var bytes:ByteArray = urlLoader.data as ByteArray;
                 var sound:Sound;
                 
