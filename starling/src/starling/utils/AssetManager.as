@@ -761,6 +761,7 @@ package starling.utils
         {
             var extension:String = null;
             var urlLoader:URLLoader = null;
+            var url:String = null;
             
             if (rawAsset is Class)
             {
@@ -768,7 +769,7 @@ package starling.utils
             }
             else if (rawAsset is String)
             {
-                var url:String = rawAsset as String;
+                url = rawAsset as String;
                 extension = url.split("?")[0].split(".").pop().toLowerCase();
                 
                 urlLoader = new URLLoader();
@@ -793,7 +794,7 @@ package starling.utils
             
             function onUrlLoaderComplete(event:Object):void
             {
-                var bytes:ByteArray = urlLoader.data as ByteArray;
+                var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
                 var sound:Sound;
                 
                 urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
@@ -870,7 +871,15 @@ package starling.utils
                 throw new ArgumentError("Cannot extract names for objects of type '" + name + "'");
             }
         }
-        
+
+        /** This method is called when raw byte data has been loaded from an URL or a file.
+         *  Override it to process the downloaded data in some way (e.g. decompression) or
+         *  to cache it on disk. */
+        protected function transformData(data:ByteArray, url:String):ByteArray
+        {
+            return data;
+        }
+
         /** This method is called during loading of assets when 'verbose' is activated. Per
          *  default, it traces 'message' to the console. */
         protected function log(message:String):void
