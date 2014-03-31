@@ -21,6 +21,7 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
+    import starling.utils.execute;
     import starling.utils.getNextPowerOfTwo;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
@@ -211,10 +212,7 @@ package starling.textures
             try
             {
                 mDrawing = true;
-                
-                // draw new objects
-                if (renderBlock != null)
-                    renderBlock(object, matrix, alpha);
+                execute(renderBlock, object, matrix, alpha);
             }
             finally
             {
