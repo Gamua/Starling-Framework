@@ -16,10 +16,13 @@ package starling.utils
     {
         if (func != null)
         {
-            for (var i:int=args.length; i<func.length; ++i)
+            var i:int;
+            var maxNumArgs:int = func.length;
+
+            for (i=args.length; i<maxNumArgs; ++i)
                 args[i] = null;
 
-            func.apply(null, args.slice(0, func.length));
+            func.apply(null, args.slice(0, maxNumArgs));
         }
     }
 }
