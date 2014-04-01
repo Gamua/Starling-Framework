@@ -16,17 +16,10 @@ package starling.utils
     {
         if (func != null)
         {
-            while (args.length < func.length)
-                args.push(null);
+            for (var i:int=args.length; i<func.length; ++i)
+                args[i] = null;
 
-            if      (func.length == 0) func();
-            else if (func.length == 1) func(args[0]);
-            else if (func.length == 2) func(args[0], args[1]);
-            else if (func.length == 3) func(args[0], args[1], args[2]);
-            else if (func.length == 4) func(args[0], args[1], args[2], args[3]);
-            else if (func.length == 5) func(args[0], args[1], args[2], args[3], args[4]);
-            else if (func.length == 6) func(args[0], args[1], args[2], args[3], args[4], args[5]);
-            else throw new ArgumentError("'execute' is limited to 6 parameters.");
+            func.apply(null, args.slice(0, func.length));
         }
     }
 }
