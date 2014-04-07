@@ -237,6 +237,9 @@ package starling.animation
         }
         
         /** The total life time of the juggler (in seconds). */
-        public function get elapsedTime():Number { return mElapsedTime; }        
+        public function get elapsedTime():Number { return mElapsedTime; }
+ 
+        /** The actual vector that contains all objects that are currently being animated. */
+        protected function get objects():Vector.<IAnimatable> { return mObjects; }
     }
 }
