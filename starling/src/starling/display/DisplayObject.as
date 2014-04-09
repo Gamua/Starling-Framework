@@ -284,7 +284,6 @@ package starling.display
         public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             throw new AbstractMethodError();
-            return null;
         }
         
         /** Returns the object that is found topmost beneath a point in local coordinates, or nil if 
