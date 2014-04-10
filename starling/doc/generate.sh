@@ -28,5 +28,6 @@ ASDOC="/Users/redge/Dropbox/Development/library/flash/air/air-4.0/bin/asdoc"
   -package starling.textures "Classes to create and work with GPU texture data." \
   -package starling.utils "Utility classes and helper methods." \
   -package starling.filters "Post processing filters for special effects." \
+  -strict=false \
   -output html
 
