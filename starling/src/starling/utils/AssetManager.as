@@ -572,7 +572,8 @@ package starling.utils
                 // that way, their textures can be referenced, too.
                 
                 xmls.sort(function(a:XML, b:XML):int { 
-                    return a.localName() == "TextureAtlas" ? -1 : 1; 
+					var name:String = a.localName();
+                    return (name == "TextureAtlas" || name == "tileset") ? -1 : 1; 
                 });
                 
                 for each (var xml:XML in xmls)
@@ -606,7 +607,31 @@ package starling.utils
                         }
                         else log("Cannot create bitmap font: texture '" + name + "' is missing.");
                     }
-                    else
+					else if (rootNode == "tileset")
+					{
+						name = getName(xml.image.@source.toString());
+						texture = getTexture(name);
+						if (texture)
+						{
+							addTextureAtlas(name, new TextureAtlas(texture, xml));
+							removeTexture(name, false);
+						}
+						else log("Cannot create tileset: texture '" + name + "' is missing.");
+					}
+					else if (rootNode == "map")
+					{
+						for each (var tileset:XML in xml.tileset) {
+							name = getName(tileset.image.@source.toString());
+							texture = getTexture(name);
+							if (texture)
+							{
+								addTextureAtlas(name, new TextureAtlas(texture, tileset));
+								removeTexture(name, false);
+							}
+							else log("Cannot create map tileset: texture '" + name + "' is missing.");
+						}
+					}
+					else
                         throw new Error("XML contents not recognized: " + rootNode);
                     
                     System.disposeXML(xml);
@@ -655,7 +680,7 @@ package starling.utils
                     var xml:XML = asset as XML;
                     var rootNode:String = xml.localName();
                     
-                    if (rootNode == "TextureAtlas" || rootNode == "font")
+                    if (rootNode == "TextureAtlas" || rootNode == "font" || rootNode == "tileset" || rootNode == "map")
                         xmls.push(xml);
                     else
                         addXml(name, xml);

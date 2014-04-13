@@ -96,32 +96,62 @@ package starling.textures
          *  (e.g. to support a different file format). */
         protected function parseAtlasXml(atlasXml:XML):void
         {
-			// If the sml attribute "forceScale" is set, do not use mAtlasTexture.scale.
-			// This is useful when the Atlas is rescalable (ie. a swf)
-			var ratio:Number = Number(atlasXml.@forceScale);
-			if(ratio <= 1e-10)
-				ratio = mAtlasTexture.scale;
-            var scale:Number = 1.0 / ratio; // Precompute the reciprocal value
-            
-            for each (var subTexture:XML in atlasXml.SubTexture)
-            {
-                var name:String        = subTexture.attribute("name");
-                var x:Number           = parseFloat(subTexture.attribute("x")) * scale;
-                var y:Number           = parseFloat(subTexture.attribute("y")) * scale;
-                var width:Number       = parseFloat(subTexture.attribute("width")) * scale;
-                var height:Number      = parseFloat(subTexture.attribute("height")) * scale;
-                var frameX:Number      = parseFloat(subTexture.attribute("frameX")) * scale;
-                var frameY:Number      = parseFloat(subTexture.attribute("frameY")) * scale;
-                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth")) * scale;
-                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) * scale;
-                var rotated:Boolean    = parseBool(subTexture.attribute("rotated"));
-                
-                var region:Rectangle = new Rectangle(x, y, width, height);
-                var frame:Rectangle  = frameWidth > 0 && frameHeight > 0 ?
-                        new Rectangle(frameX, frameY, frameWidth, frameHeight) : null;
-                
-                addRegion(name, region, frame, rotated);
-            }
+			if(atlasXml.SubTexture.length()) 
+			{
+				// If the sml attribute "forceScale" is set, do not use mAtlasTexture.scale.
+				// This is useful when the Atlas is rescalable (ie. a swf)
+				var ratio:Number = Number(atlasXml.@forceScale);
+				if(ratio <= 1e-10)
+					ratio = mAtlasTexture.scale;
+	            var scale:Number = 1.0 / ratio; // Precompute the reciprocal value
+	            
+	            for each (var subTexture:XML in atlasXml.SubTexture)
+	            {
+	                var name:String        = subTexture.attribute("name");
+	                var x:Number           = parseFloat(subTexture.attribute("x")) * scale;
+	                var y:Number           = parseFloat(subTexture.attribute("y")) * scale;
+	                var width:Number       = parseFloat(subTexture.attribute("width")) * scale;
+	                var height:Number      = parseFloat(subTexture.attribute("height")) * scale;
+	                var frameX:Number      = parseFloat(subTexture.attribute("frameX")) * scale;
+	                var frameY:Number      = parseFloat(subTexture.attribute("frameY")) * scale;
+	                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth")) * scale;
+	                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) * scale;
+	                var rotated:Boolean    = parseBool(subTexture.attribute("rotated"));
+	                
+	                var region:Rectangle = new Rectangle(x, y, width, height);
+	                var frame:Rectangle  = frameWidth > 0 && frameHeight > 0 ?
+	                        new Rectangle(frameX, frameY, frameWidth, frameHeight) : null;
+	                
+	                addRegion(name, region, frame, rotated);
+	            }
+			}
+			else if (atlasXml.image.length()) // It is a Tiled tileset
+			{
+				var iname:String = atlasXml.@name;
+				var tilewidth:int = atlasXml.@tilewidth;
+				var tileheight:int = atlasXml.@tileheight;
+				var iwidth:int = atlasXml.image.@width;
+				var iheight:int = atlasXml.image.@height;
+				var tiles:XMLList = atlasXml.tile;
+				var nTile:int = 0;
+				for (var iy:int = 0; iy < iheight; iy += tileheight) 
+				{
+					for (var ix:int = 0; ix < iwidth; ix += tilewidth)
+					{
+						var tile:XML = tiles[nTile++];
+						var tileName:String = tile.properties.property.( @name == "name" ).@value;
+						if (!tileName || tileName == "") {
+							tileName = iname + "_" + nTile;
+						}
+		                var iregion:Rectangle = new Rectangle(ix, iy, tilewidth, tileheight);		                
+		                addRegion(tileName, iregion);						
+					}
+				}
+			}
+			else
+			{
+				trace("[TextureAtlas] Invalid XML");
+			}
         }
         
         /** Retrieves a subtexture by name. Returns <code>null</code> if it is not found. */
