@@ -1,9 +1,12 @@
 package starling.utils
 {
     import flash.display.Bitmap;
+    import flash.display.BitmapData;
+    import flash.display.DisplayObject;
     import flash.display.Loader;
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
+    import flash.geom.Matrix;
     import flash.media.Sound;
     import flash.media.SoundChannel;
     import flash.media.SoundTransform;
@@ -88,9 +91,9 @@ package starling.utils
         
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
-        public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
+        public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false, textureFormat="bgra")
         {
-            mDefaultTextureOptions = new TextureOptions(scaleFactor, useMipmaps);
+            mDefaultTextureOptions = new TextureOptions(scaleFactor, useMipmaps, textureFormat);
             mVerbose = mCheckPolicyFile = mIsLoading = false;
             mQueue = [];
             mTextures = new Dictionary();
@@ -569,7 +572,8 @@ package starling.utils
                 // that way, their textures can be referenced, too.
                 
                 xmls.sort(function(a:XML, b:XML):int { 
-                    return a.localName() == "TextureAtlas" ? -1 : 1; 
+					var name:String = a.localName();
+                    return (name == "TextureAtlas" || name == "tileset") ? -1 : 1; 
                 });
                 
                 for each (var xml:XML in xmls)
@@ -603,7 +607,31 @@ package starling.utils
                         }
                         else log("Cannot create bitmap font: texture '" + name + "' is missing.");
                     }
-                    else
+					else if (rootNode == "tileset")
+					{
+						name = getName(xml.image.@source.toString());
+						texture = getTexture(name);
+						if (texture)
+						{
+							addTextureAtlas(name, new TextureAtlas(texture, xml));
+							removeTexture(name, false);
+						}
+						else log("Cannot create tileset: texture '" + name + "' is missing.");
+					}
+					else if (rootNode == "map")
+					{
+						for each (var tileset:XML in xml.tileset) {
+							name = getName(tileset.image.@source.toString());
+							texture = getTexture(name);
+							if (texture)
+							{
+								addTextureAtlas(name, new TextureAtlas(texture, tileset));
+								removeTexture(name, false);
+							}
+							else log("Cannot create map tileset: texture '" + name + "' is missing.");
+						}
+					}
+					else
                         throw new Error("XML contents not recognized: " + rootNode);
                     
                     System.disposeXML(xml);
@@ -652,7 +680,7 @@ package starling.utils
                     var xml:XML = asset as XML;
                     var rootNode:String = xml.localName();
                     
-                    if (rootNode == "TextureAtlas" || rootNode == "font")
+                    if (rootNode == "TextureAtlas" || rootNode == "font" || rootNode == "tileset" || rootNode == "map")
                         xmls.push(xml);
                     else
                         addXml(name, xml);
@@ -688,7 +716,56 @@ package starling.utils
                     addTexture(name, texture);
                     onComplete();
                 }
-                else if (asset is ByteArray)
+				else if (asset is DisplayObject)
+				{
+					// Allow the use of DisplayObjects. This allows to use swf loaded media.
+					var dis:DisplayObject = asset as DisplayObject;
+					var w:int = int(dis.width * options.scale);
+					var h:int = int(dis.height * options.scale);
+					var bd:BitmapData = new BitmapData(w, h, true, 0); 
+					var mat:Matrix = new Matrix();
+					mat.scale(options.scale,options.scale);
+					bd.draw(dis, mat); // Draw using the scale factor
+					var bm:Bitmap = new Bitmap(bd);
+					texture = Texture.fromData(bm, options);
+					texture.root.onRestore = function():void
+					{
+						mNumLostTextures++;
+						loadRawAsset(name, rawAsset, null, function(asset:Object):void
+						{
+							var w:int;
+							var h:int;
+							var bd:BitmapData;
+							var bm:Bitmap;
+							var mat:Matrix;
+							var dis:DisplayObject = asset as DisplayObject;
+							if(dis) {
+								try {
+									w = int(dis.width * options.scale);
+									h = int(dis.height * options.scale);
+									bd = new BitmapData(w, h, true, 0); 
+									mat = new Matrix();
+									mat.scale(options.scale,options.scale);
+									bd.draw(dis, mat); // Draw using the scale factor
+									bm = new Bitmap(bd);
+									texture.root.uploadBitmap(bm as Bitmap);
+									mNumRestoredTextures++;
+								}
+								catch (e:Error) { log("Texture restoration failed: " + e.message); }
+								
+								bm.bitmapData.dispose();
+								
+								if (mNumLostTextures == mNumRestoredTextures)
+									dispatchEventWith(Event.TEXTURES_RESTORED);
+							}
+						});
+					};
+					
+					bm.bitmapData.dispose();
+					addTexture(name, texture);
+					onComplete();
+				}
+				else if (asset is ByteArray)
                 {
                     bytes = asset as ByteArray;
                     
@@ -813,8 +890,11 @@ package starling.utils
                     case "jpeg":
                     case "png":
                     case "gif":
+					case "swf":
                         var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
                         var loader:Loader = new Loader();
+						if(extension == "swf")
+							loaderContext.allowCodeImport = true;
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
                         loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
                         loader.loadBytes(bytes, loaderContext);
