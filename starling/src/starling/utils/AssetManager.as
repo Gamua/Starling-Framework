@@ -2,6 +2,7 @@ package starling.utils
 {
     import flash.display.Bitmap;
     import flash.display.Loader;
+    import flash.events.HTTPStatusEvent;
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
     import flash.media.Sound;
@@ -89,6 +90,9 @@ package starling.utils
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
         
+        /** Regex for name / extension extraction from URL. */
+        private static const NAME_REGEX:RegExp = /([\w-]+)(?:\.(\w{1,6}))?(?:\?.*)?$/;
+
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
         public function AssetManager(scaleFactor:Number=1, useMipmaps:Boolean=false)
@@ -558,7 +562,7 @@ package starling.utils
             
             function processNext():void
             {
-                var assetInfo:Object = mQueue.pop();
+                var assetInfo:Object = mQueue.shift();
                 clearTimeout(mTimeoutID);
                 processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
                                 xmls, progress, resume);
@@ -627,7 +631,7 @@ package starling.utils
             var canceled:Boolean = false;
             
             addEventListener(Event.CANCEL, cancel);
-            loadRawAsset(name, rawAsset, progress, process);
+            loadRawAsset(rawAsset, progress, process);
             
             function process(asset:Object):void
             {
@@ -675,7 +679,7 @@ package starling.utils
                     texture.root.onRestore = function():void
                     {
                         mNumLostTextures++;
-                        loadRawAsset(name, rawAsset, null, function(asset:Object):void
+                        loadRawAsset(rawAsset, null, function(asset:Object):void
                         {
                             try { texture.root.uploadBitmap(asset as Bitmap); }
                             catch (e:Error) { log("Texture restoration failed: " + e.message); }
@@ -703,7 +707,7 @@ package starling.utils
                         texture.root.onRestore = function():void
                         {
                             mNumLostTextures++;
-                            loadRawAsset(name, rawAsset, null, function(asset:Object):void
+                            loadRawAsset(rawAsset, null, function(asset:Object):void
                             {
                                 try { texture.root.uploadAtfData(asset as ByteArray, 0, true); }
                                 catch (e:Error) { log("Texture restoration failed: " + e.message); }
@@ -760,8 +764,7 @@ package starling.utils
             }
         }
         
-        private function loadRawAsset(name:String, rawAsset:Object, 
-                                      onProgress:Function, onComplete:Function):void
+        private function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
         {
             var extension:String = null;
             var urlLoader:URLLoader = null;
@@ -774,11 +777,12 @@ package starling.utils
             else if (rawAsset is String)
             {
                 url = rawAsset as String;
-                extension = url.split("?")[0].split(".").pop().toLowerCase();
+                extension = getExtensionFromUrl(url);
                 
                 urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                urlLoader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onHttpStatus);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.addEventListener(Event.COMPLETE, onUrlLoaderComplete);
                 urlLoader.load(new URLRequest(url));
@@ -790,6 +794,18 @@ package starling.utils
                 complete(null);
             }
             
+            function onHttpStatus(event:HTTPStatusEvent):void
+            {
+                if (extension == null)
+                {
+                    var headers:Array = event["responseHeaders"];
+                    var contentType:String = getHttpHeader(headers, "Content-Type");
+
+                    if (contentType && /(audio|image)\//.exec(contentType))
+                        extension = contentType.split("/").pop();
+                }
+            }
+
             function onLoadProgress(event:ProgressEvent):void
             {
                 if (onProgress != null)
@@ -802,11 +818,13 @@ package starling.utils
                 var sound:Sound;
                 
                 urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                urlLoader.removeEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, onHttpStatus);
                 urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
                 
-                switch (extension)
+                switch (extension.toLowerCase())
                 {
+                    case "mpeg":
                     case "mp3":
                         sound = new Sound();
                         sound.loadCompressedDataFromByteArray(bytes, bytes.length);
@@ -863,10 +881,9 @@ package starling.utils
             {
                 name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
-                name = name.split("?")[0]; // remove URL parameters like "?v=123"
-                matches = /(.*[\\\/])?(.+)(\.[\w]{1,4})/.exec(name);
+                name = getBasenameFromUrl(name);
                 
-                if (matches && matches.length == 4) return matches[2];
+                if (name) return name;
                 else throw new ArgumentError("Could not extract name from String '" + rawAsset + "'");
             }
             else
@@ -940,6 +957,30 @@ package starling.utils
             return result;
         }
         
+        private function getHttpHeader(headers:Array, headerName:String):String
+        {
+            if (headers)
+            {
+                for each (var header:Object in headers)
+                    if (header.name == headerName) return header.value;
+            }
+            return null;
+        }
+
+        private function getBasenameFromUrl(url:String):String
+        {
+            var matches:Array = NAME_REGEX.exec(url);
+            if (matches && matches.length > 0) return matches[1];
+            else return null;
+        }
+
+        private function getExtensionFromUrl(url:String):String
+        {
+            var matches:Array = NAME_REGEX.exec(url);
+            if (matches && matches.length > 1) return matches[2];
+            else return null;
+        }
+
         // properties
         
         /** The queue contains one 'Object' for each enqueued asset. Each object has 'asset'
