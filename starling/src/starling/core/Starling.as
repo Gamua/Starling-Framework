@@ -440,7 +440,7 @@ package starling.core
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:", mContext.driverInfo);
             
-            dispatchEventWith(starling.events.Event.CONTEXT3D_CREATE, false, mContext);
+            dispatchEventWith(Event.CONTEXT3D_CREATE, false, mContext);
         }
         
         private function initializeRoot():void
@@ -687,10 +687,23 @@ package starling.core
         
         private function onResize(event:Event):void
         {
-            makeCurrent();
-            
-            var stage:flash.display.Stage = event.target as flash.display.Stage; 
-            mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stage.stageWidth, stage.stageHeight));
+            var stageWidth:int  = event.target.stageWidth;
+            var stageHeight:int = event.target.stageHeight;
+
+            if (contextValid)
+                dispatchResizeEvent();
+            else
+                addEventListener(Event.CONTEXT3D_CREATE, dispatchResizeEvent);
+
+            function dispatchResizeEvent():void
+            {
+                // on Android, the context is not valid while we're resizing. To avoid problems
+                // with user code, we delay the event dispatching until it becomes valid again.
+
+                makeCurrent();
+                removeEventListener(Event.CONTEXT3D_CREATE, dispatchResizeEvent);
+                mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stageWidth, stageHeight));
+            }
         }
 
         private function onMouseLeave(event:Event):void
