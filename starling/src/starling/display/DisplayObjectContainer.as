@@ -393,9 +393,10 @@ package starling.display
         /** The number of children of this container. */
         public function get numChildren():int { return mChildren.length; }
         
-        /** If enabled, any touch on the container will have the container itself as the touch
-         *  event's target, not the individual child that was touched. Similar to 'mouseChildren'
-         *  in the classic display list (but with inverted logic). @default false */
+        /** If a container is a 'touchGroup', it will act as a single touchable object.
+         *  Touch events will have the container as target, not the touched child.
+         *  (Similar to 'mouseChildren' in the classic display list, but with inverted logic.)
+         *  @default false */
         public function get touchGroup():Boolean { return mTouchGroup; }
         public function set touchGroup(value:Boolean):void { mTouchGroup = value; }
 
