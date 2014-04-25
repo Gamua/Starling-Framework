@@ -24,20 +24,20 @@ package starling.textures
         private var mRepeat:Boolean = false;
         
         public function TextureOptions(scale:Number=1.0, mipMapping:Boolean=false, 
-                                       format:String="bgra")
+                                       format:String="bgra", repeat:Boolean=false)
         {
             mScale = scale;
             mFormat = format;
             mMipMapping = mipMapping;
+            mRepeat = repeat;
         }
         
         /** Creates a clone of the TextureOptions object with the exact same properties. */
         public function clone():TextureOptions
         {
-            var clone:TextureOptions = new TextureOptions(mScale, mMipMapping, mFormat);
+            var clone:TextureOptions = new TextureOptions(mScale, mMipMapping, mFormat, mRepeat);
             clone.mOptimizeForRenderToTexture = mOptimizeForRenderToTexture;
             clone.mOnReady = mOnReady;
-            clone.mRepeat = mRepeat;
             return clone;
         }
 
