@@ -65,7 +65,9 @@ package starling.display
     public class DisplayObjectContainer extends DisplayObject
     {
         // members
+
         private var mChildren:Vector.<DisplayObject>;
+        private var mTouchGroup:Boolean;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -310,22 +312,24 @@ package starling.display
             if (forTouch && (!visible || !touchable))
                 return null;
             
+            var target:DisplayObject = null;
             var localX:Number = localPoint.x;
             var localY:Number = localPoint.y;
-            
             var numChildren:int = mChildren.length;
+
             for (var i:int=numChildren-1; i>=0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
                 getTransformationMatrix(child, sHelperMatrix);
                 
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
-                var target:DisplayObject = child.hitTest(sHelperPoint, forTouch);
+                target = child.hitTest(sHelperPoint, forTouch);
                 
-                if (target) return target;
+                if (target) break;
             }
             
-            return null;
+            if (forTouch && mTouchGroup) return this;
+            else return target;
         }
         
         /** @inheritDoc */
@@ -389,6 +393,12 @@ package starling.display
         /** The number of children of this container. */
         public function get numChildren():int { return mChildren.length; }
         
+        /** If enabled, any touch on the container will have the container itself as the touch
+         *  event's target, not the individual child that was touched. Similar to 'mouseChildren'
+         *  in the classic display list (but with inverted logic). @default false */
+        public function get touchGroup():Boolean { return mTouchGroup; }
+        public function set touchGroup(value:Boolean):void { mTouchGroup = value; }
+
         // helpers
         
         private static function mergeSort(input:Vector.<DisplayObject>, compareFunc:Function, 
