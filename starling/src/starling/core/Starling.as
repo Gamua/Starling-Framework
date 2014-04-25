@@ -463,6 +463,9 @@ package starling.core
             var passedTime:Number = now - mLastFrameTimestamp;
             mLastFrameTimestamp = now;
             
+            // to avoid overloading time-based animations, the maximum delta is truncated.
+            if (passedTime > 1.0) passedTime = 1.0;
+
             advanceTime(passedTime);
             render();
         }
