@@ -31,6 +31,16 @@ package starling.textures
             mMipMapping = mipMapping;
         }
         
+        /** Creates a clone of the TextureOptions object with the exact same properties. */
+        public function clone():TextureOptions
+        {
+            var clone:TextureOptions = new TextureOptions(mScale, mMipMapping, mFormat);
+            clone.mOptimizeForRenderToTexture = mOptimizeForRenderToTexture;
+            clone.mOnReady = mOnReady;
+            clone.mRepeat = mRepeat;
+            return clone;
+        }
+
         /** The scale factor, which influences width and height properties. If you pass '-1',
          *  the current global content scale factor will be used. */
         public function get scale():Number { return mScale; }

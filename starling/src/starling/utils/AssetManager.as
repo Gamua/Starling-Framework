@@ -503,8 +503,9 @@ package starling.utils
             if (getQualifiedClassName(asset) == "flash.filesystem::File")
                 asset = unescape(asset["url"]);
             
-            if (name == null) name = getName(asset);
+            if (name == null)    name = getName(asset);
             if (options == null) options = mDefaultTextureOptions;
+            else                 options = options.clone();
             
             log("Enqueuing '" + name + "'");
             
