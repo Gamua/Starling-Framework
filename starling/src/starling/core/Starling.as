@@ -194,6 +194,7 @@ package starling.core
         private var mEnableErrorChecking:Boolean;
         private var mLastFrameTimestamp:Number;
         private var mLeftMouseDown:Boolean;
+        private var mLeftMouseTouchID:int;
         private var mStatsDisplay:StatsDisplay;
         private var mShareContext:Boolean;
         private var mProfile:String;
@@ -732,13 +733,19 @@ package starling.core
                 var mouseEvent:MouseEvent = event as MouseEvent;
                 globalX = mouseEvent.stageX;
                 globalY = mouseEvent.stageY;
-                touchID = 0;
+                touchID = mLeftMouseTouchID;
                 
                 // MouseEvent.buttonDown returns true for both left and right button (AIR supports
                 // the right mouse button). We only want to react on the left button for now,
                 // so we have to save the state for the left button manually.
-                if (event.type == MouseEvent.MOUSE_DOWN)    mLeftMouseDown = true;
-                else if (event.type == MouseEvent.MOUSE_UP) mLeftMouseDown = false;
+                if (event.type == MouseEvent.MOUSE_DOWN) mLeftMouseDown = true;
+                else if (event.type == MouseEvent.MOUSE_UP)
+                {
+                    // Increment our mouse button touch ID on mouse-up. We increment by 2 to allow
+                    // the multitouch simulator to use mLeftMouseTouchID+1 for its simulated touch ID.
+                    mLeftMouseTouchID += 2;
+                    mLeftMouseDown = false;
+                }
             }
             else
             {
@@ -781,7 +788,7 @@ package starling.core
             
             // allow objects that depend on mouse-over state to be updated immediately
             if (event.type == MouseEvent.MOUSE_UP)
-                mTouchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
+                mTouchProcessor.enqueue(mLeftMouseTouchID, TouchPhase.HOVER, globalX, globalY);
         }
         
         private function get touchEventTypes():Array
@@ -1011,6 +1018,12 @@ package starling.core
                 if (contextValid) updateViewPort(true);
             }
         }
+
+        /** The touch ID of the current mouse-based touch event */
+        public function get mouseTouchID():int { return mLeftMouseTouchID; }
+
+        /** The touch ID of the previous mouse-based touch event */
+        public function get prevMouseTouchID():int { return mLeftMouseTouchID - 2; }
         
         /** The TouchProcessor is passed all mouse and touch input and is responsible for
          *  dispatching TouchEvents to the Starling display tree. If you want to handle these
