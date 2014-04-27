@@ -273,6 +273,7 @@ package starling.core
             mSupportHighResolutions = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mSupport  = new RenderSupport();
+            mLeftMouseTouchID = -1;
             
             // for context data, we actually reference by stage3D, since it survives a context loss
             sContextData[stage3D] = new Dictionary();
@@ -741,9 +742,11 @@ package starling.core
                 if (event.type == MouseEvent.MOUSE_DOWN) mLeftMouseDown = true;
                 else if (event.type == MouseEvent.MOUSE_UP)
                 {
-                    // Increment our mouse button touch ID on mouse-up. We increment by 2 to allow
-                    // the multitouch simulator to use mLeftMouseTouchID+1 for its simulated touch ID.
-                    mLeftMouseTouchID += 2;
+                    // Decrement our mouse button touch ID on mouse-up. We use negative numbers to
+                    // avoid clashing with "real" touch IDs on systems that support mouse and touch
+                    // (e.g. Windows 8); and we decrement by 2 to allow the multitouch simulator
+                    // to use mLeftMouseTouchID-1 for its simulated touch ID.
+                    mLeftMouseTouchID -= 2;
                     mLeftMouseDown = false;
                 }
             }
@@ -1023,7 +1026,7 @@ package starling.core
         public function get mouseTouchID():int { return mLeftMouseTouchID; }
 
         /** The touch ID of the previous mouse-based touch event */
-        public function get prevMouseTouchID():int { return mLeftMouseTouchID - 2; }
+        public function get prevMouseTouchID():int { return mLeftMouseTouchID + 2; }
         
         /** The TouchProcessor is passed all mouse and touch input and is responsible for
          *  dispatching TouchEvents to the Starling display tree. If you want to handle these
