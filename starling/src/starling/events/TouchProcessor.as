@@ -201,7 +201,7 @@ package starling.events
             if (mCtrlDown && simulateMultitouch && touchID == (phase == TouchPhase.ENDED ? Starling.current.prevMouseTouchID : Starling.current.mouseTouchID))
             {
                 mTouchMarker.moveMarker(globalX, globalY, mShiftDown);
-                mQueue.unshift([touchID - 1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
+                mQueue.unshift([touchID + 1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
             }
         }
         
@@ -374,7 +374,7 @@ package starling.events
                     mTouchMarker.visible = mCtrlDown;
                     mTouchMarker.moveCenter(mStage.stageWidth/2, mStage.stageHeight/2);
 
-                    var mockedTouchID :int = Starling.current.mouseTouchID - 1;
+                    var mockedTouchID :int = Starling.current.mouseTouchID + 1;
                     var mouseTouch:Touch = getCurrentTouch(Starling.current.mouseTouchID);
                     var mockedTouch:Touch = getCurrentTouch(mockedTouchID);
                     
