@@ -325,11 +325,11 @@ package starling.display
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
                 target = child.hitTest(sHelperPoint, forTouch);
                 
-                if (target) break;
+                if (target)
+                    return forTouch && mTouchGroup ? this : target;
             }
             
-            if (forTouch && mTouchGroup) return this;
-            else return target;
+            return null;
         }
         
         /** @inheritDoc */
