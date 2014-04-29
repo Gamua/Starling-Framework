@@ -5,7 +5,7 @@ version 1.5 - 2014-04-29
 ------------------------
 
 - added support for automatic Context3D profile selection
-- added automatic support of RectangleTextures when possible, to save memory
+- added automatic usage of RectangleTextures when possible, to save memory
 - added support for rotated SubTextures (for tools like 'TexturePacker')
 - added support for 'File' instances to 'AssetManager.enqueueWithName'
 - added support for per-texture options to 'AssetManager.enqueueWithName'
@@ -13,6 +13,8 @@ version 1.5 - 2014-04-29
 - added support for 'background execution' to AssetManager
 - added support for latest ATF file format
 - added support for Antialiasing in RenderTextures (coming with AIR 13)
+- added automatic pooling of delayed calls in 'Juggler.delayCall'
+- added 'repeatCall' convenience function to Juggler
 - added 'touchGroup' property to containers, similar to 'mouseChildren' in classic Flash
 - added 'SystemUtil' class to simplify platform-dependent tasks
 - added 'offsetX/Y' properties to BitmapFont
