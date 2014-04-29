@@ -133,15 +133,39 @@ package starling.animation
         }
         
         /** Delays the execution of a function until <code>delay</code> seconds have passed.
-         *  The internally used 'DelayedCall' instance is taken from an object pool. This method
-         *  provides a convenient alternative for creating and adding a DelayedCall manually. */
-        public function delayCall(call:Function, delay:Number, ...args):void
+         *  This method provides a convenient alternative for creating and adding a DelayedCall
+         *  manually.
+         *
+         *  <p>To cancel the call, pass the returned 'IAnimatable' instance to 'Juggler.remove()'.
+         *  Do not use the returned IAnimatable otherwise; it is taken from a pool and will be
+         *  reused.</p> */
+        public function delayCall(call:Function, delay:Number, ...args):IAnimatable
         {
-            if (call == null) return;
+            if (call == null) return null;
             
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, delay, args);
             delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
             add(delayedCall);
+
+            return delayedCall; 
+        }
+
+        /** Runs a function at a specified interval (in seconds). A 'repeatCount' of zero
+         *  means that it runs indefinitely.
+         *
+         *  <p>To cancel the call, pass the returned 'IAnimatable' instance to 'Juggler.remove()'.
+         *  Do not use the returned IAnimatable otherwise; it is taken from a pool and will be
+         *  reused.</p> */
+        public function repeatCall(call:Function, interval:Number, repeatCount:int=0, ...args):IAnimatable
+        {
+            if (call == null) return null;
+            
+            var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, interval, args);
+            delayedCall.repeatCount = repeatCount;
+            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
+            add(delayedCall);
+            
+            return delayedCall;
         }
         
         private function onPooledDelayedCallComplete(event:Event):void
@@ -164,8 +188,11 @@ package starling.animation
          *      x: 50      // -> tween.animate("x", 50)
          *  });
          *  </pre> 
-         */
-        public function tween(target:Object, time:Number, properties:Object):void
+         *
+         *  <p>To cancel the tween, call 'Juggler.removeTweens' with the same target, or pass
+         *  the returned 'IAnimatable' instance to 'Juggler.remove()'. Do not use the returned
+         *  IAnimatable otherwise; it is taken from a pool and will be reused.</p> */
+        public function tween(target:Object, time:Number, properties:Object):IAnimatable
         {
             var tween:Tween = Tween.starling_internal::fromPool(target, time);
             
@@ -183,6 +210,8 @@ package starling.animation
             
             tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
             add(tween);
+
+            return tween;
         }
         
         private function onPooledTweenComplete(event:Event):void
