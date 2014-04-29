@@ -91,7 +91,7 @@ package starling.utils
         private static var sNames:Vector.<String> = new <String>[];
         
         /** Regex for name / extension extraction from URL. */
-        private static const NAME_REGEX:RegExp = /([\w-]+)(?:\.(\w{1,6}))?(?:\?.*)?$/;
+        private static const NAME_REGEX:RegExp = /([^\?\/\\]+?)(?:\.([\w\-]+))?(?:\?.*)?$/;
 
         /** Create a new AssetManager. The 'scaleFactor' and 'useMipmaps' parameters define
          *  how enqueued bitmaps will be converted to textures. */
