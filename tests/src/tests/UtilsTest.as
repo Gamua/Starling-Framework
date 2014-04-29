@@ -13,6 +13,7 @@ package tests
     import flexunit.framework.Assert;
     
     import starling.utils.deg2rad;
+    import starling.utils.execute;
     import starling.utils.formatString;
     import starling.utils.getNextPowerOfTwo;
     import starling.utils.rad2deg;
@@ -62,5 +63,25 @@ package tests
             Assert.assertEquals(Math.PI / 2.0 * 3.0, deg2rad(270.0));
             Assert.assertEquals(2 * Math.PI, deg2rad(360.0));
         } 
+
+        [Test]
+        public function testExecute():void
+        {
+            execute(funcOne, "a", "b");
+            execute(funcOne, "a", "b", "c");
+            execute(funcTwo, "a");
+
+            function funcOne(a:String, b:String):void
+            {
+                Assert.assertEquals("a", a);
+                Assert.assertEquals("b", b);
+            }
+
+            function funcTwo(a:String, b:String):void
+            {
+                Assert.assertEquals("a", a);
+                Assert.assertNull(b);
+            }
+        }
     }
 }

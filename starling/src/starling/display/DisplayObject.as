@@ -284,7 +284,6 @@ package starling.display
         public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             throw new AbstractMethodError();
-            return null;
         }
         
         /** Returns the object that is found topmost beneath a point in local coordinates, or nil if 
@@ -463,7 +462,7 @@ package starling.display
          *  In that case, Starling will apply the matrix, but not update the corresponding 
          *  properties.</p>
          * 
-         *  @returns CAUTION: not a copy, but the actual object! */
+         *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix():Matrix
         {
             if (mOrientationChanged)

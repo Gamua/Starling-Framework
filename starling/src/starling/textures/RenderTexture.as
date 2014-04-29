@@ -21,6 +21,7 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
+    import starling.utils.execute;
     import starling.utils.getNextPowerOfTwo;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
@@ -77,17 +78,23 @@ package starling.textures
          *  texture only for one draw (or drawBundled) call, you should deactivate it. */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true, scale:Number=-1)
         {
-            // TODO: when Adobe has fixed this bug on the iPad 1, we can remove 'legalWidth/Height'
-            //       and just pass on the original values.
+            // TODO: when Adobe has fixed this bug on the iPad 1 (see 'supportsNonPotDimensions'),
+            //       we can remove 'legalWidth/Height' and just pass on the original values.
+            //
+            // [Workaround]
 
-            var legalWidth:int  = width;
-            var legalHeight:int = height;
+            if (scale <= 0) scale = Starling.contentScaleFactor;
+
+            var legalWidth:Number  = width;
+            var legalHeight:Number = height;
 
             if (!supportsNonPotDimensions)
             {
-                legalWidth  = getNextPowerOfTwo(width);
-                legalHeight = getNextPowerOfTwo(height);
+                legalWidth  = getNextPowerOfTwo(width  * scale) / scale;
+                legalHeight = getNextPowerOfTwo(height * scale) / scale;
             }
+
+            // [/Workaround]
 
             mActiveTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
             mActiveTexture.root.onRestore = mActiveTexture.root.clear;
@@ -205,10 +212,7 @@ package starling.textures
             try
             {
                 mDrawing = true;
-                
-                // draw new objects
-                if (renderBlock != null)
-                    renderBlock(object, matrix, alpha);
+                execute(renderBlock, object, matrix, alpha);
             }
             finally
             {

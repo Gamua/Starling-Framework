@@ -48,6 +48,7 @@ package starling.core
     import starling.utils.HAlign;
     import starling.utils.SystemUtil;
     import starling.utils.VAlign;
+    import starling.utils.execute;
     
     /** Dispatched when a new render context is created. */
     [Event(name="context3DCreate", type="starling.events.Event")]
@@ -175,7 +176,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "1.4.1";
+        public static const VERSION:String = "1.5";
         
         /** The key for the shader programs stored in 'contextData' */
         private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
@@ -213,6 +214,7 @@ package starling.core
         private static var sCurrent:Starling;
         private static var sHandleLostContext:Boolean;
         private static var sContextData:Dictionary = new Dictionary(true);
+        private static var sAll:Vector.<Starling> = new <Starling>[];
         
         // construction
         
@@ -249,8 +251,9 @@ package starling.core
             if (rootClass == null) throw new ArgumentError("Root class must not be null");
             if (viewPort == null) viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
             if (stage3D == null) stage3D = stage.stage3Ds[0];
-            
+
             SystemUtil.initialize();
+            sAll.push(this);
             makeCurrent();
             
             mRootClass = rootClass;
@@ -274,7 +277,7 @@ package starling.core
             // for context data, we actually reference by stage3D, since it survives a context loss
             sContextData[stage3D] = new Dictionary();
             sContextData[stage3D][PROGRAM_DATA_NAME] = new Dictionary();
-            
+
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
@@ -339,11 +342,11 @@ package starling.core
             {
                 // Per default, the context is recreated as long as there are listeners on it.
                 // Beginning with AIR 3.6, we can avoid that with an additional parameter.
-                
-                var disposeContext3D:Function = mContext.dispose;
-                if (disposeContext3D.length == 1) disposeContext3D(false);
-                else disposeContext3D();
+                execute(mContext.dispose, false);
             }
+
+            var index:int =  sAll.indexOf(this);
+            if (index != -1) sAll.splice(index, 1);
         }
         
         // functions
@@ -383,7 +386,7 @@ package starling.core
                     profiles.sort(compareProfiles);
                     
                     mProfile = profiles[profiles.length-1];
-                    stage3D.requestContext3D(renderMode, mProfile);
+                    execute(stage3D.requestContext3D, renderMode, mProfile);
                 }
                 else
                 {
@@ -435,7 +438,7 @@ package starling.core
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:", mContext.driverInfo);
             
-            dispatchEventWith(starling.events.Event.CONTEXT3D_CREATE, false, mContext);
+            dispatchEventWith(Event.CONTEXT3D_CREATE, false, mContext);
         }
         
         private function initializeRoot():void
@@ -458,6 +461,9 @@ package starling.core
             var passedTime:Number = now - mLastFrameTimestamp;
             mLastFrameTimestamp = now;
             
+            // to avoid overloading time-based animations, the maximum delta is truncated.
+            if (passedTime > 1.0) passedTime = 1.0;
+
             advanceTime(passedTime);
             render();
         }
@@ -682,10 +688,23 @@ package starling.core
         
         private function onResize(event:Event):void
         {
-            makeCurrent();
-            
-            var stage:flash.display.Stage = event.target as flash.display.Stage; 
-            mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stage.stageWidth, stage.stageHeight));
+            var stageWidth:int  = event.target.stageWidth;
+            var stageHeight:int = event.target.stageHeight;
+
+            if (contextValid)
+                dispatchResizeEvent();
+            else
+                addEventListener(Event.CONTEXT3D_CREATE, dispatchResizeEvent);
+
+            function dispatchResizeEvent():void
+            {
+                // on Android, the context is not valid while we're resizing. To avoid problems
+                // with user code, we delay the event dispatching until it becomes valid again.
+
+                makeCurrent();
+                removeEventListener(Event.CONTEXT3D_CREATE, dispatchResizeEvent);
+                mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stageWidth, stageHeight));
+            }
         }
 
         private function onMouseLeave(event:Event):void
@@ -1016,6 +1035,9 @@ package starling.core
         
         /** The currently active Starling instance. */
         public static function get current():Starling { return sCurrent; }
+
+        /** All Starling instances. <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
+        public static function get all():Vector.<Starling> { return sAll; }
         
         /** The render context of the currently active Starling instance. */
         public static function get context():Context3D { return sCurrent ? sCurrent.context : null; }

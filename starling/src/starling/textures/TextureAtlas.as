@@ -43,6 +43,8 @@ package starling.textures
      * 	&lt;/TextureAtlas&gt;
      *  </listing>
      *  
+     *  <strong>Texture Frame</strong>
+     *
      *  <p>If your images have transparent areas at their edges, you can make use of the 
      *  <code>frame</code> property of the Texture class. Trim the texture by removing the 
      *  transparent edges and specify the original texture size like this:</p>
@@ -51,6 +53,19 @@ package starling.textures
      * 	&lt;SubTexture name='trimmed' x='0' y='0' height='10' width='10'
      * 	    frameX='-10' frameY='-10' frameWidth='30' frameHeight='30'/&gt;
      *  </listing>
+     *
+     *  <strong>Texture Rotation</strong>
+     *
+     *  <p>Some atlas generators can optionally rotate individual textures to optimize the texture
+     *  distribution. This is supported via the boolean attribute "rotated". If it is set to
+     *  <code>true</code> for a certain subtexture, this means that the texture on the atlas
+     *  has been rotated by 90 degrees, clockwise. Starling will undo that rotation by rotating
+     *  it counter-clockwise.</p>
+     *
+     *  <p>In this case, the positional coordinates (<code>x, y, width, height</code>)
+     *  are expected to point at the subtexture as it is present on the atlas (in its rotated
+     *  form), while the "frame" properties must describe the texture in its upright form.</p>
+     *
      */
     public class TextureAtlas
     {
@@ -154,6 +169,14 @@ package starling.textures
             return info ? info.frame : null;
         }
         
+        /** If true, the specified region in the atlas is rotated by 90 degrees (clockwise). The
+         *  SubTexture is thus rotated counter-clockwise to cancel out that transformation. */
+        public function getRotation(name:String):Boolean
+        {
+            var info:TextureInfo = mTextureInfos[name];
+            return info ? info.rotated : false;
+        }
+
         /** Adds a named region for a subtexture (described by rectangle with coordinates in 
          *  pixels) with an optional frame. */
         public function addRegion(name:String, region:Rectangle, frame:Rectangle=null,
