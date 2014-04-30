@@ -76,6 +76,7 @@ package starling.display
             addChild(mContents);
             addEventListener(TouchEvent.TOUCH, onTouch);
             
+            this.touchGroup = true;
             this.text = text;
         }
         

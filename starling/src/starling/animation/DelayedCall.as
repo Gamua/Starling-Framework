@@ -10,6 +10,7 @@
 
 package starling.animation
 {
+    import starling.core.starling_internal;
     import starling.events.Event;
     import starling.events.EventDispatcher;
 
@@ -95,5 +96,27 @@ package starling.animation
          *  Set to '0' to repeat indefinitely. @default 1 */
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
+        
+        // delayed call pooling
+        
+        private static var sPool:Vector.<DelayedCall> = new <DelayedCall>[];
+        
+        /** @private */
+        starling_internal static function fromPool(call:Function, delay:Number, 
+                                                   args:Array=null):DelayedCall
+        {
+            if (sPool.length) return sPool.pop().reset(call, delay, args);
+            else return new DelayedCall(call, delay, args);
+        }
+        
+        /** @private */
+        starling_internal static function toPool(delayedCall:DelayedCall):void
+        {
+            // reset any object-references, to make sure we don't prevent any garbage collection
+            delayedCall.mCall = null;
+            delayedCall.mArgs = null;
+            delayedCall.removeEventListeners();
+            sPool.push(delayedCall);
+        }
     }
 }

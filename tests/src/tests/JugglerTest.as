@@ -18,6 +18,7 @@ package tests
     import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
     
+    import starling.animation.IAnimatable;
     import starling.animation.Juggler;
     import starling.animation.Tween;
     import starling.display.Quad;
@@ -251,6 +252,82 @@ package tests
                 
             function onComplete():void { completeCount++; }
             function onStart():void { startCount++; }
+        }
+        
+        [Test]
+        public function testDelayedCallConvenienceMethod():void
+        {
+            var juggler:Juggler = new Juggler();
+            var counter:int = 0;
+            
+            juggler.delayCall(raiseCounter, 1.0);
+            juggler.delayCall(raiseCounter, 2.0, 2);
+            
+            juggler.advanceTime(0.5);
+            assertEquals(0, counter);
+            
+            juggler.advanceTime(1.0);
+            assertEquals(1, counter);
+            
+            juggler.advanceTime(1.0);
+            assertEquals(3, counter);
+            
+            juggler.delayCall(raiseCounter, 1.0, 3);
+            
+            juggler.advanceTime(1.0);
+            assertEquals(6, counter);
+            
+            function raiseCounter(byValue:int=1):void
+            {
+                counter += byValue;
+            }
+        }
+        
+        [Test]
+        public function testRepeatCall():void
+        {
+            var juggler:Juggler = new Juggler();
+            var counter:int = 0;
+            
+            juggler.repeatCall(raiseCounter, 0.25, 4, 1);
+            assertEquals(0, counter);
+            
+            juggler.advanceTime(0.25);
+            assertEquals(1, counter);
+            
+            juggler.advanceTime(0.5);
+            assertEquals(3, counter);
+            
+            juggler.advanceTime(10);
+            assertEquals(4, counter);
+            
+            function raiseCounter(byValue:int=1):void
+            {
+                counter += byValue;
+            }
+        }
+        
+        [Test]
+        public function testEndlessRepeatCall():void
+        {
+            var juggler:Juggler = new Juggler();
+            var counter:int = 0;
+            
+            var id:IAnimatable = juggler.repeatCall(raiseCounter, 1.0);
+            assertEquals(0, counter);
+            
+            juggler.advanceTime(50);
+            assertEquals(50, counter);
+            
+            juggler.remove(id);
+            
+            juggler.advanceTime(50);
+            assertEquals(50, counter);
+            
+            function raiseCounter():void
+            {
+                counter += 1;
+            }
         }
     }
 }

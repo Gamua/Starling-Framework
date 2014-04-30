@@ -1,6 +1,72 @@
 Starling: Changelog
 ===================
 
+version 1.5 - 2014-04-29
+------------------------
+
+- added support for automatic Context3D profile selection
+- added automatic usage of RectangleTextures when possible, to save memory
+- added support for rotated SubTextures (for tools like 'TexturePacker')
+- added support for 'File' instances to 'AssetManager.enqueueWithName'
+- added support for per-texture options to 'AssetManager.enqueueWithName'
+- added support for multiple Starling instances when using AssetManager
+- added support for 'background execution' to AssetManager
+- added support for latest ATF file format
+- added support for Antialiasing in RenderTextures (coming with AIR 13)
+- added automatic pooling of delayed calls in 'Juggler.delayCall'
+- added 'repeatCall' convenience function to Juggler
+- added 'touchGroup' property to containers, similar to 'mouseChildren' in classic Flash
+- added 'SystemUtil' class to simplify platform-dependent tasks
+- added 'offsetX/Y' properties to BitmapFont
+- added 'transparent' parameter to 'Stage.drawToBitmapData'
+- added 'Texture.fromData' method
+- added 'rgb' and 'alpha' arguments to 'RenderTexture.clear'
+- added static 'defaultTextureFormat' property to TextField
+- added more dispose calls to AssetManager (e.g. when replacing existing objects)
+- added transformation matrix property to 'SubTexture' class
+- added 'RectangleUtil.getBounds' method
+- added a check if clearing a non-POT RectangleTexture works (workaround for iPad 1 AIR bug)
+- added additional context-validity checks for more reliable context loss handling
+- added 'ColorMatrix.tint' method for Flash-like tinting (thanks to esdebon)
+- added 'BlendMode.BELOW' to draw below objects on RenderTextures
+- added protected 'transformData' method to AssetManager, enabling preprocessing of raw byte data
+- added 'execute' utility function
+- added protected property to Juggler that allows access to the objects vector
+- added 'muted' property to MovieClip
+- added 'keepAtlasXmls' and 'keepFontXmls' properties to AssetManager
+- added static 'all' property to Starling, allowing access to all instances (thanks to Josh)
+- added support for HTTP 'content-type' to AssetManager, used if no file extension is found
+- added property 'numCurrentTouches' to TouchProcessor
+- added check if context is valid before dispatching 'RESIZE' events
+- optimized Start-up time immensely by lazily creating AGAL programs (thanks to ajwfrost)
+- optimized performance of 'DisplayObject.rotation' setter by avoiding loop (thanks to zeh)
+- optimized Bitmap Font rendering by reducing object allocations massively (thanks to Jeff)
+- optimized 'Quad.setColor' (thanks to IonSwitz)
+- optimized 'DisplayObject.transformationMatrix' setter
+- optimized capacity change of QuadBatch instance
+- optimized 'removeEventListener'
+- optimized 'Texture.frame' getter by avoiding allocation
+- fixed parsing of filename and extension of AssetManager object
+- fixed null reference on lost context after changing a font from TrueType to BMP
+- fixed compiler warning in Flash CC
+- fixed multiple dispatching of 'addedTo'- and 'removedFromStage' events
+- fixed RenderTexture closure allocations (thanks to Jonathan Hart)
+- fixed timing issues when calling 'purgeQueue' and 'loadQueue' in succession
+- fixed that 'advanceTime' was called after context was lost
+- fixed occasional null reference within TextField class after context loss
+- fixed maximum size of QuadBatch
+- fixed missing TextField disposal in Button
+- fixed text alignment getter in TextField
+- fixed error when context loss occurred while processing AssetManager queue
+- fixed support for restoring cached filters on a context loss (at least partially)
+- fixed clipping of 'nativeFilters' on TextField
+- fixed 'deactivate' event handlers of TouchProcessor
+- fixed potential division through zero on 'DisplayObject.transformationMatrix' setter
+- fixed that BitmapFonts with 'autoSize' enabled would split words in half
+- fixed that touch queue was not purged on App interruption
+- fixed 'mapPoint' of DisplacementMapFilter (now taking scale factor into account)
+- fixed overloading of time-based animations by clamping 'passedTime' to a maximum of 1 second
+
 version 1.4.1 - 2013-10-15
 --------------------------
 
@@ -149,7 +215,7 @@ version 1.2 - 2012-08-15
 - added support for final ATF file format
 - added support for skewing through new properties 'skewX' and 'skewY' on DisplayObjects
   (thanks to aduros, tconkling, spmallick and groves)
-- added support for manually assigning a transformation matrix to a display object 
+- added support for manually assigning a transformation matrix to a display object
   (thanks to spmallick)
 - added new 'DRW' value in statistics display, showing the number of draw calls per frame
 - added 'BitmapFont.createSprite' method, useful for simple text effects
@@ -220,7 +286,7 @@ version 1.1 - 2012-05-06
 - optimized some matrix and rendering code (thanks to jSandhu!)
 - fixed error when TextField text property was set to 'null'
 - fixed wrong error output in 'Image.smoothing' setter
-- fixed: pausing and restarting Starling now resets passed time 
+- fixed: pausing and restarting Starling now resets passed time
 - fixed exception when child of flattened sprite had zero scaleX- or scaleY-value
 - fixed exception on mipmap creation when texture was only one pixel high/wide
 - fixed lost color data when pma vertex data was set to 'alpha=0' (thanks to Tomyail!)
@@ -275,9 +341,9 @@ version 0.9.1 - 2011-12-11
     - optimized VertexData class
     - removed many Matrix allocations in RenderSupport class
     - removed many temporary object allocations
-    - accelerated re-flattening of flattened sprites  
+    - accelerated re-flattening of flattened sprites
     - replaced performance critical 'for each' loops with faster 'for' loops
-- demo now automatically uses 30 fps in Software mode    
+- demo now automatically uses 30 fps in Software mode
 - fixed center of rotation in multitouch demo
 - fixed mouse/touch positions when stage size is changed
 - fixed alpha propagation in flattened sprites
@@ -287,4 +353,4 @@ version 0.9.1 - 2011-12-11
 version 0.9 - 2011-09-11
 ------------------------
 
-- first public version 
+- first public version
