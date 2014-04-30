@@ -7,7 +7,7 @@
 	<groupId>com.gamua</groupId>
 	<artifactId>starling-framework</artifactId>
 	<packaging>swc</packaging>
-	<version>1.4-SNAPSHOT</version>
+	<version>1.5-SNAPSHOT</version>
 
 	<properties>
 		<flexmojos.version>6.0.1</flexmojos.version>
@@ -30,6 +30,7 @@
 				<version>${flexmojos.version}</version>
 				<extensions>true</extensions>
 				<configuration>
+          <debug>false</debug>
 					<storepass/>
 					<skipTests>true</skipTests>
 					<skipTest>true</skipTest>
@@ -48,12 +49,6 @@
 	</build>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.flex.framework</groupId>
-			<artifactId>flex-framework</artifactId>
-			<version>${flex.framework.version}</version>
-			<type>pom</type>
-		</dependency>
     	<dependency>
     		<groupId>com.adobe.flash.framework</groupId>
     		<artifactId>playerglobal</artifactId>
