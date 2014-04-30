@@ -89,7 +89,19 @@ package starling.textures
          *  cropped or filled up with transparent pixels */
         public function uploadBitmapData(data:BitmapData):void
         {
+			uploadBitmapDatas([data]);
+        }
+
+        /** Uploads a list of bitmap datas to the texture. The existing contents will be replaced.
+         *  If the size of the bitmap does not match the size of the texture, the bitmap will be
+         *  cropped or filled up with transparent pixels. The first item in the list is the main
+         *  texture bitmap data; subsequent items are mip map levels. Missing mip map levels are
+         *  automatically calculated from the previous bitmap data */
+        public function uploadBitmapDatas(datas:Array):void
+        {
             var potData:BitmapData;
+            
+            var data:BitmapData = datas[0] as BitmapData;
             
             if (data.width != mWidth || data.height != mHeight)
             {
@@ -117,10 +129,20 @@ package starling.textures
                     while (currentWidth >= 1 || currentHeight >= 1)
                     {
                         bounds.width = currentWidth; bounds.height = currentHeight;
-                        canvas.fillRect(bounds, 0);
-                        canvas.draw(data, transform, null, null, null, true);
+                        if (datas.length > level)
+                        {
+                            // Use existing bitmap data
+                            canvas.fillRect(bounds, 0);
+                            canvas.draw(datas[level] as BitmapData, null, null, null, null, true);
+                        }
+                        else
+                        {
+                            // Resize previous bitmap data
+                            canvas.fillRect(bounds, 0);
+                            canvas.draw(datas[datas.length-1] as BitmapData, transform, null, null, null, true);
+                            transform.scale(0.5, 0.5);
+                        }
                         potTexture.uploadFromBitmapData(canvas, level++);
-                        transform.scale(0.5, 0.5);
                         currentWidth  = currentWidth  >> 1;
                         currentHeight = currentHeight >> 1;
                     }
