@@ -113,7 +113,6 @@ package starling.animation
 				if (delayed && delayed.call == call)
 				{
 					delayed.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-					DelayedCall.starling_internal::toPool(delayed);
 					mObjects[i] = null;
 				}
 			}
