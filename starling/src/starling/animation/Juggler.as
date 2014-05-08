@@ -102,6 +102,23 @@ package starling.animation
             }
         }
         
+		/** Removes all delayedCalls for a certain call. */
+		public function removeDelayedCall( call:Function ):void
+		{
+			if( call == null ) return;
+			
+			for( var i:int=mObjects.length-1; i>=0; --i )
+			{
+				var delayed:DelayedCall = mObjects[i] as DelayedCall;
+				if (delayed && delayed.call == call)
+				{
+					delayed.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+					DelayedCall.starling_internal::toPool(delayed);
+					mObjects[i] = null;
+				}
+			}
+		}
+		
         /** Figures out if the juggler contains one or more tweens with a certain target. */
         public function containsTweens(target:Object):Boolean
         {
