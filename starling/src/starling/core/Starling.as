@@ -357,6 +357,8 @@ package starling.core
                 profiles = ["baselineExtended", "baseline", "baselineConstrained"];
             else if (profile is String)
                 profiles = [profile as String];
+            else if (profile is Array)
+                profiles = profile as Array;
             else
                 throw new ArgumentError("Profile must be of type 'String' or 'Array'");
             
