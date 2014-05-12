@@ -574,10 +574,12 @@ package starling.core
             textField.width = mStage.stageWidth * 0.75;
             textField.autoSize = TextFieldAutoSize.CENTER;
             textField.text = message;
-            textField.x = (mStage.stageWidth - textField.width) / 2;
+            textField.x = (mStage.stageWidth  - textField.width)  / 2;
             textField.y = (mStage.stageHeight - textField.height) / 2;
             textField.background = true;
             textField.backgroundColor = 0x440000;
+
+            updateNativeOverlay();
             nativeOverlay.addChild(textField);
         }
         
