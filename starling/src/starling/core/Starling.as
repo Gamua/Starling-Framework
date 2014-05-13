@@ -370,7 +370,13 @@ package starling.core
             function requestNextProfile():void
             {
                 currentProfile = profiles.shift();
-                execute(mStage3D.requestContext3D, renderMode, currentProfile);
+
+                try { execute(mStage3D.requestContext3D, renderMode, currentProfile); }
+                catch (error:Error)
+                {
+                    if (profiles.length != 0) setTimeout(requestNextProfile, 1);
+                    else throw error;
+                }
             }
             
             function onCreated(event:Event):void
