@@ -1,7 +1,7 @@
 Starling: Changelog
 ===================
 
-version 1.5 - 2014-04-29
+version 1.5 - 2014-05-21
 ------------------------
 
 - added support for automatic Context3D profile selection
