@@ -1,6 +1,12 @@
 Starling: Changelog
 ===================
 
+version 1.5.1 - 2014-05-26
+--------------------------
+
+- exchanged references to 'HTTPStatusEvent.HTTP_RESPONSE_STATUS' with custom constant,
+  to avoid problems in pure Flash projects
+
 version 1.5 - 2014-05-21
 ------------------------
 
