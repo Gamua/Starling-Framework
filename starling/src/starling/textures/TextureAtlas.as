@@ -71,7 +71,8 @@ package starling.textures
     {
         private var mAtlasTexture:Texture;
         private var mTextureInfos:Dictionary;
-        
+        private var mNames:Vector.<String>;
+
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
         
@@ -80,6 +81,7 @@ package starling.textures
         {
             mTextureInfos = new Dictionary();
             mAtlasTexture = texture;
+            mNames= new <String>[];
             
             if (atlasXml)
                 parseAtlasXml(atlasXml);
@@ -115,8 +117,9 @@ package starling.textures
                 var frame:Rectangle  = frameWidth > 0 && frameHeight > 0 ?
                         new Rectangle(frameX, frameY, frameWidth, frameHeight) : null;
                 
-                addRegion(name, region, frame, rotated);
+                addRegion(name, region, frame, rotated, false);
             }
+            mNames.sort(Array.CASEINSENSITIVE);
         }
         
         /** Retrieves a subtexture by name. Returns <code>null</code> if it is not found. */
@@ -146,11 +149,10 @@ package starling.textures
         {
             if (result == null) result = new <String>[];
             
-            for (var name:String in mTextureInfos)
+            for each (var name:String in mNames)
                 if (name.indexOf(prefix) == 0)
                     result.push(name);
             
-            result.sort(Array.CASEINSENSITIVE);
             return result;
         }
         
@@ -180,15 +182,24 @@ package starling.textures
         /** Adds a named region for a subtexture (described by rectangle with coordinates in 
          *  pixels) with an optional frame. */
         public function addRegion(name:String, region:Rectangle, frame:Rectangle=null,
-                                  rotated:Boolean=false):void
+                                  rotated:Boolean=false, sort:Boolean=true):void
         {
             mTextureInfos[name] = new TextureInfo(region, frame, rotated);
+            if (mNames.indexOf(name)==-1)
+			{
+				mNames.push(name);
+				if (sort)
+					mNames.sort(Array.CASEINSENSITIVE);
+			}
         }
         
         /** Removes a region with a certain name. */
         public function removeRegion(name:String):void
         {
             delete mTextureInfos[name];
+            var index:int=mNames.indexOf(name);
+			if (index!=-1)
+				mNames.splice(index, 1);
         }
         
         /** The base texture that makes up the atlas. */
