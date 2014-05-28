@@ -71,6 +71,7 @@ package starling.textures
     {
         private var mAtlasTexture:Texture;
         private var mTextureInfos:Dictionary;
+        private var mTextureNames:Vector.<String>;
         
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
@@ -144,13 +145,21 @@ package starling.textures
         /** Returns all texture names that start with a certain string, sorted alphabetically. */
         public function getNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
         {
+            var name:String;
             if (result == null) result = new <String>[];
             
-            for (var name:String in mTextureInfos)
+            if (mTextureNames == null)
+            {
+                // optimization: store sorted list of texture names
+                mTextureNames = new <String>[];
+                for (name in mTextureInfos) mTextureNames[mTextureNames.length] = name;
+                mTextureNames.sort(Array.CASEINSENSITIVE);
+            }
+
+            for each (name in mTextureNames)
                 if (name.indexOf(prefix) == 0)
-                    result.push(name);
+                    result[result.length] = name;
             
-            result.sort(Array.CASEINSENSITIVE);
             return result;
         }
         
@@ -183,12 +192,14 @@ package starling.textures
                                   rotated:Boolean=false):void
         {
             mTextureInfos[name] = new TextureInfo(region, frame, rotated);
+            mTextureNames = null;
         }
         
         /** Removes a region with a certain name. */
         public function removeRegion(name:String):void
         {
             delete mTextureInfos[name];
+            mTextureNames = null;
         }
         
         /** The base texture that makes up the atlas. */
