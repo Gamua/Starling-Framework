@@ -281,6 +281,11 @@ package starling.display
             createTextField();
         }
         
+        /** The color of the button's state image. Just like every image object, each pixel's
+         *  color is multiplied with this value. @default white */
+        public function get color():uint { return mBackground.color; }
+        public function set color(value:uint):void { mBackground.color = value; }
+
         /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
          *  @default true */
         public override function get useHandCursor():Boolean { return mUseHandCursor; }
