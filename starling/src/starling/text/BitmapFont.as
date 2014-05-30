@@ -165,6 +165,17 @@ package starling.text
             mChars[charID] = bitmapChar;
         }
         
+        /** Returns a vector containing all the character IDs that are contained in this font. */
+        public function getCharIDs(result:Vector.<int>=null):Vector.<int>
+        {
+            if (result == null) result = new <int>[];
+
+            for(var key:int in mChars)
+                result[result.length] = key;
+
+            return result;
+        }
+
         /** Creates a sprite that contains a certain text, made up by one image per char. */
         public function createSprite(width:Number, height:Number, text:String,
                                      fontSize:Number=-1, color:uint=0xffffff, 
