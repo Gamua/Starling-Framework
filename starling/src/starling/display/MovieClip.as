@@ -219,8 +219,7 @@ package starling.display
             var finalFrame:int;
             var previousFrame:int = mCurrentFrame;
             var restTime:Number = 0.0;
-            var breakAfterFrame:Boolean = false;
-            var hasCompleteListener:Boolean = hasEventListener(Event.COMPLETE); 
+            var breakAfterFrame:Boolean = false;            
             var dispatchCompleteEvent:Boolean = false;
             var totalTime:Number = this.totalTime;
             
@@ -239,6 +238,7 @@ package starling.display
                 {
                     if (mCurrentFrame == finalFrame)
                     {
+                        var hasCompleteListener:Boolean = hasEventListener(Event.COMPLETE); 
                         if (mLoop && !hasCompleteListener)
                         {
                             mCurrentTime -= totalTime;
