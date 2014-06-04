@@ -706,7 +706,7 @@ package starling.utils
                     
                     if (AtfData.isAtfData(bytes))
                     {
-                        options.onReady = onComplete;
+                        options.onReady = prependCallback(options.onReady, onComplete);
                         texture = Texture.fromData(bytes, options);
                         texture.root.onRestore = function():void
                         {
@@ -986,6 +986,20 @@ package starling.utils
             var matches:Array = NAME_REGEX.exec(url);
             if (matches && matches.length > 1) return matches[2];
             else return null;
+        }
+
+        private function prependCallback(oldCallback:Function, newCallback:Function):Function
+        {
+            // TODO: it might make sense to add this (together with "appendCallback")
+            //       as a public utility method ("FunctionUtil"?)
+
+            if (oldCallback == null) return newCallback;
+            else if (newCallback == null) return oldCallback;
+            else return function():void
+            {
+                newCallback();
+                oldCallback();
+            }
         }
 
         // properties
