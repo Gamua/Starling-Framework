@@ -44,6 +44,8 @@ package starling.display
         
         private var mUpState:Texture;
         private var mDownState:Texture;
+        private var mOverState:Texture;
+        private var mDisabledState:Texture;
         
         private var mContents:Sprite;
         private var mBackground:Image;
@@ -52,22 +54,27 @@ package starling.display
         
         private var mScaleWhenDown:Number;
         private var mAlphaWhenDisabled:Number;
-        private var mEnabled:Boolean;
-        private var mIsDown:Boolean;
         private var mUseHandCursor:Boolean;
+        private var mEnabled:Boolean;
+        private var mState:String;
         
-        /** Creates a button with textures for up- and down-state or text. */
-        public function Button(upState:Texture, text:String="", downState:Texture=null)
+        /** Creates a button with a set of state-textures and (optionally) some text.
+         *  Any state that is left 'null' will display the up-state texture. */
+        public function Button(upState:Texture, text:String="", downState:Texture=null,
+                               overState:Texture=null, disabledState:Texture=null)
         {
             if (upState == null) throw new ArgumentError("Texture cannot be null");
             
             mUpState = upState;
             mDownState = downState ? downState : upState;
+            mOverState = overState ? overState : upState;
+            mDisabledState = disabledState ? disabledState : upState;
+
+            mState = ButtonState.UP;
             mBackground = new Image(upState);
             mScaleWhenDown = downState ? 1.0 : 0.9;
-            mAlphaWhenDisabled = 0.5;
+            mAlphaWhenDisabled = disabledState ? 1.0: 0.5;
             mEnabled = true;
-            mIsDown = false;
             mUseHandCursor = true;
             mTextBounds = new Rectangle(0, 0, upState.width, upState.height);            
             
@@ -90,14 +97,6 @@ package starling.display
             super.dispose();
         }
         
-        private function resetContents():void
-        {
-            mIsDown = false;
-            mBackground.texture = mUpState;
-            mContents.x = mContents.y = 0;
-            mContents.scaleX = mContents.scaleY = 1.0;
-        }
-        
         private function createTextField():void
         {
             if (mTextField == null)
@@ -118,21 +117,28 @@ package starling.display
         
         private function onTouch(event:TouchEvent):void
         {
-            Mouse.cursor = (mUseHandCursor && mEnabled && event.interactsWith(this)) ? 
+            Mouse.cursor = (mUseHandCursor && mEnabled && event.interactsWith(this)) ?
                 MouseCursor.BUTTON : MouseCursor.AUTO;
             
             var touch:Touch = event.getTouch(this);
-            if (!mEnabled || touch == null) return;
             
-            if (touch.phase == TouchPhase.BEGAN && !mIsDown)
+            if (!mEnabled)
             {
-                mBackground.texture = mDownState;
-                mContents.scaleX = mContents.scaleY = mScaleWhenDown;
-                mContents.x = (1.0 - mScaleWhenDown) / 2.0 * mBackground.width;
-                mContents.y = (1.0 - mScaleWhenDown) / 2.0 * mBackground.height;
-                mIsDown = true;
+                return;
             }
-            else if (touch.phase == TouchPhase.MOVED && mIsDown)
+            else if (touch == null)
+            {
+                state = ButtonState.UP;
+            }
+            else if (touch.phase == TouchPhase.HOVER)
+            {
+                state = ButtonState.OVER;
+            }
+            else if (touch.phase == TouchPhase.BEGAN && mState != ButtonState.DOWN)
+            {
+                state = ButtonState.DOWN;
+            }
+            else if (touch.phase == TouchPhase.MOVED && mState == ButtonState.DOWN)
             {
                 // reset button when user dragged too far away after pushing
                 var buttonRect:Rectangle = getBounds(stage);
@@ -141,18 +147,51 @@ package starling.display
                     touch.globalX > buttonRect.x + buttonRect.width + MAX_DRAG_DIST ||
                     touch.globalY > buttonRect.y + buttonRect.height + MAX_DRAG_DIST)
                 {
-                    resetContents();
+                    state = ButtonState.UP;
                 }
             }
-            else if (touch.phase == TouchPhase.ENDED && mIsDown)
+            else if (touch.phase == TouchPhase.ENDED && mState == ButtonState.DOWN)
             {
-                resetContents();
+                state = ButtonState.UP;
                 dispatchEventWith(Event.TRIGGERED, true);
             }
         }
         
+        /** The current state of the button. The corresponding strings are found
+         *  in the ButtonState class. */
+        public function get state():String { return mState; }
+        public function set state(value:String):void
+        {
+            mState = value;
+            mContents.scaleX = mContents.scaleY = 1.0;
+
+            switch (mState)
+            {
+                case ButtonState.DOWN:
+                    mBackground.texture = mDownState;
+                    mContents.scaleX = mContents.scaleY = scaleWhenDown;
+                    mContents.x = (1.0 - scaleWhenDown) / 2.0 * mBackground.width;
+                    mContents.y = (1.0 - scaleWhenDown) / 2.0 * mBackground.height;
+                    break;
+                case ButtonState.UP:
+                    mBackground.texture = mUpState;
+                    mContents.x = mContents.y = 0;
+                    break;
+                case ButtonState.OVER:
+                    mBackground.texture = mOverState;
+                    mContents.x = mContents.y = 0;
+                    break;
+                case ButtonState.DISABLED:
+                    mBackground.texture = mDisabledState;
+                    mContents.x = mContents.y = 0;
+                    break;
+                default:
+                    throw new ArgumentError("Invalid button state: " + mState);
+            }
+        }
+
         /** The scale factor of the button on touch. Per default, a button with a down state 
-          * texture won't scale. */
+         *  texture won't scale. */
         public function get scaleWhenDown():Number { return mScaleWhenDown; }
         public function set scaleWhenDown(value:Number):void { mScaleWhenDown = value; }
         
@@ -168,7 +207,7 @@ package starling.display
             {
                 mEnabled = value;
                 mContents.alpha = value ? 1.0 : mAlphaWhenDisabled;
-                resetContents();
+                state = value ? ButtonState.UP : ButtonState.DISABLED;
             }
         }
         
@@ -194,8 +233,8 @@ package starling.display
             }
         }
         
-        /** The name of the font displayed on the button. May be a system font or a registered 
-          * bitmap font. */
+        /** The name of the font displayed on the button. May be a system font or a registered
+         *  bitmap font. */
         public function get fontName():String { return mTextField ? mTextField.fontName : "Verdana"; }
         public function set fontName(value:String):void
         {
@@ -234,7 +273,7 @@ package starling.display
             if (mUpState != value)
             {
                 mUpState = value;
-                if (!mIsDown) mBackground.texture = value;
+                if (mState == ButtonState.UP) mBackground.texture = value;
             }
         }
         
@@ -245,7 +284,29 @@ package starling.display
             if (mDownState != value)
             {
                 mDownState = value;
-                if (mIsDown) mBackground.texture = value;
+                if (mState == ButtonState.DOWN) mBackground.texture = value;
+            }
+        }
+
+        /** The texture that is displayed while mouse hovers over the button. */
+        public function get overState():Texture { return mOverState; }
+        public function set overState(value:Texture):void
+        {
+            if (mOverState != value)
+            {
+                mOverState = value;
+                if (mState == ButtonState.OVER) mBackground.texture = value;
+            }
+        }
+
+        /** The texture that is displayed when the button is disabled. */
+        public function get disabledState():Texture { return mDisabledState; }
+        public function set disabledState(value:Texture):void
+        {
+            if (mDisabledState != value)
+            {
+                mDisabledState = value;
+                if (mState == ButtonState.DISABLED) mBackground.texture = value;
             }
         }
         
