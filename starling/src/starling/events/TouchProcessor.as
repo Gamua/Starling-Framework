@@ -356,6 +356,9 @@ package starling.events
         /** The stage object to which the touch objects are (per default) dispatched. */
         public function get stage():Stage { return mStage; }
         
+        /** Returns the number of fingers / touch points that are currently on the stage. */
+        public function get numCurrentTouches():int { return mCurrentTouches.length; }
+
         // keyboard handling
         
         private function onKey(event:KeyboardEvent):void
@@ -412,7 +415,7 @@ package starling.events
                 if (enable)
                     nativeApp.addEventListener("deactivate", onInterruption, false, 0, true);
                 else
-                    nativeApp.removeEventListener("activate", onInterruption);
+                    nativeApp.removeEventListener("deactivate", onInterruption);
             }
             catch (e:Error) {} // we're not running in AIR
         }
@@ -437,6 +440,7 @@ package starling.events
 
             // purge touches
             mCurrentTouches.length = 0;
+            mQueue.length = 0;
         }
     }
 }

@@ -76,7 +76,18 @@ package starling.display
             addChild(mContents);
             addEventListener(TouchEvent.TOUCH, onTouch);
             
+            this.touchGroup = true;
             this.text = text;
+        }
+        
+        /** @inheritDoc */
+        public override function dispose():void
+        {
+            // text field might be disconnected from parent, so we have to dispose it manually
+            if (mTextField)
+                mTextField.dispose();
+            
+            super.dispose();
         }
         
         private function resetContents():void
@@ -239,7 +250,11 @@ package starling.display
         }
         
         /** The vertical alignment of the text on the button. */
-        public function get textVAlign():String { return mTextField.vAlign; }
+        public function get textVAlign():String
+        {
+            return mTextField ? mTextField.vAlign : VAlign.CENTER;
+        }
+        
         public function set textVAlign(value:String):void
         {
             createTextField();
@@ -247,7 +262,11 @@ package starling.display
         }
         
         /** The horizontal alignment of the text on the button. */
-        public function get textHAlign():String { return mTextField.hAlign; }
+        public function get textHAlign():String
+        {
+            return mTextField ? mTextField.hAlign : HAlign.CENTER;
+        }
+        
         public function set textHAlign(value:String):void
         {
             createTextField();
@@ -262,6 +281,11 @@ package starling.display
             createTextField();
         }
         
+        /** The color of the button's state image. Just like every image object, each pixel's
+         *  color is multiplied with this value. @default white */
+        public function get color():uint { return mBackground.color; }
+        public function set color(value:uint):void { mBackground.color = value; }
+
         /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
          *  @default true */
         public override function get useHandCursor():Boolean { return mUseHandCursor; }

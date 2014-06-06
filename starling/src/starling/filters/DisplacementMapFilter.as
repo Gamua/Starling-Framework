@@ -32,7 +32,7 @@ package starling.filters
      *
      *  <p>The filter uses the following formula:</p>
      *  <listing>dstPixel[x, y] = srcPixel[x + ((componentX(x, y) - 128) &#42; scaleX) / 256, 
-     *                      y + ((componentY(x, y) - 128) &#42; scaleY) / 256)]
+     *                      y + ((componentY(x, y) - 128) &#42; scaleY) / 256]
      *  </listing>
      *  
      *  <p>Where <code>componentX(x, y)</code> gets the componentX property color value from the 
@@ -187,8 +187,8 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
             
-            var mapX:Number = mMapPoint.x   / mapTexture.nativeWidth;
-            var mapY:Number = mMapPoint.y   / mapTexture.nativeHeight;
+            var mapX:Number = mMapPoint.x   / mapTexture.width;
+            var mapY:Number = mMapPoint.y   / mapTexture.height;
             var maxU:Number = textureWidth  / mapTexture.nativeWidth;
             var maxV:Number = textureHeight / mapTexture.nativeHeight;
             

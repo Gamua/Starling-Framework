@@ -44,7 +44,8 @@ package starling.display
                 "add"      : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ],
                 "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
                 "screen"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE ],
-                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ]
+                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "below"    : [ Context3DBlendFactor.ONE_MINUS_DESTINATION_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ]
             },
             // premultiplied alpha
             { 
@@ -53,7 +54,8 @@ package starling.display
                 "add"      : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE ],
                 "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
                 "screen"   : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_COLOR ],
-                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ]
+                "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "below"    : [ Context3DBlendFactor.ONE_MINUS_DESTINATION_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ]
             }
         ];
         
@@ -84,6 +86,9 @@ package starling.display
         /** Erases the background when drawn on a RenderTexture. */
         public static const ERASE:String = "erase";
         
+		/** Draws under/below existing objects; useful especially on RenderTextures. */
+	    public static const BELOW:String = "below";
+	
         // accessing modes
         
         /** Returns the blend factors that correspond with a certain mode and premultiplied alpha
