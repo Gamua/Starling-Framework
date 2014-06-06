@@ -106,7 +106,7 @@ package starling.text
         protected var mTextBounds:Rectangle;
         protected var mBatchable:Boolean;
 
-        private var mHitArea:Rectangle;
+        protected var mHitArea:Rectangle;
         private var mBorder:DisplayObjectContainer;
 
         protected var mImage:Image;
@@ -335,7 +335,7 @@ package starling.text
             }
         }
         
-        private function calculateFilterOffset(textField:flash.text.TextField,
+        protected function calculateFilterOffset(textField:flash.text.TextField,
                                                hAlign:String, vAlign:String):Point
         {
             var resultOffset:Point = new Point();
