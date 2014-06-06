@@ -507,7 +507,7 @@ package starling.utils
                 asset = unescape(asset["url"]);
             
             if (name == null)    name = getName(asset);
-            if (options == null) options = mDefaultTextureOptions;
+            if (options == null) options = mDefaultTextureOptions.clone();
             else                 options = options.clone();
             
             log("Enqueuing '" + name + "'");
