@@ -49,7 +49,9 @@ package starling.textures
             mScale = value > 0 ? value : Starling.contentScaleFactor;
         }
         
-        /** The <code>Context3DTextureFormat</code> of the underlying texture data. */
+        /** The <code>Context3DTextureFormat</code> of the underlying texture data. Only used
+         *  for textures that are created from Bitmaps; the format of ATF files is set when they
+         *  are created. */
         public function get format():String { return mFormat; }
         public function set format(value:String):void { mFormat = value; }
         

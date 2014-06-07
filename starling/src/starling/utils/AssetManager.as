@@ -1011,24 +1011,30 @@ package starling.utils
         /** Returns the number of raw assets that have been enqueued, but not yet loaded. */
         public function get numQueuedAssets():int { return mQueue.length; }
         
-        /** When activated, the class will trace information about added/enqueued assets. */
+        /** When activated, the class will trace information about added/enqueued assets.
+         *  @default false */
         public function get verbose():Boolean { return mVerbose; }
         public function set verbose(value:Boolean):void { mVerbose = value; }
         
         /** For bitmap textures, this flag indicates if mip maps should be generated when they 
          *  are loaded; for ATF textures, it indicates if mip maps are valid and should be
-         *  used. */
+         *  used. @default false */
         public function get useMipMaps():Boolean { return mDefaultTextureOptions.mipMapping; }
         public function set useMipMaps(value:Boolean):void { mDefaultTextureOptions.mipMapping = value; }
         
         /** Textures that are created from Bitmaps or ATF files will have the scale factor 
-         *  assigned here. */
+         *  assigned here. @default 1 */
         public function get scaleFactor():Number { return mDefaultTextureOptions.scale; }
         public function set scaleFactor(value:Number):void { mDefaultTextureOptions.scale = value; }
+
+        /** Textures that are created from Bitmaps will be uploaded to the GPU with the
+         *  <code>Context3DTextureFormat</code> assigned to this property. @default "bgra" */
+        public function get textureFormat():String { return mDefaultTextureOptions.format; }
+        public function set textureFormat(value:String):void { mDefaultTextureOptions.format = value; }
         
         /** Specifies whether a check should be made for the existence of a URL policy file before
          *  loading an object from a remote server. More information about this topic can be found 
-         *  in the 'flash.system.LoaderContext' documentation. */
+         *  in the 'flash.system.LoaderContext' documentation. @default false */
         public function get checkPolicyFile():Boolean { return mCheckPolicyFile; }
         public function set checkPolicyFile(value:Boolean):void { mCheckPolicyFile = value; }
 
