@@ -432,14 +432,14 @@ package starling.display
         
         public override function removeEventListeners(type:String=null):void
         {
-            super.removeEventListeners(type);
-            
-            if (type == null || type == Event.ENTER_FRAME)
+            if ((type == null || type == Event.ENTER_FRAME) && hasEventListener(Event.ENTER_FRAME))
             {
                 removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
                 removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
                 removeEnterFrameListenerFromStage();
             }
+
+            super.removeEventListeners(type);
         }
         
         private function addEnterFrameListenerToStage():void
