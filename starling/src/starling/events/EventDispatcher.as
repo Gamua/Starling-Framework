@@ -200,8 +200,7 @@ package starling.events
         /** Returns if there are listeners registered for a certain event type. */
         public function hasEventListener(type:String):Boolean
         {
-            var listeners:Vector.<Function> = mEventListeners ?
-                mEventListeners[type] as Vector.<Function> : null;
+            var listeners:Vector.<Function> = mEventListeners ? mEventListeners[type] : null;
             return listeners ? listeners.length != 0 : false;
         }
     }
