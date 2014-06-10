@@ -70,13 +70,13 @@ package starling.display
         
         private static const QUAD_PROGRAM_NAME:String = "QB_q";
         
-        private var mNumQuads:int;
-        private var mSyncRequired:Boolean;
-        private var mBatchable:Boolean;
+        protected var mNumQuads:int;
+        protected var mSyncRequired:Boolean;
+        protected var mBatchable:Boolean;
 
-        private var mTinted:Boolean;
-        private var mTexture:Texture;
-        private var mSmoothing:String;
+        protected var mTinted:Boolean;
+        protected var mTexture:Texture;
+        protected var mSmoothing:String;
         
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:Vector.<uint>;
