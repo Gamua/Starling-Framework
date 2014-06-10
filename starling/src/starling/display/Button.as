@@ -51,6 +51,7 @@ package starling.display
         private var mBackground:Image;
         private var mTextField:TextField;
         private var mTextBounds:Rectangle;
+        private var mOverlay:Sprite;
         
         private var mScaleWhenDown:Number;
         private var mAlphaWhenDisabled:Number;
@@ -346,6 +347,17 @@ package starling.display
          *  color is multiplied with this value. @default white */
         public function get color():uint { return mBackground.color; }
         public function set color(value:uint):void { mBackground.color = value; }
+
+        /** The overlay sprite is displayed on top of the button contents. It scales with the
+         *  button when pressed. Use it to add additional objects to the button (e.g. an icon). */
+        public function get overlay():Sprite
+        {
+            if (mOverlay == null)
+                mOverlay = new Sprite();
+
+            mContents.addChild(mOverlay); // make sure it's always on top
+            return mOverlay;
+        }
 
         /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
          *  @default true */
