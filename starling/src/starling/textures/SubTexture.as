@@ -137,7 +137,7 @@ package starling.textures
                 MatrixUtil.transformCoords(sMatrix, u, v, sTexCoords);
                 
                 texCoords[    i   ] = sTexCoords.x;
-                texCoords[int(i+1)] = sTexCoords.y
+                texCoords[int(i+1)] = sTexCoords.y;
             }
         }
         
@@ -189,7 +189,7 @@ package starling.textures
         public override function get height():Number { return mHeight; }
         
         /** @inheritDoc */
-        public override function get nativeWidth():Number { return mWidth * scale }
+        public override function get nativeWidth():Number { return mWidth * scale; }
         
         /** @inheritDoc */
         public override function get nativeHeight():Number { return mHeight * scale; }

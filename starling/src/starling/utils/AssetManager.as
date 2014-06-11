@@ -881,7 +881,6 @@ package starling.utils
          *  assets. */
         protected function getName(rawAsset:Object):String
         {
-            var matches:Array;
             var name:String;
             
             if (rawAsset is String || rawAsset is FileReference)
@@ -999,7 +998,7 @@ package starling.utils
             {
                 newCallback();
                 oldCallback();
-            }
+            };
         }
 
         // properties

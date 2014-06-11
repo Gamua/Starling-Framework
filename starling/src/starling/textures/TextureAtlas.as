@@ -215,7 +215,6 @@ package starling.textures
 }
 
 import flash.geom.Rectangle;
-import starling.textures.Texture;
 
 class TextureInfo
 {
