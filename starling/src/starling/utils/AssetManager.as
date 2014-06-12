@@ -746,7 +746,7 @@ package starling.utils
                 }
                 else
                 {
-                    log("Ignoring unsupported asset type: " + getQualifiedClassName(asset));
+                    addObject(name, asset);
                     onComplete();
                 }
                 
@@ -768,7 +768,22 @@ package starling.utils
             }
         }
         
-        private function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
+        /** This method is called internally for each element of the queue when it is loaded.
+         *  'rawAsset' is typically either a class (pointing to an embedded asset) or a string
+         *  (containing the path to a file). For texture data, it will also be called after a
+         *  context loss.
+         *
+         *  <p>The method has to transform this object into one of the types that the AssetManager
+         *  can work with, e.g. a Bitmap, a Sound, XML data, or a ByteArray. This object needs to
+         *  be passed to the 'onComplete' callback.</p>
+         *
+         *  <p>The calling method will then process this data accordingly (e.g. a Bitmap will be
+         *  transformed into a texture). Unknown types will be available via 'getObject()'.</p>
+         *
+         *  <p>When overriding this method, you can call 'onProgress' with a number between 0 and 1
+         *  to update the total queue loading progress.</p>
+         */
+        protected function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
         {
             var extension:String = null;
             var urlLoader:URLLoader = null;
@@ -973,14 +988,16 @@ package starling.utils
             return null;
         }
 
-        private function getBasenameFromUrl(url:String):String
+        /** Extracts the base name of a file path or URL, i.e. the file name without extension. */
+        protected function getBasenameFromUrl(url:String):String
         {
             var matches:Array = NAME_REGEX.exec(url);
             if (matches && matches.length > 0) return matches[1];
             else return null;
         }
 
-        private function getExtensionFromUrl(url:String):String
+        /** Extracts the file extension from an URL. */
+        protected function getExtensionFromUrl(url:String):String
         {
             var matches:Array = NAME_REGEX.exec(url);
             if (matches && matches.length > 1) return matches[2];
