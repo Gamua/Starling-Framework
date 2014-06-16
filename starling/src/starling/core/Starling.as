@@ -299,7 +299,8 @@ package starling.core
                     throw new ArgumentError("When sharing the context3D, " +
                         "the actual profile has to be supplied");
                 else
-                    mProfile = "profile" in mContext ? mContext["profile"] : profile as String;
+                    mProfile = "profile" in mStage3D.context3D ? mStage3D.context3D["profile"] :
+                                                                 profile as String;
                 
                 mShareContext = true;
                 setTimeout(initialize, 1); // we don't call it right away, because Starling should
