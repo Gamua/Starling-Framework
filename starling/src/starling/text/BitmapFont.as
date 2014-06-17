@@ -188,9 +188,11 @@ package starling.text
             {
                 charID = text.charCodeAt(i);
 
-                if (charID == CHAR_SPACE || charID == CHAR_TAB || charID == CHAR_NEWLINE ||
-                    charID == CHAR_CARRIAGE_RETURN) continue;
-                else if (getChar(charID) == null) return false;
+                if (charID != CHAR_SPACE && charID != CHAR_TAB && charID != CHAR_NEWLINE &&
+                    charID != CHAR_CARRIAGE_RETURN && getChar(charID) == null)
+                {
+                    return false;
+                }
             }
 
             return true;

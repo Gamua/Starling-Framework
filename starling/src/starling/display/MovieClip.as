@@ -329,11 +329,8 @@ package starling.display
             mDefaultFrameDuration = newFrameDuration;
             
             for (var i:int=0; i<numFrames; ++i) 
-            {
-                var duration:Number = mDurations[i] * acceleration;
-                mDurations[i] = duration;
-            }
-            
+                mDurations[i] *= acceleration;
+
             updateStartTimes();
         }
         
