@@ -96,6 +96,47 @@ package tests
             Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
         }
         
+        [Test]
+        public function testRotation():void
+        {
+            var rootWidth:int = 256;
+            var rootHeight:int = 128;
+            var subTexture:SubTexture;
+            var subSubTexture:SubTexture;
+            var texCoords:Vector.<Number>;
+            var texture:ConcreteTexture =
+                new ConcreteTexture(null, null, rootWidth, rootHeight, false, false);
+            
+            // rotate full region once
+            subTexture = new SubTexture(texture, null, false, null, true);
+            texCoords = createStandardTexCoords();
+            
+            subTexture.adjustTexCoords(texCoords);
+            Helpers.compareVectors(texCoords, new <Number>[1,0, 1,1, 0,0, 0,1]);
+            
+            // rotate again
+            subSubTexture = new SubTexture(subTexture, null, false, null, true);
+            texCoords = createStandardTexCoords();
+            
+            subSubTexture.adjustTexCoords(texCoords);
+            Helpers.compareVectors(texCoords, new <Number>[1,1, 0,1, 1,0, 0,0]);
+            
+            // now get rotated region
+            subTexture = new SubTexture(texture, 
+                new Rectangle(rootWidth/4, rootHeight/2, rootWidth/2, rootHeight/4), 
+                false, null, true);
+            texCoords = createStandardTexCoords();
+            
+            subTexture.adjustTexCoords(texCoords);
+            Helpers.compareVectors(texCoords, 
+                new <Number>[0.75, 0.5,   0.75, 0.75,   0.25, 0.5,   0.25, 0.75]); 
+            
+            function createStandardTexCoords():Vector.<Number>
+            {
+                return new <Number>[0,0, 1,0, 0,1, 1,1];
+            }
+        }
+        
         private function createStandardVertexData():VertexData
         {
             var vertexData:VertexData = new VertexData(4);

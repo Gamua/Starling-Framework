@@ -64,6 +64,7 @@
     <classEntry path="starling.utils.getNextPowerOfTwo"/>
     <classEntry path="starling.utils.rad2deg"/>
     <classEntry path="starling.utils.transformCoords"/>
+    <classEntry path="starling.utils.SystemUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

@@ -50,6 +50,9 @@ package starling.display
         public function Quad(width:Number, height:Number, color:uint=0xffffff,
                              premultipliedAlpha:Boolean=true)
         {
+            if (width == 0.0 || height == 0.0)
+                throw new ArgumentError("Invalid size: width and height must not be zero");
+
             mTinted = color != 0xffffff;
             
             mVertexData = new VertexData(4, premultipliedAlpha);

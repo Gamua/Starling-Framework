@@ -138,6 +138,43 @@ package tests
         }
         
         [Test]
+        public function testSetTransformationMatrixWithRightAngles():void
+        {
+            var sprite:Sprite = new Sprite();
+            var matrix:Matrix = new Matrix();
+            var angles:Array = [Math.PI / 2.0, Math.PI / -2.0];
+
+            for each (var angle:Number in angles)
+            {
+                matrix.identity();
+                matrix.rotate(angle);
+                sprite.transformationMatrix = matrix;
+
+                assertThat(sprite.x, closeTo(0, E));
+                assertThat(sprite.y, closeTo(0, E));
+                assertThat(sprite.skewX, closeTo(0.0, E));
+                assertThat(sprite.skewY, closeTo(0.0, E));
+                assertThat(sprite.rotation, closeTo(angle, E));
+            }
+        }
+        
+        [Test]
+        public function testSetTransformationMatrixWithZeroValues():void
+        {
+            var sprite:Sprite = new Sprite();
+            var matrix:Matrix = new Matrix(0, 0, 0, 0, 0, 0);
+            sprite.transformationMatrix = matrix;
+            
+            assertEquals(0.0, sprite.x);
+            assertEquals(0.0, sprite.y);
+            assertEquals(0.0, sprite.scaleX);
+            assertEquals(0.0, sprite.scaleY);
+            assertEquals(0.0, sprite.rotation);
+            assertEquals(0.0, sprite.skewX);
+            assertEquals(0.0, sprite.skewY);
+        }
+
+        [Test]
         public function testBounds():void
         {
             var quad:Quad = new Quad(10, 20);
