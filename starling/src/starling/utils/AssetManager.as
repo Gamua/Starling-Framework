@@ -2,6 +2,7 @@ package starling.utils
 {
     import flash.display.Bitmap;
     import flash.display.Loader;
+    import flash.display.LoaderInfo;
     import flash.events.HTTPStatusEvent;
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
@@ -786,6 +787,7 @@ package starling.utils
         protected function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
         {
             var extension:String = null;
+            var loaderInfo:LoaderInfo = null;
             var urlLoader:URLLoader = null;
             var url:String = null;
             
@@ -836,11 +838,6 @@ package starling.utils
                 var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
                 var sound:Sound;
                 
-                urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
-                urlLoader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
-                urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
-                urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
-                
                 if (extension)
                     extension = extension.toLowerCase();
 
@@ -860,7 +857,9 @@ package starling.utils
                         var loaderContext:LoaderContext = new LoaderContext(mCheckPolicyFile);
                         var loader:Loader = new Loader();
                         loaderContext.imageDecodingPolicy = ImageDecodingPolicy.ON_LOAD;
-                        loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
+                        loaderInfo = loader.contentLoaderInfo;
+                        loaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                        loaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
                         loader.loadBytes(bytes, loaderContext);
                         break;
                     default: // any XML / JSON / binary data 
@@ -872,12 +871,27 @@ package starling.utils
             function onLoaderComplete(event:Object):void
             {
                 urlLoader.data.clear();
-                event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
                 complete(event.target.content);
             }
             
             function complete(asset:Object):void
             {
+                // clean up event listeners
+
+                if (urlLoader)
+                {
+                    urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                    urlLoader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
+                    urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
+                    urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
+                }
+
+                if (loaderInfo)
+                {
+                    loaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                    loaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
+                }
+
                 // On mobile, it is not allowed / endorsed to make stage3D calls while the app
                 // is in the background. Thus, we pause queue processing if that's the case.
                 
