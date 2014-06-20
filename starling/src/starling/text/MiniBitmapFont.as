@@ -285,7 +285,12 @@ package starling.text
             bmpBytes.uncompress();
             bmpData.setPixels(new Rectangle(0, 0, BITMAP_WIDTH, BITMAP_HEIGHT), bmpBytes);
             
-            return Texture.fromBitmapData(bmpData, false);
+            const texture:Texture = Texture.fromBitmapData(bmpData, false);
+
+            bmpBytes.clear();
+            bmpData.dispose();
+
+            return texture;
         }
         
         public static function get xml():XML { return XML_DATA; }
