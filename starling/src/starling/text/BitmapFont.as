@@ -440,6 +440,9 @@ package starling.text
          *  Useful to make up for incorrect font data. @default 0. */
         public function get offsetY():Number { return mOffsetY; }
         public function set offsetY(value:Number):void { mOffsetY = value; }
+
+        /** The underlying texture that contains all the chars. */
+        public function get texture():Texture { return mTexture; }
     }
 }
 
