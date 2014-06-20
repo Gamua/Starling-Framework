@@ -597,6 +597,7 @@ package starling.utils
                         if (texture)
                         {
                             addTextureAtlas(name, new TextureAtlas(texture, xml));
+							removeTexture(name, false);
 
                             if (mKeepAtlasXmls) addXml(name, xml);
                             else System.disposeXML(xml);
@@ -612,6 +613,7 @@ package starling.utils
                         {
                             log("Adding bitmap font '" + name + "'");
                             TextField.registerBitmapFont(new BitmapFont(texture, xml), name);
+							removeTexture(name, false);
 
                             if (mKeepFontXmls) addXml(name, xml);
                             else System.disposeXML(xml);
