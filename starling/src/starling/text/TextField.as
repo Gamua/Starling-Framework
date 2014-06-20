@@ -195,8 +195,11 @@ package starling.text
             {
                 if (mTextBounds == null)
                     mTextBounds = new Rectangle();
-                
-                texture.root.uploadBitmapData(renderText(scale, mTextBounds));
+
+                bitmapData = renderText(scale, mTextBounds);
+                texture.root.uploadBitmapData(bitmapData);
+
+                bitmapData.dispose();
             };
             
             bitmapData.dispose();
