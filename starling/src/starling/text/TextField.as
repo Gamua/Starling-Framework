@@ -183,23 +183,28 @@ package starling.text
             if (mTextBounds == null) 
                 mTextBounds = new Rectangle();
             
-            var scale:Number  = Starling.contentScaleFactor;
+            var texture:Texture;
+            var scale:Number = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
             var format:String = sDefaultTextureFormat;
             
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
             
-            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
+            texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
             texture.root.onRestore = function():void
             {
                 if (mTextBounds == null)
                     mTextBounds = new Rectangle();
-                
+
+                bitmapData = renderText(scale, mTextBounds);
                 texture.root.uploadBitmapData(renderText(scale, mTextBounds));
+                bitmapData.dispose();
+                bitmapData = null;
             };
             
             bitmapData.dispose();
+            bitmapData = null;
             
             if (mImage == null) 
             {

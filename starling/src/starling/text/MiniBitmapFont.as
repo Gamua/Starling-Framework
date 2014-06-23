@@ -275,6 +275,24 @@ package starling.text
         
         public static function get texture():Texture
         {
+            var bitmapData:BitmapData = getBitmapData();
+            var texture:Texture = Texture.fromBitmapData(bitmapData, false);
+            bitmapData.dispose();
+            bitmapData = null;
+
+            texture.root.onRestore = function():void
+            {
+                bitmapData = getBitmapData();
+                texture.root.uploadBitmapData(bitmapData);
+                bitmapData.dispose();
+                bitmapData = null;
+            };
+
+            return texture;
+        }
+
+        private static function getBitmapData():BitmapData
+        {
             var bmpData:BitmapData = new BitmapData(BITMAP_WIDTH, BITMAP_HEIGHT);
             var bmpBytes:ByteArray = new ByteArray();
             var numBytes:int = BITMAP_DATA.length;
@@ -284,8 +302,9 @@ package starling.text
             
             bmpBytes.uncompress();
             bmpData.setPixels(new Rectangle(0, 0, BITMAP_WIDTH, BITMAP_HEIGHT), bmpBytes);
+            bmpBytes.clear();
             
-            return Texture.fromBitmapData(bmpData, false);
+            return bmpData;
         }
         
         public static function get xml():XML { return XML_DATA; }
