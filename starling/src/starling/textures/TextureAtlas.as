@@ -103,16 +103,16 @@ package starling.textures
             
             for each (var subTexture:XML in atlasXml.SubTexture)
             {
-                var name:String        = cleanMasterString(subTexture.attribute("name"));
-                var x:Number           = parseFloat(subTexture.attribute("x")) / scale;
-                var y:Number           = parseFloat(subTexture.attribute("y")) / scale;
-                var width:Number       = parseFloat(subTexture.attribute("width")) / scale;
-                var height:Number      = parseFloat(subTexture.attribute("height")) / scale;
-                var frameX:Number      = parseFloat(subTexture.attribute("frameX")) / scale;
-                var frameY:Number      = parseFloat(subTexture.attribute("frameY")) / scale;
-                var frameWidth:Number  = parseFloat(subTexture.attribute("frameWidth")) / scale;
-                var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) / scale;
-                var rotated:Boolean    = parseBool(subTexture.attribute("rotated"));
+                var name:String        = cleanMasterString(subTexture.@name);
+                var x:Number           = parseFloat(subTexture.@x) / scale;
+                var y:Number           = parseFloat(subTexture.@y) / scale;
+                var width:Number       = parseFloat(subTexture.@width)  / scale;
+                var height:Number      = parseFloat(subTexture.@height) / scale;
+                var frameX:Number      = parseFloat(subTexture.@frameX) / scale;
+                var frameY:Number      = parseFloat(subTexture.@frameY) / scale;
+                var frameWidth:Number  = parseFloat(subTexture.@frameWidth)  / scale;
+                var frameHeight:Number = parseFloat(subTexture.@frameHeight) / scale;
+                var rotated:Boolean    = parseBool( subTexture.@rotated);
                 
                 var region:Rectangle = new Rectangle(x, y, width, height);
                 var frame:Rectangle  = frameWidth > 0 && frameHeight > 0 ?
