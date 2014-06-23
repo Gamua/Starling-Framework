@@ -20,6 +20,7 @@ package starling.text
     import starling.textures.TextureSmoothing;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
+    import starling.utils.cleanMasterString;
 
     /** The BitmapFont class parses bitmap font files and arranges the glyphs 
      *  in the form of a text.
@@ -112,7 +113,7 @@ package starling.text
             var frameX:Number = frame ? frame.x : 0;
             var frameY:Number = frame ? frame.y : 0;
             
-            mName = fontXml.info.attribute("face");
+            mName = cleanMasterString(fontXml.info.attribute("face"));
             mSize = parseFloat(fontXml.info.attribute("size")) / scale;
             mLineHeight = parseFloat(fontXml.common.attribute("lineHeight")) / scale;
             mBaseline = parseFloat(fontXml.common.attribute("base")) / scale;

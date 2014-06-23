@@ -65,6 +65,7 @@
     <classEntry path="starling.utils.rad2deg"/>
     <classEntry path="starling.utils.transformCoords"/>
     <classEntry path="starling.utils.SystemUtil"/>
+    <classEntry path="starling.utils.cleanMasterString"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
