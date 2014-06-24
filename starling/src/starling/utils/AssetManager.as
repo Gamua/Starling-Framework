@@ -730,14 +730,32 @@ package starling.utils
                     }
                     else if (byteArrayStartsWith(bytes, "{") || byteArrayStartsWith(bytes, "["))
                     {
-                        addObject(name, JSON.parse(bytes.readUTFBytes(bytes.length)));
-                        bytes.clear();
+                        try
+                        {
+                            addObject(name, JSON.parse(bytes.readUTFBytes(bytes.length)));
+                            bytes.clear();
+                        }
+                        catch (e:Error)
+                        {
+                            log("Could not parse JSON: " + e.message);
+                            addByteArray(name, bytes);
+                        }
+
                         onComplete();
                     }
                     else if (byteArrayStartsWith(bytes, "<"))
                     {
-                        process(new XML(bytes));
-                        bytes.clear();
+                        try
+                        {
+                            process(new XML(bytes));
+                            bytes.clear();
+                        }
+                        catch (e:Error)
+                        {
+                            log("Could not parse XML: " + e.message);
+                            addByteArray(name, bytes);
+                            onComplete();
+                        }
                     }
                     else
                     {
