@@ -344,12 +344,13 @@ package starling.filters
             mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, 4);
         }
         
-        private function updatePassTextures(width:int, height:int, scale:Number):void
+        private function updatePassTextures(width:Number, height:Number, scale:Number):void
         {
             var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
             var needsUpdate:Boolean = mPassTextures == null || 
                 mPassTextures.length != numPassTextures ||
-                mPassTextures[0].width != width || mPassTextures[0].height != height;  
+                Math.abs(mPassTextures[0].nativeWidth  - width  * scale) > 0.1 ||
+                Math.abs(mPassTextures[0].nativeHeight - height * scale) > 0.1;
             
             if (needsUpdate)
             {
