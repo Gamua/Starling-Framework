@@ -11,13 +11,15 @@
 package starling.utils
 {
     /** Returns the next power of two that is equal to or bigger than the specified number. */
-    public function getNextPowerOfTwo(number:int):int
+    public function getNextPowerOfTwo(number:Number):int
     {
-        if (number > 0 && (number & (number - 1)) == 0) // see: http://goo.gl/D9kPj
+        if (number is int && number > 0 && (number & (number - 1)) == 0) // see: http://goo.gl/D9kPj
             return number;
         else
         {
             var result:int = 1;
+            number -= 0.000000001; // avoid floating point rounding errors
+
             while (result < number) result <<= 1;
             return result;
         }
