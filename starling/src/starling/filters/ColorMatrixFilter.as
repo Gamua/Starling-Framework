@@ -109,18 +109,18 @@ package starling.filters
         // color manipulation
         
         /** Inverts the colors of the filtered objects. */
-        public function invert():void
+        public function invert():ColorMatrixFilter
         {
-            concatValues(-1,  0,  0,  0, 255,
-                          0, -1,  0,  0, 255,
-                          0,  0, -1,  0, 255,
-                          0,  0,  0,  1,   0);
+            return concatValues(-1,  0,  0,  0, 255,
+                                0, -1,  0,  0, 255,
+                                0,  0, -1,  0, 255,
+                                0,  0,  0,  1,   0);
         }
         
         /** Changes the saturation. Typical values are in the range (-1, 1).
          *  Values above zero will raise, values below zero will reduce the saturation.
          *  '-1' will produce a grayscale image. */ 
-        public function adjustSaturation(sat:Number):void
+        public function adjustSaturation(sat:Number):ColorMatrixFilter
         {
             sat += 1;
             
@@ -129,46 +129,46 @@ package starling.filters
             var invLumG:Number = invSat * LUMA_G;
             var invLumB:Number = invSat * LUMA_B;
             
-            concatValues((invLumR + sat), invLumG, invLumB, 0, 0,
-                         invLumR, (invLumG + sat), invLumB, 0, 0,
-                         invLumR, invLumG, (invLumB + sat), 0, 0,
-                         0, 0, 0, 1, 0);
+            return concatValues((invLumR + sat), invLumG, invLumB, 0, 0,
+                                invLumR, (invLumG + sat), invLumB, 0, 0,
+                                invLumR, invLumG, (invLumB + sat), 0, 0,
+                                0, 0, 0, 1, 0);
         }
         
         /** Changes the contrast. Typical values are in the range (-1, 1).
          *  Values above zero will raise, values below zero will reduce the contrast. */
-        public function adjustContrast(value:Number):void
+        public function adjustContrast(value:Number):ColorMatrixFilter
         {
             var s:Number = value + 1;
             var o:Number = 128 * (1 - s);
             
-            concatValues(s, 0, 0, 0, o,
-                         0, s, 0, 0, o,
-                         0, 0, s, 0, o,
-                         0, 0, 0, 1, 0);
+            return concatValues(s, 0, 0, 0, o,
+                                0, s, 0, 0, o,
+                                0, 0, s, 0, o,
+                                0, 0, 0, 1, 0);
         }
         
         /** Changes the brightness. Typical values are in the range (-1, 1).
          *  Values above zero will make the image brighter, values below zero will make it darker.*/ 
-        public function adjustBrightness(value:Number):void
+        public function adjustBrightness(value:Number):ColorMatrixFilter
         {
             value *= 255;
             
-            concatValues(1, 0, 0, 0, value,
-                         0, 1, 0, 0, value,
-                         0, 0, 1, 0, value,
-                         0, 0, 0, 1, 0);
+            return concatValues(1, 0, 0, 0, value,
+                                0, 1, 0, 0, value,
+                                0, 0, 1, 0, value,
+                                0, 0, 0, 1, 0);
         }
         
         /** Changes the hue of the image. Typical values are in the range (-1, 1). */
-        public function adjustHue(value:Number):void
+        public function adjustHue(value:Number):ColorMatrixFilter
         {
             value *= Math.PI;
             
             var cos:Number = Math.cos(value);
             var sin:Number = Math.sin(value);
             
-            concatValues(
+            return concatValues(
                 ((LUMA_R + (cos * (1 - LUMA_R))) + (sin * -(LUMA_R))), ((LUMA_G + (cos * -(LUMA_G))) + (sin * -(LUMA_G))), ((LUMA_B + (cos * -(LUMA_B))) + (sin * (1 - LUMA_B))), 0, 0,
                 ((LUMA_R + (cos * -(LUMA_R))) + (sin * 0.143)), ((LUMA_G + (cos * (1 - LUMA_G))) + (sin * 0.14)), ((LUMA_B + (cos * -(LUMA_B))) + (sin * -0.283)), 0, 0,
                 ((LUMA_R + (cos * -(LUMA_R))) + (sin * -((1 - LUMA_R)))), ((LUMA_G + (cos * -(LUMA_G))) + (sin * LUMA_G)), ((LUMA_B + (cos * (1 - LUMA_B))) + (sin * LUMA_B)), 0, 0,
@@ -199,13 +199,14 @@ package starling.filters
         // matrix manipulation
         
         /** Changes the filter matrix back to the identity matrix. */
-        public function reset():void
+        public function reset():ColorMatrixFilter
         {
             matrix = null;
+            return this;
         }
         
         /** Concatenates the current matrix with another one. */
-        public function concat(matrix:Vector.<Number>):void
+        public function concat(matrix:Vector.<Number>):ColorMatrixFilter
         {
             var i:int = 0;
 
@@ -226,6 +227,7 @@ package starling.filters
             
             copyMatrix(sTmpMatrix1, mUserMatrix);
             updateShaderMatrix();
+            return this;
         }
         
         /** Concatenates the current matrix with another one, passing its contents directly. */
@@ -233,13 +235,14 @@ package starling.filters
                                       m5:Number, m6:Number, m7:Number, m8:Number, m9:Number, 
                                       m10:Number, m11:Number, m12:Number, m13:Number, m14:Number, 
                                       m15:Number, m16:Number, m17:Number, m18:Number, m19:Number
-                                      ):void
+                                      ):ColorMatrixFilter
         {
             sTmpMatrix2.length = 0;
             sTmpMatrix2.push(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, 
                 m10, m11, m12, m13, m14, m15, m16, m17, m18, m19);
             
             concat(sTmpMatrix2);
+            return this;
         }
 
         private function copyMatrix(from:Vector.<Number>, to:Vector.<Number>):void
