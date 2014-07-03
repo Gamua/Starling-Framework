@@ -112,9 +112,9 @@ package starling.filters
         public function invert():ColorMatrixFilter
         {
             return concatValues(-1,  0,  0,  0, 255,
-                                0, -1,  0,  0, 255,
-                                0,  0, -1,  0, 255,
-                                0,  0,  0,  1,   0);
+                                 0, -1,  0,  0, 255,
+                                 0,  0, -1,  0, 255,
+                                 0,  0,  0,  1,   0);
         }
         
         /** Changes the saturation. Typical values are in the range (-1, 1).
@@ -130,9 +130,9 @@ package starling.filters
             var invLumB:Number = invSat * LUMA_B;
             
             return concatValues((invLumR + sat), invLumG, invLumB, 0, 0,
-                                invLumR, (invLumG + sat), invLumB, 0, 0,
-                                invLumR, invLumG, (invLumB + sat), 0, 0,
-                                0, 0, 0, 1, 0);
+                                 invLumR, (invLumG + sat), invLumB, 0, 0,
+                                 invLumR, invLumG, (invLumB + sat), 0, 0,
+                                 0, 0, 0, 1, 0);
         }
         
         /** Changes the contrast. Typical values are in the range (-1, 1).
