@@ -36,6 +36,12 @@ package starling.events
         /** Only available for mouse input: the cursor hovers over an object <em>without</em> a 
          *  pressed button. */
         public static const HOVER:String = "hover";
+		
+		/** Only available for mouse input: right mouse button was pressed */
+	    public static var RIGHT_BEGAN : String = "right_began"
+
+	    /** Only available for mouse input: right mouse button was released */
+	    public static const RIGHT_ENDED : String = "right_ended";
         
         /** The finger touched the screen just now, or the mouse button was pressed. */
         public static const BEGAN:String = "began";

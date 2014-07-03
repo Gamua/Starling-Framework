@@ -754,6 +754,8 @@ package starling.core
                 case TouchEvent.TOUCH_END:   phase = TouchPhase.ENDED; break;
                 case MouseEvent.MOUSE_DOWN:  phase = TouchPhase.BEGAN; break;
                 case MouseEvent.MOUSE_UP:    phase = TouchPhase.ENDED; break;
+				case MouseEvent.RIGHT_MOUSE_DOWN: phase = TouchPhase.RIGHT_BEGAN; break;
+                case MouseEvent.RIGHT_MOUSE_UP:   phase = TouchPhase.RIGHT_ENDED; break;
                 case MouseEvent.MOUSE_MOVE: 
                     phase = (mLeftMouseDown ? TouchPhase.MOVED : TouchPhase.HOVER); break;
             }
@@ -778,7 +780,7 @@ package starling.core
                 types.push(TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END);
             
             if (!multitouchEnabled || Mouse.supportsCursor)
-                types.push(MouseEvent.MOUSE_DOWN,  MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP);
+                types.push(MouseEvent.MOUSE_DOWN,  MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_UP);
                 
             return types;
         }
