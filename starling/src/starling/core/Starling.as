@@ -278,15 +278,9 @@ package starling.core
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
-            
-            // register touch/mouse event handlers            
-            for each (var touchEventType:String in touchEventTypes)
-                stage.addEventListener(touchEventType, onTouch, false, 0, true);
-            
-            // register other event handlers
+
+            // register event handlers
             stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
-            stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave, false, 0, true);
             
@@ -320,18 +314,13 @@ package starling.core
             stop(true);
 
             mNativeStage.removeEventListener(Event.ENTER_FRAME, onEnterFrame, false);
-            mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
-            mNativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
             mNativeStage.removeEventListener(Event.RESIZE, onResize, false);
             mNativeStage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeave, false);
             mNativeStage.removeChild(mNativeOverlay);
             
             mStage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false);
             mStage3D.removeEventListener(ErrorEvent.ERROR, onStage3DError, false);
-            
-            for each (var touchEventType:String in touchEventTypes)
-                mNativeStage.removeEventListener(touchEventType, onTouch, false);
-            
+
             if (mStage) mStage.dispose();
             if (mSupport) mSupport.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
@@ -597,8 +586,20 @@ package starling.core
          *  frame. (Except when <code>shareContext</code> is enabled: in that case, you have to
          *  call that method manually.) */
         public function start():void 
-        { 
-            mStarted = mRendering = true;
+        {
+			if (!mStarted)
+			{
+				mStarted = true;
+
+				// register touch/mouse event handlers
+				for each (var touchEventType:String in touchEventTypes)
+					mNativeStage.addEventListener(touchEventType, onTouch, false, 0, true);
+
+				// register keyboard event handlers.
+				mNativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
+				mNativeStage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
+			}
+            mRendering = true;
             mLastFrameTimestamp = getTimer() / 1000.0;
         }
         
@@ -612,8 +613,15 @@ package starling.core
          *  activated background code execution.</p>
          */
         public function stop(suspendRendering:Boolean=false):void
-        { 
-            mStarted = false;
+        {
+			if (mStarted)
+			{
+				mStarted = false;
+				for each (var touchEventType:String in touchEventTypes)
+					mNativeStage.removeEventListener(touchEventType, onTouch, false);
+				mNativeStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKey, false);
+				mNativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
+			}
             mRendering = !suspendRendering;
         }
         
@@ -661,8 +669,6 @@ package starling.core
         
         private function onKey(event:KeyboardEvent):void
         {
-            if (!mStarted) return;
-            
             var keyEvent:starling.events.KeyboardEvent = new starling.events.KeyboardEvent(
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey);
@@ -702,8 +708,6 @@ package starling.core
         
         private function onTouch(event:Event):void
         {
-            if (!mStarted) return;
-            
             var globalX:Number;
             var globalY:Number;
             var touchID:int;
