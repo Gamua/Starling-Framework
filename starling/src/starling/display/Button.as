@@ -28,16 +28,17 @@ package starling.display
     
     /** A simple button composed of an image and, optionally, text.
      *  
-     *  <p>You can pass a texture for up- and downstate of the button. If you do not provide a down 
-     *  state, the button is simply scaled a little when it is touched.
-     *  In addition, you can overlay a text on the button. To customize the text, almost the 
-     *  same options as those of text fields are provided. In addition, you can move the text to a 
-     *  certain position with the help of the <code>textBounds</code> property.</p>
+     *  <p>You can use different textures for various states of the button. If you're providing
+     *  only an up state, the button is simply scaled a little when it is touched.</p>
+     *
+     *  <p>In addition, you can overlay text on the button. To customize the text, you can use
+     *  properties equivalent to those of the TextField class. Move the text to a certain position
+     *  by updating the <code>textBounds</code> property.</p>
      *  
-     *  <p>To react on touches on a button, there is special <code>triggered</code>-event type. Use
+     *  <p>To react on touches on a button, there is special <code>TRIGGERED</code> event-type. Use
      *  this event instead of normal touch events - that way, users can cancel button activation
-     *  by moving the mouse/finger away from the button before releasing.</p> 
-     */ 
+     *  by moving the mouse/finger away from the button before releasing.</p>
+     */
     public class Button extends DisplayObjectContainer
     {
         private static const MAX_DRAG_DIST:Number = 50;
