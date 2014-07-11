@@ -383,7 +383,16 @@ package starling.textures
         }
         
         /** Creates a texture that contains a region (in pixels) of another texture. The new
-         *  texture will reference the base texture; no data is duplicated. */
+         *  texture will reference the base texture; no data is duplicated.
+         *
+         *  @param texture: The texture you want to create a SubTexture from.
+         *  @param region:  The region of the parent texture that the SubTexture will show
+         *                  (in points).
+         *  @param frame:   If the texture was trimmed, the frame rectangle can be used to restore
+         *                  the trimmed area.
+         *  @param rotated: If true, the SubTexture will show the parent region rotated by
+         *                  90 degrees (CCW).
+         */
         public static function fromTexture(texture:Texture, region:Rectangle=null,
                                            frame:Rectangle=null, rotated:Boolean=false):Texture
         {
