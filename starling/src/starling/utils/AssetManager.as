@@ -751,7 +751,6 @@ package starling.utils
                         if (xml) process(xml);
 
                         bytes.clear();
-                        onComplete();
                     }
                     else
                     {
