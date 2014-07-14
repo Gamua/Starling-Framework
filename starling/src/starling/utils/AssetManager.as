@@ -748,8 +748,7 @@ package starling.utils
                         try { xml = new XML(bytes); }
                         catch (e:Error) { log("Could not parse XML: " + e.message); }
 
-                        if (xml) process(xml);
-
+                        process(xml);
                         bytes.clear();
                     }
                     else
