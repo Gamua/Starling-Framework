@@ -63,7 +63,9 @@ package starling.events
         public static const REMOVE_FROM_JUGGLER:String = "removeFromJuggler";
         /** Event type that is dispatched by the AssetManager after a context loss. */
         public static const TEXTURES_RESTORED:String = "texturesRestored";
-        
+        /** Event type that is dispatched by the AssetManager when a file/url cannot be loaded. */
+        public static const IO_ERROR:String = "ioError";
+
         /** An event type to be utilized in custom events. Not used by Starling right now. */
         public static const CHANGE:String = "change";
         /** An event type to be utilized in custom events. Not used by Starling right now. */

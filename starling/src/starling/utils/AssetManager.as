@@ -36,6 +36,10 @@ package starling.utils
     /** Dispatched when all textures have been restored after a context loss. */
     [Event(name="texturesRestored", type="starling.events.Event")]
     
+    /** Dispatched when an URLLoader fails with an IO_ERROR while processing the queue.
+     *  The 'data' property of the Event contains the URL-String that could not be loaded. */
+    [Event(name="ioError", type="starling.events.Event")]
+
     /** The AssetManager handles loading and accessing a variety of asset types. You can 
      *  add assets directly (via the 'add...' methods) or asynchronously via a queue. This allows
      *  you to deal with assets in a unified way, no matter if they are loaded from a file, 
@@ -822,6 +826,7 @@ package starling.utils
             function onIoError(event:IOErrorEvent):void
             {
                 log("IO error: " + event.text);
+                dispatchEventWith(Event.IO_ERROR, false, url);
                 complete(null);
             }
             
