@@ -642,6 +642,8 @@ package starling.utils
             {
                 var texture:Texture;
                 var bytes:ByteArray;
+                var object:Object = null;
+                var xml:XML = null;
                 
                 // the 'current' instance might have changed by now
                 // if we're running in a set-up with multiple instances.
@@ -662,10 +664,9 @@ package starling.utils
                 }
                 else if (asset is XML)
                 {
-                    var xml:XML = asset as XML;
-                    var rootNode:String = xml.localName();
+                    xml = asset as XML;
                     
-                    if (rootNode == "TextureAtlas" || rootNode == "font")
+                    if (xml.localName() == "TextureAtlas" || xml.localName() == "font")
                         xmls.push(xml);
                     else
                         addXml(name, xml);
@@ -730,32 +731,23 @@ package starling.utils
                     }
                     else if (byteArrayStartsWith(bytes, "{") || byteArrayStartsWith(bytes, "["))
                     {
-                        try
-                        {
-                            addObject(name, JSON.parse(bytes.readUTFBytes(bytes.length)));
-                            bytes.clear();
-                        }
-                        catch (e:Error)
-                        {
-                            log("Could not parse JSON: " + e.message);
-                            addByteArray(name, bytes);
-                        }
+                        try { object = JSON.parse(bytes.readUTFBytes(bytes.length)); }
+                        catch (e:Error) { log("Could not parse JSON: " + e.message); }
 
+                        if (object) addObject(name, object);
+
+                        bytes.clear();
                         onComplete();
                     }
                     else if (byteArrayStartsWith(bytes, "<"))
                     {
-                        try
-                        {
-                            process(new XML(bytes));
-                            bytes.clear();
-                        }
-                        catch (e:Error)
-                        {
-                            log("Could not parse XML: " + e.message);
-                            addByteArray(name, bytes);
-                            onComplete();
-                        }
+                        try { xml = new XML(bytes); }
+                        catch (e:Error) { log("Could not parse XML: " + e.message); }
+
+                        if (xml) process(xml);
+
+                        bytes.clear();
+                        onComplete();
                     }
                     else
                     {
