@@ -18,7 +18,6 @@ package starling.utils
     import flash.system.System;
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
-    import flash.utils.clearTimeout;
     import flash.utils.describeType;
     import flash.utils.getQualifiedClassName;
     import flash.utils.setTimeout;
@@ -86,7 +85,6 @@ package starling.utils
         
         private var mQueue:Array;
         private var mIsLoading:Boolean;
-        private var mTimeoutID:uint;
         
         private var mTextures:Dictionary;
         private var mAtlases:Dictionary;
@@ -400,7 +398,6 @@ package starling.utils
         {
             mIsLoading = false;
             mQueue.length = 0;
-            clearTimeout(mTimeoutID);
             dispatchEventWith(Event.CANCEL);
         }
         
@@ -547,34 +544,51 @@ package starling.utils
                 throw new Error("The queue is already being processed");
             
             var xmls:Vector.<XML> = new <XML>[];
-            var numElements:int = mQueue.length;
-            var currentRatio:Number = 0.0;
+            var assetCount:int = mQueue.length;
+            var assetProgress:Array = [];
+            var i:int;
             
             mIsLoading = true;
-            resume();
             
-            function resume():void
+            for (i=0; i<assetCount; ++i)
             {
-                currentRatio = mQueue.length ? 1.0 - (mQueue.length / numElements) : 1.0;
+                assetProgress[i] = 0.0;
+                setTimeout(loadQueueElement, i*5, i);
+            }
+
+            function loadQueueElement(index:int):void
+            {
+                if (!mIsLoading) return;
                 
-                if (mQueue.length)
-                    mTimeoutID = setTimeout(processNext, 1);
-                else
+                var assetInfo:Object = mQueue[index];
+                var onElementProgress:Function = function(progress:Number):void
                 {
-                    processXmls();
-                    mIsLoading = false;
+                    updateProgress(index, progress * 0.8); // keep 20 % for completion
+                };
+                var onElementLoaded:Function = function():void
+                {
+                    updateProgress(index, 1.0);
+                    assetCount--;
+
+                    if (assetCount == 0)
+                        finish();
                 }
                 
-                if (onProgress != null)
-                    onProgress(currentRatio);
+                processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
+                    xmls, onElementProgress, onElementLoaded);
             }
             
-            function processNext():void
+            function updateProgress(index:int, progress:Number):void
             {
-                var assetInfo:Object = mQueue.shift();
-                clearTimeout(mTimeoutID);
-                processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
-                                xmls, progress, resume);
+                assetProgress[index] = progress;
+
+                var sum:Number = 0.0;
+                var len:int = assetProgress.length;
+
+                for (i=0; i<len; ++i)
+                    sum += assetProgress[i];
+
+                execute(onProgress, sum / len * 0.9);
             }
             
             function processXmls():void
@@ -627,9 +641,27 @@ package starling.utils
                 }
             }
             
-            function progress(ratio:Number):void
+            function finish():void
             {
-                onProgress(currentRatio + (1.0 / numElements) * Math.min(1.0, ratio) * 0.99);
+                // We dance around the final "onProgress" call with some "setTimeout" calls here
+                // to make sure the progress bar gets the chance to be rendered. Otherwise, all
+                // would happen in one frame.
+
+                setTimeout(function():void
+                {
+                    if (mIsLoading)
+                    {
+                        processXmls();
+                        setTimeout(function():void
+                        {
+                            if (mIsLoading)
+                            {
+                                mIsLoading = false;
+                                execute(onProgress, 1.0);
+                            }
+                        }, 1);
+                    }
+                }, 1);
             }
         }
         
