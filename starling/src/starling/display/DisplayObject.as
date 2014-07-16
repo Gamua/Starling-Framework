@@ -728,7 +728,7 @@ package starling.display
         
         /** The filter that is attached to the display object. The starling.filters
          *  package contains several classes that define specific filters you can use. 
-         *  Beware that you should NOT use the same filter on more than one object (for 
+         *  Beware that a filter should NOT be attached to different objects simultaneously (for
          *  performance reasons). Furthermore, when you set this property to 'null' or
          *  assign a different filter, the previous filter is NOT disposed automatically
          *  (since you might want to reuse it). */
