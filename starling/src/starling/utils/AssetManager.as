@@ -82,9 +82,7 @@ package starling.utils
         private var mKeepAtlasXmls:Boolean;
         private var mKeepFontXmls:Boolean;
         private var mVerbose:Boolean;
-        
         private var mQueue:Array;
-        private var mIsLoading:Boolean;
         
         private var mTextures:Dictionary;
         private var mAtlases:Dictionary;
@@ -396,7 +394,6 @@ package starling.utils
         /** Empties the queue and aborts any pending load operations. */
         public function purgeQueue():void
         {
-            mIsLoading = false;
             mQueue.length = 0;
             dispatchEventWith(Event.CANCEL);
         }
@@ -540,27 +537,25 @@ package starling.utils
             if (mStarling == null || mStarling.context == null)
                 throw new Error("The Starling instance needs to be ready before textures can be loaded.");
             
-            if (mIsLoading)
-                throw new Error("The queue is already being processed");
-            
             var xmls:Vector.<XML> = new <XML>[];
             var assetCount:int = mQueue.length;
             var assetProgress:Array = [];
+            var canceled:Boolean = false;
             var i:int;
-            
-            mIsLoading = true;
             
             for (i=0; i<assetCount; ++i)
             {
                 assetProgress[i] = 0.0;
-                setTimeout(loadQueueElement, i*5, i);
+                setTimeout(loadQueueElement, i*5, i, mQueue[i]);
             }
 
-            function loadQueueElement(index:int):void
+            mQueue.length = 0;
+            addEventListener(Event.CANCEL, cancel);
+
+            function loadQueueElement(index:int, assetInfo:Object):void
             {
-                if (!mIsLoading) return;
+                if (canceled) return;
                 
-                var assetInfo:Object = mQueue[index];
                 var onElementProgress:Function = function(progress:Number):void
                 {
                     updateProgress(index, progress * 0.8); // keep 20 % for completion
@@ -641,6 +636,12 @@ package starling.utils
                 }
             }
             
+            function cancel():void
+            {
+                removeEventListener(Event.CANCEL, cancel);
+                canceled = true;
+            }
+
             function finish():void
             {
                 // We dance around the final "onProgress" call with some "setTimeout" calls here
@@ -649,18 +650,15 @@ package starling.utils
 
                 setTimeout(function():void
                 {
-                    if (mIsLoading)
+                    processXmls();
+                    setTimeout(function():void
                     {
-                        processXmls();
-                        setTimeout(function():void
+                        if (!canceled)
                         {
-                            if (mIsLoading)
-                            {
-                                mIsLoading = false;
-                                execute(onProgress, 1.0);
-                            }
-                        }, 1);
-                    }
+                            removeEventListener(Event.CANCEL, cancel);
+                            execute(onProgress, 1.0);
+                        }
+                    }, 1);
                 }, 1);
             }
         }
