@@ -532,6 +532,12 @@ package starling.utils
          */
         public function loadQueue(onProgress:Function):void
         {
+            if (mQueue.length == 0)
+            {
+                execute(onProgress, 1.0);
+                return;
+            }
+
             mStarling = Starling.current;
             
             if (mStarling == null || mStarling.context == null)
