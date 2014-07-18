@@ -18,6 +18,7 @@ package starling.textures
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
+    import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
@@ -169,7 +170,8 @@ package starling.textures
         private function render(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
         {
             mSupport.loadIdentity();
-            mSupport.blendMode = object.blendMode;
+            mSupport.blendMode = object.blendMode == BlendMode.AUTO ?
+                BlendMode.NORMAL : object.blendMode;
             
             if (matrix) mSupport.prependMatrix(matrix);
             else        mSupport.transformMatrix(object);
