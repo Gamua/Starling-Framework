@@ -90,8 +90,8 @@ package starling.animation
             mTotalTime = Math.max(0.0001, time);
             mProgress = 0.0;
             mDelay = mRepeatDelay = 0.0;
-            mOnStart = mOnUpdate = mOnComplete = null;
-            mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null;
+            mOnStart = mOnUpdate = mOnRepeat = mOnComplete = null;
+            mOnStartArgs = mOnUpdateArgs = mOnRepeatArgs = mOnCompleteArgs = null;
             mRoundToInt = mReverse = false;
             mRepeatCount = 1;
             mCurrentCycle = -1;
