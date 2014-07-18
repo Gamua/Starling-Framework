@@ -153,6 +153,10 @@ package starling.display
         private function expand():void
         {
             var oldCapacity:int = this.capacity;
+
+            if (oldCapacity >= MAX_NUM_QUADS)
+                throw new Error("Exceeded maximum number of quads!");
+
             this.capacity = oldCapacity < 8 ? 16 : oldCapacity * 2;
         }
         
