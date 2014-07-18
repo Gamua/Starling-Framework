@@ -75,7 +75,9 @@ package starling.text
         private var mOffsetX:Number;
         private var mOffsetY:Number;
         private var mHelperImage:Image;
-        private var mCharLocationPool:Vector.<CharLocation>;
+
+        /** Helper objects. */
+        private static var sLines:Array = [];
         
         /** Creates a bitmap font by parsing an XML file and uses the specified texture. 
          *  If you don't pass any data, the "mini" font will be created. */
@@ -94,7 +96,6 @@ package starling.text
             mTexture = texture;
             mChars = new Dictionary();
             mHelperImage = new Image(texture);
-            mCharLocationPool = new <CharLocation>[];
             
             if (fontXml) parseFontXml(fontXml);
         }
@@ -222,6 +223,7 @@ package starling.text
                 sprite.addChild(char);
             }
             
+            CharLocation.rechargePool();
             return sprite;
         }
         
@@ -237,9 +239,6 @@ package starling.text
             var numChars:int = charLocations.length;
             mHelperImage.color = color;
             
-            if (numChars > 8192)
-                throw new ArgumentError("Bitmap Font text is limited to 8192 characters.");
-
             for (var i:int=0; i<numChars; ++i)
             {
                 var charLocation:CharLocation = charLocations[i];
@@ -250,6 +249,8 @@ package starling.text
                 mHelperImage.scaleX = mHelperImage.scaleY = charLocation.scale;
                 quadBatch.addImage(mHelperImage);
             }
+
+            CharLocation.rechargePool();
         }
         
         /** Arranges the characters of a text inside a rectangle, adhering to the given settings. 
@@ -258,10 +259,9 @@ package starling.text
                                       hAlign:String="center", vAlign:String="center",
                                       autoScale:Boolean=true, kerning:Boolean=true):Vector.<CharLocation>
         {
-            if (text == null || text.length == 0) return new <CharLocation>[];
+            if (text == null || text.length == 0) return CharLocation.vectorFromPool();
             if (fontSize < 0) fontSize *= -mSize;
             
-            var lines:Array = [];
             var finished:Boolean = false;
             var charLocation:CharLocation;
             var numChars:int;
@@ -271,7 +271,7 @@ package starling.text
             
             while (!finished)
             {
-                lines.length = 0;
+                sLines.length = 0;
                 scale = fontSize / mSize;
                 containerWidth  = width / scale;
                 containerHeight = height / scale;
@@ -282,7 +282,7 @@ package starling.text
                     var lastCharID:int = -1;
                     var currentX:Number = 0;
                     var currentY:Number = 0;
-                    var currentLine:Vector.<CharLocation> = new <CharLocation>[];
+                    var currentLine:Vector.<CharLocation> = CharLocation.vectorFromPool();
                     
                     numChars = text.length;
                     for (var i:int=0; i<numChars; ++i)
@@ -307,13 +307,10 @@ package starling.text
                             if (kerning)
                                 currentX += char.getKerning(lastCharID);
                             
-                            charLocation = mCharLocationPool.length ?
-                                mCharLocationPool.pop() : new CharLocation(char);
-                            
-                            charLocation.char = char;
+                            charLocation = CharLocation.instanceFromPool(char);
                             charLocation.x = currentX + char.xOffset;
                             charLocation.y = currentY + char.yOffset;
-                            currentLine.push(charLocation);
+                            currentLine[currentLine.length] = charLocation; // push
                             
                             currentX += char.xAdvance;
                             lastCharID = charID;
@@ -340,19 +337,19 @@ package starling.text
                         
                         if (i == numChars - 1)
                         {
-                            lines.push(currentLine);
+                            sLines[sLines.length] = currentLine; // push
                             finished = true;
                         }
                         else if (lineFull)
                         {
-                            lines.push(currentLine);
+                            sLines[sLines.length] = currentLine; // push
                             
                             if (lastWhiteSpace == i)
                                 currentLine.pop();
                             
                             if (currentY + 2*mLineHeight <= containerHeight)
                             {
-                                currentLine = new <CharLocation>[];
+                                currentLine = CharLocation.vectorFromPool();
                                 currentX = 0;
                                 currentY += mLineHeight;
                                 lastWhiteSpace = -1;
@@ -372,8 +369,8 @@ package starling.text
                     finished = true; 
             } // while (!finished)
             
-            var finalLocations:Vector.<CharLocation> = new <CharLocation>[];
-            var numLines:int = lines.length;
+            var finalLocations:Vector.<CharLocation> = CharLocation.vectorFromPool();
+            var numLines:int = sLines.length;
             var bottom:Number = currentY + mLineHeight;
             var yOffset:int = 0;
             
@@ -382,7 +379,7 @@ package starling.text
             
             for (var lineID:int=0; lineID<numLines; ++lineID)
             {
-                var line:Vector.<CharLocation> = lines[lineID];
+                var line:Vector.<CharLocation> = sLines[lineID];
                 numChars = line.length;
                 
                 if (numChars == 0) continue;
@@ -403,10 +400,7 @@ package starling.text
                     charLocation.scale = scale;
                     
                     if (charLocation.char.width > 0 && charLocation.char.height > 0)
-                        finalLocations.push(charLocation);
-                    
-                    // return to pool for next call to "arrangeChars"
-                    mCharLocationPool.push(charLocation);
+                        finalLocations[finalLocations.length] = charLocation;
                 }
             }
             
@@ -458,6 +452,62 @@ class CharLocation
     
     public function CharLocation(char:BitmapChar)
     {
+        reset(char);
+    }
+
+    private function reset(char:BitmapChar):CharLocation
+    {
         this.char = char;
+        return this;
+    }
+
+    // pooling
+
+    private static var sInstancePool:Vector.<CharLocation> = new <CharLocation>[];
+    private static var sVectorPool:Array = [];
+
+    private static var sInstanceLoan:Vector.<CharLocation> = new <CharLocation>[];
+    private static var sVectorLoan:Array = [];
+
+    public static function instanceFromPool(char:BitmapChar):CharLocation
+    {
+        var instance:CharLocation = sInstancePool.length > 0 ?
+            sInstancePool.pop() : new CharLocation(char);
+
+        instance.reset(char);
+        sInstanceLoan[sInstanceLoan.length] = instance;
+
+        return instance;
+    }
+
+    public static function vectorFromPool():Vector.<CharLocation>
+    {
+        var vector:Vector.<CharLocation> = sVectorPool.length > 0 ?
+            sVectorPool.pop() : new <CharLocation>[];
+
+        vector.length = 0;
+        sVectorLoan[sVectorLoan.length] = vector;
+
+        return vector;
+    }
+
+    public static function rechargePool():void
+    {
+        var instance:CharLocation;
+        var vector:Vector.<CharLocation>;
+
+        while (sInstanceLoan.length > 0)
+        {
+            instance = sInstanceLoan.pop();
+            instance.char = null;
+            sInstancePool[sInstancePool.length] = instance;
+        }
+
+        while (sVectorLoan.length > 0)
+        {
+            vector = sVectorLoan.pop();
+            vector.length = 0;
+            sVectorPool[sVectorPool.length] = vector;
+        }
     }
 }
