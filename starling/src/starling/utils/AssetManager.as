@@ -532,9 +532,12 @@ package starling.utils
          */
         public function loadQueue(onProgress:Function):void
         {
+            if (onProgress == null)
+                throw new ArgumentError("Argument 'onProgress' must not be null");
+
             if (mQueue.length == 0)
             {
-                execute(onProgress, 1.0);
+                onProgress(1.0);
                 return;
             }
 
@@ -589,7 +592,7 @@ package starling.utils
                 for (i=0; i<len; ++i)
                     sum += assetProgress[i];
 
-                execute(onProgress, sum / len * 0.9);
+                onProgress(sum / len * 0.9);
             }
             
             function processXmls():void
@@ -662,7 +665,7 @@ package starling.utils
                         if (!canceled)
                         {
                             removeEventListener(Event.CANCEL, cancel);
-                            execute(onProgress, 1.0);
+                            onProgress(1.0);
                         }
                     }, 1);
                 }, 1);
