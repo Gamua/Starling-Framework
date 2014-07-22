@@ -906,7 +906,7 @@ package starling.core
          *  set of textures depending on the display resolution. */
         public function get contentScaleFactor():Number
         {
-            return (mViewPort.width * mNativeStageContentScaleFactor) / mStage.stageWidth;
+            return 1//(mViewPort.width * mNativeStageContentScaleFactor) / mStage.stageWidth;
         }
         
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
