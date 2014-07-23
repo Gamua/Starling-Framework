@@ -354,10 +354,11 @@ package starling.display
                     if (filter) filter.render(child, support, alpha);
                     else        child.render(support, alpha);
                     
-                    support.blendMode = blendMode;
                     support.popMatrix();
                 }
             }
+            
+            support.blendMode = blendMode;
         }
         
         /** Dispatches an event on all children (recursively). The event must not bubble. */
