@@ -37,7 +37,11 @@ package starling.utils
     
     /** Dispatched when an URLLoader fails with an IO_ERROR while processing the queue.
      *  The 'data' property of the Event contains the URL-String that could not be loaded. */
-    [Event(name="ioError", type="starling.events.Event")]
+    [Event(name = "ioError", type = "starling.events.Event")]
+	
+	/** Dispatched when an XML or JSON file couldn't be parsed.
+	 * The 'data' property of the Event contains the name of the asset that could not be parsed. */
+	[Event(name="parseError", type="starling.events.Event")]
 
     /** The AssetManager handles loading and accessing a variety of asset types. You can 
      *  add assets directly (via the 'add...' methods) or asynchronously via a queue. This allows
@@ -778,7 +782,9 @@ package starling.utils
                     else if (byteArrayStartsWith(bytes, "{") || byteArrayStartsWith(bytes, "["))
                     {
                         try { object = JSON.parse(bytes.readUTFBytes(bytes.length)); }
-                        catch (e:Error) { log("Could not parse JSON: " + e.message); }
+                        catch (e:Error) { log("Could not parse JSON: " + e.message); 
+							dispatchEventWith(Event.PARSE_ERROR, false, name);
+						}
 
                         if (object) addObject(name, object);
 
@@ -788,8 +794,10 @@ package starling.utils
                     else if (byteArrayStartsWith(bytes, "<"))
                     {
                         try { xml = new XML(bytes); }
-                        catch (e:Error) { log("Could not parse XML: " + e.message); }
-
+                        catch (e:Error) { log("Could not parse XML: " + e.message); 
+							dispatchEventWith(Event.PARSE_ERROR, false, name);
+						}
+						
                         process(xml);
                         bytes.clear();
                     }
