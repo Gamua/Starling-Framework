@@ -76,6 +76,7 @@ package starling.utils
         private var mStarling:Starling;
         private var mNumLostTextures:int;
         private var mNumRestoredTextures:int;
+        private var mNumLoadingQueues:int;
 
         private var mDefaultTextureOptions:TextureOptions;
         private var mCheckPolicyFile:Boolean;
@@ -559,6 +560,7 @@ package starling.utils
             }
 
             mQueue.length = 0;
+            mNumLoadingQueues++;
             addEventListener(Event.CANCEL, cancel);
 
             function loadQueueElement(index:int, assetInfo:Object):void
@@ -648,6 +650,7 @@ package starling.utils
             function cancel():void
             {
                 removeEventListener(Event.CANCEL, cancel);
+                mNumLoadingQueues--;
                 canceled = true;
             }
 
@@ -664,7 +667,7 @@ package starling.utils
                     {
                         if (!canceled)
                         {
-                            removeEventListener(Event.CANCEL, cancel);
+                            cancel();
                             onProgress(1.0);
                         }
                     }, 1);
@@ -1098,6 +1101,9 @@ package starling.utils
         public function get verbose():Boolean { return mVerbose; }
         public function set verbose(value:Boolean):void { mVerbose = value; }
         
+        /** Indicates if a queue is currently being loaded. */
+        public function get isLoading():Boolean { return mNumLoadingQueues > 0; }
+
         /** For bitmap textures, this flag indicates if mip maps should be generated when they 
          *  are loaded; for ATF textures, it indicates if mip maps are valid and should be
          *  used. @default false */
