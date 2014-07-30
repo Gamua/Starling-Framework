@@ -86,6 +86,7 @@ package starling.utils
         private var mCheckPolicyFile:Boolean;
         private var mKeepAtlasXmls:Boolean;
         private var mKeepFontXmls:Boolean;
+        private var mMaxConnections:int;
         private var mVerbose:Boolean;
         private var mQueue:Array;
         
@@ -113,6 +114,7 @@ package starling.utils
             mXmls = new Dictionary();
             mObjects = new Dictionary();
             mByteArrays = new Dictionary();
+            mMaxConnections = 3;
             mQueue = [];
         }
         
@@ -549,23 +551,34 @@ package starling.utils
             mStarling = Starling.current;
             
             if (mStarling == null || mStarling.context == null)
-                throw new Error("The Starling instance needs to be ready before textures can be loaded.");
-            
+                throw new Error("The Starling instance needs to be ready before assets can be loaded.");
+
+            var i:int;
+            var canceled:Boolean = false;
             var xmls:Vector.<XML> = new <XML>[];
+            var assetInfos:Array = mQueue.concat();
             var assetCount:int = mQueue.length;
             var assetProgress:Array = [];
-            var canceled:Boolean = false;
-            var i:int;
+            var assetIndex:int = 0;
             
             for (i=0; i<assetCount; ++i)
-            {
                 assetProgress[i] = 0.0;
-                setTimeout(loadQueueElement, i*5, i, mQueue[i]);
-            }
+
+            for (i=0; i<mMaxConnections; ++i)
+                loadNextQueueElement();
 
             mQueue.length = 0;
             mNumLoadingQueues++;
             addEventListener(Event.CANCEL, cancel);
+
+            function loadNextQueueElement():void
+            {
+                if (assetIndex < assetInfos.length)
+                {
+                    loadQueueElement(assetIndex, assetInfos[assetIndex]);
+                    assetIndex++;
+                }
+            }
 
             function loadQueueElement(index:int, assetInfo:Object):void
             {
@@ -580,9 +593,9 @@ package starling.utils
                     updateProgress(index, 1.0);
                     assetCount--;
 
-                    if (assetCount == 0)
-                        finish();
-                }
+                    if (assetCount > 0) loadNextQueueElement();
+                    else                finish();
+                };
                 
                 processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
                     xmls, onElementProgress, onElementLoaded);
@@ -667,8 +680,13 @@ package starling.utils
                 setTimeout(function():void
                 {
                     processXmls();
+
                     setTimeout(function():void
                     {
+                        // now would be a good time for a clean-up
+                        System.pauseForGCIfCollectionImminent(0);
+                        System.gc();
+
                         if (!canceled)
                         {
                             cancel();
@@ -896,7 +914,7 @@ package starling.utils
 
             function onLoadProgress(event:ProgressEvent):void
             {
-                if (onProgress != null)
+                if (onProgress != null && event.bytesTotal > 0)
                     onProgress(event.bytesLoaded / event.bytesTotal);
             }
             
@@ -1149,5 +1167,10 @@ package starling.utils
          *  If false, XMLs will be disposed when the font was created. @default false. */
         public function get keepFontXmls():Boolean { return mKeepFontXmls; }
         public function set keepFontXmls(value:Boolean):void { mKeepFontXmls = value; }
+
+        /** The maximum number of parallel connections that are spawned when loading the queue.
+         *  More connections can reduce loading times, but require more memory. @default 3. */
+        public function get maxConnections():int { return mMaxConnections; }
+        public function set maxConnections(value:int):void { mMaxConnections = value; }
     }
 }
