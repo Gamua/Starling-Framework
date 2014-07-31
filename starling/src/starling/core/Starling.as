@@ -388,7 +388,6 @@ package starling.core
                 if (renderMode == Context3DRenderMode.AUTO && profiles.length != 0 &&
                     context.driverInfo.indexOf("Software") != -1)
                 {
-                    context.dispose(false);
                     onError(event);
                 }
                 else
