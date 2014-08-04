@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.gradlefx', name: 'gradlefx', version: '0.+'
+    }
+}
+
+apply plugin: 'gradlefx'
+version = '1.0-SNAPSHOT'
+type = 'swc'
+frameworkLinkage = 'none' 
+defaultTasks 'clean','compile'
+
+publishDir = 'build'
+srcDirs = [
+    '../../src/'
+]
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'yoolab-releases'
+        url "http://projects.yoolab.org/maven/content/repositories/releases"
+    }
+    maven {
+        name 'yoolab-snapshots'
+        url "http://projects.yoolab.org/maven/content/repositories/snapshots"
+    }
+}
+
+dependencies {
+}
+
+
+configurations {
+    all*.exclude group: 'com.adobe.flex.framework'
+}
+
+additionalCompilerOptions = [
+        '-debug=true',
+        '-target-player=14.0',
+        '-swf-version=25'
+]
