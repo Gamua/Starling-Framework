@@ -575,8 +575,10 @@ package starling.utils
             {
                 if (assetIndex < assetInfos.length)
                 {
-                    loadQueueElement(assetIndex, assetInfos[assetIndex]);
-                    assetIndex++;
+                    // increment asset index *before* using it, since
+                    // 'loadQueueElement' could by synchronous in subclasses.
+                    var index:int = assetIndex++;
+                    loadQueueElement(index, assetInfos[index]);
                 }
             }
 
