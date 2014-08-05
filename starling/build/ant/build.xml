@@ -22,9 +22,15 @@
   <condition property="FLEX_HOME" value="${env.AIR_HOME}">
     <isset property="env.AIR_HOME"/>
   </condition>
-  <!-- fallback to flash builder sdk -->
+  <!-- set variable for AIR SDK type -->
+  <condition property="AIR-SDK" value="AIR">
+    <available file="${FLEX_HOME}/lib/legacy/asdoc.jar"/>
+  </condition>
+  <!-- fallback to Flash Builder shipped SDK -->
   <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
-  <echo message="Using SDK: ${FLEX_HOME}"/>
+  <echo message="Using SDK: ${FLEX_HOME}"/>  
+  <!-- versioning -->
+  <property name="version" value="1.5.1" />
   <!-- directories -->
   <property name="deploy.dir" location="bin" />
   <property name="src.dir" location="src" />
@@ -47,11 +53,25 @@
     </compc>
   </target>
   <!-- Build ASDoc phase -->
-  <target name="build-doc" description="Call asdoc to generate dita xml files">
+  <target name="build-doc" unless="AIR-SDK" description="Call asdoc to generate dita xml files">
     <asdoc output="${temp.dir}" lenient="true" failonerror="true" keep-xml="true" skip-xsl="true" fork="true">
       <compiler.source-path path-element="${basedir}/src" />
       <doc-sources path-element="${basedir}/src" />
     </asdoc>
+  </target>
+  <target name="build-doc-air" if="AIR-SDK" description="Call asdoc to generate dita xml files">
+    <java classname="flex2.tools.ASDoc" fork="true" failonerror="true" dir="${FLEX_HOME}/frameworks" maxmemory="1024m">
+    <classpath>
+       <pathelement location="${FLEX_HOME}/lib/legacy/asdoc.jar"/>
+    </classpath>
+      <jvmarg value="-Dflex.compiler.theme="/>
+      <arg line="-doc-sources ${basedir}/src" />
+      <arg line="--lenient=true"/>
+      <arg line="--keep-xml=true"/>
+      <arg line="--skip-xsl=true"/>
+      <arg line="--output ${temp.dir}"/>
+      <arg line="-compiler.fonts.local-fonts-snapshot="/>
+    </java>  
   </target>
   <!-- Update SWC phase -->
   <target name="update-swc" description="Update swc with asdoc xml">
@@ -68,5 +88,30 @@
     <delete dir="${temp.dir}" failonerror="false" includeEmptyDirs="true" />
   </target>
   <!-- Default build target -->
-  <target name="build" depends="init,build-swc,build-doc,update-swc,post-clean" description="Builds the library (.swc file), including ASDoc code hints" />
+  <target name="build" depends="init,build-swc,build-doc,build-doc-air,update-swc,post-clean" description="Builds the library (.swc file), including ASDoc code hints" />
+  <!-- Build HTML Documentation -->
+  <target name="build-doc-air-html" if="AIR-SDK" description="Generate HTML documentation">
+    <java classname="flex2.tools.ASDoc" fork="true" failonerror="true" dir="${FLEX_HOME}/frameworks" maxmemory="1024m">
+    <classpath>
+       <pathelement location="${FLEX_HOME}/lib/legacy/asdoc.jar"/>
+    </classpath>
+      <jvmarg value="-Dflex.compiler.theme="/>
+      <arg line="-doc-sources ${basedir}/src" />
+      <arg line="-exclude-classes com.adobe.utils.AGALMiniAssembler" />
+      <arg line="-main-title 'Starling Framework Reference (v$version)'" />
+      <arg line="-window-title 'Starling Framework Reference'" />
+      <arg line="-package starling.animation 'The components of Starlings animation system.'" />
+      <arg line="-package starling.core 'Contains the core class of the framework and a rendering utility class.'" />
+      <arg line="-package starling.display 'The main classes from which to build anything that is displayed on the screen.'" />
+      <arg line="-package starling.errors 'A set of commonly used error classes.'" />
+      <arg line="-package starling.events 'A simplified version of Flashs DOM event model, including an alternative EventDispatcher base class.'" />
+      <arg line="-package starling.text 'Classes for working with text fields and bitmap fonts.'" />
+      <arg line="-package starling.textures 'Classes to create and work with GPU texture data.'" />
+      <arg line="-package starling.utils 'Utility classes and helper methods.'" />
+      <arg line="-package starling.filters 'Post processing filters for special effects.'" />
+      <arg line="--strict=false"/>
+      <arg line="--output ${basedir}/html"/>
+      <arg line="-compiler.fonts.local-fonts-snapshot="/>
+    </java>  
+  </target>
 </project>
