@@ -1,3 +1,17 @@
+// =================================================================================================
+//
+//	Starling Framework
+//	Copyright 2011-2014 Gamua OG. All Rights Reserved.
+//
+//	This program is free software. You can redistribute and/or modify it
+//	in accordance with the terms of the accompanying license agreement.
+//
+// =================================================================================================
+
+// @see: http://gradlefx.org/
+// @see: https://github.com/GradleFx/GradleFx/wiki/Properties-conventions
+
+// setup plugin
 buildscript {
     repositories {
         mavenCentral()
@@ -7,37 +21,38 @@ buildscript {
     }
 }
 
+// apply plugin
 apply plugin: 'gradlefx'
-version = '1.0-SNAPSHOT'
-type = 'swc'
-frameworkLinkage = 'none' 
+
+// setup default tasks
 defaultTasks 'clean','compile'
 
+// setup output type to component
+type = 'swc'
+
+// setup output name
+output = 'starling'
+
+// build version
+version = '1.0-SNAPSHOT'
+
+// get rid of flex framework linkage
+frameworkLinkage = 'none' 
+
+// setup publish dir to default
 publishDir = 'build'
+
+// setup source dir to Starling
 srcDirs = [
     '../../src/'
 ]
 
-repositories {
-    mavenCentral()
-    maven {
-        name 'yoolab-releases'
-        url "http://projects.yoolab.org/maven/content/repositories/releases"
-    }
-    maven {
-        name 'yoolab-snapshots'
-        url "http://projects.yoolab.org/maven/content/repositories/snapshots"
-    }
-}
-
-dependencies {
-}
-
-
+// get rid of flex framework #2
 configurations {
     all*.exclude group: 'com.adobe.flex.framework'
 }
 
+// setup compiler options to latest flash player version with debugging
 additionalCompilerOptions = [
         '-debug=true',
         '-target-player=14.0',
