@@ -128,9 +128,11 @@
             <url>https://dl.dropboxusercontent.com/u/1375050/m2/</url>
             <releases>
                 <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
             </snapshots>
         </repository>
     </repositories>
