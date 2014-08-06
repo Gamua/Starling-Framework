@@ -1,28 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~
+  ~ Starling Framework
+  ~ Copyright 2011-2014 Gamua OG. All Rights Reserved.
+  ~ 
+  ~ This program is free software. You can redistribute and/or modify it
+  ~ in accordance with the terms of the accompanying license agreement.
+  ~
+  -->
+<!-- @see: https://cwiki.apache.org/confluence/display/FLEX/Building+Flex+applications+with+Maven-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
+	<!-- Core maven setup -->
 	<groupId>com.gamua</groupId>
 	<artifactId>starling-framework</artifactId>
 	<packaging>swc</packaging>
 	<version>1.5.2-SNAPSHOT</version>
-
+	<!-- Plugin version setup -->
 	<properties>
 		<flexmojos.version>6.0.1</flexmojos.version>
-		<flex.framework.version>4.9.1.1447119</flex.framework.version>
+		<flex.framework.version>4.6.b.23201</flex.framework.version>
 		<playerglobal.version>11.7</playerglobal.version>
 	</properties>
-
+	<!-- CI server setup -->
 	<ciManagement>
 		<system>jenkins</system>
 		<url>https://trylogic.ci.cloudbees.com/job/StarlingFramework/</url>
 	</ciManagement>
-
+	<!-- Build plugin setup -->
 	<build>
 		<sourceDirectory>../../src</sourceDirectory>
-
 		<plugins>
 			<plugin>
 				<groupId>net.flexmojos.oss</groupId>
@@ -37,7 +46,7 @@
 				</configuration>
 				<dependencies>
 					<dependency>
-						<groupId>org.apache.flex</groupId>
+						<groupId>com.adobe.flex</groupId><!--org.apache.flex-->
 						<artifactId>compiler</artifactId>
 						<version>${flex.framework.version}</version>
 						<type>pom</type>
@@ -45,9 +54,8 @@
 				</dependencies>
 			</plugin>
 		</plugins>
-
 	</build>
-
+	<!-- Plugin dependency setup -->
 	<dependencies>
     	<dependency>
     		<groupId>com.adobe.flash.framework</groupId>
@@ -56,7 +64,7 @@
     		<type>swc</type>
     	</dependency>
 	</dependencies>
-
+	<!-- Core Repository setup -->
 	<repositories>
 		<repository>
 			<id>sonatype-repository</id>
@@ -81,7 +89,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
-
+	<!-- Plugin Repository setup -->
 	<pluginRepositories>
 		<pluginRepository>
 			<id>sonatype-repository</id>
@@ -107,4 +115,3 @@
 		</pluginRepository>
 	</pluginRepositories>
 </project>
-
