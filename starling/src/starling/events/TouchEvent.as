@@ -70,7 +70,7 @@ package starling.events
         public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
         {
-            super(type, bubbles, touches);
+            super(type, bubbles, touches, false);
             
             mShiftKey = shiftKey;
             mCtrlKey = ctrlKey;
@@ -163,7 +163,7 @@ package starling.events
             if (chain && chain.length)
             {
                 var chainLength:int = bubbles ? chain.length : 1;
-                var previousTarget:EventDispatcher = target;
+                var previousTarget:EventDispatcher = EventDispatcher(target);
                 setTarget(chain[0] as EventDispatcher);
                 
                 for (var i:int=0; i<chainLength; ++i)

@@ -385,7 +385,7 @@ package starling.display
          *  The method uses an internal pool of event objects to avoid allocations. */
         public function broadcastEventWith(type:String, data:Object=null):void
         {
-            var event:Event = Event.fromPool(type, false, data);
+            var event:Event = Event.fromPool(type, false, data, false);
             broadcastEvent(event);
             Event.toPool(event);
         }

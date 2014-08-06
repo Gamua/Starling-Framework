@@ -1,10 +1,10 @@
 // =================================================================================================
 //
-//	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//  Starling Framework
+//  Copyright 2011 Gamua OG. All Rights Reserved.
 //
-//	This program is free software. You can redistribute and/or modify it
-//	in accordance with the terms of the accompanying license agreement.
+//  This program is free software. You can redistribute and/or modify it
+//  in accordance with the terms of the accompanying license agreement.
 //
 // =================================================================================================
 
@@ -34,14 +34,13 @@ package starling.events
         private var mAltKey:Boolean;
         private var mCtrlKey:Boolean;
         private var mShiftKey:Boolean;
-        private var mIsDefaultPrevented:Boolean;
         
         /** Creates a new KeyboardEvent. */
         public function KeyboardEvent(type:String, charCode:uint=0, keyCode:uint=0, 
                                       keyLocation:uint=0, ctrlKey:Boolean=false, 
                                       altKey:Boolean=false, shiftKey:Boolean=false)
         {
-            super(type, false, keyCode);
+            super(type, false, keyCode, true);
             mCharCode = charCode;
             mKeyCode = keyCode;
             mKeyLocation = keyLocation;
@@ -49,18 +48,6 @@ package starling.events
             mAltKey = altKey;
             mShiftKey = shiftKey;
         }
-        
-        // prevent default
-        
-        /** Cancels the keyboard event's default behavior. This will be forwarded to the native
-         *  flash KeyboardEvent. */
-        public function preventDefault():void
-        {
-            mIsDefaultPrevented = true;
-        }
-        
-        /** Checks whether the preventDefault() method has been called on the event. */
-        public function isDefaultPrevented():Boolean { return mIsDefaultPrevented; }
         
         // properties
         
