@@ -20,14 +20,15 @@
     <version>1.5.2-SNAPSHOT</version>
     <!-- Plugin version setup -->
     <properties>
-        <flexmojos.version>7.0.0</flexmojos.version><!--6.0.1 | 7.0.0 -->
-        <flex.framework.version>4.12.0.20140303</flex.framework.version><!--4.5.1.21328 | 4.6.b.23201--> <!--10.2 | 11.1 -->
+        <flexmojos.version>6.0.1</flexmojos.version><!--6.0.1 | 7.0.0 -->
+        <air.sdk.version>14.0</air.sdk.version>
+        <flex.sdk.version>4.13.0.20140701</flex.sdk.version>
         <flexunit.version>4.0-rc-1</flexunit.version>
         <!-- Flash Player -->
         <!-- @see: https://stackoverflow.com/questions/9537076/chart-of-swf-versions-to-flash-versions -->
-        <swf.version>14</swf.version>
-        <flashplayer.version.major>11</flashplayer.version.major>
-        <flashplayer.version.minor>1</flashplayer.version.minor>
+        <swf.version>25</swf.version>
+        <flashplayer.version.major>14</flashplayer.version.major>
+        <flashplayer.version.minor>0</flashplayer.version.minor>
         <flashplayer.version.revision>0</flashplayer.version.revision>
         <flashplayer.version>${flashplayer.version.major}.${flashplayer.version.minor}.${flashplayer.version.revision}</flashplayer.version>
         <playerglobal.version>${flashplayer.version.major}.${flashplayer.version.minor}</playerglobal.version>
@@ -64,7 +65,7 @@
                     <dependency>
                         <groupId>com.adobe.flex</groupId><!--org.apache.flex-->
                         <artifactId>compiler</artifactId>
-                        <version>${flex.framework.version}</version>
+                        <version>${flex.sdk.version}</version>
                         <type>pom</type>
                     </dependency>
                 </dependencies>
@@ -77,7 +78,7 @@
             <dependency>
                 <groupId>com.adobe.flex.framework</groupId>
                 <artifactId>flex-framework</artifactId>
-                <version>${flex.framework.version}</version>
+                <version>${flex.sdk.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -85,23 +86,16 @@
     </dependencyManagement-->
     <!-- Plugin dependency setup -->
     <dependencies>
-        <dependency>
+        <!--dependency>
             <groupId>com.adobe.flex.framework</groupId>
             <artifactId>flex-framework</artifactId>
-            <version>${flex.framework.version}</version>
-            <type>pom</type>            
-            <exclusions>
-                <exclusion>
-                    <groupId>com.adobe.flex.framework</groupId>
-                    <artifactId>playerglobal</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+            <version>${flex.sdk.version}</version>
+            <type>pom</type>
+        </dependency-->
         <dependency>
-            <groupId>com.adobe.flex.framework</groupId>
+            <groupId>com.adobe.flash.framework</groupId>
             <artifactId>playerglobal</artifactId>
-            <version>${flex.framework.version}</version>
-            <classifier>11.1</classifier>
+            <version>${playerglobal.version}</version>
             <type>swc</type>
         </dependency>
     </dependencies>
@@ -119,7 +113,7 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
-        <repository>
+        <!--repository>
             <id>flex-mojos-repository</id>
             <url>http://repository.sonatype.org/content/groups/flexgroup/</url>
             <releases>
@@ -127,6 +121,16 @@
             </releases>
             <snapshots>
                 <enabled>false</enabled>
+            </snapshots>
+        </repository-->
+        <repository>
+            <id>flex-sdk-repository</id>
+            <url>https://dl.dropboxusercontent.com/u/1375050/m2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
             </snapshots>
         </repository>
     </repositories>
@@ -144,7 +148,7 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </pluginRepository>
-        <pluginRepository>
+        <!--pluginRepository>
             <id>flex-mojos-repository</id>
             <url>http://repository.sonatype.org/content/groups/flexgroup/</url>
             <releases>
@@ -152,6 +156,18 @@
             </releases>
             <snapshots>
                 <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository-->
+        <pluginRepository>
+            <id>flex-sdk-repository</id>
+            <url>https://dl.dropboxusercontent.com/u/1375050/m2/</url>
+            <releases>
+                <enabled>true</enabled>                
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>  
+                <checksumPolicy>warn</checksumPolicy>
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
