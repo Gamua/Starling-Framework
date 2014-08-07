@@ -4,9 +4,8 @@ git:
 language: objective-c
 
 before_script:
-    - brew update
-    - brew install ant
-    - brew install adobe-air-sdk
+    - brew update >brew-update.log
+    - brew install ant adobe-air-sdk >brew-install.log
     - mkdir -p /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
     - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/14.0/playerglobal.swc /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
     - "export AIR_HOME=/usr/local/opt/adobe-air-sdk/libexec"
