@@ -21,6 +21,12 @@ buildscript {
     }
 }
 
+repositories {
+    maven {
+        url 'http://www.vpmedia.eu/repository/m2'
+    }
+}
+
 // apply plugin
 apply plugin: 'gradlefx'
 
@@ -47,6 +53,11 @@ srcDirs = [
     '../../src/'
 ]
 
+// setup test dir to Starling
+testDirs = [
+    '../../../tests/src'
+]
+
 // get rid of flex framework #2
 configurations {
     all*.exclude group: 'com.adobe.flex.framework'
@@ -58,3 +69,12 @@ additionalCompilerOptions = [
         '-target-player=14.0',
         '-swf-version=25'
 ]
+
+dependencies {
+    test group: 'org.apache', name: 'flexunit-tasks', version: '4.2.0-20140410', ext: 'jar'
+    test group: 'org.apache', name: 'flexunit-as3', version: '4.2.0-20140410', ext: 'swc'
+    test group: 'org.apache', name: 'flexunit-cilistener', version: '4.2.0-20140410', ext: 'swc'
+    test group: 'org.apache', name: 'flexunit-uilistener', version: '4.2.0-20140410', ext: 'swc'
+    test group: 'org.apache', name: 'hamcrest-as3', version: '1.1.3', ext: 'swc'
+}
+
