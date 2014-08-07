@@ -1,4 +1,4 @@
-Starling Framework: The Cross Platform Game Engine
+Starling Framework: The Cross Platform Game Engine [![Build Status](https://travis-ci.org/Gamua/Starling-Framework.svg)](https://travis-ci.org/Gamua/Starling-Framework)
 ==================================================
 
 What is Starling?
