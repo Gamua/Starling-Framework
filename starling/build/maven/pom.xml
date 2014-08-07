@@ -2,8 +2,8 @@
 <!--
   ~
   ~ Starling Framework
-  ~ Copyright 2011-2014 Gamua OG. All Rights Reserved.
-  ~ 
+  ~ Copyright 2011-2014 Gamua. All Rights Reserved.
+  ~
   ~ This program is free software. You can redistribute and/or modify it
   ~ in accordance with the terms of the accompanying license agreement.
   ~
@@ -37,7 +37,7 @@
     <ciManagement>
         <system>jenkins</system>
         <url>https://trylogic.ci.cloudbees.com/job/StarlingFramework/</url>
-    </ciManagement>  
+    </ciManagement>
     <!-- Build plugin setup -->
     <build>
         <sourceDirectory>../../src</sourceDirectory>
@@ -164,11 +164,11 @@
             <id>flex-sdk-repository</id>
             <url>http://www.vpmedia.eu/repository/m2/</url>
             <releases>
-                <enabled>true</enabled>                
+                <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
             <snapshots>
-                <enabled>true</enabled>  
+                <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </snapshots>
         </pluginRepository>

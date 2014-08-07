@@ -2,14 +2,14 @@
 <!--
   ~
   ~ Starling Framework
-  ~ Copyright 2011-2014 Gamua OG. All Rights Reserved.
-  ~ 
+  ~ Copyright 2011-2014 Gamua. All Rights Reserved.
+  ~
   ~ This program is free software. You can redistribute and/or modify it
   ~ in accordance with the terms of the accompanying license agreement.
   ~
   -->
 <project name="starling" basedir="../.." default="build">
-  <description>Starling SWC Assembler</description>   
+  <description>Starling SWC Assembler</description>
   <!-- ################################################################### -->
   <!-- ########################## SETTINGS ############################### -->
   <!-- ################################################################### -->
@@ -28,7 +28,7 @@
   </condition>
   <!-- fallback to Flash Builder shipped SDK -->
   <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
-  <echo message="Using SDK: ${FLEX_HOME}"/>  
+  <echo message="Using SDK: ${FLEX_HOME}"/>
   <!-- versioning -->
   <property name="version" value="1.5.1" />
   <!-- directories -->
@@ -71,7 +71,7 @@
       <arg line="--skip-xsl=true"/>
       <arg line="--output ${temp.dir}"/>
       <arg line="-compiler.fonts.local-fonts-snapshot="/>
-    </java>  
+    </java>
   </target>
   <!-- Update SWC phase -->
   <target name="update-swc" description="Update swc with asdoc xml">
@@ -112,6 +112,6 @@
       <arg line="--strict=false"/>
       <arg line="--output ${basedir}/html"/>
       <arg line="-compiler.fonts.local-fonts-snapshot="/>
-    </java>  
+    </java>
   </target>
 </project>
