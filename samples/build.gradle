@@ -1,0 +1,42 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.gradlefx', name: 'gradlefx', version: '0.+'
+    }
+}
+allprojects {
+    defaultTasks 'clean','compile'
+}
+
+subprojects {
+
+    apply plugin: 'gradlefx'
+
+    version = '1.0-SNAPSHOT'
+    
+    srcDirs = [
+        'src',
+        '../../starling/src',
+        '../demo/assets',
+        '../demo/system',
+        '../demo/src',
+    ]
+    
+    type = 'swf'
+    frameworkLinkage = 'merged'
+    
+    playerVersion = '14.0'
+
+    additionalCompilerOptions = [
+        '-debug=true',
+        '-optimize=true',
+        '-target-player=14.0',
+        '-swf-version=25'
+    ]
+
+    dependencies {
+    }
+    
+}
