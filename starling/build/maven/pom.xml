@@ -125,7 +125,7 @@
         </repository-->
         <repository>
             <id>flex-sdk-repository</id>
-            <url>https://dl.dropboxusercontent.com/u/1375050/m2/</url>
+            <url>http://www.vpmedia.eu/repository/m2/</url>
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
@@ -162,7 +162,7 @@
         </pluginRepository-->
         <pluginRepository>
             <id>flex-sdk-repository</id>
-            <url>https://dl.dropboxusercontent.com/u/1375050/m2/</url>
+            <url>http://www.vpmedia.eu/repository/m2/</url>
             <releases>
                 <enabled>true</enabled>                
                 <checksumPolicy>warn</checksumPolicy>
