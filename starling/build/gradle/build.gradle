@@ -23,7 +23,7 @@ buildscript {
 
 repositories {
     maven {
-        url 'http://www.vpmedia.eu/repository/m2'
+        url 'https://raw.githubusercontent.com/vpmedia/mvnrepository/master'
     }
 }
 

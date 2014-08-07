@@ -110,7 +110,7 @@
         </repository>
         <repository>
             <id>flex-sdk-repository</id>
-            <url>http://www.vpmedia.eu/repository/m2/</url><!-- http://repository.sonatype.org/content/groups/flexgroup/ -->
+            <url>https://raw.githubusercontent.com/vpmedia/mvnrepository/master</url><!-- http://repository.sonatype.org/content/groups/flexgroup/ -->
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
@@ -137,7 +137,7 @@
         </pluginRepository>
         <pluginRepository>
             <id>flex-sdk-repository</id>
-            <url>http://www.vpmedia.eu/repository/m2/</url><!-- http://repository.sonatype.org/content/groups/flexgroup/ -->
+            <url>https://raw.githubusercontent.com/vpmedia/mvnrepository/master</url><!-- http://repository.sonatype.org/content/groups/flexgroup/ -->
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
