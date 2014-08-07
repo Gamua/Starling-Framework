@@ -1,1 +1,4 @@
+type = 'mobile'
 mainClass = 'Scaffold_Mobile.as'
+air {
+} 

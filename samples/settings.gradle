@@ -1,1 +1,1 @@
-include 'demo_web'
+include 'demo_web','demo_mobile','scaffold_mobile'

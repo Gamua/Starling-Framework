@@ -1,1 +1,4 @@
-mainClass = 'Demo_Mobile.as' 
+type = 'mobile'
+mainClass = 'Demo_Mobile.as'
+air {
+} 
