@@ -21,4 +21,4 @@ before_script:
     - "export AIR_HOME=/usr/local/opt/adobe-air-sdk/libexec"
 
 script:
-    - cd starling/build/ant && ant -DFLEX_HOME=/usr/local/opt/adobe-air-sdk/libexec
+    - cd starling/build/ant && ant
