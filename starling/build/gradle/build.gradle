@@ -31,7 +31,7 @@ repositories {
 apply plugin: 'gradlefx'
 
 // setup default tasks
-defaultTasks 'clean','compile'
+defaultTasks 'clean','compile','test'
 
 // setup output type to component
 type = 'swc'
