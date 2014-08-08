@@ -44,5 +44,6 @@ before_script:
     - export AIR_HOME="/usr/local/opt/adobe-air-sdk/libexec"
 
 script:
-    - cd starling/build/ant && ant
     - cd starling/build/gradle && gradle
+    - ls
+    - cd starling/build/ant && ant
