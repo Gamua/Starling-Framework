@@ -13,6 +13,9 @@ git:
 
 language: objective-c
 
+env:
+    - TERM=dumb
+
 before_script:
     # Update Brew silently
     - brew update >brew-update.log
