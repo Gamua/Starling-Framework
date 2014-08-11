@@ -48,18 +48,12 @@
                 <version>${flexmojos.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <debug>false</debug>
-                    <storepass/>
-                    <skipTests>true</skipTests>
-                    <skipTest>true</skipTest>
+                    <debug>true</debug>
                     <targetPlayer>${playerglobal.version}</targetPlayer>
                     <swfVersion>${swf.version}</swfVersion>
                     <source-path>
                         <path-element>../../src</path-element>
                     </source-path>
-                    <fonts></fonts>
-                    <locales></locales>
-                    <themes></themes>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -86,17 +80,18 @@
     </dependencyManagement-->
     <!-- Plugin dependency setup -->
     <dependencies>
-        <!--dependency>
-            <groupId>com.adobe.flex.framework</groupId>
-            <artifactId>flex-framework</artifactId>
-            <version>${flex.sdk.version}</version>
-            <type>pom</type>
-        </dependency-->
         <dependency>
             <groupId>com.adobe.flash.framework</groupId>
             <artifactId>playerglobal</artifactId>
             <version>${playerglobal.version}</version>
             <type>swc</type>
+        </dependency>
+        <dependency>
+            <groupId>com.adobe.flex.framework</groupId>
+            <artifactId>spark</artifactId>
+            <type>swc</type>
+            <scope>theme</scope>
+            <version>${flex.sdk.version}</version>
         </dependency>
     </dependencies>
     <!-- Core Repository setup -->
@@ -113,19 +108,9 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
-        <!--repository>
-            <id>flex-mojos-repository</id>
-            <url>http://repository.sonatype.org/content/groups/flexgroup/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository-->
         <repository>
             <id>flex-sdk-repository</id>
-            <url>http://www.vpmedia.eu/repository/m2/</url>
+            <url>https://raw.githubusercontent.com/vpmedia/mvnrepository/master</url><!-- http://repository.sonatype.org/content/groups/flexgroup/ -->
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
@@ -150,19 +135,9 @@
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </pluginRepository>
-        <!--pluginRepository>
-            <id>flex-mojos-repository</id>
-            <url>http://repository.sonatype.org/content/groups/flexgroup/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository-->
         <pluginRepository>
             <id>flex-sdk-repository</id>
-            <url>http://www.vpmedia.eu/repository/m2/</url>
+            <url>https://raw.githubusercontent.com/vpmedia/mvnrepository/master</url><!-- http://repository.sonatype.org/content/groups/flexgroup/ -->
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
