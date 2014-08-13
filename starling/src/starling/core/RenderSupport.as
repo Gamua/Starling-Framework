@@ -237,7 +237,7 @@ package starling.core
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
         public function transformMatrix3D(object:Sprite3D):void
         {
-            MatrixUtil.convertTo3D(mModelViewMatrix, mModelViewMatrix3D);
+            mModelViewMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
             mModelViewMatrix3D.prepend(object.transformationMatrix3D);
             mModelViewMatrix.identity();
         }
