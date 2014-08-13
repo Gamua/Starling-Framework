@@ -11,6 +11,7 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
@@ -214,7 +215,7 @@ package starling.display
                 
                 var alpha:Number = parentAlpha * this.alpha;
                 var numBatches:int = mFlattenedContents.length;
-                var mvpMatrix:Matrix = support.mvpMatrix;
+                var mvpMatrix:Matrix3D = support.mvpMatrix3D;
                 
                 support.finishQuadBatch();
                 support.raiseDrawCount(numBatches);

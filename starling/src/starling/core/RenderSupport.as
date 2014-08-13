@@ -25,6 +25,7 @@ package starling.core
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.QuadBatch;
+    import starling.display.Sprite3D;
     import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
@@ -45,10 +46,18 @@ package starling.core
         private var mProjectionMatrix:Matrix;
         private var mModelViewMatrix:Matrix;
         private var mMvpMatrix:Matrix;
-        private var mMvpMatrix3D:Matrix3D;
+        
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         
+        private var mProjectionMatrix3D:Matrix3D;
+        private var mModelViewMatrix3D:Matrix3D;
+        private var mMvpMatrix3D:Matrix3D;
+        
+        private var mMatrixStack3D:Vector.<Matrix3D>;
+        private var mMatrixStack3DSize:int;
+
+        private var mIs3D:Boolean;
         private var mDrawCount:int;
         private var mBlendMode:String;
         private var mRenderTarget:Texture;
@@ -65,6 +74,9 @@ package starling.core
         private static var sBufferRect:Rectangle = new Rectangle();
         private static var sScissorRect:Rectangle = new Rectangle();
         private static var sAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
+        private static var sMatrixData:Vector.<Number> = 
+            new <Number>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         
         // construction
         
@@ -74,9 +86,15 @@ package starling.core
             mProjectionMatrix = new Matrix();
             mModelViewMatrix = new Matrix();
             mMvpMatrix = new Matrix();
-            mMvpMatrix3D = new Matrix3D();
             mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
+            
+            mProjectionMatrix3D = new Matrix3D();
+            mModelViewMatrix3D = new Matrix3D();
+            mMvpMatrix3D = new Matrix3D();
+            mMatrixStack3D = new <Matrix3D>[];
+            mMatrixStack3DSize = 0;
+            
             mDrawCount = 0;
             mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
@@ -86,7 +104,7 @@ package starling.core
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
-            setOrthographicProjection(0, 0, 400, 300);
+            setProjectionMatrix(0, 0, 400, 300);
         }
         
         /** Disposes all quad batches. */
@@ -98,19 +116,42 @@ package starling.core
         
         // matrix manipulation
         
-        /** Sets up the projection matrix for ortographic 2D rendering. */
-        public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
+        public function setProjectionMatrix(x:Number, y:Number, width:Number, height:Number,
+                                            camDist:Number=500):void
         {
             mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
                 -(2*x + width) / width, (2*y + height) / height);
             
+            const near:Number =  100;
+            const far:Number  = 2000;
+
+            sMatrixData[ 0] = 2 * camDist / width;        // 0,0
+            sMatrixData[ 5] = 2 * camDist / height;       // 1,1
+            sMatrixData[10] = far / (far - near);         // 2,2
+            sMatrixData[14] = -far * near / (far - near); // 2,3
+            sMatrixData[11] = 1;                          // 3,2
+            
+            mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
+            mProjectionMatrix3D.prependScale(1.0, -1.0, 1.0);
+            mProjectionMatrix3D.prependTranslation(-width/2.0, -height/2.0, camDist);
+            //mProjectionMatrix3D.prependRotation(-60, Vector3D.Y_AXIS);
+            
             applyClipRect();
+        }
+        
+        /** Sets up the projection matrix for ortographic 2D rendering. */
+        [Deprecated(replacement="setProjectionMatrix")] 
+        public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
+        {
+            setProjectionMatrix(x, y, width, height);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
         public function loadIdentity():void
         {
             mModelViewMatrix.identity();
+            mModelViewMatrix3D.identity();
+            mIs3D = false;
         }
         
         /** Prepends a translation to the modelview matrix. */
@@ -140,21 +181,56 @@ package starling.core
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
         public function transformMatrix(object:DisplayObject):void
         {
-            MatrixUtil.prependMatrix(mModelViewMatrix, object.transformationMatrix);
+            var object3D:Sprite3D = object as Sprite3D;
+            
+            if (object3D)
+            {
+                finishQuadBatch();
+                
+                MatrixUtil.convertTo3D(mModelViewMatrix, mModelViewMatrix3D);
+                mModelViewMatrix3D.prepend(object3D.transformationMatrix3D);
+                mModelViewMatrix.identity();
+                mIs3D = true;
+            }
+            else
+            {
+                MatrixUtil.prependMatrix(mModelViewMatrix, object.transformationMatrix);
+            }
         }
         
         /** Pushes the current modelview matrix to a stack from which it can be restored later. */
         public function pushMatrix():void
         {
+            if (mIs3D)
+            {
+                if (mMatrixStack3D.length < mMatrixStack3DSize + 1)
+                    mMatrixStack3D.push(new Matrix3D());
+                
+                mMatrixStack3D[int(mMatrixStack3DSize++)].copyFrom(mModelViewMatrix3D);
+            }
+            
             if (mMatrixStack.length < mMatrixStackSize + 1)
                 mMatrixStack.push(new Matrix());
-            
+        
             mMatrixStack[int(mMatrixStackSize++)].copyFrom(mModelViewMatrix);
         }
         
         /** Restores the modelview matrix that was last pushed to the stack. */
         public function popMatrix():void
         {
+            if (mIs3D)
+            {
+                if (mMatrixStack3DSize == 1)
+                {
+                    finishQuadBatch();
+                   
+                    mIs3D = false;
+                    mModelViewMatrix3D.identity();
+                }
+                else
+                    mModelViewMatrix3D.copyFrom(mMatrixStack3D[int(--mMatrixStack3DSize)]);
+            }
+            
             mModelViewMatrix.copyFrom(mMatrixStack[int(--mMatrixStackSize)]);
         }
         
@@ -180,11 +256,23 @@ package starling.core
             return mMvpMatrix;
         }
         
-        /** Calculates the product of modelview and projection matrix and saves it in a 3D matrix. 
+        /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
+         *  Different to 'mvpMatrix', this also takes 3D transformations into account. 
          *  CAUTION: Use with care! Each call returns the same instance. */
         public function get mvpMatrix3D():Matrix3D
         {
-            return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
+            if (mIs3D)
+            {
+                mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
+                mMvpMatrix3D.prepend(mModelViewMatrix3D);
+                mMvpMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
+            }
+            else
+            {
+                MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
+            }
+            
+            return mMvpMatrix3D;
         }
         
         /** Returns the current modelview matrix.
@@ -369,7 +457,17 @@ package starling.core
             
             if (currentBatch.numQuads != 0)
             {
-                currentBatch.renderCustom(mProjectionMatrix);
+                if (mIs3D)
+                {
+                    mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
+                    mMvpMatrix3D.prepend(mModelViewMatrix3D);
+                    currentBatch.renderCustom(mMvpMatrix3D);
+                }
+                else
+                {
+                    currentBatch.renderCustom(mProjectionMatrix3D);
+                }
+                
                 currentBatch.reset();
                 
                 ++mCurrentQuadBatchID;

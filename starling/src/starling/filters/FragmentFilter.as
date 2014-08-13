@@ -242,7 +242,7 @@ package starling.filters
             support.renderTarget = mPassTextures[0];
             support.clear();
             support.blendMode = BlendMode.NORMAL;
-            support.setOrthographicProjection(sBounds.x, sBounds.y, sBoundsPot.width, sBoundsPot.height);
+            support.setProjectionMatrix(sBounds.x, sBounds.y, sBoundsPot.width, sBoundsPot.height);
             object.render(support, parentAlpha);
             support.finishQuadBatch();
             

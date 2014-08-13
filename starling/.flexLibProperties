@@ -66,6 +66,7 @@
     <classEntry path="starling.utils.transformCoords"/>
     <classEntry path="starling.utils.SystemUtil"/>
     <classEntry path="starling.utils.cleanMasterString"/>
+    <classEntry path="starling.display.Sprite3D"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

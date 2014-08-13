@@ -106,7 +106,7 @@ package starling.textures
             var rootHeight:Number = mActiveTexture.root.height;
             
             mSupport = new RenderSupport();
-            mSupport.setOrthographicProjection(0, 0, rootWidth, rootHeight);
+            mSupport.setProjectionMatrix(0, 0, rootWidth, rootHeight);
             
             if (persistent)
             {
