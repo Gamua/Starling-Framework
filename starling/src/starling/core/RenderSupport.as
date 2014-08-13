@@ -57,7 +57,6 @@ package starling.core
         private var mMatrixStack3D:Vector.<Matrix3D>;
         private var mMatrixStack3DSize:int;
 
-        private var mIs3D:Boolean;
         private var mDrawCount:int;
         private var mBlendMode:String;
         private var mRenderTarget:Texture;
@@ -134,7 +133,6 @@ package starling.core
             mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
             mProjectionMatrix3D.prependScale(1.0, -1.0, 1.0);
             mProjectionMatrix3D.prependTranslation(-width/2.0, -height/2.0, camDist);
-            //mProjectionMatrix3D.prependRotation(-60, Vector3D.Y_AXIS);
             
             applyClipRect();
         }
@@ -151,7 +149,6 @@ package starling.core
         {
             mModelViewMatrix.identity();
             mModelViewMatrix3D.identity();
-            mIs3D = false;
         }
         
         /** Prepends a translation to the modelview matrix. */
@@ -181,34 +178,12 @@ package starling.core
         /** Prepends translation, scale and rotation of an object to the modelview matrix. */
         public function transformMatrix(object:DisplayObject):void
         {
-            var object3D:Sprite3D = object as Sprite3D;
-            
-            if (object3D)
-            {
-                finishQuadBatch();
-                
-                MatrixUtil.convertTo3D(mModelViewMatrix, mModelViewMatrix3D);
-                mModelViewMatrix3D.prepend(object3D.transformationMatrix3D);
-                mModelViewMatrix.identity();
-                mIs3D = true;
-            }
-            else
-            {
-                MatrixUtil.prependMatrix(mModelViewMatrix, object.transformationMatrix);
-            }
+            MatrixUtil.prependMatrix(mModelViewMatrix, object.transformationMatrix);
         }
         
         /** Pushes the current modelview matrix to a stack from which it can be restored later. */
         public function pushMatrix():void
         {
-            if (mIs3D)
-            {
-                if (mMatrixStack3D.length < mMatrixStack3DSize + 1)
-                    mMatrixStack3D.push(new Matrix3D());
-                
-                mMatrixStack3D[int(mMatrixStack3DSize++)].copyFrom(mModelViewMatrix3D);
-            }
-            
             if (mMatrixStack.length < mMatrixStackSize + 1)
                 mMatrixStack.push(new Matrix());
         
@@ -218,19 +193,6 @@ package starling.core
         /** Restores the modelview matrix that was last pushed to the stack. */
         public function popMatrix():void
         {
-            if (mIs3D)
-            {
-                if (mMatrixStack3DSize == 1)
-                {
-                    finishQuadBatch();
-                   
-                    mIs3D = false;
-                    mModelViewMatrix3D.identity();
-                }
-                else
-                    mModelViewMatrix3D.copyFrom(mMatrixStack3D[int(--mMatrixStack3DSize)]);
-            }
-            
             mModelViewMatrix.copyFrom(mMatrixStack[int(--mMatrixStackSize)]);
         }
         
@@ -238,6 +200,7 @@ package starling.core
         public function resetMatrix():void
         {
             mMatrixStackSize = 0;
+            mMatrixStack3DSize = 0;
             loadIdentity();
         }
         
@@ -256,25 +219,6 @@ package starling.core
             return mMvpMatrix;
         }
         
-        /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
-         *  Different to 'mvpMatrix', this also takes 3D transformations into account. 
-         *  CAUTION: Use with care! Each call returns the same instance. */
-        public function get mvpMatrix3D():Matrix3D
-        {
-            if (mIs3D)
-            {
-                mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
-                mMvpMatrix3D.prepend(mModelViewMatrix3D);
-                mMvpMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
-            }
-            else
-            {
-                MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
-            }
-            
-            return mMvpMatrix3D;
-        }
-        
         /** Returns the current modelview matrix.
          *  CAUTION: Use with care! Each call returns the same instance. */
         public function get modelViewMatrix():Matrix { return mModelViewMatrix; }
@@ -286,6 +230,50 @@ package starling.core
         {
             mProjectionMatrix.copyFrom(value);
             applyClipRect();
+        }
+        
+        // 3d transformations
+        
+        /** Prepends translation, scale and rotation of an object to the modelview matrix. */
+        public function transformMatrix3D(object:Sprite3D):void
+        {
+            MatrixUtil.convertTo3D(mModelViewMatrix, mModelViewMatrix3D);
+            mModelViewMatrix3D.prepend(object.transformationMatrix3D);
+            mModelViewMatrix.identity();
+        }
+        
+        /** Pushes the current 3D modelview matrix to a stack from which it can be restored later. */
+        public function pushMatrix3D():void
+        {
+            if (mMatrixStack3D.length < mMatrixStack3DSize + 1)
+                mMatrixStack3D.push(new Matrix3D());
+            
+            mMatrixStack3D[int(mMatrixStack3DSize++)].copyFrom(mModelViewMatrix3D);
+        }
+        
+        /** Restores the 3D modelview matrix that was last pushed to the stack. */
+        public function popMatrix3D():void
+        {
+            mModelViewMatrix3D.copyFrom(mMatrixStack3D[int(--mMatrixStack3DSize)]);
+        }
+        
+        /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
+         *  Different to 'mvpMatrix', this also takes 3D transformations into account. 
+         *  CAUTION: Use with care! Each call returns the same instance. */
+        public function get mvpMatrix3D():Matrix3D
+        {
+            if (mMatrixStack3DSize == 0)
+            {
+                MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
+            }
+            else
+            {
+                mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
+                mMvpMatrix3D.prepend(mModelViewMatrix3D);
+                mMvpMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
+            }
+            
+            return mMvpMatrix3D;
         }
         
         // blending
@@ -457,15 +445,15 @@ package starling.core
             
             if (currentBatch.numQuads != 0)
             {
-                if (mIs3D)
+                if (mMatrixStack3DSize == 0)
+                {
+                    currentBatch.renderCustom(mProjectionMatrix3D);
+                }
+                else
                 {
                     mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
                     mMvpMatrix3D.prepend(mModelViewMatrix3D);
                     currentBatch.renderCustom(mMvpMatrix3D);
-                }
-                else
-                {
-                    currentBatch.renderCustom(mProjectionMatrix3D);
                 }
                 
                 currentBatch.reset();

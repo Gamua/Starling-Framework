@@ -10,49 +10,72 @@
 
 package starling.display
 {
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Vector3D;
     
+    import starling.core.RenderSupport;
     import starling.utils.rad2deg;
 
-    public class Sprite3D extends Sprite
+    public class Sprite3D extends DisplayObjectContainer
     {
         private var mRotationX:Number;
         private var mRotationY:Number;
         private var mZ:Number;
         
-        private var mTransformationMatrix:Matrix3D;
+        private var mTransformationMatrix:Matrix;
+        private var mTransformationMatrix3D:Matrix3D;
         private var mTransformationChanged:Boolean;
         
         public function Sprite3D()
         {
             mRotationX = mRotationY = mZ = 0.0;
-            mTransformationMatrix = new Matrix3D();
+            mTransformationMatrix = new Matrix();
+            mTransformationMatrix3D = new Matrix3D();
         }
-
-        /*
+        
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             support.finishQuadBatch();
+            support.pushMatrix3D();
+            support.transformMatrix3D(this);
+            
             super.render(support, parentAlpha);
+            
             support.finishQuadBatch();
+            support.popMatrix3D();
         }
-        */
         
+        public override function get transformationMatrix():Matrix
+        {
+            // We always return the identity matrix!
+            // The actual transformation is stored in the 3D matrix.
+            
+            return mTransformationMatrix;
+        }
+        
+        public override function set transformationMatrix(value:Matrix):void
+        {
+            // todo: test this.
+            
+            super.transformationMatrix = value;
+            mTransformationChanged = true;
+        }
+
         public function get transformationMatrix3D():Matrix3D
         {
             if (mTransformationChanged)
             {
                 mTransformationChanged = false;
-                mTransformationMatrix.identity();
-                mTransformationMatrix.appendScale(scaleX, scaleY, 1);
-                mTransformationMatrix.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
-                mTransformationMatrix.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
-                mTransformationMatrix.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
-                mTransformationMatrix.appendTranslation(x, y, mZ);
+                mTransformationMatrix3D.identity();
+                mTransformationMatrix3D.appendScale(scaleX, scaleY, 1);
+                mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
+                mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
+                mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
+                mTransformationMatrix3D.appendTranslation(x, y, mZ);
             }
             
-            return mTransformationMatrix; 
+            return mTransformationMatrix3D; 
         }
         
         /** @inheritDoc */
