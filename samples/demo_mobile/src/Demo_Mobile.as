@@ -14,6 +14,7 @@ package
     import starling.utils.AssetManager;
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
+    import starling.utils.SystemUtil;
     import starling.utils.formatString;
     
     [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
@@ -114,12 +115,13 @@ package
             // When the game becomes inactive, we pause Starling; otherwise, the enter frame event
             // would report a very long 'passedTime' when the app is reactivated. 
             
-            NativeApplication.nativeApplication.addEventListener(
-                flash.events.Event.ACTIVATE, function (e:*):void { mStarling.start(); });
-            
-            NativeApplication.nativeApplication.addEventListener(
-                flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(true); });
+            if (!SystemUtil.isDesktop)
+            {
+                NativeApplication.nativeApplication.addEventListener(
+                    flash.events.Event.ACTIVATE, function (e:*):void { mStarling.start(); });
+                NativeApplication.nativeApplication.addEventListener(
+                    flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(true); });
+            }
         }
-        
     }
 }
