@@ -305,7 +305,7 @@ package starling.display
         public function localToGlobal(localPoint:Point, resultPoint:Point=null):Point
         {
             getTransformationMatrix(base, sHelperMatrix);
-            return MatrixUtil.transformCoords(sHelperMatrix, localPoint.x, localPoint.y, resultPoint);
+            return MatrixUtil.transformPoint(sHelperMatrix, localPoint, resultPoint);
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system.
@@ -315,7 +315,7 @@ package starling.display
         {
             getTransformationMatrix(base, sHelperMatrix);
             sHelperMatrix.invert();
-            return MatrixUtil.transformCoords(sHelperMatrix, globalPoint.x, globalPoint.y, resultPoint);
+            return MatrixUtil.transformPoint(sHelperMatrix, globalPoint, resultPoint);
         }
         
         /** Renders the display object with the help of a support object. Never call this method
