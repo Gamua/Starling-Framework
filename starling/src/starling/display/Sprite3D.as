@@ -17,6 +17,7 @@ package starling.display
     import flash.geom.Vector3D;
 
     import starling.core.RenderSupport;
+    import starling.geom.Cuboid;
     import starling.utils.MatrixUtil;
     import starling.utils.rad2deg;
 
@@ -31,14 +32,11 @@ package starling.display
         private var mTransformationChanged:Boolean;
 
         /** Helper objects. */
-        private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperPoint:Vector3D   = new Vector3D();
         private static var sHelperPoint2:Vector3D  = new Vector3D();
         private static var sHelperMatrix:Matrix3D  = new Matrix3D();
-        private static var sHelperMatrix2:Matrix3D = new Matrix3D();
-        private static var sMatrixData:Vector.<Number> =
-            new <Number>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+        private static var sHelperCuboid:Cuboid = new Cuboid();
+        private static var sHelperPoint2D:Point = new Point();
 
         public function Sprite3D()
         {
@@ -65,11 +63,32 @@ package starling.display
         {
             if (resultRect == null) resultRect = new Rectangle();
 
-            // todo
+            var bounds3D:Cuboid = getBounds3D(targetSpace, sHelperCuboid);
+            var camPosGlobal:Vector3D = new Vector3D(stage.stageWidth  / 2,
+                                                     stage.stageHeight / 2, -500);
+            var camPos:Vector3D = targetSpace.globalToLocal3D(camPosGlobal, sHelperPoint);
 
+            var bounds3DVertex:Vector3D = sHelperPoint2;
+            var bounds2DVertex:Point = sHelperPoint2D;
+            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+
+            for (var i:int=0; i<8; ++i)
+            {
+                bounds3D.getVertex(i, bounds3DVertex);
+                intersectLineWithXYPlane(camPos, bounds3DVertex, bounds2DVertex);
+
+                if (minX > bounds2DVertex.x) minX = bounds2DVertex.x;
+                if (maxX < bounds2DVertex.x) maxX = bounds2DVertex.x;
+                if (minY > bounds2DVertex.y) minY = bounds2DVertex.y;
+                if (maxY < bounds2DVertex.y) maxY = bounds2DVertex.y;
+            }
+
+            resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             return resultRect;
         }
 
+        /** @inheritDoc */
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable))
@@ -78,150 +97,47 @@ package starling.display
             // We calculate the interception point between the 3D plane that is spawned up
             // by this sprite3D and the straight line between the camera and the hit point.
 
+            sHelperMatrix.copyFrom(transformationMatrix3D);
+            sHelperMatrix.invert();
+
             // todo: this should be a property on the stage
             var camPosGlobal:Vector3D = new Vector3D(stage.stageWidth  / 2,
                                                      stage.stageHeight / 2, -500);
             var camPosLocal:Vector3D = globalToLocal3D(camPosGlobal, sHelperPoint);
-
-            // do not move these lines up! 'sHelperMatrix' is also used by 'globalToLocal3D'.
-            sHelperMatrix.copyFrom(transformationMatrix3D);
-            sHelperMatrix.invert();
-
             var localPoint3D:Vector3D = MatrixUtil.transformCoords3D(
                 sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPoint2);
-            var camRay3D_x:Number = localPoint3D.x - camPosLocal.x;
-            var camRay3D_y:Number = localPoint3D.y - camPosLocal.y;
-            var camRay3D_z:Number = localPoint3D.z - camPosLocal.z;
-            var lambda:Number = -camPosLocal.z / camRay3D_z;
 
-            localPoint.x = camPosLocal.x + lambda * camRay3D_x;
-            localPoint.y = camPosLocal.y + lambda * camRay3D_y;
+            intersectLineWithXYPlane(localPoint3D, camPosLocal, localPoint);
 
             return super.hitTest(localPoint, forTouch);
         }
 
-        /** Creates a matrix that represents the transformation from the local coordinate system
-         *  to another. If you pass a 'resultMatrix', the result will be stored in this matrix
-         *  instead of creating a new object. */
-        public function getTransformationMatrix3D(targetSpace:DisplayObject,
-                                                  resultMatrix:Matrix3D=null):Matrix3D
+        // helpers
+
+        private function intersectLineWithXYPlane(pointA:Vector3D, pointB:Vector3D,
+                                                  resultPoint:Point=null):Point
         {
-            var commonParent:DisplayObject;
-            var currentObject:DisplayObject;
+            if (resultPoint == null) resultPoint = new Point();
 
-            if (resultMatrix) resultMatrix.identity();
-            else resultMatrix = new Matrix3D();
+            var vectorX:Number = pointB.x - pointA.x;
+            var vectorY:Number = pointB.y - pointA.y;
+            var vectorZ:Number = pointB.z - pointA.z;
+            var lambda:Number = -pointA.z / vectorZ;
 
-            if (targetSpace == this)
-            {
-                return resultMatrix;
-            }
-            else if (targetSpace == parent || (targetSpace == null && parent == null))
-            {
-                resultMatrix.copyFrom(transformationMatrix3D);
-                return resultMatrix;
-            }
-            else if (targetSpace == null || targetSpace == base)
-            {
-                // targetCoordinateSpace 'null' represents the target space of the base object.
-                // -> move up from this to base
+            resultPoint.x = pointA.x + lambda * vectorX;
+            resultPoint.y = pointA.y + lambda * vectorY;
 
-                currentObject = this;
-                while (currentObject != targetSpace)
-                {
-                    resultMatrix.append(getTransformationMatrixFrom(currentObject));
-                    currentObject = currentObject.parent;
-                }
-
-                return resultMatrix;
-            }
-            else if (targetSpace.parent == this) // optimization
-            {
-                getTransformationMatrixFrom(this, resultMatrix);
-                resultMatrix.invert();
-
-                return resultMatrix;
-            }
-
-            // 1. find a common parent of this and the target space
-
-            commonParent = null;
-            currentObject = this;
-
-            while (currentObject)
-            {
-                sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
-                currentObject = currentObject.parent;
-            }
-
-            currentObject = targetSpace;
-            while (currentObject && sAncestors.indexOf(currentObject) == -1)
-                currentObject = currentObject.parent;
-
-            sAncestors.length = 0;
-
-            if (currentObject) commonParent = currentObject;
-            else throw new ArgumentError("Object not connected to target");
-
-            // 2. move up from this to common parent
-
-            currentObject = this;
-            while (currentObject != commonParent)
-            {
-                resultMatrix.append(getTransformationMatrixFrom(currentObject));
-                currentObject = currentObject.parent;
-            }
-
-            if (commonParent == targetSpace)
-                return resultMatrix;
-
-            // 3. now move up from target until we reach the common parent
-
-            sHelperMatrix.identity();
-            currentObject = targetSpace;
-            while (currentObject != commonParent)
-            {
-                sHelperMatrix.append(getTransformationMatrixFrom(currentObject));
-                currentObject = currentObject.parent;
-            }
-
-            // 4. now combine the two matrices
-
-            sHelperMatrix.invert();
-            resultMatrix.append(sHelperMatrix);
-
-            return resultMatrix;
+            return resultPoint;
         }
 
-        private function getTransformationMatrixFrom(object:DisplayObject,
-                                                     resultMatrix:Matrix3D=null):Matrix3D
-        {
-            if (resultMatrix == null) resultMatrix = new Matrix3D();
-
-            if (object is Sprite3D)
-                resultMatrix.copyFrom((object as Sprite3D).transformationMatrix3D);
-            else
-                return MatrixUtil.convertTo3D(object.transformationMatrix, resultMatrix);
-
-            return resultMatrix;
-        }
-
-        /** Transforms a point from global (stage) coordinates to the local coordinate system.
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of
-         *  creating a new object. */
-        public function globalToLocal3D(globalPoint:Vector3D, resultPoint:Vector3D=null):Vector3D
-        {
-            getTransformationMatrix3D(base, sHelperMatrix2);
-            sHelperMatrix2.invert();
-            return MatrixUtil.transformPoint3D(sHelperMatrix2, globalPoint, resultPoint);
-        }
+        // properties
 
         /** Always returns the identity matrix. The actual transformation of a Sprite3D
          *  is stored in 'transformationMatrix3D'. */
         public override function get transformationMatrix():Matrix
         {
-            // We always return the identity matrix!
-            // The actual transformation is stored in the 3D matrix.
+            // We always return the identity matrix! The actual transformation is stored in
+            // the 3D matrix; a 2D matrix cannot represent 3D transformations.
 
             return mTransformationMatrix;
         }
@@ -234,7 +150,7 @@ package starling.display
             mTransformationChanged = true;
         }
 
-        public function get transformationMatrix3D():Matrix3D
+        public override function get transformationMatrix3D():Matrix3D
         {
             if (mTransformationChanged)
             {

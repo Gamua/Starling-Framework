@@ -11,8 +11,12 @@
 package starling.utils
 {
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
+    
+    import starling.geom.Cuboid;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
      *  to Stage3D vertex buffers. <em>You only have to work with this class if you create display 
@@ -60,6 +64,8 @@ package starling.utils
 
         /** Helper object. */
         private static var sHelperPoint:Point = new Point();
+        private static var sHelperPoint3D:Vector3D = new Vector3D();
+        private static var sHelperRect:Rectangle = new Rectangle();
         
         /** Create a new VertexData object with a specified number of vertices. */
         public function VertexData(numVertices:int, premultipliedAlpha:Boolean=false)
@@ -371,6 +377,62 @@ package starling.utils
             return resultRect;
         }
         
+        /** Calculates the 3D bounds of the vertices, which are optionally transformed by a matrix. 
+         *  If you pass a 'resultCuboid', the result will be stored in this cuboid
+         *  instead of creating a new object. To use all vertices for the calculation, set
+         *  'numVertices' to '-1'. */
+        public function getBounds3D(transformationMatrix:Matrix3D=null,
+                                    vertexID:int=0, numVertices:int=-1,
+                                    resultCuboid:Cuboid=null):Cuboid
+        {
+            if (resultCuboid == null) resultCuboid = new Cuboid();
+
+            if (transformationMatrix == null)
+            {
+                getBounds(null, vertexID, numVertices, sHelperRect);
+                resultCuboid.copyFromRect(sHelperRect);
+            }
+            else
+            {
+                if (numVertices < 0 || vertexID + numVertices > mNumVertices)
+                    numVertices = mNumVertices - vertexID;
+
+                if (numVertices == 0)
+                {
+                    MatrixUtil.transformCoords3D(transformationMatrix, 0, 0, 0, sHelperPoint3D);
+                    resultCuboid.setTo(sHelperPoint3D.x, sHelperPoint3D.y, sHelperPoint3D.z, 0, 0, 0);
+                }
+                else
+                {
+                    var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+                    var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+                    var minZ:Number = Number.MAX_VALUE, maxZ:Number = -Number.MAX_VALUE;
+                    var offset:int = vertexID * ELEMENTS_PER_VERTEX + POSITION_OFFSET;
+                    var x:Number, y:Number, i:int;
+
+                    for (i=0; i<numVertices; ++i)
+                    {
+                        x = mRawData[offset];
+                        y = mRawData[int(offset+1)];
+                        offset += ELEMENTS_PER_VERTEX;
+
+                        MatrixUtil.transformCoords3D(transformationMatrix, x, y, 0, sHelperPoint3D);
+
+                        if (minX > sHelperPoint3D.x) minX = sHelperPoint3D.x;
+                        if (maxX < sHelperPoint3D.x) maxX = sHelperPoint3D.x;
+                        if (minY > sHelperPoint3D.y) minY = sHelperPoint3D.y;
+                        if (maxY < sHelperPoint3D.y) maxY = sHelperPoint3D.y;
+                        if (minZ > sHelperPoint3D.z) minZ = sHelperPoint3D.z;
+                        if (maxZ < sHelperPoint3D.z) maxZ = sHelperPoint3D.z;
+                    }
+
+                    resultCuboid.setTo(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
+                }
+            }
+
+            return resultCuboid;
+        }
+
         /** Creates a string that contains the values of all included vertices. */
         public function toString():String
         {

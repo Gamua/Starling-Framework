@@ -11,10 +11,12 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     
     import starling.core.RenderSupport;
+    import starling.geom.Cuboid;
     import starling.utils.VertexData;
     
     /** A Quad represents a rectangle with a uniform color or a color gradient.
@@ -42,7 +44,9 @@ package starling.display
         
         /** Helper objects. */
         private static var sHelperPoint:Point = new Point();
+        private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         
         /** Creates a quad with a certain size and color. The last parameter controls if the 
          *  alpha value should be premultiplied into the color values on rendering, which can
@@ -100,6 +104,25 @@ package starling.display
             return resultRect;
         }
         
+        /** @inheritDoc */
+        public override function getBounds3D(targetSpace:DisplayObject, resultCuboid:Cuboid=null):Cuboid
+        {
+            if (resultCuboid == null) resultCuboid = new Cuboid();
+
+            if (targetSpace == this || targetSpace == parent) // definitely 2D!
+            {
+                getBounds(targetSpace, sHelperRect);
+                resultCuboid.copyFromRect(sHelperRect);
+            }
+            else
+            {
+                getTransformationMatrix3D(targetSpace, sHelperMatrix3D);
+                mVertexData.getBounds3D(sHelperMatrix3D, 0, 4, resultCuboid);
+            }
+
+            return resultCuboid;
+        }
+
         /** Returns the color of a vertex at a certain index. */
         public function getVertexColor(vertexID:int):uint
         {

@@ -11,8 +11,10 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     import flash.system.Capabilities;
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
@@ -26,6 +28,7 @@ package starling.display
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
+    import starling.geom.Cuboid;
     import starling.utils.HAlign;
     import starling.utils.MatrixUtil;
     import starling.utils.VAlign;
@@ -145,6 +148,7 @@ package starling.display
         private var mUseHandCursor:Boolean;
         private var mParent:DisplayObjectContainer;  
         private var mTransformationMatrix:Matrix;
+        private var mTransformationMatrix3D:Matrix3D;
         private var mOrientationChanged:Boolean;
         private var mFilter:FragmentFilter;
         
@@ -152,6 +156,9 @@ package starling.display
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
+        private static var sHelperMatrixAlt:Matrix  = new Matrix();
+        private static var sHelperMatrix3D:Matrix3D  = new Matrix3D();
+        private static var sHelperMatrixAlt3D:Matrix3D  = new Matrix3D();
         
         /** @private */ 
         public function DisplayObject()
@@ -230,23 +237,7 @@ package starling.display
             
             // 1. find a common parent of this and the target space
             
-            commonParent = null;
-            currentObject = this;
-            
-            while (currentObject)
-            {
-                sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
-                currentObject = currentObject.mParent;
-            }
-            
-            currentObject = targetSpace;
-            while (currentObject && sAncestors.indexOf(currentObject) == -1)
-                currentObject = currentObject.mParent;
-            
-            sAncestors.length = 0;
-            
-            if (currentObject) commonParent = currentObject;
-            else throw new ArgumentError("Object not connected to target");
+            commonParent = findCommonParent(this, targetSpace);
             
             // 2. move up from this to common parent
             
@@ -276,7 +267,7 @@ package starling.display
             resultMatrix.concat(sHelperMatrix);
             
             return resultMatrix;
-        }        
+        }
         
         /** Returns a rectangle that completely encloses the object as it appears in another 
          *  coordinate system. If you pass a 'resultRectangle', the result will be stored in this 
@@ -304,8 +295,8 @@ package starling.display
          *  creating a new object. */
         public function localToGlobal(localPoint:Point, resultPoint:Point=null):Point
         {
-            getTransformationMatrix(base, sHelperMatrix);
-            return MatrixUtil.transformPoint(sHelperMatrix, localPoint, resultPoint);
+            getTransformationMatrix(base, sHelperMatrixAlt);
+            return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, resultPoint);
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system.
@@ -313,9 +304,9 @@ package starling.display
          *  creating a new object. */
         public function globalToLocal(globalPoint:Point, resultPoint:Point=null):Point
         {
-            getTransformationMatrix(base, sHelperMatrix);
-            sHelperMatrix.invert();
-            return MatrixUtil.transformPoint(sHelperMatrix, globalPoint, resultPoint);
+            getTransformationMatrix(base, sHelperMatrixAlt);
+            sHelperMatrixAlt.invert();
+            return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, resultPoint);
         }
         
         /** Renders the display object with the help of a support object. Never call this method
@@ -352,6 +343,119 @@ package starling.display
             else throw new ArgumentError("Invalid vertical alignment: " + vAlign);
         }
         
+        // 3D transformation
+
+        /** Creates a matrix that represents the transformation from the local coordinate system
+         *  to another. This method supports three dimensional objects created via 'Sprite3D'.
+         *  If you pass a 'resultMatrix', the result will be stored in this matrix
+         *  instead of creating a new object. */
+        public function getTransformationMatrix3D(targetSpace:DisplayObject,
+                                                  resultMatrix:Matrix3D=null):Matrix3D
+        {
+            var commonParent:DisplayObject;
+            var currentObject:DisplayObject;
+
+            if (resultMatrix) resultMatrix.identity();
+            else resultMatrix = new Matrix3D();
+
+            if (targetSpace == this)
+            {
+                return resultMatrix;
+            }
+            else if (targetSpace == mParent || (targetSpace == null && mParent == null))
+            {
+                resultMatrix.copyFrom(transformationMatrix3D);
+                return resultMatrix;
+            }
+            else if (targetSpace == null || targetSpace == base)
+            {
+                // targetCoordinateSpace 'null' represents the target space of the base object.
+                // -> move up from this to base
+
+                currentObject = this;
+                while (currentObject != targetSpace)
+                {
+                    resultMatrix.append(currentObject.transformationMatrix3D);
+                    currentObject = currentObject.mParent;
+                }
+
+                return resultMatrix;
+            }
+            else if (targetSpace.mParent == this) // optimization
+            {
+                targetSpace.getTransformationMatrix3D(this, resultMatrix);
+                resultMatrix.invert();
+
+                return resultMatrix;
+            }
+
+            // 1. find a common parent of this and the target space
+
+            commonParent = findCommonParent(this, targetSpace);
+
+            // 2. move up from this to common parent
+
+            currentObject = this;
+            while (currentObject != commonParent)
+            {
+                resultMatrix.append(currentObject.transformationMatrix3D);
+                currentObject = currentObject.mParent;
+            }
+
+            if (commonParent == targetSpace)
+                return resultMatrix;
+
+            // 3. now move up from target until we reach the common parent
+
+            sHelperMatrix3D.identity();
+            currentObject = targetSpace;
+            while (currentObject != commonParent)
+            {
+                sHelperMatrix3D.append(currentObject.transformationMatrix3D);
+                currentObject = currentObject.mParent;
+            }
+
+            // 4. now combine the two matrices
+
+            sHelperMatrix3D.invert();
+            resultMatrix.append(sHelperMatrix3D);
+
+            return resultMatrix;
+        }
+
+        /** Transforms a point from the local coordinate system to global (stage) coordinates.
+         *  If you pass a 'resultPoint', the result will be stored in this point instead of
+         *  creating a new object. */
+        public function localToGlobal3D(localPoint:Vector3D, resultPoint:Vector3D=null):Vector3D
+        {
+            getTransformationMatrix3D(base, sHelperMatrixAlt3D);
+            return MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, localPoint, resultPoint);
+        }
+
+        /** Transforms a point from global (stage) coordinates to the local coordinate system.
+         *  If you pass a 'resultPoint', the result will be stored in this point instead of
+         *  creating a new object. */
+        public function globalToLocal3D(globalPoint:Vector3D, resultPoint:Vector3D=null):Vector3D
+        {
+            getTransformationMatrix3D(base, sHelperMatrixAlt3D);
+            sHelperMatrixAlt3D.invert();
+            return MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, globalPoint, resultPoint);
+        }
+
+        /** Returns a cuboid that completely encloses the object as it appears in another
+         *  coordinate system. If you pass a 'resultCuboid', the result will be stored in this
+         *  cuboid instead of creating a new object. */
+        public function getBounds3D(targetSpace:DisplayObject, resultCuboid:Cuboid=null):Cuboid
+        {
+            throw new AbstractMethodError();
+        }
+
+        /** The 3D bounds of the object relative to the local coordinates of the parent. */
+        public function get bounds3D():Cuboid
+        {
+            return getBounds3D(mParent);
+        }
+
         // internal methods
         
         /** @private */
@@ -388,6 +492,27 @@ package starling.display
             return angle;
         }
         
+        private final function findCommonParent(object1:DisplayObject,
+                                                object2:DisplayObject):DisplayObject
+        {
+            var currentObject:DisplayObject = object1;
+
+            while (currentObject)
+            {
+                sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
+                currentObject = currentObject.mParent;
+            }
+
+            currentObject = object2;
+            while (currentObject && sAncestors.indexOf(currentObject) == -1)
+                currentObject = currentObject.mParent;
+
+            sAncestors.length = 0;
+
+            if (currentObject) return currentObject;
+            else throw new ArgumentError("Object not connected to target");
+        }
+
         // stage event handling
         
         public override function dispatchEvent(event:Event):void
@@ -548,6 +673,24 @@ package starling.display
             }
         }
         
+        public function get transformationMatrix3D():Matrix3D
+        {
+            // this method needs to be overriden in 3D-supporting subclasses (like Sprite3D).
+
+            if (mTransformationMatrix3D == null)
+                mTransformationMatrix3D = new Matrix3D();
+
+            return MatrixUtil.convertTo3D(transformationMatrix, mTransformationMatrix3D);
+        }
+
+        public function set transformationMatrix3D(value:Matrix3D):void
+        {
+            if (mTransformationMatrix3D == null)
+                mTransformationMatrix3D = new Matrix3D();
+
+            mTransformationMatrix3D.copyFrom(value);
+        }
+
         /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
          *  @default false */
         public function get useHandCursor():Boolean { return mUseHandCursor; }

@@ -67,6 +67,7 @@
     <classEntry path="starling.utils.SystemUtil"/>
     <classEntry path="starling.utils.cleanMasterString"/>
     <classEntry path="starling.display.Sprite3D"/>
+    <classEntry path="starling.geom.Cuboid"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
