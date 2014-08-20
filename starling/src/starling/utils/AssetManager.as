@@ -6,6 +6,7 @@ package starling.utils
     import flash.events.HTTPStatusEvent;
     import flash.events.IOErrorEvent;
     import flash.events.ProgressEvent;
+    import flash.events.SecurityErrorEvent;
     import flash.media.Sound;
     import flash.media.SoundChannel;
     import flash.media.SoundTransform;
@@ -889,6 +890,7 @@ package starling.utils
                 urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
                 urlLoader.addEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.addEventListener(Event.COMPLETE, onUrlLoaderComplete);
@@ -901,7 +903,14 @@ package starling.utils
                 dispatchEventWith(Event.IO_ERROR, false, url);
                 complete(null);
             }
-            
+
+            function onSecurityError(event:SecurityErrorEvent):void
+            {
+                log("security error: " + event.text);
+                dispatchEventWith(Event.SECURITY_ERROR, false, url);
+                complete(null);
+            }
+
             function onHttpResponseStatus(event:HTTPStatusEvent):void
             {
                 if (extension == null)
@@ -968,6 +977,7 @@ package starling.utils
                 if (urlLoader)
                 {
                     urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                    urlLoader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
                     urlLoader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                     urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                     urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
