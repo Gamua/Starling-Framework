@@ -10,6 +10,7 @@ package
     import scenes.MaskScene;
     import scenes.MovieScene;
     import scenes.RenderTextureScene;
+    import scenes.Sprite3DScene;
     import scenes.TextScene;
     import scenes.TextureScene;
     import scenes.TouchScene;
@@ -47,7 +48,8 @@ package
                 ["Blend Modes", BlendModeScene],
                 ["Render Texture", RenderTextureScene],
                 ["Benchmark", BenchmarkScene],
-                ["Clipping", MaskScene]
+                ["Clipping", MaskScene],
+                ["Sprite 3D", Sprite3DScene]
             ];
             
             var buttonTexture:Texture = Game.assets.getTexture("button_medium");
