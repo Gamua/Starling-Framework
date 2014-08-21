@@ -103,7 +103,7 @@ package starling.core
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
-            setProjectionMatrix(0, 0, 400, 300);
+            setProjectionMatrix(0, 0, 400, 300, 700);
         }
         
         /** Disposes all quad batches. */
@@ -116,13 +116,16 @@ package starling.core
         // matrix manipulation
         
         public function setProjectionMatrix(x:Number, y:Number, width:Number, height:Number,
-                                            camDist:Number=500):void
+                                            camDist:Number=0):void
         {
             mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
                 -(2*x + width) / width, (2*y + height) / height);
 
             const near:Number =   100;
             const far:Number  = 10000;
+
+            if (camDist <= 0)
+                camDist = width + height;
 
             sMatrixData[ 0] = 2 * camDist / width;        // 0,0
             sMatrixData[ 5] = 2 * camDist / height;       // 1,1
@@ -141,7 +144,7 @@ package starling.core
         [Deprecated(replacement="setProjectionMatrix")] 
         public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
         {
-            setProjectionMatrix(x, y, width, height);
+            setProjectionMatrix(x, y, width, height, Starling.current.stage.z);
         }
         
         /** Changes the modelview matrix to the identity matrix. */

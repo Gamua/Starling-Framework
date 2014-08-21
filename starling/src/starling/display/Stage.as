@@ -57,6 +57,7 @@ package starling.display
      * */
     public class Stage extends DisplayObjectContainer
     {
+        private var mZ:Number;
         private var mWidth:int;
         private var mHeight:int;
         private var mColor:uint;
@@ -72,6 +73,7 @@ package starling.display
             mWidth = width;
             mHeight = height;
             mColor = color;
+            mZ = width + height;
             mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
             mEnterFrameListeners = new <DisplayObject>[];
         }
@@ -124,7 +126,7 @@ package starling.display
                 destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
             
             support.renderTarget = null;
-            support.setProjectionMatrix(0, 0, mWidth, mHeight);
+            support.setProjectionMatrix(0, 0, mWidth, mHeight, mZ);
             
             if (transparent) support.clear();
             else             support.clear(mColor, 1);
@@ -145,7 +147,7 @@ package starling.display
             if (resultPoint == null) resultPoint = new Vector3D();
 
             getTransformationMatrix3D(space, sHelperMatrix);
-            MatrixUtil.transformCoords3D(sHelperMatrix, mWidth / 2, mHeight / 2, -500, resultPoint);
+            MatrixUtil.transformCoords3D(sHelperMatrix, mWidth / 2, mHeight / 2, -mZ, resultPoint);
 
             return resultPoint;
         }
@@ -253,5 +255,11 @@ package starling.display
          *  to the <code>viewPort</code> property of the Starling object. */
         public function get stageHeight():int { return mHeight; }
         public function set stageHeight(value:int):void { mHeight = value; }
+
+        /** The z-position of the stage respective to the camera; or, in other words, the
+         *  distance of the stage to the camera. This influences the field-of-view for Sprite3D
+         *  objects. */
+        public function get z():Number { return mZ; }
+        public function set z(value:Number):void { mZ = value; }
     }
 }
