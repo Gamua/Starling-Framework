@@ -23,7 +23,7 @@ package starling.display
     import starling.errors.AbstractClassError;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
-    import starling.geom.Cuboid;
+    import starling.geom.Box;
     import starling.utils.MatrixUtil;
     
     use namespace starling_internal;
@@ -313,9 +313,9 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function getBounds3D(targetSpace:DisplayObject, resultCuboid:Cuboid=null):Cuboid
+        public override function getBounds3D(targetSpace:DisplayObject, resultBox:Box=null):Box
         {
-            if (resultCuboid == null) resultCuboid = new Cuboid();
+            if (resultBox == null) resultBox = new Box();
 
             var numChildren:int = mChildren.length;
 
@@ -323,11 +323,11 @@ package starling.display
             {
                 getTransformationMatrix3D(targetSpace, sHelperMatrix3D);
                 MatrixUtil.transformCoords3D(sHelperMatrix3D, 0, 0, 0, sHelperPoint3D);
-                resultCuboid.setTo(sHelperPoint3D.x, sHelperPoint3D.y, sHelperPoint3D.y);
+                resultBox.setTo(sHelperPoint3D.x, sHelperPoint3D.y, sHelperPoint3D.y);
             }
             else if (numChildren == 1)
             {
-                mChildren[0].getBounds3D(targetSpace, resultCuboid);
+                mChildren[0].getBounds3D(targetSpace, resultBox);
             }
             else
             {
@@ -337,20 +337,20 @@ package starling.display
 
                 for (var i:int=0; i<numChildren; ++i)
                 {
-                    mChildren[i].getBounds3D(targetSpace, resultCuboid);
+                    mChildren[i].getBounds3D(targetSpace, resultBox);
 
-                    if (minX > resultCuboid.left)   minX = resultCuboid.left;
-                    if (maxX < resultCuboid.right)  maxX = resultCuboid.right;
-                    if (minY > resultCuboid.top)    minY = resultCuboid.top;
-                    if (maxY < resultCuboid.bottom) maxY = resultCuboid.bottom;
-                    if (minZ > resultCuboid.front)  minZ = resultCuboid.front;
-                    if (maxZ < resultCuboid.back)   maxZ = resultCuboid.back;
+                    if (minX > resultBox.left)   minX = resultBox.left;
+                    if (maxX < resultBox.right)  maxX = resultBox.right;
+                    if (minY > resultBox.top)    minY = resultBox.top;
+                    if (maxY < resultBox.bottom) maxY = resultBox.bottom;
+                    if (minZ > resultBox.front)  minZ = resultBox.front;
+                    if (maxZ < resultBox.back)   maxZ = resultBox.back;
                 }
 
-                resultCuboid.setTo(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
+                resultBox.setTo(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
             }
 
-            return resultCuboid;
+            return resultBox;
         }
 
         /** @inheritDoc */

@@ -16,7 +16,7 @@ package starling.utils
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     
-    import starling.geom.Cuboid;
+    import starling.geom.Box;
     
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
      *  to Stage3D vertex buffers. <em>You only have to work with this class if you create display 
@@ -378,19 +378,19 @@ package starling.utils
         }
         
         /** Calculates the 3D bounds of the vertices, which are optionally transformed by a matrix. 
-         *  If you pass a 'resultCuboid', the result will be stored in this cuboid
+         *  If you pass a 'resultBox', the result will be stored in this box
          *  instead of creating a new object. To use all vertices for the calculation, set
          *  'numVertices' to '-1'. */
         public function getBounds3D(transformationMatrix:Matrix3D=null,
                                     vertexID:int=0, numVertices:int=-1,
-                                    resultCuboid:Cuboid=null):Cuboid
+                                    resultBox:Box=null):Box
         {
-            if (resultCuboid == null) resultCuboid = new Cuboid();
+            if (resultBox == null) resultBox = new Box();
 
             if (transformationMatrix == null)
             {
                 getBounds(null, vertexID, numVertices, sHelperRect);
-                resultCuboid.copyFromRect(sHelperRect);
+                resultBox.copyFromRect(sHelperRect);
             }
             else
             {
@@ -400,7 +400,7 @@ package starling.utils
                 if (numVertices == 0)
                 {
                     MatrixUtil.transformCoords3D(transformationMatrix, 0, 0, 0, sHelperPoint3D);
-                    resultCuboid.setTo(sHelperPoint3D.x, sHelperPoint3D.y, sHelperPoint3D.z, 0, 0, 0);
+                    resultBox.setTo(sHelperPoint3D.x, sHelperPoint3D.y, sHelperPoint3D.z, 0, 0, 0);
                 }
                 else
                 {
@@ -426,11 +426,11 @@ package starling.utils
                         if (maxZ < sHelperPoint3D.z) maxZ = sHelperPoint3D.z;
                     }
 
-                    resultCuboid.setTo(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
+                    resultBox.setTo(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
                 }
             }
 
-            return resultCuboid;
+            return resultBox;
         }
 
         /** Calculates the bounds of the vertices, projected into the XY-plane of a certain

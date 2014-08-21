@@ -11,29 +11,27 @@
 package starling.geom
 {
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
-
+    
     import starling.utils.formatString;
 
-    public class Cuboid
+    public class Box
     {
         private var mX:Number;
         private var mY:Number;
         private var mZ:Number;
-
         private var mWidth:Number;
         private var mHeight:Number;
         private var mDepth:Number;
 
-        public function Cuboid(x:Number=0, y:Number=0, z:Number=0,
-                               width:Number=0, height:Number=0, depth:Number=0)
+        public function Box(x:Number=0, y:Number=0, z:Number=0,
+                            width:Number=0, height:Number=0, depth:Number=0)
         {
             setTo(x, y, z, width, height, depth);
         }
 
-        public function copyFrom(cuboid:Cuboid):void
+        public function copyFrom(box:Box):void
         {
-            setTo(cuboid.x, cuboid.y, cuboid.z, cuboid.width, cuboid.height, cuboid.depth);
+            setTo(box.x, box.y, box.z, box.width, box.height, box.depth);
         }
 
         public function copyFromRect(rect:Rectangle):void
@@ -52,49 +50,29 @@ package starling.geom
             mDepth = depth;
         }
 
-        public function getVertex(id:int, resultVertex:Vector3D=null):Vector3D
-        {
-            if (resultVertex == null) resultVertex = new Vector3D();
-
-            switch (id)
-            {
-                case 0: resultVertex.setTo(mX,          mY,           mZ         ); break;
-                case 1: resultVertex.setTo(mX + mWidth, mY,           mZ         ); break;
-                case 2: resultVertex.setTo(mX,          mY + mHeight, mZ         ); break;
-                case 3: resultVertex.setTo(mX + mWidth, mY + mHeight, mZ         ); break;
-                case 4: resultVertex.setTo(mX,          mY,           mZ + mDepth); break;
-                case 5: resultVertex.setTo(mX + mWidth, mY,           mZ + mDepth); break;
-                case 6: resultVertex.setTo(mX,          mY + mHeight, mZ + mDepth); break;
-                case 7: resultVertex.setTo(mX + mWidth, mY + mHeight, mZ + mDepth); break;
-                default: throw new ArgumentError("Invalid edge id: " + id);
-            }
-
-            return resultVertex;
-        }
-
         public function toString():String
         {
             return formatString("(x={0}, y={1}, z={2}, width={3}, height={4}, depth={5})",
                 mX, mY, mZ, mWidth, mHeight, mDepth);
         }
 
-        public function get left():Number { return mX; }
-        public function set left(value:Number):void { mX = value; }
+        public final function get left():Number { return mX; }
+        public final function set left(value:Number):void { mX = value; }
 
-        public function get right():Number { return mX + mWidth; }
-        public function set right(value:Number):void { mWidth = value - mX; }
+        public final function get right():Number { return mX + mWidth; }
+        public final function set right(value:Number):void { mWidth = value - mX; }
 
-        public function get top():Number { return mY; }
-        public function set top(value:Number):void { mY = value; }
+        public final function get top():Number { return mY; }
+        public final function set top(value:Number):void { mY = value; }
 
-        public function get bottom():Number { return mY + mHeight; }
-        public function set bottom(value:Number):void { mHeight = value - mY; }
+        public final function get bottom():Number { return mY + mHeight; }
+        public final function set bottom(value:Number):void { mHeight = value - mY; }
 
-        public function get front():Number { return mZ; }
-        public function set front(value:Number):void { mZ = value; }
+        public final function get front():Number { return mZ; }
+        public final function set front(value:Number):void { mZ = value; }
 
-        public function get back():Number { return mZ + mDepth; }
-        public function set back(value:Number):void { mDepth = value - mZ; }
+        public final function get back():Number { return mZ + mDepth; }
+        public final function set back(value:Number):void { mDepth = value - mZ; }
 
         public final function get x():Number { return mX; }
         public final function set x(value:Number):void { mX = value; }

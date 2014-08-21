@@ -17,7 +17,7 @@ package starling.display
     import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
-    import starling.geom.Cuboid;
+    import starling.geom.Box;
     import starling.utils.VertexData;
     
     /** A Quad represents a rectangle with a uniform color or a color gradient.
@@ -113,22 +113,22 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function getBounds3D(targetSpace:DisplayObject, resultCuboid:Cuboid=null):Cuboid
+        public override function getBounds3D(targetSpace:DisplayObject, resultBox:Box=null):Box
         {
-            if (resultCuboid == null) resultCuboid = new Cuboid();
+            if (resultBox == null) resultBox = new Box();
 
             if (targetSpace == this || targetSpace == parent) // definitely 2D!
             {
                 getBounds(targetSpace, sHelperRect);
-                resultCuboid.copyFromRect(sHelperRect);
+                resultBox.copyFromRect(sHelperRect);
             }
             else
             {
                 getTransformationMatrix3D(targetSpace, sHelperMatrix3D);
-                mVertexData.getBounds3D(sHelperMatrix3D, 0, 4, resultCuboid);
+                mVertexData.getBounds3D(sHelperMatrix3D, 0, 4, resultBox);
             }
 
-            return resultCuboid;
+            return resultBox;
         }
 
         /** Returns the color of a vertex at a certain index. */
