@@ -6,6 +6,7 @@ package scenes
     import starling.core.Starling;
     import starling.display.Image;
     import starling.display.Sprite3D;
+    import starling.events.Event;
     import starling.textures.Texture;
 
     public class Sprite3DScene extends Scene
@@ -23,11 +24,22 @@ package scenes
             
             addChild(mCube);
             
+            addEventListener(Event.ADDED_TO_STAGE, start);
+            addEventListener(Event.REMOVED_FROM_STAGE, stop);
+        }
+
+        private function start():void
+        {
             Starling.juggler.tween(mCube, 6, { rotationX: 2 * Math.PI, repeatCount: 0 });
             Starling.juggler.tween(mCube, 7, { rotationY: 2 * Math.PI, repeatCount: 0 });
             Starling.juggler.tween(mCube, 8, { rotationZ: 2 * Math.PI, repeatCount: 0 });
         }
-        
+
+        private function stop():void
+        {
+            Starling.juggler.removeTweens(mCube);
+        }
+
         private function createCube(texture:Texture):Sprite3D
         {
             var offset:Number = texture.width / 2;
