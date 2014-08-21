@@ -873,6 +873,7 @@ package starling.utils
         protected function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
         {
             var extension:String = null;
+            var status:int = 0;
             var loaderInfo:LoaderInfo = null;
             var urlLoader:URLLoader = null;
             var url:String = null;
@@ -889,6 +890,7 @@ package starling.utils
                 urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                urlLoader.addEventListener(HTTPStatusEvent.HTTP_STATUS, onHttpStatus);
                 urlLoader.addEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.addEventListener(Event.COMPLETE, onUrlLoaderComplete);
@@ -900,6 +902,11 @@ package starling.utils
                 log("IO error: " + event.text);
                 dispatchEventWith(Event.IO_ERROR, false, url);
                 complete(null);
+            }
+			
+            function onHttpStatus(event:HTTPStatusEvent):void
+            {
+                status = event.status;
             }
             
             function onHttpResponseStatus(event:HTTPStatusEvent):void
@@ -922,6 +929,13 @@ package starling.utils
             
             function onUrlLoaderComplete(event:Object):void
             {
+                if (status != 0 && (status < 200 || status >= 400)) {
+                    log("http response status error: " + status);
+                    dispatchEventWith(Event.IO_ERROR, false, url);
+                    complete(null);
+                    return;
+                }
+				
                 var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
                 var sound:Sound;
                 
@@ -968,6 +982,7 @@ package starling.utils
                 if (urlLoader)
                 {
                     urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                    urlLoader.removeEventListener(HTTPStatusEvent.HTTP_STATUS, onHttpStatus);
                     urlLoader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                     urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                     urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
