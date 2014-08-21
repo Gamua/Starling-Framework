@@ -12,7 +12,9 @@ package starling.display
 {
     import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
+    import flash.geom.Vector3D;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -20,6 +22,7 @@ package starling.display
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
+    import starling.utils.MatrixUtil;
     
     use namespace starling_internal;
     
@@ -60,6 +63,9 @@ package starling.display
         private var mEnterFrameEvent:EnterFrameEvent;
         private var mEnterFrameListeners:Vector.<DisplayObject>;
         
+        /** Helper objects. */
+        private static var sHelperMatrix:Matrix3D = new Matrix3D();
+
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
         {
@@ -132,6 +138,18 @@ package starling.display
             return destination;
         }
         
+        // camera positioning
+
+        public function getCameraPosition(space:DisplayObject, resultPoint:Vector3D=null):Vector3D
+        {
+            if (resultPoint == null) resultPoint = new Vector3D();
+
+            getTransformationMatrix3D(space, sHelperMatrix);
+            MatrixUtil.transformCoords3D(sHelperMatrix, mWidth / 2, mHeight / 2, -500, resultPoint);
+
+            return resultPoint;
+        }
+
         // enter frame event optimization
         
         /** @private */

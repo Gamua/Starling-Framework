@@ -151,6 +151,7 @@ package starling.display
         private var mTransformationMatrix3D:Matrix3D;
         private var mOrientationChanged:Boolean;
         private var mFilter:FragmentFilter;
+        private var mIs3D:Boolean;
         
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
@@ -473,6 +474,12 @@ package starling.display
                 mParent = value; 
         }
         
+        /** @private */
+        internal function setIs3D(value:Boolean):void
+        {
+            mIs3D = value;
+        }
+
         // helpers
         
         private final function isEquivalent(a:Number, b:Number, epsilon:Number=0.0001):Boolean
@@ -690,6 +697,9 @@ package starling.display
 
             mTransformationMatrix3D.copyFrom(value);
         }
+
+        /** Indicates if this object or any of its parents is a 'Sprite3D' object. */
+        public function get is3D():Boolean { return mIs3D; }
 
         /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
          *  @default false */

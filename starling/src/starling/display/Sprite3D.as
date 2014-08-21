@@ -13,11 +13,11 @@ package starling.display
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
-    import flash.geom.Rectangle;
     import flash.geom.Vector3D;
-
+    
     import starling.core.RenderSupport;
-    import starling.geom.Cuboid;
+    import starling.events.Event;
+    import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.rad2deg;
 
@@ -32,19 +32,22 @@ package starling.display
         private var mTransformationChanged:Boolean;
 
         /** Helper objects. */
-        private static var sHelperPoint:Vector3D   = new Vector3D();
-        private static var sHelperPoint2:Vector3D  = new Vector3D();
-        private static var sHelperMatrix:Matrix3D  = new Matrix3D();
-        private static var sHelperCuboid:Cuboid = new Cuboid();
-        private static var sHelperPoint2D:Point = new Point();
+        private static var sHelperPoint:Vector3D    = new Vector3D();
+        private static var sHelperPointAlt:Vector3D = new Vector3D();
+        private static var sHelperMatrix:Matrix3D   = new Matrix3D();
 
         public function Sprite3D()
         {
             mRotationX = mRotationY = mZ = 0.0;
             mTransformationMatrix = new Matrix();
             mTransformationMatrix3D = new Matrix3D();
+            setIs3D(true);
+
+            addEventListener(Event.ADDED, onAddedChild);
+            addEventListener(Event.REMOVED, onRemovedChild);
         }
 
+        /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             support.finishQuadBatch();
@@ -55,37 +58,6 @@ package starling.display
 
             support.finishQuadBatch();
             support.popMatrix3D();
-        }
-
-        /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject,
-                                           resultRect:Rectangle=null):Rectangle
-        {
-            if (resultRect == null) resultRect = new Rectangle();
-
-            var bounds3D:Cuboid = getBounds3D(targetSpace, sHelperCuboid);
-            var camPosGlobal:Vector3D = new Vector3D(stage.stageWidth  / 2,
-                                                     stage.stageHeight / 2, -500);
-            var camPos:Vector3D = targetSpace.globalToLocal3D(camPosGlobal, sHelperPoint);
-
-            var bounds3DVertex:Vector3D = sHelperPoint2;
-            var bounds2DVertex:Point = sHelperPoint2D;
-            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
-            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-
-            for (var i:int=0; i<8; ++i)
-            {
-                bounds3D.getVertex(i, bounds3DVertex);
-                intersectLineWithXYPlane(camPos, bounds3DVertex, bounds2DVertex);
-
-                if (minX > bounds2DVertex.x) minX = bounds2DVertex.x;
-                if (maxX < bounds2DVertex.x) maxX = bounds2DVertex.x;
-                if (minY > bounds2DVertex.y) minY = bounds2DVertex.y;
-                if (maxY < bounds2DVertex.y) maxY = bounds2DVertex.y;
-            }
-
-            resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
-            return resultRect;
         }
 
         /** @inheritDoc */
@@ -100,45 +72,50 @@ package starling.display
             sHelperMatrix.copyFrom(transformationMatrix3D);
             sHelperMatrix.invert();
 
-            // todo: this should be a property on the stage
-            var camPosGlobal:Vector3D = new Vector3D(stage.stageWidth  / 2,
-                                                     stage.stageHeight / 2, -500);
-            var camPosLocal:Vector3D = globalToLocal3D(camPosGlobal, sHelperPoint);
+            var camPos:Vector3D = stage.getCameraPosition(this, sHelperPoint);
             var localPoint3D:Vector3D = MatrixUtil.transformCoords3D(
-                sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPoint2);
+                sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
 
-            intersectLineWithXYPlane(localPoint3D, camPosLocal, localPoint);
+            MathUtil.intersectLineWithXYPlane(localPoint3D, camPos, localPoint);
 
             return super.hitTest(localPoint, forTouch);
         }
 
         // helpers
 
-        private function intersectLineWithXYPlane(pointA:Vector3D, pointB:Vector3D,
-                                                  resultPoint:Point=null):Point
+        private function onAddedChild(event:Event):void
         {
-            if (resultPoint == null) resultPoint = new Point();
+            recursivelySetIs3D(event.target as DisplayObject, true);
+        }
 
-            var vectorX:Number = pointB.x - pointA.x;
-            var vectorY:Number = pointB.y - pointA.y;
-            var vectorZ:Number = pointB.z - pointA.z;
-            var lambda:Number = -pointA.z / vectorZ;
+        private function onRemovedChild(event:Event):void
+        {
+            recursivelySetIs3D(event.target as DisplayObject, false);
+        }
 
-            resultPoint.x = pointA.x + lambda * vectorX;
-            resultPoint.y = pointA.y + lambda * vectorY;
+        private function recursivelySetIs3D(object:DisplayObject, value:Boolean):void
+        {
+            if (object is Sprite3D)
+                return;
 
-            return resultPoint;
+            if (object is DisplayObjectContainer)
+            {
+                var container:DisplayObjectContainer = object as DisplayObjectContainer;
+                var numChildren:int = container.numChildren;
+
+                for (var i:int=0; i<numChildren; ++i)
+                    recursivelySetIs3D(container.getChildAt(i), value);
+            }
+
+            object.setIs3D(value);
         }
 
         // properties
 
-        /** Always returns the identity matrix. The actual transformation of a Sprite3D
-         *  is stored in 'transformationMatrix3D'. */
+        /** Always returns the identity matrix. The actual transformation of a Sprite3D is stored
+         *  in 'transformationMatrix3D' (a 2D matrix cannot represent 3D transformations). */
         public override function get transformationMatrix():Matrix
         {
-            // We always return the identity matrix! The actual transformation is stored in
-            // the 3D matrix; a 2D matrix cannot represent 3D transformations.
-
             return mTransformationMatrix;
         }
 
