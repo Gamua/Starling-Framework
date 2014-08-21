@@ -18,6 +18,7 @@ package starling.filters
     import flash.display3D.VertexBuffer3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
@@ -107,6 +108,7 @@ package starling.filters
         
         /** helper objects. */
         private var mProjMatrix:Matrix = new Matrix();
+        private var mProjMatrix3D:Matrix3D = new Matrix3D();
         private static var sBounds:Rectangle  = new Rectangle();
         private static var sBoundsPot:Rectangle = new Rectangle();
         private static var sStageBounds:Rectangle = new Rectangle();
@@ -226,7 +228,8 @@ package starling.filters
             support.pushMatrix();
             
             // save original projection matrix and render target
-            mProjMatrix.copyFrom(support.projectionMatrix); 
+            mProjMatrix.copyFrom(support.projectionMatrix);
+            mProjMatrix3D.copyFrom(support.projectionMatrix3D);
             var previousRenderTarget:Texture = support.renderTarget;
             
             if (previousRenderTarget)
@@ -277,6 +280,7 @@ package starling.filters
                     {
                         // draw into back buffer, at original (stage) coordinates
                         support.projectionMatrix = mProjMatrix;
+                        support.projectionMatrix3D = mProjMatrix3D;
                         support.renderTarget = previousRenderTarget;
                         support.translateMatrix(mOffsetX, mOffsetY);
                         support.blendMode = object.blendMode;
@@ -307,6 +311,7 @@ package starling.filters
                 // restore support settings
                 support.renderTarget = previousRenderTarget;
                 support.projectionMatrix.copyFrom(mProjMatrix);
+                support.projectionMatrix3D.copyFrom(mProjMatrix3D);
                 
                 // Create an image containing the cache. To have a display object that contains
                 // the filter output in object coordinates, we wrap it in a QuadBatch: that way,

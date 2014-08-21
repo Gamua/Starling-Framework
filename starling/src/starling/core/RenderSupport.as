@@ -120,19 +120,19 @@ package starling.core
         {
             mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
                 -(2*x + width) / width, (2*y + height) / height);
-            
-            const near:Number =  100;
-            const far:Number  = 2000;
+
+            const near:Number =   100;
+            const far:Number  = 10000;
 
             sMatrixData[ 0] = 2 * camDist / width;        // 0,0
             sMatrixData[ 5] = 2 * camDist / height;       // 1,1
             sMatrixData[10] = far / (far - near);         // 2,2
             sMatrixData[14] = -far * near / (far - near); // 2,3
             sMatrixData[11] = 1;                          // 3,2
-            
+
             mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
             mProjectionMatrix3D.prependScale(1.0, -1.0, 1.0);
-            mProjectionMatrix3D.prependTranslation(-width/2.0, -height/2.0, camDist);
+            mProjectionMatrix3D.prependTranslation(-width/2.0 - x, -height/2.0 - y, camDist);
             
             applyClipRect();
         }
@@ -276,6 +276,14 @@ package starling.core
             return mMvpMatrix3D;
         }
         
+        /** Returns the current 3D projection matrix.
+         *  CAUTION: Use with care! Each call returns the same instance. */
+        public function get projectionMatrix3D():Matrix3D { return mProjectionMatrix3D; }
+        public function set projectionMatrix3D(value:Matrix3D):void
+        {
+            mProjectionMatrix3D.copyFrom(value);
+        }
+
         // blending
         
         /** Activates the current blend mode on the active rendering context. */
