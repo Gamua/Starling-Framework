@@ -933,6 +933,7 @@ package starling.utils
                     log("http response status error: " + status);
                     dispatchEventWith(Event.IO_ERROR, false, url);
                     complete(null);
+                    return;
                 }
 				
                 var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
