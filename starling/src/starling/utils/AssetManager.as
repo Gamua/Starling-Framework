@@ -873,7 +873,7 @@ package starling.utils
         protected function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
         {
             var extension:String = null;
-            var status:int = 200;
+            var status:int = 0;
             var loaderInfo:LoaderInfo = null;
             var urlLoader:URLLoader = null;
             var url:String = null;
@@ -929,7 +929,7 @@ package starling.utils
             
             function onUrlLoaderComplete(event:Object):void
             {
-                if (status < 200 || status >= 400) {
+                if (status != 0 && (status < 200 || status >= 400)) {
                     log("http response status error: " + status);
                     dispatchEventWith(Event.IO_ERROR, false, url);
                     complete(null);
