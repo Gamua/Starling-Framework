@@ -929,6 +929,12 @@ package starling.utils
             
             function onUrlLoaderComplete(event:Object):void
             {
+                if (status < 200 || status >= 400) {
+                    log("http response status error: " + status);
+                    dispatchEventWith(Event.IO_ERROR, false, url);
+                    complete(null);
+                }
+				
                 var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
                 var sound:Sound;
                 
@@ -985,12 +991,6 @@ package starling.utils
                 {
                     loaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
                     loaderInfo.removeEventListener(Event.COMPLETE, onLoaderComplete);
-                }
-				
-                if (status < 200 || status >= 400) {
-                    log("http response status error: " + status);
-                    dispatchEventWith(Event.IO_ERROR, false, url);
-                    asset = null;
                 }
 
                 // On mobile, it is not allowed / endorsed to make stage3D calls while the app
