@@ -14,6 +14,7 @@
 // setup plugin
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
     }
     dependencies {
@@ -21,26 +22,54 @@ buildscript {
     }
 }
 
-repositories {
-    maven {
-        url 'https://raw.githubusercontent.com/vpmedia/mvnrepository/master'
-    }
-}
-
 // apply plugin
 apply plugin: 'gradlefx'
 
-// setup default tasks
-defaultTasks 'clean','compile','test'
+// dependency repositories
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://raw.githubusercontent.com/vpmedia/mvnrepository/master'
+    }
+    maven {
+        url 'https://oss.sonatype.org/content/groups/public/'
+    }
+}
+
+// dependency list
+dependencies {
+    test group: 'org.apache', name: 'flexunit-tasks', version: '4.2.0-20140410', ext: 'jar'
+    test group: 'org.apache', name: 'flexunit-as3', version: '4.2.0-20140410', ext: 'swc'
+    test group: 'org.apache', name: 'flexunit-cilistener', version: '4.2.0-20140410', ext: 'swc'
+    test group: 'org.apache', name: 'flexunit-uilistener', version: '4.2.0-20140410', ext: 'swc'
+    test group: 'org.apache', name: 'hamcrest-as3', version: '1.1.3', ext: 'swc'
+    test group: 'org.apache', name: 'flex-pmd-ant-task', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-files', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-core', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-ruleset', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-ruleset-api', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-cpd', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-cpd-ant-task', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-metrics', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'flex-pmd-metrics-ant-task', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'as3-parser', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'as3-parser-api', version: '1.3', ext: 'jar'
+    test group: 'org.apache', name: 'as3-plugin-utils', version: '1.3', ext: 'jar'
+    test group: 'pmd', name: 'pmd', version: '4.2.5', ext: 'jar'
+    test group: 'commons-lang', name: 'commons-lang', version: '2.4', ext: 'jar'
+    test group: 'org.codehaus.plexus', name: 'plexus-utils', version: '3.0.17', ext: 'jar'
+}
 
 // setup output type to component
 type = 'swc'
 
 // setup output name
 output = 'starling'
+group = 'com.gamua'
 
 // build version
-version = '1.0-SNAPSHOT'
+version = '1.5.2-SNAPSHOT'
 
 // get rid of flex framework linkage
 frameworkLinkage = 'none'
@@ -69,12 +98,20 @@ additionalCompilerOptions = [
         '-target-player=14.0',
         '-swf-version=25'
 ]
+  
+// FlexPMD extra task
 
-dependencies {
-    test group: 'org.apache', name: 'flexunit-tasks', version: '4.2.0-20140410', ext: 'jar'
-    test group: 'org.apache', name: 'flexunit-as3', version: '4.2.0-20140410', ext: 'swc'
-    test group: 'org.apache', name: 'flexunit-cilistener', version: '4.2.0-20140410', ext: 'swc'
-    test group: 'org.apache', name: 'flexunit-uilistener', version: '4.2.0-20140410', ext: 'swc'
-    test group: 'org.apache', name: 'hamcrest-as3', version: '1.1.3', ext: 'swc'
+def reportsDir = new File(projectDir, '/build/reports')
+def sourceDir = new File(projectDir, '../../src/')
+def xsltFile = "https://raw.githubusercontent.com/vpmedia/mvnrepository/master/org/apache/flex-pmd-report/1.3/flex-pmd-report-1.3.xslt"
+
+task analyze << { 
+    ant.taskdef(name: 'flexPmd', classname: 'com.adobe.ac.pmd.ant.FlexPmdAntTask', classpath: configurations.test.asPath)
+    ant.taskdef(name: 'flexCpd', classname: 'com.adobe.ac.cpd.ant.FlexCpdAntTask', classpath: configurations.test.asPath)
+    ant.flexPmd(sourceDirectory: sourceDir, outputDirectory: reportsDir )
+    ant.get(src: xsltFile, dest: reportsDir)   
+    ant.xslt(in: "${reportsDir.absolutePath}/pmd.xml", style:"${reportsDir.absolutePath}/flex-pmd-report-1.3.xslt", out:"${reportsDir.absolutePath}/pmd.html")
 }
 
+// setup default tasks
+defaultTasks 'clean', 'build', 'analyze'
