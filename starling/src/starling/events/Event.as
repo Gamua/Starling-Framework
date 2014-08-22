@@ -65,6 +65,8 @@ package starling.events
         public static const TEXTURES_RESTORED:String = "texturesRestored";
         /** Event type that is dispatched by the AssetManager when a file/url cannot be loaded. */
         public static const IO_ERROR:String = "ioError";
+        /** Event type that is dispatched by the AssetManager when a file/url cannot be loaded. */
+        public static const SECURITY_ERROR:String = "securityError";
         /** Event type that is dispatched by the AssetManager when an xml or json file couldn't be parsed */
         public static const PARSE_ERROR:String = "parseError";
 
