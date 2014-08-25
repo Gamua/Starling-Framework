@@ -220,7 +220,7 @@ package starling.display
         public override function set rotation(value:Number):void
         {
             super.rotation = value;
-            mTransformationChanged = value;
+            mTransformationChanged = true;
         }
 
         /** The rotation of the object about the x axis, in radians.
