@@ -226,6 +226,7 @@ package starling.filters
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
+            support.pushMatrix3D();
             
             // save original projection matrix and render target
             mProjMatrix.copyFrom(support.projectionMatrix);
@@ -305,6 +306,7 @@ package starling.filters
             context.setTextureAt(mBaseTextureID, null);
             
             support.popMatrix();
+            support.popMatrix3D();
             support.popClipRect();
             
             if (intoCache)
