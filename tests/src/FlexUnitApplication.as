@@ -6,21 +6,21 @@ package
     
     import flexunit.flexui.FlexUnitTestRunnerUIAS;
     
-    import tests.BlendModeTest;
-    import tests.ColorTest;
-    import tests.DelayedCallTest;
-    import tests.DisplayObjectContainerTest;
-    import tests.DisplayObjectTest;
-    import tests.EventTest;
-    import tests.JugglerTest;
-    import tests.MovieClipTest;
-    import tests.QuadTest;
-    import tests.RectangleUtilTest;
-    import tests.TextureAtlasTest;
-    import tests.TextureTest;
-    import tests.TweenTest;
-    import tests.UtilsTest;
-    import tests.VertexDataTest;
+    import tests.display.BlendModeTest;
+    import tests.utils.ColorTest;
+    import tests.animation.DelayedCallTest;
+    import tests.display.DisplayObjectContainerTest;
+    import tests.display.DisplayObjectTest;
+    import tests.events.EventTest;
+    import tests.animation.JugglerTest;
+    import tests.display.MovieClipTest;
+    import tests.display.QuadTest;
+    import tests.utils.RectangleUtilTest;
+    import tests.textures.TextureAtlasTest;
+    import tests.textures.TextureTest;
+    import tests.animation.TweenTest;
+    import tests.utils.UtilsTest;
+    import tests.utils.VertexDataTest;
     
     public class FlexUnitApplication extends Sprite
     {
@@ -40,21 +40,21 @@ package
         public function currentRunTestSuite():Array
         {
             var testsToRun:Array = new Array();
-            testsToRun.push(tests.ColorTest);
-            testsToRun.push(tests.TextureAtlasTest);
-            testsToRun.push(tests.JugglerTest);
-            testsToRun.push(tests.QuadTest);
-            testsToRun.push(tests.DisplayObjectContainerTest);
-            testsToRun.push(tests.UtilsTest);
-            testsToRun.push(tests.DisplayObjectTest);
-            testsToRun.push(tests.BlendModeTest);
-            testsToRun.push(tests.MovieClipTest);
-            testsToRun.push(tests.RectangleUtilTest);
-            testsToRun.push(tests.VertexDataTest);
-            testsToRun.push(tests.EventTest);
-            testsToRun.push(tests.DelayedCallTest);
-            testsToRun.push(tests.TweenTest);
-            testsToRun.push(tests.TextureTest);
+            testsToRun.push(tests.utils.ColorTest);
+            testsToRun.push(tests.textures.TextureAtlasTest);
+            testsToRun.push(tests.animation.JugglerTest);
+            testsToRun.push(tests.display.QuadTest);
+            testsToRun.push(tests.display.DisplayObjectContainerTest);
+            testsToRun.push(tests.utils.UtilsTest);
+            testsToRun.push(tests.display.DisplayObjectTest);
+            testsToRun.push(tests.display.BlendModeTest);
+            testsToRun.push(tests.display.MovieClipTest);
+            testsToRun.push(tests.utils.RectangleUtilTest);
+            testsToRun.push(tests.utils.VertexDataTest);
+            testsToRun.push(tests.events.EventTest);
+            testsToRun.push(tests.animation.DelayedCallTest);
+            testsToRun.push(tests.animation.TweenTest);
+            testsToRun.push(tests.textures.TextureTest);
             return testsToRun;
         }
     }

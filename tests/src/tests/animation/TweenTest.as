@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.animation
 {
     import flexunit.framework.Assert;
     

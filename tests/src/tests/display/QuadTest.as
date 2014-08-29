@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.display
 {
     import flash.geom.Rectangle;
     
@@ -18,6 +18,7 @@ package tests
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.utils.Color;
+    import tests.Helpers;
     
     use namespace starling_internal;
 

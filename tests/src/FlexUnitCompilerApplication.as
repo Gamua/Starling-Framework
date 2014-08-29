@@ -7,39 +7,39 @@ package
 {
     import flash.display.Sprite;
     
-    import tests.BlendModeTest;
-    import tests.ColorTest;
-    import tests.DelayedCallTest;
-    import tests.DisplayObjectContainerTest;
-    import tests.DisplayObjectTest;
-    import tests.EventTest;
-    import tests.JugglerTest;
-    import tests.MovieClipTest;
-    import tests.QuadTest;
-    import tests.RectangleUtilTest;
-    import tests.TextureAtlasTest;
-    import tests.TextureTest;
-    import tests.TweenTest;
-    import tests.UtilsTest;
-    import tests.VertexDataTest;
+    import tests.display.BlendModeTest;
+    import tests.utils.ColorTest;
+    import tests.animation.DelayedCallTest;
+    import tests.display.DisplayObjectContainerTest;
+    import tests.display.DisplayObjectTest;
+    import tests.events.EventTest;
+    import tests.animation.JugglerTest;
+    import tests.display.MovieClipTest;
+    import tests.display.QuadTest;
+    import tests.utils.RectangleUtilTest;
+    import tests.textures.TextureAtlasTest;
+    import tests.textures.TextureTest;
+    import tests.animation.TweenTest;
+    import tests.utils.UtilsTest;
+    import tests.utils.VertexDataTest;
     
     public class FlexUnitCompilerApplication extends Sprite
     {
         
-        private var tests_BlendModeTest_obj:tests.BlendModeTest;
-        private var tests_MovieClipTest_obj:tests.MovieClipTest;
-        private var tests_TextureTest_obj:tests.TextureTest;
-        private var tests_VertexDataTest_obj:tests.VertexDataTest;
-        private var tests_TweenTest_obj:tests.TweenTest;
-        private var tests_ColorTest_obj:tests.ColorTest;
-        private var tests_TextureAtlasTest_obj:tests.TextureAtlasTest;
-        private var tests_RectangleUtilTest_obj:tests.RectangleUtilTest;
-        private var tests_DisplayObjectContainerTest_obj:tests.DisplayObjectContainerTest;
-        private var tests_QuadTest_obj:tests.QuadTest;
-        private var tests_UtilsTest_obj:tests.UtilsTest;
-        private var tests_DelayedCallTest_obj:tests.DelayedCallTest;
-        private var tests_DisplayObjectTest_obj:tests.DisplayObjectTest;
-        private var tests_JugglerTest_obj:tests.JugglerTest;
-        private var tests_EventTest_obj:tests.EventTest;
+        private var tests_BlendModeTest_obj:tests.display.BlendModeTest;
+        private var tests_MovieClipTest_obj:tests.display.MovieClipTest;
+        private var tests_TextureTest_obj:tests.textures.TextureTest;
+        private var tests_VertexDataTest_obj:tests.utils.VertexDataTest;
+        private var tests_TweenTest_obj:tests.animation.TweenTest;
+        private var tests_ColorTest_obj:tests.utils.ColorTest;
+        private var tests_TextureAtlasTest_obj:tests.textures.TextureAtlasTest;
+        private var tests_RectangleUtilTest_obj:tests.utils.RectangleUtilTest;
+        private var tests_DisplayObjectContainerTest_obj:tests.display.DisplayObjectContainerTest;
+        private var tests_QuadTest_obj:tests.display.QuadTest;
+        private var tests_UtilsTest_obj:tests.utils.UtilsTest;
+        private var tests_DelayedCallTest_obj:tests.animation.DelayedCallTest;
+        private var tests_DisplayObjectTest_obj:tests.display.DisplayObjectTest;
+        private var tests_JugglerTest_obj:tests.animation.JugglerTest;
+        private var tests_EventTest_obj:tests.events.EventTest;
     }
 }
