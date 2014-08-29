@@ -1,10 +1,10 @@
 package
 {
-    import Array.*;
-    
     import flash.display.Sprite;
     
-    import flexunit.flexui.FlexUnitTestRunnerUIAS;
+    import org.flexunit.internals.TraceListener;
+    import org.flexunit.listeners.CIListener;
+    import org.flexunit.runner.FlexUnitCore;
     
     import tests.animation.DelayedCallTest;
     import tests.animation.JugglerTest;
@@ -32,31 +32,32 @@ package
         
         private function onCreationComplete():void
         {
-            var testRunner:FlexUnitTestRunnerUIAS=new FlexUnitTestRunnerUIAS();
-            testRunner.portNumber=8765; 
-            this.addChild(testRunner); 
-            testRunner.runWithFlexUnit4Runner(currentRunTestSuite(), "Starling-Tests");
+            var core:FlexUnitCore = new FlexUnitCore();
+                core.addListener(new TraceListener());
+                core.addListener(new CIListener());
+                core.visualDisplayRoot = stage;
+                core.run(currentRunTestSuite());
         }
         
         public function currentRunTestSuite():Array
         {
             var testsToRun:Array = new Array();
-            testsToRun.push(tests.utils.AssetManagerTest);
-            testsToRun.push(tests.utils.ColorTest);
-            testsToRun.push(tests.textures.TextureAtlasTest);
+            testsToRun.push(tests.display.BlendModeTest);
+            testsToRun.push(tests.utils.UtilsTest);
             testsToRun.push(tests.animation.JugglerTest);
             testsToRun.push(tests.display.QuadTest);
+            testsToRun.push(tests.utils.AssetManagerTest);
+            testsToRun.push(tests.animation.TweenTest);
             testsToRun.push(tests.display.DisplayObjectContainerTest);
-            testsToRun.push(tests.utils.UtilsTest);
+            testsToRun.push(tests.animation.DelayedCallTest);
             testsToRun.push(tests.display.DisplayObjectTest);
-            testsToRun.push(tests.display.BlendModeTest);
+            testsToRun.push(tests.utils.ColorTest);
+            testsToRun.push(tests.textures.TextureTest);
+            testsToRun.push(tests.textures.TextureAtlasTest);
+            testsToRun.push(tests.events.EventTest);
             testsToRun.push(tests.display.MovieClipTest);
             testsToRun.push(tests.utils.RectangleUtilTest);
             testsToRun.push(tests.utils.VertexDataTest);
-            testsToRun.push(tests.events.EventTest);
-            testsToRun.push(tests.animation.DelayedCallTest);
-            testsToRun.push(tests.animation.TweenTest);
-            testsToRun.push(tests.textures.TextureTest);
             return testsToRun;
         }
     }
