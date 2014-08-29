@@ -7,25 +7,26 @@ package
 {
     import flash.display.Sprite;
     
-    import tests.display.BlendModeTest;
-    import tests.utils.ColorTest;
     import tests.animation.DelayedCallTest;
+    import tests.animation.JugglerTest;
+    import tests.animation.TweenTest;
+    import tests.display.BlendModeTest;
     import tests.display.DisplayObjectContainerTest;
     import tests.display.DisplayObjectTest;
-    import tests.events.EventTest;
-    import tests.animation.JugglerTest;
     import tests.display.MovieClipTest;
     import tests.display.QuadTest;
-    import tests.utils.RectangleUtilTest;
+    import tests.events.EventTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
-    import tests.animation.TweenTest;
+    import tests.utils.AssetManagerTest;
+    import tests.utils.ColorTest;
+    import tests.utils.RectangleUtilTest;
     import tests.utils.UtilsTest;
     import tests.utils.VertexDataTest;
     
     public class FlexUnitCompilerApplication extends Sprite
     {
-        
+        private var tests_AssetManagerTest_obj:tests.utils.AssetManagerTest;
         private var tests_BlendModeTest_obj:tests.display.BlendModeTest;
         private var tests_MovieClipTest_obj:tests.display.MovieClipTest;
         private var tests_TextureTest_obj:tests.textures.TextureTest;

@@ -1,24 +1,25 @@
 package
 {
-    import Array;
+    import Array.*;
     
     import flash.display.Sprite;
     
     import flexunit.flexui.FlexUnitTestRunnerUIAS;
     
-    import tests.display.BlendModeTest;
-    import tests.utils.ColorTest;
     import tests.animation.DelayedCallTest;
+    import tests.animation.JugglerTest;
+    import tests.animation.TweenTest;
+    import tests.display.BlendModeTest;
     import tests.display.DisplayObjectContainerTest;
     import tests.display.DisplayObjectTest;
-    import tests.events.EventTest;
-    import tests.animation.JugglerTest;
     import tests.display.MovieClipTest;
     import tests.display.QuadTest;
-    import tests.utils.RectangleUtilTest;
+    import tests.events.EventTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
-    import tests.animation.TweenTest;
+    import tests.utils.AssetManagerTest;
+    import tests.utils.ColorTest;
+    import tests.utils.RectangleUtilTest;
     import tests.utils.UtilsTest;
     import tests.utils.VertexDataTest;
     
@@ -40,6 +41,7 @@ package
         public function currentRunTestSuite():Array
         {
             var testsToRun:Array = new Array();
+            testsToRun.push(tests.utils.AssetManagerTest);
             testsToRun.push(tests.utils.ColorTest);
             testsToRun.push(tests.textures.TextureAtlasTest);
             testsToRun.push(tests.animation.JugglerTest);
