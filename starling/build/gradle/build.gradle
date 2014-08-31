@@ -68,7 +68,9 @@ configurations.antClassPath.each { File f ->
 
 String AIR_HOME = System.getenv('AIR_HOME')
 String FLEX_HOME = System.getenv('FLEX_HOME')
-ant.FLEX_HOME = "${FLEX_HOME}"
+String FLASH_PLAYER_EXE = System.getenv('FLASH_PLAYER_EXE')
+ant.FLEX_HOME = FLEX_HOME
+ant.FLASH_PLAYER_EXE = FLASH_PLAYER_EXE
 
 //----------------------------------
 //  Core
@@ -81,6 +83,11 @@ group = 'com.gamua'
 // Get version from Jenkins CI
 if("${System.env.JENKINS_BUILD_VERSION}" != "null") {
     version = "${System.env.JENKINS_BUILD_VERSION}"
+}
+
+// Get version from TeamCity CI
+if("${System.env.BUILD_NUMBER}" != "null") {
+    version = "${System.env.BUILD_NUMBER}"
 }
 
 //----------------------------------
@@ -135,7 +142,7 @@ task test << {
     if(testDir.isDirectory()) {
         reportDir.mkdirs()
         ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath) 
-        ant.flexunit(workingDir:binDir, toDir: reportDir, haltonfailure:'false', verbose:'true', player:'flash', headless:'false', localTrusted:'true') {
+        ant.flexunit(workingDir:binDir, toDir: reportDir, haltonfailure:'false', verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE) {
             source(dir: srcDir)
             testSource(dir: testDir) {
                include(name: '**/*Test.as')
