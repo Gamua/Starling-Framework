@@ -345,8 +345,8 @@ package starling.textures
             
             if (context == null) throw new MissingContextError();
             
-            var origWidth:Number  = width  * scale;
-            var origHeight:Number = height * scale;
+            var origWidth:Number  = Math.ceil(width  * scale);
+            var origHeight:Number = Math.ceil(height * scale);
             var useRectTexture:Boolean = !mipMapping && !repeat &&
                 Starling.current.profile != "baselineConstrained" &&
                 "createRectangleTexture" in context && format.indexOf("compressed") == -1;
