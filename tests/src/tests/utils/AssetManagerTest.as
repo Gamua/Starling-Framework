@@ -399,6 +399,7 @@ package tests.utils
         
     }
 }
+
 import starling.utils.AssetManager;
 
 class TestAssetManager extends AssetManager
