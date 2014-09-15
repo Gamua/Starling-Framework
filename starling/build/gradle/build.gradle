@@ -168,15 +168,19 @@ task test << {
         delete("${reportDir}")
     }
     if(testDir.isDirectory()) {
+        def testTaskResult = 'testTaskResult'
         reportDir.mkdirs()
         ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath) 
-        ant.flexunit(swf: 'build/tests.swf', toDir: reportDir, haltonfailure:'false', verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
+        ant.flexunit(swf: 'build/tests.swf', toDir: reportDir, haltonfailure:'false', failureproperty: testTaskResult, verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
         ant.junitreport(todir: reportDir) {
             fileset(dir: reportDir, includes: 'TEST-*.xml')
             report(format:'frames', todir:'build/reports/html')
         }
-        String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
-        println(fileContents)
+        
+        if (ant.project.properties[testTaskResult]) {
+            String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
+            ant.fail(fileContents)
+        }
     }    
 }
                
