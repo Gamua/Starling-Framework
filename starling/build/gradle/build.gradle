@@ -146,7 +146,7 @@ task compile(type: JavaExec) {
 
 task compileTest(type: Exec) {
     workingDir = "${projectDir}"
-    executable = "${FLEX_HOME}/bin/mxmlc"
+    executable = file("${FLEX_HOME}/bin/mxmlc")
     def argsList = []
     argsList.push('-debug=true')
     def file = '' + testDir + '/FlexUnitApplication.as'
