@@ -8,24 +8,10 @@
 //
 // =================================================================================================
 
-// @see: http://gradlefx.org/
-// @see: https://github.com/GradleFx/GradleFx/wiki/Properties-conventions
 
-// setup plugin
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'org.gradlefx', name: 'gradlefx', version: '0.+'
-    }
-}
+// needed for deploying
+apply plugin: 'maven'
 
-// apply plugin
-apply plugin: 'gradlefx'
-
-// dependency repositories
 repositories {
     mavenLocal()
     mavenCentral()
@@ -37,7 +23,12 @@ repositories {
     }
 }
 
-// dependency list
+configurations {
+    antClassPath
+    compile
+    test
+}
+
 dependencies {
     test group: 'org.apache', name: 'flexunit-tasks', version: '4.2.0-20140410', ext: 'jar'
     test group: 'org.apache', name: 'flexunit-as3', version: '4.2.0-20140410', ext: 'swc'
@@ -59,59 +50,143 @@ dependencies {
     test group: 'pmd', name: 'pmd', version: '4.2.5', ext: 'jar'
     test group: 'commons-lang', name: 'commons-lang', version: '2.4', ext: 'jar'
     test group: 'org.codehaus.plexus', name: 'plexus-utils', version: '3.0.17', ext: 'jar'
+    antClassPath 'ant-contrib:ant-contrib:1.0b3', 'org.apache.ant:ant-junit:1.9.4'
 }
 
-// setup output type to component
-type = 'swc'
-
-// setup output name
-output = 'starling'
-group = 'com.gamua'
-
-// build version
-version = '1.5.2-SNAPSHOT'
-
-// get rid of flex framework linkage
-frameworkLinkage = 'none'
-
-// setup publish dir to default
-publishDir = 'build'
-
-// setup source dir to Starling
-srcDirs = [
-    '../../src/'
-]
-
-// setup test dir to Starling
-testDirs = [
-    '../../../tests/src'
-]
-
-// get rid of flex framework #2
-configurations {
-    all*.exclude group: 'com.adobe.flex.framework'
-}
-
-// setup compiler options to latest flash player version with debugging
-additionalCompilerOptions = [
-        '-debug=true',
-        '-target-player=14.0',
-        '-swf-version=25'
-]
-  
-// FlexPMD extra task
-
-def reportsDir = new File(projectDir, '/build/reports')
-def sourceDir = new File(projectDir, '../../src/')
+// extra static XSLT dependency for FlexPMD
 def xsltFile = "https://raw.githubusercontent.com/vpmedia/mvnrepository/master/org/apache/flex-pmd-report/1.3/flex-pmd-report-1.3.xslt"
 
+// add additional jars to the AntBuilder classpath for use within the imported build.
+ClassLoader antClassLoader = org.apache.tools.ant.Project.class.classLoader
+configurations.antClassPath.each { File f ->
+  antClassLoader.addURL(f.toURI().toURL())
+} 
+
+//----------------------------------
+//  SDK
+//----------------------------------
+
+String AIR_HOME = System.getenv('AIR_HOME')
+String FLEX_HOME = System.getenv('FLEX_HOME')
+String FLASH_PLAYER_EXE = System.getenv('FLASH_PLAYER_EXE')
+ant.FLEX_HOME = FLEX_HOME
+ant.FLASH_PLAYER_EXE = FLASH_PLAYER_EXE
+
+//----------------------------------
+//  Core
+//----------------------------------
+
+// Set default properties
+version = '1.5.2-SNAPSHOT'
+group = 'com.gamua'
+
+// Get version from Jenkins CI
+if("${System.env.JENKINS_BUILD_VERSION}" != "null") {
+    version = "${System.env.JENKINS_BUILD_VERSION}"
+}
+
+// Get version from TeamCity CI
+if("${System.env.BUILD_NUMBER}" != "null") {
+    version = "${System.env.BUILD_NUMBER}"
+}
+
+//----------------------------------
+//  Folders
+//----------------------------------
+
+def binDir = new File(projectDir, '/bin')
+def buildDir = new File(projectDir, '/build')
+def publishDir = new File(projectDir, '/publish')
+def reportDir = new File(projectDir, '/build/reports')
+def srcDir = new File(projectDir, '../../src')
+def testDir = new File(projectDir, '../../../tests/src')
+
+//----------------------------------
+//  Tasks
+//----------------------------------
+
+task clean_init << {
+    if (binDir.isDirectory()) {
+        delete(binDir)
+    }
+    if (buildDir.isDirectory()) {
+        delete(buildDir)
+    }
+}
+
+task copyDeps(type: Copy) {
+    from configurations.all
+    into binDir
+}
+
+task compile(type: JavaExec) { 
+    main = "com.adobe.flash.compiler.clients.COMPC"
+    classpath = files("${AIR_HOME}/lib/compiler.jar")
+    workingDir = "${projectDir}"
+    def argsList = []
+    argsList.push('-directory=false')
+    argsList.push('-debug=true')
+    def includeSources = '-include-sources=' + srcDir
+    argsList.push(includeSources)
+    argsList.push('-output="build/starling.swc"');
+    def airConfig = "${AIR_HOME}" + '/frameworks/air-config.xml'
+    def loadAirConfig = '-load-config+='+"${airConfig}";
+    argsList.push(loadAirConfig)
+    args = argsList
+}
+            
+task test << { 
+    if (reportDir.isDirectory()) {
+        delete("${reportDir}")
+    }
+    if(testDir.isDirectory()) {
+        reportDir.mkdirs()
+        ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath) 
+        ant.flexunit(workingDir:binDir, toDir: reportDir, haltonfailure:'false', verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE) {
+            source(dir: srcDir)
+            testSource(dir: testDir) {
+               include(name: '**/*Test.as')
+            }
+            library(dir: binDir)
+        }
+        ant.junitreport(todir: reportDir) {
+            fileset(dir: reportDir, includes: 'TEST-*.xml')
+            report(format:'frames', todir:'build/reports/html')
+        }
+    }    
+}
+               
 task analyze << { 
     ant.taskdef(name: 'flexPmd', classname: 'com.adobe.ac.pmd.ant.FlexPmdAntTask', classpath: configurations.test.asPath)
     ant.taskdef(name: 'flexCpd', classname: 'com.adobe.ac.cpd.ant.FlexCpdAntTask', classpath: configurations.test.asPath)
-    ant.flexPmd(sourceDirectory: sourceDir, outputDirectory: reportsDir )
-    ant.get(src: xsltFile, dest: reportsDir)   
-    ant.xslt(in: "${reportsDir.absolutePath}/pmd.xml", style:"${reportsDir.absolutePath}/flex-pmd-report-1.3.xslt", out:"${reportsDir.absolutePath}/pmd.html")
+    ant.flexPmd(sourceDirectory: srcDir, outputDirectory: reportDir )
+    ant.get(src: xsltFile, dest: reportDir)   
+    ant.xslt(in: "${reportDir.absolutePath}/pmd.xml", style:"${reportDir.absolutePath}/flex-pmd-report-1.3.xslt", out:"${reportDir.absolutePath}/pmd.html")
+}
+        
+task document << { 
+    ant.taskdef(resource: 'flexTasks.tasks', classpath: "${FLEX_HOME}/ant/lib/flexTasks.jar")
+    ant.asdoc(output: 'build/docs', lenient: true) {
+        'doc-sources'("${srcDir}")
+        'compiler.source-path'("${srcDir}")
+        'external-library-path'(dir: "${AIR_HOME}/frameworks/libs/air", append: true) {
+            'include'(name: '*.swc')
+        }
+    }
 }
 
-// setup default tasks
-defaultTasks 'clean', 'build', 'analyze'
+artifacts {
+    archives file('build/starling.swc')
+}
+
+uploadArchives {
+    repositories {
+        mavenLocal() 
+    }
+}
+
+document.dependsOn copyDeps
+compile.dependsOn document
+test.dependsOn compile
+
+defaultTasks 'clean_init', 'document', 'compile', 'test', 'analyze'
