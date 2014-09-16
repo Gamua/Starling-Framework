@@ -103,6 +103,7 @@ package starling.events
             var touch:Touch;
             
             mElapsedTime += passedTime;
+            sUpdatedTouches.length = 0;
             
             // remove old taps
             if (mLastTaps.length > 0)
