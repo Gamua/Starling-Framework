@@ -149,7 +149,7 @@ task compileTest(type: Exec) {
     executable = file("${FLEX_HOME}/bin/mxmlc")
     def argsList = []
     argsList.push('-debug=true')
-    def file = '' + testDir + '/FlexUnitApplication.as'
+    def file = '' + testDir + '/FlexUnitRunner.as'
     argsList.push(file)
     def includeSources = '-source-path=' + srcDir
     argsList.push(includeSources)

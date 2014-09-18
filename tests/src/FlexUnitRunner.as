@@ -23,9 +23,9 @@ package
     import tests.utils.UtilsTest;
     import tests.utils.VertexDataTest;
     
-    public class FlexUnitApplication extends Sprite
+    public class FlexUnitRunner extends Sprite
     {
-        public function FlexUnitApplication()
+        public function FlexUnitRunner()
         {
             onCreationComplete();
         }
