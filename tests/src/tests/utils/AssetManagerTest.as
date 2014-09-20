@@ -185,17 +185,6 @@ package tests.utils
                 assertEquals(1, manager.getObjectNames("Data").length);
             }));
         }
-        
-        [Test(async)]
-        public function loadEmptyJsonFromByteArray():void
-        {
-            manager.verbose = true;
-            manager.enqueue(EmbeddedEmptyJson);
-            manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
-            {
-                assertEquals(0, manager.getObjectNames("Data").length);
-            }));
-        }
 
         [Ignore("Incomplete because to atf.atf file is missing.")]
         [Test(async)]
@@ -465,12 +454,6 @@ class EmbeddedXml
 class EmbeddedJson
 {
     [Embed(source="../../../fixtures/json.json", mimeType="application/octet-stream")]
-    public static const Data:Class;
-}
-
-class EmbeddedEmptyJson
-{
-    [Embed(source="../../../fixtures/empty.json", mimeType="application/octet-stream")]
     public static const Data:Class;
 }
 
