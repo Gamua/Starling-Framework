@@ -176,10 +176,12 @@ task test << {
             fileset(dir: reportDir, includes: 'TEST-*.xml')
             report(format:'frames', todir:'build/reports/html')
         }
-        
+
+        String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
+        println(fileContents)
+
         if (ant.project.properties[testTaskResult]) {
-            String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
-            ant.fail(fileContents)
+            ant.fail('One or more tests failed.')
         }
     }    
 }
