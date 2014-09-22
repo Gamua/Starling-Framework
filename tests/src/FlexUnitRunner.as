@@ -33,10 +33,10 @@ package
         private function onCreationComplete():void
         {
             var core:FlexUnitCore = new FlexUnitCore();
-                core.addListener(new TraceListener());
-                core.addListener(new CIListener());
-                core.visualDisplayRoot = stage;
-                core.run(currentRunTestSuite());
+            core.addListener(new TraceListener());
+            core.addListener(new CIListener());
+            core.visualDisplayRoot = stage;
+            core.run(currentRunTestSuite());
         }
         
         public function currentRunTestSuite():Array
