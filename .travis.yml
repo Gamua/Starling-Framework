@@ -45,6 +45,8 @@ before_script:
     - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/15.0/playerglobal.swc /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
     # Set env. variable used by Ant and Gradle
     - export AIR_HOME="/usr/local/opt/adobe-air-sdk/libexec"
+    # permissions
+    - chmod +x flex_sdk/bin/mxmlc
 
 script:
     - cd starling/build/ant && ant

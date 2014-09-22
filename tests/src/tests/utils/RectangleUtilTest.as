@@ -8,12 +8,13 @@
 //
 // =================================================================================================
 
-package tests
+package tests.utils
 {
     import flash.geom.Rectangle;
     
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
+    import tests.Helpers;
 
     public class RectangleUtilTest
     {

@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.textures
 {
     import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;

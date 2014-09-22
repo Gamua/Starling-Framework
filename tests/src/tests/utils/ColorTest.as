@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.utils
 {
     import flexunit.framework.Assert;
     

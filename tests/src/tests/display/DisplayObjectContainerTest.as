@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.display
 {
     import flash.geom.Rectangle;
     
@@ -22,6 +22,7 @@ package tests
     import starling.display.Sprite;
     import starling.display.Stage;
     import starling.events.Event;
+    import tests.Helpers;
     
     public class DisplayObjectContainerTest
     {

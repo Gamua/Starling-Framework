@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.utils
 {
     import flash.geom.Matrix;
     import flash.geom.Point;
@@ -22,6 +22,7 @@ package tests
     
     import starling.utils.Color;
     import starling.utils.VertexData;
+    import tests.Helpers;
     
     public class VertexDataTest
     {
