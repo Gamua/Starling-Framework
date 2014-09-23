@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.textures
 {
     import flash.geom.Point;
     import flash.geom.Rectangle;
@@ -21,6 +21,7 @@ package tests
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.utils.VertexData;
+    import tests.Helpers;
 
     public class TextureTest
     {

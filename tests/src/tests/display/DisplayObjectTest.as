@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.display
 {
     import flash.geom.Matrix;
     import flash.geom.Point;
@@ -26,6 +26,7 @@ package tests
     import starling.utils.HAlign;
     import starling.utils.VAlign;
     import starling.utils.deg2rad;
+    import tests.Helpers;
 
     public class DisplayObjectTest
     {

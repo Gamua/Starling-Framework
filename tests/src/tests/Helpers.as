@@ -21,7 +21,7 @@ package tests
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
 
-    internal class Helpers
+    public class Helpers
     {
         public static function compareRectangles(rect1:Rectangle, rect2:Rectangle, 
                                                  e:Number=0.0001):void

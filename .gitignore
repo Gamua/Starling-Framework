@@ -34,3 +34,8 @@ target/
 
 # OS X folders
 .DS_Store
+
+# FlashBuilder auto generated test runners
+FlexUnitApplication.as
+FlexUnitCompilerApplication.as
+.actionScriptProperties

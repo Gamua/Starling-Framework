@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.display
 {
     import flash.display3D.Context3DTextureFormat;
     

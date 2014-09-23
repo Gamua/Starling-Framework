@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests
+package tests.animation
 {
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;

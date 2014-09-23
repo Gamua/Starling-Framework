@@ -100,6 +100,7 @@ def publishDir = new File(projectDir, '/publish')
 def reportDir = new File(projectDir, '/build/reports')
 def srcDir = new File(projectDir, '../../src')
 def testDir = new File(projectDir, '../../../tests/src')
+def fixturesDir = new File(projectDir, '/fixtures')
 
 //----------------------------------
 //  Tasks
@@ -112,11 +113,19 @@ task clean_init << {
     if (buildDir.isDirectory()) {
         delete(buildDir)
     }
+    if (fixturesDir.isDirectory()) {
+        delete(fixturesDir)
+    }
 }
 
 task copyDeps(type: Copy) {
     from configurations.all
     into binDir
+}
+
+task copyFixtures(type: Copy) {
+    from '' + testDir + '/../fixtures'
+    into fixturesDir
 }
 
 task compile(type: JavaExec) { 
@@ -128,10 +137,29 @@ task compile(type: JavaExec) {
     argsList.push('-debug=true')
     def includeSources = '-include-sources=' + srcDir
     argsList.push(includeSources)
-    argsList.push('-output="build/starling.swc"');
+    argsList.push('-output=build/starling.swc');
     def airConfig = "${AIR_HOME}" + '/frameworks/air-config.xml'
     def loadAirConfig = '-load-config+='+"${airConfig}";
     argsList.push(loadAirConfig)
+    args = argsList
+}
+
+task compileTest(type: Exec) {
+    workingDir = "${projectDir}"
+    executable = file("${FLEX_HOME}/bin/mxmlc")
+    def argsList = []
+    argsList.push('-debug=true')
+    def file = '' + testDir + '/FlexUnitRunner.as'
+    argsList.push(file)
+    def includeSources = '-source-path=' + srcDir
+    argsList.push(includeSources)
+    def includeSources2 = '-source-path=' + testDir
+    argsList.push(includeSources2)
+    argsList.push('-output=build/tests.swf')
+    argsList.push('-library-path+=bin');
+    def flexLibs = "-library-path+=" + "${FLEX_HOME}" + "/frameworks/libs"
+    argsList.push(flexLibs);
+    argsList.push('-static-link-runtime-shared-libraries=true')
     args = argsList
 }
             
@@ -140,18 +168,20 @@ task test << {
         delete("${reportDir}")
     }
     if(testDir.isDirectory()) {
+        def testTaskResult = 'testTaskResult'
         reportDir.mkdirs()
         ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath) 
-        ant.flexunit(workingDir:binDir, toDir: reportDir, haltonfailure:'false', verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE) {
-            source(dir: srcDir)
-            testSource(dir: testDir) {
-               include(name: '**/*Test.as')
-            }
-            library(dir: binDir)
-        }
+        ant.flexunit(swf: 'build/tests.swf', toDir: reportDir, haltonfailure:'false', failureproperty: testTaskResult, verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
         ant.junitreport(todir: reportDir) {
             fileset(dir: reportDir, includes: 'TEST-*.xml')
             report(format:'frames', todir:'build/reports/html')
+        }
+
+        String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
+        println(fileContents)
+
+        if (ant.project.properties[testTaskResult]) {
+            ant.fail('One or more tests failed.')
         }
     }    
 }
@@ -187,6 +217,7 @@ uploadArchives {
 
 document.dependsOn copyDeps
 compile.dependsOn document
-test.dependsOn compile
+compileTest.dependsOn compile
+test.dependsOn copyFixtures, compileTest
 
-defaultTasks 'clean_init', 'document', 'compile', 'test', 'analyze'
+defaultTasks 'clean_init', 'document', 'compile', 'compileTest', 'test', 'analyze'

@@ -8,13 +8,14 @@
 //
 // =================================================================================================
 
-package tests
+package tests.events
 {
     import flexunit.framework.Assert;
     
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.EventDispatcher;
+    import tests.Helpers;
     
     public class EventTest
     {		
