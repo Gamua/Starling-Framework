@@ -499,11 +499,11 @@ package starling.core
             
             mSupport.renderTarget = null; // back buffer
             mSupport.setProjectionMatrix(
-                mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0, 
+                mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0,
                 mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
-                mClippedViewPort.width  / scaleX, 
+                mClippedViewPort.width  / scaleX,
                 mClippedViewPort.height / scaleY,
-                mStage.z);
+                mStage.stageWidth, mStage.stageHeight, mStage.z);
             
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);

@@ -246,8 +246,10 @@ package starling.filters
             support.renderTarget = mPassTextures[0];
             support.clear();
             support.blendMode = BlendMode.NORMAL;
-            support.setProjectionMatrix(sBounds.x, sBounds.y,
-                                        sBoundsPot.width, sBoundsPot.height, stage.z);
+            support.setProjectionMatrix(
+                sBoundsPot.x, sBoundsPot.y, sBoundsPot.width, sBoundsPot.height,
+                stage.stageWidth, stage.stageHeight, stage.z);
+
             object.render(support, parentAlpha);
             support.finishQuadBatch();
             

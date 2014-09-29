@@ -126,7 +126,7 @@ package starling.display
                 destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
             
             support.renderTarget = null;
-            support.setProjectionMatrix(0, 0, mWidth, mHeight, mZ);
+            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, mZ);
             
             if (transparent) support.clear();
             else             support.clear(mColor, 1);

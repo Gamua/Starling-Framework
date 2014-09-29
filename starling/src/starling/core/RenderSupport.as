@@ -26,6 +26,7 @@ package starling.core
     import starling.display.Quad;
     import starling.display.QuadBatch;
     import starling.display.Sprite3D;
+    import starling.display.Stage;
     import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
@@ -103,7 +104,7 @@ package starling.core
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
-            setProjectionMatrix(0, 0, 400, 300, 700);
+            setProjectionMatrix(0, 0, 400, 300);
         }
         
         /** Disposes all quad batches. */
@@ -114,37 +115,51 @@ package starling.core
         }
         
         // matrix manipulation
-        
+
+        /** Sets up the projection matrices for 2D and 3D rendering. */
         public function setProjectionMatrix(x:Number, y:Number, width:Number, height:Number,
-                                            camDist:Number=0):void
+                                            stageWidth:Number=0, stageHeight:Number=0,
+                                            stageDist:Number=0):void
         {
-            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
+            if (stageWidth  <= 0) stageWidth = width;
+            if (stageHeight <= 0) stageHeight = height;
+            if (stageDist   <= 0) stageDist = (stageWidth + stageHeight) * 0.75;
+
+            // set up 2d (orthographic) projection
+            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height,
                 -(2*x + width) / width, (2*y + height) / height);
 
-            const near:Number =   100;
-            const far:Number  = 10000;
+            const far:Number    = 10000;
+            const near:Number   = 100;
+            const scaleX:Number = stageWidth  / width;
+            const scaleY:Number = stageHeight / height;
 
-            if (camDist <= 0)
-                camDist = width + height;
+            // set up general perspective
+            sMatrixData[ 0] =  2 * stageDist / stageWidth;  // 0,0
+            sMatrixData[ 5] = -2 * stageDist / stageHeight; // 1,1  [negative to invert y-axis]
+            sMatrixData[10] =  far / (far - near);          // 2,2
+            sMatrixData[14] = -far * near / (far - near);   // 2,3
+            sMatrixData[11] =  1;                           // 3,2
 
-            sMatrixData[ 0] = 2 * camDist / width;        // 0,0
-            sMatrixData[ 5] = 2 * camDist / height;       // 1,1
-            sMatrixData[10] = far / (far - near);         // 2,2
-            sMatrixData[14] = -far * near / (far - near); // 2,3
-            sMatrixData[11] = 1;                          // 3,2
+            // now zoom in to clipRect
+            sMatrixData[0] *=  scaleX;
+            sMatrixData[5] *=  scaleY;
+            sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * x / stageWidth;
+            sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * y / stageHeight;
 
             mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
-            mProjectionMatrix3D.prependScale(1.0, -1.0, 1.0);
-            mProjectionMatrix3D.prependTranslation(-width/2.0 - x, -height/2.0 - y, camDist);
-            
+            mProjectionMatrix3D.prependTranslation(-stageWidth/2.0, -stageHeight/2.0, stageDist);
+
             applyClipRect();
         }
-        
+
         /** Sets up the projection matrix for ortographic 2D rendering. */
         [Deprecated(replacement="setProjectionMatrix")] 
         public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
         {
-            setProjectionMatrix(x, y, width, height, Starling.current.stage.z);
+            var stage:Stage = Starling.current.stage;
+            sClipRect.setTo(x, y, width, height);
+            setProjectionMatrix(x, y, width, height, stage.stageWidth, stage.stageHeight, stage.z);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
