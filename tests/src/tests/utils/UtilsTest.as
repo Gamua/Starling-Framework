@@ -1,10 +1,10 @@
 // =================================================================================================
 //
-//	Starling Framework
-//	Copyright 2011-2014 Gamua. All Rights Reserved.
+//  Starling Framework
+//  Copyright 2011-2014 Gamua. All Rights Reserved.
 //
-//	This program is free software. You can redistribute and/or modify it
-//	in accordance with the terms of the accompanying license agreement.
+//  This program is free software. You can redistribute and/or modify it
+//  in accordance with the terms of the accompanying license agreement.
 //
 // =================================================================================================
 
@@ -12,6 +12,10 @@ package tests.utils
 {
     import flexunit.framework.Assert;
     
+    import starling.utils.HAlign;
+    import starling.utils.ScaleMode;
+    import starling.utils.VAlign;
+    import starling.utils.cleanMasterString;
     import starling.utils.deg2rad;
     import starling.utils.execute;
     import starling.utils.formatString;
@@ -19,7 +23,7 @@ package tests.utils
     import starling.utils.rad2deg;
 
     public class UtilsTest
-    {		
+    {
         [Test]
         public function testFormatString():void
         {
@@ -82,6 +86,54 @@ package tests.utils
                 Assert.assertEquals("a", a);
                 Assert.assertNull(b);
             }
+        }
+        
+        [Test]
+        public function testCleanMasterString():void
+        {
+            Assert.assertEquals("a", cleanMasterString("a"));
+        }
+        
+        [Test]
+        public function HAlignValidValue():void
+        {
+            Assert.assertTrue(HAlign.isValid(HAlign.CENTER));
+            Assert.assertTrue(HAlign.isValid(HAlign.LEFT));
+            Assert.assertTrue(HAlign.isValid(HAlign.RIGHT));
+        }
+        
+        [Test]
+        public function HAlignInvalidValue():void
+        {
+            Assert.assertFalse(HAlign.isValid("invalid value"));
+        }
+        
+        [Test]
+        public function VAlignValidValue():void
+        {
+            Assert.assertTrue(VAlign.isValid(VAlign.BOTTOM));
+            Assert.assertTrue(VAlign.isValid(VAlign.CENTER));
+            Assert.assertTrue(VAlign.isValid(VAlign.TOP));
+        }
+        
+        [Test]
+        public function VAlignInvalidValue():void
+        {
+            Assert.assertFalse(VAlign.isValid("invalid value"));
+        }
+        
+        [Test]
+        public function scaleModeValidValue():void
+        {
+            Assert.assertTrue(ScaleMode.isValid(ScaleMode.NO_BORDER));
+            Assert.assertTrue(ScaleMode.isValid(ScaleMode.NONE));
+            Assert.assertTrue(ScaleMode.isValid(ScaleMode.SHOW_ALL));
+        }
+        
+        [Test]
+        public function scaleModeInvalidValue():void
+        {
+            Assert.assertFalse(ScaleMode.isValid("invalid value"));
         }
     }
 }
