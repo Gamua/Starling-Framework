@@ -95,7 +95,7 @@ package tests.utils
         }
         
         [Test]
-        public function HAlingValidValue():void
+        public function HAlignValidValue():void
         {
             Assert.assertTrue(HAlign.isValid(HAlign.CENTER));
             Assert.assertTrue(HAlign.isValid(HAlign.LEFT));
@@ -103,13 +103,13 @@ package tests.utils
         }
         
         [Test]
-        public function HAlingInvalidValue():void
+        public function HAlignInvalidValue():void
         {
             Assert.assertFalse(HAlign.isValid("invalid value"));
         }
         
         [Test]
-        public function VAlingValidValue():void
+        public function VAlignValidValue():void
         {
             Assert.assertTrue(VAlign.isValid(VAlign.BOTTOM));
             Assert.assertTrue(VAlign.isValid(VAlign.CENTER));
@@ -117,7 +117,7 @@ package tests.utils
         }
         
         [Test]
-        public function VAlingInvalidValue():void
+        public function VAlignInvalidValue():void
         {
             Assert.assertFalse(VAlign.isValid("invalid value"));
         }
