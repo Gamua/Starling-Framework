@@ -207,10 +207,10 @@ package starling.core
         private var mViewPort:Rectangle;
         private var mPreviousViewPort:Rectangle;
         private var mClippedViewPort:Rectangle;
+        private var mViewPortScaleFactor:Number;
         
         private var mNativeStage:flash.display.Stage;
         private var mNativeOverlay:flash.display.Sprite;
-        private var mNativeStageContentScaleFactor:Number;
 
         private static var sCurrent:Starling;
         private static var sHandleLostContext:Boolean;
@@ -262,7 +262,7 @@ package starling.core
             mNativeOverlay = new Sprite();
             mNativeStage = stage;
             mNativeStage.addChild(mNativeOverlay);
-            mNativeStageContentScaleFactor = 1.0;
+            mViewPortScaleFactor = 1.0;
             mTouchProcessor = new TouchProcessor(mStage);
             mJuggler = new Juggler();
             mAntiAliasing = 0;
@@ -551,9 +551,9 @@ package starling.core
                         mAntiAliasing, false, mSupportHighResolutions);
                     
                     if (mSupportHighResolutions && "contentsScaleFactor" in mNativeStage)
-                        mNativeStageContentScaleFactor = mNativeStage["contentsScaleFactor"];
+                        mViewPortScaleFactor = mNativeStage["contentsScaleFactor"];
                     else
-                        mNativeStageContentScaleFactor = 1.0;
+                        mViewPortScaleFactor = 1.0;
                 }
             }
         }
@@ -869,13 +869,39 @@ package starling.core
             return sContextData[mStage3D] as Dictionary;
         }
         
-        /** Returns the actual width (in pixels) of the back buffer. This can differ from the
-         *  width of the viewPort rectangle if it is partly outside the native stage. */
-        public function get backBufferWidth():int { return mClippedViewPort.width; }
+        /** Returns the actual width (in pixels) of the back buffer. */
+        public function get backBufferWidth():int
+        {
+            return mClippedViewPort.width * mViewPortScaleFactor;
+        }
+
+        /** Returns the actual height (in pixels) of the back buffer. */
+        public function get backBufferHeight():int
+        {
+            return mClippedViewPort.height * mViewPortScaleFactor;
+        }
+
+        /** Returns the width of the visible part of the viewPort. This can differ from the
+         *  width of the 'viewPort' rectangle if it is partly outside the native stage.
+         *
+         *  <p>The returned number is not always in pixel units: HiDPI-displays with an activated
+         *  'supportHighResolutions' setting will return the size in points. For actual pixel
+         *  values, call 'backBufferWidth' instead. */
+        public function get viewPortWidth():Number
+        {
+            return mClippedViewPort.width;
+        }
         
-        /** Returns the actual height (in pixels) of the back buffer. This can differ from the
-         *  height of the viewPort rectangle if it is partly outside the native stage. */
-        public function get backBufferHeight():int { return mClippedViewPort.height; }
+        /** Returns the height of the visible part of the viewPort. This can differ from the
+         *  height of the 'viewPort' rectangle if it is partly outside the native stage.
+         *
+         *  <p>The returned number is not always in pixel units: HiDPI-displays with an activated
+         *  'supportHighResolutions' setting will return the size in points. For actual pixel
+         *  values, call 'backBufferHeight' instead. */
+        public function get viewPortHeight():Number
+        {
+            return mClippedViewPort.height;
+        }
         
         /** Indicates if multitouch simulation with "Shift" and "Ctrl"/"Cmd"-keys is enabled. 
          *  @default false */
@@ -914,7 +940,7 @@ package starling.core
          *  set of textures depending on the display resolution. */
         public function get contentScaleFactor():Number
         {
-            return (mViewPort.width * mNativeStageContentScaleFactor) / mStage.stageWidth;
+            return (mViewPort.width * mViewPortScaleFactor) / mStage.stageWidth;
         }
         
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
