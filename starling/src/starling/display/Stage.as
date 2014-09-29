@@ -115,7 +115,7 @@ package starling.display
             var star:Starling = Starling.current;
             
             if (destination == null)
-                destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
+                destination = new BitmapData(star.backBufferWidth * star.contentScaleFactor, star.backBufferHeight * star.contentScaleFactor, transparent);
             
             support.renderTarget = null;
             support.setOrthographicProjection(0, 0, mWidth, mHeight);
