@@ -17,6 +17,7 @@ package starling.display
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
+    import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
@@ -484,6 +485,9 @@ package starling.display
                                               blendMode:String=null,
                                               ignoreCurrentFilter:Boolean=false):int
         {
+            if (object is Sprite3D)
+                throw new IllegalOperationError("Sprite3D objects cannot be flattened");
+
             var i:int;
             var quadBatch:QuadBatch;
             var isRootObject:Boolean = false;
