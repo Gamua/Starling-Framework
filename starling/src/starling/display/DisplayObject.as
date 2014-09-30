@@ -570,6 +570,7 @@ package starling.display
         // part of the stage, (b) it must not cause memory leaks when the user forgets to call
         // dispose and (c) there might be multiple listeners for this event.
         
+        /** @inheritDoc */
         public override function addEventListener(type:String, listener:Function):void
         {
             if (type == Event.ENTER_FRAME && !hasEventListener(type))
@@ -582,6 +583,7 @@ package starling.display
             super.addEventListener(type, listener);
         }
         
+        /** @inheritDoc */
         public override function removeEventListener(type:String, listener:Function):void
         {
             super.removeEventListener(type, listener);
@@ -594,6 +596,7 @@ package starling.display
             }
         }
         
+        /** @inheritDoc */
         public override function removeEventListeners(type:String=null):void
         {
             if ((type == null || type == Event.ENTER_FRAME) && hasEventListener(Event.ENTER_FRAME))
@@ -712,6 +715,12 @@ package starling.display
             }
         }
         
+        /** The 3D transformation matrix of the object relative to its parent.
+         *
+         *  <p>For 2D objects, this property returns just a 3D version of the 2D transformation
+         *  matrix. Only the 'Sprite3D' class supports real 3D transformations.</p>
+         *
+         *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix3D():Matrix3D
         {
             // this method needs to be overriden in 3D-supporting subclasses (like Sprite3D).
@@ -720,14 +729,6 @@ package starling.display
                 mTransformationMatrix3D = new Matrix3D();
 
             return MatrixUtil.convertTo3D(transformationMatrix, mTransformationMatrix3D);
-        }
-
-        public function set transformationMatrix3D(value:Matrix3D):void
-        {
-            if (mTransformationMatrix3D == null)
-                mTransformationMatrix3D = new Matrix3D();
-
-            mTransformationMatrix3D.copyFrom(value);
         }
 
         /** Indicates if this object or any of its parents is a 'Sprite3D' object. */

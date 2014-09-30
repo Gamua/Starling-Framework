@@ -21,6 +21,38 @@ package starling.display
     import starling.utils.MatrixUtil;
     import starling.utils.rad2deg;
 
+    /** A container that allows you to position objects in three-dimensional space.
+     *
+     *  <p>Starling is, at its heart, a 2D engine. However, this class makes it possible to
+     *  add simple 3D transformations to your scene graph. Use it for fancy screen transitions,
+     *  to turn playing cards realistically to their backside, etc.</p>
+     *
+     *  <p><strong>Positioning objects in 3D</strong></p>
+     *
+     *  <p>Use this class just like a normal Sprite: add arbiratry DisplayObjects as children and
+     *  add it to your display list. What makes this class interesting is the addition of the
+     *  following properties:</p>
+     *
+     *  <ul>
+     *    <li>z - Moves the object closer to / further away from the camera.</li>
+     *    <li>rotationX — Rotates the object around the x-axis.</li>
+     *    <li>rotationY — Rotates the obejct around the y-axis.</li>
+     *  </ul>
+     *
+     *  <p>With the help of these properties, you can move any display object in the 3D space.
+     *  It's even possible to construct simple volumetric objects if you nest several Sprite3D
+     *  objects.</p>
+     *
+     *  <p>Note that Starling does not make any z-tests: visibility is solely established by the
+     *  order of the children, just as with 2D objects.</p>
+     *
+     *  <p><strong>Limitations</strong></p>
+     *
+     *  <p>A Sprite3D object cannot be flattened (although you can flatten objects <em>within</em>
+     *  a Sprite3D), and it does not work with the "clipRect" property. On rendering, each
+     *  Sprite3D requires its own draw call.</p>
+     *
+     */
     public class Sprite3D extends DisplayObjectContainer
     {
         private var mRotationX:Number;
@@ -36,6 +68,7 @@ package starling.display
         private static var sHelperPointAlt:Vector3D = new Vector3D();
         private static var sHelperMatrix:Matrix3D   = new Matrix3D();
 
+        /** Creates an empty Sprite3D. */
         public function Sprite3D()
         {
             mRotationX = mRotationY = mZ = 0.0;
@@ -113,7 +146,9 @@ package starling.display
         // properties
 
         /** Always returns the identity matrix. The actual transformation of a Sprite3D is stored
-         *  in 'transformationMatrix3D' (a 2D matrix cannot represent 3D transformations). */
+         *  in 'transformationMatrix3D' (a 2D matrix cannot represent 3D transformations).
+         *  If you assign a 2D transformation matrix, it will be converted to 3D and stored as
+         *  3D transformation matrix. */
         public override function get transformationMatrix():Matrix
         {
             return mTransformationMatrix;
@@ -121,12 +156,12 @@ package starling.display
 
         public override function set transformationMatrix(value:Matrix):void
         {
-            // todo: test this.
-
             super.transformationMatrix = value;
             mTransformationChanged = true;
         }
 
+        /**  The 3D transformation matrix of the object relative to its parent.
+         *   CAUTION: not a copy, but the actual object! */
         public override function get transformationMatrix3D():Matrix3D
         {
             if (mTransformationChanged)
@@ -157,7 +192,9 @@ package starling.display
             mTransformationChanged = true;
         }
 
-        /** The z coordinate of the object relative to the local coordinates of the parent. */
+        /** The z coordinate of the object relative to the local coordinates of the parent.
+         *  The z-axis points into the screen, i.e. positive z-values will move the object further
+         *  away from the camera. */
         public function get z():Number { return mZ; }
         public function set z(value:Number):void
         {
@@ -165,7 +202,7 @@ package starling.display
             mTransformationChanged = true;
         }
 
-        /** @inheritDoc */
+        /** @private */
         public override function set pivotX(value:Number):void
         {
             throw new Error("3D objects do not support pivot points");
@@ -174,7 +211,7 @@ package starling.display
             // mOrientationChanged = true;
         }
 
-        /** @inheritDoc */
+        /** @private */
         public override function set pivotY(value:Number):void
         {
             throw new Error("3D objects do not support pivot points");
@@ -197,7 +234,7 @@ package starling.display
             mTransformationChanged = true;
         }
 
-        /** @inheritDoc */
+        /** @private */
         public override function set skewX(value:Number):void
         {
             throw new Error("3D objects do not support skewing");
@@ -206,7 +243,7 @@ package starling.display
             // mOrientationChanged = true;
         }
 
-        /** @inheritDoc */
+        /** @private */
         public override function set skewY(value:Number):void
         {
             throw new Error("3D objects do not support skewing");
