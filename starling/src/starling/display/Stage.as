@@ -142,7 +142,9 @@ package starling.display
         
         // camera positioning
 
-        public function getCameraPosition(space:DisplayObject, resultPoint:Vector3D=null):Vector3D
+        /** Calculates the 3D camera position in the local coordinate system of a certain
+         *  display object. If you do not pass a space, the method returns the global position. */
+        public function getCameraPosition(space:DisplayObject=null, resultPoint:Vector3D=null):Vector3D
         {
             if (resultPoint == null) resultPoint = new Vector3D();
 

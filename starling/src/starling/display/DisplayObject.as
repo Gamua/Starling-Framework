@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
@@ -30,6 +31,7 @@ package starling.display
     import starling.filters.FragmentFilter;
     import starling.geom.Box;
     import starling.utils.HAlign;
+    import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.VAlign;
     
@@ -155,6 +157,8 @@ package starling.display
         
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
+        private static var sHelperPoint3D:Vector3D = new Vector3D();
+        private static var sHelperPointAlt3D:Vector3D = new Vector3D();
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
         private static var sHelperMatrixAlt:Matrix  = new Matrix();
@@ -296,8 +300,16 @@ package starling.display
          *  creating a new object. */
         public function localToGlobal(localPoint:Point, resultPoint:Point=null):Point
         {
-            getTransformationMatrix(base, sHelperMatrixAlt);
-            return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, resultPoint);
+            if (is3D)
+            {
+                sHelperPoint3D.setTo(localPoint.x, localPoint.y, 0);
+                return local3DToGlobal(sHelperPoint3D, resultPoint);
+            }
+            else
+            {
+                getTransformationMatrix(base, sHelperMatrixAlt);
+                return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, resultPoint);
+            }
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system.
@@ -305,9 +317,18 @@ package starling.display
          *  creating a new object. */
         public function globalToLocal(globalPoint:Point, resultPoint:Point=null):Point
         {
-            getTransformationMatrix(base, sHelperMatrixAlt);
-            sHelperMatrixAlt.invert();
-            return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, resultPoint);
+            if (is3D)
+            {
+                globalToLocal3D(globalPoint, sHelperPoint3D);
+                stage.getCameraPosition(this, sHelperPointAlt3D);
+                return MathUtil.intersectLineWithXYPlane(sHelperPoint3D, sHelperPointAlt3D, resultPoint);
+            }
+            else
+            {
+                getTransformationMatrix(base, sHelperMatrixAlt);
+                sHelperMatrixAlt.invert();
+                return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, resultPoint);
+            }
         }
         
         /** Renders the display object with the help of a support object. Never call this method
@@ -424,23 +445,34 @@ package starling.display
             return resultMatrix;
         }
 
-        /** Transforms a point from the local coordinate system to global (stage) coordinates.
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of
-         *  creating a new object. */
-        public function localToGlobal3D(localPoint:Vector3D, resultPoint:Vector3D=null):Vector3D
+        /** Transforms a 3D point from the local coordinate system to global (stage) coordinates.
+         *  This is achieved by projecting the 3D point onto the (2D) view plane.
+         *
+         *  <p>If you pass a 'resultPoint', the result will be stored in this point instead of
+         *  creating a new object.</p> */
+        public function local3DToGlobal(localPoint:Vector3D, resultPoint:Point=null):Point
         {
-            getTransformationMatrix3D(base, sHelperMatrixAlt3D);
-            return MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, localPoint, resultPoint);
+            var stage:Stage = this.stage;
+            if (stage == null) throw new IllegalOperationError("Object not connected to stage");
+
+            getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
+            MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, localPoint, sHelperPoint3D);
+            stage.getCameraPosition(null, sHelperPointAlt3D);
+            return MathUtil.intersectLineWithXYPlane(sHelperPoint3D, sHelperPointAlt3D, resultPoint);
         }
 
-        /** Transforms a point from global (stage) coordinates to the local coordinate system.
+        /** Transforms a point from global (stage) coordinates to the 3D local coordinate system.
          *  If you pass a 'resultPoint', the result will be stored in this point instead of
          *  creating a new object. */
-        public function globalToLocal3D(globalPoint:Vector3D, resultPoint:Vector3D=null):Vector3D
+        public function globalToLocal3D(globalPoint:Point, resultPoint:Vector3D=null):Vector3D
         {
-            getTransformationMatrix3D(base, sHelperMatrixAlt3D);
+            var stage:Stage = this.stage;
+            if (stage == null) throw new IllegalOperationError("Object not connected to stage");
+
+            getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
             sHelperMatrixAlt3D.invert();
-            return MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, globalPoint, resultPoint);
+            return MatrixUtil.transformCoords3D(
+                sHelperMatrixAlt3D, globalPoint.x, globalPoint.y, 0, resultPoint);
         }
 
         /** Returns a box that completely encloses the object as it appears in another

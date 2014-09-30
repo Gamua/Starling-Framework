@@ -56,6 +56,7 @@ package starling.events
         
         /** Helper object. */
         private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperPoint:Point = new Point();
         
         /** Creates a new Touch object. */
         public function Touch(id:int)
@@ -72,9 +73,8 @@ package starling.events
          *  of creating a new object.*/
         public function getLocation(space:DisplayObject, resultPoint:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
-            space.base.getTransformationMatrix(space, sHelperMatrix);
-            return MatrixUtil.transformCoords(sHelperMatrix, mGlobalX, mGlobalY, resultPoint); 
+            sHelperPoint.setTo(mGlobalX, mGlobalY);
+            return space.globalToLocal(sHelperPoint, resultPoint);
         }
         
         /** Converts the previous location of a touch to the local coordinate system of a display 
@@ -82,9 +82,8 @@ package starling.events
          *  of creating a new object.*/
         public function getPreviousLocation(space:DisplayObject, resultPoint:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
-            space.base.getTransformationMatrix(space, sHelperMatrix);
-            return MatrixUtil.transformCoords(sHelperMatrix, mPreviousGlobalX, mPreviousGlobalY, resultPoint);
+            sHelperPoint.setTo(mPreviousGlobalX, mPreviousGlobalY);
+            return space.globalToLocal(sHelperPoint, resultPoint);
         }
         
         /** Returns the movement of the touch between the current and previous location. 

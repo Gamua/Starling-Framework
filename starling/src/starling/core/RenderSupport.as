@@ -252,7 +252,9 @@ package starling.core
         
         // 3d transformations
         
-        /** Prepends translation, scale and rotation of an object to the modelview matrix. */
+        /** Prepends translation, scale and rotation of an object to the 3D modelview matrix.
+         *  The current contents of the 2D modelview matrix is stored in the 3D modelview matrix
+         *  before doing so; the 2D modelview matrix is then reset to the identity matrix. */
         public function transformMatrix3D(object:Sprite3D):void
         {
             mModelViewMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
