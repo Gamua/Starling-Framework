@@ -54,13 +54,13 @@ package starling.display
      *  @see starling.events.KeyboardEvent
      *  @see starling.events.ResizeEvent  
      * 
-     * */
+     */
     public class Stage extends DisplayObjectContainer
     {
-        private var mZ:Number;
         private var mWidth:int;
         private var mHeight:int;
         private var mColor:uint;
+        private var mFieldOfView:Number;
         private var mEnterFrameEvent:EnterFrameEvent;
         private var mEnterFrameListeners:Vector.<DisplayObject>;
         
@@ -73,7 +73,7 @@ package starling.display
             mWidth = width;
             mHeight = height;
             mColor = color;
-            mZ = width + height;
+            mFieldOfView = 1.0;
             mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
             mEnterFrameListeners = new <DisplayObject>[];
         }
@@ -126,7 +126,7 @@ package starling.display
                 destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
             
             support.renderTarget = null;
-            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, mZ);
+            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, mFieldOfView);
             
             if (transparent) support.clear();
             else             support.clear(mColor, 1);
@@ -149,7 +149,8 @@ package starling.display
             if (resultPoint == null) resultPoint = new Vector3D();
 
             getTransformationMatrix3D(space, sHelperMatrix);
-            MatrixUtil.transformCoords3D(sHelperMatrix, mWidth / 2, mHeight / 2, -mZ, resultPoint);
+            MatrixUtil.transformCoords3D(sHelperMatrix, mWidth / 2, mHeight / 2, -focalLength,
+                resultPoint);
 
             return resultPoint;
         }
@@ -258,10 +259,29 @@ package starling.display
         public function get stageHeight():int { return mHeight; }
         public function set stageHeight(value:int):void { mHeight = value; }
 
-        /** The z-position of the stage respective to the camera; or, in other words, the
-         *  distance of the stage to the camera. This influences the field-of-view for Sprite3D
-         *  objects. */
-        public function get z():Number { return mZ; }
-        public function set z(value:Number):void { mZ = value; }
+        /** The distance between the stage and the camera. Changing this value will update the
+         *  field of view accordingly. */
+        public function get focalLength():Number
+        {
+            return mWidth / (2 * Math.tan(mFieldOfView/2));
+        }
+
+        public function set focalLength(value:Number):void
+        {
+            mFieldOfView = 2 * Math.atan(stageWidth / (2*value));
+        }
+
+        /** Specifies an angle (radian, between zero and PI) for the field of view. This value
+         *  determines how strong the perspective transformation and distortion apply to a Sprite3D
+         *  object.
+         *
+         *  <p>A value close to zero will look similar to an orthographic projection; a value
+         *  close to PI results in a fisheye lens effect. If the field of view is set to 0 or PI,
+         *  nothing is seen on the screen.</p>
+         *
+         *  @default 1.0
+         */
+        public function get fieldOfView():Number { return mFieldOfView; }
+        public function set fieldOfView(value:Number):void { mFieldOfView = value; }
     }
 }

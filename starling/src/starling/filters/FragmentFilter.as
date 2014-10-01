@@ -248,7 +248,7 @@ package starling.filters
             support.blendMode = BlendMode.NORMAL;
             support.setProjectionMatrix(
                 sBoundsPot.x, sBoundsPot.y, sBoundsPot.width, sBoundsPot.height,
-                stage.stageWidth, stage.stageHeight, stage.z);
+                stage.stageWidth, stage.stageHeight, stage.fieldOfView);
 
             object.render(support, parentAlpha);
             support.finishQuadBatch();

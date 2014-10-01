@@ -503,7 +503,7 @@ package starling.core
                 mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
                 mClippedViewPort.width  / scaleX,
                 mClippedViewPort.height / scaleY,
-                mStage.stageWidth, mStage.stageHeight, mStage.z);
+                mStage.stageWidth, mStage.stageHeight, mStage.fieldOfView);
             
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);

@@ -116,39 +116,47 @@ package starling.core
         
         // matrix manipulation
 
-        /** Sets up the projection matrices for 2D and 3D rendering. */
+        /** Sets up the projection matrices for 2D and 3D rendering.
+         *
+         * <p>The final 3 parameters are actually defining the perspective in which you're looking
+         * at the stage, i.e. they determine the camera position. The first 4 parameters let you
+         * zoom in to a certain area on the stage; they do not influence the camera position.</p>
+         *
+         * <p>All objects with a z-value of zero will be rendered in their true size, without any
+         * distortion.</p>
+         */
         public function setProjectionMatrix(x:Number, y:Number, width:Number, height:Number,
                                             stageWidth:Number=0, stageHeight:Number=0,
-                                            stageDist:Number=0):void
+                                            fieldOfView:Number=1.0):void
         {
             if (stageWidth  <= 0) stageWidth = width;
             if (stageHeight <= 0) stageHeight = height;
-            if (stageDist   <= 0) stageDist = (stageWidth + stageHeight) * 0.75;
 
             // set up 2d (orthographic) projection
             mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height,
                 -(2*x + width) / width, (2*y + height) / height);
 
-            const far:Number    = 10000;
-            const near:Number   = 100;
+            const focalLength:Number = stageWidth / (2 * Math.tan(fieldOfView/2));
+            const far:Number    = focalLength * 20;
+            const near:Number   = 1;
             const scaleX:Number = stageWidth  / width;
             const scaleY:Number = stageHeight / height;
 
             // set up general perspective
-            sMatrixData[ 0] =  2 * stageDist / stageWidth;  // 0,0
-            sMatrixData[ 5] = -2 * stageDist / stageHeight; // 1,1  [negative to invert y-axis]
-            sMatrixData[10] =  far / (far - near);          // 2,2
-            sMatrixData[14] = -far * near / (far - near);   // 2,3
-            sMatrixData[11] =  1;                           // 3,2
+            sMatrixData[ 0] =  2 * focalLength / stageWidth;  // 0,0
+            sMatrixData[ 5] = -2 * focalLength / stageHeight; // 1,1  [negative to invert y-axis]
+            sMatrixData[10] =  far / (far - near);            // 2,2
+            sMatrixData[14] = -far * near / (far - near);     // 2,3
+            sMatrixData[11] =  1;                             // 3,2
 
-            // now zoom in to clipRect
+            // now zoom in to visible area
             sMatrixData[0] *=  scaleX;
             sMatrixData[5] *=  scaleY;
             sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * x / stageWidth;
             sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * y / stageHeight;
 
             mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
-            mProjectionMatrix3D.prependTranslation(-stageWidth/2.0, -stageHeight/2.0, stageDist);
+            mProjectionMatrix3D.prependTranslation(-stageWidth/2.0, -stageHeight/2.0, focalLength);
 
             applyClipRect();
         }
@@ -159,7 +167,8 @@ package starling.core
         {
             var stage:Stage = Starling.current.stage;
             sClipRect.setTo(x, y, width, height);
-            setProjectionMatrix(x, y, width, height, stage.stageWidth, stage.stageHeight, stage.z);
+            setProjectionMatrix(x, y, width, height,
+                stage.stageWidth, stage.stageHeight, stage.fieldOfView);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
