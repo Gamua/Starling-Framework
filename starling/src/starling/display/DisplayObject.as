@@ -29,7 +29,6 @@ package starling.display
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
-    import starling.geom.Box;
     import starling.utils.HAlign;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
@@ -473,20 +472,6 @@ package starling.display
             sHelperMatrixAlt3D.invert();
             return MatrixUtil.transformCoords3D(
                 sHelperMatrixAlt3D, globalPoint.x, globalPoint.y, 0, resultPoint);
-        }
-
-        /** Returns a box that completely encloses the object as it appears in another
-         *  coordinate system. If you pass a 'resultBox', the result will be stored in this
-         *  box instead of creating a new object. */
-        public function getBounds3D(targetSpace:DisplayObject, resultBox:Box=null):Box
-        {
-            throw new AbstractMethodError();
-        }
-
-        /** The 3D bounds of the object relative to the local coordinates of the parent. */
-        public function get bounds3D():Box
-        {
-            return getBounds3D(mParent);
         }
 
         // internal methods

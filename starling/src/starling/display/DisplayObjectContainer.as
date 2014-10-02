@@ -23,7 +23,6 @@ package starling.display
     import starling.errors.AbstractClassError;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
-    import starling.geom.Box;
     import starling.utils.MatrixUtil;
     
     use namespace starling_internal;
@@ -310,47 +309,6 @@ package starling.display
             }                
             
             return resultRect;
-        }
-        
-        /** @inheritDoc */
-        public override function getBounds3D(targetSpace:DisplayObject, resultBox:Box=null):Box
-        {
-            if (resultBox == null) resultBox = new Box();
-
-            var numChildren:int = mChildren.length;
-
-            if (numChildren == 0)
-            {
-                getTransformationMatrix3D(targetSpace, sHelperMatrix3D);
-                MatrixUtil.transformCoords3D(sHelperMatrix3D, 0, 0, 0, sHelperPoint3D);
-                resultBox.setTo(sHelperPoint3D.x, sHelperPoint3D.y, sHelperPoint3D.y);
-            }
-            else if (numChildren == 1)
-            {
-                mChildren[0].getBounds3D(targetSpace, resultBox);
-            }
-            else
-            {
-                var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
-                var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-                var minZ:Number = Number.MAX_VALUE, maxZ:Number = -Number.MAX_VALUE;
-
-                for (var i:int=0; i<numChildren; ++i)
-                {
-                    mChildren[i].getBounds3D(targetSpace, resultBox);
-
-                    if (minX > resultBox.left)   minX = resultBox.left;
-                    if (maxX < resultBox.right)  maxX = resultBox.right;
-                    if (minY > resultBox.top)    minY = resultBox.top;
-                    if (maxY < resultBox.bottom) maxY = resultBox.bottom;
-                    if (minZ > resultBox.front)  minZ = resultBox.front;
-                    if (maxZ < resultBox.back)   maxZ = resultBox.back;
-                }
-
-                resultBox.setTo(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ);
-            }
-
-            return resultBox;
         }
 
         /** @inheritDoc */
