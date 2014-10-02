@@ -23,28 +23,35 @@ package starling.display
 
     /** A container that allows you to position objects in three-dimensional space.
      *
-     *  <p>Starling is, at its heart, a 2D engine. However, this class makes it possible to
-     *  add simple 3D transformations to your scene graph. Use it for fancy screen transitions,
-     *  to turn playing cards realistically to their backside, etc.</p>
+     *  <p>Starling is, at its heart, a 2D engine. However, sometimes, simple 3D effects are
+     *  useful for special effects, e.g. for screen transitions or to turn playing cards
+     *  realistically. This class makes it possible to create such 3D effects.</p>
      *
      *  <p><strong>Positioning objects in 3D</strong></p>
      *
-     *  <p>Use this class just like a normal Sprite: add arbiratry DisplayObjects as children and
-     *  add it to your display list. What makes this class interesting is the addition of the
-     *  following properties:</p>
+     *  <p>Just like a normal sprite, you can add and remove children to this container, which
+     *  allows you to group several display objects together. In addition to that, Sprite3D
+     *  adds some interesting properties:</p>
      *
      *  <ul>
-     *    <li>z - Moves the object closer to / further away from the camera.</li>
-     *    <li>rotationX — Rotates the object around the x-axis.</li>
-     *    <li>rotationY — Rotates the obejct around the y-axis.</li>
+     *    <li>z - Moves the sprite closer to / further away from the camera.</li>
+     *    <li>rotationX — Rotates the sprite around the x-axis.</li>
+     *    <li>rotationY — Rotates the sprite around the y-axis.</li>
+     *    <li>scaleZ - Scales the sprite along the z-axis.</li>
      *  </ul>
      *
-     *  <p>With the help of these properties, you can move any display object in the 3D space.
-     *  It's even possible to construct simple volumetric objects if you nest several Sprite3D
-     *  objects.</p>
+     *  <p>With the help of these properties, you can move a sprite and all its children in the
+     *  3D space. By nesting several Sprite3D containers, it's even possible to construct simple
+     *  volumetric objects (like a cube).</p>
      *
      *  <p>Note that Starling does not make any z-tests: visibility is solely established by the
      *  order of the children, just as with 2D objects.</p>
+     *
+     *  <p><strong>Setting up the camera</strong></p>
+     *
+     *  <p>The position and settings of the camera are found directly on the stage.
+     *  Modify the 'focalLength' to define the distance between stage and camera, or set up the
+     *  'fieldOfView' directly.</p>
      *
      *  <p><strong>Limitations</strong></p>
      *
@@ -57,6 +64,7 @@ package starling.display
     {
         private var mRotationX:Number;
         private var mRotationY:Number;
+        private var mScaleZ:Number;
         private var mZ:Number;
 
         private var mTransformationMatrix:Matrix;
@@ -71,6 +79,7 @@ package starling.display
         /** Creates an empty Sprite3D. */
         public function Sprite3D()
         {
+            mScaleZ = 1.0;
             mRotationX = mRotationY = mZ = 0.0;
             mTransformationMatrix = new Matrix();
             mTransformationMatrix3D = new Matrix3D();
@@ -168,7 +177,7 @@ package starling.display
             {
                 mTransformationChanged = false;
                 mTransformationMatrix3D.identity();
-                mTransformationMatrix3D.appendScale(scaleX, scaleY, 1);
+                mTransformationMatrix3D.appendScale(scaleX, scaleY, mScaleZ);
                 mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
                 mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
                 mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
@@ -231,6 +240,16 @@ package starling.display
         public override function set scaleY(value:Number):void
         {
             super.scaleY = value;
+            mTransformationChanged = true;
+        }
+        
+        /** @inheritDoc */
+        
+        /** The depth scale factor. '1' means no scale, negative values flip the object. */
+        public function get scaleZ():Number { return mScaleZ; }
+        public function set scaleZ(value:Number):void
+        {
+            mScaleZ = value;
             mTransformationChanged = true;
         }
 
