@@ -242,9 +242,7 @@ package starling.display
             super.scaleY = value;
             mTransformationChanged = true;
         }
-        
-        /** @inheritDoc */
-        
+
         /** The depth scale factor. '1' means no scale, negative values flip the object. */
         public function get scaleZ():Number { return mScaleZ; }
         public function set scaleZ(value:Number):void
