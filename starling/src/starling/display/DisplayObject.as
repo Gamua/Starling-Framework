@@ -157,7 +157,6 @@ package starling.display
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperPoint3D:Vector3D = new Vector3D();
-        private static var sHelperPointAlt3D:Vector3D = new Vector3D();
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
         private static var sHelperMatrixAlt:Matrix  = new Matrix();
@@ -319,8 +318,8 @@ package starling.display
             if (is3D)
             {
                 globalToLocal3D(globalPoint, sHelperPoint3D);
-                stage.getCameraPosition(this, sHelperPointAlt3D);
-                return MathUtil.intersectLineWithXYPlane(sHelperPoint3D, sHelperPointAlt3D, resultPoint);
+                return MathUtil.intersectLineWithXYPlane(
+                    stage.cameraPosition, sHelperPoint3D, resultPoint);
             }
             else
             {
@@ -456,8 +455,8 @@ package starling.display
 
             getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
             MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, localPoint, sHelperPoint3D);
-            stage.getCameraPosition(null, sHelperPointAlt3D);
-            return MathUtil.intersectLineWithXYPlane(sHelperPoint3D, sHelperPointAlt3D, resultPoint);
+            return MathUtil.intersectLineWithXYPlane(
+                stage.cameraPosition, sHelperPoint3D, resultPoint);
         }
 
         /** Transforms a point from global (stage) coordinates to the 3D local coordinate system.

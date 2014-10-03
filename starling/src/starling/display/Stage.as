@@ -61,6 +61,8 @@ package starling.display
         private var mHeight:int;
         private var mColor:uint;
         private var mFieldOfView:Number;
+        private var mProjectionOffset:Point;
+        private var mCameraPosition:Vector3D;
         private var mEnterFrameEvent:EnterFrameEvent;
         private var mEnterFrameListeners:Vector.<DisplayObject>;
         
@@ -74,6 +76,8 @@ package starling.display
             mHeight = height;
             mColor = color;
             mFieldOfView = 1.0;
+            mProjectionOffset = new Point();
+            mCameraPosition = new Vector3D();
             mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
             mEnterFrameListeners = new <DisplayObject>[];
         }
@@ -126,7 +130,7 @@ package starling.display
                 destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
             
             support.renderTarget = null;
-            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, mFieldOfView);
+            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, cameraPosition);
             
             if (transparent) support.clear();
             else             support.clear(mColor, 1);
@@ -142,17 +146,18 @@ package starling.display
         
         // camera positioning
 
-        /** Calculates the 3D camera position in the local coordinate system of a certain
-         *  display object. If you do not pass a space, the method returns the global position. */
-        public function getCameraPosition(space:DisplayObject=null, resultPoint:Vector3D=null):Vector3D
+        /** Returns the position of the camera within the local coordinate system of a certain
+         *  display object. If you do not pass a space, the method returns the global position.
+         *  To change the position of the camera, you can modify the properties 'fieldOfView',
+         *  'focalDistance' and 'projectionOffset'.
+         */
+        public function getCameraPosition(space:DisplayObject=null, result:Vector3D=null):Vector3D
         {
-            if (resultPoint == null) resultPoint = new Vector3D();
-
             getTransformationMatrix3D(space, sHelperMatrix);
-            MatrixUtil.transformCoords3D(sHelperMatrix, mWidth / 2, mHeight / 2, -focalLength,
-                resultPoint);
 
-            return resultPoint;
+            return MatrixUtil.transformCoords3D(sHelperMatrix,
+                mWidth / 2 + mProjectionOffset.x, mHeight / 2 + mProjectionOffset.y,
+               -focalLength, result);
         }
 
         // enter frame event optimization
@@ -283,5 +288,27 @@ package starling.display
          */
         public function get fieldOfView():Number { return mFieldOfView; }
         public function set fieldOfView(value:Number):void { mFieldOfView = value; }
+
+        /** A vector that moves the camera away from its default position in the center of the
+         *  stage. Use this property to change the center of projection, i.e. the vanishing
+         *  point for 3D display objects. <p>CAUTION: not a copy, but the actual object!</p>
+         */
+        public function get projectionOffset():Point { return mProjectionOffset; }
+        public function set projectionOffset(value:Point):void
+        {
+            mProjectionOffset.setTo(value.x, value.y);
+        }
+
+        /** The global position of the camera. This property can only be used to find out the
+         *  current position, but not to modify it. For that, use the 'projectionOffset',
+         *  'fieldOfView' and 'focalLength' properties. If you need the camera position in
+         *  a certain coordinate space, use 'getCameraPosition' instead.
+         *
+         *  <p>CAUTION: not a copy, but the actual object!</p>
+         */
+        public function get cameraPosition():Vector3D
+        {
+            return getCameraPosition(null, mCameraPosition);
+        }
     }
 }

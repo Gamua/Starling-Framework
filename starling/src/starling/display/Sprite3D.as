@@ -114,11 +114,9 @@ package starling.display
             sHelperMatrix.copyFrom(transformationMatrix3D);
             sHelperMatrix.invert();
 
-            var camPos:Vector3D = stage.getCameraPosition(this, sHelperPoint);
-            var localPoint3D:Vector3D = MatrixUtil.transformCoords3D(
-                sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
-
-            MathUtil.intersectLineWithXYPlane(localPoint3D, camPos, localPoint);
+            stage.getCameraPosition(this, sHelperPoint);
+            MatrixUtil.transformCoords3D(sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
+            MathUtil.intersectLineWithXYPlane(sHelperPoint, sHelperPointAlt, localPoint);
 
             return super.hitTest(localPoint, forTouch);
         }

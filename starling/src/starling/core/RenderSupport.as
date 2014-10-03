@@ -20,6 +20,7 @@ package starling.core
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
@@ -70,6 +71,7 @@ package starling.core
         
         /** helper objects */
         private static var sPoint:Point = new Point();
+        private static var sPoint3D:Vector3D = new Vector3D();
         private static var sClipRect:Rectangle = new Rectangle();
         private static var sBufferRect:Rectangle = new Rectangle();
         private static var sScissorRect:Rectangle = new Rectangle();
@@ -118,25 +120,35 @@ package starling.core
 
         /** Sets up the projection matrices for 2D and 3D rendering.
          *
-         * <p>The final 3 parameters are actually defining the perspective in which you're looking
-         * at the stage, i.e. they determine the camera position. The first 4 parameters let you
-         * zoom in to a certain area on the stage; they do not influence the camera position.</p>
+         *  <p>The first 4 parameters define which area of the stage you want to view. The camera
+         *  will 'zoom' to exactly this region. The perspective in which you're looking at the
+         *  stage is determined by the final 3 parameters.</p>
          *
-         * <p>All objects with a z-value of zero will be rendered in their true size, without any
-         * distortion.</p>
+         *  <p>The stage is always on the rectangle that is spawned up between x- and y-axis (with
+         *  the given size). All objects that are exactly on that rectangle (z equals zero) will be
+         *  rendered in their true size, without any distortion.</p>
          */
         public function setProjectionMatrix(x:Number, y:Number, width:Number, height:Number,
                                             stageWidth:Number=0, stageHeight:Number=0,
-                                            fieldOfView:Number=1.0):void
+                                            cameraPos:Vector3D=null):void
         {
             if (stageWidth  <= 0) stageWidth = width;
             if (stageHeight <= 0) stageHeight = height;
+            if (cameraPos == null)
+            {
+                cameraPos = sPoint3D;
+                cameraPos.setTo(
+                    stageWidth / 2, stageHeight / 2,   // -> center of stage
+                    stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
+            }
 
             // set up 2d (orthographic) projection
             mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height,
                 -(2*x + width) / width, (2*y + height) / height);
 
-            const focalLength:Number = stageWidth / (2 * Math.tan(fieldOfView/2));
+            const focalLength:Number = Math.abs(cameraPos.z);
+            const offsetX:Number = cameraPos.x - stageWidth  / 2;
+            const offsetY:Number = cameraPos.y - stageHeight / 2;
             const far:Number    = focalLength * 20;
             const near:Number   = 1;
             const scaleX:Number = stageWidth  / width;
@@ -152,11 +164,14 @@ package starling.core
             // now zoom in to visible area
             sMatrixData[0] *=  scaleX;
             sMatrixData[5] *=  scaleY;
-            sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * x / stageWidth;
-            sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * y / stageHeight;
+            sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
+            sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
 
             mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
-            mProjectionMatrix3D.prependTranslation(-stageWidth/2.0, -stageHeight/2.0, focalLength);
+            mProjectionMatrix3D.prependTranslation(
+                -stageWidth /2.0 - offsetX,
+                -stageHeight/2.0 - offsetY,
+                focalLength);
 
             applyClipRect();
         }
@@ -168,7 +183,7 @@ package starling.core
             var stage:Stage = Starling.current.stage;
             sClipRect.setTo(x, y, width, height);
             setProjectionMatrix(x, y, width, height,
-                stage.stageWidth, stage.stageHeight, stage.fieldOfView);
+                stage.stageWidth, stage.stageHeight, stage.cameraPosition);
         }
         
         /** Changes the modelview matrix to the identity matrix. */

@@ -20,6 +20,7 @@ package starling.filters
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
@@ -248,7 +249,7 @@ package starling.filters
             support.blendMode = BlendMode.NORMAL;
             support.setProjectionMatrix(
                 sBoundsPot.x, sBoundsPot.y, sBoundsPot.width, sBoundsPot.height,
-                stage.stageWidth, stage.stageHeight, stage.fieldOfView);
+                stage.stageWidth, stage.stageHeight, stage.cameraPosition);
 
             object.render(support, parentAlpha);
             support.finishQuadBatch();
