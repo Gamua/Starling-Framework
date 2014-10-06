@@ -24,6 +24,7 @@ package starling.utils
         private static var sApplicationActive:Boolean = true;
         private static var sWaitingCalls:Array = [];
         private static var sPlatform:String;
+        private static var sVersion:String;
         private static var sAIR:Boolean;
         
         /** @private */
@@ -37,6 +38,7 @@ package starling.utils
             
             sInitialized = true;
             sPlatform = Capabilities.version.substr(0, 3);
+            sVersion = Capabilities.version.substr(4);
             
             try
             {
@@ -112,6 +114,22 @@ package starling.utils
         {
             initialize();
             return sPlatform;
+        }
+
+        /** Returns the Flash Player/AIR version string. The format of the version number is:
+         *  <em>majorVersion,minorVersion,buildNumber,internalBuildNumber</em>. */
+        public static function get version():String
+        {
+            initialize();
+            return sVersion;
+        }
+
+        /** Prior to Flash/AIR 15, there was a restriction that the clear function must be
+         *  called on a render target before drawing. This requirement was removed subsequently,
+         *  and this property indicates if that's the case in the current runtime. */
+        public static function get supportsRelaxedTargetClearRequirement():Boolean
+        {
+            return parseInt(/\d+/.exec(sVersion)[0]) >= 15;
         }
     }
 }

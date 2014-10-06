@@ -15,7 +15,6 @@ package starling.textures
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
-    import flash.system.Capabilities;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -23,6 +22,7 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
+    import starling.utils.SystemUtil;
     import starling.utils.execute;
     import starling.utils.getNextPowerOfTwo;
 
@@ -126,7 +126,7 @@ package starling.textures
             mSupport = new RenderSupport();
             mSupport.setOrthographicProjection(0, 0, rootWidth, rootHeight);
             
-            if (persistent && (forceDoubleBuffering || !supportsSingleBufferPersistency))
+            if (persistent && (forceDoubleBuffering || !SystemUtil.supportsRelaxedTargetClearRequirement))
             {
                 mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
                 mBufferTexture.root.onRestore = mBufferTexture.root.clear;
@@ -301,19 +301,12 @@ package starling.textures
             return support;
         }
 
-        /** Beginning with Flash/AIR 15, render textures do not force us to call 'clear' before
-         *  drawing something. */
-        private function get supportsSingleBufferPersistency():Boolean
-        {
-            return parseInt(/\w{3}\s(\d+)(?:\,\d+)*/.exec(Capabilities.version)[1]) >= 15;
-        }
-
-        private function get isDoubleBuffered():Boolean
-        {
-            return mBufferTexture != null;
-        }
-
         // properties
+
+        /** Indicates if the render texture is using double buffering. This might be necessary for
+         *  persistent textures, depending on the runtime version and the value of
+         *  'forceDoubleBuffering'. */
+        private function get isDoubleBuffered():Boolean { return mBufferTexture != null; }
 
         /** Indicates if the texture is persistent over multiple draw calls. */
         public function get isPersistent():Boolean { return mIsPersistent; }
