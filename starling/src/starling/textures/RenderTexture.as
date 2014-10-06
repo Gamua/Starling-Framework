@@ -204,9 +204,6 @@ package starling.textures
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            // persistent drawing uses double buffering, as Molehill forces us to call 'clear'
-            // on every render target once per update.
-            
             // switch buffers
             if (isDoubleBuffered)
             {
