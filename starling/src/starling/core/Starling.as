@@ -356,7 +356,7 @@ package starling.core
             var currentProfile:String;
             
             if (profile == "auto")
-                profiles = ["baselineExtended", "baseline", "baselineConstrained"];
+                profiles = ["standard", "baselineExtended", "baseline", "baselineConstrained"];
             else if (profile is String)
                 profiles = [profile as String];
             else if (profile is Array)
