@@ -15,6 +15,7 @@ package starling.textures
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
     
     import starling.core.RenderSupport;
     import starling.core.Starling;
@@ -67,16 +68,32 @@ package starling.textures
         private var mHelperImage:Image;
         private var mDrawing:Boolean;
         private var mBufferReady:Boolean;
+        private var mIsPersistent:Boolean;
         private var mSupport:RenderSupport;
         
         /** helper object */
         private static var sClipRect:Rectangle = new Rectangle();
         
+        /** Indicates if new persistent textures should use double buffering even if it's not
+         *  enforced by the Flash/AIR runtime.
+         *
+         *  <p>Prior to Flash/AIR version 15, Stage3D required RenderTextures to be cleared each
+         *  time they were being used as render target. To work around this limitation, Starling's
+         *  RenderTextures were implemented with double-buffering internally. Now, since this is
+         *  no longer required, Starling won't do that any more — except when you enable this
+         *  property. This is useful for certain hardware, e.g. some tile-based GPUs.</p>
+         */
+        public static var forceDoubleBuffering:Boolean = false;
+
         /** Creates a new RenderTexture with a certain size (in points). If the texture is
          *  persistent, the contents of the texture remains intact after each draw call, allowing
          *  you to use the texture just like a canvas. If it is not, it will be cleared before each
-         *  draw call. Persistancy doubles the required graphics memory! Thus, if you need the
-         *  texture only for one draw (or drawBundled) call, you should deactivate it. */
+         *  draw call.
+         *
+         *  <p>When run in Flash/AIR 14 or smaller, persistency requires an additional texture
+         *  buffer (i.e. the required graphics memory is doubled). Beginning with version 15, this
+         *  is no longer necessary.</p>
+         */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true, scale:Number=-1)
         {
             // TODO: when Adobe has fixed this bug on the iPad 1 (see 'supportsNonPotDimensions'),
@@ -105,10 +122,11 @@ package starling.textures
             var rootWidth:Number  = mActiveTexture.root.width;
             var rootHeight:Number = mActiveTexture.root.height;
             
+            mIsPersistent = persistent;
             mSupport = new RenderSupport();
             mSupport.setOrthographicProjection(0, 0, rootWidth, rootHeight);
             
-            if (persistent)
+            if (persistent && (forceDoubleBuffering || !supportsSingleBufferPersistency))
             {
                 mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
                 mBufferTexture.root.onRestore = mBufferTexture.root.clear;
@@ -123,7 +141,7 @@ package starling.textures
             mSupport.dispose();
             mActiveTexture.dispose();
             
-            if (isPersistent) 
+            if (isDoubleBuffered)
             {
                 mBufferTexture.dispose();
                 mHelperImage.dispose();
@@ -190,7 +208,7 @@ package starling.textures
             // on every render target once per update.
             
             // switch buffers
-            if (isPersistent)
+            if (isDoubleBuffered)
             {
                 var tmpTexture:Texture = mActiveTexture;
                 mActiveTexture = mBufferTexture;
@@ -203,10 +221,12 @@ package starling.textures
 
             mSupport.pushClipRect(sClipRect);
             mSupport.setRenderTarget(mActiveTexture, antiAliasing);
-            mSupport.clear();
             
+            if (isDoubleBuffered || !isPersistent || !mBufferReady)
+                mSupport.clear();
+
             // draw buffer
-            if (isPersistent && mBufferReady)
+            if (isDoubleBuffered && mBufferReady)
                 mHelperImage.render(mSupport, 1.0);
             else
                 mBufferReady = true;
@@ -238,8 +258,6 @@ package starling.textures
             mSupport.renderTarget = null;
         }
         
-        // workaround for iPad 1
-
         /** On the iPad 1 (and maybe other hardware?) clearing a non-POT RectangleTexture causes
          *  an error in the next "createVertexBuffer" call. Thus, we're forced to make this
          *  really ... elegant check here. */
@@ -286,10 +304,22 @@ package starling.textures
             return support;
         }
 
+        /** Beginning with Flash/AIR 15, render textures do not force us to call 'clear' before
+         *  drawing something. */
+        private function get supportsSingleBufferPersistency():Boolean
+        {
+            return parseInt(/\w{3}\s(\d+)(?:\,\d+)*/.exec(Capabilities.version)[1]) >= 15;
+        }
+
+        private function get isDoubleBuffered():Boolean
+        {
+            return mBufferTexture != null;
+        }
+
         // properties
 
         /** Indicates if the texture is persistent over multiple draw calls. */
-        public function get isPersistent():Boolean { return mBufferTexture != null; }
+        public function get isPersistent():Boolean { return mIsPersistent; }
         
         /** @inheritDoc */
         public override function get base():TextureBase { return mActiveTexture.base; }
