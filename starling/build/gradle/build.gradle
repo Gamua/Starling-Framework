@@ -66,9 +66,9 @@ configurations.antClassPath.each { File f ->
 //  SDK
 //----------------------------------
 
-String AIR_HOME = System.getenv('AIR_HOME')
-String FLEX_HOME = System.getenv('FLEX_HOME')
-String FLASH_PLAYER_EXE = System.getenv('FLASH_PLAYER_EXE')
+def AIR_HOME = System.getenv('AIR_HOME')
+def FLEX_HOME = System.getenv('FLEX_HOME')
+def FLASH_PLAYER_EXE = System.getenv('FLASH_PLAYER_EXE')
 ant.FLEX_HOME = FLEX_HOME
 ant.FLASH_PLAYER_EXE = FLASH_PLAYER_EXE
 
@@ -144,21 +144,18 @@ task compile(type: JavaExec) {
     args = argsList
 }
 
-task compileTest(type: Exec) {
-    workingDir = "${projectDir}"
-    executable = file("${FLEX_HOME}/bin/mxmlc")
+task compileTest(type: JavaExec) {
+    main = "flex2.tools.Mxmlc"
+    classpath = files("${FLEX_HOME}/lib/mxmlc.jar")
+    workingDir = "${FLEX_HOME}/frameworks"
     def argsList = []
     argsList.push('-debug=true')
-    def file = '' + testDir + '/FlexUnitRunner.as'
-    argsList.push(file)
-    def includeSources = '-source-path=' + srcDir
-    argsList.push(includeSources)
-    def includeSources2 = '-source-path=' + testDir
-    argsList.push(includeSources2)
-    argsList.push('-output=build/tests.swf')
-    argsList.push('-library-path+=bin');
-    def flexLibs = "-library-path+=" + "${FLEX_HOME}" + "/frameworks/libs"
-    argsList.push(flexLibs);
+    argsList.push("${testDir}/FlexUnitRunner.as")
+    argsList.push("-source-path=${srcDir}")
+    argsList.push("-source-path=${testDir}")
+    argsList.push("-output=${buildDir}/tests.swf")
+    argsList.push("-library-path+=${binDir}");
+    argsList.push("-library-path+=${FLEX_HOME}/frameworks/libs");
     argsList.push('-static-link-runtime-shared-libraries=true')
     args = argsList
 }
@@ -169,12 +166,14 @@ task test << {
     }
     if(testDir.isDirectory()) {
         def testTaskResult = 'testTaskResult'
+		def testRunner = new File(projectDir, 'build/tests.swf')
+		def htmlOutputDir = new File(projectDir, 'build/reports/html')
         reportDir.mkdirs()
         ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath) 
-        ant.flexunit(swf: 'build/tests.swf', toDir: reportDir, haltonfailure:'false', failureproperty: testTaskResult, verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
+        ant.flexunit(swf: testRunner, toDir: reportDir, haltonfailure:'false', failureproperty: testTaskResult, verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
         ant.junitreport(todir: reportDir) {
             fileset(dir: reportDir, includes: 'TEST-*.xml')
-            report(format:'frames', todir:'build/reports/html')
+            report(format:'frames', todir: htmlOutputDir)
         }
 
         String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
