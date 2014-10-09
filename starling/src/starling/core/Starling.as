@@ -355,14 +355,21 @@ package starling.core
             var profiles:Array;
             var currentProfile:String;
             
-            if (profile == "auto")
-                profiles = ["standard", "baselineExtended", "baseline", "baselineConstrained"];
-            else if (profile is String)
+            if (profile == "auto") {
+                profiles = [];
+                if(parseInt(/\d+/.exec(SystemUtil.version)[0]) >= 14) {
+                    profiles.push("standard");
+                }
+                profiles.push("baselineExtended");
+                profiles.push("baseline");
+                profiles.push("baselineConstrained");
+            } else if (profile is String) {
                 profiles = [profile as String];
-            else if (profile is Array)
+            } else if (profile is Array) {
                 profiles = profile as Array;
-            else
+            } else {
                 throw new ArgumentError("Profile must be of type 'String' or 'Array'");
+            }
             
             mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onCreated, false, 100);
             mStage3D.addEventListener(ErrorEvent.ERROR, onError, false, 100);
