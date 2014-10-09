@@ -116,6 +116,7 @@ package starling.utils
             mObjects = new Dictionary();
             mByteArrays = new Dictionary();
             mMaxConnections = 3;
+            mVerbose = true;
             mQueue = [];
         }
         
@@ -1139,7 +1140,7 @@ package starling.utils
         public function get numQueuedAssets():int { return mQueue.length; }
         
         /** When activated, the class will trace information about added/enqueued assets.
-         *  @default false */
+         *  @default true */
         public function get verbose():Boolean { return mVerbose; }
         public function set verbose(value:Boolean):void { mVerbose = value; }
         
