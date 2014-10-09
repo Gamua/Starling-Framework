@@ -22,6 +22,7 @@ package starling.textures
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
+    import starling.filters.FragmentFilter;
     import starling.utils.SystemUtil;
     import starling.utils.execute;
     import starling.utils.getNextPowerOfTwo;
@@ -187,14 +188,17 @@ package starling.textures
         
         private function render(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
         {
+            var filter:FragmentFilter = object.filter;
+
             mSupport.loadIdentity();
             mSupport.blendMode = object.blendMode == BlendMode.AUTO ?
                 BlendMode.NORMAL : object.blendMode;
-            
+
             if (matrix) mSupport.prependMatrix(matrix);
             else        mSupport.transformMatrix(object);
-            
-            object.render(mSupport, alpha);
+
+            if (filter) filter.render(object, mSupport, alpha);
+            else        object.render(mSupport, alpha);
         }
         
         private function renderBundled(renderBlock:Function, object:DisplayObject=null,

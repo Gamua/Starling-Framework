@@ -200,23 +200,23 @@ package starling.filters
                 object.render(support, parentAlpha);
         }
         
-        private function renderPasses(object:DisplayObject, support:RenderSupport, 
+        private function renderPasses(object:DisplayObject, support:RenderSupport,
                                       parentAlpha:Number, intoCache:Boolean=false):QuadBatch
         {
             var passTexture:Texture;
             var cacheTexture:Texture = null;
-            var stage:Stage = object.stage;
             var context:Context3D = Starling.context;
+            var targetSpace:DisplayObject = object.stage;
             var scale:Number = Starling.current.contentScaleFactor;
             var projMatrix:Matrix   = mHelperMatrix;
             var bounds:Rectangle    = mHelperRect;
             var boundsPot:Rectangle = mHelperRect2;
             
-            if (stage   == null) throw new Error("Filtered object must be on the stage.");
             if (context == null) throw new MissingContextError();
             
-            // the bounds of the object in stage coordinates 
-            calculateBounds(object, stage, mResolution * scale, !intoCache, bounds, boundsPot);
+            // the bounds of the object in stage coordinates
+            // (or, if the object is not connected to the stage, in its base object's coordinates)
+            calculateBounds(object, targetSpace, mResolution * scale, !intoCache, bounds, boundsPot);
             
             if (bounds.isEmpty())
             {
@@ -239,7 +239,7 @@ package starling.filters
                 throw new IllegalOperationError(
                     "To nest filters, you need at least Flash Player / AIR version 15.");
             
-            if (intoCache) 
+            if (intoCache)
                 cacheTexture = Texture.empty(boundsPot.width, boundsPot.height, PMA, false, true,
                                              mResolution * scale);
             
@@ -255,7 +255,7 @@ package starling.filters
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
             support.pushClipRect(bounds);
-            
+
             context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
                                       Context3DVertexBufferFormat.FLOAT_2);
             context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, VertexData.TEXCOORD_OFFSET,
@@ -320,9 +320,12 @@ package starling.filters
                 var quadBatch:QuadBatch = new QuadBatch();
                 var image:Image = new Image(cacheTexture);
                 
-                stage.getTransformationMatrix(object, sTransformationMatrix);
-                MatrixUtil.prependTranslation(sTransformationMatrix, 
-                                              bounds.x + mOffsetX, bounds.y + mOffsetY);
+                // targetSpace could be null, so we calculate the matrix from the other side
+                // and invert.
+
+                object.getTransformationMatrix(targetSpace, sTransformationMatrix).invert();
+                MatrixUtil.prependTranslation(sTransformationMatrix,
+                    bounds.x + mOffsetX, bounds.y + mOffsetY);
                 quadBatch.addImage(image, 1.0, sTransformationMatrix);
 
                 return quadBatch;
@@ -385,32 +388,41 @@ package starling.filters
          *  rectangles: one with the exact filter bounds, the other with an extended rectangle that
          *  will yield to a POT size when multiplied with the current scale factor / resolution.
          */
-        private function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
-                                         intersectWithStage:Boolean, 
+        private function calculateBounds(object:DisplayObject, targetSpace:DisplayObject,
+                                         scale:Number, intersectWithStage:Boolean,
                                          resultRect:Rectangle,
                                          resultPotRect:Rectangle):void
         {
-            var marginX:Number, marginY:Number;
+            var stage:Stage;
+            var marginX:Number = mMarginX;
+            var marginY:Number = mMarginY;
             
-            if (object == stage || object == Starling.current.root)
+            if (targetSpace is Stage)
             {
-                // optimize for full-screen effects
-                marginX = marginY = 0;
-                resultRect.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+                stage = targetSpace as Stage;
+
+                if (object == stage || object == object.root)
+                {
+                    // optimize for full-screen effects
+                    marginX = marginY = 0;
+                    resultRect.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+                }
+                else
+                {
+                    object.getBounds(stage, resultRect);
+                }
+
+                if (intersectWithStage)
+                {
+                    sStageBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+                    RectangleUtil.intersect(resultRect, sStageBounds, resultRect);
+                }
             }
             else
             {
-                marginX = mMarginX;
-                marginY = mMarginY;
-                object.getBounds(stage, resultRect);
+                object.getBounds(targetSpace, resultRect);
             }
-            
-            if (intersectWithStage)
-            {
-                sStageBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
-                RectangleUtil.intersect(resultRect, sStageBounds, resultRect);
-            }
-            
+
             if (!resultRect.isEmpty())
             {    
                 // the bounds are a rectangle around the object, in stage coordinates,
