@@ -226,20 +226,57 @@ package starling.core
             setRenderTarget(target);
         }
 
-        /** Changes the the current render target.
-         *  @param target       Either a texture or 'null' to render into the back buffer.
-         *  @param antiAliasing Only supported for textures, beginning with AIR 13, and only on
-         *                      Desktop. Values range from 0 (no antialiasing) to 4 (best quality).
-         */
-        public function setRenderTarget(target:Texture, antiAliasing:int=0):void
+		/** Changes the the current render target.
+		 *  @param target                Either a texture or 'null' to render into the back buffer.
+		 *  @param antiAliasing          Only supported for textures, beginning with AIR 13, and only on
+		 *                               Desktop. Values range from 0 (no antialiasing) to 4 (best quality).
+		 *  @param enableDepthAndStencil Specifies whether depth and stencil buffers should be enabled if render target is a texture.
+		 */
+		public function setRenderTarget(target:Texture, antiAliasing:int=0, enableDepthAndStencil:Boolean=false):void
         {
             mRenderTarget = target;
             applyClipRect();
             
-            if (target) Starling.context.setRenderToTexture(target.base, false, antiAliasing);
+			if (target) Starling.context.setRenderToTexture(target.base, enableDepthAndStencil, antiAliasing);
             else        Starling.context.setRenderToBackBuffer();
         }
         
+		private var mRenderTargets:Vector.<Texture>;
+		
+		/** Sets multiple render targets. Setting MRTs is supported only when using Stage3D Standard profile.
+		 *  @param targets               Vector containing textures that should be set as render targets.
+		 *                               Should always contain 4 items where each item either should be a texture
+		 *                               or 'null' value when the slot is not used.
+		 *  @param antiAliasing          Only supported for textures, beginning with AIR 13, and only on
+		 *                               Desktop. Values range from 0 (no antialiasing) to 4 (best quality).
+		 *  @param enableDepthAndStencil Specifies whether depth and stencil buffers should be enabled if render target is a texture.
+		 */
+		public function setRenderTargets(targets:Vector.<Texture>, antiAliasing:int=0, enableDepthAndStencil:Boolean=false):void 
+		{			
+			mRenderTarget = targets[0];
+			mRenderTargets = targets;
+			applyClipRect();
+			
+			var le:int = mRenderTargets.length;
+			var context:Context3D = Starling.context;
+			
+			for(var i:int = 0; i < le; i++)
+			{
+				// All render targets with colorOutputIndex > 0 must be reset to null before switching to backbuffer
+				// New render target could be a texture again and not backbuffer, but we should still reset it
+				
+				if(i != 0 || targets[i] != null)
+				{
+					context.setRenderToTexture(targets[i] ? targets[i].base : null, enableDepthAndStencil, antiAliasing, 0, i);
+				}				
+			}
+			
+			if(!mRenderTarget)
+			{
+				Starling.context.setRenderToBackBuffer();
+			}							
+		}
+		
         // clipping
         
         /** The clipping rectangle can be used to limit rendering in the current render target to
