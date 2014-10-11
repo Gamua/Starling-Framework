@@ -273,7 +273,7 @@ package starling.core
             
             if(!mRenderTarget)
             {
-               Starling.context.setRenderToBackBuffer();
+               context.setRenderToBackBuffer();
             }
         }
         
