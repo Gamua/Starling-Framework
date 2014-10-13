@@ -480,11 +480,12 @@ package starling.filters
             throw new Error("Method has to be implemented in subclass!");
         }
 
-        /** Subclasses must override this method and use it to activate their fragment- and 
-         *  to vertext-programs.
-         *  The 'activate' call directly precedes the call to 'context.drawTriangles'. Set up
+        /** Subclasses must override this method and use it to activate their fragment- and
+         *  vertex-programs.
+         *
+         *  <p>The 'activate' call directly precedes the call to 'context.drawTriangles'. Set up
          *  the context the way your filter needs it. The following constants and attributes 
-         *  are set automatically:
+         *  are set automatically:</p>
          *  
          *  <ul><li>vertex constants 0-3: mvpMatrix (3D)</li>
          *      <li>vertex attribute 0: vertex position (FLOAT_2)</li>
