@@ -125,7 +125,7 @@ package starling.textures
             
             mIsPersistent = persistent;
             mSupport = new RenderSupport();
-            mSupport.setOrthographicProjection(0, 0, rootWidth, rootHeight);
+            mSupport.setProjectionMatrix(0, 0, rootWidth, rootHeight, width, height);
             
             if (persistent && (forceDoubleBuffering || !SystemUtil.supportsRelaxedTargetClearRequirement))
             {

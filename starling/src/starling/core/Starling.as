@@ -498,11 +498,12 @@ package starling.core
             mContext.setCulling(Context3DTriangleFace.NONE);
             
             mSupport.renderTarget = null; // back buffer
-            mSupport.setOrthographicProjection(
-                mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0, 
+            mSupport.setProjectionMatrix(
+                mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0,
                 mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
-                mClippedViewPort.width  / scaleX, 
-                mClippedViewPort.height / scaleY);
+                mClippedViewPort.width  / scaleX,
+                mClippedViewPort.height / scaleY,
+                mStage.stageWidth, mStage.stageHeight, mStage.cameraPosition);
             
             if (!mShareContext)
                 RenderSupport.clear(mStage.color, 1.0);

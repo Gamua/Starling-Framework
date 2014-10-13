@@ -20,11 +20,14 @@ package starling.core
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.QuadBatch;
+    import starling.display.Sprite3D;
+    import starling.display.Stage;
     import starling.errors.MissingContextError;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
@@ -45,10 +48,17 @@ package starling.core
         private var mProjectionMatrix:Matrix;
         private var mModelViewMatrix:Matrix;
         private var mMvpMatrix:Matrix;
-        private var mMvpMatrix3D:Matrix3D;
+        
         private var mMatrixStack:Vector.<Matrix>;
         private var mMatrixStackSize:int;
         
+        private var mProjectionMatrix3D:Matrix3D;
+        private var mModelViewMatrix3D:Matrix3D;
+        private var mMvpMatrix3D:Matrix3D;
+        
+        private var mMatrixStack3D:Vector.<Matrix3D>;
+        private var mMatrixStack3DSize:int;
+
         private var mDrawCount:int;
         private var mBlendMode:String;
         private var mRenderTarget:Texture;
@@ -61,10 +71,14 @@ package starling.core
         
         /** helper objects */
         private static var sPoint:Point = new Point();
+        private static var sPoint3D:Vector3D = new Vector3D();
         private static var sClipRect:Rectangle = new Rectangle();
         private static var sBufferRect:Rectangle = new Rectangle();
         private static var sScissorRect:Rectangle = new Rectangle();
         private static var sAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
+        private static var sMatrixData:Vector.<Number> = 
+            new <Number>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         
         // construction
         
@@ -74,9 +88,15 @@ package starling.core
             mProjectionMatrix = new Matrix();
             mModelViewMatrix = new Matrix();
             mMvpMatrix = new Matrix();
-            mMvpMatrix3D = new Matrix3D();
             mMatrixStack = new <Matrix>[];
             mMatrixStackSize = 0;
+            
+            mProjectionMatrix3D = new Matrix3D();
+            mModelViewMatrix3D = new Matrix3D();
+            mMvpMatrix3D = new Matrix3D();
+            mMatrixStack3D = new <Matrix3D>[];
+            mMatrixStack3DSize = 0;
+            
             mDrawCount = 0;
             mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
@@ -86,7 +106,7 @@ package starling.core
             mQuadBatches = new <QuadBatch>[new QuadBatch()];
             
             loadIdentity();
-            setOrthographicProjection(0, 0, 400, 300);
+            setProjectionMatrix(0, 0, 400, 300);
         }
         
         /** Disposes all quad batches. */
@@ -97,20 +117,80 @@ package starling.core
         }
         
         // matrix manipulation
-        
+
+        /** Sets up the projection matrices for 2D and 3D rendering.
+         *
+         *  <p>The first 4 parameters define which area of the stage you want to view. The camera
+         *  will 'zoom' to exactly this region. The perspective in which you're looking at the
+         *  stage is determined by the final 3 parameters.</p>
+         *
+         *  <p>The stage is always on the rectangle that is spawned up between x- and y-axis (with
+         *  the given size). All objects that are exactly on that rectangle (z equals zero) will be
+         *  rendered in their true size, without any distortion.</p>
+         */
+        public function setProjectionMatrix(x:Number, y:Number, width:Number, height:Number,
+                                            stageWidth:Number=0, stageHeight:Number=0,
+                                            cameraPos:Vector3D=null):void
+        {
+            if (stageWidth  <= 0) stageWidth = width;
+            if (stageHeight <= 0) stageHeight = height;
+            if (cameraPos == null)
+            {
+                cameraPos = sPoint3D;
+                cameraPos.setTo(
+                    stageWidth / 2, stageHeight / 2,   // -> center of stage
+                    stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
+            }
+
+            // set up 2d (orthographic) projection
+            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height,
+                -(2*x + width) / width, (2*y + height) / height);
+
+            const focalLength:Number = Math.abs(cameraPos.z);
+            const offsetX:Number = cameraPos.x - stageWidth  / 2;
+            const offsetY:Number = cameraPos.y - stageHeight / 2;
+            const far:Number    = focalLength * 20;
+            const near:Number   = 1;
+            const scaleX:Number = stageWidth  / width;
+            const scaleY:Number = stageHeight / height;
+
+            // set up general perspective
+            sMatrixData[ 0] =  2 * focalLength / stageWidth;  // 0,0
+            sMatrixData[ 5] = -2 * focalLength / stageHeight; // 1,1  [negative to invert y-axis]
+            sMatrixData[10] =  far / (far - near);            // 2,2
+            sMatrixData[14] = -far * near / (far - near);     // 2,3
+            sMatrixData[11] =  1;                             // 3,2
+
+            // now zoom in to visible area
+            sMatrixData[0] *=  scaleX;
+            sMatrixData[5] *=  scaleY;
+            sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
+            sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
+
+            mProjectionMatrix3D.copyRawDataFrom(sMatrixData);
+            mProjectionMatrix3D.prependTranslation(
+                -stageWidth /2.0 - offsetX,
+                -stageHeight/2.0 - offsetY,
+                focalLength);
+
+            applyClipRect();
+        }
+
         /** Sets up the projection matrix for ortographic 2D rendering. */
+        [Deprecated(replacement="setProjectionMatrix")] 
         public function setOrthographicProjection(x:Number, y:Number, width:Number, height:Number):void
         {
-            mProjectionMatrix.setTo(2.0/width, 0, 0, -2.0/height, 
-                -(2*x + width) / width, (2*y + height) / height);
-            
-            applyClipRect();
+            var stage:Stage = Starling.current.stage;
+            sClipRect.setTo(x, y, width, height);
+            setProjectionMatrix(x, y, width, height,
+                stage.stageWidth, stage.stageHeight, stage.cameraPosition);
         }
         
         /** Changes the modelview matrix to the identity matrix. */
         public function loadIdentity():void
         {
             mModelViewMatrix.identity();
+            mModelViewMatrix3D.identity();
         }
         
         /** Prepends a translation to the modelview matrix. */
@@ -148,7 +228,7 @@ package starling.core
         {
             if (mMatrixStack.length < mMatrixStackSize + 1)
                 mMatrixStack.push(new Matrix());
-            
+        
             mMatrixStack[int(mMatrixStackSize++)].copyFrom(mModelViewMatrix);
         }
         
@@ -162,6 +242,7 @@ package starling.core
         public function resetMatrix():void
         {
             mMatrixStackSize = 0;
+            mMatrixStack3DSize = 0;
             loadIdentity();
         }
         
@@ -180,13 +261,6 @@ package starling.core
             return mMvpMatrix;
         }
         
-        /** Calculates the product of modelview and projection matrix and saves it in a 3D matrix. 
-         *  CAUTION: Use with care! Each call returns the same instance. */
-        public function get mvpMatrix3D():Matrix3D
-        {
-            return MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
-        }
-        
         /** Returns the current modelview matrix.
          *  CAUTION: Use with care! Each call returns the same instance. */
         public function get modelViewMatrix():Matrix { return mModelViewMatrix; }
@@ -200,6 +274,60 @@ package starling.core
             applyClipRect();
         }
         
+        // 3d transformations
+        
+        /** Prepends translation, scale and rotation of an object to the 3D modelview matrix.
+         *  The current contents of the 2D modelview matrix is stored in the 3D modelview matrix
+         *  before doing so; the 2D modelview matrix is then reset to the identity matrix. */
+        public function transformMatrix3D(object:Sprite3D):void
+        {
+            mModelViewMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
+            mModelViewMatrix3D.prepend(object.transformationMatrix3D);
+            mModelViewMatrix.identity();
+        }
+        
+        /** Pushes the current 3D modelview matrix to a stack from which it can be restored later. */
+        public function pushMatrix3D():void
+        {
+            if (mMatrixStack3D.length < mMatrixStack3DSize + 1)
+                mMatrixStack3D.push(new Matrix3D());
+            
+            mMatrixStack3D[int(mMatrixStack3DSize++)].copyFrom(mModelViewMatrix3D);
+        }
+        
+        /** Restores the 3D modelview matrix that was last pushed to the stack. */
+        public function popMatrix3D():void
+        {
+            mModelViewMatrix3D.copyFrom(mMatrixStack3D[int(--mMatrixStack3DSize)]);
+        }
+        
+        /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
+         *  Different to 'mvpMatrix', this also takes 3D transformations into account. 
+         *  CAUTION: Use with care! Each call returns the same instance. */
+        public function get mvpMatrix3D():Matrix3D
+        {
+            if (mMatrixStack3DSize == 0)
+            {
+                MatrixUtil.convertTo3D(mvpMatrix, mMvpMatrix3D);
+            }
+            else
+            {
+                mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
+                mMvpMatrix3D.prepend(mModelViewMatrix3D);
+                mMvpMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
+            }
+            
+            return mMvpMatrix3D;
+        }
+        
+        /** Returns the current 3D projection matrix.
+         *  CAUTION: Use with care! Each call returns the same instance. */
+        public function get projectionMatrix3D():Matrix3D { return mProjectionMatrix3D; }
+        public function set projectionMatrix3D(value:Matrix3D):void
+        {
+            mProjectionMatrix3D.copyFrom(value);
+        }
+
         // blending
         
         /** Activates the current blend mode on the active rendering context. */
@@ -369,7 +497,17 @@ package starling.core
             
             if (currentBatch.numQuads != 0)
             {
-                currentBatch.renderCustom(mProjectionMatrix);
+                if (mMatrixStack3DSize == 0)
+                {
+                    currentBatch.renderCustom(mProjectionMatrix3D);
+                }
+                else
+                {
+                    mMvpMatrix3D.copyFrom(mProjectionMatrix3D);
+                    mMvpMatrix3D.prepend(mModelViewMatrix3D);
+                    currentBatch.renderCustom(mMvpMatrix3D);
+                }
+                
                 currentBatch.reset();
                 
                 ++mCurrentQuadBatchID;

@@ -11,8 +11,10 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
@@ -71,7 +73,9 @@ package starling.display
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
+        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         private static var sHelperPoint:Point = new Point();
+        private static var sHelperPoint3D:Vector3D = new Vector3D();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         
@@ -284,7 +288,7 @@ package starling.display
             }
             else if (numChildren == 1)
             {
-                resultRect = mChildren[0].getBounds(targetSpace, resultRect);
+                mChildren[0].getBounds(targetSpace, resultRect);
             }
             else
             {
@@ -294,10 +298,11 @@ package starling.display
                 for (var i:int=0; i<numChildren; ++i)
                 {
                     mChildren[i].getBounds(targetSpace, resultRect);
-                    minX = minX < resultRect.x ? minX : resultRect.x;
-                    maxX = maxX > resultRect.right ? maxX : resultRect.right;
-                    minY = minY < resultRect.y ? minY : resultRect.y;
-                    maxY = maxY > resultRect.bottom ? maxY : resultRect.bottom;
+
+                    if (minX > resultRect.x)      minX = resultRect.x;
+                    if (maxX < resultRect.right)  maxX = resultRect.right;
+                    if (minY > resultRect.y)      minY = resultRect.y;
+                    if (maxY < resultRect.bottom) maxY = resultRect.bottom;
                 }
                 
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
@@ -305,7 +310,7 @@ package starling.display
             
             return resultRect;
         }
-        
+
         /** @inheritDoc */
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {

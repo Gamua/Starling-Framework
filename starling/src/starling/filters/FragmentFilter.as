@@ -18,7 +18,9 @@ package starling.filters
     import flash.display3D.VertexBuffer3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
@@ -111,9 +113,10 @@ package starling.filters
         private static var sTransformationMatrix:Matrix = new Matrix();
         
         /** Helper objects that may be used recursively (thus not static). */
-        private var mHelperMatrix:Matrix = new Matrix();
-        private var mHelperRect:Rectangle  = new Rectangle();
-        private var mHelperRect2:Rectangle = new Rectangle();
+        private var mHelperMatrix:Matrix     = new Matrix();
+        private var mHelperMatrix3D:Matrix3D = new Matrix3D();
+        private var mHelperRect:Rectangle    = new Rectangle();
+        private var mHelperRect2:Rectangle   = new Rectangle();
 
         /** Creates a new Fragment filter with the specified number of passes and resolution.
          *  This constructor may only be called by the constructor of a subclass. */
@@ -207,10 +210,12 @@ package starling.filters
             var cacheTexture:Texture = null;
             var context:Context3D = Starling.context;
             var targetSpace:DisplayObject = object.stage;
+            var stage:Stage  = Starling.current.stage;
             var scale:Number = Starling.current.contentScaleFactor;
-            var projMatrix:Matrix   = mHelperMatrix;
-            var bounds:Rectangle    = mHelperRect;
-            var boundsPot:Rectangle = mHelperRect2;
+            var projMatrix:Matrix     = mHelperMatrix;
+            var projMatrix3D:Matrix3D = mHelperMatrix3D
+            var bounds:Rectangle      = mHelperRect;
+            var boundsPot:Rectangle   = mHelperRect2;
             
             if (context == null) throw new MissingContextError();
             
@@ -230,9 +235,11 @@ package starling.filters
             support.finishQuadBatch();
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
+            support.pushMatrix3D();
             
             // save original projection matrix and render target
             projMatrix.copyFrom(support.projectionMatrix);
+            projMatrix3D.copyFrom(support.projectionMatrix3D);
             var previousRenderTarget:Texture = support.renderTarget;
             
             if (previousRenderTarget && !SystemUtil.supportsRelaxedTargetClearRequirement)
@@ -247,7 +254,10 @@ package starling.filters
             support.renderTarget = mPassTextures[0];
             support.clear();
             support.blendMode = BlendMode.NORMAL;
-            support.setOrthographicProjection(bounds.x, bounds.y, boundsPot.width, boundsPot.height);
+            support.setProjectionMatrix(
+                bounds.x, bounds.y, boundsPot.width, boundsPot.height,
+                stage.stageWidth, stage.stageHeight, stage.cameraPosition);
+
             object.render(support, parentAlpha);
             support.finishQuadBatch();
             
@@ -281,7 +291,8 @@ package starling.filters
                     else
                     {
                         // draw into back buffer, at original (stage) coordinates
-                        support.projectionMatrix = projMatrix;
+                        support.projectionMatrix   = projMatrix;
+                        support.projectionMatrix3D = projMatrix3D;
                         support.renderTarget = previousRenderTarget;
                         support.translateMatrix(mOffsetX, mOffsetY);
                         support.blendMode = object.blendMode;
@@ -305,6 +316,7 @@ package starling.filters
             context.setTextureAt(mBaseTextureID, null);
             
             support.popMatrix();
+            support.popMatrix3D();
             support.popClipRect();
             
             if (intoCache)
@@ -312,6 +324,7 @@ package starling.filters
                 // restore support settings
                 support.renderTarget = previousRenderTarget;
                 support.projectionMatrix.copyFrom(projMatrix);
+                support.projectionMatrix3D.copyFrom(projMatrix3D);
                 
                 // Create an image containing the cache. To have a display object that contains
                 // the filter output in object coordinates, we wrap it in a QuadBatch: that way,
