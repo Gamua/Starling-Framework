@@ -95,7 +95,8 @@ package starling.textures
          *  buffer (i.e. the required graphics memory is doubled). Beginning with version 15, this
          *  is no longer necessary.</p>
          */
-        public function RenderTexture(width:int, height:int, persistent:Boolean=true, scale:Number=-1)
+        public function RenderTexture(width:int, height:int, persistent:Boolean=true,
+                                      scale:Number=-1, format:String="bgra", repeat:Boolean=false)
         {
             // TODO: when Adobe has fixed this bug on the iPad 1 (see 'supportsNonPotDimensions'),
             //       we can remove 'legalWidth/Height' and just pass on the original values.
@@ -115,7 +116,7 @@ package starling.textures
 
             // [/Workaround]
 
-            mActiveTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
+            mActiveTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format, repeat);
             mActiveTexture.root.onRestore = mActiveTexture.root.clear;
             
             super(mActiveTexture, new Rectangle(0, 0, width, height), true, null, false);
@@ -129,7 +130,7 @@ package starling.textures
             
             if (persistent && (forceDoubleBuffering || !SystemUtil.supportsRelaxedTargetClearRequirement))
             {
-                mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale);
+                mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format, repeat);
                 mBufferTexture.root.onRestore = mBufferTexture.root.clear;
                 mHelperImage = new Image(mBufferTexture);
                 mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
