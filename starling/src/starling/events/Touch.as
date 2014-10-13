@@ -15,7 +15,6 @@ package starling.events
     
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
-    import starling.utils.MatrixUtil;
     import starling.utils.formatString;
     
     use namespace starling_internal;
