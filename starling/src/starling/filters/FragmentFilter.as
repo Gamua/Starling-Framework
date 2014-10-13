@@ -20,7 +20,6 @@ package starling.filters
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
     
