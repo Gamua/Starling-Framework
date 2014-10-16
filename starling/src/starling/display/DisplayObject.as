@@ -743,7 +743,9 @@ package starling.display
             return getBounds(mParent);
         }
         
-        /** The width of the object in pixels. */
+        /** The width of the object in pixels.
+         *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
+         *  be accurate until the object is part of the display list. */
         public function get width():Number { return getBounds(mParent, sHelperRect).width; }
         public function set width(value:Number):void
         {
@@ -755,7 +757,9 @@ package starling.display
             if (actualWidth != 0.0) scaleX = value / actualWidth;
         }
         
-        /** The height of the object in pixels. */
+        /** The height of the object in pixels.
+         *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
+         *  be accurate until the object is part of the display list. */
         public function get height():Number { return getBounds(mParent, sHelperRect).height; }
         public function set height(value:Number):void
         {

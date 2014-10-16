@@ -96,7 +96,7 @@ package starling.display
                 if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
                 if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
             }
-            else if (is3D)
+            else if (is3D && stage)
             {
                 stage.getCameraPosition(targetSpace, sHelperPoint3D);
                 getTransformationMatrix3D(targetSpace, sHelperMatrix3D);
