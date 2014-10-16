@@ -173,9 +173,12 @@ package starling.display
         {
             if (mTransformationChanged)
             {
+                // minimum scale; Matrix3D does not like scale values of zero ...
+                const ms:Number = 0.00001;
+
                 mTransformationChanged = false;
                 mTransformationMatrix3D.identity();
-                mTransformationMatrix3D.appendScale(scaleX, scaleY, mScaleZ);
+                mTransformationMatrix3D.appendScale(scaleX || ms , scaleY || ms, mScaleZ || ms);
                 mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
                 mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
                 mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
