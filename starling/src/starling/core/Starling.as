@@ -1026,7 +1026,7 @@ package starling.core
         /** Indicates that if the device supports HiDPI screens Starling will attempt to allocate
          *  a larger back buffer than indicated via the viewPort size. Note that this is used
          *  on Desktop only; mobile AIR apps still use the "requestedDisplayResolution" parameter
-         *  the application descriptor XML. */
+         *  the application descriptor XML. @default false */
         public function get supportHighResolutions():Boolean { return mSupportHighResolutions; }
         public function set supportHighResolutions(value:Boolean):void 
         {
