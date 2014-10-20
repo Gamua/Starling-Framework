@@ -26,7 +26,6 @@ package starling.core
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.QuadBatch;
-    import starling.display.Sprite3D;
     import starling.display.Stage;
     import starling.errors.MissingContextError;
     import starling.textures.Texture;
@@ -279,7 +278,7 @@ package starling.core
         /** Prepends translation, scale and rotation of an object to the 3D modelview matrix.
          *  The current contents of the 2D modelview matrix is stored in the 3D modelview matrix
          *  before doing so; the 2D modelview matrix is then reset to the identity matrix. */
-        public function transformMatrix3D(object:Sprite3D):void
+        public function transformMatrix3D(object:DisplayObject):void
         {
             mModelViewMatrix3D.prepend(MatrixUtil.convertTo3D(mModelViewMatrix, sMatrix3D));
             mModelViewMatrix3D.prepend(object.transformationMatrix3D);
