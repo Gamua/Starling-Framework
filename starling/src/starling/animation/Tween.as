@@ -161,7 +161,7 @@ package starling.animation
             if (mCurrentCycle < 0 && previousTime <= 0 && mCurrentTime > 0)
             {
                 mCurrentCycle++;
-                if (mOnStart != null) mOnStart.apply(null, mOnStartArgs);
+                if (mOnStart != null) mOnStart.apply(this, mOnStartArgs);
             }
 
             var ratio:Number = mCurrentTime / mTotalTime;
@@ -184,7 +184,7 @@ package starling.animation
             }
 
             if (mOnUpdate != null) 
-                mOnUpdate.apply(null, mOnUpdateArgs);
+                mOnUpdate.apply(this, mOnUpdateArgs);
             
             if (previousTime < mTotalTime && mCurrentTime >= mTotalTime)
             {
@@ -193,7 +193,7 @@ package starling.animation
                     mCurrentTime = -mRepeatDelay;
                     mCurrentCycle++;
                     if (mRepeatCount > 1) mRepeatCount--;
-                    if (mOnRepeat != null) mOnRepeat.apply(null, mOnRepeatArgs);
+                    if (mOnRepeat != null) mOnRepeat.apply(this, mOnRepeatArgs);
                 }
                 else
                 {
@@ -205,7 +205,7 @@ package starling.animation
                     // add it to another juggler; so this event has to be dispatched *before*
                     // executing 'onComplete'.
                     dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
-                    if (onComplete != null) onComplete.apply(null, onCompleteArgs);
+                    if (onComplete != null) onComplete.apply(this, onCompleteArgs);
                 }
             }
             
