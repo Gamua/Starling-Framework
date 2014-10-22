@@ -18,6 +18,8 @@ package starling.utils
     /** A utility class containing methods you might need for maths problems. */
     public class MathUtil
     {
+        private static const TWO_PI:Number = Math.PI * 2.0;
+
         /** @private */
         public function MathUtil() { throw new AbstractClassError(); }
 
@@ -37,6 +39,19 @@ package starling.utils
             resultPoint.y = pointA.y + lambda * vectorY;
 
             return resultPoint;
+        }
+
+        /** Moves a radian angle into the range [-PI, +PI], while keeping the direction intact. */
+        public static function normalizeAngle(angle:Number):Number
+        {
+            // move to equivalent value in range [0 deg, 360 deg] without a loop
+            angle = angle % TWO_PI;
+
+            // move to [-180 deg, +180 deg]
+            if (angle < -Math.PI) angle += TWO_PI;
+            if (angle >  Math.PI) angle -= TWO_PI;
+
+            return angle;
         }
     }
 }

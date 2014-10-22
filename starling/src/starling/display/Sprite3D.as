@@ -283,7 +283,7 @@ package starling.display
         public function get rotationX():Number { return mRotationX; }
         public function set rotationX(value:Number):void
         {
-            mRotationX = value;
+            mRotationX = MathUtil.normalizeAngle(value);
             mTransformationChanged = true;
         }
 
@@ -292,7 +292,7 @@ package starling.display
         public function get rotationY():Number { return mRotationY; }
         public function set rotationY(value:Number):void
         {
-            mRotationY = value;
+            mRotationY = MathUtil.normalizeAngle(value);
             mTransformationChanged = true;
         }
 

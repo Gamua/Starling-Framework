@@ -128,8 +128,6 @@ package starling.display
      */
     public class DisplayObject extends EventDispatcher
     {
-        private static const TWO_PI:Number = Math.PI * 2.0;
-        
         // members
         
         private var mX:Number;
@@ -503,18 +501,6 @@ package starling.display
             return (a - epsilon < b) && (a + epsilon > b);
         }
         
-        private final function normalizeAngle(angle:Number):Number
-        {
-            // move to equivalent value in range [0 deg, 360 deg] without a loop
-            angle = angle % TWO_PI;
-
-            // move to [-180 deg, +180 deg]
-            if (angle < -Math.PI) angle += TWO_PI;
-            if (angle >  Math.PI) angle -= TWO_PI;
-
-            return angle;
-        }
-        
         private final function findCommonParent(object1:DisplayObject,
                                                 object2:DisplayObject):DisplayObject
         {
@@ -838,7 +824,7 @@ package starling.display
         public function get skewX():Number { return mSkewX; }
         public function set skewX(value:Number):void 
         {
-            value = normalizeAngle(value);
+            value = MathUtil.normalizeAngle(value);
             
             if (mSkewX != value)
             {
@@ -851,7 +837,7 @@ package starling.display
         public function get skewY():Number { return mSkewY; }
         public function set skewY(value:Number):void 
         {
-            value = normalizeAngle(value);
+            value = MathUtil.normalizeAngle(value);
             
             if (mSkewY != value)
             {
@@ -865,7 +851,7 @@ package starling.display
         public function get rotation():Number { return mRotation; }
         public function set rotation(value:Number):void 
         {
-            value = normalizeAngle(value);
+            value = MathUtil.normalizeAngle(value);
 
             if (mRotation != value)
             {            
