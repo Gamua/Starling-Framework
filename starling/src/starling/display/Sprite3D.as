@@ -70,6 +70,7 @@ package starling.display
         private var mRotationX:Number;
         private var mRotationY:Number;
         private var mScaleZ:Number;
+        private var mPivotZ:Number;
         private var mZ:Number;
 
         private var mTransformationMatrix:Matrix;
@@ -85,7 +86,7 @@ package starling.display
         public function Sprite3D()
         {
             mScaleZ = 1.0;
-            mRotationX = mRotationY = mZ = 0.0;
+            mRotationX = mRotationY = mPivotZ = mZ = 0.0;
             mTransformationMatrix = new Matrix();
             mTransformationMatrix3D = new Matrix3D();
             setIs3D(true);
@@ -171,6 +172,7 @@ package starling.display
             mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
             mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
             mTransformationMatrix3D.appendTranslation(x, y, mZ);
+            mTransformationMatrix3D.prependTranslation(-pivotX, -pivotY, -mPivotZ);
 
             if (is2D) MatrixUtil.convertTo2D(mTransformationMatrix3D, mTransformationMatrix);
             else      mTransformationMatrix.identity();
@@ -244,22 +246,26 @@ package starling.display
             mTransformationChanged = true;
         }
 
-        /** @private */
+        /** @inheritDoc */
         public override function set pivotX(value:Number):void
         {
-            throw new Error("3D objects do not support pivot points");
-
-            // super.pivotX = value;
-            // mOrientationChanged = true;
+             super.pivotX = value;
+             mTransformationChanged = true;
         }
 
-        /** @private */
+        /** @inheritDoc */
         public override function set pivotY(value:Number):void
         {
-            throw new Error("3D objects do not support pivot points");
+             super.pivotY = value;
+             mTransformationChanged = value;
+        }
 
-            // super.pivotY = value;
-            // mOrientationChanged = value;
+        /** The z coordinate of the object's origin in its own coordinate space (default: 0). */
+        public function get pivotZ():Number { return mPivotZ; }
+        public function set pivotZ(value:Number):void
+        {
+            mPivotZ = value;
+            mTransformationChanged = true;
         }
 
         /** @inheritDoc */
