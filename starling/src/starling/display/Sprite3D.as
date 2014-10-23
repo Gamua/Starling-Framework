@@ -49,15 +49,18 @@ package starling.display
      *
      *  <p><strong>Setting up the camera</strong></p>
      *
-     *  <p>The position and settings of the camera are found directly on the stage.
-     *  Modify the 'focalLength' to define the distance between stage and camera, or set up the
-     *  'fieldOfView' directly.</p>
+     *  <p>The camera settings are found directly on the stage. Modify the 'focalLength' or
+     *  'fieldOfView' properties to change the distance between stage and camera; use the
+     *  'projectionOffset' to move it to a different position.</p>
      *
      *  <p><strong>Limitations</strong></p>
      *
      *  <p>A Sprite3D object cannot be flattened (although you can flatten objects <em>within</em>
-     *  a Sprite3D), and it does not work with the "clipRect" property. On rendering, each
-     *  Sprite3D requires its own draw call.</p>
+     *  a Sprite3D), and it does not work with the "clipRect" property. Furthermore, a filter
+     *  applied to a Sprite3D object cannot be cached.</p>
+     *
+     *  <p>On rendering, each Sprite3D requires its own draw call — except if the object does not
+     *  contain any 3D transformations ('z', 'rotationX' and 'rotationY' are zero).</p>
      *
      */
     public class Sprite3D extends DisplayObjectContainer
