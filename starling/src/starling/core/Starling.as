@@ -10,6 +10,7 @@
 
 package starling.core
 {
+    import flash.display.Shape;
     import flash.display.Sprite;
     import flash.display.Stage3D;
     import flash.display.StageAlign;
@@ -51,12 +52,15 @@ package starling.core
     import starling.utils.VAlign;
     import starling.utils.execute;
     
-    /** Dispatched when a new render context is created. */
+    /** Dispatched when a new render context is created. The 'data' property references the context. */
     [Event(name="context3DCreate", type="starling.events.Event")]
     
-    /** Dispatched when the root class has been created. */
+    /** Dispatched when the root class has been created. The 'data' property references that object. */
     [Event(name="rootCreated", type="starling.events.Event")]
     
+    /** Dispatched when a fatal error is encountered. The 'data' property contains an error string. */
+    [Event(name="fatalError", type="starling.events.Event")]
+
     /** The Starling class represents the core of the Starling framework.
      *
      *  <p>The Starling framework makes it possible to create 2D applications and games that make
@@ -579,10 +583,17 @@ package starling.core
             mNativeOverlay.scaleY = mViewPort.height / mStage.stageHeight;
         }
         
-        private function showFatalError(message:String):void
+        /** Stops Starling right away and displays an error message on the native overlay.
+         *  This method will also cause Starling to dispatch a FATAL_ERROR event. */
+        public function stopWithFatalError(message:String):void
         {
+            var background:Shape = new Shape();
+            background.graphics.beginFill(0x0, 0.8);
+            background.graphics.drawRect(0, 0, mStage.stageWidth, mStage.stageHeight);
+            background.graphics.endFill();
+
             var textField:TextField = new TextField();
-            var textFormat:TextFormat = new TextFormat("Verdana", 12, 0xFFFFFF);
+            var textFormat:TextFormat = new TextFormat("Verdana", 14, 0xFFFFFF);
             textFormat.align = TextFormatAlign.CENTER;
             textField.defaultTextFormat = textFormat;
             textField.wordWrap = true;
@@ -592,10 +603,15 @@ package starling.core
             textField.x = (mStage.stageWidth  - textField.width)  / 2;
             textField.y = (mStage.stageHeight - textField.height) / 2;
             textField.background = true;
-            textField.backgroundColor = 0x440000;
+            textField.backgroundColor = 0x550000;
 
             updateNativeOverlay();
+            nativeOverlay.addChild(background);
             nativeOverlay.addChild(textField);
+            stop();
+
+            trace("[Starling]", message);
+            dispatchEventWith(starling.events.Event.FATAL_ERROR, false, message);
         }
         
         /** Make this Starling instance the <code>current</code> one. */
@@ -636,22 +652,20 @@ package starling.core
             if (event.errorID == 3702)
             {
                 var mode:String = Capabilities.playerType == "Desktop" ? "renderMode" : "wmode";
-                showFatalError("Context3D not available! Possible reasons: wrong " + mode +
-                               " or missing device support.");
+                stopWithFatalError("Context3D not available! Possible reasons: wrong " + mode +
+                                   " or missing device support.");
             }
             else
-                showFatalError("Stage3D error: " + event.text);
+                stopWithFatalError("Stage3D error: " + event.text);
         }
         
         private function onContextCreated(event:Event):void
         {
             if (!Starling.handleLostContext && mContext)
             {
-                stop();
                 event.stopImmediatePropagation();
-                showFatalError("Fatal error: The application lost the device context!");
-                trace("[Starling] The device context was lost. " + 
-                      "Enable 'Starling.handleLostContext' to avoid this error.");
+                stopWithFatalError("The application lost the device context!");
+                trace("[Starling] Enable 'Starling.handleLostContext' to avoid this error.");
             }
             else
             {
