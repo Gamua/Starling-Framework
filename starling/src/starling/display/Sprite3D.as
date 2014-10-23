@@ -62,6 +62,8 @@ package starling.display
      */
     public class Sprite3D extends DisplayObjectContainer
     {
+        private static const E:Number = 0.00001;
+
         private var mRotationX:Number;
         private var mRotationY:Number;
         private var mScaleZ:Number;
@@ -92,33 +94,41 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            support.finishQuadBatch();
-            support.pushMatrix3D();
-            support.transformMatrix3D(this);
+            if (is2D) super.render(support, parentAlpha)
+            else
+            {
+                support.finishQuadBatch();
+                support.pushMatrix3D();
+                support.transformMatrix3D(this);
 
-            super.render(support, parentAlpha);
+                super.render(support, parentAlpha);
 
-            support.finishQuadBatch();
-            support.popMatrix3D();
+                support.finishQuadBatch();
+                support.popMatrix3D();
+            }
         }
 
         /** @inheritDoc */
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
-            if (forTouch && (!visible || !touchable))
-                return null;
+            if (is2D) return super.hitTest(localPoint, forTouch);
+            else
+            {
+                if (forTouch && (!visible || !touchable))
+                    return null;
 
-            // We calculate the interception point between the 3D plane that is spawned up
-            // by this sprite3D and the straight line between the camera and the hit point.
+                // We calculate the interception point between the 3D plane that is spawned up
+                // by this sprite3D and the straight line between the camera and the hit point.
 
-            sHelperMatrix.copyFrom(transformationMatrix3D);
-            sHelperMatrix.invert();
+                sHelperMatrix.copyFrom(transformationMatrix3D);
+                sHelperMatrix.invert();
 
-            stage.getCameraPosition(this, sHelperPoint);
-            MatrixUtil.transformCoords3D(sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
-            MathUtil.intersectLineWithXYPlane(sHelperPoint, sHelperPointAlt, localPoint);
+                stage.getCameraPosition(this, sHelperPoint);
+                MatrixUtil.transformCoords3D(sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
+                MathUtil.intersectLineWithXYPlane(sHelperPoint, sHelperPointAlt, localPoint);
 
-            return super.hitTest(localPoint, forTouch);
+                return super.hitTest(localPoint, forTouch);
+            }
         }
 
         // helpers
@@ -150,14 +160,41 @@ package starling.display
             object.setIs3D(value);
         }
 
+        private function updateMatrices():void
+        {
+            mTransformationMatrix3D.identity();
+            mTransformationMatrix3D.appendScale(scaleX || E , scaleY || E, mScaleZ || E);
+            mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
+            mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
+            mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
+            mTransformationMatrix3D.appendTranslation(x, y, mZ);
+
+            if (is2D) MatrixUtil.convertTo2D(mTransformationMatrix3D, mTransformationMatrix);
+            else      mTransformationMatrix.identity();
+        }
+
+        /** Indicates if the object can be represented by a 2D transformation. */
+        [Inline]
+        private final function get is2D():Boolean
+        {
+            return mZ > -E && mZ < E &&
+                mRotationX > -E && mRotationX < E &&
+                mRotationY > -E && mRotationY < E;
+        }
+
         // properties
 
-        /** Always returns the identity matrix. The actual transformation of a Sprite3D is stored
-         *  in 'transformationMatrix3D' (a 2D matrix cannot represent 3D transformations).
-         *  If you assign a 2D transformation matrix, it will be converted to 3D and stored as
-         *  3D transformation matrix. */
+        /** The 2D transformation matrix of the object relative to its parent — if it can be
+         *  represented in such a matrix (the values of 'z', 'rotationX', and 'rotationY' are
+         *  zero). Otherwise, the identity matrix. CAUTION: not a copy, but the actual object! */
         public override function get transformationMatrix():Matrix
         {
+            if (mTransformationChanged)
+            {
+                updateMatrices();
+                mTransformationChanged = false;
+            }
+
             return mTransformationMatrix;
         }
 
@@ -173,16 +210,8 @@ package starling.display
         {
             if (mTransformationChanged)
             {
-                // minimum scale; Matrix3D does not like scale values of zero ...
-                const ms:Number = 0.00001;
-
+                updateMatrices();
                 mTransformationChanged = false;
-                mTransformationMatrix3D.identity();
-                mTransformationMatrix3D.appendScale(scaleX || ms , scaleY || ms, mScaleZ || ms);
-                mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
-                mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
-                mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
-                mTransformationMatrix3D.appendTranslation(x, y, mZ);
             }
 
             return mTransformationMatrix3D;
