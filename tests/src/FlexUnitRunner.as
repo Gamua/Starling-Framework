@@ -14,6 +14,7 @@ package
     import tests.display.DisplayObjectTest;
     import tests.display.MovieClipTest;
     import tests.display.QuadTest;
+    import tests.display.Sprite3DTest;
     import tests.events.EventTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
@@ -61,6 +62,7 @@ package
             testsToRun.push(tests.utils.VertexDataTest);
             testsToRun.push(tests.utils.MatrixUtilTest);
             testsToRun.push(tests.utils.MathUtilTest);
+            testsToRun.push(tests.display.Sprite3DTest);
             return testsToRun;
         }
     }
