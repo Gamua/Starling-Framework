@@ -608,7 +608,7 @@ package starling.core
             updateNativeOverlay();
             nativeOverlay.addChild(background);
             nativeOverlay.addChild(textField);
-            stop();
+            stop(true);
 
             trace("[Starling]", message);
             dispatchEventWith(starling.events.Event.FATAL_ERROR, false, message);
