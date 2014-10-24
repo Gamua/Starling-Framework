@@ -206,6 +206,7 @@ package starling.display
         public override function set transformationMatrix(value:Matrix):void
         {
             super.transformationMatrix = value;
+            mRotationX = mRotationY = mPivotZ = mZ = 0;
             mTransformationChanged = true;
         }
 
