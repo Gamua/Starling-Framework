@@ -60,6 +60,7 @@ package
             testsToRun.push(tests.utils.RectangleUtilTest);
             testsToRun.push(tests.utils.VertexDataTest);
             testsToRun.push(tests.utils.MatrixUtilTest);
+            testsToRun.push(tests.utils.MathUtilTest);
             return testsToRun;
         }
     }
