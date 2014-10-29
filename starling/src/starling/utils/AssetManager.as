@@ -40,6 +40,10 @@ package starling.utils
      *  The 'data' property of the Event contains the URL-String that could not be loaded. */
     [Event(name="ioError", type="starling.events.Event")]
 
+    /** Dispatched when an URLLoader fails with a SECURITY_ERROR while processing the queue.
+     *  The 'data' property of the Event contains the URL-String that could not be loaded. */
+    [Event(name="securityError", type="starling.events.Event")]
+
     /** Dispatched when an XML or JSON file couldn't be parsed.
      *  The 'data' property of the Event contains the name of the asset that could not be parsed. */
     [Event(name="parseError", type="starling.events.Event")]
@@ -72,6 +76,33 @@ package starling.utils
      *  not reappear all at once, but during a timeframe of several seconds. If you want, you can
      *  pause your game during that time; the AssetManager dispatches an "Event.TEXTURES_RESTORED"
      *  event when all textures have been restored.</p>
+     *
+     *  <strong>Error handling</strong>
+     *
+     *  <p>Loading of some assets may fail while the queue is being processed. In that case, the
+     *  AssetManager will dispatch events of type "IO_ERROR", "SECURITY_ERROR" or "PARSE_ERROR".
+     *  You can listen to those events and handle the errors manually (e.g., you could enqueue
+     *  them once again and retry, or provide placeholder textures). Queue processing will
+     *  continue even when those events are dispatched.</p>
+     *
+     *  <strong>Using variable texture formats</strong>
+     *
+     *  <p>When you enqueue a texture, its properties for "format", "scale", "mipMapping", and
+     *  "repeat" will reflect the settings of the AssetManager at the time they were enqueued.
+     *  This means that you can enqueue a bunch of textures, then change the settings and enqueue
+     *  some more. Like this:</p>
+     *
+     *  <listing>
+     *  var appDir:File = File.applicationDirectory;
+     *  var assets:AssetManager = new AssetManager();
+     *  
+     *  assets.textureFormat = Context3DTextureFormat.BGRA;
+     *  assets.enqueue(appDir.resolvePath("textures/32bit"));
+     *  
+     *  assets.textureFormat = Context3DTextureFormat.BGRA_PACKED;
+     *  assets.enqueue(appDir.resolvePath("textures/16bit"));
+     *  
+     *  assets.loadQueue(...);</listing>
      */
     public class AssetManager extends EventDispatcher
     {
@@ -1153,6 +1184,11 @@ package starling.utils
         public function get useMipMaps():Boolean { return mDefaultTextureOptions.mipMapping; }
         public function set useMipMaps(value:Boolean):void { mDefaultTextureOptions.mipMapping = value; }
         
+        /** Textures that are created from Bitmaps or ATF files will have the repeat setting
+         *  assigned here. @default false */
+        public function get textureRepeat():Boolean { return mDefaultTextureOptions.repeat; }
+        public function set textureRepeat(value:Boolean):void { mDefaultTextureOptions.repeat = value; }
+
         /** Textures that are created from Bitmaps or ATF files will have the scale factor 
          *  assigned here. @default 1 */
         public function get scaleFactor():Number { return mDefaultTextureOptions.scale; }
