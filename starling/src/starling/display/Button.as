@@ -210,8 +210,9 @@ package starling.display
             mBody.texture = texture ? texture : mUpState;
         }
 
-        /** The scale factor of the button on touch. Per default, a button with a down state 
-         *  texture won't scale. */
+        /** The scale factor of the button on touch. Per default, a button without a down state
+         *  texture will be made slightly smaller, while a button with a down state texture
+         *  remains unscaled. */
         public function get scaleWhenDown():Number { return mScaleWhenDown; }
         public function set scaleWhenDown(value:Number):void { mScaleWhenDown = value; }
         
@@ -296,7 +297,13 @@ package starling.display
             if (mUpState != value)
             {
                 mUpState = value;
-                if (mState == ButtonState.UP) setStateTexture(value);
+                if ( mState == ButtonState.UP ||
+                    (mState == ButtonState.DISABLED && mDisabledState == null) ||
+                    (mState == ButtonState.DOWN && mDownState == null) ||
+                    (mState == ButtonState.OVER && mOverState == null))
+                {
+                    setStateTexture(value);
+                }
             }
         }
         
