@@ -258,7 +258,7 @@ package starling.display
         public override function set pivotY(value:Number):void
         {
              super.pivotY = value;
-             mTransformationChanged = value;
+             mTransformationChanged = true;
         }
 
         /** The z coordinate of the object's origin in its own coordinate space (default: 0). */
