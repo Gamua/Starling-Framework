@@ -28,7 +28,7 @@ package
         private function start():void
         {
             Starling.multitouchEnabled = true; // for Multitouch Scene
-            Starling.handleLostContext = true; // required on Windows, needs more memory
+            Starling.handleLostContext = true; // recommended everwhere when using AssetManager
             
             mStarling = new Starling(Game, stage);
             mStarling.simulateMultitouch = true;
