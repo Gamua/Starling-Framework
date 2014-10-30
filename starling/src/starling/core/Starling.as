@@ -1110,9 +1110,24 @@ package starling.core
         /** Indicates if Starling should automatically recover from a lost device context.
          *  On some systems, an upcoming screensaver or entering sleep mode may 
          *  invalidate the render context. This setting indicates if Starling should recover from 
-         *  such incidents. Beware that this has a huge impact on memory consumption!
-         *  It is recommended to enable this setting on Android and Windows, but to deactivate it
-         *  on iOS and Mac OS X. @default false */
+         *  such incidents.
+         *
+         *  <p>Beware: if used carelessly, this property may have a huge impact on memory
+         *  consumption. That's because, by default, it will make Starling keep a copy of each
+         *  texture in memory.</p>
+         *
+         *  <p>However, this downside can be avoided by using the "AssetManager" to load textures.
+         *  The AssetManager is smart enough to restore them directly from their sources. You can
+         *  also do this by setting up "root.onRestore" on your manually loaded textures.</p>
+         *
+         *  <p>A context loss can happen on almost every platform. It's very common on Windows
+         *  and Android, but rare on OS X and iOS (e.g. it may occur when opening up the camera
+         *  roll). It's recommended to always enable this property, while using the AssetManager
+         *  for texture loading.</p>
+         *  
+         *  @default false
+         *  @see starling.utils.AssetManager
+         */
         public static function get handleLostContext():Boolean { return sHandleLostContext; }
         public static function set handleLostContext(value:Boolean):void 
         {
