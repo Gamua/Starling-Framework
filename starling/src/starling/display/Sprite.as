@@ -54,6 +54,7 @@ package starling.display
     {
         private var mFlattenedContents:Vector.<QuadBatch>;
         private var mFlattenRequested:Boolean;
+        private var mFlattenOptimized:Boolean;
         private var mClipRect:Rectangle;
         
         /** Helper objects. */
@@ -97,11 +98,15 @@ package starling.display
          *  produce at least one draw call; if it were merged together with other objects, this
          *  would cause additional matrix operations, and the optimization would have been in vain.
          *  Thus, don't just blindly flatten all your sprites, but reserve flattening for sprites
-         *  with a big number of children.</p> 
+         *  with a big number of children.</p>
+         *
+         *  @param ignoreChildOrder If the child order is not important, you can further optimize
+         *           the number of draw calls. Naturally, this is not an option for all use-cases.
          */
-        public function flatten():void
+        public function flatten(ignoreChildOrder:Boolean=false):void
         {
             mFlattenRequested = true;
+            mFlattenOptimized = ignoreChildOrder;
             broadcastEventWith(Event.FLATTEN);
         }
         
@@ -209,6 +214,8 @@ package starling.display
                 if (mFlattenRequested)
                 {
                     QuadBatch.compile(this, mFlattenedContents);
+                    if (mFlattenOptimized) QuadBatch.optimize(mFlattenedContents);
+
                     support.applyClipRect(); // compiling filters might change scissor rect. :-\
                     mFlattenRequested = false;
                 }

@@ -477,6 +477,30 @@ package starling.display
             compileObject(object, quadBatches, -1, new Matrix());
         }
         
+        /** Naively optimizes a list of batches by merging all that have an identical state.
+         *  Naturally, this will change the z-order of some of the batches, so this method is
+         *  useful only for specific use-cases. */
+        public static function optimize(quadBatches:Vector.<QuadBatch>):void
+        {
+            var batch1:QuadBatch, batch2:QuadBatch;
+            for (var i:int=0; i<quadBatches.length; ++i)
+            {
+                batch1 = quadBatches[i];
+                for (var j:int=i+1; j<quadBatches.length; )
+                {
+                    batch2 = quadBatches[j];
+                    if (!batch1.isStateChange(batch2.tinted, 1.0, batch2.texture,
+                                              batch2.smoothing, batch2.blendMode))
+                    {
+                        batch1.addQuadBatch(batch2);
+                        batch2.dispose();
+                        quadBatches.splice(j, 1);
+                    }
+                    else ++j;
+                }
+            }
+        }
+
         private static function compileObject(object:DisplayObject, 
                                               quadBatches:Vector.<QuadBatch>,
                                               quadBatchID:int,
