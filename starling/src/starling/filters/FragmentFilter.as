@@ -547,15 +547,16 @@ package starling.filters
             if (mCache) return mCache;
             else
             {
-                var renderSupport:RenderSupport;
+                var support:RenderSupport;
                 var stage:Stage = object.stage;
-                
-                if (stage == null) 
-                    throw new Error("Filtered object must be on the stage.");
-                
-                renderSupport = new RenderSupport();
-                object.getTransformationMatrix(stage, renderSupport.modelViewMatrix);
-                return renderPasses(object, renderSupport, 1.0, true);
+                var quadBatch:QuadBatch;
+
+                support = new RenderSupport();
+                object.getTransformationMatrix(stage, support.modelViewMatrix);
+                quadBatch = renderPasses(object, support, 1.0, true);
+                support.dispose();
+
+                return quadBatch;
             }
         }
         
