@@ -123,23 +123,25 @@ package starling.display
         public function drawToBitmapData(destination:BitmapData=null,
                                          transparent:Boolean=true):BitmapData
         {
-            var support:RenderSupport = new RenderSupport();
             var star:Starling = Starling.current;
+            var prendered:Boolean = star.prerender();
             
             if (destination == null)
                 destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
             
-            support.renderTarget = null;
-            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, cameraPosition);
-            
-            if (transparent) support.clear();
-            else             support.clear(mColor, 1);
-            
-            render(support, 1.0);
-            support.finishQuadBatch();
-            
-            Starling.current.context.drawToBitmapData(destination);
-            Starling.current.context.present(); // required on some platforms to avoid flickering
+            if (prendered)
+            {
+                var support:RenderSupport = star.support;
+                
+                if (transparent) support.clear();
+                else             support.clear(mColor, 1);
+                
+                render(support, 1.0);
+                support.finishQuadBatch();
+                
+                star.context.drawToBitmapData(destination);
+                star.context.present(); // required on some platforms to avoid flickering
+            }
             
             return destination;
         }

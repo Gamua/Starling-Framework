@@ -52,6 +52,8 @@ package starling.core
     import starling.utils.VAlign;
     import starling.utils.execute;
     
+    use namespace starling_internal;
+    
     /** Dispatched when a new render context is created. The 'data' property references the context. */
     [Event(name="context3DCreate", type="starling.events.Event")]
     
@@ -487,8 +489,26 @@ package starling.core
          *  it is presented. This can be avoided by enabling <code>shareContext</code>.*/ 
         public function render():void
         {
+            if (prerender())
+            {
+                if (!mShareContext)
+                    RenderSupport.clear(mStage.color, 1.0);
+                
+                mStage.render(mSupport, 1.0);
+                mSupport.finishQuadBatch();
+                
+                if (mStatsDisplay)
+                    mStatsDisplay.drawCount = mSupport.drawCount;
+                
+                if (!mShareContext)
+                    mContext.present();
+            }
+        }
+        
+        starling_internal function prerender():Boolean
+        {
             if (!contextValid)
-                return;
+                return false;
             
             makeCurrent();
             updateViewPort();
@@ -509,17 +529,7 @@ package starling.core
                 mClippedViewPort.height / scaleY,
                 mStage.stageWidth, mStage.stageHeight, mStage.cameraPosition);
             
-            if (!mShareContext)
-                RenderSupport.clear(mStage.color, 1.0);
-            
-            mStage.render(mSupport, 1.0);
-            mSupport.finishQuadBatch();
-            
-            if (mStatsDisplay)
-                mStatsDisplay.drawCount = mSupport.drawCount;
-            
-            if (!mShareContext)
-                mContext.present();
+            return true;
         }
         
         private function updateViewPort(forceUpdate:Boolean=false):void
@@ -1013,6 +1023,8 @@ package starling.core
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
+        
+        starling_internal function get support():RenderSupport { return mSupport; }
         
         /** The Starling stage object, which is the root of the display tree that is rendered. */
         public function get stage():Stage { return mStage; }
