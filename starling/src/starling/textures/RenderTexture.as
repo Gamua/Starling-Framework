@@ -258,6 +258,7 @@ package starling.textures
             mSupport.renderTarget = mActiveTexture;
             mSupport.clear(rgb, alpha);
             mSupport.renderTarget = null;
+            mBufferReady = true;
         }
         
         /** On the iPad 1 (and maybe other hardware?) clearing a non-POT RectangleTexture causes
