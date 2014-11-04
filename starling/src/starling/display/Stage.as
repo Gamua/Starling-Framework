@@ -137,6 +137,7 @@ package starling.display
             
             render(support, 1.0);
             support.finishQuadBatch();
+            support.dispose();
             
             Starling.current.context.drawToBitmapData(destination);
             Starling.current.context.present(); // required on some platforms to avoid flickering
