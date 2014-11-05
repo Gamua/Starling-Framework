@@ -295,7 +295,7 @@ package starling.textures
          *  
          *  @param width:  in points; number of pixels depends on scale parameter
          *  @param height: in points; number of pixels depends on scale parameter
-         *  @param color:  expected in ARGB format (inlude alpha!)
+         *  @param color:  expected in ARGB format (include alpha!)
          *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target
          *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format: the context3D texture format to use. Pass one of the packed or
