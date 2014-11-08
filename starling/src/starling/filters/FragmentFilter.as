@@ -144,7 +144,7 @@ package starling.filters
             mIndexData = new <uint>[0, 1, 2, 1, 3, 2];
             mIndexData.fixed = true;
             
-            createPrograms();
+            if (Starling.current.contextValid) createPrograms();
             
             // Handle lost context. By using the conventional event, we can make it weak; this  
             // avoids memory leaks when people forget to call "dispose" on the filter.
