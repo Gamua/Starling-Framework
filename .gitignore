@@ -28,6 +28,7 @@ tests/libs/
 # Gradle CI
 .gradle/
 build/
+!starling/build/
 
 # Maven CI
 target/
