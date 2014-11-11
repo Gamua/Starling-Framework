@@ -133,8 +133,9 @@ package starling.filters
             mMarginX = mMarginY = 0.0;
             mOffsetX = mOffsetY = 0;
             mResolution = resolution;
+            mPassTextures = new <Texture>[];
             mMode = FragmentFilterMode.REPLACE;
-            
+
             mVertexData = new VertexData(4);
             mVertexData.setTexCoords(0, 0, 0);
             mVertexData.setTexCoords(1, 1, 0);
@@ -166,8 +167,8 @@ package starling.filters
         {
             mVertexBuffer = null;
             mIndexBuffer  = null;
-            mPassTextures = null;
-            
+
+            disposePassTextures();
             createPrograms();
             if (mCache) cache();
         }
@@ -367,25 +368,15 @@ package starling.filters
         private function updatePassTextures(width:Number, height:Number, scale:Number):void
         {
             var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
-            var needsUpdate:Boolean = mPassTextures == null || 
+            var needsUpdate:Boolean =
                 mPassTextures.length != numPassTextures ||
                 Math.abs(mPassTextures[0].nativeWidth  - width  * scale) > 0.1 ||
                 Math.abs(mPassTextures[0].nativeHeight - height * scale) > 0.1;
             
             if (needsUpdate)
             {
-                if (mPassTextures)
-                {
-                    for each (var texture:Texture in mPassTextures) 
-                        texture.dispose();
-                    
-                    mPassTextures.length = numPassTextures;
-                }
-                else
-                {
-                    mPassTextures = new Vector.<Texture>(numPassTextures);
-                }
-                
+                disposePassTextures();
+
                 for (var i:int=0; i<numPassTextures; ++i)
                     mPassTextures[i] = Texture.empty(width, height, PMA, false, true, scale);
             }
@@ -457,7 +448,7 @@ package starling.filters
             for each (var texture:Texture in mPassTextures)
                 texture.dispose();
             
-            mPassTextures = null;
+            mPassTextures.length = 0;
         }
         
         private function disposeCache():void
