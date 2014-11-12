@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo_mobile/demo-mobile.iml" filepath="$PROJECT_DIR$/../../../samples/demo_mobile/demo-mobile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo/demo-shared.iml" filepath="$PROJECT_DIR$/../../../samples/demo/demo-shared.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo_web/demo-web.iml" filepath="$PROJECT_DIR$/../../../samples/demo_web/demo-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/scaffold_mobile/scaffold-mobile.iml" filepath="$PROJECT_DIR$/../../../samples/scaffold_mobile/scaffold-mobile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../starling.iml" filepath="$PROJECT_DIR$/../../starling.iml" />
+    </modules>
+  </component>
+</project>

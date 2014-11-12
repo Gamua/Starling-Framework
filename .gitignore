@@ -20,10 +20,10 @@ tests/libs/
 .FlexUnitSettings
 
 # IntelliJ IDEA
-.idea/
-*.iml
-*.ipr
 *.iws
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/dictionaries
 
 # Gradle CI
 .gradle/
