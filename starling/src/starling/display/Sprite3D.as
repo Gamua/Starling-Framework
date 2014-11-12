@@ -38,6 +38,7 @@ package starling.display
      *    <li>rotationX — Rotates the sprite around the x-axis.</li>
      *    <li>rotationY — Rotates the sprite around the y-axis.</li>
      *    <li>scaleZ - Scales the sprite along the z-axis.</li>
+     *    <li>pivotZ - Moves the pivot point along the z-axis.</li>
      *  </ul>
      *
      *  <p>With the help of these properties, you can move a sprite and all its children in the
@@ -60,7 +61,7 @@ package starling.display
      *  applied to a Sprite3D object cannot be cached.</p>
      *
      *  <p>On rendering, each Sprite3D requires its own draw call — except if the object does not
-     *  contain any 3D transformations ('z', 'rotationX' and 'rotationY' are zero).</p>
+     *  contain any 3D transformations ('z', 'rotationX/Y' and 'pivotZ' are zero).</p>
      *
      */
     public class Sprite3D extends DisplayObjectContainer
@@ -191,7 +192,7 @@ package starling.display
         // properties
 
         /** The 2D transformation matrix of the object relative to its parent — if it can be
-         *  represented in such a matrix (the values of 'z', 'rotationX', and 'rotationY' are
+         *  represented in such a matrix (the values of 'z', 'rotationX/Y', and 'pivotZ' are
          *  zero). Otherwise, the identity matrix. CAUTION: not a copy, but the actual object! */
         public override function get transformationMatrix():Matrix
         {
@@ -239,8 +240,8 @@ package starling.display
         }
 
         /** The z coordinate of the object relative to the local coordinates of the parent.
-         *  The z-axis points into the screen, i.e. positive z-values will move the object further
-         *  away from the camera. */
+         *  The z-axis points away from the camera, i.e. positive z-values will move the object further
+         *  away from the viewer. */
         public function get z():Number { return mZ; }
         public function set z(value:Number):void
         {
