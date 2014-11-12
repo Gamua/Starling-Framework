@@ -184,7 +184,8 @@ package starling.display
         {
             return mZ > -E && mZ < E &&
                 mRotationX > -E && mRotationX < E &&
-                mRotationY > -E && mRotationY < E;
+                mRotationY > -E && mRotationY < E &&
+                mPivotZ > -E && mPivotZ < E;
         }
 
         // properties
