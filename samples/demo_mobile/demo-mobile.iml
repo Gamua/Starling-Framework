@@ -2,13 +2,10 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="demo-mobile">
     <configurations>
-      <configuration name="demo-mobile" target-platform="Mobile" pure-as="true" main-class="Demo_Mobile" output-file="Demo_Mobile.swf" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="demo-mobile" target-platform="Mobile" pure-as="true" main-class="Demo_Mobile" output-file="demo_mobile.swf" output-folder="$MODULE_DIR$/bin-debug">
         <dependencies>
           <entries>
             <entry module-name="demo-shared" build-configuration-name="demo-shared">
-              <dependency linkage="Merged" />
-            </entry>
-            <entry module-name="starling" build-configuration-name="starling">
               <dependency linkage="Merged" />
             </entry>
           </entries>
@@ -47,6 +44,5 @@
     <orderEntry type="jdk" jdkName="air-15" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="demo-shared" exported="" />
-    <orderEntry type="module" module-name="starling" exported="" />
   </component>
 </module>

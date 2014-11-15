@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="Flex" version="4">
-  <component name="FlexBuildConfigurationManager" active="Starling">
+  <component name="FlexBuildConfigurationManager" active="starling">
     <configurations>
-      <configuration name="Starling" pure-as="true" output-type="Library" output-file="starling.swc" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="starling" pure-as="true" output-type="Library" output-file="starling.swc" output-folder="$MODULE_DIR$/bin-debug">
         <dependencies target-player="15.0">
           <sdk name="air-15" />
         </dependencies>

@@ -8,9 +8,6 @@
             <entry module-name="demo-shared" build-configuration-name="demo-shared">
               <dependency linkage="Merged" />
             </entry>
-            <entry module-name="starling" build-configuration-name="starling">
-              <dependency linkage="Merged" />
-            </entry>
           </entries>
           <sdk name="air-15" />
         </dependencies>
@@ -32,6 +29,5 @@
     <orderEntry type="jdk" jdkName="air-15" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="demo-shared" exported="" />
-    <orderEntry type="module" module-name="starling" exported="" />
   </component>
 </module>
