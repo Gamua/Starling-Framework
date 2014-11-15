@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo_mobile/demo-mobile.iml" filepath="$PROJECT_DIR$/../../../samples/demo_mobile/demo-mobile.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo/demo-shared.iml" filepath="$PROJECT_DIR$/../../../samples/demo/demo-shared.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo_web/demo-web.iml" filepath="$PROJECT_DIR$/../../../samples/demo_web/demo-web.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../../samples/scaffold_mobile/scaffold-mobile.iml" filepath="$PROJECT_DIR$/../../../samples/scaffold_mobile/scaffold-mobile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo_mobile/demo-mobile.iml" filepath="$PROJECT_DIR$/../../../samples/demo_mobile/demo-mobile.iml" group="samples" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo/demo-shared.iml" filepath="$PROJECT_DIR$/../../../samples/demo/demo-shared.iml" group="samples" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/demo_web/demo-web.iml" filepath="$PROJECT_DIR$/../../../samples/demo_web/demo-web.iml" group="samples" />
+      <module fileurl="file://$PROJECT_DIR$/../../../samples/scaffold_mobile/scaffold-mobile.iml" filepath="$PROJECT_DIR$/../../../samples/scaffold_mobile/scaffold-mobile.iml" group="samples" />
       <module fileurl="file://$PROJECT_DIR$/../../starling.iml" filepath="$PROJECT_DIR$/../../starling.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../tests/starling-tests.iml" filepath="$PROJECT_DIR$/../../../tests/starling-tests.iml" />
     </modules>
   </component>
 </project>

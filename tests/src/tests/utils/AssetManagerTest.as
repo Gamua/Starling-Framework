@@ -27,13 +27,13 @@ package tests.utils
     
     public class AssetManagerTest extends StarlingTestCase
     {
-        
         private var manager:TestAssetManager;
         
         override public function setUp():void
         {
             super.setUp();
             manager = new TestAssetManager();
+            manager.verbose = false;
         }
         
         override public function tearDown():void
