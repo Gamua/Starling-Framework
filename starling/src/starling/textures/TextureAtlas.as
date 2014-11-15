@@ -138,7 +138,7 @@ package starling.textures
             if (result == null) result = new <Texture>[];
             
             for each (var name:String in getNames(prefix, sNames)) 
-                result.push(getTexture(name)); 
+                result[result.length] = getTexture(name); // avoid 'push'
 
             sNames.length = 0;
             return result;

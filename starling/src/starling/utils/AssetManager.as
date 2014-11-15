@@ -193,8 +193,8 @@ package starling.utils
             if (result == null) result = new <Texture>[];
             
             for each (var name:String in getTextureNames(prefix, sNames))
-                result.push(getTexture(name));
-            
+                result[result.length] = getTexture(name); // avoid 'push'
+
             sNames.length = 0;
             return result;
         }
@@ -1115,8 +1115,8 @@ package starling.utils
             
             for (var name:String in dictionary)
                 if (name.indexOf(prefix) == 0)
-                    result.push(name);
-            
+                    result[result.length] = name; // avoid 'push'
+
             result.sort(Array.CASEINSENSITIVE);
             return result;
         }
