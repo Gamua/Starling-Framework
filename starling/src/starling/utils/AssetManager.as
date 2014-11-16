@@ -586,6 +586,9 @@ package starling.utils
             if (mStarling == null || mStarling.context == null)
                 throw new Error("The Starling instance needs to be ready before assets can be loaded.");
 
+            const PROGRESS_PART_ASSETS:Number = 0.9;
+            const PROGRESS_PART_XMLS:Number = 1.0 - PROGRESS_PART_ASSETS;
+
             var i:int;
             var canceled:Boolean = false;
             var xmls:Vector.<XML> = new <XML>[];
@@ -621,22 +624,22 @@ package starling.utils
                 
                 var onElementProgress:Function = function(progress:Number):void
                 {
-                    updateProgress(index, progress * 0.8); // keep 20 % for completion
+                    updateAssetProgress(index, progress * 0.8); // keep 20 % for completion
                 };
                 var onElementLoaded:Function = function():void
                 {
-                    updateProgress(index, 1.0);
+                    updateAssetProgress(index, 1.0);
                     assetCount--;
 
                     if (assetCount > 0) loadNextQueueElement();
-                    else                finish();
+                    else                processXmls();
                 };
                 
                 processRawAsset(assetInfo.name, assetInfo.asset, assetInfo.options,
                     xmls, onElementProgress, onElementLoaded);
             }
             
-            function updateProgress(index:int, progress:Number):void
+            function updateAssetProgress(index:int, progress:Number):void
             {
                 assetProgress[index] = progress;
 
@@ -646,57 +649,71 @@ package starling.utils
                 for (i=0; i<len; ++i)
                     sum += assetProgress[i];
 
-                onProgress(sum / len * 0.9);
+                onProgress(sum / len * PROGRESS_PART_ASSETS);
             }
             
             function processXmls():void
             {
-                // xmls are processed seperately at the end, because the textures they reference
+                // xmls are processed separately at the end, because the textures they reference
                 // have to be available for other XMLs. Texture atlases are processed first:
                 // that way, their textures can be referenced, too.
                 
                 xmls.sort(function(a:XML, b:XML):int { 
                     return a.localName() == "TextureAtlas" ? -1 : 1; 
                 });
-                
-                for each (var xml:XML in xmls)
+
+                setTimeout(processXml, 1, 0);
+            }
+
+            function processXml(index:int):void
+            {
+                if (canceled) return;
+                else if (index == xmls.length)
                 {
-                    var name:String;
-                    var texture:Texture;
-                    var rootNode:String = xml.localName();
-                    
-                    if (rootNode == "TextureAtlas")
-                    {
-                        name = getName(xml.@imagePath.toString());
-                        texture = getTexture(name);
-                        
-                        if (texture)
-                        {
-                            addTextureAtlas(name, new TextureAtlas(texture, xml));
-
-                            if (mKeepAtlasXmls) addXml(name, xml);
-                            else System.disposeXML(xml);
-                        }
-                        else log("Cannot create atlas: texture '" + name + "' is missing.");
-                    }
-                    else if (rootNode == "font")
-                    {
-                        name = getName(xml.pages.page.@file.toString());
-                        texture = getTexture(name);
-                        
-                        if (texture)
-                        {
-                            log("Adding bitmap font '" + name + "'");
-                            TextField.registerBitmapFont(new BitmapFont(texture, xml), name);
-
-                            if (mKeepFontXmls) addXml(name, xml);
-                            else System.disposeXML(xml);
-                        }
-                        else log("Cannot create bitmap font: texture '" + name + "' is missing.");
-                    }
-                    else
-                        throw new Error("XML contents not recognized: " + rootNode);
+                    finish();
+                    return;
                 }
+
+                var name:String;
+                var texture:Texture;
+                var xml:XML = xmls[index];
+                var rootNode:String = xml.localName();
+                var xmlProgress:Number = (index + 1) / (xmls.length + 1);
+
+                if (rootNode == "TextureAtlas")
+                {
+                    name = getName(xml.@imagePath.toString());
+                    texture = getTexture(name);
+
+                    if (texture)
+                    {
+                        addTextureAtlas(name, new TextureAtlas(texture, xml));
+
+                        if (mKeepAtlasXmls) addXml(name, xml);
+                        else System.disposeXML(xml);
+                    }
+                    else log("Cannot create atlas: texture '" + name + "' is missing.");
+                }
+                else if (rootNode == "font")
+                {
+                    name = getName(xml.pages.page.@file.toString());
+                    texture = getTexture(name);
+
+                    if (texture)
+                    {
+                        log("Adding bitmap font '" + name + "'");
+                        TextField.registerBitmapFont(new BitmapFont(texture, xml), name);
+
+                        if (mKeepFontXmls) addXml(name, xml);
+                        else System.disposeXML(xml);
+                    }
+                    else log("Cannot create bitmap font: texture '" + name + "' is missing.");
+                }
+                else
+                    throw new Error("XML contents not recognized: " + rootNode);
+
+                onProgress(PROGRESS_PART_ASSETS + PROGRESS_PART_XMLS * xmlProgress);
+                setTimeout(processXml, 1, index + 1);
             }
             
             function cancel():void
@@ -708,26 +725,21 @@ package starling.utils
 
             function finish():void
             {
+                // now would be a good time for a clean-up
+                System.pauseForGCIfCollectionImminent(0);
+                System.gc();
+
                 // We dance around the final "onProgress" call with some "setTimeout" calls here
                 // to make sure the progress bar gets the chance to be rendered. Otherwise, all
                 // would happen in one frame.
 
                 setTimeout(function():void
                 {
-                    processXmls();
-
-                    setTimeout(function():void
+                    if (!canceled)
                     {
-                        // now would be a good time for a clean-up
-                        System.pauseForGCIfCollectionImminent(0);
-                        System.gc();
-
-                        if (!canceled)
-                        {
-                            cancel();
-                            onProgress(1.0);
-                        }
-                    }, 1);
+                        cancel();
+                        onProgress(1.0);
+                    }
                 }, 1);
             }
         }
