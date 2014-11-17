@@ -148,9 +148,9 @@ package starling.events
          *  given touches. Called internally by "advanceTime". To calculate updated targets,
          *  the method will call "hitTest" on the "root" object.
          *  
-         *  @param touches:   a list of all touches that have changed just now.
-         *  @param shiftDown: indicates if the shift key was down when the touches occurred.
-         *  @param CtrlDown:  indicates if the ctrl or cmd key was down when the touches occurred.
+         *  @param touches    a list of all touches that have changed just now.
+         *  @param shiftDown  indicates if the shift key was down when the touches occurred.
+         *  @param ctrlDown   indicates if the ctrl or cmd key was down when the touches occurred.
          */
         protected function processTouches(touches:Vector.<Touch>,
                                           shiftDown:Boolean, ctrlDown:Boolean):void

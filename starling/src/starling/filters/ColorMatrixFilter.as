@@ -59,7 +59,7 @@ package starling.filters
         private static var sTmpMatrix2:Vector.<Number> = new <Number>[];
         
         /** Creates a new ColorMatrixFilter instance with the specified matrix. 
-         *  @param matrix: a vector of 20 items arranged as a 4x5 matrix.   
+         *  @param matrix a vector of 20 items arranged as a 4x5 matrix.
          */
         public function ColorMatrixFilter(matrix:Vector.<Number>=null)
         {
@@ -176,8 +176,8 @@ package starling.filters
         }
         
         /** Tints the image in a certain color, analog to what can be done in Flash Pro.
-         *  @param color: the RGB color with which the image should be tinted.
-         *  @param amount: the intensity with which tinting should be applied. Range (0, 1). */
+         *  @param color the RGB color with which the image should be tinted.
+         *  @param amount the intensity with which tinting should be applied. Range (0, 1). */
         public function tint(color:uint, amount:Number=1.0):void
         {
             var r:Number = Color.getRed(color)   / 255.0;

@@ -483,11 +483,12 @@ package starling.filters
          *      <li>texture 0: input texture</li>
          *  </ul>
          *  
-         *  @param pass: the current render pass, starting with '0'. Multipass filters can
-         *               provide different logic for each pass.
-         *  @param context: the current context3D (the same as in Starling.context, passed
-         *               just for convenience)
-         *  @param texture: the input texture, which is already bound to sampler 0. */
+         *  @param pass    the current render pass, starting with '0'. Multipass filters can
+         *                 provide different logic for each pass.
+         *  @param context the current context3D (the same as in Starling.context, passed
+         *                 just for convenience)
+         *  @param texture the input texture, which is already bound to sampler 0.
+         *  */
         protected function activate(pass:int, context:Context3D, texture:Texture):void
         {
             throw new Error("Method has to be implemented in subclass!");

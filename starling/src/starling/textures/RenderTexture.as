@@ -179,8 +179,8 @@ package starling.textures
          *  Note that the 'antiAliasing' setting provided here overrides those provided in
          *  individual 'draw' calls.
          *  
-         *  @param drawingBlock: a callback with the form: <pre>function():void;</pre>
-         *  @param antiAliasing: Only supported beginning with AIR 13, and only on Desktop.
+         *  @param drawingBlock  a callback with the form: <pre>function():void;</pre>
+         *  @param antiAliasing  Only supported beginning with AIR 13, and only on Desktop.
          *                       Values range from 0 (no antialiasing) to 4 (best quality). */
         public function drawBundled(drawingBlock:Function, antiAliasing:int=0):void
         {

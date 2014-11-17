@@ -568,7 +568,7 @@ package starling.utils
          *  if you are working with more than one Starling instance, be sure to call
          *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
          *
-         *  @param onProgress: <code>function(ratio:Number):void;</code> 
+         *  @param onProgress <code>function(ratio:Number):void;</code>
          */
         public function loadQueue(onProgress:Function):void
         {

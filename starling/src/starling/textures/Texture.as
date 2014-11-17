@@ -124,9 +124,9 @@ package starling.textures
         /** Creates a texture object from any of the supported data types, using the specified
          *  options.
          * 
-         *  @param data:    Either an embedded asset class, a Bitmap, BitmapData, or a ByteArray
+         *  @param data     Either an embedded asset class, a Bitmap, BitmapData, or a ByteArray
          *                  with ATF data.
-         *  @param options: Specifies options about the texture settings, e.g. scale factor.
+         *  @param options  Specifies options about the texture settings, e.g. scale factor.
          */
         public static function fromData(data:Object, options:TextureOptions=null):Texture
         {
@@ -162,14 +162,14 @@ package starling.textures
          *  method will be restored directly from the asset class in case of a context loss,
          *  which guarantees a very economic memory usage.  
          * 
-         *  @param assetClass: must contain either a Bitmap or a ByteArray with ATF data.
-         *  @param mipMaps: for Bitmaps, indicates if mipMaps will be created;
-         *                  for ATF data, indicates if the contained mipMaps will be used.
-         *  @param optimizeForRenderToTexture: indicates if this texture will be used as 
-         *                  render target
-         *  @param scale:   the scale factor of the created texture.
-         *  @param format:  the context3D texture format to use. Ignored for ATF data.
-         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
+         *  @param assetClass  must contain either a Bitmap or a ByteArray with ATF data.
+         *  @param mipMapping  for Bitmaps, indicates if mipMaps will be created;
+         *                     for ATF data, indicates if the contained mipMaps will be used.
+         *  @param optimizeForRenderToTexture  indicates if this texture will be used as
+         *                     render target
+         *  @param scale    the scale factor of the created texture.
+         *  @param format   the context3D texture format to use. Ignored for ATF data.
+         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
                                                  optimizeForRenderToTexture:Boolean=false,
@@ -181,7 +181,8 @@ package starling.textures
             
             if (asset is Bitmap)
             {
-                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale, format, repeat);
+                texture = Texture.fromBitmap(asset as Bitmap, mipMapping,
+                                             optimizeForRenderToTexture, scale, format, repeat);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -208,16 +209,16 @@ package starling.textures
          *  Beware: you must not dispose the bitmap's data if Starling should handle a lost device
          *  context alternatively, you can handle restoration yourself via "texture.root.onRestore".
          * 
-         *  @param bitmap:  the texture will be created with the bitmap data of this object.
-         *  @param mipMaps: indicates if mipMaps will be created.
-         *  @param optimizeForRenderToTexture: indicates if this texture will be used as
+         *  @param bitmap   the texture will be created with the bitmap data of this object.
+         *  @param generateMipMaps  indicates if mipMaps will be created.
+         *  @param optimizeForRenderToTexture  indicates if this texture will be used as
          *                  render target
-         *  @param scale:   the scale factor of the created texture. This affects the reported
+         *  @param scale    the scale factor of the created texture. This affects the reported
          *                  width and height of the texture object.
-         *  @param format:  the context3D texture format to use. Pass one of the packed or
+         *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality). 
-         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
+         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true,
                                           optimizeForRenderToTexture:Boolean=false,
@@ -232,16 +233,16 @@ package starling.textures
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          * 
-         *  @param bitmap:  the texture will be created with the bitmap data of this object.
-         *  @param mipMaps: indicates if mipMaps will be created.
-         *  @param optimizeForRenderToTexture: indicates if this texture will be used as 
+         *  @param data   the texture will be created with the bitmap data of this object.
+         *  @param generateMipMaps  indicates if mipMaps will be created.
+         *  @param optimizeForRenderToTexture  indicates if this texture will be used as
          *                  render target
-         *  @param scale:   the scale factor of the created texture. This affects the reported
+         *  @param scale    the scale factor of the created texture. This affects the reported
          *                  width and height of the texture object.
-         *  @param format:  the context3D texture format to use. Pass one of the packed or
+         *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
-         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
+         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
                                               optimizeForRenderToTexture:Boolean=false,
@@ -293,12 +294,12 @@ package starling.textures
         
         /** Creates a texture with a certain size and color.
          *  
-         *  @param width:  in points; number of pixels depends on scale parameter
-         *  @param height: in points; number of pixels depends on scale parameter
-         *  @param color:  expected in ARGB format (include alpha!)
-         *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target
-         *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
-         *  @param format: the context3D texture format to use. Pass one of the packed or
+         *  @param width   in points; number of pixels depends on scale parameter
+         *  @param height  in points; number of pixels depends on scale parameter
+         *  @param color   expected in ARGB format (include alpha!)
+         *  @param optimizeForRenderToTexture  indicates if this texture will be used as render target
+         *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory.
          */
         public static function fromColor(width:Number, height:Number, color:uint=0xffffffff,
@@ -320,18 +321,18 @@ package starling.textures
          *  Beware that the texture can only be used after you either upload some color data
          *  ("texture.root.upload...") or clear the texture ("texture.root.clear()").
          *  
-         *  @param width:  in points; number of pixels depends on scale parameter
-         *  @param height: in points; number of pixels depends on scale parameter
-         *  @param premultipliedAlpha: the PMA format you will use the texture with. If you will
+         *  @param width   in points; number of pixels depends on scale parameter
+         *  @param height  in points; number of pixels depends on scale parameter
+         *  @param premultipliedAlpha  the PMA format you will use the texture with. If you will
          *                 use the texture for bitmap data, use "true"; for ATF data, use "false".
-         *  @param mipMapping: indicates if mipmaps should be used for this texture. When you upload
+         *  @param mipMapping  indicates if mipmaps should be used for this texture. When you upload
          *                 bitmap data, this decides if mipmaps will be created; when you upload ATF
          *                 data, this decides if mipmaps inside the ATF file will be displayed.
-         *  @param optimizeForRenderToTexture: indicates if this texture will be used as render target 
-         *  @param scale:  if you omit this parameter, 'Starling.contentScaleFactor' will be used.
-         *  @param format: the context3D texture format to use. Pass one of the packed or
+         *  @param optimizeForRenderToTexture  indicates if this texture will be used as render target
+         *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
+         *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory (at the price of reduced image quality).
-         *  @param repeat: the repeat mode of the texture. Only useful for power-of-two textures.
+         *  @param repeat  the repeat mode of the texture. Only useful for power-of-two textures.
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
                                      mipMapping:Boolean=true, optimizeForRenderToTexture:Boolean=false,
@@ -340,7 +341,7 @@ package starling.textures
             if (scale <= 0) scale = Starling.contentScaleFactor;
             
             var actualWidth:int, actualHeight:int;
-            var nativeTexture:flash.display3D.textures.TextureBase;
+            var nativeTexture:TextureBase;
             var context:Context3D = Starling.context;
             
             if (context == null) throw new MissingContextError();
@@ -385,12 +386,12 @@ package starling.textures
         /** Creates a texture that contains a region (in pixels) of another texture. The new
          *  texture will reference the base texture; no data is duplicated.
          *
-         *  @param texture: The texture you want to create a SubTexture from.
-         *  @param region:  The region of the parent texture that the SubTexture will show
+         *  @param texture  The texture you want to create a SubTexture from.
+         *  @param region   The region of the parent texture that the SubTexture will show
          *                  (in points).
-         *  @param frame:   If the texture was trimmed, the frame rectangle can be used to restore
+         *  @param frame    If the texture was trimmed, the frame rectangle can be used to restore
          *                  the trimmed area.
-         *  @param rotated: If true, the SubTexture will show the parent region rotated by
+         *  @param rotated  If true, the SubTexture will show the parent region rotated by
          *                  90 degrees (CCW).
          */
         public static function fromTexture(texture:Texture, region:Rectangle=null,
@@ -415,12 +416,12 @@ package starling.textures
          *  coordinates could be different: you might be working with a SubTexture. This method
          *  adjusts the coordinates accordingly.
          *
-         *  @param texCoords: a vector containing UV coordinates (optionally, among other data).
+         *  @param texCoords  a vector containing UV coordinates (optionally, among other data).
          *                    U and V coordinates always have to come in pairs. The vector is
          *                    modified in place.
-         *  @param startIndex: the index of the first U coordinate in the vector.
-         *  @param stride: the distance (in vector elements) of consecutive UV pairs.
-         *  @param count: the number of UV pairs that should be adjusted, or "-1" for all of them.
+         *  @param startIndex the index of the first U coordinate in the vector.
+         *  @param stride     the distance (in vector elements) of consecutive UV pairs.
+         *  @param count      the number of UV pairs that should be adjusted, or "-1" for all of them.
          */
         public function adjustTexCoords(texCoords:Vector.<Number>,
                                         startIndex:int=0, stride:int=0, count:int=-1):void

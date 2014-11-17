@@ -226,8 +226,8 @@ package starling.text
          *  over a range of characters or the complete TextField) to modify the format to
          *  your needs.
          *  
-         *  @param textField:  the flash.text.TextField object that you can format.
-         *  @param textFormat: the default text format that's currently set on the text field.
+         *  @param textField  the flash.text.TextField object that you can format.
+         *  @param textFormat the default text format that's currently set on the text field.
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
 
