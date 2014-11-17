@@ -187,7 +187,7 @@ package starling.textures
         public function getRotation(name:String):Boolean
         {
             var subTexture:SubTexture = mSubTextures[name];
-            return subTexture ? subTexture.rotated : null;
+            return subTexture ? subTexture.rotated : false;
         }
 
         /** Adds a named region for a SubTexture (described by rectangle with coordinates in
