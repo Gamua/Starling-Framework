@@ -213,7 +213,6 @@ package starling.textures
         
         // utility methods
 
-        [Inline]
         private static function parseBool(value:String):Boolean
         {
             return value.toLowerCase() == "true";
