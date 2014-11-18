@@ -308,7 +308,7 @@ package starling.display
             mSyncRequired = true;
             mNumQuads++;
         }
-        
+
         /** Adds another QuadBatch to this batch. Just like the 'addQuad' method, you have to
          *  make sure that you only add batches with an equal state. */
         public function addQuadBatch(quadBatch:QuadBatch, parentAlpha:Number=1.0, 
@@ -426,7 +426,20 @@ package starling.display
             
             mSyncRequired = true;
         }
-        
+
+        /** Replaces a quad or image at a certain index with another one. */
+        public function setQuad(quadID:Number, quad:Quad):void
+        {
+            var matrix:Matrix = quad.transformationMatrix;
+            var alpha:Number  = quad.alpha;
+            var vertexID:int  = quadID * 4;
+
+            quad.copyVertexDataTransformedTo(mVertexData, vertexID, matrix);
+            if (alpha != 1.0) mVertexData.scaleAlpha(vertexID, alpha, 4);
+
+            mSyncRequired = true;
+        }
+
         /** Calculates the bounds of a specific quad, optionally transformed by a matrix.
          *  If you pass a 'resultRect', the result will be stored in this rectangle
          *  instead of creating a new object. */
