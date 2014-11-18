@@ -45,7 +45,6 @@ package starling.display
         /** Helper objects. */
         private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
-        private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         
