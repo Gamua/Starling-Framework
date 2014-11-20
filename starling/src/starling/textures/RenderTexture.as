@@ -189,6 +189,8 @@ package starling.textures
         
         private function render(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
         {
+            if (!Starling.current.contextValid) return;
+
             var filter:FragmentFilter = object.filter;
 
             mSupport.loadIdentity();
