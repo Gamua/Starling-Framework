@@ -5,10 +5,10 @@
       <configuration name="FlexUnitRunner" pure-as="true" main-class="FlexUnitRunner" output-file="FlexUnitRunner.swf" output-folder="$MODULE_DIR$/bin-debug">
         <dependencies target-player="15.0">
           <entries>
-            <entry module-name="starling" build-configuration-name="starling">
+            <entry library-id="f0cf5e4a-a937-48b8-8262-ef4e4bd4e764">
               <dependency linkage="Merged" />
             </entry>
-            <entry library-id="f0cf5e4a-a937-48b8-8262-ef4e4bd4e764">
+            <entry module-name="starling" build-configuration-name="starling">
               <dependency linkage="Merged" />
             </entry>
           </entries>
@@ -34,7 +34,6 @@
     </content>
     <orderEntry type="jdk" jdkName="air-15" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="starling" exported="" />
     <orderEntry type="module-library" exported="">
       <library type="flex">
         <properties id="f0cf5e4a-a937-48b8-8262-ef4e4bd4e764" />
@@ -46,5 +45,6 @@
         <jarDirectory url="file://$MODULE_DIR$/libs" recursive="false" />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="starling" exported="" />
   </component>
 </module>
