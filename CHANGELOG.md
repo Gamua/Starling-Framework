@@ -1,6 +1,79 @@
 Starling: Changelog
 ===================
 
+version 1.6rc - 2014-11-21
+--------------------------
+
+- added 'Sprite3D' class for simple 3D transformations
+- added 3D transformation methods to DisplayObject, RenderSupport and MatrixUtil classes
+- added 3D camera properties to Stage class ('fieldOfView', 'focalLength', 'projectionOffset')
+- added 'is3D' property to DisplayObject class
+- added parallel asset loading to AssetManager class (via 'numConnections' property)
+- added build scripts for Gradle and Maven (thanks to Andras Csizmadia & Honza Břečka)
+- added automatic TravisCI integration tests (thanks to Andras Csizmadia & Honza Břečka)
+- added support for nested filters (thanks to AIR 15)
+- added support for drawing filtered objects to render textures
+- added support for HTML text to 'TextField' class (TrueType fonts only)
+- added 'color' property to Button class
+- added 'over' and 'disabled' states to Button class
+- added 'overlay' property to Button class
+- added 'readjustSize' method to Button class
+- added 'hasChars' utility method to BitmapFont class
+- added 'getCharIDs' utility method to BitmapFont class
+- added 'texture' property to BitmapFont class
+- added 'textureFormat' property to AssetManager class
+- added 'isLoading' property to AssetManager class
+- added 'textureRepeat' property to AssetManager class
+- added 'IO_ERROR' event to AssetManager class (when loading from URLLoader fails)
+- added 'PARSE_ERROR' event to AssetManager class (thanks to Thomas Lefevre)
+- added 'SECURITY_ERROR' event to AssetManager class (thanks to Honza Břečka)
+- added some 'protected' qualifiers to AssetManager methods, for better extensibility
+- added 'FATAL_ERROR' event to Starling class (thanks to Andras Csizmadia)
+- added 'stopWithFatalError' method to Starling class
+- added 'backBufferPixelsPerPoint' property to Starling class
+- added 'ignoreChildOrder' parameter to 'Sprite.flatten()' (thanks to vync79)
+- added 'cleanMasterString' utility method (thanks to Jackson Dunstan)
+- added ByteArray-fallback if AssetManager can't parse XML or JSON
+- added ability to chain ColorMatrixFilter functions (thanks to Tim Conkling)
+- added 'standard' profile to automatic profile selection
+- added 'supportsRelaxedTargetClearRequirement' property to SystemUtil class
+- added 'format' and 'repeat' arguments to RenderTexture constructor
+- added 'soundTransform' property to MovieClip class (thanks to Kawika Heftel)
+- added 'setQuad' method to QuadBatch class
+- added MathUtil class
+- added project and module files for IntelliJ IDEA
+- added helper script 'copy_resources.rb' for IntelliJ IDEA
+- optimized: persistent render textures no longer require double buffering (thanks to AIR 15)
+- optimized all internal XML parsing (thanks to JohnHeart & Andrew Pellerano)
+- optimized BitmapFont composition - now pooling all temporary objects
+- optimized memory management for some internally used BitmapData (TextField, MiniBitmapFont)
+- optimized 'TextureAtlas.getNames' by caching sorted list of names
+- optimized 'TextureAtlas.getTexture' by always returning the same SubTexture instances
+- optimized 'DisplayObject.removeEventListeners' (thanks to Fraggle)
+- optimized 'AssetManager.loadQueue' by processing font/atlas XMLs in separate steps
+- optimized 'advanceTime' method in MovieClip class
+- optimized 'execute' function by avoiding 'Array.slice'
+- optimized handling of pass textures in FragmentFilter (avoiding chance of null reference)
+- optimized AOT performance by avoiding 'Array.push' in several places
+- fixed 'auto' profile selection so that it explicitly avoids software rendering if possible
+- fixed: now conserving 'onReady' texture option when loading ATF texture
+- fixed: more reliable 'context' property in shared context situations (if runtime supports it)
+- fixed handling of invalid image data in AssetLoader
+- fixed how fragment filter reuses pass textures (thanks to ludddd)
+- fixed how errors are caught while loading 'AssetManager' queue (moved try/catch)
+- fixed that 'Texture.empty' sometimes did not return the requested size
+- fixed that blend mode was not reset after drawing into RenderTexture (thanks to Łukasz Łazarecki)
+- fixed that QuadBatch did not throw error when maximum size was exceeded
+- fixed that onRepeat(Args) was not cleared with 'Tween.reset()' (thanks to divillysausages)
+- fixed that touch events were dispatched continuously after an uncaught error in the listener
+- fixed wrong BitmapData size in 'drawToBitmapData' when using HiDPI displays
+- fixed: 'AssetManager.verbose' is now enabled by default, so that it's not overlooked
+- fixed: 'this' pointer within tween callbacks now point to the tween (thanks to Luke Hutscal)
+- fixed that 'clear' call with color/alpha on RenderTexture did not work when done before drawing
+- fixed: missing dispose call in 'drawToBitmapData' of Stage class
+- fixed: missing dispose call in internal 'compile' method of FragmentFilter class
+
+
 version 1.5.1 - 2014-05-26
 --------------------------
 
@@ -83,7 +156,7 @@ version 1.4.1 - 2013-10-15
 - optimized fragment filter construction by caching shader programs (thanks to IonSwitz)
 - optimized 'VertexData.numVertices' setter (thanks to hamidhomatash)
 - fixed erroneous 'clipRect' when it was completely outside the stage bounds
-- fixed error in 'AssetManager.loadQueue' when 'purgeQueue' was called during active timout
+- fixed error in 'AssetManager.loadQueue' when 'purgeQueue' was called during active timeout
 - fixed anonymous function for FDT compatibility of Scaffold project
 
 version 1.4 - 2013-09-23
@@ -111,7 +184,7 @@ version 1.4 - 2013-09-23
 - added Event.TEXTURES_RESTORED, dispatched by AssetManager after context loss
 - added 'TextField.redraw()' method to force immediate drawing of contents
 - added 'DisplayObject.alignPivot()' for simple object alignment
-- added optional 'id' paramter to 'TouchEvent.getTouch()' method
+- added optional 'id' parameter to 'TouchEvent.getTouch()' method
 - added optional QuadBatch batching via 'QuadBatch.batchable'
 - added 'RenderSupport.getTextureLookupFlags()'
 - added 'Image.setTexCoordsTo()' method
@@ -299,7 +372,7 @@ version 1.1 - 2012-05-06
 - fixed: mouse, touch & keyboard events are now ignored when Starling is stopped
 - fixed: native overlay is now still updated when Starling is stopped
 - fixed possible blurring of persistent render texture (thanks to grahamma!)
-- fixed drawing erros in render texture that occured with certain scale factors
+- fixed drawing errors in render texture that occured with certain scale factors
 - fixed error when MovieClip was manipulated from a COMPLETE handler
 
 version 1.0 - 2012-02-24
