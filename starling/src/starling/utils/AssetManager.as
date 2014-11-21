@@ -118,7 +118,7 @@ package starling.utils
         private var mCheckPolicyFile:Boolean;
         private var mKeepAtlasXmls:Boolean;
         private var mKeepFontXmls:Boolean;
-        private var mMaxConnections:int;
+        private var mNumConnections:int;
         private var mVerbose:Boolean;
         private var mQueue:Array;
         
@@ -146,7 +146,7 @@ package starling.utils
             mXmls = new Dictionary();
             mObjects = new Dictionary();
             mByteArrays = new Dictionary();
-            mMaxConnections = 3;
+            mNumConnections = 3;
             mVerbose = true;
             mQueue = [];
         }
@@ -600,7 +600,7 @@ package starling.utils
             for (i=0; i<assetCount; ++i)
                 assetProgress[i] = 0.0;
 
-            for (i=0; i<mMaxConnections; ++i)
+            for (i=0; i<mNumConnections; ++i)
                 loadNextQueueElement();
 
             mQueue.length = 0;
@@ -1231,7 +1231,7 @@ package starling.utils
 
         /** The maximum number of parallel connections that are spawned when loading the queue.
          *  More connections can reduce loading times, but require more memory. @default 3. */
-        public function get maxConnections():int { return mMaxConnections; }
-        public function set maxConnections(value:int):void { mMaxConnections = value; }
+        public function get numConnections():int { return mNumConnections; }
+        public function set numConnections(value:int):void { mNumConnections = value; }
     }
 }
