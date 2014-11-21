@@ -125,9 +125,13 @@ package starling.display
         {
             var support:RenderSupport = new RenderSupport();
             var star:Starling = Starling.current;
-            
+
             if (destination == null)
-                destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
+            {
+                var width:int  = star.backBufferWidth  * star.backBufferPixelsPerPoint;
+                var height:int = star.backBufferHeight * star.backBufferPixelsPerPoint;
+                destination = new BitmapData(width, height, transparent);
+            }
             
             support.renderTarget = null;
             support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, cameraPosition);
