@@ -103,6 +103,7 @@ package starling.text
         private var mNativeFilters:Array;
         private var mRequiresRedraw:Boolean;
         private var mIsRenderedText:Boolean;
+        private var mIsHtmlText:Boolean;
         private var mTextBounds:Rectangle;
         private var mBatchable:Boolean;
         
@@ -260,9 +261,11 @@ package starling.text
             sNativeTextField.selectable = false;            
             sNativeTextField.multiline = true;            
             sNativeTextField.wordWrap = true;            
-            sNativeTextField.text = mText;
             sNativeTextField.embedFonts = true;
             sNativeTextField.filters = mNativeFilters;
+
+            if (mIsHtmlText) sNativeTextField.htmlText = mText;
+            else             sNativeTextField.text     = mText;
             
             // we try embedded fonts first, non-embedded fonts are just a fallback
             if (sNativeTextField.textWidth == 0.0 || sNativeTextField.textHeight == 0.0)
@@ -704,16 +707,29 @@ package starling.text
             if (mQuadBatch) mQuadBatch.batchable = value;
         }
 
-        /** The native Flash BitmapFilters to apply to this TextField. 
-         *  Only available when using standard (TrueType) fonts! */
+        /** The native Flash BitmapFilters to apply to this TextField.
+         *
+         *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
         public function get nativeFilters():Array { return mNativeFilters; }
         public function set nativeFilters(value:Array) : void
         {
-            if (!mIsRenderedText)
-                throw(new Error("The TextField.nativeFilters property cannot be used on Bitmap fonts."));
-            
             mNativeFilters = value.concat();
             mRequiresRedraw = true;
+        }
+
+        /** Indicates if the assigned text should be interpreted as HTML code. For a description
+         *  of the supported HTML subset, refer to the classic Flash 'TextField' documentation.
+         *  Clickable hyperlinks and external images are not supported.
+         *
+         *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
+        public function get isHtmlText():Boolean { return mIsHtmlText; }
+        public function set isHtmlText(value:Boolean):void
+        {
+            if (mIsHtmlText != value)
+            {
+                mIsHtmlText = value;
+                mRequiresRedraw = true;
+            }
         }
         
         /** The Context3D texture format that is used for rendering of all TrueType texts.

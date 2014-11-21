@@ -45,18 +45,23 @@ package scenes
             rightTF.y = leftTF.y;
             rightTF.hAlign = HAlign.RIGHT;
             rightTF.vAlign = VAlign.BOTTOM;
-            rightTF.color = 0x228822;
+            rightTF.color = 0x208020;
             rightTF.border = true;
             addChild(rightTF);
             
             var fontTF:TextField = new TextField(300, 80,
-                "... or centered. Embedded fonts are detected automatically.",
+                "... or centered. Embedded fonts are detected automatically and " +
+                "<font color='#208080'>support</font> " +
+                "<font color='#993333'>basic</font> " +
+                "<font color='#333399'>HTML</font> " +
+                "<font color='#208020'>formatting</font>.",
                 ttFont, ttFontSize, 0x0, true);
             fontTF.x = offset;
             fontTF.y = leftTF.y + leftTF.height + offset;
             fontTF.border = true;
+            fontTF.isHtmlText = true;
             addChild(fontTF);
-            
+
             // Bitmap fonts!
             
             // First, you will need to create a bitmap font texture.
