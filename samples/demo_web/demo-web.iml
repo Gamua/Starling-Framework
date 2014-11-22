@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="demo-web">
     <configurations>
-      <configuration name="demo-web" pure-as="true" main-class="Demo_Web" output-file="demo_web.swf" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="demo-web" pure-as="true" main-class="Demo_Web_Preloader" output-file="demo_web.swf" output-folder="$MODULE_DIR$/bin-debug">
         <dependencies target-player="15.0">
           <entries>
             <entry module-name="demo-shared" build-configuration-name="demo-shared">
@@ -14,7 +14,9 @@
           </entries>
           <sdk name="air-15" />
         </dependencies>
-        <compiler-options />
+        <compiler-options>
+          <option name="additionalOptions" value="-frame StartupFrame Demo_Web" />
+        </compiler-options>
         <packaging-air-desktop />
         <packaging-android />
         <packaging-ios />
