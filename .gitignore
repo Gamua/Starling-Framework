@@ -14,10 +14,11 @@ bin-release/
 starling/doc/html/
 tests/libs/
 
-# Project property files
+# Eclipse / Flash Builder
 .settings/
 .flexProperties
 .FlexUnitSettings
+.actionScriptProperties
 
 # IntelliJ IDEA
 *.iws
@@ -39,4 +40,3 @@ target/
 # FlashBuilder auto generated test runners
 FlexUnitApplication.as
 FlexUnitCompilerApplication.as
-.actionScriptProperties
