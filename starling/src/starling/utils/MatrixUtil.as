@@ -96,11 +96,11 @@ package starling.utils
         {
             if (resultPoint == null) resultPoint = new Vector3D();
 
-            var data:Vector.<Number> = matrix.rawData;
-            resultPoint.x = x * data[0] + y * data[4] + z * data[ 8] + data[12];
-            resultPoint.y = x * data[1] + y * data[5] + z * data[ 9] + data[13];
-            resultPoint.z = x * data[2] + y * data[6] + z * data[10] + data[14];
-            resultPoint.w = x * data[3] + y * data[7] + z * data[11] + data[15];
+            matrix.copyRawDataTo(sRawData2);
+            resultPoint.x = x * sRawData2[0] + y * sRawData2[4] + z * sRawData2[ 8] + sRawData2[12];
+            resultPoint.y = x * sRawData2[1] + y * sRawData2[5] + z * sRawData2[ 9] + sRawData2[13];
+            resultPoint.z = x * sRawData2[2] + y * sRawData2[6] + z * sRawData2[10] + sRawData2[14];
+            resultPoint.w = x * sRawData2[3] + y * sRawData2[7] + z * sRawData2[11] + sRawData2[15];
 
             return resultPoint;
         }
