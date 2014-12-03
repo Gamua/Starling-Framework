@@ -533,12 +533,13 @@ package starling.utils
         /** Enqueues a single asset with a custom name that can be used to access it later.
          *  If the asset is a texture, you can also add custom texture options.
          *  
-         *  @param asset:   The asset that will be enqueued; accepts the same objects as the
+         *  @param asset    The asset that will be enqueued; accepts the same objects as the
          *                  'enqueue' method.
-         *  @param name:    The name under which the asset will be found later. If you pass null or
+         *  @param name     The name under which the asset will be found later. If you pass null or
          *                  omit the parameter, it's attempted to generate a name automatically.
-         *  @param options: Custom options that will be used if 'asset' points to texture data.
-         *  @return         the name under which the asset was registered. */
+         *  @param options  Custom options that will be used if 'asset' points to texture data.
+         *  @return         the name with which the asset was registered.
+         */
         public function enqueueWithName(asset:Object, name:String=null,
                                         options:TextureOptions=null):String
         {
