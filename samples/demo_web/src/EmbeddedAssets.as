@@ -21,6 +21,11 @@ package
         [Embed(source="../../demo/assets/textures/1x/atlas.png")]
         public static const atlas:Class;
 
+        // Bitmap textures
+
+        [Embed(source="../../demo/assets/textures/1x/background.jpg")]
+        public static const background:Class;
+
         // Compressed textures
         
         [Embed(source = "../../demo/assets/textures/1x/compressed_texture.atf", mimeType="application/octet-stream")]

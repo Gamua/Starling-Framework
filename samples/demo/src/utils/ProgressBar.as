@@ -1,19 +1,15 @@
 package utils
 {
-    import flash.display.BitmapData;
+    import flash.display.GradientType;
     import flash.display.Shape;
-    
-    import starling.core.Starling;
-    import starling.display.Image;
-    import starling.display.Quad;
-    import starling.display.Sprite;
-    import starling.textures.Texture;
+    import flash.display.Sprite;
+    import flash.geom.Matrix;
 
     public class ProgressBar extends Sprite
     {
-        private var mBar:Quad;
-        private var mBackground:Image;
-        
+        private var mBackground:Shape;
+        private var mBar:Shape;
+
         public function ProgressBar(width:int, height:int)
         {
             init(width, height);
@@ -21,39 +17,38 @@ package utils
         
         private function init(width:int, height:int):void
         {
-            var scale:Number = Starling.contentScaleFactor;
             var padding:Number = height * 0.2;
-            var cornerRadius:Number = padding * scale * 2;
+            var cornerRadius:Number = padding * 2;
             
             // create black rounded box for background
             
-            var bgShape:Shape = new Shape();
-            bgShape.graphics.beginFill(0x0, 0.5);
-            bgShape.graphics.drawRoundRect(0, 0, width*scale, height*scale, cornerRadius, cornerRadius);
-            bgShape.graphics.endFill();
-            
-            var bgBitmapData:BitmapData = new BitmapData(width*scale, height*scale, true, 0x0);
-            bgBitmapData.draw(bgShape);
-            var bgTexture:Texture = Texture.fromBitmapData(bgBitmapData, false, false, scale);
-            
-            mBackground = new Image(bgTexture);
+            mBackground = new Shape();
+            mBackground.graphics.beginFill(0x0, 0.5);
+            mBackground.graphics.drawRoundRect(0, 0, width, height, cornerRadius, cornerRadius);
+            mBackground.graphics.endFill();
             addChild(mBackground);
             
-            // create progress bar quad
-            
-            mBar = new Quad(width - 2*padding, height - 2*padding, 0xeeeeee);
-            mBar.setVertexColor(2, 0xaaaaaa);
-            mBar.setVertexColor(3, 0xaaaaaa);
+            // create progress bar shape
+
+            var barWidth:Number  = width  - 2 * padding;
+            var barHeight:Number = height - 2 * padding;
+            var barMatrix:Matrix = new Matrix();
+            barMatrix.createGradientBox(barWidth, barHeight, Math.PI / 2);
+
+            mBar = new Shape();
+            mBar.graphics.beginGradientFill(GradientType.LINEAR,
+                [0xeeeeee, 0xaaaaaa], [1, 1], [0, 255], barMatrix);
+            mBar.graphics.drawRect(0, 0, barWidth, barHeight);
             mBar.x = padding;
             mBar.y = padding;
-            mBar.scaleX = 0;
+            mBar.scaleX = 0.0;
             addChild(mBar);
         }
         
         public function get ratio():Number { return mBar.scaleX; }
         public function set ratio(value:Number):void 
-        { 
-            mBar.scaleX = Math.max(0.0, Math.min(1.0, value)); 
+        {
+            mBar.scaleX = Math.max(0.0, Math.min(1.0, value));
         }
     }
 }
