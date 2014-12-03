@@ -113,7 +113,7 @@ package
 
         private function initElements(scaleFactor:int):void
         {
-            // Add background image. By using "readBytes", we can avoid any flickering.
+            // Add background image. By using "loadBytes", we can avoid any flickering.
 
             var bgPath:String = formatString("textures/{0}x/background.jpg", scaleFactor);
             var bgFile:File = File.applicationDirectory.resolvePath(bgPath);
