@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="demo-shared">
     <configurations>
-      <configuration name="demo-shared" target-platform="Mobile" pure-as="true" output-type="Library" output-file="demo-shared.swc" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="demo-shared" target-platform="Mobile" pure-as="true" output-type="Library" output-file="demo-shared.swc" output-folder="$MODULE_DIR$/out">
         <dependencies>
           <entries>
             <entry module-name="starling" build-configuration-name="starling">

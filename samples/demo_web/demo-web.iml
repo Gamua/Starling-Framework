@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="demo-web">
     <configurations>
-      <configuration name="demo-web" pure-as="true" main-class="Demo_Web_Preloader" output-file="demo_web.swf" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="demo-web" pure-as="true" main-class="Demo_Web_Preloader" output-file="demo_web.swf" output-folder="$MODULE_DIR$/out">
         <dependencies target-player="15.0">
           <entries>
             <entry module-name="demo-shared" build-configuration-name="demo-shared">

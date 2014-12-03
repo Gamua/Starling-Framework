@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="FlexUnitRunner">
     <configurations>
-      <configuration name="FlexUnitRunner" pure-as="true" main-class="FlexUnitRunner" output-file="FlexUnitRunner.swf" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="FlexUnitRunner" pure-as="true" main-class="FlexUnitRunner" output-file="FlexUnitRunner.swf" output-folder="$MODULE_DIR$/out">
         <dependencies target-player="15.0">
           <entries>
             <entry library-id="f0cf5e4a-a937-48b8-8262-ef4e4bd4e764">

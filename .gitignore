@@ -13,6 +13,7 @@ bin-debug/
 bin-release/
 starling/doc/html/
 tests/libs/
+out/
 
 # Eclipse / Flash Builder
 .settings/

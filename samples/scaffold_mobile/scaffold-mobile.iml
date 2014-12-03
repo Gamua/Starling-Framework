@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="scaffold-mobile">
     <configurations>
-      <configuration name="scaffold-mobile" target-platform="Mobile" pure-as="true" main-class="Scaffold_Mobile" output-file="scaffold_mobile.swf" output-folder="$MODULE_DIR$/bin-debug">
+      <configuration name="scaffold-mobile" target-platform="Mobile" pure-as="true" main-class="Scaffold_Mobile" output-file="scaffold_mobile.swf" output-folder="$MODULE_DIR$/out">
         <dependencies>
           <entries>
             <entry module-name="starling" build-configuration-name="starling">
