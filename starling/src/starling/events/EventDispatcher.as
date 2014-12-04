@@ -56,7 +56,7 @@ package starling.events
             if (listeners == null)
                 mEventListeners[type] = new <Function>[listener];
             else if (listeners.indexOf(listener) == -1) // check for duplicates
-                listeners.push(listener);
+                listeners[listeners.length] = listener; // avoid 'push'
         }
         
         /** Removes an event listener from the object. */
@@ -181,7 +181,7 @@ package starling.events
             }
             
             chain.length = 0;
-            sBubbleChains.push(chain);
+            sBubbleChains[sBubbleChains.length] = chain; // avoid 'push'
         }
         
         /** Dispatches an event with the given parameters to all objects that have registered 
