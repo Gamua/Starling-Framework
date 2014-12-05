@@ -61,7 +61,7 @@ package starling.animation
         {
             if (object && mObjects.indexOf(object) == -1) 
             {
-                mObjects.push(object);
+                mObjects[mObjects.length] = object;
             
                 var dispatcher:EventDispatcher = object as EventDispatcher;
                 if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);

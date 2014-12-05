@@ -116,9 +116,9 @@ package starling.animation
         {
             if (mTarget == null) return; // tweening null just does nothing.
                    
-            mProperties.push(property);
-            mStartValues.push(Number.NaN);
-            mEndValues.push(endValue);
+            mProperties[mProperties.length] = property;
+            mStartValues[mStartValues.length] = Number.NaN;
+            mEndValues[mEndValues.length] = endValue;
         }
         
         /** Animates the 'scaleX' and 'scaleY' properties of an object simultaneously. */
