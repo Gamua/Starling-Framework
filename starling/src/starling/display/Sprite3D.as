@@ -99,7 +99,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
-            if (is2D) super.render(support, parentAlpha)
+            if (is2D) super.render(support, parentAlpha);
             else
             {
                 support.finishQuadBatch();
