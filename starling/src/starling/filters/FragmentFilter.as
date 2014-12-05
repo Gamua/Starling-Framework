@@ -214,7 +214,7 @@ package starling.filters
             var stage:Stage  = Starling.current.stage;
             var scale:Number = Starling.current.contentScaleFactor;
             var projMatrix:Matrix     = mHelperMatrix;
-            var projMatrix3D:Matrix3D = mHelperMatrix3D
+            var projMatrix3D:Matrix3D = mHelperMatrix3D;
             var bounds:Rectangle      = mHelperRect;
             var boundsPot:Rectangle   = mHelperRect2;
             
