@@ -57,7 +57,16 @@ package starling.textures
      * 
      *  <p>Beware that render textures can't be restored when the Starling's render context is lost.
      *  </p>
-     *     
+     *
+     *  <strong>Persistence</strong>
+     *
+     *  <p>Persistent render textures (see the 'persistent' flag in the constructor) are more
+     *  expensive, because they might have to use two render buffers internally. Disable this
+     *  parameter if you don't need that.</p>
+     *
+     *  <p>On modern hardware, you can make use of the static 'optimizePersistentBuffers'
+     *  property to overcome the need for double buffering. Use this feature with care, though!</p>
+     *
      */
     public class RenderTexture extends SubTexture
     {
@@ -75,25 +84,27 @@ package starling.textures
         /** helper object */
         private static var sClipRect:Rectangle = new Rectangle();
         
-        /** Indicates if new persistent textures should use double buffering even if it's not
-         *  enforced by the Flash/AIR runtime.
+        /** Indicates if new persistent textures should use a single render buffer instead of
+         *  the default double buffering approach. That's faster and requires less memory, but is
+         *  not supported on all hardware.</p>
          *
-         *  <p>Prior to Flash/AIR version 15, Stage3D required RenderTextures to be cleared each
-         *  time they were being used as render target. To work around this limitation, Starling's
-         *  RenderTextures were implemented with double-buffering internally. Now, since this is
-         *  no longer required, Starling won't do that any more — except when you enable this
-         *  property. This is useful for certain hardware, e.g. some tile-based GPUs.</p>
+         *  <p>You can safely enable this property on all iOS and Desktop systems. On Android,
+         *  it's recommended to enable it only on reasonably modern hardware, e.g. only when
+         *  at least one of the 'Standard' profiles is supported.</p>
+         *
+         *  <p>Beware: this feature requires at least Flash/AIR version 15.</p>
+         *
+         *  @default false
          */
-        public static var forceDoubleBuffering:Boolean = false;
+        public static var optimizePersistentBuffers:Boolean = false;
 
         /** Creates a new RenderTexture with a certain size (in points). If the texture is
          *  persistent, the contents of the texture remains intact after each draw call, allowing
          *  you to use the texture just like a canvas. If it is not, it will be cleared before each
          *  draw call.
          *
-         *  <p>When run in Flash/AIR 14 or smaller, persistency requires an additional texture
-         *  buffer (i.e. the required graphics memory is doubled). Beginning with version 15, this
-         *  is no longer necessary.</p>
+         *  <p>Beware that persistence requires an additional texture buffer (i.e. the required
+         *  memory is doubled). You can avoid that via 'optimizePersistentBuffers', though.</p>
          */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true,
                                       scale:Number=-1, format:String="bgra", repeat:Boolean=false)
@@ -128,7 +139,7 @@ package starling.textures
             mSupport = new RenderSupport();
             mSupport.setProjectionMatrix(0, 0, rootWidth, rootHeight, width, height);
             
-            if (persistent && (forceDoubleBuffering || !SystemUtil.supportsRelaxedTargetClearRequirement))
+            if (persistent && (!optimizePersistentBuffers || !SystemUtil.supportsRelaxedTargetClearRequirement))
             {
                 mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format, repeat);
                 mBufferTexture.root.onRestore = mBufferTexture.root.clear;

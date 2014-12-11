@@ -7,6 +7,7 @@ package
 
     import starling.core.Starling;
     import starling.events.Event;
+    import starling.textures.RenderTexture;
     import starling.utils.AssetManager;
 
     import utils.ProgressBar;
@@ -46,6 +47,7 @@ package
 
             Starling.multitouchEnabled = true; // for Multitouch Scene
             Starling.handleLostContext = true; // recommended everywhere when using AssetManager
+            RenderTexture.optimizePersistentBuffers = true; // should be safe on Desktop
 
             mStarling = new Starling(Game, stage, null, null, "auto", "auto");
             mStarling.simulateMultitouch = true;

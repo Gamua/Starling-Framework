@@ -15,6 +15,7 @@ package
 
     import starling.core.Starling;
     import starling.events.Event;
+    import starling.textures.RenderTexture;
     import starling.utils.AssetManager;
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
@@ -44,7 +45,7 @@ package
             // then run on a device with a different resolution; for that case, we zoom the
             // viewPort to the optimal size for any display and load the optimal textures.
 
-            var iOS:Boolean = Capabilities.manufacturer.indexOf("iOS") != -1;
+            var iOS:Boolean = SystemUtil.platform == "IOS";
             var stageSize:Rectangle  = new Rectangle(0, 0, StageWidth, StageHeight);
             var screenSize:Rectangle = new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight);
             var viewPort:Rectangle = RectangleUtil.fit(stageSize, screenSize, ScaleMode.SHOW_ALL, iOS);
@@ -52,6 +53,7 @@ package
 
             Starling.multitouchEnabled = true; // useful on mobile devices
             Starling.handleLostContext = true; // recommended everywhere when using AssetManager
+            RenderTexture.optimizePersistentBuffers = iOS; // safe on iOS, dangerous on Android
 
             mStarling = new Starling(Game, stage, viewPort, null, "auto", "auto");
             mStarling.stage.stageWidth    = StageWidth;  // <- same size on all devices!
