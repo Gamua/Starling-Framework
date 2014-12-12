@@ -1,8 +1,8 @@
 Starling: Changelog
 ===================
 
-version 1.6rc - 2014-11-21
---------------------------
+version 1.6 - 2014-12-12
+------------------------
 
 - added 'Sprite3D' class for simple 3D transformations
 - added 3D transformation methods to DisplayObject, RenderSupport and MatrixUtil classes
@@ -11,6 +11,7 @@ version 1.6rc - 2014-11-21
 - added parallel asset loading to AssetManager class (via 'numConnections' property)
 - added build scripts for Gradle and Maven (thanks to Andras Csizmadia & Honza Břečka)
 - added automatic TravisCI integration tests (thanks to Andras Csizmadia & Honza Břečka)
+- added 'RenderTexture.optimizePersistentBuffers' to enable single-buffered render textures
 - added support for nested filters (thanks to AIR 15)
 - added support for drawing filtered objects to render textures
 - added support for HTML text to 'TextField' class (TrueType fonts only)
@@ -55,6 +56,7 @@ version 1.6rc - 2014-11-21
 - optimized 'execute' function by avoiding 'Array.slice'
 - optimized handling of pass textures in FragmentFilter (avoiding chance of null reference)
 - optimized AOT performance by avoiding 'Array.push' in several places
+- optimized Scaffold and Demo projects so that they no longer need an embedded background texture
 - fixed 'auto' profile selection so that it explicitly avoids software rendering if possible
 - fixed: now conserving 'onReady' texture option when loading ATF texture
 - fixed: more reliable 'context' property in shared context situations (if runtime supports it)
@@ -72,7 +74,7 @@ version 1.6rc - 2014-11-21
 - fixed that 'clear' call with color/alpha on RenderTexture did not work when done before drawing
 - fixed: missing dispose call in 'drawToBitmapData' of Stage class
 - fixed: missing dispose call in internal 'compile' method of FragmentFilter class
-
+- fixed: 'ColorMatrixFilter.tint' did not return 'this' (thanks to Simon Rodriguez)
 
 version 1.5.1 - 2014-05-26
 --------------------------
