@@ -167,13 +167,28 @@ package starling.display
 
         private function updateMatrices():void
         {
+            var x:Number = this.x;
+            var y:Number = this.y;
+            var scaleX:Number = this.scaleX;
+            var scaleY:Number = this.scaleY;
+            var pivotX:Number = this.pivotX;
+            var pivotY:Number = this.pivotY;
+            var rotationZ:Number = this.rotation;
+
             mTransformationMatrix3D.identity();
-            mTransformationMatrix3D.appendScale(scaleX || E , scaleY || E, mScaleZ || E);
-            mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
-            mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
-            mTransformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
-            mTransformationMatrix3D.appendTranslation(x, y, mZ);
-            mTransformationMatrix3D.prependTranslation(-pivotX, -pivotY, -mPivotZ);
+
+            if (scaleX != 1.0 || scaleY != 1.0 || mScaleZ != 1.0)
+                mTransformationMatrix3D.appendScale(scaleX || E , scaleY || E, mScaleZ || E);
+            if (mRotationX != 0.0)
+                mTransformationMatrix3D.appendRotation(rad2deg(mRotationX), Vector3D.X_AXIS);
+            if (mRotationY != 0.0)
+                mTransformationMatrix3D.appendRotation(rad2deg(mRotationY), Vector3D.Y_AXIS);
+            if (rotationZ != 0.0)
+                mTransformationMatrix3D.appendRotation(rad2deg( rotationZ), Vector3D.Z_AXIS);
+            if (x != 0.0 || y != 0.0 || mZ != 0.0)
+                mTransformationMatrix3D.appendTranslation(x, y, mZ);
+            if (pivotX != 0.0 || pivotY != 0.0 || mPivotZ != 0.0)
+                mTransformationMatrix3D.prependTranslation(-pivotX, -pivotY, -mPivotZ);
 
             if (is2D) MatrixUtil.convertTo2D(mTransformationMatrix3D, mTransformationMatrix);
             else      mTransformationMatrix.identity();
