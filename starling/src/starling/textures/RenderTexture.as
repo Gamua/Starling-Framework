@@ -86,7 +86,7 @@ package starling.textures
         
         /** Indicates if new persistent textures should use a single render buffer instead of
          *  the default double buffering approach. That's faster and requires less memory, but is
-         *  not supported on all hardware.</p>
+         *  not supported on all hardware.
          *
          *  <p>You can safely enable this property on all iOS and Desktop systems. On Android,
          *  it's recommended to enable it only on reasonably modern hardware, e.g. only when
