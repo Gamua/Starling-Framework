@@ -30,7 +30,7 @@
   <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
   <echo message="Using SDK: ${FLEX_HOME}"/>
   <!-- versioning -->
-  <property name="version" value="1.6.0" />
+  <property name="version" value="1.6.1" />
   <!-- directories -->
   <property name="deploy.dir" location="bin" />
   <property name="src.dir" location="src" />
