@@ -44,19 +44,19 @@ package starling.display
      */    
     public class MovieClip extends Image implements IAnimatable
     {
-        private var mTextures:Vector.<Texture>;
-        private var mSounds:Vector.<Sound>;
-        private var mDurations:Vector.<Number>;
-        private var mStartTimes:Vector.<Number>;
+		internal var mTextures:Vector.<Texture>;
+        internal var mSounds:Vector.<Sound>;
+		internal var mDurations:Vector.<Number>;
+		internal var mStartTimes:Vector.<Number>;
 
-        private var mDefaultFrameDuration:Number;
-        private var mCurrentTime:Number;
-        private var mCurrentFrame:int;
-        private var mLoop:Boolean;
-        private var mPlaying:Boolean;
-        private var mMuted:Boolean;
-        private var mSoundTransform:SoundTransform = null;
-		private var mEventComplete:Boolean = false;
+		internal var mDefaultFrameDuration:Number;
+		internal var mCurrentTime:Number;
+		internal var mCurrentFrame:int;
+		internal var mLoop:Boolean;
+		internal var mPlaying:Boolean;
+		internal var mMuted:Boolean;
+		internal var mSoundTransform:SoundTransform = null;
+		internal var mEventComplete:Boolean = false;
 		
         /** Creates a movie clip from the provided textures and with the specified default framerate.
          *  The movie will have the size of the first frame. */  
@@ -73,7 +73,7 @@ package starling.display
             }
         }
         
-        private function init(textures:Vector.<Texture>, fps:Number):void
+		internal function init(textures:Vector.<Texture>, fps:Number):void
         {
             if (fps <= 0) throw new ArgumentError("Invalid fps: " + fps);
             var numFrames:int = textures.length;
