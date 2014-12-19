@@ -17,7 +17,10 @@ package starling.display
 		}
 		override internal function init(textures:Vector.<Texture>, fps:Number):void
 		{
-			addAnimation(textures, nameCurrentAnimation, fps, true);
+			if (fps <= 0) throw new ArgumentError("Invalid add animation fps: " + fps);
+			var dataAnimation:DataAnimation = new DataAnimation(textures, fps);
+			animationsDictionary[nameCurrentAnimation] = dataAnimation;
+			switchAnimation(nameCurrentAnimation);
 		}
 		// frame manipulation
 		public function addAnimation(textures:Vector.<Texture>, nameAnimation:String, fps:Number=30, setCurrent:Boolean = false):void
