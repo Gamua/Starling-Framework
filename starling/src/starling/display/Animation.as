@@ -11,16 +11,9 @@ package starling.display
 		
 		public function Animation(textures:Vector.<Texture>, nameAnimation:String, fps:Number=30)
 		{
-			if (textures.length > 0)
-			{
-				nameCurrentAnimation = nameAnimation;
-				animationsDictionary = new Dictionary();
-				super(textures[0], fps);
-			}
-			else
-			{
-				throw new ArgumentError("Empty texture array");
-			}
+			nameCurrentAnimation = nameAnimation;
+			animationsDictionary = new Dictionary();
+			super(textures[0], fps);
 		}
 		override internal function init(textures:Vector.<Texture>, fps:Number):void
 		{
