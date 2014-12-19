@@ -56,7 +56,8 @@ package starling.display
         private var mPlaying:Boolean;
         private var mMuted:Boolean;
         private var mSoundTransform:SoundTransform = null;
-        
+		private var mEventComplete:Boolean = false;
+		
         /** Creates a movie clip from the provided textures and with the specified default framerate.
          *  The movie will have the size of the first frame. */  
         public function MovieClip(textures:Vector.<Texture>, fps:Number=12)
@@ -176,6 +177,22 @@ package starling.display
             mDurations[frameID] = duration;
             updateStartTimes();
         }
+		
+		override public function addEventListener(type:String, listener:Function):void
+		{
+			if(type == Event.COMPLETE) mEventComplete = true;
+			super.addEventListener(type, listener);
+		}
+		override public function removeEventListener(type:String, listener:Function):void
+		{
+			super.removeEventListener(type, listener);
+			if(!hasEventListener(type))  mEventComplete = false;
+		}
+		override public function removeEventListeners(type:String=null):void
+		{
+			super.removeEventListeners(type);
+			mEventComplete = false;
+		}
         
         // playback methods
         
@@ -214,70 +231,63 @@ package starling.display
         // IAnimatable
         
         /** @inheritDoc */
-        public function advanceTime(passedTime:Number):void
-        {
-            if (!mPlaying || passedTime <= 0.0) return;
-            
-            var finalFrame:int;
-            var previousFrame:int = mCurrentFrame;
-            var restTime:Number = 0.0;
-            var breakAfterFrame:Boolean = false;
-            var dispatchCompleteEvent:Boolean = false;
-            var totalTime:Number = this.totalTime;
-            
-            if (mLoop && mCurrentTime >= totalTime)
-            { 
-                mCurrentTime = 0.0; 
-                mCurrentFrame = 0; 
-            }
-            
-            if (mCurrentTime < totalTime)
-            {
-                mCurrentTime += passedTime;
-                finalFrame = mTextures.length - 1;
-                
-                while (mCurrentTime > mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
-                {
-                    if (mCurrentFrame == finalFrame)
-                    {
-                        if (mLoop && !hasEventListener(Event.COMPLETE))
-                        {
-                            mCurrentTime -= totalTime;
-                            mCurrentFrame = 0;
-                        }
-                        else
-                        {
-                            breakAfterFrame = true;
-                            restTime = mCurrentTime - totalTime;
-                            dispatchCompleteEvent = true;
-                            mCurrentFrame = finalFrame;
-                            mCurrentTime = totalTime;
-                        }
-                    }
-                    else
-                    {
-                        mCurrentFrame++;
-                    }
-                    
-                    var sound:Sound = mSounds[mCurrentFrame];
-                    if (sound && !mMuted) sound.play(0, 0, mSoundTransform);
-                    if (breakAfterFrame) break;
-                }
-                
-                // special case when we reach *exactly* the total time.
-                if (mCurrentFrame == finalFrame && mCurrentTime == totalTime)
-                    dispatchCompleteEvent = true;
-            }
-            
-            if (mCurrentFrame != previousFrame)
-                texture = mTextures[mCurrentFrame];
-            
-            if (dispatchCompleteEvent)
-                dispatchEventWith(Event.COMPLETE);
-            
-            if (mLoop && restTime > 0.0)
-                advanceTime(restTime);
-        }
+		public function advanceTime(passedTime:Number):void
+		{
+			if (!mPlaying || passedTime <= 0.0) return;
+			
+			var previousFrame:int = mCurrentFrame;
+			var totalTime:Number = this.totalTime;
+			var restTime:Number = 0.0;
+			var dispatchCompleteEvent:Boolean = false;
+			var breakAfterFrame:Boolean = false;
+			
+			if (mLoop && mCurrentTime >= totalTime)
+			{ 
+				mCurrentTime = 0.0; 
+				mCurrentFrame = 0; 
+			}
+			
+			if (mCurrentTime < totalTime)
+			{
+				mCurrentTime += passedTime;
+				var finalFrame:int = mTextures.length - 1;
+				while (mCurrentTime > mStartTimes[mCurrentFrame] + mDurations[mCurrentFrame])
+				{
+					if (mCurrentFrame == finalFrame)
+					{
+						if (mLoop && !mEventComplete)
+						{
+							mCurrentTime -= totalTime;
+							mCurrentFrame = 0;
+						}
+						else
+						{
+							breakAfterFrame = true;
+							restTime = mCurrentTime - totalTime;
+							dispatchCompleteEvent = true;
+							mCurrentFrame = finalFrame;
+							mCurrentTime = totalTime;
+						}
+					}
+					else
+					{
+						mCurrentFrame++;
+					}
+					
+					var sound:Sound = mSounds[mCurrentFrame];
+					if (sound && !mMuted) sound.play(0, 0, mSoundTransform);
+					if (breakAfterFrame) break;
+				}
+				
+				// special case when we reach *exactly* the total time.
+				if (mCurrentFrame == finalFrame && mCurrentTime == totalTime || dispatchCompleteEvent)
+					dispatchEventWith(Event.COMPLETE);
+				
+				if (mLoop && restTime > 0.0) advanceTime(restTime);
+			}
+			
+			if (mCurrentFrame != previousFrame) texture = mTextures[mCurrentFrame];
+		}
         
         // properties  
         
