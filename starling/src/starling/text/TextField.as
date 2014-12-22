@@ -223,7 +223,7 @@ package starling.text
 
         /** This method is called immediately before the text is rendered. The intent of
          *  'formatText' is to be overridden in a subclass, so that you can provide custom
-         *  formatting for the TextField. In the overriden method, call 'setFormat' (either
+         *  formatting for the TextField. In the overridden method, call 'setFormat' (either
          *  over a range of characters or the complete TextField) to modify the format to
          *  your needs.
          *  
@@ -332,7 +332,7 @@ package starling.text
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
             var maxHeight:int = textField.height - 4;
-            var maxWidth:int  = textField.width - 4;
+            var maxWidth:int  = textField.width  - 4;
             
             while (textField.textWidth > maxWidth || textField.textHeight > maxHeight)
             {
@@ -340,7 +340,10 @@ package starling.text
                 
                 var format:TextFormat = textField.defaultTextFormat;
                 format.size = size--;
-                textField.setTextFormat(format);
+                textField.defaultTextFormat = format;
+
+                if (mIsHtmlText) textField.htmlText = mText;
+                else             textField.text     = mText;
             }
         }
         
