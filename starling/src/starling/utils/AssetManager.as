@@ -460,7 +460,7 @@ package starling.utils
          *  executing the "loadQueue" method. This method accepts a variety of different objects:
          *  
          *  <ul>
-         *    <li>Strings containing an URL to a local or remote resource. Supported types:
+         *    <li>Strings or URLRequests containing an URL to a local or remote resource. Supported types:
          *        <code>png, jpg, gif, atf, mp3, xml, fnt, json, binary</code>.</li>
          *    <li>Instances of the File class (AIR only) pointing to a directory or a file.
          *        Directories will be scanned recursively for all supported types.</li>
@@ -519,7 +519,7 @@ package starling.utils
                             enqueueWithName(rawAsset);
                     }
                 }
-                else if (rawAsset is String)
+                else if (rawAsset is String || rawAsset is URLRequest)
                 {
                     enqueueWithName(rawAsset);
                 }
@@ -927,9 +927,9 @@ package starling.utils
             {
                 setTimeout(complete, 1, new rawAsset());
             }
-            else if (rawAsset is String)
+            else if (rawAsset is String || rawAsset is URLRequest)
             {
-                url = rawAsset as String;
+                url = rawAsset is String ? rawAsset as String : (rawAsset as URLRequest).url;
                 extension = getExtensionFromUrl(url);
                 
                 urlLoader = new URLLoader();
@@ -939,7 +939,7 @@ package starling.utils
                 urlLoader.addEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.addEventListener(Event.COMPLETE, onUrlLoaderComplete);
-                urlLoader.load(new URLRequest(url));
+                urlLoader.load(rawAsset is String ? new URLRequest(url) : rawAsset as URLRequest);
             }
             
             function onIoError(event:IOErrorEvent):void
@@ -1054,9 +1054,9 @@ package starling.utils
         {
             var name:String;
             
-            if (rawAsset is String || rawAsset is FileReference)
+            if (rawAsset is String || rawAsset is URLRequest || rawAsset is FileReference)
             {
-                name = rawAsset is String ? rawAsset as String : (rawAsset as FileReference).name;
+                name = rawAsset is String ? rawAsset as String : rawAsset is URLRequest ? (rawAsset as URLRequest).url : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
                 name = getBasenameFromUrl(name);
                 
