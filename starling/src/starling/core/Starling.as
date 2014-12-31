@@ -217,7 +217,7 @@ package starling.core
         private var mNativeStageContentScaleFactor:Number;
 
         private static var sCurrent:Starling;
-        private static var sHandleLostContext:Boolean;
+        private static var sHandleLostContext:Boolean = true;
         private static var sContextData:Dictionary = new Dictionary(true);
         private static var sAll:Vector.<Starling> = new <Starling>[];
         
