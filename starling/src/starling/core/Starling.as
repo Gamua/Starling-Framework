@@ -464,20 +464,17 @@ package starling.core
             
             // to avoid overloading time-based animations, the maximum delta is truncated.
             if (passedTime > 1.0) passedTime = 1.0;
-
-            advanceTime(passedTime);
-            render();
+			if (contextValid)
+			{
+          	 	advanceTime(passedTime);
+           		render();
+			}
         }
         
         /** Dispatches ENTER_FRAME events on the display list, advances the Juggler 
          *  and processes touches. */
         public function advanceTime(passedTime:Number):void
         {
-            if (!contextValid)
-                return;
-            
-            makeCurrent();
-            
             mTouchProcessor.advanceTime(passedTime);
             mStage.advanceTime(passedTime);
             mJuggler.advanceTime(passedTime);
@@ -487,10 +484,6 @@ package starling.core
          *  it is presented. This can be avoided by enabling <code>shareContext</code>.*/ 
         public function render():void
         {
-            if (!contextValid)
-                return;
-            
-            makeCurrent();
             updateViewPort();
             mSupport.nextFrame();
             
@@ -513,9 +506,6 @@ package starling.core
             
             mStage.render(mSupport, 1.0);
             mSupport.finishQuadBatch();
-            
-            if (mStatsDisplay)
-                mStatsDisplay.drawCount = mSupport.drawCount;
             
             if (!mShareContext)
                 mContext.present();
@@ -694,7 +684,6 @@ package starling.core
                 event.type, event.charCode, event.keyCode, event.keyLocation, 
                 event.ctrlKey, event.altKey, event.shiftKey);
             
-            makeCurrent();
             mStage.broadcastEvent(keyEvent);
             
             if (keyEvent.isDefaultPrevented())
@@ -716,7 +705,6 @@ package starling.core
                 // on Android, the context is not valid while we're resizing. To avoid problems
                 // with user code, we delay the event dispatching until it becomes valid again.
 
-                makeCurrent();
                 removeEventListener(Event.CONTEXT3D_CREATE, dispatchResizeEvent);
                 mStage.dispatchEvent(new ResizeEvent(Event.RESIZE, stageWidth, stageHeight));
             }
@@ -976,6 +964,7 @@ package starling.core
                 if (mStatsDisplay == null)
                 {
                     mStatsDisplay = new StatsDisplay();
+					mStatsDisplay.target = mSupport;
                     mStatsDisplay.touchable = false;
                     mStage.addChild(mStatsDisplay);
                 }

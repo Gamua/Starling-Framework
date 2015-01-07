@@ -37,6 +37,8 @@ package starling.core
         private var mFps:Number = 0;
         private var mMemory:Number = 0;
         private var mDrawCount:int = 0;
+		
+		public var target:RenderSupport;
         
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
@@ -83,6 +85,7 @@ package starling.core
         /** Updates the displayed values. */
         public function update():void
         {
+			mDrawCount = target.drawCount;
             mFps = mTotalTime > 0 ? mFrameCount / mTotalTime : 0;
             mMemory = System.totalMemory * 0.000000954; // 1.0 / (1024*1024) to convert to MB
             
