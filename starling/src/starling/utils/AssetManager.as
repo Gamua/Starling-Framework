@@ -460,8 +460,8 @@ package starling.utils
          *  executing the "loadQueue" method. This method accepts a variety of different objects:
          *  
          *  <ul>
-         *    <li>Strings or URLRequests containing an URL to a local or remote resource. Supported types:
-         *        <code>png, jpg, gif, atf, mp3, xml, fnt, json, binary</code>.</li>
+         *    <li>Strings or URLRequests containing an URL to a local or remote resource. Supported
+         *        types: <code>png, jpg, gif, atf, mp3, xml, fnt, json, binary</code>.</li>
          *    <li>Instances of the File class (AIR only) pointing to a directory or a file.
          *        Directories will be scanned recursively for all supported types.</li>
          *    <li>Classes that contain <code>static</code> embedded assets.</li>
@@ -921,17 +921,19 @@ package starling.utils
             var extension:String = null;
             var loaderInfo:LoaderInfo = null;
             var urlLoader:URLLoader = null;
+            var urlRequest:URLRequest = null;
             var url:String = null;
-            
+
             if (rawAsset is Class)
             {
                 setTimeout(complete, 1, new rawAsset());
             }
             else if (rawAsset is String || rawAsset is URLRequest)
             {
-                url = rawAsset is String ? rawAsset as String : (rawAsset as URLRequest).url;
+                urlRequest = rawAsset as URLRequest || new URLRequest(rawAsset as String);
+                url = urlRequest.url;
                 extension = getExtensionFromUrl(url);
-                
+
                 urlLoader = new URLLoader();
                 urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
                 urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
@@ -939,9 +941,9 @@ package starling.utils
                 urlLoader.addEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                 urlLoader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 urlLoader.addEventListener(Event.COMPLETE, onUrlLoaderComplete);
-                urlLoader.load(rawAsset is String ? new URLRequest(url) : rawAsset as URLRequest);
+                urlLoader.load(urlRequest);
             }
-            
+
             function onIoError(event:IOErrorEvent):void
             {
                 log("IO error: " + event.text);
@@ -1045,21 +1047,26 @@ package starling.utils
         }
         
         // helpers
-        
+
         /** This method is called by 'enqueue' to determine the name under which an asset will be
-         *  accessible; override it if you need a custom naming scheme. Typically, 'rawAsset' is 
-         *  either a String or a FileReference. Note that this method won't be called for embedded
-         *  assets. */
+         *  accessible; override it if you need a custom naming scheme. Note that this method won't
+         *  be called for embedded assets.
+         *
+         *  @param rawAsset   either a String, an URLRequest or a FileReference.
+         */
         protected function getName(rawAsset:Object):String
         {
             var name:String;
-            
-            if (rawAsset is String || rawAsset is URLRequest || rawAsset is FileReference)
+
+            if      (rawAsset is String)        name =  rawAsset as String;
+            else if (rawAsset is URLRequest)    name = (rawAsset as URLRequest).url;
+            else if (rawAsset is FileReference) name = (rawAsset as FileReference).name;
+
+            if (name)
             {
-                name = rawAsset is String ? rawAsset as String : rawAsset is URLRequest ? (rawAsset as URLRequest).url : (rawAsset as FileReference).name;
                 name = name.replace(/%20/g, " "); // URLs use '%20' for spaces
                 name = getBasenameFromUrl(name);
-                
+
                 if (name) return name;
                 else throw new ArgumentError("Could not extract name from String '" + rawAsset + "'");
             }
