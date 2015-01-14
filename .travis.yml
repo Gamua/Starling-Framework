@@ -35,14 +35,14 @@ before_script:
     - echo env.PLAYERGLOBAL_HOME=libs/player > flex_sdk/env.properties
     # Init Apache Flex SDK
     - mkdir -p flex_sdk/frameworks/libs/player/11.1/
-    - mkdir -p flex_sdk/frameworks/libs/player/15.0/
-    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/15.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
-    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/15.0/playerglobal.swc flex_sdk/frameworks/libs/player/15.0/
+    - mkdir -p flex_sdk/frameworks/libs/player/16.0/
+    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/16.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
+    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/16.0/playerglobal.swc flex_sdk/frameworks/libs/player/16.0/
     # Set env. variable used by Ant and Gradle
     - export FLEX_HOME="$TRAVIS_BUILD_DIR/flex_sdk"
     # Init Adobe AIR SDK
     - mkdir -p /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
-    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/15.0/playerglobal.swc /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
+    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/16.0/playerglobal.swc /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
     # Set env. variable used by Ant and Gradle
     - export AIR_HOME="/usr/local/opt/adobe-air-sdk/libexec"
     # permissions
