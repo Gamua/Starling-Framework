@@ -70,6 +70,7 @@ package starling.filters
             mComponentY = componentY;
             mScaleX = scaleX;
             mScaleY = scaleY;
+            mRepeat = repeat;
             this.mapPoint = mapPoint;
             
             super();
