@@ -126,7 +126,7 @@ package starling.display
         
         /** The object's clipping rectangle in its local coordinate system.
          *  Only pixels within that rectangle will be drawn. 
-         *  <strong>Note:</strong> clip rects are axis aligned with the screen, so they
+         *  <strong>Note:</strong> clipping rectangles are axis aligned with the screen, so they
          *  will not be rotated or skewed if the Sprite is. */
         public function get clipRect():Rectangle { return mClipRect; }
         public function set clipRect(value:Rectangle):void 
@@ -135,8 +135,8 @@ package starling.display
             else mClipRect = (value ? value.clone() : null);
         }
 
-        /** Returns the bounds of the container's clipRect in the given coordinate space, or
-         *  null if the sprite doens't have a clipRect. */ 
+        /** Returns the bounds of the container's clipping rectangle in the given coordinate space,
+         *  or null if the sprite does not have one. */
         public function getClipRect(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             if (mClipRect == null) return null;
