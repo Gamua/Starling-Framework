@@ -264,13 +264,12 @@ package starling.textures
          *  arguments to restore full transparency. */
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
-            var context:Context3D = Starling.context;
-            if (context == null) throw new MissingContextError();
             if (!Starling.current.contextValid) return;
-            
+            var previousRenderTarget:Texture = mSupport.renderTarget;
+
             mSupport.renderTarget = mActiveTexture;
             mSupport.clear(rgb, alpha);
-            mSupport.renderTarget = null;
+            mSupport.renderTarget = previousRenderTarget;
             mBufferReady = true;
         }
         
