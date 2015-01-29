@@ -53,5 +53,11 @@ package starling.utils
 
             return angle;
         }
+
+        /** Moves 'value' into the range between 'min' and 'max'. */
+        public static function clamp(value:Number, min:Number, max:Number):Number
+        {
+            return value < min ? min : (value > max ? max : value);
+        }
     }
 }
