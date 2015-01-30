@@ -46,13 +46,21 @@ package tests
             assertThat(v1.w, closeTo(v2.w, e));
         }
         
-        public static function compareVectors(vector1:Vector.<Number>, vector2:Vector.<Number>,
+        public static function compareVectorsOfNumbers(vector1:Vector.<Number>, vector2:Vector.<Number>,
                                               e:Number=0.0001):void
         {
             assertEquals(vector1.length, vector2.length);
             
             for (var i:int=0; i<vector1.length; ++i)
                 assertThat(vector1[i], closeTo(vector2[i], e));
+        }
+
+        public static function compareVectorsOfUints(vector1:Vector.<uint>, vector2:Vector.<uint>):void
+        {
+            assertEquals(vector1.length, vector2.length);
+
+            for (var i:int=0; i<vector1.length; ++i)
+                assertEquals(vector1[i], vector2[i]);
         }
         
         public static function compareByteArrays(b1:ByteArray, b2:ByteArray):void

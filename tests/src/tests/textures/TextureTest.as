@@ -49,7 +49,7 @@ package tests.textures
             subTexture = new SubTexture(texture, new Rectangle(0, 0, rootWidth, rootHeight));            
             adjustedVertexData = vertexData.clone(); 
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            Helpers.compareVectors(vertexData.rawData, adjustedVertexData.rawData);
+            Helpers.compareVectorsOfNumbers(vertexData.rawData, adjustedVertexData.rawData);
             
             // test subtexture with 50% of the size of the base texture
             subTexture = new SubTexture(texture,
@@ -113,14 +113,14 @@ package tests.textures
             texCoords = createStandardTexCoords();
             
             subTexture.adjustTexCoords(texCoords);
-            Helpers.compareVectors(texCoords, new <Number>[1,0, 1,1, 0,0, 0,1]);
+            Helpers.compareVectorsOfNumbers(texCoords, new <Number>[1,0, 1,1, 0,0, 0,1]);
             
             // rotate again
             subSubTexture = new SubTexture(subTexture, null, false, null, true);
             texCoords = createStandardTexCoords();
             
             subSubTexture.adjustTexCoords(texCoords);
-            Helpers.compareVectors(texCoords, new <Number>[1,1, 0,1, 1,0, 0,0]);
+            Helpers.compareVectorsOfNumbers(texCoords, new <Number>[1,1, 0,1, 1,0, 0,0]);
             
             // now get rotated region
             subTexture = new SubTexture(texture, 
@@ -129,7 +129,7 @@ package tests.textures
             texCoords = createStandardTexCoords();
             
             subTexture.adjustTexCoords(texCoords);
-            Helpers.compareVectors(texCoords, 
+            Helpers.compareVectorsOfNumbers(texCoords,
                 new <Number>[0.75, 0.5,   0.75, 0.75,   0.25, 0.5,   0.25, 0.75]); 
             
             function createStandardTexCoords():Vector.<Number>
