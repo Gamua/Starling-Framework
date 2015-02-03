@@ -154,13 +154,10 @@ package starling.display
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable)) return null;
+            if (!hitTestMask(localPoint)) return null;
 
-            for (var i:int=0, len:int=mPolygons.length; i < len; ++i)
-            {
-                var polygon:Polygon = mPolygons[i];
-                var isHit:Boolean = polygon.containsPoint(localPoint);
-                if (isHit) { trace(Math.random()); return this; }
-            }
+            for (var i:int = 0, len:int = mPolygons.length; i < len; ++i)
+                if (mPolygons[i].containsPoint(localPoint)) return this;
 
             return null;
         }

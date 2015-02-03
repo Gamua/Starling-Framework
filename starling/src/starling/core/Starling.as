@@ -499,6 +499,7 @@ package starling.core
             
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mContext.setCulling(Context3DTriangleFace.NONE);
+            mContext.setStencilReferenceValue(0);
             
             mSupport.renderTarget = null; // back buffer
             mSupport.setProjectionMatrix(
@@ -546,13 +547,13 @@ package starling.core
                     // set the backbuffer to a very small size first, to be on the safe side.
                     
                     if (mProfile == "baselineConstrained")
-                        configureBackBuffer(32, 32, mAntiAliasing, false);
+                        configureBackBuffer(32, 32, mAntiAliasing, true);
                     
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
                     
                     configureBackBuffer(mClippedViewPort.width, mClippedViewPort.height,
-                        mAntiAliasing, false, mSupportHighResolutions);
+                        mAntiAliasing, true, mSupportHighResolutions);
                     
                     if (mSupportHighResolutions && "contentsScaleFactor" in mNativeStage)
                         mNativeStageContentScaleFactor = mNativeStage["contentsScaleFactor"];

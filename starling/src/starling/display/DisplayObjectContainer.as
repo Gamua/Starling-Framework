@@ -314,26 +314,26 @@ package starling.display
         /** @inheritDoc */
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
-            if (forTouch && (!visible || !touchable))
-                return null;
-            
+            if (forTouch && (!visible || !touchable)) return null;
+            if (!hitTestMask(localPoint)) return null;
+
             var target:DisplayObject = null;
             var localX:Number = localPoint.x;
             var localY:Number = localPoint.y;
             var numChildren:int = mChildren.length;
 
-            for (var i:int=numChildren-1; i>=0; --i) // front to back!
+            for (var i:int = numChildren - 1; i >= 0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
                 getTransformationMatrix(child, sHelperMatrix);
-                
+
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
                 target = child.hitTest(sHelperPoint, forTouch);
-                
+
                 if (target)
                     return forTouch && mTouchGroup ? this : target;
             }
-            
+
             return null;
         }
         
@@ -351,13 +351,18 @@ package starling.display
                 if (child.hasVisibleArea)
                 {
                     var filter:FragmentFilter = child.filter;
+                    var mask:DisplayObject = child.mask;
 
                     support.pushMatrix();
                     support.transformMatrix(child);
                     support.blendMode = child.blendMode;
-                    
+
+                    if (mask) support.pushMask(mask);
+
                     if (filter) filter.render(child, support, alpha);
                     else        child.render(support, alpha);
+
+                    if (mask) support.popMask();
                     
                     support.blendMode = blendMode;
                     support.popMatrix();
