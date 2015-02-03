@@ -29,7 +29,7 @@ before_script:
     # Set env. variable used by Gradle
     - export FLASH_PLAYER_EXE="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
     # Apache Flex SDK
-    - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.13.0/binaries/apache-flex-sdk-4.13.0-bin.zip
+    - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.0/binaries/apache-flex-sdk-4.14.0-bin.zip
     - unzip -q flex_sdk.zip -d flex_sdk
     # Init PlayerGlobals
     - echo env.PLAYERGLOBAL_HOME=libs/player > flex_sdk/env.properties
