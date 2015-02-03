@@ -16,6 +16,7 @@ package
     import tests.display.QuadTest;
     import tests.display.Sprite3DTest;
     import tests.events.EventTest;
+    import tests.geom.PolygonTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
     import tests.utils.AssetManagerTest;
@@ -63,6 +64,7 @@ package
             testsToRun.push(tests.utils.MatrixUtilTest);
             testsToRun.push(tests.utils.MathUtilTest);
             testsToRun.push(tests.display.Sprite3DTest);
+            testsToRun.push(tests.geom.PolygonTest);
             return testsToRun;
         }
     }
