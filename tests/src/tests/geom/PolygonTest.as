@@ -12,9 +12,12 @@ package tests.geom
 {
     import flash.geom.Point;
 
+    import org.flexunit.assertThat;
+
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertTrue;
+    import org.hamcrest.number.closeTo;
 
     import starling.geom.Polygon;
 
@@ -22,6 +25,8 @@ package tests.geom
 
     public class PolygonTest
     {
+        private static const E:Number = 0.0001;
+
         [Test]
         public function testConstructorWithPoints():void
         {
@@ -95,7 +100,7 @@ package tests.geom
         }
 
         [Test]
-        public function testTriangulateWeirdPolygon():void
+        public function testTriangulateNonSimplePolygon():void
         {
             // 0---1
             //  \ /
@@ -157,5 +162,150 @@ package tests.geom
             assertFalse(polygon.contains(6, 1));
             assertFalse(polygon.contains(5, 3));
         }
+
+        [Test]
+        public function testIsConvex():void
+        {
+            var polygon:Polygon;
+            var p0:Point, p1:Point, p2:Point, p3:Point, p4:Point, p5:Point;
+
+            // 0--1
+            // | /
+            // 2
+
+            p0 = new Point(0, 0);
+            p1 = new Point(1, 0);
+            p2 = new Point(0, 1);
+
+            polygon = new Polygon(p0, p1, p2);
+            assertTrue(polygon.isConvex);
+
+            polygon = new Polygon(p0, p2, p1);
+            assertFalse(polygon.isConvex);
+
+            // 0--1
+            // |  |
+            // 3--2
+
+            p2 = new Point(1, 1);
+            p3 = new Point(0, 1);
+
+            polygon = new Polygon(p0, p1, p2, p3);
+            assertTrue(polygon.isConvex);
+
+            polygon = new Polygon(p0, p3, p2, p1);
+            assertFalse(polygon.isConvex);
+
+            // 0------1
+            // |    3 |
+            // |   / \|
+            // 5--4   2
+
+            p1 = new Point(4, 0);
+            p2 = new Point(4, 2);
+            p3 = new Point(3, 1);
+            p4 = new Point(2, 2);
+            p5 = new Point(0, 2);
+
+            polygon = new Polygon(p0, p1, p2, p3, p4, p5);
+            assertFalse(polygon.isConvex);
+        }
+
+        [Test]
+        public function testArea():void
+        {
+            var polygon:Polygon;
+            var p0:Point, p1:Point, p2:Point, p3:Point, p4:Point, p5:Point;
+
+            // 0--1
+            // | /
+            // 2
+
+            p0 = new Point(0, 0);
+            p1 = new Point(1, 0);
+            p2 = new Point(0, 1);
+
+            polygon = new Polygon(p0, p1, p2);
+            assertThat(polygon.area, closeTo(0.5, E));
+
+            // 0--1
+            // |  |
+            // 3--2
+
+            p2 = new Point(1, 1);
+            p3 = new Point(0, 1);
+
+            polygon = new Polygon(p0, p1, p2, p3);
+            assertThat(polygon.area, closeTo(1.0, E));
+
+            // 0--1
+
+            polygon = new Polygon(p0, p1);
+            assertThat(polygon.area, closeTo(0.0, E));
+
+            polygon = new Polygon(p0);
+            assertThat(polygon.area, closeTo(0.0, E));
+        }
+
+        [Test]
+        public function testReverse():void
+        {
+            var p0:Point = new Point(0, 1);
+            var p1:Point = new Point(2, 3);
+            var p2:Point = new Point(4, 5);
+
+            var polygon:Polygon = new Polygon(p0);
+            polygon.reverse();
+
+            Helpers.comparePoints(polygon.getVertex(0), p0);
+
+            polygon.addVertices(p1, p2);
+            polygon.reverse();
+
+            Helpers.comparePoints(polygon.getVertex(0), p2);
+            Helpers.comparePoints(polygon.getVertex(1), p1);
+            Helpers.comparePoints(polygon.getVertex(2), p0);
+        }
+
+        [Test]
+        public function testIsSimple():void
+        {
+            var polygon:Polygon;
+            var p0:Point, p1:Point, p2:Point, p3:Point, p4:Point, p5:Point;
+
+            // 0------1
+            // |    3 |
+            // |   / \|
+            // 5--4   2
+
+            p0 = new Point(0, 0);
+            p1 = new Point(4, 0);
+            p2 = new Point(4, 2);
+            p3 = new Point(3, 1);
+            p4 = new Point(2, 2);
+            p5 = new Point(0, 2);
+
+            polygon = new Polygon(p0, p1, p2, p3, p4, p5);
+            assertTrue(polygon.isSimple);
+
+            // move point (3) up
+
+            polygon.setVertex(3, 3, -1);
+            assertFalse(polygon.isSimple);
+
+            // 0---1
+            //  \ /
+            //   X
+            //  / \
+            // 2---3
+
+            p1 = new Point(1, 0);
+            p2 = new Point(0, 1);
+            p3 = new Point(1, 1);
+
+            polygon = new Polygon(p0, p1, p2, p3);
+            assertFalse(polygon.isSimple);
+        }
+
     }
 }

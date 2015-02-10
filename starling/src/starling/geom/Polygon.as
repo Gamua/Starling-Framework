@@ -35,6 +35,26 @@ package starling.geom
             return clone;
         }
 
+        /** Reverses the order of the vertices. Note that some methods of the Polygon class
+         *  require the vertices in clockwise order. */
+        public function reverse():void
+        {
+            var numCoords:int = mCoords.length;
+            var numVertices:int = numCoords / 2;
+            var tmp:Number;
+
+            for (var i:int=0; i<numVertices; i += 2)
+            {
+                tmp = mCoords[i];
+                mCoords[i] = mCoords[numCoords - i - 2];
+                mCoords[numCoords - i - 2] = tmp;
+
+                tmp = mCoords[i + 1];
+                mCoords[i + 1] = mCoords[numCoords - i - 1];
+                mCoords[numCoords - i - 1] = tmp;
+            }
+        }
+
         public function addVertices(...args):void
         {
             var i:int;
@@ -224,17 +244,24 @@ package starling.geom
 
         // factory methods
 
-        public static function createCircle(x:Number, y:Number, radius:Number,
-                                            numSegments:int=32):Polygon
+        public static function createEllipse(x:Number, y:Number, radiusX:Number, radiusY:Number):Polygon
         {
-            var circle:Polygon = new Polygon();
-            var angleDelta:Number = Math.PI / numSegments;
+            var numSides:int = Math.PI * (radiusX + radiusY) / 4.0;
+            numSides = numSides < 6 ? 6 : numSides;
+
+            var ellipse:Polygon = new Polygon();
+            var angleDelta:Number = Math.PI / numSides;
 
             for (var angle:Number=0; angle < Math.PI * 2; angle += angleDelta)
-                circle.addVertices(Math.cos(angle) * radius + x,
-                                   Math.sin(angle) * radius + y);
+                ellipse.addVertices(Math.cos(angle) * radiusX + x,
+                                    Math.sin(angle) * radiusY + y);
 
-            return circle;
+            return ellipse;
+        }
+
+        public static function createCircle(x:Number, y:Number, radius:Number):Polygon
+        {
+            return createEllipse(x, y, radius, radius);
         }
 
         public static function createRectangle(x:Number, y:Number,
@@ -245,12 +272,13 @@ package starling.geom
 
         // helpers
 
+        /** Calculates if the area of the triangle a->b->c is to on the right-hand side of a->b. */
         [Inline]
         private static function isConvexTriangle(ax:Number, ay:Number,
                                                  bx:Number, by:Number,
                                                  cx:Number, cy:Number):Boolean
         {
-            // dot product of (b->a) and (b->c) must be positive
+            // dot product of [the normal of (a->b)] and (b->c) must be positive
             return (ay - by) * (cx - bx) + (bx - ax) * (cy - by) >= 0;
         }
 
@@ -276,32 +304,108 @@ package starling.geom
             var dot11:Number = v1x * v1x + v1y * v1y;
             var dot12:Number = v1x * v2x + v1y * v2y;
 
-            var invDenom:Number = 1.0 / (dot00 * dot11 - dot01 * dot01);
-            var u:Number = (dot11 * dot02 - dot01 * dot12) * invDenom;
-            var v:Number = (dot00 * dot12 - dot01 * dot02) * invDenom;
+            var invDen:Number = 1.0 / (dot00 * dot11 - dot01 * dot01);
+            var u:Number = (dot11 * dot02 - dot01 * dot12) * invDen;
+            var v:Number = (dot00 * dot12 - dot01 * dot02) * invDen;
 
             return (u >= 0) && (v >= 0) && (u + v < 1);
         }
 
+        /** Finds out if the vector a->b intersects c->d. */
+        private static function areVectorsIntersecting(ax:Number, ay:Number, bx:Number, by:Number,
+                                                       cx:Number, cy:Number, dx:Number, dy:Number):Boolean
+        {
+            if ((ax == bx && ay == by) || (cx == dx && cy == dy)) return false; // length = 0
+
+            var abx:Number = bx - ax;
+            var aby:Number = by - ay;
+            var cdx:Number = dx - cx;
+            var cdy:Number = dy - cy;
+            var tDen:Number = cdy * abx - cdx * aby;
+
+            if (tDen == 0.0) return false; // parallel or identical
+
+            var t:Number = (aby * (cx - ax) - abx * (cy - ay)) / tDen;
+
+            if (t < 0 || t > 1) return false; // outside c->d
+
+            var s:Number = aby ? (cy - ay + t * cdy) / aby :
+                                 (cx - ax + t * cdx) / abx;
+
+            return s >= 0.0 && s <= 1.0; // inside a->b
+        }
+
         // properties
 
-        /** Indicates if the polygon is simple (i.e. not self-intersecting). */
+        /** Indicates if the polygon is simple (i.e. not self-intersecting).
+         *  Beware: this is a brute-force implementation with O(n^2). */
         public function get isSimple():Boolean
         {
-            // TODO
-            return false;
+            var numCoords:int = mCoords.length;
+            if (numCoords <= 6) return true;
+
+            for (var i:int=0; i<numCoords; i += 2)
+            {
+                var ax:Number = mCoords[ i ];
+                var ay:Number = mCoords[ i + 1 ];
+                var bx:Number = mCoords[(i + 2) % numCoords];
+                var by:Number = mCoords[(i + 3) % numCoords];
+                var endJ:Number = i + numCoords - 2;
+
+                for (var j:int = i + 4; j<endJ; j += 2)
+                {
+                    var cx:Number = mCoords[ j      % numCoords];
+                    var cy:Number = mCoords[(j + 1) % numCoords];
+                    var dx:Number = mCoords[(j + 2) % numCoords];
+                    var dy:Number = mCoords[(j + 3) % numCoords];
+
+                    if (areVectorsIntersecting(ax, ay, bx, by, cx, cy, dx, dy))
+                        return false;
+                }
+            }
+
+            return true;
         }
 
+        /** Indicates if the polygon is convex, i.e. if the vector between any two points within
+         *  the polygon lies completely inside it. */
         public function get isConvex():Boolean
         {
-            // TODO
-            return false;
+            var numCoords:int = mCoords.length;
+
+            if (numCoords < 6) return true;
+            else
+            {
+                for (var i:int = 0; i < numCoords; i += 2)
+                {
+                    if (!isConvexTriangle(mCoords[i], mCoords[i+1],
+                                          mCoords[(i+2) % numCoords], mCoords[(i+3) % numCoords],
+                                          mCoords[(i+4) % numCoords], mCoords[(i+5) % numCoords]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
+        /** Calculates the total area of the polygon. */
         public function get area():Number
         {
-            // TODO
-            return 0;
+            var area:Number = 0;
+            var numCoords:int = mCoords.length;
+
+            if (numCoords >= 6)
+            {
+                for (var i:int = 0; i < numCoords; i += 2)
+                {
+                    area += mCoords[i  ] * mCoords[(i+3) % numCoords];
+                    area -= mCoords[i+1] * mCoords[(i+2) % numCoords];
+                }
+            }
+
+            return area / 2.0;
         }
 
         public function get numVertices():int

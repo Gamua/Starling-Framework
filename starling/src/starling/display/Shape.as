@@ -74,9 +74,17 @@ package starling.display
             destroyBuffers();
         }
 
-        public function drawCircle(x:Number, y:Number, radius:Number, numSegments:int=32):void
+        public function drawCircle(x:Number, y:Number, radius:Number):void
         {
-            appendPolygon(Polygon.createCircle(x, y, radius, numSegments));
+            appendPolygon(Polygon.createCircle(x, y, radius));
+        }
+
+        public function drawEllipse(x:Number, y:Number, width:Number, height:Number):void
+        {
+            var radiusX:Number = width  / 2.0;
+            var radiusY:Number = height / 2.0;
+
+            appendPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY));
         }
 
         public function drawRectangle(x:Number, y:Number, width:Number, height:Number):void
