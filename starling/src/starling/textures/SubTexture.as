@@ -72,7 +72,13 @@ package starling.textures
                 mTransformationMatrix.translate(0, -1);
                 mTransformationMatrix.rotate(Math.PI / 2.0);
             }
-            
+
+            if (mFrame && (mFrame.x > 0 || mFrame.y > 0 ||
+                mFrame.right < mRegion.width || mFrame.bottom < mRegion.height))
+            {
+                trace("[Starling] Warning: frames inside the texture's region are unsupported.");
+            }
+
             mTransformationMatrix.scale(mRegion.width  / mParent.width,
                                         mRegion.height / mParent.height);
             mTransformationMatrix.translate(mRegion.x  / mParent.width,
