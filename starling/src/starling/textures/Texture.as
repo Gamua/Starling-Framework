@@ -277,17 +277,31 @@ package starling.textures
             if (context == null) throw new MissingContextError();
             
             var atfData:AtfData = new AtfData(data);
-            var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
-                atfData.width, atfData.height, atfData.format, false);
+            var nativeTexture:flash.display3D.textures.Texture = Starling.current.contextValid ?
+                context.createTexture(atfData.width, atfData.height, atfData.format, false) : null;
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format, 
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1, 
                 false, false, scale, repeat);
             
-            concreteTexture.uploadAtfData(data, 0, async);
-            concreteTexture.onRestore = function():void
+            if (nativeTexture == null)
             {
-                concreteTexture.uploadAtfData(data, 0);
-            };
+                concreteTexture.onRestore = function():void
+                {
+                    concreteTexture.uploadAtfData(data, 0, async);
+                    concreteTexture.onRestore = function():void
+                    {
+                        concreteTexture.uploadAtfData(data, 0);
+                    };
+                };
+            }
+            else
+            {
+                concreteTexture.uploadAtfData(data, 0, async);
+                concreteTexture.onRestore = function():void
+                {
+                    concreteTexture.uploadAtfData(data, 0);
+                };
+            }
             
             return concreteTexture;
         }
@@ -357,23 +371,25 @@ package starling.textures
                 actualWidth  = Math.ceil(origWidth  - 0.000000001); // avoid floating point errors
                 actualHeight = Math.ceil(origHeight - 0.000000001);
                 
-                // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
-                // methods only through those lookups, we stay compatible with older SDKs.
-                nativeTexture = context["createRectangleTexture"](
-                    actualWidth, actualHeight, format, optimizeForRenderToTexture);
+                if (Starling.current.contextValid)
+                    // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
+                    // methods only through those lookups, we stay compatible with older SDKs.
+                    nativeTexture = context["createRectangleTexture"](
+                        actualWidth, actualHeight, format, optimizeForRenderToTexture);
             }
             else
             {
                 actualWidth  = getNextPowerOfTwo(origWidth);
                 actualHeight = getNextPowerOfTwo(origHeight);
                 
-                nativeTexture = context.createTexture(actualWidth, actualHeight, format,
-                                                      optimizeForRenderToTexture);
+                if (Starling.current.contextValid)
+                    nativeTexture = context.createTexture(actualWidth, actualHeight, format,
+                                                          optimizeForRenderToTexture);
             }
             
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
                 actualWidth, actualHeight, mipMapping, premultipliedAlpha,
-                optimizeForRenderToTexture, scale, repeat);
+                optimizeForRenderToTexture, scale, repeat, useRectTexture);
             
             concreteTexture.onRestore = concreteTexture.clear;
             

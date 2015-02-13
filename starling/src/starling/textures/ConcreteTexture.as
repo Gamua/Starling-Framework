@@ -40,6 +40,7 @@ package starling.textures
         private var mOptimizedForRenderTexture:Boolean;
         private var mScale:Number;
         private var mRepeat:Boolean;
+        private var mUseRectTexture:Boolean;
         private var mOnRestore:Function;
         private var mDataUploaded:Boolean;
         
@@ -47,11 +48,16 @@ package starling.textures
         private static var sOrigin:Point = new Point();
         
         /** Creates a ConcreteTexture object from a TextureBase, storing information about size,
-         *  mip-mapping, and if the channels contain premultiplied alpha values. */
+         *  mip-mapping, and if the channels contain premultiplied alpha values.
+         *  If Starling.handleLostContext is true and onRestore is set, then base texture will be recreated.
+         *  Its type will be determined by the type of the base parameter
+         *  (either flash.display3D.textures.RectangleTexture or flash.display3D.textures.Texture).
+         *  If the base parameter is null, then the useRectTexture flag determines
+         *  whether to create a RectangleTexture or a Texture instance. */
         public function ConcreteTexture(base:TextureBase, format:String, width:int, height:int, 
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
                                         optimizedForRenderTexture:Boolean=false,
-                                        scale:Number=1, repeat:Boolean=false)
+                                        scale:Number=1, repeat:Boolean=false, useRectTexture:Boolean=false)
         {
             mScale = scale <= 0 ? 1.0 : scale;
             mBase = base;
@@ -62,6 +68,7 @@ package starling.textures
             mPremultipliedAlpha = premultipliedAlpha;
             mOptimizedForRenderTexture = optimizedForRenderTexture;
             mRepeat = repeat;
+            mUseRectTexture = useRectTexture;
             mOnRestore = null;
             mDataUploaded = false;
         }
@@ -89,6 +96,8 @@ package starling.textures
          *  cropped or filled up with transparent pixels */
         public function uploadBitmapData(data:BitmapData):void
         {
+            if (mBase == null) return;
+            
             var potData:BitmapData;
             
             if (data.width != mWidth || data.height != mHeight)
@@ -149,6 +158,8 @@ package starling.textures
          */
         public function uploadAtfData(data:ByteArray, offset:int=0, async:*=null):void
         {
+            if (mBase == null) return;
+            
             const eventType:String = "textureReady"; // defined here for backwards compatibility
             
             var self:ConcreteTexture = this;
@@ -198,7 +209,7 @@ package starling.textures
         {
             var context:Context3D = Starling.context;
             
-            if (mBase is flash.display3D.textures.Texture)
+            if (mBase is flash.display3D.textures.Texture || (mBase == null && !mUseRectTexture))
                 mBase = context.createTexture(mWidth, mHeight, mFormat, 
                                               mOptimizedForRenderTexture);
             else // if (mBase is RectangleTexture)
@@ -213,6 +224,8 @@ package starling.textures
          *  don't call it from within a render method. */ 
         public function clear(color:uint=0x0, alpha:Number=0.0):void
         {
+            if (mBase == null) return;
+            
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
