@@ -31,6 +31,8 @@ package starling.textures
     /** A ConcreteTexture wraps a Stage3D texture object, storing the properties of the texture. */
     public class ConcreteTexture extends Texture
     {
+        private static const ATF_TEXTURE_READY:String = "textureReady"; // defined here for backwards compatibility
+        
         private var mBase:TextureBase;
         private var mFormat:String;
         private var mWidth:int;
@@ -42,6 +44,7 @@ package starling.textures
         private var mRepeat:Boolean;
         private var mOnRestore:Function;
         private var mDataUploaded:Boolean;
+        private var mAtfTextureReadyCallback:Function;
         
         /** helper object */
         private static var sOrigin:Point = new Point();
@@ -64,13 +67,19 @@ package starling.textures
             mRepeat = repeat;
             mOnRestore = null;
             mDataUploaded = false;
+            mAtfTextureReadyCallback = null;
         }
         
         /** Disposes the TextureBase object. */
         public override function dispose():void
         {
-            if (mBase) mBase.dispose();
-            this.onRestore = null; // removes event listener 
+            if (mBase)
+            {
+                mBase.removeEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
+                mBase.dispose();
+            }
+            mAtfTextureReadyCallback = null;
+            this.onRestore = null; // removes event listener
             super.dispose();
         }
         
@@ -149,9 +158,6 @@ package starling.textures
          */
         public function uploadAtfData(data:ByteArray, offset:int=0, async:*=null):void
         {
-            const eventType:String = "textureReady"; // defined here for backwards compatibility
-            
-            var self:ConcreteTexture = this;
             var isAsync:Boolean = async is Function || async === true;
             var potTexture:flash.display3D.textures.Texture = 
                   mBase as flash.display3D.textures.Texture;
@@ -160,21 +166,25 @@ package starling.textures
                 throw new Error("This texture type does not support ATF data");
             
             if (async is Function)
-                potTexture.addEventListener(eventType, onTextureReady);
+            {
+                potTexture.addEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
+                mAtfTextureReadyCallback = async as Function;
+            }
             
             potTexture.uploadCompressedTextureFromByteArray(data, offset, isAsync);
             mDataUploaded = true;
+        }
+        
+        private function onAtfTextureReady(event:Object):void
+        {
+            if (mBase)
+                mBase.removeEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
             
-            function onTextureReady(event:Object):void
+            if (mAtfTextureReadyCallback)
             {
-                potTexture.removeEventListener(eventType, onTextureReady);
-                
-                var callback:Function = async as Function;
-                if (callback != null)
-                {
-                    if (callback.length == 1) callback(self);
-                    else callback();
-                }
+                if (mAtfTextureReadyCallback.length == 1) mAtfTextureReadyCallback(this);
+                else mAtfTextureReadyCallback();
+                mAtfTextureReadyCallback = null;
             }
         }
         
