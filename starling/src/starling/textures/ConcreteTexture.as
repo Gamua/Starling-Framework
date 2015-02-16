@@ -25,7 +25,8 @@ package starling.textures
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.utils.Color;
-    
+    import starling.utils.execute;
+
     use namespace starling_internal;
 
     /** A ConcreteTexture wraps a Stage3D texture object, storing the properties of the texture. */
@@ -78,7 +79,7 @@ package starling.textures
                 mBase.removeEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
                 mBase.dispose();
             }
-            mAtfTextureReadyCallback = null;
+
             this.onRestore = null; // removes event listener
             super.dispose();
         }
@@ -167,7 +168,7 @@ package starling.textures
             
             if (async is Function)
             {
-                potTexture.addEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
+                mBase.addEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
                 mAtfTextureReadyCallback = async as Function;
             }
             
@@ -177,15 +178,9 @@ package starling.textures
         
         private function onAtfTextureReady(event:Object):void
         {
-            if (mBase)
-                mBase.removeEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
-            
-            if (mAtfTextureReadyCallback)
-            {
-                if (mAtfTextureReadyCallback.length == 1) mAtfTextureReadyCallback(this);
-                else mAtfTextureReadyCallback();
-                mAtfTextureReadyCallback = null;
-            }
+            mBase.removeEventListener(ATF_TEXTURE_READY, onAtfTextureReady);
+            execute(mAtfTextureReadyCallback, this);
+            mAtfTextureReadyCallback = null;
         }
         
         // texture backup (context loss)
