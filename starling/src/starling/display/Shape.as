@@ -121,6 +121,7 @@ package starling.display
 
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
+            if (mIndexData.length == 0) return;
             if (mSyncRequired) syncBuffers();
 
             support.finishQuadBatch();
@@ -238,6 +239,7 @@ package starling.display
 
             mVertexBuffer = null;
             mIndexBuffer  = null;
+            mSyncRequired = true;
         }
     }
 }
