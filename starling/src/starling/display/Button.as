@@ -80,7 +80,7 @@ package starling.display
             mAlphaWhenDisabled = disabledState ? 1.0: 0.5;
             mEnabled = true;
             mUseHandCursor = true;
-            mTextBounds = new Rectangle(0, 0, upState.width, upState.height);            
+            mTextBounds = new Rectangle(0, 0, mBody.width, mBody.height);
             
             mContents = new Sprite();
             mContents.addChild(mBody);
