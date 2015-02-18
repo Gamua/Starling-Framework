@@ -28,6 +28,9 @@ package starling.display
     import starling.geom.Polygon;
     import starling.utils.VertexData;
 
+    /** A display object supporting basic vector drawing functionality. In its current state,
+     *  the main use of this class is to provide a range of forms that can be used as masks.
+     */
     public class Shape extends DisplayObject
     {
         private static const PROGRAM_NAME:String = "Shape";
@@ -47,6 +50,7 @@ package starling.display
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
 
+        /** Creates a new (empty) Shape. Call one or more of the 'draw' methods to add content. */
         public function Shape()
         {
             mPolygons   = new <Polygon>[];
@@ -69,16 +73,20 @@ package starling.display
             syncBuffers();
         }
 
+        /** @inheritDoc */
         public override function dispose():void
         {
             destroyBuffers();
+            super.dispose();
         }
 
+        /** Draws a circle. */
         public function drawCircle(x:Number, y:Number, radius:Number):void
         {
             appendPolygon(Polygon.createCircle(x, y, radius));
         }
 
+        /** Draws an ellipse. */
         public function drawEllipse(x:Number, y:Number, width:Number, height:Number):void
         {
             var radiusX:Number = width  / 2.0;
@@ -87,11 +95,16 @@ package starling.display
             appendPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY));
         }
 
+        /** Draws a rectangle. */
         public function drawRectangle(x:Number, y:Number, width:Number, height:Number):void
         {
             appendPolygon(Polygon.createRectangle(x, y, width, height));
         }
 
+        /** Draws an arbitrary path by following the path described by the given vertices. The
+         *  path is closed automatically (i.e. the last vertex will be connected to the first).
+         *  It is recommended to provide the vertices in clockwise order. The path must not be
+         *  self-intersecting. */
         public function drawPath(vertices:Vector.<Point>):void
         {
             var path:Polygon = new Polygon();
@@ -99,26 +112,29 @@ package starling.display
             appendPolygon(path);
         }
 
-        /** Specifies a simple one-color fill that subsequent calls to other Graphics methods
-         *  (such as <code>drawCircle()</code>) use when drawing. */
+        /** Specifies a simple one-color fill that subsequent calls to drawing methods
+         *  (such as <code>drawCircle()</code>) will use. */
         public function beginFill(color:uint=0xffffff, alpha:Number=1.0):void
         {
             mFillColor = color;
             mFillAlpha = alpha;
         }
 
+        /** Resets the color to 'white' and alpha to '1'. */
         public function endFill():void
         {
             mFillColor = 0xffffff;
             mFillAlpha = 1.0;
         }
 
+        /** Removes all existing vertices. */
         public function clear():void
         {
             mVertexData.numVertices = 0;
             mIndexData.length  = 0;
         }
 
+        /** @inheritDoc */
         public override function render(support:RenderSupport, parentAlpha:Number):void
         {
             if (mIndexData.length == 0) return;
@@ -177,7 +193,7 @@ package starling.display
             var oldNumIndices:int = mIndexData.length;
 
             polygon.triangulate(mIndexData);
-            polygon.copyVertexDataTo(mVertexData, oldNumVertices);
+            polygon.copyToVertexData(mVertexData, oldNumVertices);
 
             var newNumIndices:int = mIndexData.length;
 

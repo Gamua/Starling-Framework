@@ -14,16 +14,23 @@ package starling.geom
 
     import starling.utils.VertexData;
 
+    /** A polygon describes a closed two-dimensional shape bounded by a number of straight
+     *  line segments.
+     */
     public class Polygon
     {
-        protected var mCoords:Vector.<Number>;
+        private var mCoords:Vector.<Number>;
 
+        /** Creates a Polygon with the given coordinates.
+         *  @param args either a list of 'Point' instances or alternating 'x' and 'y' coordinates.
+         */
         public function Polygon(...args)
         {
             mCoords = new <Number>[];
             addVertices.apply(this, args);
         }
 
+        /** Creates a clone of this polygon. */
         public function clone():Polygon
         {
             var clone:Polygon = new Polygon();
@@ -55,6 +62,8 @@ package starling.geom
             }
         }
 
+        /** Adds vertices to the polygon. Pass either a list of 'Point' instances or alternating
+         *  'x' and 'y' coordinates. */
         public function addVertices(...args):void
         {
             var i:int;
@@ -79,12 +88,18 @@ package starling.geom
             }
         }
 
+        /** Moves a given vertex to a certain position or adds a new vertex at the end. */
         public function setVertex(index:int, x:Number, y:Number):void
         {
-            mCoords[index * 2    ] = x;
-            mCoords[index * 2 + 1] = y;
+            if (index >= 0 && index <= numVertices)
+            {
+                mCoords[index * 2    ] = x;
+                mCoords[index * 2 + 1] = y;
+            }
+            else throw new RangeError("Invalid index: " + index);
         }
 
+        /** Returns the coordinates of a certain vertex. */
         public function getVertex(index:int, result:Point=null):Point
         {
             if (index >= 0 && index < numVertices)
@@ -93,10 +108,10 @@ package starling.geom
                 result.setTo(mCoords[index * 2], mCoords[index * 2 + 1]);
                 return result;
             }
-            else
-                throw new RangeError("Invalid index");
+            else throw new RangeError("Invalid index: " + index);
         }
 
+        /** Figures out if the given coordinates lie within the polygon. */
         public function contains(x:Number, y:Number):Boolean
         {
             // Algorithm & implementation thankfully taken from:
@@ -121,11 +136,15 @@ package starling.geom
             return oddNodes != 0;
         }
 
+        /** Figures out if the given point lies within the polygon. */
         public function containsPoint(point:Point):Boolean
         {
             return contains(point.x, point.y);
         }
 
+        /** Calculates a possible representation of the polygon via triangles. The resulting
+         *  vector contains a list of vertex indices, where every three indices describe a triangle
+         *  referencing the vertices of the polygon. */
         public function triangulate(result:Vector.<uint>=null):Vector.<uint>
         {
             // Algorithm "Ear clipping method" described here:
@@ -201,19 +220,22 @@ package starling.geom
             return result;
         }
 
-        public function copyVertexDataTo(target:VertexData, targetIndex:int=0):void
+        /** Copies all vertices to a 'VertexData' instance, beginning at a certain target index. */
+        public function copyToVertexData(target:VertexData, targetIndex:int=0):void
         {
             var requiredTargetLength:int = targetIndex + numVertices;
             if (target.numVertices < requiredTargetLength)
                 target.numVertices = requiredTargetLength;
 
-            copyVertexCoordsTo(target.rawData,
+            copyToVector(target.rawData,
                 targetIndex * VertexData.ELEMENTS_PER_VERTEX,
                 VertexData.ELEMENTS_PER_VERTEX - 2);
         }
 
-        public function copyVertexCoordsTo(target:Vector.<Number>, targetIndex:int=0,
-                                           stride:int=0):void
+        /** Copies all vertices to a 'Vector', beginning at a certain target index and skipping
+         *  'stride' coordinates between each 'x, y' pair. */
+        public function copyToVector(target:Vector.<Number>, targetIndex:int=0,
+                                     stride:int=0):void
         {
             var numVertices:int = this.numVertices;
 
@@ -244,6 +266,7 @@ package starling.geom
 
         // factory methods
 
+        /** Creates an elliptic shape. */
         public static function createEllipse(x:Number, y:Number, radiusX:Number, radiusY:Number):Polygon
         {
             var numSides:int = Math.PI * (radiusX + radiusY) / 4.0;
@@ -259,11 +282,13 @@ package starling.geom
             return ellipse;
         }
 
+        /** Creates a circle. */
         public static function createCircle(x:Number, y:Number, radius:Number):Polygon
         {
             return createEllipse(x, y, radius, radius);
         }
 
+        /** Creates a rectangle with the given dimensions. */
         public static function createRectangle(x:Number, y:Number,
                                                width:Number, height:Number):Polygon
         {
@@ -337,8 +362,8 @@ package starling.geom
 
         // properties
 
-        /** Indicates if the polygon is simple (i.e. not self-intersecting).
-         *  Beware: this is a brute-force implementation with O(n^2). */
+        /** Indicates if the polygon's line segments are not self-intersecting.
+         *  Beware: this is a brute-force implementation with <code>O(n^2)</code>. */
         public function get isSimple():Boolean
         {
             var numCoords:int = mCoords.length;
@@ -367,8 +392,8 @@ package starling.geom
             return true;
         }
 
-        /** Indicates if the polygon is convex, i.e. if the vector between any two points within
-         *  the polygon lies completely inside it. */
+        /** Indicates if the polygon is convex. In a convex polygon, the vector between any two
+         *  points inside the polygon lies inside it, as well. */
         public function get isConvex():Boolean
         {
             var numCoords:int = mCoords.length;
@@ -408,6 +433,7 @@ package starling.geom
             return area / 2.0;
         }
 
+        /** Returns the total number of vertices spawning up the polygon. */
         public function get numVertices():int
         {
             return mCoords.length / 2;

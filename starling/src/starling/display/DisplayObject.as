@@ -917,18 +917,19 @@ package starling.display
         public function set filter(value:FragmentFilter):void { mFilter = value; }
 
         /** The display object is masked by the specified object. The mask object itself
-         *  is not drawn. Set mask to null to remove the mask. @default <code>null</code>
+         *  is not drawn. Set mask to null to remove the mask.
          *
-         *  <p>Masking works like this: the mask object is placed in the local coordinate
+         *  <p>The mask object is placed in the local coordinate
          *  system of the display object (as if it were one of its children). A pixel of the
          *  masked display object will only be drawn if it is within one of the mask's polygons.
-         *  Texture pixels and alpha values of the mask are not taken into account!</p>
+         *  Texture pixels and alpha values of the mask are not taken into account.</p>
          *
          *  <p>For rectangular masks, you can use simple quads; for other forms (like circles
-         *  or arbitrary shapes) it is recommended to use a 'Shape' instance.</p>
+         *  or arbitrary shapes) it is recommended to use a 'Shape' instance. Beware that a mask
+         *  will cause at least two additional draw calls: one to draw the mask to the stencil
+         *  buffer and one to erase it.</p>
          *
-         *  <p>Beware that a mask will cause at least two additional draw calls: one to draw
-         *  the mask to the stencil buffer and one to erase it.</p>
+         *  @default null
          */
         public function get mask():DisplayObject { return mMask; }
         public function set mask(value:DisplayObject):void { mMask = value; }
