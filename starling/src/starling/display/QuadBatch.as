@@ -533,7 +533,7 @@ package starling.display
             var quad:Quad = object as Quad;
             var batch:QuadBatch = object as QuadBatch;
             var filter:FragmentFilter = object.filter;
-            
+
             if (quadBatchID == -1)
             {
                 isRootObject = true;
@@ -543,6 +543,14 @@ package starling.display
                 ignoreCurrentFilter = true;
                 if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
                 else quadBatches[0].reset();
+            }
+            else
+            {
+                if (object.mask)
+                    trace("[Starling] Masks are ignored on children of a flattened sprite.");
+
+                if ((object is Sprite) && (object as Sprite).clipRect)
+                    trace("[Starling] ClipRects are ignored on children of a flattened sprite.");
             }
             
             if (filter && !ignoreCurrentFilter)
