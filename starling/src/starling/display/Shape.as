@@ -101,7 +101,7 @@ package starling.display
 
         /** Specifies a simple one-color fill that subsequent calls to other Graphics methods
          *  (such as <code>drawCircle()</code>) use when drawing. */
-        public function beginFill(color:uint, alpha:Number=1.0):void
+        public function beginFill(color:uint=0xffffff, alpha:Number=1.0):void
         {
             mFillColor = color;
             mFillAlpha = alpha;
