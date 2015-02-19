@@ -39,7 +39,7 @@ package starling.core
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
     import flash.utils.setTimeout;
-    
+
     import starling.animation.Juggler;
     import starling.display.DisplayObject;
     import starling.display.Stage;
@@ -51,7 +51,7 @@ package starling.core
     import starling.utils.SystemUtil;
     import starling.utils.VAlign;
     import starling.utils.execute;
-    
+
     /** Dispatched when a new render context is created. The 'data' property references the context. */
     [Event(name="context3DCreate", type="starling.events.Event")]
     
@@ -257,7 +257,7 @@ package starling.core
             SystemUtil.initialize();
             sAll.push(this);
             makeCurrent();
-            
+
             mRootClass = rootClass;
             mViewPort = viewPort;
             mPreviousViewPort = new Rectangle();
@@ -313,6 +313,10 @@ package starling.core
             }
             else
             {
+                if (!SystemUtil.supportsDepthAndStencil)
+                    trace("[Starling] Mask support requires 'depthAndStencil' to be enabled" +
+                          " in the application descriptor.");
+
                 mShareContext = false;
                 requestContext3D(stage3D, renderMode, profile);
             }
@@ -437,7 +441,7 @@ package starling.core
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:", mContext.driverInfo);
-            
+
             updateViewPort(true);
             dispatchEventWith(Event.CONTEXT3D_CREATE, false, mContext);
         }
@@ -569,6 +573,8 @@ package starling.core
                                              enableDepthAndStencil:Boolean,
                                              wantsBestResolution:Boolean=false):void
         {
+            enableDepthAndStencil &&= SystemUtil.supportsDepthAndStencil;
+
             var configureBackBuffer:Function = mContext.configureBackBuffer;
             var methodArgs:Array = [width, height, antiAlias, enableDepthAndStencil];
             if (configureBackBuffer.length > 4) methodArgs.push(wantsBestResolution);
