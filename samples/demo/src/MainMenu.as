@@ -48,7 +48,7 @@ package
                 ["Blend Modes", BlendModeScene],
                 ["Render Texture", RenderTextureScene],
                 ["Benchmark", BenchmarkScene],
-                ["Clipping", MaskScene],
+                ["Masks", MaskScene],
                 ["Sprite 3D", Sprite3DScene]
             ];
             

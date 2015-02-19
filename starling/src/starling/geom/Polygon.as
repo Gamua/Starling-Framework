@@ -10,24 +10,32 @@
 
 package starling.geom
 {
+    import avmplus.getQualifiedClassName;
+
     import flash.geom.Point;
 
     import starling.utils.VertexData;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
      *  line segments.
+     *
+     *  <p>The vertices of a polygon form a closed path (i.e. the last vertex will be connected
+     *  to the first). It is recommended to provide the vertices in clockwise order.
+     *  Self-intersecting paths are not supported and will give wrong results on triangulation,
+     *  area calculation, etc.</p>
      */
     public class Polygon
     {
         private var mCoords:Vector.<Number>;
 
         /** Creates a Polygon with the given coordinates.
-         *  @param args either a list of 'Point' instances or alternating 'x' and 'y' coordinates.
+         *  @param vertices an array that contains either 'Point' instances or
+         *                  alternating 'x' and 'y' coordinates.
          */
-        public function Polygon(...args)
+        public function Polygon(vertices:Array=null)
         {
             mCoords = new <Number>[];
-            addVertices.apply(this, args);
+            addVertices.apply(this, vertices);
         }
 
         /** Creates a clone of this polygon. */
@@ -85,6 +93,7 @@ package starling.geom
                     for (i=0; i<numArgs; ++i)
                         mCoords[numCoords + i] = args[i];
                 }
+                else throw new ArgumentError("Invalid type: " + getQualifiedClassName(args[0]));
             }
         }
 
@@ -266,33 +275,23 @@ package starling.geom
 
         // factory methods
 
-        /** Creates an elliptic shape. */
+        /** Creates an ellipse with optimized implementations of triangulation, hitTest, etc. */
         public static function createEllipse(x:Number, y:Number, radiusX:Number, radiusY:Number):Polygon
         {
-            var numSides:int = Math.PI * (radiusX + radiusY) / 4.0;
-            numSides = numSides < 6 ? 6 : numSides;
-
-            var ellipse:Polygon = new Polygon();
-            var angleDelta:Number = Math.PI / numSides;
-
-            for (var angle:Number=0; angle < Math.PI * 2; angle += angleDelta)
-                ellipse.addVertices(Math.cos(angle) * radiusX + x,
-                                    Math.sin(angle) * radiusY + y);
-
-            return ellipse;
+            return new Ellipse(x, y, radiusX, radiusY);
         }
 
-        /** Creates a circle. */
+        /** Creates a circle with optimized implementations of triangulation, hitTest, etc. */
         public static function createCircle(x:Number, y:Number, radius:Number):Polygon
         {
-            return createEllipse(x, y, radius, radius);
+            return new Ellipse(x, y, radius, radius);
         }
 
-        /** Creates a rectangle with the given dimensions. */
+        /** Creates a rectangle with optimized implementations of triangulation, hitTest, etc. */
         public static function createRectangle(x:Number, y:Number,
                                                width:Number, height:Number):Polygon
         {
-            return new Polygon(x, y, x + width, y, x + width, y + height, x, y + height);
+            return new Rectangle(x, y, width, height);
         }
 
         // helpers
@@ -433,10 +432,194 @@ package starling.geom
             return area / 2.0;
         }
 
-        /** Returns the total number of vertices spawning up the polygon. */
+        /** Returns the total number of vertices spawning up the polygon. Assigning a value
+         *  that's smaller than the current number of vertices will crop the path; a bigger
+         *  value will fill up the path with zeros. */
         public function get numVertices():int
         {
             return mCoords.length / 2;
         }
+
+        public function set numVertices(value:int):void
+        {
+            var oldLength:int = numVertices;
+            mCoords.length = value * 2;
+
+            if (oldLength < value)
+            {
+                for (var i:int=oldLength; i < value; ++i)
+                    mCoords[i * 2] = mCoords[i * 2 + 1] = 0.0;
+            }
+        }
+    }
+}
+
+import avmplus.getQualifiedClassName;
+
+import flash.errors.IllegalOperationError;
+
+import starling.geom.Polygon;
+
+class ImmutablePolygon extends Polygon
+{
+    private var mFrozen:Boolean;
+
+    public function ImmutablePolygon(vertices:Array)
+    {
+        super(vertices);
+        mFrozen = true;
+    }
+
+    override public function addVertices(...args):void
+    {
+        if (mFrozen) throw getImmutableError();
+        else super.addVertices.apply(this, args);
+    }
+
+    override public function setVertex(index:int, x:Number, y:Number):void
+    {
+        if (mFrozen) throw getImmutableError();
+        else super.setVertex(index, x, y);
+    }
+
+    override public function reverse():void
+    {
+        if (mFrozen) throw getImmutableError();
+        else super.reverse();
+    }
+
+    override public function set numVertices(value:int):void
+    {
+        if (mFrozen) throw getImmutableError();
+        else super.reverse();
+    }
+
+    private function getImmutableError():Error
+    {
+        var className:String = getQualifiedClassName(this).split("::").pop();
+        var msg:String = className + " cannot be modified. Call 'clone' to create a mutable copy.";
+        return new IllegalOperationError(msg);
+    }
+}
+
+class Ellipse extends ImmutablePolygon
+{
+    private var mX:Number;
+    private var mY:Number;
+    private var mRadiusX:Number;
+    private var mRadiusY:Number;
+
+    public function Ellipse(x:Number, y:Number, radiusX:Number, radiusY:Number, numSides:int = -1)
+    {
+        mX = x;
+        mY = y;
+        mRadiusX = radiusX;
+        mRadiusY = radiusY;
+
+        super(getVertices(numSides));
+    }
+
+    private function getVertices(numSides:int):Array
+    {
+        if (numSides < 0) numSides = Math.PI * (mRadiusX + mRadiusY) / 4.0;
+        if (numSides < 6) numSides = 6;
+
+        var vertices:Array = [];
+        var angleDelta:Number = 2 * Math.PI / numSides;
+        var angle:Number = 0;
+
+        for (var i:int=0; i<numSides; ++i)
+        {
+            vertices[i * 2    ] = Math.cos(angle) * mRadiusX + mX;
+            vertices[i * 2 + 1] = Math.sin(angle) * mRadiusY + mY;
+            angle += angleDelta;
+        }
+
+        return vertices;
+    }
+
+    override public function triangulate(result:Vector.<uint> = null):Vector.<uint>
+    {
+        result ||= new <uint>[];
+
+        var from:uint = 1;
+        var to:uint = numVertices - 1;
+
+        for (var i:int=from; i<to; ++i)
+            result.push(0, i, i+1);
+
+        return result;
+    }
+
+    override public function contains(x:Number, y:Number):Boolean
+    {
+        var vx:Number = x - mX;
+        var vy:Number = y - mY;
+
+        var a:Number = vx / mRadiusX;
+        var b:Number = vy / mRadiusY;
+
+        return a * a + b * b <= 1;
+    }
+
+    override public function get area():Number
+    {
+        return Math.PI * mRadiusX * mRadiusY;
+    }
+
+    override public function get isSimple():Boolean
+    {
+        return true;
+    }
+
+    override public function get isConvex():Boolean
+    {
+        return true;
+    }
+}
+
+class Rectangle extends ImmutablePolygon
+{
+    private var mX:Number;
+    private var mY:Number;
+    private var mWidth:Number;
+    private var mHeight:Number;
+
+    public function Rectangle(x:Number, y:Number, width:Number, height:Number)
+    {
+        mX = x;
+        mY = y;
+        mWidth = width;
+        mHeight = height;
+
+        super([x, y, x + width, y, x + width, y + height, x, y + height]);
+    }
+
+    override public function triangulate(result:Vector.<uint> = null):Vector.<uint>
+    {
+        result ||= new <uint>[];
+        result.push(0, 1, 3, 1, 2, 3);
+        return result;
+    }
+
+    override public function contains(x:Number, y:Number):Boolean
+    {
+        return x >= mX && x <= mX + mWidth &&
+               y >= mY && y <= mY + mHeight;
+    }
+
+    override public function get area():Number
+    {
+        return mWidth * mHeight;
+    }
+
+    override public function get isSimple():Boolean
+    {
+        return true;
+    }
+
+    override public function get isConvex():Boolean
+    {
+        return true;
     }
 }

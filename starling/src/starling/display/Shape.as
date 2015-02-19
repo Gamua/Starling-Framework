@@ -101,15 +101,10 @@ package starling.display
             appendPolygon(Polygon.createRectangle(x, y, width, height));
         }
 
-        /** Draws an arbitrary path by following the path described by the given vertices. The
-         *  path is closed automatically (i.e. the last vertex will be connected to the first).
-         *  It is recommended to provide the vertices in clockwise order. The path must not be
-         *  self-intersecting. */
-        public function drawPath(vertices:Vector.<Point>):void
+        /** Draws an arbitrary polygon. */
+        public function drawPolygon(polygon:Polygon):void
         {
-            var path:Polygon = new Polygon();
-            path.addVertices.apply(path, vertices);
-            appendPolygon(path);
+            appendPolygon(polygon);
         }
 
         /** Specifies a simple one-color fill that subsequent calls to drawing methods
