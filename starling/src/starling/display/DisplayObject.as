@@ -151,9 +151,11 @@ package starling.display
         private var mOrientationChanged:Boolean;
         private var mFilter:FragmentFilter;
         private var mIs3D:Boolean;
+        private var mMask:DisplayObject;
         
         /** Helper objects. */
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
+        private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
         private static var sHelperRect:Rectangle = new Rectangle();
         private static var sHelperMatrix:Matrix  = new Matrix();
@@ -179,10 +181,11 @@ package starling.display
         }
         
         /** Disposes all resources of the display object. 
-          * GPU buffers are released, event listeners are removed, filters are disposed. */
+          * GPU buffers are released, event listeners are removed, filters and masks are disposed. */
         public function dispose():void
         {
             if (mFilter) mFilter.dispose();
+            if (mMask) mMask.dispose();
             removeEventListeners();
         }
         
@@ -285,12 +288,30 @@ package starling.display
         {
             // on a touch test, invisible or untouchable objects cause the test to fail
             if (forTouch && (!mVisible || !mTouchable)) return null;
+
+            // if we've got a mask and the hit occurs outside, fail
+            if (!hitTestMask(localPoint)) return null;
             
             // otherwise, check bounding box
             if (getBounds(this, sHelperRect).containsPoint(localPoint)) return this;
             else return null;
         }
-        
+
+        /** Checks if a certain point in inside the display object's mask. If there is no mask,
+         *  this method always returns <code>true</code> (because having no mask is equivalent
+         *  to having one that's infinitely big). */
+        public function hitTestMask(localPoint:Point):Boolean
+        {
+            if (mMask)
+            {
+                sHelperMatrix.copyFrom(mMask.transformationMatrix);
+                sHelperMatrix.invert();
+                MatrixUtil.transformPoint(sHelperMatrix, localPoint, sHelperPoint);
+                return mask.hitTest(sHelperPoint, true) != null;
+            }
+            else return true;
+        }
+
         /** Transforms a point from the local coordinate system to global (stage) coordinates.
          *  If you pass a 'resultPoint', the result will be stored in this point instead of 
          *  creating a new object. */
@@ -650,7 +671,7 @@ package starling.display
             
             return mTransformationMatrix; 
         }
-        
+
         public function set transformationMatrix(matrix:Matrix):void
         {
             const PI_Q:Number = Math.PI / 4.0;
@@ -894,7 +915,25 @@ package starling.display
          *  (since you might want to reuse it). */
         public function get filter():FragmentFilter { return mFilter; }
         public function set filter(value:FragmentFilter):void { mFilter = value; }
-        
+
+        /** The display object is masked by the specified object. The mask object itself
+         *  is not drawn. Set mask to null to remove the mask.
+         *
+         *  <p>The mask object is placed in the local coordinate
+         *  system of the display object (as if it were one of its children). A pixel of the
+         *  masked display object will only be drawn if it is within one of the mask's polygons.
+         *  Texture pixels and alpha values of the mask are not taken into account.</p>
+         *
+         *  <p>For rectangular masks, you can use simple quads; for other forms (like circles
+         *  or arbitrary shapes) it is recommended to use a 'Shape' instance. Beware that a mask
+         *  will cause at least two additional draw calls: one to draw the mask to the stencil
+         *  buffer and one to erase it.</p>
+         *
+         *  @default null
+         */
+        public function get mask():DisplayObject { return mMask; }
+        public function set mask(value:DisplayObject):void { mMask = value; }
+
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return mParent; }
         

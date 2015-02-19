@@ -100,6 +100,10 @@ package starling.display
          *  Thus, don't just blindly flatten all your sprites, but reserve flattening for sprites
          *  with a big number of children.</p>
          *
+         *  <p>Beware that while you can add a 'mask' or 'clipRect' to a flattened sprite, any
+         *  such property will be ignored on its children. Furthermore, while a 'Sprite3D' may
+         *  contain a flattened sprite, a flattened sprite must not contain a 'Sprite3D'.</p>
+         *
          *  @param ignoreChildOrder If the child order is not important, you can further optimize
          *           the number of draw calls. Naturally, this is not an option for all use-cases.
          */

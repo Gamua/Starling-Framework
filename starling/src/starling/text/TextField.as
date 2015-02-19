@@ -514,7 +514,7 @@ package starling.text
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable)) return null;
-            else if (mHitArea.containsPoint(localPoint)) return this;
+            else if (mHitArea.containsPoint(localPoint) && hitTestMask(localPoint)) return this;
             else return null;
         }
 

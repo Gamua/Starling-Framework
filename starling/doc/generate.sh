@@ -24,6 +24,7 @@ ASDOC="/Users/redge/Dropbox/Development/library/flash/air/air-4.0/bin/asdoc"
   -package starling.display "The main classes from which to build anything that is displayed on the screen." \
   -package starling.errors "A set of commonly used error classes." \
   -package starling.events "A simplified version of Flash's DOM event model, including an alternative EventDispatcher base class." \
+  -package starling.geom "Geometry classes that expand on what the corresponding Flash package has to offer." \
   -package starling.text "Classes for working with text fields and bitmap fonts." \
   -package starling.textures "Classes to create and work with GPU texture data." \
   -package starling.utils "Utility classes and helper methods." \

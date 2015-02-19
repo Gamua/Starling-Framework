@@ -26,6 +26,7 @@ package starling.utils
         private static var sPlatform:String;
         private static var sVersion:String;
         private static var sAIR:Boolean;
+        private static var sSupportsDepthAndStencil:Boolean = true;
         
         /** @private */
         public function SystemUtil() { throw new AbstractClassError(); }
@@ -44,10 +45,15 @@ package starling.utils
             {
                 var nativeAppClass:Object = getDefinitionByName("flash.desktop::NativeApplication");
                 var nativeApp:EventDispatcher = nativeAppClass["nativeApplication"] as EventDispatcher;
-                
+
                 nativeApp.addEventListener(Event.ACTIVATE, onActivate, false, 0, true);
                 nativeApp.addEventListener(Event.DEACTIVATE, onDeactivate, false, 0, true);
-                
+
+                var appDescriptor:XML = nativeApp["applicationDescriptor"];
+                var ns:Namespace = appDescriptor.namespace();
+                var ds:String = appDescriptor.ns::initialWindow.ns::depthAndStencil.toString().toLowerCase();
+
+                sSupportsDepthAndStencil = (ds == "true");
                 sAIR = true;
             }
             catch (e:Error)
@@ -130,6 +136,13 @@ package starling.utils
         public static function get supportsRelaxedTargetClearRequirement():Boolean
         {
             return parseInt(/\d+/.exec(sVersion)[0]) >= 15;
+        }
+
+        /** Returns the value of the 'initialWindow.depthAndStencil' node of the application
+         *  descriptor, if this in an AIR app; otherwise always <code>true</code>. */
+        public static function get supportsDepthAndStencil():Boolean
+        {
+            return sSupportsDepthAndStencil;
         }
     }
 }
