@@ -982,6 +982,12 @@ package starling.utils
             {
                 var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
                 var sound:Sound;
+
+                if (bytes == null)
+                {
+                    complete(null);
+                    return;
+                }
                 
                 if (extension)
                     extension = extension.toLowerCase();
@@ -1081,7 +1087,11 @@ package starling.utils
 
         /** This method is called when raw byte data has been loaded from an URL or a file.
          *  Override it to process the downloaded data in some way (e.g. decompression) or
-         *  to cache it on disk. */
+         *  to cache it on disk.
+         *
+         *  <p>It's okay to call one (or more) of the 'add...' methods from here. If the binary
+         *  data contains multiple objects, this allows you to process all of them at once.
+         *  Return 'null' to abort processing of the current item.</p> */
         protected function transformData(data:ByteArray, url:String):ByteArray
         {
             return data;
