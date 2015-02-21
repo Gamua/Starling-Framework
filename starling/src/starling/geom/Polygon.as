@@ -162,7 +162,7 @@ package starling.geom
             // Implementation inspired by:
             // -> http://polyk.ivank.net
 
-            result ||= new <uint>[];
+            if (result == null) result = new <uint>[];
 
             var numVertices:int = this.numVertices;
             var i:int, restIndexPos:int, numRestIndices:int;
@@ -540,7 +540,7 @@ class Ellipse extends ImmutablePolygon
 
     override public function triangulate(result:Vector.<uint> = null):Vector.<uint>
     {
-        result ||= new <uint>[];
+        if (result == null) result = new <uint>[];
 
         var from:uint = 1;
         var to:uint = numVertices - 1;
@@ -597,7 +597,7 @@ class Rectangle extends ImmutablePolygon
 
     override public function triangulate(result:Vector.<uint> = null):Vector.<uint>
     {
-        result ||= new <uint>[];
+        if (result == null) result = new <uint>[];
         result.push(0, 1, 3, 1, 2, 3);
         return result;
     }
