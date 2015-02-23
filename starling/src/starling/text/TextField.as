@@ -40,7 +40,7 @@ package starling.text
      *  
      *  <p>You can set all properties you are used to, like the font name and size, a color, the 
      *  horizontal and vertical alignment, etc. The border property is helpful during development, 
-     *  because it lets you see the bounds of the textfield.</p>
+     *  because it lets you see the bounds of the TextField.</p>
      *  
      *  <p>There are two types of fonts that can be displayed:</p>
      *  
@@ -59,13 +59,20 @@ package starling.text
      * 
      *  <ul>
      *    <li>Windows: <a href="http://www.angelcode.com/products/bmfont">Bitmap Font Generator</a>
-     *       from Angel Code (free). Export the font data as an XML file and the texture as a png 
-     *       with white characters on a transparent background (32 bit).</li>
+     *        from Angel Code (free). Export the font data as an XML file and the texture as a png
+     *        with white characters on a transparent background (32 bit).</li>
      *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
      *        71squared or <a href="http://http://www.bmglyph.com">bmGlyph</a> (both commercial). 
      *        They support Starling natively.</li>
      *  </ul>
-     * 
+     *
+     *  <p>When using a bitmap font, the 'color' property is used to tint the font texture. This
+     *  works by multiplying the RGB values of that property with those of the texture's pixel.
+     *  If your font contains just a single color, export it in plain white and change the 'color'
+     *  property to any value you like (it defaults to zero, which means black). If your font
+     *  contains multiple colors, change the 'color' property to <code>Color.WHITE</code> to get
+     *  the intended result.</p>
+     *
      *  <strong>Batching of TextFields</strong>
      *  
      *  <p>Normally, TextFields will require exactly one draw call. For TrueType fonts, you cannot
@@ -223,7 +230,7 @@ package starling.text
 
         /** This method is called immediately before the text is rendered. The intent of
          *  'formatText' is to be overridden in a subclass, so that you can provide custom
-         *  formatting for the TextField. In the overriden method, call 'setFormat' (either
+         *  formatting for the TextField. In the overridden method, call 'setFormat' (either
          *  over a range of characters or the complete TextField) to modify the format to
          *  your needs.
          *  
@@ -332,7 +339,7 @@ package starling.text
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
             var maxHeight:int = textField.height - 4;
-            var maxWidth:int  = textField.width - 4;
+            var maxWidth:int  = textField.width  - 4;
             
             while (textField.textWidth > maxWidth || textField.textHeight > maxHeight)
             {
@@ -340,7 +347,10 @@ package starling.text
                 
                 var format:TextFormat = textField.defaultTextFormat;
                 format.size = size--;
-                textField.setTextFormat(format);
+                textField.defaultTextFormat = format;
+
+                if (mIsHtmlText) textField.htmlText = mText;
+                else             textField.text     = mText;
             }
         }
         
@@ -504,7 +514,7 @@ package starling.text
         public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
         {
             if (forTouch && (!visible || !touchable)) return null;
-            else if (mHitArea.containsPoint(localPoint)) return this;
+            else if (mHitArea.containsPoint(localPoint) && hitTestMask(localPoint)) return this;
             else return null;
         }
 
@@ -565,8 +575,9 @@ package starling.text
             }
         }
         
-        /** The color of the text. For bitmap fonts, use <code>Color.WHITE</code> to use the
-         *  original, untinted color. @default black */
+        /** The color of the text. Note that bitmap fonts should be exported in plain white so
+         *  that tinting works correctly. If your bitmap font contains colors, set this property
+         *  to <code>Color.WHITE</code> to get the desired result. @default black */
         public function get color():uint { return mColor; }
         public function set color(value:uint):void
         {

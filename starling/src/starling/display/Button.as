@@ -59,7 +59,8 @@ package starling.display
         private var mUseHandCursor:Boolean;
         private var mEnabled:Boolean;
         private var mState:String;
-        
+        private var mTriggerBounds:Rectangle;
+
         /** Creates a button with a set of state-textures and (optionally) some text.
          *  Any state that is left 'null' will display the up-state texture. Beware that all
          *  state textures should have the same dimensions. */
@@ -79,7 +80,7 @@ package starling.display
             mAlphaWhenDisabled = disabledState ? 1.0: 0.5;
             mEnabled = true;
             mUseHandCursor = true;
-            mTextBounds = new Rectangle(0, 0, upState.width, upState.height);            
+            mTextBounds = new Rectangle(0, 0, mBody.width, mBody.height);
             
             mContents = new Sprite();
             mContents.addChild(mBody);
@@ -136,7 +137,8 @@ package starling.display
                 MouseCursor.BUTTON : MouseCursor.AUTO;
             
             var touch:Touch = event.getTouch(this);
-            
+            var isWithinBounds:Boolean;
+
             if (!mEnabled)
             {
                 return;
@@ -151,18 +153,24 @@ package starling.display
             }
             else if (touch.phase == TouchPhase.BEGAN && mState != ButtonState.DOWN)
             {
+                mTriggerBounds = getBounds(stage, mTriggerBounds);
+                mTriggerBounds.inflate(MAX_DRAG_DIST, MAX_DRAG_DIST);
+
                 state = ButtonState.DOWN;
             }
-            else if (touch.phase == TouchPhase.MOVED && mState == ButtonState.DOWN)
+            else if (touch.phase == TouchPhase.MOVED)
             {
-                // reset button when user dragged too far away after pushing
-                var buttonRect:Rectangle = getBounds(stage);
-                if (touch.globalX < buttonRect.x - MAX_DRAG_DIST ||
-                    touch.globalY < buttonRect.y - MAX_DRAG_DIST ||
-                    touch.globalX > buttonRect.x + buttonRect.width + MAX_DRAG_DIST ||
-                    touch.globalY > buttonRect.y + buttonRect.height + MAX_DRAG_DIST)
+                isWithinBounds = mTriggerBounds.contains(touch.globalX, touch.globalY);
+
+                if (mState == ButtonState.DOWN && !isWithinBounds)
                 {
+                    // reset button when finger is moved too far away ...
                     state = ButtonState.UP;
+                }
+                else if (mState == ButtonState.UP && isWithinBounds)
+                {
+                    // ... and reactivate when the finger moves back into the bounds.
+                    state = ButtonState.DOWN;
                 }
             }
             else if (touch.phase == TouchPhase.ENDED && mState == ButtonState.DOWN)

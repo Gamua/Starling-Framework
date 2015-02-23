@@ -70,6 +70,7 @@ package starling.filters
             mComponentY = componentY;
             mScaleX = scaleX;
             mScaleY = scaleY;
+            mRepeat = repeat;
             this.mapPoint = mapPoint;
             
             super();
@@ -186,11 +187,11 @@ package starling.filters
             // vertex buffer: (containing map texture coordinates)
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
-            
-            var mapX:Number = mMapPoint.x   / mapTexture.width;
-            var mapY:Number = mMapPoint.y   / mapTexture.height;
-            var maxU:Number = textureWidth  / mapTexture.nativeWidth;
-            var maxV:Number = textureHeight / mapTexture.nativeHeight;
+
+            var mapX:Number = mMapPoint.x   /  mapTexture.width;
+            var mapY:Number = mMapPoint.y   /  mapTexture.height;
+            var maxU:Number = textureWidth  / (mapTexture.width  * scale);
+            var maxV:Number = textureHeight / (mapTexture.height * scale);
             
             sMapTexCoords[0] = -mapX;        sMapTexCoords[1] = -mapY;
             sMapTexCoords[2] = -mapX + maxU; sMapTexCoords[3] = -mapY;

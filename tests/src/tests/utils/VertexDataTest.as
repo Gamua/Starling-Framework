@@ -199,7 +199,7 @@ package tests.utils
             var vd2:VertexData = new VertexData(2, false);
             vd1.copyTo(vd2);
             
-            Helpers.compareVectors(vd1.rawData, vd2.rawData);
+            Helpers.compareVectorsOfNumbers(vd1.rawData, vd2.rawData);
             assertEquals(vd1.numVertices, vd2.numVertices);
             
             vd2.numVertices = 4;

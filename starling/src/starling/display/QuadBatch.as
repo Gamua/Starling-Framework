@@ -90,7 +90,6 @@ package starling.display
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
-        private static var sRenderMatrix:Matrix3D = new Matrix3D();
         private static var sProgramNameCache:Dictionary = new Dictionary();
         
         /** Creates a new QuadBatch instance with empty batch data. */
@@ -534,7 +533,7 @@ package starling.display
             var quad:Quad = object as Quad;
             var batch:QuadBatch = object as QuadBatch;
             var filter:FragmentFilter = object.filter;
-            
+
             if (quadBatchID == -1)
             {
                 isRootObject = true;
@@ -544,6 +543,14 @@ package starling.display
                 ignoreCurrentFilter = true;
                 if (quadBatches.length == 0) quadBatches.push(new QuadBatch());
                 else quadBatches[0].reset();
+            }
+            else
+            {
+                if (object.mask)
+                    trace("[Starling] Masks are ignored on children of a flattened sprite.");
+
+                if ((object is Sprite) && (object as Sprite).clipRect)
+                    trace("[Starling] ClipRects are ignored on children of a flattened sprite.");
             }
             
             if (filter && !ignoreCurrentFilter)

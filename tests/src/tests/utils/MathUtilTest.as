@@ -14,6 +14,7 @@ package tests.utils
     import flash.geom.Vector3D;
     
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
     
     import starling.utils.MathUtil;
@@ -44,6 +45,17 @@ package tests.utils
             var result:Point = MathUtil.intersectLineWithXYPlane(pointA, pointB);
             assertThat(result.x, closeTo(2, E));
             assertThat(result.y, closeTo(3, E));
+        }
+
+        [Test]
+        public function testClamp():void
+        {
+            assertEquals(2, MathUtil.clamp(1, 2, 3));
+            assertEquals(2, MathUtil.clamp(2, 2, 3));
+            assertEquals(3, MathUtil.clamp(3, 2, 3));
+            assertEquals(3, MathUtil.clamp(4, 2, 3));
+            assertEquals(-3, MathUtil.clamp(-4, -3, -2));
+            assertEquals(-2, MathUtil.clamp(-1, -3, -2));
         }
     }
 }

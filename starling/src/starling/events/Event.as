@@ -86,6 +86,8 @@ package starling.events
         public static const CLOSE:String = "close";
         /** An event type to be utilized in custom events. Not used by Starling right now. */
         public static const SELECT:String = "select";
+        /** An event type to be utilized in custom events. Not used by Starling right now. */
+        public static const READY:String = "ready";
         
         private static var sEventPool:Vector.<Event> = new <Event>[];
         

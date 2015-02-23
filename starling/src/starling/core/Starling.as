@@ -39,7 +39,7 @@ package starling.core
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
     import flash.utils.setTimeout;
-    
+
     import starling.animation.Juggler;
     import starling.display.DisplayObject;
     import starling.display.Stage;
@@ -51,7 +51,7 @@ package starling.core
     import starling.utils.SystemUtil;
     import starling.utils.VAlign;
     import starling.utils.execute;
-    
+
     /** Dispatched when a new render context is created. The 'data' property references the context. */
     [Event(name="context3DCreate", type="starling.events.Event")]
     
@@ -217,7 +217,7 @@ package starling.core
         private var mNativeStageContentScaleFactor:Number;
 
         private static var sCurrent:Starling;
-        private static var sHandleLostContext:Boolean;
+        private static var sHandleLostContext:Boolean = true;
         private static var sContextData:Dictionary = new Dictionary(true);
         private static var sAll:Vector.<Starling> = new <Starling>[];
         
@@ -257,7 +257,7 @@ package starling.core
             SystemUtil.initialize();
             sAll.push(this);
             makeCurrent();
-            
+
             mRootClass = rootClass;
             mViewPort = viewPort;
             mPreviousViewPort = new Rectangle();
@@ -313,6 +313,10 @@ package starling.core
             }
             else
             {
+                if (!SystemUtil.supportsDepthAndStencil)
+                    trace("[Starling] Mask support requires 'depthAndStencil' to be enabled" +
+                          " in the application descriptor.");
+
                 mShareContext = false;
                 requestContext3D(stage3D, renderMode, profile);
             }
@@ -360,7 +364,7 @@ package starling.core
             var currentProfile:String;
             
             if (profile == "auto")
-                profiles = ["standard", "baselineExtended", "baseline", "baselineConstrained"];
+                profiles = ["standard", "standardConstrained", "baselineExtended", "baseline", "baselineConstrained"];
             else if (profile is String)
                 profiles = [profile as String];
             else if (profile is Array)
@@ -437,7 +441,7 @@ package starling.core
             
             trace("[Starling] Initialization complete.");
             trace("[Starling] Display Driver:", mContext.driverInfo);
-            
+
             updateViewPort(true);
             dispatchEventWith(Event.CONTEXT3D_CREATE, false, mContext);
         }
@@ -499,6 +503,7 @@ package starling.core
             
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mContext.setCulling(Context3DTriangleFace.NONE);
+            mContext.setStencilReferenceValue(0);
             
             mSupport.renderTarget = null; // back buffer
             mSupport.setProjectionMatrix(
@@ -546,13 +551,13 @@ package starling.core
                     // set the backbuffer to a very small size first, to be on the safe side.
                     
                     if (mProfile == "baselineConstrained")
-                        configureBackBuffer(32, 32, mAntiAliasing, false);
+                        configureBackBuffer(32, 32, mAntiAliasing, true);
                     
                     mStage3D.x = mClippedViewPort.x;
                     mStage3D.y = mClippedViewPort.y;
                     
                     configureBackBuffer(mClippedViewPort.width, mClippedViewPort.height,
-                        mAntiAliasing, false, mSupportHighResolutions);
+                        mAntiAliasing, true, mSupportHighResolutions);
                     
                     if (mSupportHighResolutions && "contentsScaleFactor" in mNativeStage)
                         mNativeStageContentScaleFactor = mNativeStage["contentsScaleFactor"];
@@ -568,6 +573,8 @@ package starling.core
                                              enableDepthAndStencil:Boolean,
                                              wantsBestResolution:Boolean=false):void
         {
+            enableDepthAndStencil &&= SystemUtil.supportsDepthAndStencil;
+
             var configureBackBuffer:Function = mContext.configureBackBuffer;
             var methodArgs:Array = [width, height, antiAlias, enableDepthAndStencil];
             if (configureBackBuffer.length > 4) methodArgs.push(wantsBestResolution);

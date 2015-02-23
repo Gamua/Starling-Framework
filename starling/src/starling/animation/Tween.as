@@ -95,6 +95,7 @@ package starling.animation
             mRoundToInt = mReverse = false;
             mRepeatCount = 1;
             mCurrentCycle = -1;
+            mNextTween = null;
             
             if (transition is String)
                 this.transition = transition as String;
