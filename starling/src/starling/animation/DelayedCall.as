@@ -97,6 +97,9 @@ package starling.animation
             return mRepeatCount == 1 && mCurrentTime >= mTotalTime; 
         }
         
+        /** The function, that will be called */
+        public function get call():Function { return mCall; }
+        
         /** The time for which calls will be delayed (in seconds). */
         public function get totalTime():Number { return mTotalTime; }
         
