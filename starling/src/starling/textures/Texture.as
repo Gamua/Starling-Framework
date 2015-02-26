@@ -261,6 +261,43 @@ package starling.textures
             
             return texture;
         }
+
+        /** Creates a texture object from an array of bitmap datas, where each bitmap data represents
+         *  one mipmap level.
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
+         *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
+         * 
+         *  @param bitmap:  an array of BitmapData instances. the texture will be created with these
+         *                  instances. Each BitmapData should have half the dimensions of the previous
+         *                  BitmapData in the list. Missing BitmapData instances at the end of the list
+         *                  will be automatically created as needed.
+         *  @param optimizeForRenderToTexture: indicates if this texture will be used as 
+         *                  render target
+         *  @param scale:   the scale factor of the created texture. This affects the reported
+         *                  width and height of the texture object.
+         *  @param format:  the context3D texture format to use. Pass one of the packed or
+         *                  compressed formats to save memory (at the price of reduced image
+         *                  quality).
+         *  @param repeat:  the repeat value of the texture. Only useful for power-of-two textures.
+         */
+        public static function fromBitmapDatas(datas:Array,
+                                              optimizeForRenderToTexture:Boolean=false,
+                                              scale:Number=1, format:String="bgra",
+                                              repeat:Boolean=false):Texture
+        {
+			var data:BitmapData = datas[0] as BitmapData;
+            var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true,
+                                                true, optimizeForRenderToTexture, scale,
+                                                format, repeat);
+            
+            texture.root.uploadBitmapDatas(datas);
+            texture.root.onRestore = function():void
+            {
+                texture.root.uploadBitmapDatas(datas);
+            };
+            
+            return texture;
+        }
         
         /** Creates a texture from the compressed ATF format. If you don't want to use any embedded
          *  mipmaps, you can disable them by setting "useMipMaps" to <code>false</code>.
