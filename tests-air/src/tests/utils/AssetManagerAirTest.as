@@ -211,7 +211,23 @@ package tests.utils
             }));
         }
 
-        [Test(async)]
+		[Test(async)]
+		public function loadBitmapFromPngFileObjectWithUnicodePath():void
+		{
+			var cacheDirectory:File = File.cacheDirectory.resolvePath(TEST_UNICODE_PATHCOMPONENT);
+			if (!cacheDirectory.exists) cacheDirectory.createDirectory();
+			var fileOrigin:File = File.applicationDirectory.resolvePath(FIXTURES_PATH_PREFIX + "image.png");
+			var fileCopied:File = cacheDirectory.resolvePath(TEST_UNICODE_PATHCOMPONENT + "/image.png");
+			fileOrigin.copyTo(fileCopied, true);
+			manager.enqueue(fileCopied);
+			manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+			{
+				assertEquals(1, manager.getTextures("image").length);
+				cacheDirectory.deleteDirectory(true);
+			}));
+		}
+
+		[Test(async)]
         public function purgeQueue():void
         {
             handleStarlingEvent(starling.events.Event.CANCEL, manager);
