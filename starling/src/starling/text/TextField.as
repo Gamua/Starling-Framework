@@ -90,6 +90,8 @@ package starling.text
     {
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
+        // The maximum size of texture to render
+        private static const MAX_TEXTURE_DIMENSION:Number = 2048;
         
         // the texture format that is used for TTF rendering
         private static var sDefaultTextureFormat:String =
@@ -195,6 +197,17 @@ package starling.text
             var scale:Number = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
             var format:String = sDefaultTextureFormat;
+            
+            // re-render when size of rendered bitmap overflows MAX_TEXTURE_DIMENSION.
+            var shrinkHelper:Number = 0;
+            while (bitmapData.width > MAX_TEXTURE_DIMENSION || bitmapData.height > MAX_TEXTURE_DIMENSION) {
+                scale *= Math.min(
+                    (MAX_TEXTURE_DIMENSION - shrinkHelper) / Number(bitmapData.width),
+                    (MAX_TEXTURE_DIMENSION - shrinkHelper) / Number(bitmapData.height)
+                );
+                bitmapData = renderText(scale , mTextBounds);
+                shrinkHelper += 1;
+            }
             
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
