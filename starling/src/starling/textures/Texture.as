@@ -19,7 +19,7 @@ package starling.textures
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
-    
+
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
@@ -471,5 +471,18 @@ package starling.textures
         
         /** Indicates if the alpha values are premultiplied into the RGB values. */
         public function get premultipliedAlpha():Boolean { return false; }
+
+        /** Returns the maximum size constraint (for both width and height) for textures in the
+         *  current Context3D profile. */
+        public static function get maxSize():int
+        {
+            var target:Starling = Starling.current;
+            var profile:String = target ? target.profile : "baseline";
+
+            if (profile == "baseline" || profile == "baselineConstrained")
+                return 2048;
+            else
+                return 4096;
+        }
     }
 }
