@@ -20,7 +20,7 @@ package starling.text
     import flash.text.AntiAliasType;
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
-    
+
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
@@ -90,9 +90,7 @@ package starling.text
     {
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
-        // The maximum size of texture to render
-        private static const MAX_TEXTURE_DIMENSION:Number = 2048;
-        
+
         // the texture format that is used for TTF rendering
         private static var sDefaultTextureFormat:String =
             "BGRA_PACKED" in Context3DTextureFormat ? "bgraPacked4444" : "bgra";
@@ -197,18 +195,21 @@ package starling.text
             var scale:Number = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
             var format:String = sDefaultTextureFormat;
-            
-            // re-render when size of rendered bitmap overflows MAX_TEXTURE_DIMENSION.
+            var maxTextureSize:int = Texture.maxSize;
             var shrinkHelper:Number = 0;
-            while (bitmapData.width > MAX_TEXTURE_DIMENSION || bitmapData.height > MAX_TEXTURE_DIMENSION) {
+            
+            // re-render when size of rendered bitmap overflows 'maxTextureSize'
+            while (bitmapData.width > maxTextureSize || bitmapData.height > maxTextureSize)
+            {
                 scale *= Math.min(
-                    (MAX_TEXTURE_DIMENSION - shrinkHelper) / Number(bitmapData.width),
-                    (MAX_TEXTURE_DIMENSION - shrinkHelper) / Number(bitmapData.height)
+                    (maxTextureSize - shrinkHelper) / bitmapData.width,
+                    (maxTextureSize - shrinkHelper) / bitmapData.height
                 );
-                bitmapData = renderText(scale , mTextBounds);
+                bitmapData.dispose();
+                bitmapData = renderText(scale, mTextBounds);
                 shrinkHelper += 1;
             }
-            
+
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
             
