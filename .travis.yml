@@ -20,6 +20,7 @@ before_script:
     # Update Brew silently
     - brew update >brew-update.log
     # Install Brew Packages silently
+    - brew tap homebrew/binary
     - brew install ant gradle adobe-air-sdk >brew-install.log
     # Adobe Flash Player for CLI
     - brew install caskroom/cask/brew-cask
