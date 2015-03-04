@@ -250,7 +250,6 @@ package starling.core
                                  renderMode:String="auto", profile:Object="baselineConstrained")
         {
             if (stage == null) throw new ArgumentError("Stage must not be null");
-            if (rootClass == null) throw new ArgumentError("Root class must not be null");
             if (viewPort == null) viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
             if (stage3D == null) stage3D = stage.stage3Ds[0];
 
@@ -448,12 +447,15 @@ package starling.core
         
         private function initializeRoot():void
         {
-            if (mRoot == null)
+            if (mRootClass != null && mRoot == null)
             {
-                mRoot = new mRootClass() as DisplayObject;
+                root = new mRootClass() as DisplayObject;
                 if (mRoot == null) throw new Error("Invalid root class: " + mRootClass);
-                mStage.addChildAt(mRoot, 0);
-            
+                dispatchEventWith(starling.events.Event.ROOT_CREATED, false, mRoot);
+            }
+            else if (mRoot != null && mRoot.parent == null)
+            {
+                mStage.addChildAt(root, 0);
                 dispatchEventWith(starling.events.Event.ROOT_CREATED, false, mRoot);
             }
         }
@@ -1020,6 +1022,12 @@ package starling.core
         /** The instance of the root class provided in the constructor. Available as soon as 
          *  the event 'ROOT_CREATED' has been dispatched. */
         public function get root():DisplayObject { return mRoot; }
+        public function set root(value:DisplayObject):void
+        {
+            if (mRoot != null) mRoot.removeFromParent(true);
+            mRoot = value;
+            if (mRoot != null && mContext != null) mStage.addChildAt(mRoot, 0);
+        }
         
         /** Indicates if the Context3D render calls are managed externally to Starling, 
          *  to allow other frameworks to share the Stage3D instance. @default false */
