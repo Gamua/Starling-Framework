@@ -10,6 +10,7 @@
 
 package starling.utils
 {
+    import flash.display3D.Context3D;
     import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.system.Capabilities;
@@ -143,6 +144,14 @@ package starling.utils
         public static function get supportsDepthAndStencil():Boolean
         {
             return sSupportsDepthAndStencil;
+        }
+
+        /** Indicates if Context3D supports video textures. At the time of this writing,
+         *  video textures are only supported on Windows, OS X and iOS, and only in AIR
+         *  applications (not the Flash Player). */
+        public static function get supportsVideoTexture():Boolean
+        {
+            return Context3D["supportsVideoTexture"];
         }
     }
 }
