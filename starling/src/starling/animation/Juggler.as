@@ -194,6 +194,8 @@ package starling.animation
          *  IAnimatable otherwise; it is taken from a pool and will be reused.</p> */
         public function tween(target:Object, time:Number, properties:Object):IAnimatable
         {
+            if (target == null) throw new ArgumentError("target must not be null");
+
             var tween:Tween = Tween.starling_internal::fromPool(target, time);
             
             for (var property:String in properties)
