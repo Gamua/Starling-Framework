@@ -291,19 +291,22 @@ package starling.animation
             var startColor:uint = uint(startValue);
             var endColor:uint   = uint(endValue);
 
+            var startA:uint = (startColor >> 24) & 0xff;
             var startR:uint = (startColor >> 16) & 0xff;
             var startG:uint = (startColor >>  8) & 0xff;
             var startB:uint = (startColor      ) & 0xff;
 
+            var endA:uint = (endColor >> 24) & 0xff;
             var endR:uint = (endColor >> 16) & 0xff;
             var endG:uint = (endColor >>  8) & 0xff;
             var endB:uint = (endColor      ) & 0xff;
 
+            var newA:uint = startA + (endA - startA) * mProgress;
             var newR:uint = startR + (endR - startR) * mProgress;
             var newG:uint = startG + (endG - startG) * mProgress;
             var newB:uint = startB + (endB - startB) * mProgress;
 
-            mTarget[property] = (newR << 16) | (newG << 8) | newB;
+            mTarget[property] = (newA << 24) | (newR << 16) | (newG << 8) | newB;
         }
 
         private function updateRad(property:String, startValue:Number, endValue:Number):void
