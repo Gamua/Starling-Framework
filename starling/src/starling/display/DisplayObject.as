@@ -925,7 +925,7 @@ package starling.display
          *  Texture pixels and alpha values of the mask are not taken into account.</p>
          *
          *  <p>For rectangular masks, you can use simple quads; for other forms (like circles
-         *  or arbitrary shapes) it is recommended to use a 'Shape' instance. Beware that a mask
+         *  or arbitrary shapes) it is recommended to use a 'Canvas' instance. Beware that a mask
          *  will cause at least two additional draw calls: one to draw the mask to the stencil
          *  buffer and one to erase it.</p>
          *
