@@ -325,13 +325,15 @@ package starling.display
             for (var i:int = numChildren - 1; i >= 0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
-                getTransformationMatrix(child, sHelperMatrix);
+                if (child.isMask) continue;
+
+                sHelperMatrix.copyFrom(child.transformationMatrix);
+                sHelperMatrix.invert();
 
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
                 target = child.hitTest(sHelperPoint, forTouch);
 
-                if (target)
-                    return forTouch && mTouchGroup ? this : target;
+                if (target) return forTouch && mTouchGroup ? this : target;
             }
 
             return null;

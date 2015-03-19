@@ -3,9 +3,9 @@ package scenes
     import flash.geom.Point;
 
     import starling.core.Starling;
+    import starling.display.Canvas;
     import starling.display.Image;
     import starling.display.Quad;
-    import starling.display.Canvas;
     import starling.display.Sprite;
     import starling.events.Touch;
     import starling.events.TouchEvent;
@@ -17,6 +17,7 @@ package scenes
     {
         private var mContents:Sprite;
         private var mMask:Canvas;
+        private var mMaskDisplay:Canvas;
         
         public function MaskScene()
         {
@@ -47,14 +48,12 @@ package scenes
             maskText.fontSize = 20;
             mContents.addChild(maskText);
             
-            mMask = new Canvas();
-            mMask.beginFill(0xff0000);
-            mMask.drawCircle(0, 0, 100);
-            mMask.endFill();
-            mMask.alpha = 0.1;
-            mMask.touchable = false;
-            addChild(mMask);
+            mMaskDisplay = createCircle();
+            mMaskDisplay.alpha = 0.1;
+            mMaskDisplay.touchable = false;
+            addChild(mMaskDisplay);
 
+            mMask = createCircle();
             mContents.mask = mMask;
             
             addEventListener(TouchEvent.TOUCH, onTouch);
@@ -69,9 +68,19 @@ package scenes
             if (touch)
             {
                 var localPos:Point = touch.getLocation(this);
-                mMask.x = localPos.x;
-                mMask.y = localPos.y;
+                mMask.x = mMaskDisplay.x = localPos.x;
+                mMask.y = mMaskDisplay.y = localPos.y;
             }
         }
+
+        private function createCircle():Canvas
+        {
+            var circle:Canvas = new Canvas();
+            circle.beginFill(0xff0000);
+            circle.drawCircle(0, 0, 100);
+            circle.endFill();
+            return circle;
+        }
+
     }
 }
