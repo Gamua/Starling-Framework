@@ -957,7 +957,14 @@ package starling.core
          *  Flash components. */ 
         public function get nativeOverlay():Sprite { return mNativeOverlay; }
         
-        /** Indicates if a small statistics box (with FPS, memory usage and draw count) is displayed. */
+        /** Indicates if a small statistics box (with FPS, memory usage and draw count) is
+         *  displayed.
+         *
+         *  <p>Beware that the memory usage should be taken with a grain of salt. The value is
+         *  determined via <code>System.totalMemory</code> and does not take texture memory
+         *  into account. It is recommended to use Adobe Scout for reliable and comprehensive
+         *  memory analysis.</p>
+         */
         public function get showStats():Boolean { return mStatsDisplay && mStatsDisplay.parent; }
         public function set showStats(value:Boolean):void
         {
