@@ -73,9 +73,7 @@ package starling.display
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         private static var sHelperPoint:Point = new Point();
-        private static var sHelperPoint3D:Vector3D = new Vector3D();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         
@@ -107,14 +105,18 @@ package starling.display
         /** Adds a child to the container. It will be at the frontmost position. */
         public function addChild(child:DisplayObject):DisplayObject
         {
-            addChildAt(child, numChildren);
+            addChildAt(child, -1);
             return child;
         }
         
-        /** Adds a child to the container at a certain index. */
+        /** Adds a child to the container at a certain index. If you pass a negative index,
+         *  '-1' will add the child at the very end, '-2' at the second to last position, etc. */
         public function addChildAt(child:DisplayObject, index:int):DisplayObject
         {
-            var numChildren:int = mChildren.length; 
+            var numChildren:int = mChildren.length;
+
+            if (index < 0)
+                index = numChildren + 1 + index;
             
             if (index >= 0 && index <= numChildren)
             {
@@ -158,10 +160,16 @@ package starling.display
             return child;
         }
         
-        /** Removes a child at a certain index. Children above the child will move down. If
-         *  requested, the child will be disposed right away. */
+        /** Removes a child at a certain index. The index positions of any display objects above
+         *  the child are decreased by 1. If requested, the child will be disposed right away.
+         *  Pass the index '-1' to remove the last child, '-2' for the second to last, etc. */
         public function removeChildAt(index:int, dispose:Boolean=false):DisplayObject
         {
+            var numChildren:int = mChildren.length;
+
+            if (index < 0)
+                index = numChildren + index;
+
             if (index >= 0 && index < numChildren)
             {
                 var child:DisplayObject = mChildren[index];
@@ -197,10 +205,16 @@ package starling.display
             for (var i:int=beginIndex; i<=endIndex; ++i)
                 removeChildAt(beginIndex, dispose);
         }
-        
-        /** Returns a child object at a certain index. */
+
+        /** Returns a child object at a certain index. If you pass a negative index,
+         *  '-1' will return the last child, '-2' the second to last child, etc. */
         public function getChildAt(index:int):DisplayObject
         {
+            var numChildren:int = mChildren.length;
+
+            if (index < 0)
+                index = numChildren + index;
+
             if (index >= 0 && index < numChildren)
                 return mChildren[index];
             else
