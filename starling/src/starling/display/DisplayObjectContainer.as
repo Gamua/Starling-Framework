@@ -108,15 +108,11 @@ package starling.display
             return addChildAt(child, mChildren.length);
         }
         
-        /** Adds a child to the container at a certain index. If you pass a negative index,
-         *  '-1' will add the child at the very end, '-2' at the second to last position, etc. */
+        /** Adds a child to the container at a certain index. */
         public function addChildAt(child:DisplayObject, index:int):DisplayObject
         {
             var numChildren:int = mChildren.length;
 
-            if (index < 0)
-                index = numChildren + 1 + index;
-            
             if (index >= 0 && index <= numChildren)
             {
                 if (child.parent == this)
@@ -160,16 +156,10 @@ package starling.display
         }
         
         /** Removes a child at a certain index. The index positions of any display objects above
-         *  the child are decreased by 1. If requested, the child will be disposed right away.
-         *  Pass the index '-1' to remove the last child, '-2' for the second to last, etc. */
+         *  the child are decreased by 1. If requested, the child will be disposed right away. */
         public function removeChildAt(index:int, dispose:Boolean=false):DisplayObject
         {
-            var numChildren:int = mChildren.length;
-
-            if (index < 0)
-                index = numChildren + index;
-
-            if (index >= 0 && index < numChildren)
+            if (index >= 0 && index < mChildren.length)
             {
                 var child:DisplayObject = mChildren[index];
                 child.dispatchEventWith(Event.REMOVED, true);
@@ -319,7 +309,7 @@ package starling.display
                 }
                 
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
-            }                
+            }
             
             return resultRect;
         }

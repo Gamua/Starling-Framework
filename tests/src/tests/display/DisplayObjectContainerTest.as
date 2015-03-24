@@ -191,30 +191,20 @@ package tests.display
         }
 
         [Test]
-        public function testNegativeIndices():void
+        public function testGetChildAtWithNegativeIndices():void
         {
             var parent:Sprite = new Sprite();
             var childA:Sprite = new Sprite();
             var childB:Sprite = new Sprite();
             var childC:Sprite = new Sprite();
 
-            parent.addChildAt(childC, -1);
-            parent.addChildAt(childB, -2);
-            parent.addChildAt(childA, -3);
-
-            Assert.assertEquals(parent.getChildAt(0), childA);
-            Assert.assertEquals(parent.getChildAt(1), childB);
-            Assert.assertEquals(parent.getChildAt(2), childC);
+            parent.addChild(childA);
+            parent.addChild(childB);
+            parent.addChild(childC);
 
             Assert.assertEquals(parent.getChildAt(-3), childA);
             Assert.assertEquals(parent.getChildAt(-2), childB);
             Assert.assertEquals(parent.getChildAt(-1), childC);
-
-            Assert.assertEquals(parent.removeChildAt(-3), childA);
-            Assert.assertEquals(parent.removeChildAt(-2), childB);
-            Assert.assertEquals(parent.removeChildAt(-1), childC);
-
-            Assert.assertEquals(0, parent.numChildren);
         }
         
         [Test]
