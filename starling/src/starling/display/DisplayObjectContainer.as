@@ -105,8 +105,7 @@ package starling.display
         /** Adds a child to the container. It will be at the frontmost position. */
         public function addChild(child:DisplayObject):DisplayObject
         {
-            addChildAt(child, numChildren);
-            return child;
+            return addChildAt(child, mChildren.length);
         }
         
         /** Adds a child to the container at a certain index. If you pass a negative index,
