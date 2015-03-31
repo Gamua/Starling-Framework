@@ -74,7 +74,7 @@ package starling.textures
             }
 
             if (mFrame && (mFrame.x > 0 || mFrame.y > 0 ||
-                mFrame.right < mRegion.width || mFrame.bottom < mRegion.height))
+                mFrame.right < mWidth || mFrame.bottom < mHeight))
             {
                 trace("[Starling] Warning: frames inside the texture's region are unsupported.");
             }
