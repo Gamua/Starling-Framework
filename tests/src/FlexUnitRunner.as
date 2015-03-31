@@ -17,6 +17,7 @@ package
     import tests.display.Sprite3DTest;
     import tests.events.EventTest;
     import tests.geom.PolygonTest;
+    import tests.text.TextFieldTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
     import tests.utils.AssetManagerTest;
@@ -55,6 +56,7 @@ package
             testsToRun.push(tests.animation.DelayedCallTest);
             testsToRun.push(tests.display.DisplayObjectTest);
             testsToRun.push(tests.utils.ColorTest);
+            testsToRun.push(tests.text.TextFieldTest);
             testsToRun.push(tests.textures.TextureTest);
             testsToRun.push(tests.textures.TextureAtlasTest);
             testsToRun.push(tests.events.EventTest);

@@ -94,5 +94,44 @@ package tests.animation
                 sum += by;
             }
         }
+
+        [Test]
+        public function testComplete():void
+        {
+            var sum:int = 0;
+            var dc:DelayedCall = new DelayedCall(raiseSum, 1.0);
+
+            dc.advanceTime(0.5);
+            assertEquals(0, sum);
+
+            dc.complete();
+            assertEquals(1, sum);
+            assertTrue(dc.isComplete);
+
+            dc.complete();
+            assertEquals(1, sum);
+
+            dc.advanceTime(10);
+            assertEquals(1, sum);
+
+            dc = new DelayedCall(raiseSum, 1.0);
+            dc.repeatCount = 3;
+
+            sum = 0;
+            dc.complete();
+            assertEquals(1, sum);
+            assertFalse(dc.isComplete);
+
+            for (var i:int = 0; i < 10; ++i)
+                dc.complete();
+
+            assertEquals(3, sum);
+            assertTrue(dc.isComplete);
+
+            function raiseSum():void
+            {
+                sum += 1;
+            }
+        }
     }
 }

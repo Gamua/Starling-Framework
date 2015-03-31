@@ -10,6 +10,8 @@
 
 package tests.animation
 {
+    import flash.display.Shape;
+
     import flexunit.framework.Assert;
     
     import org.flexunit.assertThat;
@@ -22,6 +24,8 @@ package tests.animation
     import starling.animation.Transitions;
     import starling.animation.Tween;
     import starling.display.Quad;
+    import starling.utils.MathUtil;
+    import starling.utils.deg2rad;
 
     public class TweenTest
     {
@@ -334,6 +338,48 @@ package tests.animation
             {
                 return ratio * ratio * ratio;
             }
+        }
+
+        [Test]
+        public function testColor():void
+        {
+            var quad:Quad = new Quad(100, 100, 0xff00ff);
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.animate("color", 0x00ff00);
+            tween.advanceTime(0.5);
+            assertEquals(quad.color, 0x7f7f7f);
+        }
+
+        [Test]
+        public function testRotationRad():void
+        {
+            var quad:Quad = new Quad(100, 100);
+            quad.rotation = deg2rad(-170);
+
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.rotateTo(deg2rad(170));
+            tween.advanceTime(0.5);
+
+            assertThat(quad.rotation, closeTo(-Math.PI, E));
+
+            tween.advanceTime(0.5);
+            assertThat(quad.rotation, closeTo(deg2rad(170), E));
+        }
+
+        [Test]
+        public function testRotationDeg():void
+        {
+            var shape:Shape = new Shape();
+            shape.rotation = -170;
+
+            var tween:Tween = new Tween(shape, 1.0);
+            tween.rotateTo(170, "deg");
+            tween.advanceTime(0.5);
+
+            assertThat(shape.rotation, closeTo(-180, E));
+
+            tween.advanceTime(0.5);
+            assertThat(shape.rotation, closeTo(170, E));
         }
         
         private function executeTween(time:Number, advanceTime:Number):void

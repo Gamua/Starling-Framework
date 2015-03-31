@@ -55,6 +55,7 @@ package starling.display
         private var mOverlay:Sprite;
         
         private var mScaleWhenDown:Number;
+        private var mScaleWhenOver:Number;
         private var mAlphaWhenDisabled:Number;
         private var mUseHandCursor:Boolean;
         private var mEnabled:Boolean;
@@ -77,6 +78,7 @@ package starling.display
             mState = ButtonState.UP;
             mBody = new Image(upState);
             mScaleWhenDown = downState ? 1.0 : 0.9;
+            mScaleWhenOver = 1.0;
             mAlphaWhenDisabled = disabledState ? 1.0: 0.5;
             mEnabled = true;
             mUseHandCursor = true;
@@ -192,9 +194,9 @@ package starling.display
             {
                 case ButtonState.DOWN:
                     setStateTexture(mDownState);
-                    mContents.scaleX = mContents.scaleY = scaleWhenDown;
-                    mContents.x = (1.0 - scaleWhenDown) / 2.0 * mBody.width;
-                    mContents.y = (1.0 - scaleWhenDown) / 2.0 * mBody.height;
+                    mContents.scaleX = mContents.scaleY = mScaleWhenDown;
+                    mContents.x = (1.0 - mScaleWhenDown) / 2.0 * mBody.width;
+                    mContents.y = (1.0 - mScaleWhenDown) / 2.0 * mBody.height;
                     break;
                 case ButtonState.UP:
                     setStateTexture(mUpState);
@@ -202,7 +204,9 @@ package starling.display
                     break;
                 case ButtonState.OVER:
                     setStateTexture(mOverState);
-                    mContents.x = mContents.y = 0;
+                    mContents.scaleX = mContents.scaleY = mScaleWhenOver;
+                    mContents.x = (1.0 - mScaleWhenOver) / 2.0 * mBody.width;
+                    mContents.y = (1.0 - mScaleWhenOver) / 2.0 * mBody.height;
                     break;
                 case ButtonState.DISABLED:
                     setStateTexture(mDisabledState);
@@ -223,7 +227,11 @@ package starling.display
          *  remains unscaled. */
         public function get scaleWhenDown():Number { return mScaleWhenDown; }
         public function set scaleWhenDown(value:Number):void { mScaleWhenDown = value; }
-        
+
+        /** The scale factor of the button while the mouse cursor hovers over it. @default 1.0 */
+        public function get scaleWhenOver():Number { return mScaleWhenOver; }
+        public function set scaleWhenOver(value:Number):void { mScaleWhenOver = value; }
+
         /** The alpha value of the button when it is disabled. @default 0.5 */
         public function get alphaWhenDisabled():Number { return mAlphaWhenDisabled; }
         public function set alphaWhenDisabled(value:Number):void { mAlphaWhenDisabled = value; }

@@ -3,9 +3,9 @@ package scenes
     import flash.geom.Point;
 
     import starling.core.Starling;
+    import starling.display.Canvas;
     import starling.display.Image;
     import starling.display.Quad;
-    import starling.display.Shape;
     import starling.display.Sprite;
     import starling.events.Touch;
     import starling.events.TouchEvent;
@@ -16,7 +16,8 @@ package scenes
     public class MaskScene extends Scene
     {
         private var mContents:Sprite;
-        private var mMaskShape:Shape;
+        private var mMask:Canvas;
+        private var mMaskDisplay:Canvas;
         
         public function MaskScene()
         {
@@ -47,15 +48,13 @@ package scenes
             maskText.fontSize = 20;
             mContents.addChild(maskText);
             
-            mMaskShape = new Shape();
-            mMaskShape.beginFill(0xff0000);
-            mMaskShape.drawCircle(0, 0, 100);
-            mMaskShape.endFill();
-            mMaskShape.alpha = 0.1;
-            mMaskShape.touchable = false;
-            addChild(mMaskShape);
+            mMaskDisplay = createCircle();
+            mMaskDisplay.alpha = 0.1;
+            mMaskDisplay.touchable = false;
+            addChild(mMaskDisplay);
 
-            mContents.mask = mMaskShape;
+            mMask = createCircle();
+            mContents.mask = mMask;
             
             addEventListener(TouchEvent.TOUCH, onTouch);
         }
@@ -69,9 +68,19 @@ package scenes
             if (touch)
             {
                 var localPos:Point = touch.getLocation(this);
-                mMaskShape.x = localPos.x;
-                mMaskShape.y = localPos.y;
+                mMask.x = mMaskDisplay.x = localPos.x;
+                mMask.y = mMaskDisplay.y = localPos.y;
             }
         }
+
+        private function createCircle():Canvas
+        {
+            var circle:Canvas = new Canvas();
+            circle.beginFill(0xff0000);
+            circle.drawCircle(0, 0, 100);
+            circle.endFill();
+            return circle;
+        }
+
     }
 }

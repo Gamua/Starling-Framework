@@ -189,6 +189,23 @@ package tests.display
             
             Assert.assertEquals(3, parent.numChildren);
         }
+
+        [Test]
+        public function testGetChildAtWithNegativeIndices():void
+        {
+            var parent:Sprite = new Sprite();
+            var childA:Sprite = new Sprite();
+            var childB:Sprite = new Sprite();
+            var childC:Sprite = new Sprite();
+
+            parent.addChild(childA);
+            parent.addChild(childB);
+            parent.addChild(childC);
+
+            Assert.assertEquals(parent.getChildAt(-3), childA);
+            Assert.assertEquals(parent.getChildAt(-2), childB);
+            Assert.assertEquals(parent.getChildAt(-1), childC);
+        }
         
         [Test]
         public function testSwapChildren():void

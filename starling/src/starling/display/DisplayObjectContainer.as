@@ -73,9 +73,7 @@ package starling.display
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sHelperMatrix3D:Matrix3D = new Matrix3D();
         private static var sHelperPoint:Point = new Point();
-        private static var sHelperPoint3D:Vector3D = new Vector3D();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         
@@ -107,15 +105,14 @@ package starling.display
         /** Adds a child to the container. It will be at the frontmost position. */
         public function addChild(child:DisplayObject):DisplayObject
         {
-            addChildAt(child, numChildren);
-            return child;
+            return addChildAt(child, mChildren.length);
         }
         
         /** Adds a child to the container at a certain index. */
         public function addChildAt(child:DisplayObject, index:int):DisplayObject
         {
-            var numChildren:int = mChildren.length; 
-            
+            var numChildren:int = mChildren.length;
+
             if (index >= 0 && index <= numChildren)
             {
                 if (child.parent == this)
@@ -158,11 +155,11 @@ package starling.display
             return child;
         }
         
-        /** Removes a child at a certain index. Children above the child will move down. If
-         *  requested, the child will be disposed right away. */
+        /** Removes a child at a certain index. The index positions of any display objects above
+         *  the child are decreased by 1. If requested, the child will be disposed right away. */
         public function removeChildAt(index:int, dispose:Boolean=false):DisplayObject
         {
-            if (index >= 0 && index < numChildren)
+            if (index >= 0 && index < mChildren.length)
             {
                 var child:DisplayObject = mChildren[index];
                 child.dispatchEventWith(Event.REMOVED, true);
@@ -197,10 +194,16 @@ package starling.display
             for (var i:int=beginIndex; i<=endIndex; ++i)
                 removeChildAt(beginIndex, dispose);
         }
-        
-        /** Returns a child object at a certain index. */
+
+        /** Returns a child object at a certain index. If you pass a negative index,
+         *  '-1' will return the last child, '-2' the second to last child, etc. */
         public function getChildAt(index:int):DisplayObject
         {
+            var numChildren:int = mChildren.length;
+
+            if (index < 0)
+                index = numChildren + index;
+
             if (index >= 0 && index < numChildren)
                 return mChildren[index];
             else
@@ -306,7 +309,7 @@ package starling.display
                 }
                 
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
-            }                
+            }
             
             return resultRect;
         }
@@ -325,13 +328,15 @@ package starling.display
             for (var i:int = numChildren - 1; i >= 0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
-                getTransformationMatrix(child, sHelperMatrix);
+                if (child.isMask) continue;
+
+                sHelperMatrix.copyFrom(child.transformationMatrix);
+                sHelperMatrix.invert();
 
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
                 target = child.hitTest(sHelperPoint, forTouch);
 
-                if (target)
-                    return forTouch && mTouchGroup ? this : target;
+                if (target) return forTouch && mTouchGroup ? this : target;
             }
 
             return null;

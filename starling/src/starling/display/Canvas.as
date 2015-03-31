@@ -20,18 +20,16 @@ package starling.display
     import flash.geom.Rectangle;
 
     import starling.core.RenderSupport;
-
     import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.events.Event;
-
     import starling.geom.Polygon;
     import starling.utils.VertexData;
 
     /** A display object supporting basic vector drawing functionality. In its current state,
      *  the main use of this class is to provide a range of forms that can be used as masks.
      */
-    public class Shape extends DisplayObject
+    public class Canvas extends DisplayObject
     {
         private static const PROGRAM_NAME:String = "Shape";
 
@@ -50,8 +48,8 @@ package starling.display
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
 
-        /** Creates a new (empty) Shape. Call one or more of the 'draw' methods to add content. */
-        public function Shape()
+        /** Creates a new (empty) Canvas. Call one or more of the 'draw' methods to add content. */
+        public function Canvas()
         {
             mPolygons   = new <Polygon>[];
             mVertexData = new VertexData(0);
@@ -192,7 +190,7 @@ package starling.display
 
             var newNumIndices:int = mIndexData.length;
 
-            // triangulation was done with vertex-indices of shape only; now add correct offset.
+            // triangulation was done with vertex-indices of polygon only; now add correct offset.
             for (var i:int=oldNumIndices; i<newNumIndices; ++i)
                 mIndexData[i] += oldNumVertices;
 

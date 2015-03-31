@@ -89,6 +89,10 @@ package starling.text
                 texture = MiniBitmapFont.texture;
                 fontXml = MiniBitmapFont.xml;
             }
+            else if (texture != null && fontXml == null)
+            {
+                throw new ArgumentError("fontXml cannot be null!");
+            }
             
             mName = "unknown";
             mLineHeight = mSize = mBaseline = 14;
@@ -97,7 +101,7 @@ package starling.text
             mChars = new Dictionary();
             mHelperImage = new Image(texture);
             
-            if (fontXml) parseFontXml(fontXml);
+            parseFontXml(fontXml);
         }
         
         /** Disposes the texture of the bitmap font! */
