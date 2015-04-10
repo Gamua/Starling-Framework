@@ -106,7 +106,7 @@ package starling.core
             mClipRectStack = new <Rectangle>[];
             
             mCurrentQuadBatchID = 0;
-            mQuadBatches = new <QuadBatch>[new QuadBatch()];
+            mQuadBatches = new <QuadBatch>[createQuadBatch()];
 
             loadIdentity();
             setProjectionMatrix(0, 0, 400, 300);
@@ -576,7 +576,7 @@ package starling.core
                 ++mDrawCount;
                 
                 if (mQuadBatches.length <= mCurrentQuadBatchID)
-                    mQuadBatches.push(new QuadBatch());
+                    mQuadBatches.push(createQuadBatch());
             }
         }
         
@@ -605,6 +605,15 @@ package starling.core
                 for (var i:int=0; i<numToRemove; ++i)
                     mQuadBatches.pop().dispose();
             }
+        }
+
+        private function createQuadBatch():QuadBatch
+        {
+            var profile:String = Starling.current.profile;
+            var forceTinted:Boolean = (profile != "baselineConstrained" && profile != "baseline");
+            var quadBatch:QuadBatch = new QuadBatch();
+            quadBatch.forceTinted = forceTinted;
+            return quadBatch;
         }
         
         // other helper methods
