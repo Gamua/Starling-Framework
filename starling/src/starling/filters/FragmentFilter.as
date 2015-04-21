@@ -217,7 +217,9 @@ package starling.filters
             var projMatrix3D:Matrix3D = mHelperMatrix3D;
             var bounds:Rectangle      = mHelperRect;
             var boundsPot:Rectangle   = mHelperRect2;
-            
+            var previousStencilRefValue:uint;
+            var previousRenderTarget:Texture;
+
             if (context == null) throw new MissingContextError();
             
             // the bounds of the object in stage coordinates
@@ -237,12 +239,13 @@ package starling.filters
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
             support.pushMatrix3D();
-            
-            // save original projection matrix and render target
+
+            // save original state (projection matrix, render target, stencil reference value)
             projMatrix.copyFrom(support.projectionMatrix);
             projMatrix3D.copyFrom(support.projectionMatrix3D);
-            var previousRenderTarget:Texture = support.renderTarget;
-            
+            previousRenderTarget = support.renderTarget;
+            previousStencilRefValue = support.stencilReferenceValue;
+
             if (previousRenderTarget && !SystemUtil.supportsRelaxedTargetClearRequirement)
                 throw new IllegalOperationError(
                     "To nest filters, you need at least Flash Player / AIR version 15.");
@@ -250,11 +253,12 @@ package starling.filters
             if (intoCache)
                 cacheTexture = Texture.empty(boundsPot.width, boundsPot.height, PMA, false, true,
                                              mResolution * scale);
-            
+
             // draw the original object into a texture
             support.renderTarget = mPassTextures[0];
             support.clear();
             support.blendMode = BlendMode.NORMAL;
+            support.stencilReferenceValue = 0;
             support.setProjectionMatrix(
                 bounds.x, bounds.y, boundsPot.width, boundsPot.height,
                 stage.stageWidth, stage.stageHeight, stage.cameraPosition);
@@ -296,6 +300,7 @@ package starling.filters
                         support.projectionMatrix3D = projMatrix3D;
                         support.renderTarget = previousRenderTarget;
                         support.translateMatrix(mOffsetX, mOffsetY);
+                        support.stencilReferenceValue = previousStencilRefValue;
                         support.blendMode = object.blendMode;
                         support.applyBlendMode(PMA);
                     }
@@ -315,7 +320,7 @@ package starling.filters
             context.setVertexBufferAt(mVertexPosAtID, null);
             context.setVertexBufferAt(mTexCoordsAtID, null);
             context.setTextureAt(mBaseTextureID, null);
-            
+
             support.popMatrix();
             support.popMatrix3D();
             support.popClipRect();

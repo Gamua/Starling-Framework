@@ -504,8 +504,8 @@ package starling.core
             
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mContext.setCulling(Context3DTriangleFace.NONE);
-            mContext.setStencilReferenceValue(0);
-            
+
+            mSupport.stencilReferenceValue = 0;
             mSupport.renderTarget = null; // back buffer
             mSupport.setProjectionMatrix(
                 mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0,

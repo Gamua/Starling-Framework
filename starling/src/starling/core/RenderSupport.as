@@ -464,10 +464,19 @@ package starling.core
         // stencil masks
 
         private var mMasks:Vector.<DisplayObject> = new <DisplayObject>[];
+        private var mStencilReferenceValue:uint = 0;
 
+        /** Draws a display object into the stencil buffer, incrementing the buffer on each
+         *  used pixel. The stencil reference value is incremented as well; thus, any subsequent
+         *  stencil tests outside of this area will fail.
+         *
+         *  <p>If 'mask' is part of the display list, it will be drawn at its conventional stage
+         *  coordinates. Otherwise, it will be drawn with the current modelview matrix.</p>
+         */
         public function pushMask(mask:DisplayObject):void
         {
             mMasks[mMasks.length] = mask;
+            mStencilReferenceValue++;
 
             var context:Context3D = Starling.context;
             if (context == null) return;
@@ -479,14 +488,19 @@ package starling.core
 
             drawMask(mask);
 
-            context.setStencilReferenceValue(mMasks.length);
+            context.setStencilReferenceValue(mStencilReferenceValue);
             context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
         }
 
+        /** Redraws the most recently pushed mask into the stencil buffer, decrementing the
+         *  buffer on each used pixel. This effectively removes the object from the stencil buffer,
+         *  restoring the previous state. The stencil reference value will be decremented.
+         */
         public function popMask():void
         {
             var mask:DisplayObject = mMasks.pop();
+            mStencilReferenceValue--;
 
             var context:Context3D = Starling.context;
             if (context == null) return;
@@ -498,7 +512,7 @@ package starling.core
 
             drawMask(mask);
 
-            context.setStencilReferenceValue(mMasks.length);
+            context.setStencilReferenceValue(mStencilReferenceValue);
             context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
         }
@@ -515,6 +529,17 @@ package starling.core
             finishQuadBatch();
 
             popMatrix();
+        }
+
+        /** The current stencil reference value, which is per default the depth of the current
+         *  stencil mask stack. Only change this value if you know what you're doing. */
+        public function get stencilReferenceValue():uint { return mStencilReferenceValue; }
+        public function set stencilReferenceValue(value:uint):void
+        {
+            mStencilReferenceValue = value;
+
+            if (Starling.current.contextValid)
+                Starling.context.setStencilReferenceValue(value);
         }
 
         // optimized quad rendering
