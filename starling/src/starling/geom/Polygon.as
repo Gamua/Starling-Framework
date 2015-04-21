@@ -10,10 +10,10 @@
 
 package starling.geom
 {
-    import avmplus.getQualifiedClassName;
-
     import flash.geom.Point;
+    import flash.utils.getQualifiedClassName;
 
+    import starling.utils.VectorUtil;
     import starling.utils.VertexData;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
@@ -165,7 +165,7 @@ package starling.geom
             if (result == null) result = new <uint>[];
 
             var numVertices:int = this.numVertices;
-            var i:int, restIndexPos:int, numRestIndices:int;
+            var i:int, restIndexPos:int, numRestIndices:int, resultPos:int;
 
             if (numVertices < 3) return result;
 
@@ -174,7 +174,7 @@ package starling.geom
             for (i=0; i<numVertices; ++i)
                 restIndices[i] = i;
 
-            restIndexPos = 0;
+            restIndexPos = resultPos = 0;
             numRestIndices = numVertices;
 
             while (numRestIndices > 3)
@@ -184,9 +184,9 @@ package starling.geom
                 // We remove those ears until only one remains -> each ear is one of our wanted
                 // triangles.
 
-                var i0:int = restIndices[ restIndexPos      % numRestIndices];
-                var i1:int = restIndices[(restIndexPos + 1) % numRestIndices];
-                var i2:int = restIndices[(restIndexPos + 2) % numRestIndices];
+                var i0:uint = restIndices[ restIndexPos      % numRestIndices];
+                var i1:uint = restIndices[(restIndexPos + 1) % numRestIndices];
+                var i2:uint = restIndices[(restIndexPos + 2) % numRestIndices];
 
                 var ax:Number = mCoords[2 * i0];
                 var ay:Number = mCoords[2 * i0 + 1];
@@ -201,7 +201,7 @@ package starling.geom
                     earFound = true;
                     for (i = 3; i < numRestIndices; ++i)
                     {
-                        var otherIndex:int = restIndices[(restIndexPos + i) % numRestIndices];
+                        var otherIndex:uint = restIndices[(restIndexPos + i) % numRestIndices];
                         if (isPointInTriangle(mCoords[2 * otherIndex], mCoords[2 * otherIndex + 1],
                                 ax, ay, bx, by, cx, cy))
                         {
@@ -213,8 +213,11 @@ package starling.geom
 
                 if (earFound)
                 {
-                    result.push(i0, i1, i2);
-                    restIndices.splice((restIndexPos + 1) % numRestIndices, 1);
+                    result[resultPos++] = i0; // -> result.push(i0, i1, i2);
+                    result[resultPos++] = i1;
+                    result[resultPos++] = i2;
+                    VectorUtil.removeUnsignedIntAt(restIndices, (restIndexPos + 1) % numRestIndices);
+
                     numRestIndices--;
                     restIndexPos = 0;
                 }
@@ -225,7 +228,10 @@ package starling.geom
                 }
             }
 
-            result.push(restIndices[0], restIndices[1], restIndices[2]);
+            result[resultPos++] = restIndices[0]; // -> result.push(...);
+            result[resultPos++] = restIndices[1];
+            result[resultPos  ] = restIndices[2];
+
             return result;
         }
 
@@ -265,9 +271,9 @@ package starling.geom
             for (var i:int=0; i<numPoints; ++i)
             {
                 result += "  [Vertex " + i + ": " +
-                "x="   + mCoords[i * 2    ].toFixed(1) + ", " +
-                "y="   + mCoords[i * 2 + 1].toFixed(1) + "]"  +
-                (i == numPoints - 1 ? "\n" : ",\n");
+                    "x=" + mCoords[i * 2    ].toFixed(1) + ", " +
+                    "y=" + mCoords[i * 2 + 1].toFixed(1) + "]"  +
+                    (i == numPoints - 1 ? "\n" : ",\n");
             }
 
             return result + "]";
@@ -454,9 +460,8 @@ package starling.geom
     }
 }
 
-import avmplus.getQualifiedClassName;
-
 import flash.errors.IllegalOperationError;
+import flash.utils.getQualifiedClassName;
 
 import starling.geom.Polygon;
 
@@ -544,9 +549,14 @@ class Ellipse extends ImmutablePolygon
 
         var from:uint = 1;
         var to:uint = numVertices - 1;
+        var pos:uint = 0;
 
         for (var i:int=from; i<to; ++i)
-            result.push(0, i, i+1);
+        {
+            result[pos++] = 0;
+            result[pos++] = i;
+            result[pos++] = i + 1;
+        }
 
         return result;
     }
