@@ -561,10 +561,12 @@ package starling.core
         
         /** Adds a batch of quads to the current batch of unrendered quads. If there is a state 
          *  change, all previous quads are rendered at once. 
-         *  
-         *  <p>Note that you should call this method only for objects with a small number of quads 
-         *  (we recommend no more than 16). Otherwise, the additional CPU effort will be more
-         *  expensive than what you save by avoiding the draw call.</p> */
+         *
+         *  <p>Note that copying the contents of the QuadBatch to the current "cumulative"
+         *  batch takes some time. If the batch consists of more than just a few quads,
+         *  you may be better off calling the "render(Custom)" method on the batch instead.
+         *  Otherwise, the additional CPU effort will be more expensive than what you save by
+         *  avoiding the draw call. (Rule of thumb: no more than 16-20 quads.)</p> */
         public function batchQuadBatch(quadBatch:QuadBatch, parentAlpha:Number):void
         {
             if (mQuadBatches[mCurrentQuadBatchID].isStateChange(
