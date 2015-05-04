@@ -174,7 +174,8 @@ package starling.geom
             for (i=0; i<numVertices; ++i)
                 restIndices[i] = i;
 
-            restIndexPos = resultPos = 0;
+            restIndexPos = 0;
+            resultPos = result.length;
             numRestIndices = numVertices;
 
             while (numRestIndices > 3)
@@ -549,7 +550,7 @@ class Ellipse extends ImmutablePolygon
 
         var from:uint = 1;
         var to:uint = numVertices - 1;
-        var pos:uint = 0;
+        var pos:uint = result.length;
 
         for (var i:int=from; i<to; ++i)
         {
