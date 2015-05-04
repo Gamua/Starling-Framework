@@ -28,6 +28,9 @@ package starling.geom
     {
         private var mCoords:Vector.<Number>;
 
+        // Helper object
+        private static var sRestIndices:Vector.<uint> = new <uint>[];
+
         /** Creates a Polygon with the given coordinates.
          *  @param vertices an array that contains either 'Point' instances or
          *                  alternating 'x' and 'y' coordinates.
@@ -169,10 +172,8 @@ package starling.geom
 
             if (numVertices < 3) return result;
 
-            var restIndices:Vector.<uint> = new Vector.<uint>(numVertices);
-
-            for (i=0; i<numVertices; ++i)
-                restIndices[i] = i;
+            sRestIndices.length = numVertices;
+            for (i=0; i<numVertices; ++i) sRestIndices[i] = i;
 
             restIndexPos = 0;
             resultPos = result.length;
@@ -185,9 +186,9 @@ package starling.geom
                 // We remove those ears until only one remains -> each ear is one of our wanted
                 // triangles.
 
-                var i0:uint = restIndices[ restIndexPos      % numRestIndices];
-                var i1:uint = restIndices[(restIndexPos + 1) % numRestIndices];
-                var i2:uint = restIndices[(restIndexPos + 2) % numRestIndices];
+                var i0:uint = sRestIndices[ restIndexPos      % numRestIndices];
+                var i1:uint = sRestIndices[(restIndexPos + 1) % numRestIndices];
+                var i2:uint = sRestIndices[(restIndexPos + 2) % numRestIndices];
 
                 var ax:Number = mCoords[2 * i0];
                 var ay:Number = mCoords[2 * i0 + 1];
@@ -202,7 +203,7 @@ package starling.geom
                     earFound = true;
                     for (i = 3; i < numRestIndices; ++i)
                     {
-                        var otherIndex:uint = restIndices[(restIndexPos + i) % numRestIndices];
+                        var otherIndex:uint = sRestIndices[(restIndexPos + i) % numRestIndices];
                         if (isPointInTriangle(mCoords[2 * otherIndex], mCoords[2 * otherIndex + 1],
                                 ax, ay, bx, by, cx, cy))
                         {
@@ -217,7 +218,7 @@ package starling.geom
                     result[resultPos++] = i0; // -> result.push(i0, i1, i2);
                     result[resultPos++] = i1;
                     result[resultPos++] = i2;
-                    VectorUtil.removeUnsignedIntAt(restIndices, (restIndexPos + 1) % numRestIndices);
+                    VectorUtil.removeUnsignedIntAt(sRestIndices, (restIndexPos + 1) % numRestIndices);
 
                     numRestIndices--;
                     restIndexPos = 0;
@@ -229,9 +230,9 @@ package starling.geom
                 }
             }
 
-            result[resultPos++] = restIndices[0]; // -> result.push(...);
-            result[resultPos++] = restIndices[1];
-            result[resultPos  ] = restIndices[2];
+            result[resultPos++] = sRestIndices[0]; // -> result.push(...);
+            result[resultPos++] = sRestIndices[1];
+            result[resultPos  ] = sRestIndices[2];
 
             return result;
         }
