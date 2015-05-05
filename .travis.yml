@@ -20,8 +20,7 @@ before_script:
     # Update Brew silently
     - brew update >brew-update.log
     # Install Brew Packages silently
-    - brew tap homebrew/binary
-    - brew install ant gradle adobe-air-sdk >brew-install.log
+    - brew install ant gradle >brew-install.log
     # Adobe Flash Player for CLI
     - brew install caskroom/cask/brew-cask
     - brew cask install flash-player-debugger
@@ -29,6 +28,10 @@ before_script:
     - export FLASHPLAYER_DEBUGGER="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
     # Set env. variable used by Gradle
     - export FLASH_PLAYER_EXE="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
+    # Apache AIR SDK
+    - mkdir -p air_sdk
+    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/latest/AIRSDK_Compiler.tbz2
+    - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
     # Apache Flex SDK
     - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.0/binaries/apache-flex-sdk-4.14.0-bin.zip
     - unzip -q flex_sdk.zip -d flex_sdk
@@ -45,7 +48,7 @@ before_script:
     - mkdir -p /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
     - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/17.0/playerglobal.swc /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
     # Set env. variable used by Ant and Gradle
-    - export AIR_HOME="/usr/local/opt/adobe-air-sdk/libexec"
+    - export AIR_HOME="$TRAVIS_BUILD_DIR/air_sdk"
     # permissions
     - chmod +x flex_sdk/bin/mxmlc
 
