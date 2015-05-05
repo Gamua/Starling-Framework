@@ -20,8 +20,7 @@ before_script:
     # Update Brew silently
     - brew update >brew-update.log
     # Install Brew Packages silently
-    - brew tap homebrew/binary
-    - brew install ant gradle adobe-air-sdk >brew-install.log
+    - brew install ant gradle >brew-install.log
     # Adobe Flash Player for CLI
     - brew install caskroom/cask/brew-cask
     - brew cask install flash-player-debugger
@@ -29,6 +28,10 @@ before_script:
     - export FLASHPLAYER_DEBUGGER="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
     # Set env. variable used by Gradle
     - export FLASH_PLAYER_EXE="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
+    # Adobe AIR SDK
+    - mkdir -p air_sdk
+    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/latest/AIRSDK_Compiler.tbz2
+    - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
     # Apache Flex SDK
     - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.0/binaries/apache-flex-sdk-4.14.0-bin.zip
     - unzip -q flex_sdk.zip -d flex_sdk
@@ -37,15 +40,15 @@ before_script:
     # Init Apache Flex SDK
     - mkdir -p flex_sdk/frameworks/libs/player/11.1/
     - mkdir -p flex_sdk/frameworks/libs/player/17.0/
-    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/17.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
-    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/17.0/playerglobal.swc flex_sdk/frameworks/libs/player/17.0/
+    - cp -f air_sdk/frameworks/libs/player/17.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
+    - cp -f air_sdk/frameworks/libs/player/17.0/playerglobal.swc flex_sdk/frameworks/libs/player/17.0/
     # Set env. variable used by Ant and Gradle
     - export FLEX_HOME="$TRAVIS_BUILD_DIR/flex_sdk"
     # Init Adobe AIR SDK
-    - mkdir -p /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
-    - cp -f /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/17.0/playerglobal.swc /usr/local/opt/adobe-air-sdk/libexec/frameworks/libs/player/11.1/
+    - mkdir -p air_sdk/frameworks/libs/player/11.1/
+    - cp -f air_sdk/frameworks/libs/player/17.0/playerglobal.swc air_sdk/frameworks/libs/player/11.1/
     # Set env. variable used by Ant and Gradle
-    - export AIR_HOME="/usr/local/opt/adobe-air-sdk/libexec"
+    - export AIR_HOME="$TRAVIS_BUILD_DIR/air_sdk"
     # permissions
     - chmod +x flex_sdk/bin/mxmlc
 
