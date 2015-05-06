@@ -336,7 +336,7 @@ package starling.filters
                 // the filter output in object coordinates, we wrap it in a QuadBatch: that way,
                 // we can modify it with a transformation matrix.
                 
-                var quadBatch:QuadBatch = new QuadBatch();
+                var quadBatch:QuadBatch = new CacheQuadBatch();
                 var image:Image = new Image(cacheTexture);
                 
                 // targetSpace could be null, so we calculate the matrix from the other side
@@ -461,7 +461,6 @@ package starling.filters
         {
             if (mCache)
             {
-                if (mCache.texture) mCache.texture.dispose();
                 mCache.dispose();
                 mCache = null;
             }
@@ -617,5 +616,18 @@ package starling.filters
         /** The ID of the first register of the modelview-projection constant (a 4x4 matrix). */
         protected final function get mvpConstantID():int { return mMvpConstantID; }
         protected final function set mvpConstantID(value:int):void { mMvpConstantID = value; }
+    }
+}
+
+import starling.display.QuadBatch;
+
+/** The QuadBatch version used for cached filters. Different to a normal QuadBatch, it owns
+ *  its texture and will dispose it when being disposed itself. */
+class CacheQuadBatch extends QuadBatch
+{
+    override public function dispose():void
+    {
+        if (texture) texture.dispose();
+        super.dispose();
     }
 }
