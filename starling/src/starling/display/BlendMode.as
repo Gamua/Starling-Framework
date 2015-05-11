@@ -36,15 +36,16 @@ package starling.display
      */
     public class BlendMode
     {
-        private static var sBlendFactors:Array = [ 
+        private static var sBlendFactors:Array = [
             // no premultiplied alpha
-            { 
+            {
                 "none"     : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO ],
                 "normal"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
                 "add"      : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ],
                 "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
                 "screen"   : [ Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE ],
                 "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "mask"     : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.SOURCE_ALPHA ],
                 "below"    : [ Context3DBlendFactor.ONE_MINUS_DESTINATION_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ]
             },
             // premultiplied alpha
@@ -55,6 +56,7 @@ package starling.display
                 "multiply" : [ Context3DBlendFactor.DESTINATION_COLOR, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
                 "screen"   : [ Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_COLOR ],
                 "erase"    : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA ],
+                "mask"     : [ Context3DBlendFactor.ZERO, Context3DBlendFactor.SOURCE_ALPHA ],
                 "below"    : [ Context3DBlendFactor.ONE_MINUS_DESTINATION_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA ]
             }
         ];
@@ -85,10 +87,14 @@ package starling.display
         
         /** Erases the background when drawn on a RenderTexture. */
         public static const ERASE:String = "erase";
-        
-		/** Draws under/below existing objects; useful especially on RenderTextures. */
-	    public static const BELOW:String = "below";
-	
+
+        /** When used on a RenderTexture, the drawn object will act as a mask for the current
+         *  content, i.e. the source alpha overwrites the destination alpha. */
+        public static const MASK:String = "mask";
+
+        /** Draws under/below existing objects; useful especially on RenderTextures. */
+        public static const BELOW:String = "below";
+
         // accessing modes
         
         /** Returns the blend factors that correspond with a certain mode and premultiplied alpha
