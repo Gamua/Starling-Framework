@@ -11,14 +11,14 @@
 package tests.display
 {
     import flash.display3D.Context3DTextureFormat;
-    
+
     import flexunit.framework.Assert;
-    
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.display.MovieClip;
     import starling.events.Event;
     import starling.textures.ConcreteTexture;
@@ -328,6 +328,29 @@ package tests.display
             assertEquals(frames[1], movie.texture);
             
             function onComplete():void { movie.stop(); }
+        }
+
+        [Test]
+        public function testReverseFrames():void
+        {
+            var numFrames:int = 4;
+            var frames:Vector.<Texture> = createFrames(numFrames);
+            var movie:MovieClip = new MovieClip(frames, 5);
+            movie.setFrameDuration(0, 0.4);
+
+            for (var i:int=0; i<numFrames; ++i)
+                assertEquals(movie.getFrameTexture(i), frames[i]);
+
+            movie.advanceTime(0.5);
+            movie.reverseFrames();
+
+            for (var i:int=0; i<numFrames; ++i)
+                assertEquals(movie.getFrameTexture(i), frames[numFrames - i - 1]);
+
+            assertEquals(movie.currentFrame, 2);
+            assertThat(movie.currentTime, 0.5);
+            assertThat(movie.getFrameDuration(0), closeTo(0.2, E));
+            assertThat(movie.getFrameDuration(3), closeTo(0.4, E));
         }
         
         private function createFrames(count:int):Vector.<Texture>
