@@ -379,9 +379,9 @@ package starling.core
         /** The clipping rectangle can be used to limit rendering in the current render target to
          *  a certain area. This method expects the rectangle in stage coordinates. Internally,
          *  it uses the 'scissorRectangle' of stage3D, which works with pixel coordinates. 
-         *  Any pushed rectangle is intersected with the previous rectangle; the method returns
-         *  that intersection. */ 
-        public function pushClipRect(rectangle:Rectangle):Rectangle
+         *  Per default, any pushed rectangle is intersected with the previous rectangle;
+         *  the method returns that intersection. */
+        public function pushClipRect(rectangle:Rectangle, intersectWithCurrent:Boolean=true):Rectangle
         {
             if (mClipRectStack.length < mClipRectStackSize + 1)
                 mClipRectStack.push(new Rectangle());
@@ -390,7 +390,7 @@ package starling.core
             rectangle = mClipRectStack[mClipRectStackSize];
             
             // intersect with the last pushed clip rect
-            if (mClipRectStackSize > 0)
+            if (intersectWithCurrent && mClipRectStackSize > 0)
                 RectangleUtil.intersect(rectangle, mClipRectStack[mClipRectStackSize-1], 
                                         rectangle);
             
@@ -410,7 +410,7 @@ package starling.core
                 applyClipRect();
             }
         }
-        
+
         /** Updates the context3D scissor rectangle using the current clipping rectangle. This
          *  method is called automatically when either the render target, the projection matrix,
          *  or the clipping rectangle changes. */

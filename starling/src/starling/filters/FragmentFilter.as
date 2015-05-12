@@ -219,12 +219,14 @@ package starling.filters
             var boundsPot:Rectangle   = mHelperRect2;
             var previousStencilRefValue:uint;
             var previousRenderTarget:Texture;
+            var intersectWithStage:Boolean;
 
             if (context == null) throw new MissingContextError();
             
             // the bounds of the object in stage coordinates
             // (or, if the object is not connected to the stage, in its base object's coordinates)
-            calculateBounds(object, targetSpace, mResolution * scale, !intoCache, bounds, boundsPot);
+            intersectWithStage = !intoCache && mOffsetX == 0 && mOffsetY == 0;
+            calculateBounds(object, targetSpace, mResolution * scale, intersectWithStage, bounds, boundsPot);
             
             if (bounds.isEmpty())
             {
@@ -239,6 +241,7 @@ package starling.filters
             support.raiseDrawCount(mNumPasses);
             support.pushMatrix();
             support.pushMatrix3D();
+            support.pushClipRect(boundsPot, false);
 
             // save original state (projection matrix, render target, stencil reference value)
             projMatrix.copyFrom(support.projectionMatrix);
@@ -269,7 +272,6 @@ package starling.filters
             // prepare drawing of actual filter passes
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
-            support.pushClipRect(bounds);
 
             context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
                                       Context3DVertexBufferFormat.FLOAT_2);
@@ -296,6 +298,7 @@ package starling.filters
                     else
                     {
                         // draw into back buffer, at original (stage) coordinates
+                        support.popClipRect();
                         support.projectionMatrix   = projMatrix;
                         support.projectionMatrix3D = projMatrix3D;
                         support.renderTarget = previousRenderTarget;
@@ -323,14 +326,14 @@ package starling.filters
 
             support.popMatrix();
             support.popMatrix3D();
-            support.popClipRect();
-            
+
             if (intoCache)
             {
                 // restore support settings
-                support.renderTarget = previousRenderTarget;
                 support.projectionMatrix.copyFrom(projMatrix);
                 support.projectionMatrix3D.copyFrom(projMatrix3D);
+                support.renderTarget = previousRenderTarget;
+                support.popClipRect();
                 
                 // Create an image containing the cache. To have a display object that contains
                 // the filter output in object coordinates, we wrap it in a QuadBatch: that way,
