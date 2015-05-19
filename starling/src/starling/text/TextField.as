@@ -107,6 +107,7 @@ package starling.text
         private var mAutoScale:Boolean;
         private var mAutoSize:String;
         private var mKerning:Boolean;
+        private var mLeading:Number;
         private var mNativeFilters:Array;
         private var mRequiresRedraw:Boolean;
         private var mIsHtmlText:Boolean;
@@ -134,6 +135,7 @@ package starling.text
             mVAlign = VAlign.CENTER;
             mBorder = null;
             mKerning = true;
+            mLeading = 0.0;
             mBold = bold;
             mAutoSize = TextFieldAutoSize.NONE;
             mHitArea = new Rectangle(0, 0, width, height);
@@ -273,7 +275,7 @@ package starling.text
             var textFormat:TextFormat = new TextFormat(mFontName,
                 mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, hAlign);
             textFormat.kerning = mKerning;
-            textFormat.leading = 0;
+            textFormat.leading = mLeading;
 
             sNativeTextField.defaultTextFormat = textFormat;
             sNativeTextField.width = width;
@@ -450,8 +452,8 @@ package starling.text
                 vAlign = VAlign.TOP;
             }
             
-            bitmapFont.fillQuadBatch(mQuadBatch,
-                width, height, mText, mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning);
+            bitmapFont.fillQuadBatch(mQuadBatch, width, height, mText,
+                    mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning, mLeading);
             
             mQuadBatch.batchable = mBatchable;
             
@@ -753,6 +755,17 @@ package starling.text
             if (mIsHtmlText != value)
             {
                 mIsHtmlText = value;
+                mRequiresRedraw = true;
+            }
+        }
+
+        /** The amount of vertical space (called 'leading') between lines. @default 0 */
+        public function get leading():Number { return mLeading; }
+        public function set leading(value:Number):void
+        {
+            if (mLeading != value)
+            {
+                mLeading = value;
                 mRequiresRedraw = true;
             }
         }
