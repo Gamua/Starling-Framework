@@ -61,6 +61,10 @@ package starling.core
     /** Dispatched when a fatal error is encountered. The 'data' property contains an error string. */
     [Event(name="fatalError", type="starling.events.Event")]
 
+    /** Dispatched when the display list is about to be rendered. This event provides the last
+     *  opportunity to make changes before the display list is rendered. */
+    [Event(name="render", type="starling.events.Event")]
+
     /** The Starling class represents the core of the Starling framework.
      *
      *  <p>The Starling framework makes it possible to create 2D applications and games that make
@@ -460,7 +464,7 @@ package starling.core
         }
         
         /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
-         *  and <code>render()</code>. */ 
+         *  and <code>render()</code>. */
         public function nextFrame():void
         {
             var now:Number = getTimer() / 1000.0;
@@ -489,7 +493,11 @@ package starling.core
         }
         
         /** Renders the complete display list. Before rendering, the context is cleared; afterwards,
-         *  it is presented. This can be avoided by enabling <code>shareContext</code>.*/ 
+         *  it is presented (to avoid this, enable <code>shareContext</code>).
+         *
+         *  <p>This method also dispatches an <code>Event.RENDER</code>-event on the Starling
+         *  instance. That's the last opportunity to make changes before the display list is
+         *  rendered.</p> */
         public function render():void
         {
             if (!contextValid)
@@ -497,14 +505,15 @@ package starling.core
             
             makeCurrent();
             updateViewPort();
-            mSupport.nextFrame();
-            
+            dispatchEventWith(starling.events.Event.RENDER);
+
             var scaleX:Number = mViewPort.width  / mStage.stageWidth;
             var scaleY:Number = mViewPort.height / mStage.stageHeight;
             
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mContext.setCulling(Context3DTriangleFace.NONE);
 
+            mSupport.nextFrame();
             mSupport.stencilReferenceValue = 0;
             mSupport.renderTarget = null; // back buffer
             mSupport.setProjectionMatrix(
