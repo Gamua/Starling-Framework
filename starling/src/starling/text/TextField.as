@@ -269,11 +269,12 @@ package starling.text
                 height = int.MAX_VALUE;
                 vAlign = VAlign.TOP;
             }
-            
-            var textFormat:TextFormat = new TextFormat(mFontName, 
+
+            var textFormat:TextFormat = new TextFormat(mFontName,
                 mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, hAlign);
             textFormat.kerning = mKerning;
-            
+            textFormat.leading = 0;
+
             sNativeTextField.defaultTextFormat = textFormat;
             sNativeTextField.width = width;
             sNativeTextField.height = height;
