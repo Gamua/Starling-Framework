@@ -46,6 +46,8 @@ package starling.core
      */
     public class RenderSupport
     {
+        private static const RENDER_TARGET_NAME:String = "Starling.renderTarget";
+
         // members
         
         private var mProjectionMatrix:Matrix;
@@ -64,8 +66,7 @@ package starling.core
 
         private var mDrawCount:int;
         private var mBlendMode:String;
-        private var mRenderTarget:Texture;
-        
+
         private var mClipRectStack:Vector.<Rectangle>;
         private var mClipRectStackSize:int;
         
@@ -101,7 +102,6 @@ package starling.core
             mMatrixStack3DSize = 0;
             
             mDrawCount = 0;
-            mRenderTarget = null;
             mBlendMode = BlendMode.NORMAL;
             mClipRectStack = new <Rectangle>[];
             
@@ -351,7 +351,11 @@ package starling.core
         
         /** The texture that is currently being rendered into, or 'null' to render into the 
          *  back buffer. If you set a new target, it is immediately activated. */
-        public function get renderTarget():Texture { return mRenderTarget; }
+        public function get renderTarget():Texture
+        {
+            return Starling.current.contextData[RENDER_TARGET_NAME];
+        }
+
         public function set renderTarget(target:Texture):void 
         {
             setRenderTarget(target);
@@ -364,7 +368,7 @@ package starling.core
          */
         public function setRenderTarget(target:Texture, antiAliasing:int=0):void
         {
-            mRenderTarget = target;
+            Starling.current.contextData[RENDER_TARGET_NAME] = target;
             applyClipRect();
 
             if (target)
@@ -425,11 +429,12 @@ package starling.core
             {
                 var width:int, height:int;
                 var rect:Rectangle = mClipRectStack[mClipRectStackSize-1];
+                var renderTarget:Texture = this.renderTarget;
                 
-                if (mRenderTarget)
+                if (renderTarget)
                 {
-                    width  = mRenderTarget.root.nativeWidth;
-                    height = mRenderTarget.root.nativeHeight;
+                    width  = renderTarget.root.nativeWidth;
+                    height = renderTarget.root.nativeHeight;
                 }
                 else
                 {

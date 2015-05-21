@@ -225,7 +225,7 @@ package starling.textures
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             if (!Starling.current.contextValid) return;
-            
+
             // switch buffers
             if (isDoubleBuffered)
             {
@@ -234,6 +234,8 @@ package starling.textures
                 mBufferTexture = tmpTexture;
                 mHelperImage.texture = mBufferTexture;
             }
+
+            var previousRenderTarget:Texture = mSupport.renderTarget;
             
             // limit drawing to relevant area
             sClipRect.setTo(0, 0, mActiveTexture.width, mActiveTexture.height);
@@ -260,7 +262,7 @@ package starling.textures
                 mDrawing = false;
                 mSupport.finishQuadBatch();
                 mSupport.nextFrame();
-                mSupport.renderTarget = null;
+                mSupport.renderTarget = previousRenderTarget;
                 mSupport.popClipRect();
             }
         }
