@@ -1102,7 +1102,14 @@ package starling.core
          *  internal code Starling can't avoid), so do not call this method too often. */
         public function get contextValid():Boolean
         {
-            return mContext && mContext.driverInfo != "Disposed";
+            if(mContext) {
+                const driverInfo:String = mContext.driverInfo;
+                if(driverInfo && driverInfo != "" && driverInfo != "Disposed") 
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // static properties
