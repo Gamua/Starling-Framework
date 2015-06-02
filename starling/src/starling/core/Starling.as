@@ -1098,11 +1098,15 @@ package starling.core
         }
         
         /** Indicates if the Context3D object is currently valid (i.e. it hasn't been lost or
-         *  disposed). Beware that each call to this method causes a String allocation (due to
-         *  internal code Starling can't avoid), so do not call this method too often. */
+         *  disposed). */
         public function get contextValid():Boolean
         {
-            return mContext && mContext.driverInfo != "Disposed";
+            if (mContext)
+            {
+                const driverInfo:String = mContext.driverInfo;
+                return driverInfo != null && driverInfo != "" && driverInfo != "Disposed";
+            }
+            else return false;
         }
 
         // static properties
