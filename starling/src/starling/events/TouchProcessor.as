@@ -12,7 +12,8 @@ package starling.events
 {
     import flash.geom.Point;
     import flash.utils.getDefinitionByName;
-    
+
+    import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.Stage;
 
@@ -198,10 +199,10 @@ package starling.events
             mQueue.unshift(arguments);
             
             // multitouch simulation (only with mouse)
-            if (mCtrlDown && simulateMultitouch && touchID == 0) 
+            if (mCtrlDown && simulateMultitouch && touchID == (phase == TouchPhase.ENDED ? Starling.current.prevMouseTouchID : Starling.current.mouseTouchID))
             {
                 mTouchMarker.moveMarker(globalX, globalY, mShiftDown);
-                mQueue.unshift([1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
+                mQueue.unshift([touchID + 1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
             }
         }
         
@@ -213,7 +214,7 @@ package starling.events
          */
         public function enqueueMouseLeftStage():void
         {
-            var mouse:Touch = getCurrentTouch(0);
+            var mouse:Touch = getCurrentTouch(Starling.current.mouseTouchID);
             if (mouse == null || mouse.phase != TouchPhase.HOVER) return;
             
             var offset:int = 1;
@@ -233,7 +234,7 @@ package starling.events
             else if (minDist == distTop)   exitY = -offset;
             else                           exitY = mStage.stageHeight + offset;
             
-            enqueue(0, TouchPhase.HOVER, exitX, exitY);
+            enqueue(mouse.id, TouchPhase.HOVER, exitX, exitY);
         }
 
         /** Force-end all current touches. Changes the phase of all touches to 'ENDED' and
@@ -400,9 +401,10 @@ package starling.events
                 {
                     mTouchMarker.visible = mCtrlDown;
                     mTouchMarker.moveCenter(mStage.stageWidth/2, mStage.stageHeight/2);
-                    
-                    var mouseTouch:Touch = getCurrentTouch(0);
-                    var mockedTouch:Touch = getCurrentTouch(1);
+
+                    var mockedTouchID :int = Starling.current.mouseTouchID + 1;
+                    var mouseTouch:Touch = getCurrentTouch(Starling.current.mouseTouchID);
+                    var mockedTouch:Touch = getCurrentTouch(mockedTouchID);
                     
                     if (mouseTouch)
                         mTouchMarker.moveMarker(mouseTouch.globalX, mouseTouch.globalY);
@@ -410,15 +412,15 @@ package starling.events
                     if (wasCtrlDown && mockedTouch && mockedTouch.phase != TouchPhase.ENDED)
                     {
                         // end active touch ...
-                        mQueue.unshift([1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
+                        mQueue.unshift([mockedTouchID, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
                     }
                     else if (mCtrlDown && mouseTouch)
                     {
                         // ... or start new one
                         if (mouseTouch.phase == TouchPhase.HOVER || mouseTouch.phase == TouchPhase.ENDED)
-                            mQueue.unshift([1, TouchPhase.HOVER, mTouchMarker.mockX, mTouchMarker.mockY]);
+                            mQueue.unshift([mockedTouchID, TouchPhase.HOVER, mTouchMarker.mockX, mTouchMarker.mockY]);
                         else
-                            mQueue.unshift([1, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
+                            mQueue.unshift([mockedTouchID, TouchPhase.BEGAN, mTouchMarker.mockX, mTouchMarker.mockY]);
                     }
                 }
             }

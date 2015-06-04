@@ -154,7 +154,7 @@ package starling.events
         
         // properties
         
-        /** The identifier of a touch. '0' for mouse events, an increasing number for touches. */
+        /** The unique identifier of a touch. */
         public function get id():int { return mID; }
         
         /** The previous x-position of the touch in stage coordinates. */
