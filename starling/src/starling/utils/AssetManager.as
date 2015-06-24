@@ -815,10 +815,17 @@ package starling.utils
                         mNumLostTextures++;
                         loadRawAsset(rawAsset, null, function(asset:Object):void
                         {
-                            try { texture.root.uploadBitmap(asset as Bitmap); }
-                            catch (e:Error) { log("Texture restoration failed: " + e.message); }
-                            
-                            asset.bitmapData.dispose();
+                            try
+                            {
+                                if (asset == null) throw new Error("Reload failed");
+                                texture.root.uploadBitmap(asset as Bitmap);
+                                asset.bitmapData.dispose();
+                            }
+                            catch (e:Error)
+                            {
+                                log("Texture restoration failed for '" + name + "': " + e.message);
+                            }
+
                             mNumRestoredTextures++;
                             
                             if (mNumLostTextures == mNumRestoredTextures)
@@ -848,10 +855,17 @@ package starling.utils
                             mNumLostTextures++;
                             loadRawAsset(rawAsset, null, function(asset:Object):void
                             {
-                                try { texture.root.uploadAtfData(asset as ByteArray, 0, true); }
-                                catch (e:Error) { log("Texture restoration failed: " + e.message); }
+                                try
+                                {
+                                    if (asset == null) throw new Error("Reload failed");
+                                    texture.root.uploadAtfData(asset as ByteArray, 0, true);
+                                    asset.clear();
+                                }
+                                catch (e:Error)
+                                {
+                                    log("Texture restoration failed for '" + name + "': " + e.message);
+                                }
                                 
-                                asset.clear();
                                 mNumRestoredTextures++;
                                 
                                 if (mNumLostTextures == mNumRestoredTextures)
