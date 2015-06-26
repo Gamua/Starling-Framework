@@ -56,6 +56,7 @@ package starling.display
         
         private var mScaleWhenDown:Number;
         private var mScaleWhenOver:Number;
+        private var mAlphaWhenDown:Number;
         private var mAlphaWhenDisabled:Number;
         private var mUseHandCursor:Boolean;
         private var mEnabled:Boolean;
@@ -78,7 +79,7 @@ package starling.display
             mState = ButtonState.UP;
             mBody = new Image(upState);
             mScaleWhenDown = downState ? 1.0 : 0.9;
-            mScaleWhenOver = 1.0;
+            mScaleWhenOver = mAlphaWhenDown = 1.0;
             mAlphaWhenDisabled = disabledState ? 1.0: 0.5;
             mEnabled = true;
             mUseHandCursor = true;
@@ -178,7 +179,7 @@ package starling.display
             else if (touch.phase == TouchPhase.ENDED && mState == ButtonState.DOWN)
             {
                 state = ButtonState.UP;
-                dispatchEventWith(Event.TRIGGERED, true);
+                if (!touch.cancelled) dispatchEventWith(Event.TRIGGERED, true);
             }
         }
         
@@ -188,19 +189,20 @@ package starling.display
         public function set state(value:String):void
         {
             mState = value;
-            mContents.scaleX = mContents.scaleY = 1.0;
+            mContents.x = mContents.y = 0;
+            mContents.scaleX = mContents.scaleY = mContents.alpha = 1.0;
 
             switch (mState)
             {
                 case ButtonState.DOWN:
                     setStateTexture(mDownState);
+                    mContents.alpha = mAlphaWhenDown;
                     mContents.scaleX = mContents.scaleY = mScaleWhenDown;
                     mContents.x = (1.0 - mScaleWhenDown) / 2.0 * mBody.width;
                     mContents.y = (1.0 - mScaleWhenDown) / 2.0 * mBody.height;
                     break;
                 case ButtonState.UP:
                     setStateTexture(mUpState);
-                    mContents.x = mContents.y = 0;
                     break;
                 case ButtonState.OVER:
                     setStateTexture(mOverState);
@@ -210,7 +212,7 @@ package starling.display
                     break;
                 case ButtonState.DISABLED:
                     setStateTexture(mDisabledState);
-                    mContents.x = mContents.y = 0;
+                    mContents.alpha = mAlphaWhenDisabled;
                     break;
                 default:
                     throw new ArgumentError("Invalid button state: " + mState);
@@ -232,6 +234,10 @@ package starling.display
         public function get scaleWhenOver():Number { return mScaleWhenOver; }
         public function set scaleWhenOver(value:Number):void { mScaleWhenOver = value; }
 
+        /** The alpha value of the button on touch. @default 1.0 */
+        public function get alphaWhenDown():Number { return mAlphaWhenDown; }
+        public function set alphaWhenDown(value:Number):void { mAlphaWhenDown = value; }
+
         /** The alpha value of the button when it is disabled. @default 0.5 */
         public function get alphaWhenDisabled():Number { return mAlphaWhenDisabled; }
         public function set alphaWhenDisabled(value:Number):void { mAlphaWhenDisabled = value; }
@@ -243,7 +249,6 @@ package starling.display
             if (mEnabled != value)
             {
                 mEnabled = value;
-                mContents.alpha = value ? 1.0 : mAlphaWhenDisabled;
                 state = value ? ButtonState.UP : ButtonState.DISABLED;
             }
         }

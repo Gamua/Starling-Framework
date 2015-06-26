@@ -1,6 +1,60 @@
 Starling: Changelog
 ===================
 
+version 1.7 RC - 2015-05-25
+---------------------------
+
+- added support for stencil masking of all display objects via new 'mask' property
+- added 'Polygon' class for describing closed two-dimensional shapes
+- added 'Canvas' class for basic vector drawing functionality (main use right now: masking)
+- added support for video textures via 'Texture.fromNetStream' and 'Texture.fromCamera'
+- added 'property hints' to tweening methods (providing easier handling of color and angle)
+- added 'ArrayUtil' + 'VectorUtil' classes (for insertion & removal of objects without allocations)
+- added 'reverseFrames' method to MovieClip class
+- added 'leading' property to TextField class
+- added 'scaleWhenOver' property to Button class
+- added 'alphaWhenDown' property to Button class
+- added better touch handling for buttons (restoring downstate after rollout & -in)
+- added 'isCubeMap' property to 'ATFData' class
+- added support for enqueuing 'URLRequest' objects in AssetManager (thanks to SamYStudiO)
+- added 'standardConstrained' profile to 'auto' profile selection (thanks to Andras Csizmadia)
+- added 'standardExtended' profile to 'auto' profile selection (thanks to Andras Csizmadia)
+- added 'MathUtil.clamp()'
+- added optimized internal 'Polygon' implementations for circle, ellipse, and rectangle
+- added a warning message when 'frame' rectangle is used in an unsupported way.
+- added a warning message when using masks, but 'depthAndStencil' is deactivated in app descriptor
+- added support for 'AssetManager.transformData' to return 'null'
+- added 'complete' method to 'DelayedCall'
+- added support for bigger TTF text fields by lowering resolution (thanks to Haruka Kataoka)
+- added better parameter checks for 'BitmapFont' constructor
+- added 'Texture.maxSize' property to find out maximum texture dimensions on current device
+- added latest 'AGALMiniAssembler' with support for new profiles ('standardConstrained/Extended')
+- added null reference check to 'Juggler.tween'
+- added support for assigning Starling root class after constructor
+- added support for negative indices to 'DisplayObjectContainer.getChildAt'
+- added BlendMode 'mask' for RenderTexture drawing (thanks to Łukasz Łazarecki)
+- added 'Event.RENDER' event, dispatched by Starling right before rendering is about to start
+- added support for latest ATF format updates (coming with AIR 18)
+- optimized state changes caused by tinting, reducing draw calls in 'baselineExtened' or higher
+- optimized temporary object allocations of DisplayObjectContainer (avoiding 'splice')
+- optimized temporary object allocations in bitmap font registration
+- changed default of 'handleLostContext' to 'true'
+- fixed that 'autoScale' did not work for html text
+- fixed calculation of UV coordinates in DisplacementMapFilter in case of conflicting scale factors
+- fixed missing application of 'repeat' parameter in DisplacementMapFilter constructor
+- fixed accessibility of atlas and bitmap font textures in AssetManager (reverting to old behavior)
+- fixed error when calling 'clear' within 'RenderTexture.drawBundled'
+- fixed that 'mNextTween' was not set to null in 'Tween.reset' method (thanks to Sebastien Flory)
+- fixed possible memory leak when using async ATF texture upload (thanks to Vladimir Atamanov)
+- fixed that 'Button' state textures did not support frames
+- fixed that AssetManager failed loading when enqueued file contained non-ASCII path string
+- fixed that losing Stage3D context could result in runtime exception (thanks to Andras Csizmadia)
+- fixed that ATF textures were added to AssetManager prior to their 'onComplete' callback
+- fixed problems with TravisCI tests (thanks to Andras Csizmadia)
+- fixed that flattened filtered objects caused GPU memory to leak
+- fixed that DropShadow produced weird results in combination with 'clipRect'
+- fixed that 'RenderTexture.draw' did not restore original render target
+
 version 1.6 - 2014-12-12
 ------------------------
 

@@ -30,7 +30,7 @@
   <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
   <echo message="Using SDK: ${FLEX_HOME}"/>
   <!-- versioning -->
-  <property name="version" value="1.6.1" />
+  <property name="version" value="1.7" />
   <!-- directories -->
   <property name="deploy.dir" location="bin" />
   <property name="src.dir" location="src" />
@@ -105,6 +105,7 @@
       <arg line="-package starling.display 'The main classes from which to build anything that is displayed on the screen.'" />
       <arg line="-package starling.errors 'A set of commonly used error classes.'" />
       <arg line="-package starling.events 'A simplified version of Flashs DOM event model, including an alternative EventDispatcher base class.'" />
+      <arg line="-package starling.geom 'Geometry classes that expand on what the corresponding Flash package has to offer.'" />
       <arg line="-package starling.text 'Classes for working with text fields and bitmap fonts.'" />
       <arg line="-package starling.textures 'Classes to create and work with GPU texture data.'" />
       <arg line="-package starling.utils 'Utility classes and helper methods.'" />

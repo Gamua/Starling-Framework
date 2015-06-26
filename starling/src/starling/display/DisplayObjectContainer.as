@@ -122,11 +122,10 @@ package starling.display
                 else
                 {
                     child.removeFromParent();
-                    
-                    // 'splice' creates a temporary object, so we avoid it if it's not necessary
+
                     if (index == numChildren) mChildren[numChildren] = child;
-                    else                      mChildren.splice(index, 0, child);
-                    
+                    else spliceChildren(index, 0, child);
+
                     child.setParent(this);
                     child.dispatchEventWith(Event.ADDED, true);
                     
@@ -173,7 +172,7 @@ package starling.display
                 
                 child.setParent(null);
                 index = mChildren.indexOf(child); // index might have changed by event handler
-                if (index >= 0) mChildren.splice(index, 1); 
+                if (index >= 0) spliceChildren(index, 1);
                 if (dispose) child.dispose();
                 
                 return child;
@@ -232,8 +231,8 @@ package starling.display
             var oldIndex:int = getChildIndex(child);
             if (oldIndex == index) return;
             if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
-            mChildren.splice(oldIndex, 1);
-            mChildren.splice(index, 0, child);
+            spliceChildren(oldIndex, 1);
+            spliceChildren(index, 0, child);
         }
         
         /** Swaps the indexes of two children. */
@@ -384,7 +383,7 @@ package starling.display
             // The event listeners might modify the display tree, which could make the loop crash. 
             // Thus, we collect them in a list and iterate over that list instead.
             // And since another listener could call this method internally, we have to take 
-            // care that the static helper vector does not get currupted.
+            // care that the static helper vector does not get corrupted.
             
             var fromIndex:int = sBroadcastListeners.length;
             getChildEventListeners(this, event.type, sBroadcastListeners);
@@ -462,7 +461,51 @@ package starling.display
                     input[i] = buffer[int(i - startIndex)];
             }
         }
-        
+
+        /** Custom implementation of 'Vector.splice'. The native method always create temporary
+         *  objects that have to be garbage collected. This implementation does not cause such
+         *  issues. */
+        private function spliceChildren(startIndex:int, deleteCount:uint=uint.MAX_VALUE,
+                                        insertee:DisplayObject=null):void
+        {
+            var vector:Vector.<DisplayObject> = mChildren;
+            var oldLength:uint  = vector.length;
+
+            if (startIndex < 0) startIndex += oldLength;
+            if (startIndex < 0) startIndex = 0; else if (startIndex > oldLength) startIndex = oldLength;
+            if (startIndex + deleteCount > oldLength) deleteCount = oldLength - startIndex;
+
+            var i:int;
+            var insertCount:int = insertee ? 1 : 0;
+            var deltaLength:int = insertCount - deleteCount;
+            var newLength:uint  = oldLength + deltaLength;
+            var shiftCount:int  = oldLength - startIndex - deleteCount;
+
+            if (deltaLength < 0)
+            {
+                i = startIndex + insertCount;
+                while (shiftCount)
+                {
+                    vector[i] = vector[int(i - deltaLength)];
+                    --shiftCount; ++i;
+                }
+                vector.length = newLength;
+            }
+            else if (deltaLength > 0)
+            {
+                i = 1;
+                while (shiftCount)
+                {
+                    vector[int(newLength - i)] = vector[int(oldLength - i)];
+                    --shiftCount; ++i;
+                }
+                vector.length = newLength;
+            }
+
+            if (insertee)
+                vector[startIndex] = insertee;
+        }
+
         /** @private */
         internal function getChildEventListeners(object:DisplayObject, eventType:String, 
                                                  listeners:Vector.<DisplayObject>):void

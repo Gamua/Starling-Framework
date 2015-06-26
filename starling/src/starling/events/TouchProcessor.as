@@ -235,6 +235,33 @@ package starling.events
             
             enqueue(0, TouchPhase.HOVER, exitX, exitY);
         }
+
+        /** Force-end all current touches. Changes the phase of all touches to 'ENDED' and
+         *  immediately dispatches a new TouchEvent (if touches are present). Called automatically
+         *  when the app receives a 'DEACTIVATE' event. */
+        public function cancelTouches():void
+        {
+            if (mCurrentTouches.length > 0)
+            {
+                // abort touches
+                for each (var touch:Touch in mCurrentTouches)
+                {
+                    if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
+                        touch.phase == TouchPhase.STATIONARY)
+                    {
+                        touch.phase = TouchPhase.ENDED;
+                        touch.cancelled = true;
+                    }
+                }
+
+                // dispatch events
+                processTouches(mCurrentTouches, mShiftDown, mCtrlDown);
+            }
+
+            // purge touches
+            mCurrentTouches.length = 0;
+            mQueue.length = 0;
+        }
         
         private function createOrUpdateTouch(touchID:int, phase:String,
                                              globalX:Number, globalY:Number,
@@ -423,25 +450,7 @@ package starling.events
         
         private function onInterruption(event:Object):void
         {
-            if (mCurrentTouches.length > 0)
-            {
-                // abort touches
-                for each (var touch:Touch in mCurrentTouches)
-                {
-                    if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
-                        touch.phase == TouchPhase.STATIONARY)
-                    {
-                        touch.phase = TouchPhase.ENDED;
-                    }
-                }
-
-                // dispatch events
-                processTouches(mCurrentTouches, mShiftDown, mCtrlDown);
-            }
-
-            // purge touches
-            mCurrentTouches.length = 0;
-            mQueue.length = 0;
+            cancelTouches();
         }
     }
 }

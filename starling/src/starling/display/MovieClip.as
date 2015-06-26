@@ -176,6 +176,20 @@ package starling.display
             mDurations[frameID] = duration;
             updateStartTimes();
         }
+
+        /** Reverses the order of all frames, making the clip run from end to start.
+         *  Makes sure that the currently visible frame stays the same. */
+        public function reverseFrames():void
+        {
+            mTextures.reverse();
+            mSounds.reverse();
+            mDurations.reverse();
+
+            updateStartTimes();
+
+            mCurrentTime = totalTime - mCurrentTime;
+            mCurrentFrame = numFrames - mCurrentFrame - 1;
+        }
         
         // playback methods
         
@@ -197,7 +211,7 @@ package starling.display
             mPlaying = false;
             currentFrame = 0;
         }
-        
+
         // helpers
         
         private function updateStartTimes():void
