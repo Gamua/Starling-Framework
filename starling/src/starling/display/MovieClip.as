@@ -235,7 +235,6 @@ package starling.display
             var finalFrame:int;
             var previousFrame:int = mCurrentFrame;
             var restTime:Number = 0.0;
-            var breakAfterFrame:Boolean = false;
             var dispatchCompleteEvent:Boolean = false;
             var totalTime:Number = this.totalTime;
             
@@ -261,21 +260,20 @@ package starling.display
                         }
                         else
                         {
-                            breakAfterFrame = true;
                             restTime = mCurrentTime - totalTime;
                             dispatchCompleteEvent = true;
                             mCurrentFrame = finalFrame;
                             mCurrentTime = totalTime;
+                            break;
                         }
                     }
                     else
                     {
                         mCurrentFrame++;
                     }
-                    
+
                     var sound:Sound = mSounds[mCurrentFrame];
                     if (sound && !mMuted) sound.play(0, 0, mSoundTransform);
-                    if (breakAfterFrame) break;
                 }
                 
                 // special case when we reach *exactly* the total time.
