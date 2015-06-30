@@ -330,7 +330,7 @@ package starling.display
                 mCurrentTime += getFrameDuration(i);
             
             texture = mTextures[mCurrentFrame];
-            if (!mMuted && mSounds[mCurrentFrame]) mSounds[mCurrentFrame].play();
+            if (!mMuted && mSounds[mCurrentFrame]) mSounds[mCurrentFrame].play(0, 0, mSoundTransform);
         }
         
         /** The default number of frames per second. Individual frames can have different 
