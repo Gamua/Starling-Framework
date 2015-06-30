@@ -810,7 +810,7 @@ package starling.core
             mTouchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
             
             // allow objects that depend on mouse-over state to be updated immediately
-            if (event.type == MouseEvent.MOUSE_UP)
+            if (event.type == MouseEvent.MOUSE_UP && Mouse.supportsCursor)
                 mTouchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
         
