@@ -474,6 +474,9 @@ package starling.core
             // to avoid overloading time-based animations, the maximum delta is truncated.
             if (passedTime > 1.0) passedTime = 1.0;
 
+            // after about 25 days, 'getTimer()' will roll over. A rare event, but still ...
+            if (passedTime < 0.0) passedTime = 1.0 / mNativeStage.frameRate;
+
             advanceTime(passedTime);
             render();
         }
