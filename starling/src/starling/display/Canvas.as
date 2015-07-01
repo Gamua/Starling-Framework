@@ -124,7 +124,9 @@ package starling.display
         public function clear():void
         {
             mVertexData.numVertices = 0;
-            mIndexData.length  = 0;
+            mIndexData.length = 0;
+            mPolygons.length = 0;
+            destroyBuffers();
         }
 
         /** @inheritDoc */
