@@ -376,7 +376,7 @@ package starling.display
          *  of the object. If you pass no arguments, it will be centered. */ 
         public function alignPivot(hAlign:String="center", vAlign:String="center"):void
         {
-            var bounds:Rectangle = getBounds(this);
+            var bounds:Rectangle = getBounds(this, sHelperRect);
             mOrientationChanged = true;
             
             if (hAlign == HAlign.LEFT)        mPivotX = bounds.x;
