@@ -761,7 +761,7 @@ package starling.display
         /** The bounds of the object relative to the local coordinates of the parent. */
         public function get bounds():Rectangle
         {
-            return getBounds(mParent);
+            return getBounds(mParent, sHelperRect);
         }
         
         /** The width of the object in pixels.
