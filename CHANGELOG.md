@@ -1,8 +1,8 @@
 Starling: Changelog
 ===================
 
-version 1.7 RC - 2015-05-25
----------------------------
+version 1.7 - 2015-07-02
+------------------------
 
 - added support for stencil masking of all display objects via new 'mask' property
 - added 'Polygon' class for describing closed two-dimensional shapes
@@ -54,6 +54,13 @@ version 1.7 RC - 2015-05-25
 - fixed that flattened filtered objects caused GPU memory to leak
 - fixed that DropShadow produced weird results in combination with 'clipRect'
 - fixed that 'RenderTexture.draw' did not restore original render target
+- fixed that lost context was not recognized from empty 'driverInfo' string
+- fixed that sound of a MovieClip's last frame was played twice
+- fixed that sound of a MovieClip's first frame was not played in first cycle
+- fixed that 'SoundTransform' object was not always used by MovieClip
+- fixed that 'HOVER' event was sometimes dispatched on devices that do not support mouse cursors
+- fixed null-reference error in AssetManager caused by io-error while restoring textures
+- fixed possible problems caused by 'getTimer' overflow
 
 version 1.6 - 2014-12-12
 ------------------------

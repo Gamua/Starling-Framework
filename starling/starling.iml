@@ -3,8 +3,8 @@
   <component name="FlexBuildConfigurationManager" active="starling">
     <configurations>
       <configuration name="starling" pure-as="true" output-type="Library" output-file="starling.swc" output-folder="$MODULE_DIR$/bin-debug">
-        <dependencies target-player="17.0">
-          <sdk name="air-17" />
+        <dependencies target-player="18.0">
+          <sdk name="air-18" />
         </dependencies>
         <compiler-options />
         <packaging-air-desktop />
@@ -23,7 +23,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/doc" />
     </content>
-    <orderEntry type="jdk" jdkName="air-17" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="jdk" jdkName="air-18" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
