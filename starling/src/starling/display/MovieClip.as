@@ -281,6 +281,7 @@ package starling.display
 
                 mWasStopped = false;
                 playSound(mCurrentFrame);
+                if (mEvents[mCurrentFrame]) dispatchFrameEvent(mCurrentFrame);
             }
 
             if (mLoop && mCurrentTime >= totalTime)
