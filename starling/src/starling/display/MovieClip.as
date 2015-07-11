@@ -106,14 +106,14 @@ package starling.display
         
         /** Adds an additional frame, optionally with a sound and a custom duration. If the 
          *  duration is omitted, the default framerate is used (as specified in the constructor). */   
-        public function addFrame(texture:Texture, sound:Sound=null, event:starling.events.Event=null, duration:Number=-1):void
+        public function addFrame(texture:Texture, sound:Sound=null, duration:Number=-1, event:starling.events.Event=null):void
         {
-            addFrameAt(numFrames, texture, sound, event, duration);
+            addFrameAt(numFrames, texture, sound, duration, event);
         }
         
         /** Adds a frame at a certain index, optionally with a sound and a custom duration. */
-        public function addFrameAt(frameID:int, texture:Texture, sound:Sound=null, event:starling.events.Event=null
-                                   duration:Number=-1):void
+        public function addFrameAt(frameID:int, texture:Texture, sound:Sound=null, 
+                                   duration:Number=-1, event:starling.events.Event=null):void
         {
             if (frameID < 0 || frameID > numFrames) throw new ArgumentError("Invalid frame id");
             if (duration < 0) duration = mDefaultFrameDuration;
