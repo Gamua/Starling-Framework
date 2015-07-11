@@ -48,6 +48,7 @@ package starling.display
         private var mSounds:Vector.<Sound>;
         private var mDurations:Vector.<Number>;
         private var mStartTimes:Vector.<Number>;
+        private var mEvents:Vector.<Event>;
 
         private var mDefaultFrameDuration:Number;
         private var mCurrentTime:Number;
@@ -57,6 +58,8 @@ package starling.display
         private var mMuted:Boolean;
         private var mWasStopped:Boolean;
         private var mSoundTransform:SoundTransform = null;
+        
+        
         
         /** Creates a movie clip from the provided textures and with the specified default framerate.
          *  The movie will have the size of the first frame. */  
@@ -86,6 +89,7 @@ package starling.display
             mWasStopped = true;
             mTextures = textures.concat();
             mSounds = new Vector.<Sound>(numFrames);
+            mEvents = new Vector.<Event>(numFrames);
             mDurations = new Vector.<Number>(numFrames);
             mStartTimes = new Vector.<Number>(numFrames);
             
@@ -164,6 +168,22 @@ package starling.display
             mSounds[frameID] = sound;
         }
         
+        /** Returns the event of a certain frame. */
+        public function getFrameEvent(frameID:int):Sound
+        {
+            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
+            return mEvents[frameID];
+        }
+        
+        /** Sets the event of a certain frame. The event will be dispatched whenever the frame 
+         *  is displayed. */
+        public function setFrameEvent(frameID:int, event:Event):void
+        {
+            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
+            mEvents[frameID] = event;
+        }
+        
+        
         /** Returns the duration of a certain frame (in seconds). */
         public function getFrameDuration(frameID:int):Number
         {
@@ -185,6 +205,7 @@ package starling.display
         {
             mTextures.reverse();
             mSounds.reverse();
+            mEvents.reverse();
             mDurations.reverse();
 
             updateStartTimes();
@@ -232,6 +253,12 @@ package starling.display
         {
             if (!mMuted && mSounds[frame])
                 mSounds[frame].play(0, 0, mSoundTransform);
+        }
+        
+        private function dispatchFrameEvent(frame:int):void
+        {
+            if(mEvents[frame])
+                dispatchEvent(mEvents[frame]);
         }
         
         // IAnimatable
@@ -291,6 +318,7 @@ package starling.display
                     }
 
                     if (mSounds[mCurrentFrame]) playSound(mCurrentFrame);
+                    if (mEvents[mCurrentFrame]) dispatchFrameEvent(mCurrentEvent);
                 }
                 
                 // special case when we reach *exactly* the total time.
