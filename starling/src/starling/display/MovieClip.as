@@ -318,7 +318,7 @@ package starling.display
                     }
 
                     if (mSounds[mCurrentFrame]) playSound(mCurrentFrame);
-                    if (mEvents[mCurrentFrame]) dispatchFrameEvent(mCurrentEvent);
+                    if (mEvents[mCurrentFrame]) dispatchFrameEvent(mCurrentFrame);
                 }
                 
                 // special case when we reach *exactly* the total time.
