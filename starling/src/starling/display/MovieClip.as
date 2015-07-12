@@ -305,7 +305,7 @@ package starling.display
                 {
                     if (mCurrentFrame == finalFrame)
                     {
-                        if (mLoop && !hasEventListener(Event.COMPLETE))
+                        if (mLoop && !hasEventListener(starling.events.Event.COMPLETE))
                         {
                             mCurrentTime -= totalTime;
                             mCurrentFrame = 0;
@@ -337,7 +337,7 @@ package starling.display
                 texture = mTextures[mCurrentFrame];
             
             if (dispatchCompleteEvent)
-                dispatchEventWith(Event.COMPLETE);
+                dispatchEventWith(starling.events.Event.COMPLETE);
             
             if (mLoop && restTime > 0.0)
                 advanceTime(restTime);
