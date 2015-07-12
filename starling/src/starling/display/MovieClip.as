@@ -264,7 +264,7 @@ package starling.display
         private function dispatchFrameEvent(frame:int):void
         {
             if(mEvents[frame])
-                dispatchEventWith(Event.MOVIE_CLIP_FRAME_EVENT, false, mEvents[frame]);
+                dispatchEventWith(starling.events.Event.MOVIE_CLIP_FRAME_EVENT, false, mEvents[frame]);
         }
         
         // IAnimatable
