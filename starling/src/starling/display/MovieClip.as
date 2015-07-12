@@ -17,11 +17,13 @@ package starling.display
     
     import starling.animation.IAnimatable;
     import starling.events.Event;
+	import starling.events.MovieClipFrameEvent;
     import starling.textures.Texture;
     
     /** Dispatched whenever the movie has displayed its last frame. */
     [Event(name="complete", type="starling.events.Event")]
-	
+	/** Dispatched whenever the movie has displayed a frame with an event attached. */
+	[Event(name="movieClipFrameEvent" , type="starling.events.MovieClipFrameEvent")]
    
     /** A MovieClip is a simple way to display an animation depicted by a list of textures.
      *  
@@ -181,7 +183,7 @@ package starling.display
         
         /** Sets the event of a certain frame. The event will be dispatched whenever the frame 
          *  is displayed. */
-        public function setFrameEvent(frameID:int, eventName:String):void
+        public function setFrameEvent(frameID:int, eventName:String=""):void
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             mEvents[frameID] = eventName;
@@ -262,7 +264,7 @@ package starling.display
         private function dispatchFrameEvent(frame:int):void
         {
             if(mEvents[frame])
-                dispatchEventWith(mEvents[frame]);
+                dispatchEventWith(MovieClipFrameEvent.MOVIE_CLIP_FRAME_EVENT, false, Events[frame]);
         }
         
         // IAnimatable
