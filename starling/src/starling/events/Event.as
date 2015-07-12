@@ -91,6 +91,10 @@ package starling.events
         /** An event type to be utilized in custom events. Not used by Starling right now. */
         public static const READY:String = "ready";
         
+		/** An event type dispatched by the Starling movieClip when it encouters an event attched to a frame*/
+		public static const MOVIE_CLIP_FRAME_EVENT:String = "movieCLipFrameEvent";
+		
+		
         private static var sEventPool:Vector.<Event> = new <Event>[];
         
         private var mTarget:EventDispatcher;
