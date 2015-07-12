@@ -22,7 +22,7 @@ package starling.display
     /** Dispatched whenever the movie has displayed its last frame. */
     [Event(name="complete", type="starling.events.Event")]
 	
-    
+   
     /** A MovieClip is a simple way to display an animation depicted by a list of textures.
      *  
      *  <p>Pass the frames of the movie in a vector of textures to the constructor. The movie clip 
@@ -50,7 +50,7 @@ package starling.display
         private var mSounds:Vector.<Sound>;
         private var mDurations:Vector.<Number>;
         private var mStartTimes:Vector.<Number>;
-        private var mEvents:Vector.<starling.events.Event>;
+        private var mEvents:Vector.<String>;
 
         private var mDefaultFrameDuration:Number;
         private var mCurrentTime:Number;
@@ -91,7 +91,7 @@ package starling.display
             mWasStopped = true;
             mTextures = textures.concat();
             mSounds = new Vector.<Sound>(numFrames);
-            mEvents = new Vector.<starling.events.Event>(numFrames);
+            mEvents = new Vector.<String>(numFrames);
             mDurations = new Vector.<Number>(numFrames);
             mStartTimes = new Vector.<Number>(numFrames);
             
@@ -106,14 +106,14 @@ package starling.display
         
         /** Adds an additional frame, optionally with a sound and a custom duration. If the 
          *  duration is omitted, the default framerate is used (as specified in the constructor). */   
-        public function addFrame(texture:Texture, sound:Sound=null, duration:Number=-1, event:starling.events.Event=null):void
+        public function addFrame(texture:Texture, sound:Sound=null, duration:Number=-1, eventName:String=null):void
         {
             addFrameAt(numFrames, texture, sound, duration, event);
         }
         
         /** Adds a frame at a certain index, optionally with a sound and a custom duration. */
         public function addFrameAt(frameID:int, texture:Texture, sound:Sound=null, 
-                                   duration:Number=-1, event:starling.events.Event=null):void
+                                   duration:Number=-1, event:String=null):void
         {
             if (frameID < 0 || frameID > numFrames) throw new ArgumentError("Invalid frame id");
             if (duration < 0) duration = mDefaultFrameDuration;
@@ -173,7 +173,7 @@ package starling.display
         }
         
         /** Returns the event of a certain frame. */
-        public function getFrameEvent(frameID:int):starling.events.Event
+        public function getFrameEvent(frameID:int):String
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             return mEvents[frameID];
@@ -181,10 +181,10 @@ package starling.display
         
         /** Sets the event of a certain frame. The event will be dispatched whenever the frame 
          *  is displayed. */
-        public function setFrameEvent(frameID:int, event:starling.events.Event):void
+        public function setFrameEvent(frameID:int, eventName:String):void
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            mEvents[frameID] = event;
+            mEvents[frameID] = eventName;
         }
         
         
@@ -262,7 +262,7 @@ package starling.display
         private function dispatchFrameEvent(frame:int):void
         {
             if(mEvents[frame])
-                dispatchEvent(mEvents[frame]);
+                dispatchEventWith(mEvents[frame]);
         }
         
         // IAnimatable
