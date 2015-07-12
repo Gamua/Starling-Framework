@@ -17,7 +17,6 @@ package starling.display
     
     import starling.animation.IAnimatable;
     import starling.events.Event;
-	import starling.events.MovieClipFrameEvent;
     import starling.textures.Texture;
     
     /** Dispatched whenever the movie has displayed its last frame. */
@@ -265,7 +264,7 @@ package starling.display
         private function dispatchFrameEvent(frame:int):void
         {
             if(mEvents[frame])
-                dispatchEventWith(Event.MOVIE_CLIP_FRAME_EVENT, false, Events[frame]);
+                dispatchEventWith(Event.MOVIE_CLIP_FRAME_EVENT, false, mEvents[frame]);
         }
         
         // IAnimatable
