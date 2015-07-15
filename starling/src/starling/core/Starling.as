@@ -1165,7 +1165,7 @@ package starling.core
          *  roll). It's recommended to always enable this property, while using the AssetManager
          *  for texture loading.</p>
          *  
-         *  @default false
+         *  @default true
          *  @see starling.utils.AssetManager
          */
         public static function get handleLostContext():Boolean { return sHandleLostContext; }
