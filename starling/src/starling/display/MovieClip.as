@@ -11,7 +11,6 @@
 package starling.display
 {
     import flash.errors.IllegalOperationError;
-    import flash.events.Event;
     import flash.media.Sound;
     import flash.media.SoundTransform;
     
@@ -264,7 +263,7 @@ package starling.display
         private function dispatchFrameEvent(frame:int):void
         {
             if(mEvents[frame])
-                dispatchEventWith(starling.events.Event.MOVIE_CLIP_FRAME_EVENT, false, mEvents[frame]);
+                dispatchEventWith(Event.MOVIE_CLIP_FRAME_EVENT, false, mEvents[frame]);
         }
         
         // IAnimatable
@@ -305,7 +304,7 @@ package starling.display
                 {
                     if (mCurrentFrame == finalFrame)
                     {
-                        if (mLoop && !hasEventListener(starling.events.Event.COMPLETE))
+                        if (mLoop && !hasEventListener(Event.COMPLETE))
                         {
                             mCurrentTime -= totalTime;
                             mCurrentFrame = 0;
@@ -337,7 +336,7 @@ package starling.display
                 texture = mTextures[mCurrentFrame];
             
             if (dispatchCompleteEvent)
-                dispatchEventWith(starling.events.Event.COMPLETE);
+                dispatchEventWith(Event.COMPLETE);
             
             if (mLoop && restTime > 0.0)
                 advanceTime(restTime);
