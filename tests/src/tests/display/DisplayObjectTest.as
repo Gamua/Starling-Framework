@@ -433,5 +433,22 @@ package tests.display
             sprite.name = "hugo";
             Assert.assertEquals("hugo", sprite.name);
         }
+
+        [Test]
+        public function testUniformScale():void
+        {
+            var sprite:Sprite = new Sprite();
+            assertThat(sprite.scale, closeTo(1.0, E));
+
+            sprite.scaleY = 0.5;
+            assertThat(sprite.scale, closeTo(1.0, E));
+
+            sprite.scaleX = 0.25;
+            assertThat(sprite.scale, closeTo(0.25, E));
+
+            sprite.scale = 0.75;
+            assertThat(sprite.scaleX, closeTo(0.75, E));
+            assertThat(sprite.scaleY, closeTo(0.75, E));
+        }
     }
 }
