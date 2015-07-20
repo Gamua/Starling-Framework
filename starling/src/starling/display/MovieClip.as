@@ -1,4 +1,4 @@
-// =================================================================================================
+﻿// =================================================================================================
 //
 //	Starling Framework
 //	Copyright 2011-2014 Gamua. All Rights Reserved.
@@ -11,9 +11,7 @@
 package starling.display
 {
     import flash.errors.IllegalOperationError;
-    import flash.media.Sound;
-    import flash.media.SoundTransform;
-    
+   
     import starling.animation.IAnimatable;
     import starling.events.Event;
     import starling.textures.Texture;
@@ -32,7 +30,7 @@ package starling.display
      *  atlas to receive the textures in the correct (alphabetic) order.</p> 
      *  
      *  <p>You can specify the desired framerate via the constructor. You can, however, manually 
-     *  give each frame a custom duration. You can also play a sound whenever a certain frame 
+     *  give each frame a custom duration. You can also dispatch an event whenever a certain frame 
      *  appears.</p>
      *  
      *  <p>The methods <code>play</code> and <code>pause</code> control playback of the movie. You
@@ -48,7 +46,6 @@ package starling.display
     public class MovieClip extends Image implements IAnimatable
     {
         private var mTextures:Vector.<Texture>;
-        private var mSounds:Vector.<Sound>;
         private var mDurations:Vector.<Number>;
         private var mStartTimes:Vector.<Number>;
         private var mEvents:Vector.<String>;
@@ -59,9 +56,7 @@ package starling.display
         private var mLoop:Boolean;
         private var mPlaying:Boolean;
         private var mMuted:Boolean;
-        private var mWasStopped:Boolean;
-        private var mSoundTransform:SoundTransform = null;
-        
+        private var mWasStopped:Boolean;        
         
         
         /** Creates a movie clip from the provided textures and with the specified default framerate.
@@ -91,7 +86,6 @@ package starling.display
             mCurrentFrame = 0;
             mWasStopped = true;
             mTextures = textures.concat();
-            mSounds = new Vector.<Sound>(numFrames);
             mEvents = new Vector.<String>(numFrames);
             mDurations = new Vector.<Number>(numFrames);
             mStartTimes = new Vector.<Number>(numFrames);
@@ -105,25 +99,24 @@ package starling.display
         
         // frame manipulation
         
-        /** Adds an additional frame, optionally with a sound and a custom duration. If the 
+        /** Adds an additional frame, optionally with an event and a custom duration. If the 
          *  duration is omitted, the default framerate is used (as specified in the constructor). */   
-        public function addFrame(texture:Texture, sound:Sound=null, duration:Number=-1, eventName:String=null):void
+        public function addFrame(texture:Texture, duration:Number=-1, eventName:String=null):void
         {
-            addFrameAt(numFrames, texture, sound, duration, eventName);
+            addFrameAt(numFrames, texture, duration, eventName);
         }
         
-        /** Adds a frame at a certain index, optionally with a sound and a custom duration. */
-        public function addFrameAt(frameID:int, texture:Texture, sound:Sound=null, 
-                                   duration:Number=-1, eventName:String=null):void
+        /** Adds a frame at a certain index, optionally with an event and a custom duration. */
+        public function addFrameAt(frameID:int, texture:Texture, duration:Number=-1,
+									eventName:String=null):void
         {
             if (frameID < 0 || frameID > numFrames) throw new ArgumentError("Invalid frame id");
             if (duration < 0) duration = mDefaultFrameDuration;
             
             mTextures.splice(frameID, 0, texture);
-            mSounds.splice(frameID, 0, sound);
-			mEvents.splice(frameID, 0, eventName);
             mDurations.splice(frameID, 0, duration);
-            
+			mEvents.splice(frameID, 0, eventName);
+
             if (frameID > 0 && frameID == numFrames) 
                 mStartTimes[frameID] = mStartTimes[int(frameID-1)] + mDurations[int(frameID-1)];
             else
@@ -137,10 +130,9 @@ package starling.display
             if (numFrames == 1) throw new IllegalOperationError("Movie clip must not be empty");
             
             mTextures.splice(frameID, 1);
-            mSounds.splice(frameID, 1);
-			mEvents.splice(frameID, 1);
             mDurations.splice(frameID, 1);
-            
+			mEvents.splice(frameID, 1);
+
             updateStartTimes();
         }
         
@@ -157,22 +149,7 @@ package starling.display
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             mTextures[frameID] = texture;
         }
-        
-        /** Returns the sound of a certain frame. */
-        public function getFrameSound(frameID:int):Sound
-        {
-            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            return mSounds[frameID];
-        }
-        
-        /** Sets the sound of a certain frame. The sound will be played whenever the frame 
-         *  is displayed. */
-        public function setFrameSound(frameID:int, sound:Sound):void
-        {
-            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            mSounds[frameID] = sound;
-        }
-        
+               
         /** Returns the event of a certain frame. */
         public function getFrameEvent(frameID:int):String
         {
@@ -209,9 +186,8 @@ package starling.display
         public function reverseFrames():void
         {
             mTextures.reverse();
-            mSounds.reverse();
-            mEvents.reverse();
             mDurations.reverse();
+            mEvents.reverse();
 
             updateStartTimes();
 
@@ -253,13 +229,7 @@ package starling.display
             for (var i:int=1; i<numFrames; ++i)
                 mStartTimes[i] = mStartTimes[int(i-1)] + mDurations[int(i-1)];
         }
-
-        private function playSound(frame:int):void
-        {
-            if (!mMuted && mSounds[frame])
-                mSounds[frame].play(0, 0, mSoundTransform);
-        }
-        
+    
         private function dispatchFrameEvent(frame:int):void
         {
             if(mEvents[frame])
@@ -282,10 +252,9 @@ package starling.display
             if (mWasStopped)
             {
                 // if the clip was stopped and started again,
-                // we need to play the frame's sound manually.
+                // we need to dispatch frame events again.
 
                 mWasStopped = false;
-                playSound(mCurrentFrame);
                 if (mEvents[mCurrentFrame]) dispatchFrameEvent(mCurrentFrame);
             }
 
@@ -323,7 +292,6 @@ package starling.display
                         mCurrentFrame++;
                     }
 
-                    if (mSounds[mCurrentFrame]) playSound(mCurrentFrame);
                     if (mEvents[mCurrentFrame]) dispatchFrameEvent(mCurrentFrame);
                 }
                 
@@ -361,14 +329,6 @@ package starling.display
         public function get loop():Boolean { return mLoop; }
         public function set loop(value:Boolean):void { mLoop = value; }
         
-        /** If enabled, no new sounds will be started during playback. Sounds that are already
-         *  playing are not affected. */
-        public function get muted():Boolean { return mMuted; }
-        public function set muted(value:Boolean):void { mMuted = value; }
-
-        /** The SoundTransform object used for playback of all frame sounds. @default null */
-        public function get soundTransform():SoundTransform { return mSoundTransform; }
-        public function set soundTransform(value:SoundTransform):void { mSoundTransform = value; }
 
         /** The index of the frame that is currently displayed. */
         public function get currentFrame():int { return mCurrentFrame; }
@@ -381,7 +341,7 @@ package starling.display
                 mCurrentTime += getFrameDuration(i);
             
             texture = mTextures[mCurrentFrame];
-            if (mPlaying && !mWasStopped) playSound(mCurrentFrame);
+            if (mPlaying && !mWasStopped) dispatchFrameEvent(mCurrentFrame);
         }
         
         /** The default number of frames per second. Individual frames can have different 
