@@ -3,6 +3,7 @@ package
     import flash.display.Bitmap;
     import flash.display.Sprite;
     import flash.system.Capabilities;
+    import flash.system.System;
     import flash.utils.setTimeout;
 
     import starling.core.Starling;
@@ -78,7 +79,14 @@ package
             assets.loadQueue(function(ratio:Number):void
             {
                 mProgressBar.ratio = ratio;
-                if (ratio == 1) onComplete(assets);
+                if (ratio == 1)
+                {
+                    // now would be a good time for a clean-up
+                    System.pauseForGCIfCollectionImminent(0);
+                    System.gc();
+
+                    onComplete(assets);
+                }
             });
         }
 
