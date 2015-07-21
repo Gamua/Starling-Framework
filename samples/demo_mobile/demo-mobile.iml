@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="Flex" version="4">
+  <component name="FlexBuildConfigurationManager" active="demo-mobile">
+    <configurations>
+      <configuration name="demo-mobile" target-platform="Mobile" pure-as="true" main-class="Demo_Mobile" output-file="demo_mobile.swf" output-folder="$MODULE_DIR$/out">
+        <dependencies>
+          <entries>
+            <entry module-name="demo-shared" build-configuration-name="demo-shared">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry module-name="starling" build-configuration-name="starling">
+              <dependency linkage="Merged" />
+            </entry>
+          </entries>
+          <sdk name="air-18" />
+        </dependencies>
+        <compiler-options>
+          <map>
+            <entry key="compiler.locale" value="en_US" />
+          </map>
+        </compiler-options>
+        <packaging-air-desktop />
+        <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Demo_Mobile-app.xml" package-file-name="Demo_Mobile">
+          <files-to-package>
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/assets" path-in-package="." />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/system" path-in-package="." />
+          </files-to-package>
+        </packaging-android>
+        <packaging-ios enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Demo_Mobile-app.xml" package-file-name="Demo_Mobile">
+          <files-to-package>
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/assets" path-in-package="." />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/system" path-in-package="." />
+          </files-to-package>
+          <AirSigningOptions keystore-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/daniel_developer_certificate.p12" provisioning-profile-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/iOSTeam_Provisioning_Profile_.mobileprovision" />
+        </packaging-ios>
+      </configuration>
+    </configurations>
+    <compiler-options />
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/bin-debug" />
+      <excludeFolder url="file://$MODULE_DIR$/bin-release" />
+    </content>
+    <orderEntry type="jdk" jdkName="air-18" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="starling" exported="" />
+    <orderEntry type="module" module-name="demo-shared" exported="" />
+  </component>
+</module>

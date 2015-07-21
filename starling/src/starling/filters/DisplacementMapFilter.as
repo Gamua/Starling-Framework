@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2013 Gamua OG. All Rights Reserved.
+//	Copyright 2011-2014 Gamua. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -19,10 +19,13 @@ package starling.filters
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
-    
+    import flash.utils.ByteArray;
+    import flash.utils.Endian;
+
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.textures.Texture;
+    import starling.utils.formatString;
     
     /** The DisplacementMapFilter class uses the pixel values from the specified texture (called
      *  the displacement map) to perform a displacement of an object. You can use this filter 
@@ -31,7 +34,7 @@ package starling.filters
      *
      *  <p>The filter uses the following formula:</p>
      *  <listing>dstPixel[x, y] = srcPixel[x + ((componentX(x, y) - 128) &#42; scaleX) / 256, 
-     *                      y + ((componentY(x, y) - 128) &#42; scaleY) / 256)]
+     *                      y + ((componentY(x, y) - 128) &#42; scaleY) / 256]
      *  </listing>
      *  
      *  <p>Where <code>componentX(x, y)</code> gets the componentX property color value from the 
@@ -52,7 +55,7 @@ package starling.filters
         
         /** Helper objects */
         private static var sOneHalf:Vector.<Number> = new <Number>[0.5, 0.5, 0.5, 0.5];
-        private static var sMapTexCoords:Vector.<Number> = new <Number>[0, 0, 1, 0, 0, 1, 1, 1];
+        private static var sMapTexCoords:ByteArray = new ByteArray();
         private static var sMatrix:Matrix3D = new Matrix3D();
         private static var sMatrixData:Vector.<Number> = 
             new <Number>[0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0];
@@ -69,6 +72,7 @@ package starling.filters
             mComponentY = componentY;
             mScaleX = scaleX;
             mScaleY = scaleY;
+            mRepeat = repeat;
             this.mapPoint = mapPoint;
             
             super();
@@ -77,7 +81,6 @@ package starling.filters
         /** @inheritDoc */
         public override function dispose():void
         {
-            if (mShaderProgram) mShaderProgram.dispose();
             if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
             super.dispose();
         }
@@ -85,42 +88,50 @@ package starling.filters
         /** @private */
         protected override function createPrograms():void
         {
-            if (mShaderProgram) mShaderProgram.dispose();
-            if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
-            
             // the texture coordinates for the map texture are uploaded via a separate buffer
+            if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
             mMapTexCoordBuffer = Starling.context.createVertexBuffer(4, 2);
             
-            // vc0-3: mvpMatrix
-            // va0:   vertex position
-            // va1:   input texture coords
-            // va2:   map texture coords
-            
-            var vertexShaderString:String = [
-                "m44  op, va0, vc0", // 4x4 matrix transform to output space
-                "mov  v0, va1",      // pass input texture coordinates to fragment program
-                "mov  v1, va2"       // pass map texture coordinates to fragment program
-            ].join("\n");
-            
-            // v0:    input texCoords
-            // v1:    map texCoords
-            // fc0:   OneHalf
-            // fc1-4: matrix
-            
-            var mapFlags:String   = RenderSupport.getTextureLookupFlags(mapTexture.format,
-                                        mapTexture.mipMapping, mapTexture.repeat);
+            var target:Starling = Starling.current;
+            var mapFlags:String = RenderSupport.getTextureLookupFlags(
+                                      mapTexture.format, mapTexture.mipMapping, mapTexture.repeat);
             var inputFlags:String = RenderSupport.getTextureLookupFlags(
                                         Context3DTextureFormat.BGRA, false, mRepeat);
+            var programName:String = formatString("DMF_m{0}_i{1}", mapFlags, inputFlags);
             
-            var fragmentShaderString:String = [
-                "tex ft0,  v1, fs1 " + mapFlags, // read map texture
-                "sub ft1, ft0, fc0", // subtract 0.5 -> range [-0.5, 0.5]
-                "m44 ft2, ft1, fc1", // multiply matrix with displacement values
-                "add ft3,  v0, ft2", // add displacement values to texture coords
-                "tex  oc, ft3, fs0 " + inputFlags // read input texture at displaced coords
-            ].join("\n");
-            
-            mShaderProgram = assembleAgal(fragmentShaderString, vertexShaderString);
+            if (target.hasProgram(programName))
+            {
+                mShaderProgram = target.getProgram(programName);
+            }
+            else
+            {
+                // vc0-3: mvpMatrix
+                // va0:   vertex position
+                // va1:   input texture coords
+                // va2:   map texture coords
+                
+                var vertexShader:String = [
+                    "m44  op, va0, vc0", // 4x4 matrix transform to output space
+                    "mov  v0, va1",      // pass input texture coordinates to fragment program
+                    "mov  v1, va2"       // pass map texture coordinates to fragment program
+                ].join("\n");
+                
+                // v0:    input texCoords
+                // v1:    map texCoords
+                // fc0:   OneHalf
+                // fc1-4: matrix
+                
+                var fragmentShader:String = [
+                    "tex ft0,  v1, fs1 " + mapFlags, // read map texture
+                    "sub ft1, ft0, fc0", // subtract 0.5 -> range [-0.5, 0.5]
+                    "m44 ft2, ft1, fc1", // multiply matrix with displacement values
+                    "add ft3,  v0, ft2", // add displacement values to texture coords
+                    "tex  oc, ft3, fs0 " + inputFlags // read input texture at displaced coords
+                ].join("\n");
+                
+                mShaderProgram = target.registerProgramFromSource(programName, 
+                    vertexShader, fragmentShader);
+            }
         }
         
         /** @private */
@@ -156,41 +167,44 @@ package starling.filters
 
             var scale:Number = Starling.contentScaleFactor;
             var columnX:int, columnY:int;
-            
+
             for (var i:int=0; i<16; ++i)
                 sMatrixData[i] = 0;
-            
+
             if      (mComponentX == BitmapDataChannel.RED)   columnX = 0;
             else if (mComponentX == BitmapDataChannel.GREEN) columnX = 1;
             else if (mComponentX == BitmapDataChannel.BLUE)  columnX = 2;
             else                                             columnX = 3;
-            
+
             if      (mComponentY == BitmapDataChannel.RED)   columnY = 0;
             else if (mComponentY == BitmapDataChannel.GREEN) columnY = 1;
             else if (mComponentY == BitmapDataChannel.BLUE)  columnY = 2;
             else                                             columnY = 3;
-            
+
             sMatrixData[int(columnX * 4    )] = mScaleX * scale / textureWidth;
             sMatrixData[int(columnY * 4 + 1)] = mScaleY * scale / textureHeight;
-            
+
             sMatrix.copyRawDataFrom(sMatrixData);
-            
+
             // vertex buffer: (containing map texture coordinates)
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
-            
-            var mapX:Number = mMapPoint.x   / mapTexture.nativeWidth;
-            var mapY:Number = mMapPoint.y   / mapTexture.nativeHeight;
-            var maxU:Number = textureWidth  / mapTexture.nativeWidth;
-            var maxV:Number = textureHeight / mapTexture.nativeHeight;
-            
-            sMapTexCoords[0] = -mapX;        sMapTexCoords[1] = -mapY;
-            sMapTexCoords[2] = -mapX + maxU; sMapTexCoords[3] = -mapY;
-            sMapTexCoords[4] = -mapX;        sMapTexCoords[5] = -mapY + maxV;
-            sMapTexCoords[6] = -mapX + maxU; sMapTexCoords[7] = -mapY + maxV;
-            
-            mMapTexture.adjustTexCoords(sMapTexCoords);
-            mMapTexCoordBuffer.uploadFromVector(sMapTexCoords, 0, 4);
+
+            var mapX:Number = mMapPoint.x   /  mapTexture.width;
+            var mapY:Number = mMapPoint.y   /  mapTexture.height;
+            var maxU:Number = textureWidth  / (mapTexture.width  * scale);
+            var maxV:Number = textureHeight / (mapTexture.height * scale);
+
+            sMapTexCoords.position = 0;
+            sMapTexCoords.endian = Endian.LITTLE_ENDIAN;
+
+            sMapTexCoords.writeFloat(-mapX);        sMapTexCoords.writeFloat(-mapY);
+            sMapTexCoords.writeFloat(-mapX + maxU); sMapTexCoords.writeFloat(-mapY);
+            sMapTexCoords.writeFloat(-mapX);        sMapTexCoords.writeFloat(-mapY + maxV);
+            sMapTexCoords.writeFloat(-mapX + maxU); sMapTexCoords.writeFloat(-mapY + maxV);
+
+            mMapTexture.adjustTexCoords(sMapTexCoords, 0, 0, 4);
+            mMapTexCoordBuffer.uploadFromByteArray(sMapTexCoords, 0, 0, 4);
         }
         
         // properties

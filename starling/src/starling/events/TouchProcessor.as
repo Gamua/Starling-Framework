@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright 2011-2014 Gamua. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -54,15 +54,18 @@ package starling.events
         private var mRoot:DisplayObject;
         private var mElapsedTime:Number;
         private var mTouchMarker:TouchMarker;
-        
-        private var mCurrentTouches:Vector.<Touch>;
-        private var mQueue:Vector.<Array>;
         private var mLastTaps:Vector.<Touch>;
-        
         private var mShiftDown:Boolean = false;
         private var mCtrlDown:Boolean  = false;
         private var mMultitapTime:Number = 0.3;
         private var mMultitapDistance:Number = 25;
+        
+        /** A vector of arrays with the arguments that were passed to the "enqueue"
+         *  method (the oldest being at the end of the vector). */
+        protected var mQueue:Vector.<Array>;
+        
+        /** The list of all currently active touches. */
+        protected var mCurrentTouches:Vector.<Touch>;
         
         /** Helper objects. */
         private static var sUpdatedTouches:Vector.<Touch> = new <Touch>[];
@@ -100,6 +103,7 @@ package starling.events
             var touch:Touch;
             
             mElapsedTime += passedTime;
+            sUpdatedTouches.length = 0;
             
             // remove old taps
             if (mLastTaps.length > 0)
@@ -144,9 +148,9 @@ package starling.events
          *  given touches. Called internally by "advanceTime". To calculate updated targets,
          *  the method will call "hitTest" on the "root" object.
          *  
-         *  @param touches:   a list of all touches that have changed just now.
-         *  @param shiftDown: indicates if the shift key was down when the touches occurred.
-         *  @param CtrlDown:  indicates if the ctrl or cmd key was down when the touches occurred.
+         *  @param touches    a list of all touches that have changed just now.
+         *  @param shiftDown  indicates if the shift key was down when the touches occurred.
+         *  @param ctrlDown   indicates if the ctrl or cmd key was down when the touches occurred.
          */
         protected function processTouches(touches:Vector.<Touch>,
                                           shiftDown:Boolean, ctrlDown:Boolean):void
@@ -155,7 +159,7 @@ package starling.events
             
             // the same touch event will be dispatched to all targets;
             // the 'dispatch' method will make sure each bubble target is visited only once.
-            var touchEvent:TouchEvent = new TouchEvent(TouchEvent.TOUCH, touches, shiftDown, ctrlDown);
+            var touchEvent:TouchEvent = new TouchEvent(TouchEvent.TOUCH, mCurrentTouches, shiftDown, ctrlDown);
             var touch:Touch;
             
             // hit test our updated touches
@@ -230,6 +234,33 @@ package starling.events
             else                           exitY = mStage.stageHeight + offset;
             
             enqueue(0, TouchPhase.HOVER, exitX, exitY);
+        }
+
+        /** Force-end all current touches. Changes the phase of all touches to 'ENDED' and
+         *  immediately dispatches a new TouchEvent (if touches are present). Called automatically
+         *  when the app receives a 'DEACTIVATE' event. */
+        public function cancelTouches():void
+        {
+            if (mCurrentTouches.length > 0)
+            {
+                // abort touches
+                for each (var touch:Touch in mCurrentTouches)
+                {
+                    if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
+                        touch.phase == TouchPhase.STATIONARY)
+                    {
+                        touch.phase = TouchPhase.ENDED;
+                        touch.cancelled = true;
+                    }
+                }
+
+                // dispatch events
+                processTouches(mCurrentTouches, mShiftDown, mCtrlDown);
+            }
+
+            // purge touches
+            mCurrentTouches.length = 0;
+            mQueue.length = 0;
         }
         
         private function createOrUpdateTouch(touchID:int, phase:String,
@@ -353,13 +384,9 @@ package starling.events
         /** The stage object to which the touch objects are (per default) dispatched. */
         public function get stage():Stage { return mStage; }
         
-        /** A vector of arrays with the arguments that were passed to the "enqueue"
-         *  method (the oldest being at the end of the vector). */
-        protected function get queue():Vector.<Array> { return mQueue; }
-        
-        /** The list of all currently active touches. */
-        protected function get currentTouches():Vector.<Touch> { return mCurrentTouches; }
-        
+        /** Returns the number of fingers / touch points that are currently on the stage. */
+        public function get numCurrentTouches():int { return mCurrentTouches.length; }
+
         // keyboard handling
         
         private function onKey(event:KeyboardEvent):void
@@ -416,31 +443,14 @@ package starling.events
                 if (enable)
                     nativeApp.addEventListener("deactivate", onInterruption, false, 0, true);
                 else
-                    nativeApp.removeEventListener("activate", onInterruption);
+                    nativeApp.removeEventListener("deactivate", onInterruption);
             }
             catch (e:Error) {} // we're not running in AIR
         }
         
         private function onInterruption(event:Object):void
         {
-            if (mCurrentTouches.length > 0)
-            {
-                // abort touches
-                for each (var touch:Touch in mCurrentTouches)
-                {
-                    if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED ||
-                        touch.phase == TouchPhase.STATIONARY)
-                    {
-                        touch.phase = TouchPhase.ENDED;
-                    }
-                }
-
-                // dispatch events
-                processTouches(mCurrentTouches, mShiftDown, mCtrlDown);
-            }
-
-            // purge touches
-            mCurrentTouches.length = 0;
+            cancelTouches();
         }
     }
 }

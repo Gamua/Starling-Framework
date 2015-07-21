@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright 2011-2014 Gamua. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -61,7 +61,7 @@ package starling.animation
         {
             if (object && mObjects.indexOf(object) == -1) 
             {
-                mObjects.push(object);
+                mObjects[mObjects.length] = object;
             
                 var dispatcher:EventDispatcher = object as EventDispatcher;
                 if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
@@ -133,15 +133,44 @@ package starling.animation
         }
         
         /** Delays the execution of a function until <code>delay</code> seconds have passed.
-         *  Creates an object of type 'DelayedCall' internally and returns it. Remove that object
-         *  from the juggler to cancel the function call. */
-        public function delayCall(call:Function, delay:Number, ...args):DelayedCall
+         *  This method provides a convenient alternative for creating and adding a DelayedCall
+         *  manually.
+         *
+         *  <p>To cancel the call, pass the returned 'IAnimatable' instance to 'Juggler.remove()'.
+         *  Do not use the returned IAnimatable otherwise; it is taken from a pool and will be
+         *  reused.</p> */
+        public function delayCall(call:Function, delay:Number, ...args):IAnimatable
         {
             if (call == null) return null;
             
-            var delayedCall:DelayedCall = new DelayedCall(call, delay, args);
+            var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, delay, args);
+            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
             add(delayedCall);
+
+            return delayedCall; 
+        }
+
+        /** Runs a function at a specified interval (in seconds). A 'repeatCount' of zero
+         *  means that it runs indefinitely.
+         *
+         *  <p>To cancel the call, pass the returned 'IAnimatable' instance to 'Juggler.remove()'.
+         *  Do not use the returned IAnimatable otherwise; it is taken from a pool and will be
+         *  reused.</p> */
+        public function repeatCall(call:Function, interval:Number, repeatCount:int=0, ...args):IAnimatable
+        {
+            if (call == null) return null;
+            
+            var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, interval, args);
+            delayedCall.repeatCount = repeatCount;
+            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
+            add(delayedCall);
+            
             return delayedCall;
+        }
+        
+        private function onPooledDelayedCallComplete(event:Event):void
+        {
+            DelayedCall.starling_internal::toPool(event.target as DelayedCall);
         }
         
         /** Utilizes a tween to animate the target object over <code>time</code> seconds. Internally,
@@ -159,9 +188,27 @@ package starling.animation
          *      x: 50      // -> tween.animate("x", 50)
          *  });
          *  </pre> 
+         *
+         *  <p>To cancel the tween, call 'Juggler.removeTweens' with the same target, or pass
+         *  the returned 'IAnimatable' instance to 'Juggler.remove()'. Do not use the returned
+         *  IAnimatable otherwise; it is taken from a pool and will be reused.</p>
+         *
+         *  <p>Note that some property types may be animated in a special way:</p>
+         *  <ul>
+         *    <li>If the property contains the string <code>color</code> or <code>Color</code>,
+         *        it will be treated as an unsigned integer with a color value
+         *        (e.g. <code>0xff0000</code> for red). Each color channel will be animated
+         *        individually.</li>
+         *    <li>The same happens if you append the string <code>#rgb</code> to the name.</li>
+         *    <li>If you append <code>#rad</code>, the property is treated as an angle in radians,
+         *        making sure it always uses the shortest possible arc for the rotation.</li>
+         *    <li>The string <code>#deg</code> does the same for angles in degrees.</li>
+         *  </ul>
          */
-        public function tween(target:Object, time:Number, properties:Object):void
+        public function tween(target:Object, time:Number, properties:Object):IAnimatable
         {
+            if (target == null) throw new ArgumentError("target must not be null");
+
             var tween:Tween = Tween.starling_internal::fromPool(target, time);
             
             for (var property:String in properties)
@@ -170,7 +217,7 @@ package starling.animation
                 
                 if (tween.hasOwnProperty(property))
                     tween[property] = value;
-                else if (target.hasOwnProperty(property))
+                else if (target.hasOwnProperty(Tween.getPropertyName(property)))
                     tween.animate(property, value as Number);
                 else
                     throw new ArgumentError("Invalid property: " + property);
@@ -178,6 +225,8 @@ package starling.animation
             
             tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
             add(tween);
+
+            return tween;
         }
         
         private function onPooledTweenComplete(event:Event):void
@@ -237,6 +286,9 @@ package starling.animation
         }
         
         /** The total life time of the juggler (in seconds). */
-        public function get elapsedTime():Number { return mElapsedTime; }        
+        public function get elapsedTime():Number { return mElapsedTime; }
+ 
+        /** The actual vector that contains all objects that are currently being animated. */
+        protected function get objects():Vector.<IAnimatable> { return mObjects; }
     }
 }

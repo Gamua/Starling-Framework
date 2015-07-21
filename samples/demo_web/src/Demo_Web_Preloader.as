@@ -59,7 +59,7 @@ package
                 else
                 {
                     if (mFrameCount++ % 5 == 0)
-                        mProgressIndicator.rotation += 45;
+                        mProgressIndicator.rotation -= 45;
                 }
             }
 		}

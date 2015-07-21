@@ -1,13 +1,43 @@
+# =================================================================================================
+#
+#	Starling Framework
+#	Copyright 2011-2014 Gamua. All Rights Reserved.
+#
+#	This program is free software. You can redistribute and/or modify it
+#	in accordance with the terms of the accompanying license agreement.
+#
+# =================================================================================================
+
 # Build and Release Folders
 bin-debug/
 bin-release/
 starling/doc/html/
+tests/libs/
+out/
 
-# Project property files
+# Eclipse / Flash Builder
 .settings/
 .flexProperties
 .FlexUnitSettings
-.idea/
+.actionScriptProperties
+
+# IntelliJ IDEA
+*.iws
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/dictionaries
+
+# Gradle CI
+.gradle/
+build/
+!starling/build/
+
+# Maven CI
+target/
 
 # OS X folders
 .DS_Store
+
+# FlashBuilder auto generated test runners
+FlexUnitApplication.as
+FlexUnitCompilerApplication.as

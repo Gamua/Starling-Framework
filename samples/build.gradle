@@ -1,0 +1,54 @@
+// =================================================================================================
+//
+//	Starling Framework
+//	Copyright 2011-2014 Gamua. All Rights Reserved.
+//
+//	This program is free software. You can redistribute and/or modify it
+//	in accordance with the terms of the accompanying license agreement.
+//
+// =================================================================================================
+
+// @see: http://gradlefx.org/
+// @see: https://github.com/GradleFx/GradleFx/wiki/Properties-conventions
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.gradlefx', name: 'gradlefx', version: '0.+'
+    }
+}
+allprojects {
+    defaultTasks 'clean','compile'
+}
+
+subprojects {
+
+    apply plugin: 'gradlefx'
+
+    version = '1.0-SNAPSHOT'
+    
+    srcDirs = [
+        'src',
+        '../../starling/src',
+        '../demo/assets',
+        '../demo/system',
+        '../demo/src',
+    ]
+    
+    frameworkLinkage = 'merged'
+    
+    playerVersion = '14.0'
+
+    additionalCompilerOptions = [
+        '-debug=true',
+        '-optimize=true',
+        '-target-player=14.0',
+        '-swf-version=25'
+    ]
+
+    dependencies {
+    }
+    
+}

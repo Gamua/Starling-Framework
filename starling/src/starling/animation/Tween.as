@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright 2011-2014 Gamua. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -15,7 +15,7 @@ package starling.animation
     import starling.events.Event;
     import starling.events.EventDispatcher;
 
-    /** A Tween animates numeric properties of objects. It uses different transition functions 
+    /** A Tween animates numeric properties of objects. It uses different transition functions
      *  to give the animations various styles.
      *  
      *  <p>The primary use of this class is to do standard animations like movement, fading, 
@@ -42,6 +42,8 @@ package starling.animation
      */ 
     public class Tween extends EventDispatcher implements IAnimatable
     {
+        private static const HINT_MARKER:String = '#';
+
         private var mTarget:Object;
         private var mTransitionFunc:Function;
         private var mTransitionName:String;
@@ -49,6 +51,7 @@ package starling.animation
         private var mProperties:Vector.<String>;
         private var mStartValues:Vector.<Number>;
         private var mEndValues:Vector.<Number>;
+        private var mUpdateFuncs:Vector.<Function>;
 
         private var mOnStart:Function;
         private var mOnUpdate:Function;
@@ -90,11 +93,12 @@ package starling.animation
             mTotalTime = Math.max(0.0001, time);
             mProgress = 0.0;
             mDelay = mRepeatDelay = 0.0;
-            mOnStart = mOnUpdate = mOnComplete = null;
-            mOnStartArgs = mOnUpdateArgs = mOnCompleteArgs = null;
+            mOnStart = mOnUpdate = mOnRepeat = mOnComplete = null;
+            mOnStartArgs = mOnUpdateArgs = mOnRepeatArgs = mOnCompleteArgs = null;
             mRoundToInt = mReverse = false;
             mRepeatCount = 1;
             mCurrentCycle = -1;
+            mNextTween = null;
             
             if (transition is String)
                 this.transition = transition as String;
@@ -106,21 +110,39 @@ package starling.animation
             if (mProperties)  mProperties.length  = 0; else mProperties  = new <String>[];
             if (mStartValues) mStartValues.length = 0; else mStartValues = new <Number>[];
             if (mEndValues)   mEndValues.length   = 0; else mEndValues   = new <Number>[];
+            if (mUpdateFuncs) mUpdateFuncs.length = 0; else mUpdateFuncs = new <Function>[];
             
             return this;
         }
         
-        /** Animates the property of the target to a certain value. You can call this method multiple
-         *  times on one tween. */
+        /** Animates the property of the target to a certain value. You can call this method
+         *  multiple times on one tween.
+         *
+         *  <p>Some property types are handled in a special way:</p>
+         *  <ul>
+         *    <li>If the property contains the string <code>color</code> or <code>Color</code>,
+         *        it will be treated as an unsigned integer with a color value
+         *        (e.g. <code>0xff0000</code> for red). Each color channel will be animated
+         *        individually.</li>
+         *    <li>The same happens if you append the string <code>#rgb</code> to the name.</li>
+         *    <li>If you append <code>#rad</code>, the property is treated as an angle in radians,
+         *        making sure it always uses the shortest possible arc for the rotation.</li>
+         *    <li>The string <code>#deg</code> does the same for angles in degrees.</li>
+         *  </ul>
+         */
         public function animate(property:String, endValue:Number):void
         {
             if (mTarget == null) return; // tweening null just does nothing.
-                   
-            mProperties.push(property);
-            mStartValues.push(Number.NaN);
-            mEndValues.push(endValue);
+
+            var pos:int = mProperties.length;
+            var updateFunc:Function = getUpdateFuncFromProperty(property);
+
+            mProperties[pos] = getPropertyName(property);
+            mStartValues[pos] = Number.NaN;
+            mEndValues[pos] = endValue;
+            mUpdateFuncs[pos] = updateFunc;
         }
-        
+
         /** Animates the 'scaleX' and 'scaleY' properties of an object simultaneously. */
         public function scaleTo(factor:Number):void
         {
@@ -139,6 +161,14 @@ package starling.animation
         public function fadeTo(alpha:Number):void
         {
             animate("alpha", alpha);
+        }
+
+        /** Animates the 'rotation' property of an object to a certain target value, using the
+         *  smallest possible arc. 'type' may be either 'rad' or 'deg', depending on the unit of
+         *  measurement. */
+        public function rotateTo(angle:Number, type:String="rad"):void
+        {
+            animate("rotation#" + type, angle);
         }
         
         /** @inheritDoc */
@@ -161,7 +191,7 @@ package starling.animation
             if (mCurrentCycle < 0 && previousTime <= 0 && mCurrentTime > 0)
             {
                 mCurrentCycle++;
-                if (mOnStart != null) mOnStart.apply(null, mOnStartArgs);
+                if (mOnStart != null) mOnStart.apply(this, mOnStartArgs);
             }
 
             var ratio:Number = mCurrentTime / mTotalTime;
@@ -173,18 +203,13 @@ package starling.animation
             {                
                 if (mStartValues[i] != mStartValues[i]) // isNaN check - "isNaN" causes allocation! 
                     mStartValues[i] = mTarget[mProperties[i]] as Number;
-                
-                var startValue:Number = mStartValues[i];
-                var endValue:Number = mEndValues[i];
-                var delta:Number = endValue - startValue;
-                var currentValue:Number = startValue + mProgress * delta;
-                
-                if (mRoundToInt) currentValue = Math.round(currentValue);
-                mTarget[mProperties[i]] = currentValue;
+
+                var updateFunc:Function = mUpdateFuncs[i] as Function;
+                updateFunc(mProperties[i], mStartValues[i], mEndValues[i]);
             }
 
             if (mOnUpdate != null) 
-                mOnUpdate.apply(null, mOnUpdateArgs);
+                mOnUpdate.apply(this, mOnUpdateArgs);
             
             if (previousTime < mTotalTime && mCurrentTime >= mTotalTime)
             {
@@ -193,7 +218,7 @@ package starling.animation
                     mCurrentTime = -mRepeatDelay;
                     mCurrentCycle++;
                     if (mRepeatCount > 1) mRepeatCount--;
-                    if (mOnRepeat != null) mOnRepeat.apply(null, mOnRepeatArgs);
+                    if (mOnRepeat != null) mOnRepeat.apply(this, mOnRepeatArgs);
                 }
                 else
                 {
@@ -205,12 +230,104 @@ package starling.animation
                     // add it to another juggler; so this event has to be dispatched *before*
                     // executing 'onComplete'.
                     dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
-                    if (onComplete != null) onComplete.apply(null, onCompleteArgs);
+                    if (onComplete != null) onComplete.apply(this, onCompleteArgs);
                 }
             }
             
             if (carryOverTime) 
                 advanceTime(carryOverTime);
+        }
+
+        // animation hints
+
+        private function getUpdateFuncFromProperty(property:String):Function
+        {
+            var updateFunc:Function;
+            var hint:String = getPropertyHint(property);
+
+            switch (hint)
+            {
+                case null:  updateFunc = updateStandard; break;
+                case "rgb": updateFunc = updateRgb; break;
+                case "rad": updateFunc = updateRad; break;
+                case "deg": updateFunc = updateDeg; break;
+                default:
+                    trace("[Starling] Ignoring unknown property hint:", hint);
+                    updateFunc = updateStandard;
+            }
+
+            return updateFunc;
+        }
+
+        /** @private */
+        internal static function getPropertyHint(property:String):String
+        {
+            // colorization is special; it does not require a hint marker, just the word 'color'.
+            if (property.indexOf("color") != -1 || property.indexOf("Color") != -1)
+                return "rgb";
+
+            var hintMarkerIndex:int = property.indexOf(HINT_MARKER);
+            if (hintMarkerIndex != -1) return property.substr(hintMarkerIndex+1);
+            else return null;
+        }
+
+        /** @private */
+        internal static function getPropertyName(property:String):String
+        {
+            var hintMarkerIndex:int = property.indexOf(HINT_MARKER);
+            if (hintMarkerIndex != -1) return property.substring(0, hintMarkerIndex);
+            else return property;
+        }
+
+        private function updateStandard(property:String, startValue:Number, endValue:Number):void
+        {
+            var newValue:Number = startValue + mProgress * (endValue - startValue);
+            if (mRoundToInt) newValue = Math.round(newValue);
+            mTarget[property] = newValue;
+        }
+
+        private function updateRgb(property:String, startValue:Number, endValue:Number):void
+        {
+            var startColor:uint = uint(startValue);
+            var endColor:uint   = uint(endValue);
+
+            var startA:uint = (startColor >> 24) & 0xff;
+            var startR:uint = (startColor >> 16) & 0xff;
+            var startG:uint = (startColor >>  8) & 0xff;
+            var startB:uint = (startColor      ) & 0xff;
+
+            var endA:uint = (endColor >> 24) & 0xff;
+            var endR:uint = (endColor >> 16) & 0xff;
+            var endG:uint = (endColor >>  8) & 0xff;
+            var endB:uint = (endColor      ) & 0xff;
+
+            var newA:uint = startA + (endA - startA) * mProgress;
+            var newR:uint = startR + (endR - startR) * mProgress;
+            var newG:uint = startG + (endG - startG) * mProgress;
+            var newB:uint = startB + (endB - startB) * mProgress;
+
+            mTarget[property] = (newA << 24) | (newR << 16) | (newG << 8) | newB;
+        }
+
+        private function updateRad(property:String, startValue:Number, endValue:Number):void
+        {
+            updateAngle(Math.PI, property, startValue, endValue);
+        }
+
+        private function updateDeg(property:String, startValue:Number, endValue:Number):void
+        {
+            updateAngle(180, property, startValue, endValue);
+        }
+
+        private function updateAngle(pi:Number, property:String, startValue:Number, endValue:Number):void
+        {
+            while (Math.abs(endValue - startValue) > pi)
+            {
+                if (startValue < endValue) endValue -= 2.0 * pi;
+                else                       endValue += 2.0 * pi;
+            }
+
+            updateStandard(property, startValue, endValue);
         }
         
         /** The end value a certain property is animated to. Throws an ArgumentError if the 

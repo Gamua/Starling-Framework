@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright 2011-2014 Gamua. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -13,12 +13,14 @@ package starling.text
     import flash.display.BitmapData;
     import flash.display.StageQuality;
     import flash.display3D.Context3DTextureFormat;
+    import flash.filters.BitmapFilter;
     import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.text.AntiAliasType;
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
-    
+
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.DisplayObject;
@@ -30,13 +32,15 @@ package starling.text
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.HAlign;
+    import starling.utils.RectangleUtil;
     import starling.utils.VAlign;
+    import starling.utils.deg2rad;
 
     /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
      *  
      *  <p>You can set all properties you are used to, like the font name and size, a color, the 
      *  horizontal and vertical alignment, etc. The border property is helpful during development, 
-     *  because it lets you see the bounds of the textfield.</p>
+     *  because it lets you see the bounds of the TextField.</p>
      *  
      *  <p>There are two types of fonts that can be displayed:</p>
      *  
@@ -55,13 +59,20 @@ package starling.text
      * 
      *  <ul>
      *    <li>Windows: <a href="http://www.angelcode.com/products/bmfont">Bitmap Font Generator</a>
-     *       from Angel Code (free). Export the font data as an XML file and the texture as a png 
-     *       with white characters on a transparent background (32 bit).</li>
+     *        from Angel Code (free). Export the font data as an XML file and the texture as a png
+     *        with white characters on a transparent background (32 bit).</li>
      *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
      *        71squared or <a href="http://http://www.bmglyph.com">bmGlyph</a> (both commercial). 
      *        They support Starling natively.</li>
      *  </ul>
-     * 
+     *
+     *  <p>When using a bitmap font, the 'color' property is used to tint the font texture. This
+     *  works by multiplying the RGB values of that property with those of the texture's pixel.
+     *  If your font contains just a single color, export it in plain white and change the 'color'
+     *  property to any value you like (it defaults to zero, which means black). If your font
+     *  contains multiple colors, change the 'color' property to <code>Color.WHITE</code> to get
+     *  the intended result.</p>
+     *
      *  <strong>Batching of TextFields</strong>
      *  
      *  <p>Normally, TextFields will require exactly one draw call. For TrueType fonts, you cannot
@@ -79,7 +90,11 @@ package starling.text
     {
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
-        
+
+        // the texture format that is used for TTF rendering
+        private static var sDefaultTextureFormat:String =
+            "BGRA_PACKED" in Context3DTextureFormat ? "bgraPacked4444" : "bgra";
+
         private var mFontSize:Number;
         private var mColor:uint;
         private var mText:String;
@@ -92,19 +107,21 @@ package starling.text
         private var mAutoScale:Boolean;
         private var mAutoSize:String;
         private var mKerning:Boolean;
+        private var mLeading:Number;
         private var mNativeFilters:Array;
         private var mRequiresRedraw:Boolean;
-        private var mIsRenderedText:Boolean;
+        private var mIsHtmlText:Boolean;
         private var mTextBounds:Rectangle;
         private var mBatchable:Boolean;
         
-        private var mHitArea:DisplayObject;
+        private var mHitArea:Rectangle;
         private var mBorder:DisplayObjectContainer;
         
         private var mImage:Image;
         private var mQuadBatch:QuadBatch;
         
-        // this object will be used for text rendering
+        /** Helper objects. */
+        private static var sHelperMatrix:Matrix = new Matrix();
         private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
         
         /** Create a new text field with the given properties. */
@@ -118,13 +135,11 @@ package starling.text
             mVAlign = VAlign.CENTER;
             mBorder = null;
             mKerning = true;
+            mLeading = 0.0;
             mBold = bold;
             mAutoSize = TextFieldAutoSize.NONE;
+            mHitArea = new Rectangle(0, 0, width, height);
             this.fontName = fontName;
-            
-            mHitArea = new Quad(width, height);
-            mHitArea.alpha = 0.0;
-            addChild(mHitArea);
             
             addEventListener(Event.FLATTEN, onFlatten);
         }
@@ -156,9 +171,9 @@ package starling.text
         {
             if (mRequiresRedraw)
             {
-                if (mIsRenderedText) createRenderedContents();
-                else                 createComposedContents();
-                
+                if (getBitmapFont(mFontName)) createComposedContents();
+                else                          createRenderedContents();
+
                 updateBorder();
                 mRequiresRedraw = false;
             }
@@ -177,21 +192,42 @@ package starling.text
             if (mTextBounds == null) 
                 mTextBounds = new Rectangle();
             
-            var scale:Number  = Starling.contentScaleFactor;
+            var texture:Texture;
+            var scale:Number = Starling.contentScaleFactor;
             var bitmapData:BitmapData = renderText(scale, mTextBounds);
-            var format:String = "BGRA_PACKED" in Context3DTextureFormat ? 
-                                "bgraPacked4444" : "bgra";
+            var format:String = sDefaultTextureFormat;
+            var maxTextureSize:int = Texture.maxSize;
+            var shrinkHelper:Number = 0;
             
+            // re-render when size of rendered bitmap overflows 'maxTextureSize'
+            while (bitmapData.width > maxTextureSize || bitmapData.height > maxTextureSize)
+            {
+                scale *= Math.min(
+                    (maxTextureSize - shrinkHelper) / bitmapData.width,
+                    (maxTextureSize - shrinkHelper) / bitmapData.height
+                );
+                bitmapData.dispose();
+                bitmapData = renderText(scale, mTextBounds);
+                shrinkHelper += 1;
+            }
+
             mHitArea.width  = bitmapData.width  / scale;
             mHitArea.height = bitmapData.height / scale;
             
-            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
+            texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
             texture.root.onRestore = function():void
             {
-                texture.root.uploadBitmapData(renderText(scale, mTextBounds));
+                if (mTextBounds == null)
+                    mTextBounds = new Rectangle();
+
+                bitmapData = renderText(scale, mTextBounds);
+                texture.root.uploadBitmapData(bitmapData);
+                bitmapData.dispose();
+                bitmapData = null;
             };
             
             bitmapData.dispose();
+            bitmapData = null;
             
             if (mImage == null) 
             {
@@ -207,10 +243,14 @@ package starling.text
             }
         }
 
-        /** formatText is called immediately before the text is rendered. The intent of formatText
-         *  is to be overridden in a subclass, so that you can provide custom formatting for TextField.
-         *  <code>textField</code> is the flash.text.TextField object that you can specially format;
-         *  <code>textFormat</code> is the default TextFormat for <code>textField</code>.
+        /** This method is called immediately before the text is rendered. The intent of
+         *  'formatText' is to be overridden in a subclass, so that you can provide custom
+         *  formatting for the TextField. In the overridden method, call 'setFormat' (either
+         *  over a range of characters or the complete TextField) to modify the format to
+         *  your needs.
+         *  
+         *  @param textField  the flash.text.TextField object that you can format.
+         *  @param textFormat the default text format that's currently set on the text field.
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
 
@@ -231,19 +271,23 @@ package starling.text
                 height = int.MAX_VALUE;
                 vAlign = VAlign.TOP;
             }
-            
-            var textFormat:TextFormat = new TextFormat(mFontName, 
+
+            var textFormat:TextFormat = new TextFormat(mFontName,
                 mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, hAlign);
             textFormat.kerning = mKerning;
-            
+            textFormat.leading = mLeading;
+
             sNativeTextField.defaultTextFormat = textFormat;
             sNativeTextField.width = width;
             sNativeTextField.height = height;
             sNativeTextField.antiAliasType = AntiAliasType.ADVANCED;
             sNativeTextField.selectable = false;            
             sNativeTextField.multiline = true;            
-            sNativeTextField.wordWrap = true;            
-            sNativeTextField.text = mText;
+            sNativeTextField.wordWrap = true;         
+
+            if (mIsHtmlText) sNativeTextField.htmlText = mText;
+            else             sNativeTextField.text     = mText;
+               
             sNativeTextField.embedFonts = true;
             sNativeTextField.filters = mNativeFilters;
             
@@ -258,24 +302,33 @@ package starling.text
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
-            
+
             if (isHorizontalAutoSize)
                 sNativeTextField.width = width = Math.ceil(textWidth + 5);
             if (isVerticalAutoSize)
                 sNativeTextField.height = height = Math.ceil(textHeight + 4);
             
-            var xOffset:Number = 0.0;
-            if (hAlign == HAlign.LEFT)        xOffset = 2; // flash adds a 2 pixel offset
-            else if (hAlign == HAlign.CENTER) xOffset = (width - textWidth) / 2.0;
-            else if (hAlign == HAlign.RIGHT)  xOffset =  width - textWidth - 2;
+            // avoid invalid texture size
+            if (width  < 1) width  = 1.0;
+            if (height < 1) height = 1.0;
             
-            var yOffset:Number = 0.0;
-            if (vAlign == VAlign.TOP)         yOffset = 2; // flash adds a 2 pixel offset
-            else if (vAlign == VAlign.CENTER) yOffset = (height - textHeight) / 2.0;
-            else if (vAlign == VAlign.BOTTOM) yOffset =  height - textHeight - 2;
+            var textOffsetX:Number = 0.0;
+            if (hAlign == HAlign.LEFT)        textOffsetX = 2; // flash adds a 2 pixel offset
+            else if (hAlign == HAlign.CENTER) textOffsetX = (width - textWidth) / 2.0;
+            else if (hAlign == HAlign.RIGHT)  textOffsetX =  width - textWidth - 2;
+
+            var textOffsetY:Number = 0.0;
+            if (vAlign == VAlign.TOP)         textOffsetY = 2; // flash adds a 2 pixel offset
+            else if (vAlign == VAlign.CENTER) textOffsetY = (height - textHeight) / 2.0;
+            else if (vAlign == VAlign.BOTTOM) textOffsetY =  height - textHeight - 2;
             
+            // if 'nativeFilters' are in use, the text field might grow beyond its bounds
+            var filterOffset:Point = calculateFilterOffset(sNativeTextField, hAlign, vAlign);
+            
+            // finally: draw text field to bitmap data
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
-            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, 0, int(yOffset)-2); 
+            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1,
+                filterOffset.x, filterOffset.y + int(textOffsetY)-2);
             var drawWithQualityFunc:Function = 
                 "drawWithQuality" in bitmapData ? bitmapData["drawWithQuality"] : null;
             
@@ -291,7 +344,8 @@ package starling.text
             sNativeTextField.text = "";
             
             // update textBounds rectangle
-            resultTextBounds.setTo(xOffset   / scale, yOffset    / scale,
+            resultTextBounds.setTo((textOffsetX + filterOffset.x) / scale,
+                                   (textOffsetY + filterOffset.y) / scale,
                                    textWidth / scale, textHeight / scale);
             
             return bitmapData;
@@ -301,7 +355,7 @@ package starling.text
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
             var maxHeight:int = textField.height - 4;
-            var maxWidth:int  = textField.width - 4;
+            var maxWidth:int  = textField.width  - 4;
             
             while (textField.textWidth > maxWidth || textField.textHeight > maxHeight)
             {
@@ -309,8 +363,54 @@ package starling.text
                 
                 var format:TextFormat = textField.defaultTextFormat;
                 format.size = size--;
-                textField.setTextFormat(format);
+                textField.defaultTextFormat = format;
+
+                if (mIsHtmlText) textField.htmlText = mText;
+                else             textField.text     = mText;
             }
+        }
+        
+        private function calculateFilterOffset(textField:flash.text.TextField,
+                                               hAlign:String, vAlign:String):Point
+        {
+            var resultOffset:Point = new Point();
+            var filters:Array = textField.filters;
+            
+            if (filters != null && filters.length > 0)
+            {
+                var textWidth:Number  = textField.textWidth;
+                var textHeight:Number = textField.textHeight;
+                var bounds:Rectangle  = new Rectangle();
+                
+                for each (var filter:BitmapFilter in filters)
+                {
+                    var blurX:Number    = "blurX"    in filter ? filter["blurX"]    : 0;
+                    var blurY:Number    = "blurY"    in filter ? filter["blurY"]    : 0;
+                    var angleDeg:Number = "angle"    in filter ? filter["angle"]    : 0;
+                    var distance:Number = "distance" in filter ? filter["distance"] : 0;
+                    var angle:Number = deg2rad(angleDeg);
+                    var marginX:Number = blurX * 1.33; // that's an empirical value
+                    var marginY:Number = blurY * 1.33;
+                    var offsetX:Number  = Math.cos(angle) * distance - marginX / 2.0;
+                    var offsetY:Number  = Math.sin(angle) * distance - marginY / 2.0;
+                    var filterBounds:Rectangle = new Rectangle(
+                        offsetX, offsetY, textWidth + marginX, textHeight + marginY);
+                    
+                    bounds = bounds.union(filterBounds);
+                }
+                
+                if (hAlign == HAlign.LEFT && bounds.x < 0)
+                    resultOffset.x = -bounds.x;
+                else if (hAlign == HAlign.RIGHT && bounds.y > 0)
+                    resultOffset.x = -(bounds.right - textWidth);
+                
+                if (vAlign == VAlign.TOP && bounds.y < 0)
+                    resultOffset.y = -bounds.y;
+                else if (vAlign == VAlign.BOTTOM && bounds.y > 0)
+                    resultOffset.y = -(bounds.bottom - textHeight);
+            }
+            
+            return resultOffset;
         }
         
         // bitmap font composition
@@ -318,8 +418,9 @@ package starling.text
         private function createComposedContents():void
         {
             if (mImage) 
-            { 
+            {
                 mImage.removeFromParent(true); 
+                mImage.texture.dispose();
                 mImage = null; 
             }
             
@@ -351,8 +452,8 @@ package starling.text
                 vAlign = VAlign.TOP;
             }
             
-            bitmapFont.fillQuadBatch(mQuadBatch,
-                width, height, mText, mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning);
+            bitmapFont.fillQuadBatch(mQuadBatch, width, height, mText,
+                    mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning, mLeading);
             
             mQuadBatch.batchable = mBatchable;
             
@@ -421,9 +522,18 @@ package starling.text
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
             if (mRequiresRedraw) redraw();
-            return mHitArea.getBounds(targetSpace, resultRect);
+            getTransformationMatrix(targetSpace, sHelperMatrix);
+            return RectangleUtil.getBounds(mHitArea, sHelperMatrix, resultRect);
         }
         
+        /** @inheritDoc */
+        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        {
+            if (forTouch && (!visible || !touchable)) return null;
+            else if (mHitArea.containsPoint(localPoint) && hitTestMask(localPoint)) return this;
+            else return null;
+        }
+
         /** @inheritDoc */
         public override function set width(value:Number):void
         {
@@ -465,7 +575,6 @@ package starling.text
                 
                 mFontName = value;
                 mRequiresRedraw = true;
-                mIsRenderedText = getBitmapFont(value) == null;
             }
         }
         
@@ -481,8 +590,9 @@ package starling.text
             }
         }
         
-        /** The color of the text. For bitmap fonts, use <code>Color.WHITE</code> to use the
-         *  original, untinted color. @default black */
+        /** The color of the text. Note that bitmap fonts should be exported in plain white so
+         *  that tinting works correctly. If your bitmap font contains colors, set this property
+         *  to <code>Color.WHITE</code> to get the desired result. @default black */
         public function get color():uint { return mColor; }
         public function set color(value:uint):void
         {
@@ -624,33 +734,67 @@ package starling.text
             if (mQuadBatch) mQuadBatch.batchable = value;
         }
 
-        /** The native Flash BitmapFilters to apply to this TextField. 
-         *  Only available when using standard (TrueType) fonts! */
+        /** The native Flash BitmapFilters to apply to this TextField.
+         *
+         *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
         public function get nativeFilters():Array { return mNativeFilters; }
         public function set nativeFilters(value:Array) : void
         {
-            if (!mIsRenderedText)
-                throw(new Error("The TextField.nativeFilters property cannot be used on Bitmap fonts."));
-            
             mNativeFilters = value.concat();
             mRequiresRedraw = true;
+        }
+
+        /** Indicates if the assigned text should be interpreted as HTML code. For a description
+         *  of the supported HTML subset, refer to the classic Flash 'TextField' documentation.
+         *  Clickable hyperlinks and external images are not supported.
+         *
+         *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
+        public function get isHtmlText():Boolean { return mIsHtmlText; }
+        public function set isHtmlText(value:Boolean):void
+        {
+            if (mIsHtmlText != value)
+            {
+                mIsHtmlText = value;
+                mRequiresRedraw = true;
+            }
+        }
+
+        /** The amount of vertical space (called 'leading') between lines. @default 0 */
+        public function get leading():Number { return mLeading; }
+        public function set leading(value:Number):void
+        {
+            if (mLeading != value)
+            {
+                mLeading = value;
+                mRequiresRedraw = true;
+            }
+        }
+        
+        /** The Context3D texture format that is used for rendering of all TrueType texts.
+         *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good
+         *  compromise between quality and memory consumption; use <pre>BGRA</pre> for
+         *  the highest quality. */
+        public static function get defaultTextureFormat():String { return sDefaultTextureFormat; }
+        public static function set defaultTextureFormat(value:String):void
+        {
+            sDefaultTextureFormat = value;
         }
         
         /** Makes a bitmap font available at any TextField in the current stage3D context.
          *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you 
-         *  can pass a custom name, as well. @returns the name of the font. */
+         *  can pass a custom name, as well. @return the name of the font. */
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;
-            bitmapFonts[name.toLowerCase()] = bitmapFont;
+            bitmapFonts[convertToLowerCase(name)] = bitmapFont;
             return name;
         }
         
         /** Unregisters the bitmap font and, optionally, disposes it. */
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
-            name = name.toLowerCase();
+            name = convertToLowerCase(name);
             
             if (dispose && bitmapFonts[name] != undefined)
                 bitmapFonts[name].dispose();
@@ -662,7 +806,7 @@ package starling.text
          *  The name is not case sensitive. */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return bitmapFonts[name.toLowerCase()];
+            return bitmapFonts[convertToLowerCase(name)];
         }
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work
@@ -678,6 +822,21 @@ package starling.text
             }
             
             return fonts;
+        }
+
+        // optimization for 'toLowerCase' calls
+
+        private static var sStringCache:Dictionary = new Dictionary();
+
+        private static function convertToLowerCase(string:String):String
+        {
+            var result:String = sStringCache[string];
+            if (result == null)
+            {
+                result = string.toLowerCase();
+                sStringCache[string] = result;
+            }
+            return result;
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, Adobe Systems Incorporated
+Copyright (c) 2015, Adobe Systems Incorporated
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without 
@@ -109,6 +109,7 @@ package com.adobe.utils
 			initregmap(version, ignorelimits); 
 			
 			var lines:Array = source.replace( /[\f\n\r\v]+/g, "\n" ).split( "\n" );
+			var nest:int = 0;
 			var nops:int = 0;
 			var i:int;
 			var lng:int = lines.length;
@@ -455,13 +456,13 @@ package com.adobe.utils
 		
 		private function initregmap ( version:uint, ignorelimits:Boolean ) : void {
 			// version changes limits				
-			REGMAP[ VA ]	= new Register( VA,	"vertex attribute",		0x0,	ignorelimits?1024:7,						REG_VERT | REG_READ );
-			REGMAP[ VC ]	= new Register( VC,	"vertex constant",		0x1,	ignorelimits?1024:(version==1?127:250),		REG_VERT | REG_READ );
-			REGMAP[ VT ]	= new Register( VT,	"vertex temporary",		0x2,	ignorelimits?1024:(version==1?7:27),		REG_VERT | REG_WRITE | REG_READ );
+			REGMAP[ VA ]	= new Register( VA,	"vertex attribute",		0x0,	ignorelimits?1024:((version==1||version==2)?7:15),						REG_VERT | REG_READ );
+			REGMAP[ VC ]	= new Register( VC,	"vertex constant",		0x1,	ignorelimits?1024:(version==1?127:249),		REG_VERT | REG_READ );
+			REGMAP[ VT ]	= new Register( VT,	"vertex temporary",		0x2,	ignorelimits?1024:(version==1?7:25),		REG_VERT | REG_WRITE | REG_READ );
 			REGMAP[ VO ]	= new Register( VO,	"vertex output",		0x3,	ignorelimits?1024:0,						REG_VERT | REG_WRITE );
-			REGMAP[ VI ]	= new Register( VI,	"varying",				0x4,	ignorelimits?1024:(version==1?7:11),		REG_VERT | REG_FRAG | REG_READ | REG_WRITE );			
-			REGMAP[ FC ]	= new Register( FC,	"fragment constant",	0x1,	ignorelimits?1024:(version==1?27:63),		REG_FRAG | REG_READ );
-			REGMAP[ FT ]	= new Register( FT,	"fragment temporary",	0x2,	ignorelimits?1024:(version==1?7:27),		REG_FRAG | REG_WRITE | REG_READ );
+			REGMAP[ VI ]	= new Register( VI,	"varying",				0x4,	ignorelimits?1024:(version==1?7:9),		REG_VERT | REG_FRAG | REG_READ | REG_WRITE );			
+			REGMAP[ FC ]	= new Register( FC,	"fragment constant",	0x1,	ignorelimits?1024:(version==1?27:((version==2)?63:199)),		REG_FRAG | REG_READ );
+			REGMAP[ FT ]	= new Register( FT,	"fragment temporary",	0x2,	ignorelimits?1024:(version==1?7:25),		REG_FRAG | REG_WRITE | REG_READ );
 			REGMAP[ FS ]	= new Register( FS,	"texture sampler",		0x5,	ignorelimits?1024:7,						REG_FRAG | REG_READ );
 			REGMAP[ FO ]	= new Register( FO,	"fragment output",		0x3,	ignorelimits?1024:(version==1?0:3),			REG_FRAG | REG_WRITE );				
 			REGMAP[ FD ]	= new Register( FD,	"fragment depth output",0x6,	ignorelimits?1024:(version==1?-1:0),		REG_FRAG | REG_WRITE );
@@ -515,7 +516,7 @@ package com.adobe.utils
 			OPMAP[ ELS ] = new OpCode( ELS, 0, 0x20, OP_NO_DEST | OP_VERSION2 | OP_INCNEST | OP_DECNEST | OP_SCALAR );
 			OPMAP[ EIF ] = new OpCode( EIF, 0, 0x21, OP_NO_DEST | OP_VERSION2 | OP_DECNEST | OP_SCALAR );
 			// space			
-			OPMAP[ TED ] = new OpCode( TED, 3, 0x26, OP_FRAG_ONLY | OP_SPECIAL_TEX | OP_VERSION2);			
+			//OPMAP[ TED ] = new OpCode( TED, 3, 0x26, OP_FRAG_ONLY | OP_SPECIAL_TEX | OP_VERSION2);	//ted is not available in AGAL2		
 			OPMAP[ KIL ] = new OpCode( KIL, 1, 0x27, OP_NO_DEST | OP_FRAG_ONLY );
 			OPMAP[ TEX ] = new OpCode( TEX, 3, 0x28, OP_FRAG_ONLY | OP_SPECIAL_TEX );
 			OPMAP[ SGE ] = new OpCode( SGE, 3, 0x29, 0 );
@@ -538,12 +539,18 @@ package com.adobe.utils
 			SAMPLEMAP[ NOMIP ]		= new Sampler( NOMIP,		SAMPLER_MIPMAP_SHIFT,		0 );
 			SAMPLEMAP[ NEAREST ]	= new Sampler( NEAREST,		SAMPLER_FILTER_SHIFT,		0 );
 			SAMPLEMAP[ LINEAR ]		= new Sampler( LINEAR,		SAMPLER_FILTER_SHIFT,		1 );
+			SAMPLEMAP[ ANISOTROPIC2X ]	= new Sampler( ANISOTROPIC2X, SAMPLER_FILTER_SHIFT, 2 );
+			SAMPLEMAP[ ANISOTROPIC4X ]	= new Sampler( ANISOTROPIC4X, SAMPLER_FILTER_SHIFT,	3 );
+			SAMPLEMAP[ ANISOTROPIC8X ]	= new Sampler( ANISOTROPIC8X, SAMPLER_FILTER_SHIFT,	4 );
+			SAMPLEMAP[ ANISOTROPIC16X ]	= new Sampler( ANISOTROPIC16X, SAMPLER_FILTER_SHIFT,5 );
 			SAMPLEMAP[ CENTROID ]	= new Sampler( CENTROID,	SAMPLER_SPECIAL_SHIFT,		1 << 0 );
 			SAMPLEMAP[ SINGLE ]		= new Sampler( SINGLE,		SAMPLER_SPECIAL_SHIFT,		1 << 1 );
 			SAMPLEMAP[ IGNORESAMPLER ]	= new Sampler( IGNORESAMPLER,		SAMPLER_SPECIAL_SHIFT,		1 << 2 );
 			SAMPLEMAP[ REPEAT ]		= new Sampler( REPEAT,		SAMPLER_REPEAT_SHIFT,		1 );
 			SAMPLEMAP[ WRAP ]		= new Sampler( WRAP,		SAMPLER_REPEAT_SHIFT,		1 );
 			SAMPLEMAP[ CLAMP ]		= new Sampler( CLAMP,		SAMPLER_REPEAT_SHIFT,		0 );
+			SAMPLEMAP[ CLAMP_U_REPEAT_V ]	= new Sampler( CLAMP_U_REPEAT_V, SAMPLER_REPEAT_SHIFT, 2 );
+			SAMPLEMAP[ REPEAT_U_CLAMP_V ]	= new Sampler( REPEAT_U_CLAMP_V, SAMPLER_REPEAT_SHIFT, 3 );
 		}
 		
 		// ======================================================================
@@ -553,6 +560,7 @@ package com.adobe.utils
 		private static const REGMAP:Dictionary					= new Dictionary();
 		private static const SAMPLEMAP:Dictionary				= new Dictionary();
 		
+		private static const MAX_NESTING:int					= 4;
 		private static const MAX_OPCODES:int					= 2048;
 		
 		private static const FRAGMENT:String					= "fragment";
@@ -649,12 +657,18 @@ package com.adobe.utils
 		private static const NOMIP:String						= "nomip";
 		private static const NEAREST:String						= "nearest";
 		private static const LINEAR:String						= "linear";
+		private static const ANISOTROPIC2X:String				= "anisotropic2x"; //Introduced by Flash 14
+		private static const ANISOTROPIC4X:String				= "anisotropic4x"; //Introduced by Flash 14
+		private static const ANISOTROPIC8X:String				= "anisotropic8x"; //Introduced by Flash 14
+		private static const ANISOTROPIC16X:String				= "anisotropic16x"; //Introduced by Flash 14
 		private static const CENTROID:String					= "centroid";
 		private static const SINGLE:String						= "single";
 		private static const IGNORESAMPLER:String				= "ignoresampler";
 		private static const REPEAT:String						= "repeat";
 		private static const WRAP:String						= "wrap";
 		private static const CLAMP:String						= "clamp";
+		private static const REPEAT_U_CLAMP_V:String			= "repeat_u_clamp_v"; //Introduced by Flash 13
+		private static const CLAMP_U_REPEAT_V:String			= "clamp_u_repeat_v"; //Introduced by Flash 13
 		private static const RGBA:String						= "rgba";
 		private static const DXT1:String						= "dxt1";
 		private static const DXT5:String						= "dxt5";
