@@ -575,7 +575,8 @@ package starling.core
         public function batchQuadBatch(quadBatch:QuadBatch, parentAlpha:Number):void
         {
             if (mQuadBatches[mCurrentQuadBatchID].isStateChange(
-                quadBatch.tinted, parentAlpha, quadBatch.texture, quadBatch.smoothing, mBlendMode))
+                    quadBatch.tinted, parentAlpha, quadBatch.texture, quadBatch.smoothing,
+                    mBlendMode, quadBatch.numQuads))
             {
                 finishQuadBatch();
             }

@@ -9,7 +9,7 @@
               <dependency linkage="Merged" />
             </entry>
           </entries>
-          <sdk name="air-17" />
+          <sdk name="air-18" />
         </dependencies>
         <compiler-options />
         <packaging-air-desktop />
@@ -25,7 +25,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/bin-debug" />
     </content>
-    <orderEntry type="jdk" jdkName="air-17" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="jdk" jdkName="air-18" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="starling" exported="" />
   </component>

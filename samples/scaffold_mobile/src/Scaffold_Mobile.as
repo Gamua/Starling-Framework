@@ -10,6 +10,7 @@ package
     import flash.filesystem.FileStream;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
+    import flash.system.System;
     import flash.utils.ByteArray;
     import flash.utils.setTimeout;
 
@@ -96,7 +97,14 @@ package
             assets.loadQueue(function(ratio:Number):void
             {
                 mProgressBar.ratio = ratio;
-                if (ratio == 1) onComplete(assets);
+                if (ratio == 1)
+                {
+                    // now would be a good time for a clean-up
+                    System.pauseForGCIfCollectionImminent(0);
+                    System.gc();
+
+                    onComplete(assets);
+                }
             });
         }
 

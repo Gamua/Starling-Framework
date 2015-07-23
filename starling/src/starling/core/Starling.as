@@ -185,7 +185,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "1.7";
+        public static const VERSION:String = "1.7.1";
         
         /** The key for the shader programs stored in 'contextData' */
         private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
@@ -473,6 +473,9 @@ package starling.core
             
             // to avoid overloading time-based animations, the maximum delta is truncated.
             if (passedTime > 1.0) passedTime = 1.0;
+
+            // after about 25 days, 'getTimer()' will roll over. A rare event, but still ...
+            if (passedTime < 0.0) passedTime = 1.0 / mNativeStage.frameRate;
 
             advanceTime(passedTime);
             render();
@@ -810,7 +813,7 @@ package starling.core
             mTouchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
             
             // allow objects that depend on mouse-over state to be updated immediately
-            if (event.type == MouseEvent.MOUSE_UP)
+            if (event.type == MouseEvent.MOUSE_UP && Mouse.supportsCursor)
                 mTouchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
         
@@ -1162,7 +1165,7 @@ package starling.core
          *  roll). It's recommended to always enable this property, while using the AssetManager
          *  for texture loading.</p>
          *  
-         *  @default false
+         *  @default true
          *  @see starling.utils.AssetManager
          */
         public static function get handleLostContext():Boolean { return sHandleLostContext; }

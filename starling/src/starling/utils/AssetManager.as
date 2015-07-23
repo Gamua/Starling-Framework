@@ -32,7 +32,7 @@ package starling.utils
     import flash.utils.describeType;
     import flash.utils.getQualifiedClassName;
     import flash.utils.setTimeout;
-    
+
     import starling.core.Starling;
     import starling.events.Event;
     import starling.events.EventDispatcher;
@@ -42,7 +42,7 @@ package starling.utils
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
     import starling.textures.TextureOptions;
-    
+
     /** Dispatched when all textures have been restored after a context loss. */
     [Event(name="texturesRestored", type="starling.events.Event")]
     
@@ -738,10 +738,6 @@ package starling.utils
 
             function finish():void
             {
-                // now would be a good time for a clean-up
-                System.pauseForGCIfCollectionImminent(0);
-                System.gc();
-
                 // We dance around the final "onProgress" call with some "setTimeout" calls here
                 // to make sure the progress bar gets the chance to be rendered. Otherwise, all
                 // would happen in one frame.
