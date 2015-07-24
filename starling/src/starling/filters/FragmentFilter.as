@@ -22,7 +22,7 @@ package starling.filters
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
-    
+
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.core.starling_internal;
@@ -35,11 +35,11 @@ package starling.filters
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
     import starling.utils.VertexData;
-    import starling.utils.getNextPowerOfTwo;
 
     /** The FragmentFilter class is the base class for all filter effects in Starling.
      *  All other filters of this package extend this class. You can attach them to any display
@@ -448,8 +448,8 @@ package starling.filters
                 var minHeight:Number = resultRect.height > minSize ? resultRect.height : minSize;
                 resultPotRect.setTo(
                     resultRect.x, resultRect.y,
-                    getNextPowerOfTwo(minWidth  * scale) / scale,
-                    getNextPowerOfTwo(minHeight * scale) / scale);
+                    MathUtil.getNextPowerOfTwo(minWidth  * scale) / scale,
+                    MathUtil.getNextPowerOfTwo(minHeight * scale) / scale);
             }
         }
         

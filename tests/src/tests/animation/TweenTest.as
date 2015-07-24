@@ -13,18 +13,17 @@ package tests.animation
     import flash.display.Shape;
 
     import flexunit.framework.Assert;
-    
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.animation.Juggler;
     import starling.animation.Transitions;
     import starling.animation.Tween;
     import starling.display.Quad;
-    import starling.utils.MathUtil;
     import starling.utils.deg2rad;
 
     public class TweenTest

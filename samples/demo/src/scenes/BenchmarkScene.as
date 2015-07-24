@@ -1,7 +1,7 @@
 package scenes
 {
     import flash.system.System;
-    
+
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
@@ -9,7 +9,7 @@ package scenes
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.text.TextField;
-    import starling.utils.formatString;
+    import starling.utils.StringUtil;
 
     public class BenchmarkScene extends Scene
     {
@@ -135,8 +135,8 @@ package scenes
             trace("FPS: " + fps);
             trace("Number of objects: " + mContainer.numChildren);
             
-            var resultString:String = formatString("Result:\n{0} objects\nwith {1} fps",
-                                                   mContainer.numChildren, fps);
+            var resultString:String = StringUtil.format("Result:\n{0} objects\nwith {1} fps",
+                                                        mContainer.numChildren, fps);
             mResultText = new TextField(240, 200, resultString);
             mResultText.fontSize = 30;
             mResultText.x = Constants.CenterX - mResultText.width / 2;

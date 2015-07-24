@@ -20,8 +20,8 @@ package
     import starling.utils.AssetManager;
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
+    import starling.utils.StringUtil;
     import starling.utils.SystemUtil;
-    import starling.utils.formatString;
 
     import utils.ProgressBar;
 
@@ -86,8 +86,8 @@ package
             assets.verbose = Capabilities.isDebugger;
             assets.enqueue(
                 appDir.resolvePath("audio"),
-                appDir.resolvePath(formatString("fonts/{0}x",    scaleFactor)),
-                appDir.resolvePath(formatString("textures/{0}x", scaleFactor))
+                appDir.resolvePath(StringUtil.format("fonts/{0}x",    scaleFactor)),
+                appDir.resolvePath(StringUtil.format("textures/{0}x", scaleFactor))
             );
 
             // Now, while the AssetManager now contains pointers to all the assets, it actually
@@ -119,7 +119,7 @@ package
         {
             // Add background image. By using "loadBytes", we can avoid any flickering.
 
-            var bgPath:String = formatString("textures/{0}x/background.jpg", scaleFactor);
+            var bgPath:String = StringUtil.format("textures/{0}x/background.jpg", scaleFactor);
             var bgFile:File = File.applicationDirectory.resolvePath(bgPath);
             var bytes:ByteArray = new ByteArray();
             var stream:FileStream = new FileStream();

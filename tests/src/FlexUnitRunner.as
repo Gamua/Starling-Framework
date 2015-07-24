@@ -65,6 +65,7 @@ package
             testsToRun.push(tests.utils.VertexDataTest);
             testsToRun.push(tests.utils.MatrixUtilTest);
             testsToRun.push(tests.utils.MathUtilTest);
+            testsToRun.push(tests.utils.StringUtilTest);
             testsToRun.push(tests.display.Sprite3DTest);
             testsToRun.push(tests.geom.PolygonTest);
             testsToRun.push(tests.utils.ArrayUtilTest);

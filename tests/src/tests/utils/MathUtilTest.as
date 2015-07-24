@@ -48,14 +48,19 @@ package tests.utils
         }
 
         [Test]
-        public function testClamp():void
+        public function testGetNextPowerOfTwo():void
         {
-            assertEquals(2, MathUtil.clamp(1, 2, 3));
-            assertEquals(2, MathUtil.clamp(2, 2, 3));
-            assertEquals(3, MathUtil.clamp(3, 2, 3));
-            assertEquals(3, MathUtil.clamp(4, 2, 3));
-            assertEquals(-3, MathUtil.clamp(-4, -3, -2));
-            assertEquals(-2, MathUtil.clamp(-1, -3, -2));
+            assertEquals(1,   MathUtil.getNextPowerOfTwo(0));
+            assertEquals(1,   MathUtil.getNextPowerOfTwo(1));
+            assertEquals(2,   MathUtil.getNextPowerOfTwo(2));
+            assertEquals(4,   MathUtil.getNextPowerOfTwo(3));
+            assertEquals(4,   MathUtil.getNextPowerOfTwo(4));
+            assertEquals(8,   MathUtil.getNextPowerOfTwo(6));
+            assertEquals(32,  MathUtil.getNextPowerOfTwo(17));
+            assertEquals(64,  MathUtil.getNextPowerOfTwo(63));
+            assertEquals(256, MathUtil.getNextPowerOfTwo(129));
+            assertEquals(256, MathUtil.getNextPowerOfTwo(255));
+            assertEquals(256, MathUtil.getNextPowerOfTwo(256));
         }
     }
 }

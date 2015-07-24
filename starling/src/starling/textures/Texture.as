@@ -27,10 +27,10 @@ package starling.textures
     import starling.errors.MissingContextError;
     import starling.errors.NotSupportedError;
     import starling.utils.Color;
+    import starling.utils.MathUtil;
     import starling.utils.SystemUtil;
     import starling.utils.VertexData;
     import starling.utils.execute;
-    import starling.utils.getNextPowerOfTwo;
 
     /** <p>A texture stores the information that represents an image. It cannot be added to the
      *  display list directly; instead it has to be mapped onto a display object. In Starling,
@@ -465,8 +465,8 @@ package starling.textures
             }
             else
             {
-                actualWidth  = getNextPowerOfTwo(origWidth);
-                actualHeight = getNextPowerOfTwo(origHeight);
+                actualWidth  = MathUtil.getNextPowerOfTwo(origWidth);
+                actualHeight = MathUtil.getNextPowerOfTwo(origHeight);
 
                 nativeTexture = context.createTexture(actualWidth, actualHeight, format,
                                                       optimizeForRenderToTexture);

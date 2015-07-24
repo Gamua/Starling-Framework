@@ -13,19 +13,20 @@ package tests.display
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
+
     import flexunit.framework.Assert;
-    
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
     import starling.utils.deg2rad;
+
     import tests.Helpers;
 
     public class DisplayObjectTest

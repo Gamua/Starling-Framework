@@ -15,7 +15,7 @@ package starling.textures
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
-    
+
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.display.BlendMode;
@@ -23,9 +23,9 @@ package starling.textures
     import starling.display.Image;
     import starling.errors.MissingContextError;
     import starling.filters.FragmentFilter;
+    import starling.utils.MathUtil;
     import starling.utils.SystemUtil;
     import starling.utils.execute;
-    import starling.utils.getNextPowerOfTwo;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
      * 
@@ -121,8 +121,8 @@ package starling.textures
 
             if (!supportsNonPotDimensions)
             {
-                legalWidth  = getNextPowerOfTwo(width  * scale) / scale;
-                legalHeight = getNextPowerOfTwo(height * scale) / scale;
+                legalWidth  = MathUtil.getNextPowerOfTwo(width  * scale) / scale;
+                legalHeight = MathUtil.getNextPowerOfTwo(height * scale) / scale;
             }
 
             // [/Workaround]

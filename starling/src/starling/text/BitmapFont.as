@@ -12,17 +12,17 @@ package starling.text
 {
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
-    
+
     import starling.display.Image;
     import starling.display.QuadBatch;
     import starling.display.Sprite;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.HAlign;
+    import starling.utils.StringUtil;
     import starling.utils.VAlign;
-    import starling.utils.cleanMasterString;
 
-    /** The BitmapFont class parses bitmap font files and arranges the glyphs 
+    /** The BitmapFont class parses bitmap font files and arranges the glyphs
      *  in the form of a text.
      *
      *  The class parses the XML format as it is used in the 
@@ -118,7 +118,7 @@ package starling.text
             var frameX:Number = frame ? frame.x : 0;
             var frameY:Number = frame ? frame.y : 0;
             
-            mName = cleanMasterString(fontXml.info.@face);
+            mName = StringUtil.clean(fontXml.info.@face);
             mSize = parseFloat(fontXml.info.@size) / scale;
             mLineHeight = parseFloat(fontXml.common.@lineHeight) / scale;
             mBaseline = parseFloat(fontXml.common.@base) / scale;

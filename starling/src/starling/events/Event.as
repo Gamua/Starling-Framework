@@ -11,10 +11,10 @@
 package starling.events
 {
     import flash.utils.getQualifiedClassName;
-    
+
     import starling.core.starling_internal;
-    import starling.utils.formatString;
-    
+    import starling.utils.StringUtil;
+
     use namespace starling_internal;
 
     /** Event objects are passed as parameters to event listeners when an event occurs.  
@@ -124,7 +124,7 @@ package starling.events
         /** Returns a description of the event, containing type and bubble information. */
         public function toString():String
         {
-            return formatString("[{0} type=\"{1}\" bubbles={2}]", 
+            return StringUtil.format("[{0} type=\"{1}\" bubbles={2}]",
                 getQualifiedClassName(this).split("::").pop(), mType, mBubbles);
         }
         

@@ -25,8 +25,8 @@ package starling.filters
     import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.textures.Texture;
-    import starling.utils.formatString;
-    
+    import starling.utils.StringUtil;
+
     /** The DisplacementMapFilter class uses the pixel values from the specified texture (called
      *  the displacement map) to perform a displacement of an object. You can use this filter 
      *  to apply a warped or mottled effect to any object that inherits from the DisplayObject 
@@ -97,7 +97,7 @@ package starling.filters
                                       mapTexture.format, mapTexture.mipMapping, mapTexture.repeat);
             var inputFlags:String = RenderSupport.getTextureLookupFlags(
                                         Context3DTextureFormat.BGRA, false, mRepeat);
-            var programName:String = formatString("DMF_m{0}_i{1}", mapFlags, inputFlags);
+            var programName:String = StringUtil.format("DMF_m{0}_i{1}", mapFlags, inputFlags);
             
             if (target.hasProgram(programName))
             {

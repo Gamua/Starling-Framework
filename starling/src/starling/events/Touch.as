@@ -10,13 +10,12 @@
 
 package starling.events
 {
-    import flash.geom.Matrix;
     import flash.geom.Point;
-    
+
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
-    import starling.utils.formatString;
-    
+    import starling.utils.StringUtil;
+
     use namespace starling_internal;
 
     /** A Touch object contains information about the presence or movement of a finger 
@@ -108,8 +107,8 @@ package starling.events
         /** Returns a description of the object. */
         public function toString():String
         {
-            return formatString("Touch {0}: globalX={1}, globalY={2}, phase={3}",
-                                mID, mGlobalX, mGlobalY, mPhase);
+            return StringUtil.format("Touch {0}: globalX={1}, globalY={2}, phase={3}",
+                                     mID, mGlobalX, mGlobalY, mPhase);
         }
         
         /** Creates a clone of the Touch object. */

@@ -15,7 +15,7 @@ package starling.utils
 
     import starling.errors.AbstractClassError;
 
-    /** A utility class containing methods you might need for maths problems. */
+    /** A utility class containing methods you might need for math problems. */
     public class MathUtil
     {
         private static const TWO_PI:Number = Math.PI * 2.0;
@@ -54,10 +54,19 @@ package starling.utils
             return angle;
         }
 
-        /** Moves 'value' into the range between 'min' and 'max'. */
-        public static function clamp(value:Number, min:Number, max:Number):Number
+        /** Returns the next power of two that is equal to or bigger than the specified number. */
+        public static function getNextPowerOfTwo(number:Number):int
         {
-            return value < min ? min : (value > max ? max : value);
+            if (number is int && number > 0 && (number & (number - 1)) == 0) // see: http://goo.gl/D9kPj
+                return number;
+            else
+            {
+                var result:int = 1;
+                number -= 0.000000001; // avoid floating point rounding errors
+
+                while (result < number) result <<= 1;
+                return result;
+            }
         }
     }
 }
