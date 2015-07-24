@@ -161,7 +161,12 @@ package starling.utils
             mQueue = [];
         }
         
-        /** Disposes all contained textures. */
+        /** Disposes all contained textures, XMLs and ByteArrays.
+         *
+         *  <p>Beware that all references to the assets will remain intact, even though the assets
+         *  are no longer valid. Call 'purge' if you want to remove all resources and reuse
+         *  the AssetManager later.</p>
+         */
         public function dispose():void
         {
             for each (var texture:Texture in mTextures)
@@ -455,7 +460,8 @@ package starling.utils
             dispatchEventWith(Event.CANCEL);
         }
         
-        /** Removes assets of all types, empties the queue and aborts any pending load operations.*/
+        /** Removes assets of all types (disposing them along the way), empties the queue and
+         *  aborts any pending load operations. */
         public function purge():void
         {
             log("Purging all assets, emptying queue");
