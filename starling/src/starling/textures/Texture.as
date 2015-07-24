@@ -182,7 +182,7 @@ package starling.textures
          *  @param format   the context3D texture format to use. Ignored for ATF data.
          *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
-        public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
+        public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=false,
                                                  optimizeForRenderToTexture:Boolean=false,
                                                  scale:Number=1, format:String="bgra",
                                                  repeat:Boolean=false):Texture
@@ -231,7 +231,7 @@ package starling.textures
          *                  quality).
          *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
-        public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true,
+        public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=false,
                                           optimizeForRenderToTexture:Boolean=false,
                                           scale:Number=1, format:String="bgra",
                                           repeat:Boolean=false):Texture
@@ -255,7 +255,7 @@ package starling.textures
          *                  quality).
          *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
-        public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
+        public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=false,
                                               optimizeForRenderToTexture:Boolean=false,
                                               scale:Number=1, format:String="bgra",
                                               repeat:Boolean=false):Texture
@@ -273,14 +273,22 @@ package starling.textures
             return texture;
         }
 
-        /** Creates a texture from the compressed ATF format. If you don't want to use any embedded
-         *  mipmaps, you can disable them by setting "useMipMaps" to <code>false</code>.
+        /** Creates a texture from ATF data (Adobe Texture Compression).
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          *
-         *  <p>If the 'async' parameter contains a callback function, the texture is decoded
-         *  asynchronously. It can only be used when the callback has been executed. This is the
-         *  expected function definition: <code>function(texture:Texture):void;</code></p> */
+         *  @param data       the raw data from an ATF file.
+         *  @param scale      the scale factor of the created texture. This affects the reported
+         *                    width and height of the texture object.
+         *  @param useMipMaps If the ATF data contains mipmaps, this parameter controls if they
+         *                    are used; if it does not, this parameter has no effect.
+         *  @param async      If you pass a callback function, the texture will be decoded
+         *                    asynchronously, which allows a smooth framerate even during the
+         *                    loading process. However, don't use the texture before the callback
+         *                    has been executed. This is the expected function definition:
+         *                    <code>function(texture:Texture):void;</code>
+         *  @param repeat     the repeat value of the texture. Only useful for power-of-two textures.
+         */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true,
                                            async:Function=null, repeat:Boolean=false):Texture
         {
@@ -322,9 +330,9 @@ package starling.textures
          *      addChild(new Image(texture));
          *  });</listing>
          *
-         *  @param stream  the NetStream from which the video data is streamed. Beware that 'play'
-         *                 should be called outside the 'onComplete' callback, otherwise the
-         *                 texture will never be ready.
+         *  @param stream  the NetStream from which the video data is streamed. Make sure you call
+         *                 'play' outside the 'onComplete' callback, otherwise the texture will
+         *                 never be ready.
          *  @param scale   the scale factor of the created texture. This affects the reported
          *                 width and height of the texture object.
          *  @param onComplete will be executed when the texture is ready. May contain a parameter
@@ -436,7 +444,7 @@ package starling.textures
          *  @param repeat  the repeat mode of the texture. Only useful for power-of-two textures.
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
-                                     mipMapping:Boolean=true, optimizeForRenderToTexture:Boolean=false,
+                                     mipMapping:Boolean=false, optimizeForRenderToTexture:Boolean=false,
                                      scale:Number=-1, format:String="bgra", repeat:Boolean=false):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
