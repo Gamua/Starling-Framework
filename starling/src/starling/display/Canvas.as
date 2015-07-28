@@ -147,9 +147,10 @@ package starling.display
             // apply the current blend mode
             support.applyBlendMode(false);
 
+            mVertexData.setVertexBufferAttribute(mVertexBuffer, 0, "position");
+            mVertexData.setVertexBufferAttribute(mVertexBuffer, 1, "color");
+
             context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
-            context.setVertexBufferAt(0, mVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(1, mVertexBuffer, mVertexData.getOffsetIn32Bits("color"), Context3DVertexBufferFormat.BYTES_4);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
@@ -234,8 +235,7 @@ package starling.display
             var numVertices:Number = mVertexData.numVertices;
             var numIndices:Number  = mIndexData.length;
 
-            mVertexBuffer = context.createVertexBuffer(numVertices, mVertexData.vertexSizeIn32Bits);
-            mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, numVertices);
+            mVertexBuffer = mVertexData.createVertexBuffer(true);
 
             mIndexBuffer = context.createIndexBuffer(numIndices);
             mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);

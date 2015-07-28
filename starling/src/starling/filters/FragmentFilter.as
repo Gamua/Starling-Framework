@@ -273,11 +273,9 @@ package starling.filters
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
 
-            context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, mVertexData.getOffsetIn32Bits("position"),
-                                      Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, mVertexData.getOffsetIn32Bits("texCoords"),
-                                      Context3DVertexBufferFormat.FLOAT_2);
-            
+            mVertexData.setVertexBufferAttribute(mVertexBuffer, mVertexPosAtID, "position");
+            mVertexData.setVertexBufferAttribute(mVertexBuffer, mTexCoordsAtID, "texCoords");
+
             // draw all passes
             for (var i:int=0; i<mNumPasses; ++i)
             {
@@ -367,12 +365,12 @@ package starling.filters
             
             if (mVertexBuffer == null)
             {
-                mVertexBuffer = context.createVertexBuffer(4, mVertexData.vertexSizeIn32Bits);
+                mVertexBuffer = mVertexData.createVertexBuffer();
                 mIndexBuffer  = context.createIndexBuffer(6);
                 mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
             }
-            
-            mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, 4);
+
+            mVertexData.uploadToVertexBuffer(mVertexBuffer);
         }
         
         private function updatePassTextures(width:Number, height:Number, scale:Number):void

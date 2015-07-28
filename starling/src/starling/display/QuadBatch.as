@@ -178,9 +178,8 @@ package starling.display
             if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
             
-            mVertexBuffer = context.createVertexBuffer(numVertices, mVertexData.vertexSizeIn32Bits);
-            mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, numVertices);
-            
+            mVertexBuffer = mVertexData.createVertexBuffer(true);
+
             mIndexBuffer = context.createIndexBuffer(numIndices);
             mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
             
@@ -211,9 +210,9 @@ package starling.display
             }
             else
             {
-                // as last parameter, we could also use 'mNumQuads * 4', but on some GPU hardware (iOS!),
-                // this is slower than updating the complete buffer.
-                mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, mVertexData.numVertices);
+                // we could also just upload the currently used subset, but on some GPU hardware
+                // (iOS!) this is slower than uploading the complete buffer.
+                mVertexData.uploadToVertexBuffer(mVertexBuffer);
                 mSyncRequired = false;
             }
         }
@@ -239,18 +238,16 @@ package starling.display
             context.setProgram(getProgram(tinted));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
-            context.setVertexBufferAt(0, mVertexBuffer, mVertexData.getOffsetIn32Bits("position"),
-                                      Context3DVertexBufferFormat.FLOAT_2); 
-            
+
+            mVertexData.setVertexBufferAttribute(mVertexBuffer, 0, "position");
+
             if (mTexture == null || tinted)
-                context.setVertexBufferAt(1, mVertexBuffer, mVertexData.getOffsetIn32Bits("color"),
-                                          Context3DVertexBufferFormat.BYTES_4);
-            
+                mVertexData.setVertexBufferAttribute(mVertexBuffer, 1, "color");
+
             if (mTexture)
             {
                 context.setTextureAt(0, mTexture.base);
-                context.setVertexBufferAt(2, mVertexBuffer, mVertexData.getOffsetIn32Bits("texCoords"),
-                                          Context3DVertexBufferFormat.FLOAT_2);
+                mVertexData.setVertexBufferAttribute(mVertexBuffer, 2, "texCoords");
             }
             
             context.drawTriangles(mIndexBuffer, 0, mNumQuads * 2);

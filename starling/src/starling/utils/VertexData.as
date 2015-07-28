@@ -10,6 +10,8 @@
 
 package starling.utils
 {
+    import flash.display3D.Context3D;
+    import flash.display3D.VertexBuffer3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -19,6 +21,9 @@ package starling.utils
     import flash.utils.ByteArray;
     import flash.utils.Dictionary;
     import flash.utils.Endian;
+
+    import starling.core.Starling;
+    import starling.errors.MissingContextError;
 
     /** The VertexData class manages a raw list of vertex information, allowing direct upload
      *  to Stage3D vertex buffers. <em>You only have to work with this class if you're writing
@@ -731,11 +736,43 @@ package starling.utils
             return attrName in _attributes;
         }
 
-        // potential VertexBuffer helpers
+        // VertexBuffer helpers
 
-//        public function createVertexBuffer(upload:Boolean=true, bufferUsage:String="staticDraw"):VertexBuffer3D {}
-//        public function setVertexBufferAttribute(buffer:VertexBuffer3D, index:int, attrName:String):void {}
-//        public function uploadToVertexBuffer(buffer:VertexBuffer3D, vertexID:int=0, numVertices:int=-1):void {}
+        /** Creates a vertex buffer object with the right size to fit the complete data.
+         *  Optionally, the current data is uploaded right away. */
+        public function createVertexBuffer(upload:Boolean=false,
+                                           bufferUsage:String="staticDraw"):VertexBuffer3D
+        {
+            var context:Context3D = Starling.context;
+            if (context == null) throw new MissingContextError();
+
+            var buffer:VertexBuffer3D = context.createVertexBuffer(
+                _numVertices, _vertexSize / 4, bufferUsage);
+
+            if (upload) uploadToVertexBuffer(buffer);
+            return buffer;
+        }
+
+        /** Specifies the attribute to use at a certain register (identified by its index)
+         *  in the vertex shader. */
+        public function setVertexBufferAttribute(buffer:VertexBuffer3D, index:int, attrName:String):void
+        {
+            var attribute:Attribute = _attributes[attrName];
+
+            var context:Context3D = Starling.context;
+            if (context == null) throw new MissingContextError();
+
+            context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
+        }
+
+        /** Uploads the complete data (or a section of it) to the given vertex buffer. */
+        public function uploadToVertexBuffer(buffer:VertexBuffer3D, vertexID:int=0, numVertices:int=-1):void
+        {
+            if (numVertices < 0 || vertexID + numVertices > _numVertices)
+                numVertices = _numVertices - vertexID;
+
+            buffer.uploadFromByteArray(_rawData, 0, vertexID, numVertices);
+        }
 
         // helpers
 

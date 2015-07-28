@@ -26,6 +26,7 @@ package starling.filters
     import starling.core.Starling;
     import starling.textures.Texture;
     import starling.utils.StringUtil;
+    import starling.utils.VertexData;
 
     /** The DisplacementMapFilter class uses the pixel values from the specified texture (called
      *  the displacement map) to perform a displacement of an object. You can use this filter 
@@ -51,11 +52,11 @@ package starling.filters
         private var mRepeat:Boolean;
         
         private var mShaderProgram:Program3D;
+        private var mMapTexCoords:VertexData;
         private var mMapTexCoordBuffer:VertexBuffer3D;
         
         /** Helper objects */
         private static var sOneHalf:Vector.<Number> = new <Number>[0.5, 0.5, 0.5, 0.5];
-        private static var sMapTexCoords:ByteArray = new ByteArray();
         private static var sMatrix:Matrix3D = new Matrix3D();
         private static var sMatrixData:Vector.<Number> = 
             new <Number>[0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0];
@@ -68,6 +69,7 @@ package starling.filters
         {
             mMapTexture = mapTexture;
             mMapPoint = new Point();
+            mMapTexCoords = new VertexData("texCoords(float2)", 4);
             mComponentX = componentX;
             mComponentY = componentY;
             mScaleX = scaleX;
@@ -90,7 +92,7 @@ package starling.filters
         {
             // the texture coordinates for the map texture are uploaded via a separate buffer
             if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
-            mMapTexCoordBuffer = Starling.context.createVertexBuffer(4, 2);
+            mMapTexCoordBuffer = mMapTexCoords.createVertexBuffer();
             
             var target:Starling = Starling.current;
             var mapFlags:String = RenderSupport.getTextureLookupFlags(
@@ -145,8 +147,8 @@ package starling.filters
             // texture 0:            input texture
 
             updateParameters(texture.nativeWidth, texture.nativeHeight);
-            
-            context.setVertexBufferAt(2, mMapTexCoordBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
+
+            mMapTexCoords.setVertexBufferAttribute(mMapTexCoordBuffer, 2, "texCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOneHalf);
             context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 1, sMatrix, true);
             context.setTextureAt(1, mMapTexture.base);
@@ -195,16 +197,13 @@ package starling.filters
             var maxU:Number = textureWidth  / (mapTexture.width  * scale);
             var maxV:Number = textureHeight / (mapTexture.height * scale);
 
-            sMapTexCoords.position = 0;
-            sMapTexCoords.endian = Endian.LITTLE_ENDIAN;
+            mMapTexCoords.setPoint(0, "texCoords", -mapX,        -mapY);
+            mMapTexCoords.setPoint(1, "texCoords", -mapX + maxU, -mapY);
+            mMapTexCoords.setPoint(2, "texCoords", -mapX,        -mapY + maxV);
+            mMapTexCoords.setPoint(3, "texCoords", -mapX + maxU, -mapY + maxV);
 
-            sMapTexCoords.writeFloat(-mapX);        sMapTexCoords.writeFloat(-mapY);
-            sMapTexCoords.writeFloat(-mapX + maxU); sMapTexCoords.writeFloat(-mapY);
-            sMapTexCoords.writeFloat(-mapX);        sMapTexCoords.writeFloat(-mapY + maxV);
-            sMapTexCoords.writeFloat(-mapX + maxU); sMapTexCoords.writeFloat(-mapY + maxV);
-
-            mMapTexture.adjustTexCoords(sMapTexCoords, 0, 0, 4);
-            mMapTexCoordBuffer.uploadFromByteArray(sMapTexCoords, 0, 0, 4);
+            mMapTexture.adjustVertexData(mMapTexCoords, 0, 4);
+            mMapTexCoords.uploadToVertexBuffer(mMapTexCoordBuffer);
         }
         
         // properties
