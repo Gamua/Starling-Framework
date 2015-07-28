@@ -17,6 +17,8 @@ package tests.display
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
 
     import starling.display.MovieClip;
@@ -45,23 +47,23 @@ package tests.display
             assertThat(movie.width, closeTo(texture0.width, E));
             assertThat(movie.height, closeTo(texture0.height, E));
             assertThat(movie.totalTime, closeTo(frameDuration, E));
-            Assert.assertEquals(1, movie.numFrames);
-            Assert.assertEquals(0, movie.currentFrame);
-            Assert.assertEquals(true, movie.loop);
-            Assert.assertEquals(true, movie.isPlaying);
+            assertEquals(1, movie.numFrames);
+            assertEquals(0, movie.currentFrame);
+            assertEquals(true, movie.loop);
+            assertEquals(true, movie.isPlaying);
             
             movie.pause();
-            Assert.assertFalse(movie.isPlaying);
+            assertFalse(movie.isPlaying);
             
             movie.play();
-            Assert.assertTrue(movie.isPlaying);
+            assertTrue(movie.isPlaying);
             
             movie.addFrame(texture1);
-            Assert.assertEquals(2, movie.numFrames);
-            Assert.assertEquals(texture0, movie.getFrameTexture(0));
-            Assert.assertEquals(texture1, movie.getFrameTexture(1));
-            Assert.assertNull(movie.getFrameSound(0));
-            Assert.assertNull(movie.getFrameSound(1));
+            assertEquals(2, movie.numFrames);
+            assertEquals(texture0, movie.getFrameTexture(0));
+            assertEquals(texture1, movie.getFrameTexture(1));
+            assertNull(movie.getFrameSound(0));
+            assertNull(movie.getFrameSound(1));
             assertThat(movie.getFrameDuration(0), closeTo(frameDuration, E));
             assertThat(movie.getFrameDuration(1), closeTo(frameDuration, E));
             
@@ -70,31 +72,31 @@ package tests.display
             assertThat(movie.totalTime, closeTo(1.0, E));
             
             movie.addFrameAt(2, texture3); // -> 0, 1, 3, 2
-            Assert.assertEquals(4, movie.numFrames);
-            Assert.assertEquals(texture1, movie.getFrameTexture(1));
-            Assert.assertEquals(texture3, movie.getFrameTexture(2));
-            Assert.assertEquals(texture2, movie.getFrameTexture(3));
+            assertEquals(4, movie.numFrames);
+            assertEquals(texture1, movie.getFrameTexture(1));
+            assertEquals(texture3, movie.getFrameTexture(2));
+            assertEquals(texture2, movie.getFrameTexture(3));
             assertThat(movie.totalTime, closeTo(1.0 + frameDuration, E));
             
             movie.removeFrameAt(0); // -> 1, 3, 2
-            Assert.assertEquals(3, movie.numFrames);
-            Assert.assertEquals(texture1, movie.getFrameTexture(0));
+            assertEquals(3, movie.numFrames);
+            assertEquals(texture1, movie.getFrameTexture(0));
             assertThat(movie.totalTime, closeTo(1.0, E));
             
             movie.removeFrameAt(1); // -> 1, 2
-            Assert.assertEquals(2, movie.numFrames);
-            Assert.assertEquals(texture1, movie.getFrameTexture(0));
-            Assert.assertEquals(texture2, movie.getFrameTexture(1));
+            assertEquals(2, movie.numFrames);
+            assertEquals(texture1, movie.getFrameTexture(0));
+            assertEquals(texture2, movie.getFrameTexture(1));
             assertThat(movie.totalTime, closeTo(0.75, E));
             
             movie.setFrameTexture(1, texture3);
-            Assert.assertEquals(texture3, movie.getFrameTexture(1));
+            assertEquals(texture3, movie.getFrameTexture(1));
             
             movie.setFrameDuration(1, 0.75);
             assertThat(movie.totalTime, closeTo(1.0, E));
             
             movie.addFrameAt(2, texture3);
-            Assert.assertEquals(texture3, movie.getFrameTexture(2));
+            assertEquals(texture3, movie.getFrameTexture(2));
         }
         
         [Test]
@@ -114,36 +116,36 @@ package tests.display
             movie.addFrame(texture3);
             movie.addFrameAt(0, texture1);
             
-            Assert.assertEquals(0, movie.currentFrame);
+            assertEquals(0, movie.currentFrame);
             movie.advanceTime(frameDuration / 2.0);
-            Assert.assertEquals(0, movie.currentFrame);
+            assertEquals(0, movie.currentFrame);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(1, movie.currentFrame);
+            assertEquals(1, movie.currentFrame);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(2, movie.currentFrame);
+            assertEquals(2, movie.currentFrame);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(2, movie.currentFrame);
+            assertEquals(2, movie.currentFrame);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(3, movie.currentFrame);
+            assertEquals(3, movie.currentFrame);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(0, movie.currentFrame);
-            Assert.assertFalse(movie.isComplete);
+            assertEquals(0, movie.currentFrame);
+            assertFalse(movie.isComplete);
             
             movie.loop = false;
             movie.advanceTime(movie.totalTime + frameDuration);
-            Assert.assertEquals(3, movie.currentFrame);
-            Assert.assertFalse(movie.isPlaying);
-            Assert.assertTrue(movie.isComplete);
+            assertEquals(3, movie.currentFrame);
+            assertFalse(movie.isPlaying);
+            assertTrue(movie.isComplete);
             
             movie.currentFrame = 0;
-            Assert.assertEquals(0, movie.currentFrame);
+            assertEquals(0, movie.currentFrame);
             movie.advanceTime(frameDuration * 1.1);
-            Assert.assertEquals(1, movie.currentFrame);
+            assertEquals(1, movie.currentFrame);
             
             movie.stop();
-            Assert.assertFalse(movie.isPlaying);
-            Assert.assertFalse(movie.isComplete);
-            Assert.assertEquals(0, movie.currentFrame);
+            assertFalse(movie.isPlaying);
+            assertFalse(movie.isComplete);
+            assertEquals(0, movie.currentFrame);
         }
             
         [Test]
@@ -180,44 +182,44 @@ package tests.display
             movie.addEventListener(Event.COMPLETE, onMovieCompleted);
             movie.loop = false;
             
-            Assert.assertFalse(movie.isComplete);
+            assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(0, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
+            assertEquals(0, movie.currentFrame);
+            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(1, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
+            assertEquals(1, movie.currentFrame);
+            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(2, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
+            assertEquals(2, movie.currentFrame);
+            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration * 0.5);
             movie.advanceTime(frameDuration * 0.5);
-            Assert.assertEquals(3, movie.currentFrame);
-            Assert.assertEquals(1, completedCount);
-            Assert.assertTrue(movie.isComplete);
+            assertEquals(3, movie.currentFrame);
+            assertEquals(1, completedCount);
+            assertTrue(movie.isComplete);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
-            Assert.assertEquals(3, movie.currentFrame);
-            Assert.assertEquals(1, completedCount);
-            Assert.assertTrue(movie.isComplete);
+            assertEquals(3, movie.currentFrame);
+            assertEquals(1, completedCount);
+            assertTrue(movie.isComplete);
             
             movie.loop = true;
             completedCount = 0;
             
-            Assert.assertFalse(movie.isComplete);
+            assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(0, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
+            assertEquals(0, movie.currentFrame);
+            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(1, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
+            assertEquals(1, movie.currentFrame);
+            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(2, movie.currentFrame);
-            Assert.assertEquals(0, completedCount);
+            assertEquals(2, movie.currentFrame);
+            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
-            Assert.assertEquals(3, movie.currentFrame);
-            Assert.assertEquals(1, completedCount);
+            assertEquals(3, movie.currentFrame);
+            assertEquals(1, completedCount);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
-            Assert.assertEquals(3, completedCount);
+            assertEquals(3, completedCount);
             
             function onMovieCompleted(event:Event):void
             {
@@ -239,8 +241,8 @@ package tests.display
             movie.addEventListener(Event.COMPLETE, onMovieCompleted);
             movie.advanceTime(1.75);
             
-            Assert.assertFalse(movie.isPlaying);
-            Assert.assertEquals(0, movie.currentFrame);
+            assertFalse(movie.isPlaying);
+            assertEquals(0, movie.currentFrame);
 
             function onMovieCompleted(event:Event):void
             {

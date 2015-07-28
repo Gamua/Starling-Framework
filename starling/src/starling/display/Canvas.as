@@ -52,7 +52,7 @@ package starling.display
         public function Canvas()
         {
             mPolygons   = new <Polygon>[];
-            mVertexData = new VertexData(0);
+            mVertexData = new VertexData("position(float2), color(bytes4)", 0);
             mIndexData  = new <uint>[];
             mSyncRequired = false;
 
@@ -149,7 +149,7 @@ package starling.display
 
             context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
             context.setVertexBufferAt(0, mVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, Context3DVertexBufferFormat.BYTES_4);
+            context.setVertexBufferAt(1, mVertexBuffer, mVertexData.getOffsetIn32Bits("color"), Context3DVertexBufferFormat.BYTES_4);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
@@ -160,14 +160,14 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            if (resultRect == null) resultRect = new Rectangle();
+            if (out == null) out = new Rectangle();
 
             var transformationMatrix:Matrix = targetSpace == this ?
                 null : getTransformationMatrix(targetSpace, sHelperMatrix);
 
-            return mVertexData.getBounds(transformationMatrix, 0, -1, resultRect);
+            return mVertexData.getBounds("position", transformationMatrix, 0, -1, out);
         }
 
         /** @inheritDoc */
@@ -221,7 +221,7 @@ package starling.display
         {
             var endIndex:int = vertexIndex + numVertices;
             for (var i:int=vertexIndex; i<endIndex; ++i)
-                mVertexData.setColorAndAlpha(i, mFillColor, mFillAlpha);
+                mVertexData.setColorAndAlpha(i, "color", mFillColor, mFillAlpha);
         }
 
         private function syncBuffers():void
@@ -234,7 +234,7 @@ package starling.display
             var numVertices:Number = mVertexData.numVertices;
             var numIndices:Number  = mIndexData.length;
 
-            mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
+            mVertexBuffer = context.createVertexBuffer(numVertices, mVertexData.vertexSizeIn32Bits);
             mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, numVertices);
 
             mIndexBuffer = context.createIndexBuffer(numIndices);

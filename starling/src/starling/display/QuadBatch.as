@@ -97,7 +97,8 @@ package starling.display
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
         {
-            mVertexData = new VertexData(0, true);
+            mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)", 0);
+            mVertexData.setPremultipliedAlpha("color", true);
             mIndexData = new <uint>[];
             mNumQuads = 0;
             mTinted = false;
@@ -139,7 +140,7 @@ package starling.display
         {
             mSyncRequired = true;
         }
-        
+
         /** Creates a duplicate of the QuadBatch object. */
         public function clone():QuadBatch
         {
@@ -155,7 +156,7 @@ package starling.display
             clone.alpha = alpha;
             return clone;
         }
-        
+
         private function expand():void
         {
             var oldCapacity:int = this.capacity;
@@ -177,7 +178,7 @@ package starling.display
             if (numVertices == 0) return;
             if (context == null)  throw new MissingContextError();
             
-            mVertexBuffer = context.createVertexBuffer(numVertices, VertexData.ELEMENTS_PER_VERTEX);
+            mVertexBuffer = context.createVertexBuffer(numVertices, mVertexData.vertexSizeIn32Bits);
             mVertexBuffer.uploadFromByteArray(mVertexData.rawData, 0, 0, numVertices);
             
             mIndexBuffer = context.createIndexBuffer(numIndices);
@@ -226,7 +227,7 @@ package starling.display
             if (mNumQuads == 0) return;
             if (mSyncRequired) syncBuffers();
             
-            var pma:Boolean = mVertexData.premultipliedAlpha;
+            var pma:Boolean = mVertexData.getPremultipliedAlpha();
             var context:Context3D = Starling.context;
             var tinted:Boolean = mTinted || (parentAlpha != 1.0);
             
@@ -238,17 +239,17 @@ package starling.display
             context.setProgram(getProgram(tinted));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
-            context.setVertexBufferAt(0, mVertexBuffer, VertexData.POSITION_OFFSET, 
+            context.setVertexBufferAt(0, mVertexBuffer, mVertexData.getOffsetIn32Bits("position"),
                                       Context3DVertexBufferFormat.FLOAT_2); 
             
             if (mTexture == null || tinted)
-                context.setVertexBufferAt(1, mVertexBuffer, VertexData.COLOR_OFFSET, 
+                context.setVertexBufferAt(1, mVertexBuffer, mVertexData.getOffsetIn32Bits("color"),
                                           Context3DVertexBufferFormat.BYTES_4);
             
             if (mTexture)
             {
                 context.setTextureAt(0, mTexture.base);
-                context.setVertexBufferAt(2, mVertexBuffer, VertexData.TEXCOORD_OFFSET, 
+                context.setVertexBufferAt(2, mVertexBuffer, mVertexData.getOffsetIn32Bits("texCoords"),
                                           Context3DVertexBufferFormat.FLOAT_2);
             }
             
@@ -306,13 +307,13 @@ package starling.display
                 mTexture = texture;
                 mTinted = mForceTinted || quad.tinted || parentAlpha != 1.0;
                 mSmoothing = smoothing;
-                mVertexData.setPremultipliedAlpha(quad.premultipliedAlpha);
+                mVertexData.setPremultipliedAlpha("color", quad.premultipliedAlpha);
             }
             
             quad.copyVertexDataTransformedTo(mVertexData, vertexID, modelViewMatrix);
             
             if (alpha != 1.0)
-                mVertexData.scaleAlpha(vertexID, alpha, 4);
+                mVertexData.scaleAlphas("color", alpha, vertexID, 4);
 
             mSyncRequired = true;
             mNumQuads++;
@@ -337,14 +338,14 @@ package starling.display
                 mTexture = quadBatch.mTexture;
                 mTinted = mForceTinted || quadBatch.mTinted || parentAlpha != 1.0;
                 mSmoothing = quadBatch.mSmoothing;
-                mVertexData.setPremultipliedAlpha(quadBatch.mVertexData.premultipliedAlpha, false);
+                mVertexData.setPremultipliedAlpha("color", quadBatch.premultipliedAlpha, false);
             }
             
-            quadBatch.mVertexData.copyTransformedTo(mVertexData, vertexID, modelViewMatrix,
-                                                    0, numQuads*4);
+            quadBatch.mVertexData.copyToTransformed(mVertexData, vertexID, modelViewMatrix,
+                                                    "position", 0, numQuads*4);
             
             if (alpha != 1.0)
-                mVertexData.scaleAlpha(vertexID, alpha, numQuads*4);
+                mVertexData.scaleAlphas("color", alpha, vertexID, numQuads*4);
             
             mSyncRequired = true;
             mNumQuads += numQuads;
@@ -375,7 +376,7 @@ package starling.display
         /** Transforms the vertices of a certain quad by the given matrix. */
         public function transformQuad(quadID:int, matrix:Matrix):void
         {
-            mVertexData.transformVertex(quadID * 4, matrix, 4);
+            mVertexData.transformPoints("position", matrix, quadID * 4, 4);
             mSyncRequired = true;
         }
         
@@ -388,7 +389,7 @@ package starling.display
         /** Updates the color of one vertex of a specific quad. */
         public function setVertexColor(quadID:int, vertexID:int, color:uint):void
         {
-            mVertexData.setColor(quadID * 4 + vertexID, color);
+            mVertexData.setColor(quadID * 4 + vertexID, "color", color);
             mSyncRequired = true;
         }
         
@@ -401,7 +402,7 @@ package starling.display
         /** Updates the alpha value of one vertex of a specific quad. */
         public function setVertexAlpha(quadID:int, vertexID:int, alpha:Number):void
         {
-            mVertexData.setAlpha(quadID * 4 + vertexID, alpha);
+            mVertexData.setAlpha(quadID * 4 + vertexID, "color", alpha);
             mSyncRequired = true;
         }
         
@@ -415,7 +416,7 @@ package starling.display
         public function setQuadColor(quadID:int, color:uint):void
         {
             for (var i:int=0; i<4; ++i)
-                mVertexData.setColor(quadID * 4 + i, color);
+                mVertexData.setColor(quadID * 4 + i, "color", color);
             
             mSyncRequired = true;
         }
@@ -430,7 +431,7 @@ package starling.display
         public function setQuadAlpha(quadID:int, alpha:Number):void
         {
             for (var i:int=0; i<4; ++i)
-                mVertexData.setAlpha(quadID * 4 + i, alpha);
+                mVertexData.setAlpha(quadID * 4 + i, "color", alpha);
             
             mSyncRequired = true;
         }
@@ -443,7 +444,7 @@ package starling.display
             var vertexID:int  = quadID * 4;
 
             quad.copyVertexDataTransformedTo(mVertexData, vertexID, matrix);
-            if (alpha != 1.0) mVertexData.scaleAlpha(vertexID, alpha, 4);
+            if (alpha != 1.0) mVertexData.scaleAlphas("color", alpha, vertexID, 4);
 
             mSyncRequired = true;
         }
@@ -454,7 +455,7 @@ package starling.display
         public function getQuadBounds(quadID:int, transformationMatrix:Matrix=null,
                                       resultRect:Rectangle=null):Rectangle
         {
-            return mVertexData.getBounds(transformationMatrix, quadID * 4, 4, resultRect);
+            return mVertexData.getBounds("position", transformationMatrix, quadID * 4, 4, resultRect);
         }
         
         // display object methods
@@ -467,7 +468,7 @@ package starling.display
             var transformationMatrix:Matrix = targetSpace == this ?
                 null : getTransformationMatrix(targetSpace, sHelperMatrix);
             
-            return mVertexData.getBounds(transformationMatrix, 0, mNumQuads*4, resultRect);
+            return mVertexData.getBounds("position", transformationMatrix, 0, mNumQuads*4, resultRect);
         }
         
         /** @inheritDoc */
@@ -673,7 +674,7 @@ package starling.display
         public function get smoothing():String { return mSmoothing; }
         
         /** Indicates if the rgb values are stored premultiplied with the alpha value. */
-        public function get premultipliedAlpha():Boolean { return mVertexData.premultipliedAlpha; }
+        public function get premultipliedAlpha():Boolean { return mVertexData.getPremultipliedAlpha(); }
         
         /** Indicates if the batch itself should be batched on rendering. This makes sense only
          *  if it contains only a small number of quads (we recommend no more than 16). Otherwise,

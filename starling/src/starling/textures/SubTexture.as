@@ -96,8 +96,8 @@ package starling.textures
         /** @inheritDoc */
         public override function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
         {
-            var startIndex:int = vertexID * VertexData.BYTES_PER_VERTEX + VertexData.TEXCOORD_OFFSET_IN_BYTES;
-            var stride:int = VertexData.BYTES_PER_VERTEX - VertexData.BYTES_PER_ELEMENT * 2;
+            var startIndex:int = vertexID * vertexData.vertexSizeInBytes + vertexData.getOffsetInBytes("texCoords");
+            var stride:int = vertexData.vertexSizeInBytes - vertexData.getSizeInBytes("texCoords");
 
             adjustTexCoords(vertexData.rawData, startIndex, stride, count);
 
@@ -109,10 +109,10 @@ package starling.textures
                 var deltaRight:Number  = mFrame.width  + mFrame.x - mWidth;
                 var deltaBottom:Number = mFrame.height + mFrame.y - mHeight;
 
-                vertexData.translateVertex(vertexID,     -mFrame.x, -mFrame.y);
-                vertexData.translateVertex(vertexID + 1, -deltaRight, -mFrame.y);
-                vertexData.translateVertex(vertexID + 2, -mFrame.x, -deltaBottom);
-                vertexData.translateVertex(vertexID + 3, -deltaRight, -deltaBottom);
+                vertexData.translatePoint(vertexID,     "position", -mFrame.x, -mFrame.y);
+                vertexData.translatePoint(vertexID + 1, "position", -deltaRight, -mFrame.y);
+                vertexData.translatePoint(vertexID + 2, "position", -mFrame.x, -deltaBottom);
+                vertexData.translatePoint(vertexID + 3, "position", -deltaRight, -deltaBottom);
             }
         }
 

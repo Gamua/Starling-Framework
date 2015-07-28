@@ -56,15 +56,16 @@ package starling.display
                 
                 super(width, height, 0xffffff, pma);
                 
-                mVertexData.setTexCoords(0, 0.0, 0.0);
-                mVertexData.setTexCoords(1, 1.0, 0.0);
-                mVertexData.setTexCoords(2, 0.0, 1.0);
-                mVertexData.setTexCoords(3, 1.0, 1.0);
+                mVertexData.setPoint(0, "texCoords", 0.0, 0.0);
+                mVertexData.setPoint(1, "texCoords", 1.0, 0.0);
+                mVertexData.setPoint(2, "texCoords", 0.0, 1.0);
+                mVertexData.setPoint(3, "texCoords", 1.0, 1.0);
                 
                 mTexture = texture;
                 mSmoothing = TextureSmoothing.BILINEAR;
-                mVertexDataCache = new VertexData(4, pma);
                 mVertexDataCacheInvalid = true;
+                mVertexDataCache = new VertexData(mVertexData.format, 4);
+                mVertexDataCache.setPremultipliedAlpha("color", pma);
             }
             else
             {
@@ -93,10 +94,10 @@ package starling.display
             var width:Number  = frame ? frame.width  : texture.width;
             var height:Number = frame ? frame.height : texture.height;
             
-            mVertexData.setPosition(0, 0.0, 0.0);
-            mVertexData.setPosition(1, width, 0.0);
-            mVertexData.setPosition(2, 0.0, height);
-            mVertexData.setPosition(3, width, height); 
+            mVertexData.setPoint(0, "position", 0.0, 0.0);
+            mVertexData.setPoint(1, "position", width, 0.0);
+            mVertexData.setPoint(2, "position", 0.0, height);
+            mVertexData.setPoint(3, "position", width, height);
             
             onVertexDataChanged();
         }
@@ -104,25 +105,25 @@ package starling.display
         /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
         public function setTexCoords(vertexID:int, coords:Point):void
         {
-            mVertexData.setTexCoords(vertexID, coords.x, coords.y);
+            mVertexData.setPoint(vertexID, "texCoords", coords.x, coords.y);
             onVertexDataChanged();
         }
         
         /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
         public function setTexCoordsTo(vertexID:int, u:Number, v:Number):void
         {
-            mVertexData.setTexCoords(vertexID, u, v);
+            mVertexData.setPoint(vertexID, "texCoords", u, v);
             onVertexDataChanged();
         }
         
         /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. 
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
+         *  If you pass an 'out' Point, the result will be stored in this point instead of
          *  creating a new object.*/
-        public function getTexCoords(vertexID:int, resultPoint:Point=null):Point
+        public function getTexCoords(vertexID:int, out:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
-            mVertexData.getTexCoords(vertexID, resultPoint);
-            return resultPoint;
+            if (out == null) out = new Point();
+            mVertexData.getPoint(vertexID, "texCoords", out);
+            return out;
         }
         
         /** Copies the raw vertex data to a VertexData instance.
@@ -146,7 +147,7 @@ package starling.display
                 mTexture.adjustVertexData(mVertexDataCache, 0, 4);
             }
             
-            mVertexDataCache.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
+            mVertexDataCache.copyToTransformed(targetData, targetVertexID, matrix);
         }
         
         /** The texture that is displayed on the quad. */
@@ -160,8 +161,8 @@ package starling.display
             else if (value != mTexture)
             {
                 mTexture = value;
-                mVertexData.setPremultipliedAlpha(mTexture.premultipliedAlpha);
-                mVertexDataCache.setPremultipliedAlpha(mTexture.premultipliedAlpha, false);
+                mVertexData.setPremultipliedAlpha("color", mTexture.premultipliedAlpha);
+                mVertexDataCache.setPremultipliedAlpha("color", mTexture.premultipliedAlpha, false);
                 onVertexDataChanged();
             }
         }

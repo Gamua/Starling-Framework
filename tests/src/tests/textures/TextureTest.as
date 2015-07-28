@@ -18,11 +18,12 @@ package tests.textures
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.textures.ConcreteTexture;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.utils.VertexData;
+
     import tests.Helpers;
 
     public class TextureTest
@@ -59,13 +60,13 @@ package tests.textures
             adjustedVertexData = vertexData.clone();
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
             
-            adjustedVertexData.getTexCoords(0, texCoords);
+            adjustedVertexData.getPoint(0, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.25, 0.25), texCoords);
-            adjustedVertexData.getTexCoords(1, texCoords);
+            adjustedVertexData.getPoint(1, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.75, 0.25), texCoords);
-            adjustedVertexData.getTexCoords(2, texCoords);
+            adjustedVertexData.getPoint(2, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.25, 0.75), texCoords);            
-            adjustedVertexData.getTexCoords(3, texCoords);
+            adjustedVertexData.getPoint(3, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.75, 0.75), texCoords);
             
             // test subtexture of subtexture
@@ -75,13 +76,13 @@ package tests.textures
             adjustedVertexData = vertexData.clone();
             subSubTexture.adjustVertexData(adjustedVertexData, 0, 4);
             
-            adjustedVertexData.getTexCoords(0, texCoords);
+            adjustedVertexData.getPoint(0, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.375, 0.375), texCoords);
-            adjustedVertexData.getTexCoords(1, texCoords);
+            adjustedVertexData.getPoint(1, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.625, 0.375), texCoords);
-            adjustedVertexData.getTexCoords(2, texCoords);
+            adjustedVertexData.getPoint(2, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.375, 0.625), texCoords);            
-            adjustedVertexData.getTexCoords(3, texCoords);
+            adjustedVertexData.getPoint(3, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
             
             // test subtexture over moved texture coords (same effect as above)
@@ -89,13 +90,13 @@ package tests.textures
             adjustedVertexData = vertexData.clone(); 
             subTexture.adjustVertexData(adjustedVertexData, 0, 4);
             
-            adjustedVertexData.getTexCoords(0, texCoords);
+            adjustedVertexData.getPoint(0, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.375, 0.375), texCoords);
-            adjustedVertexData.getTexCoords(1, texCoords);
+            adjustedVertexData.getPoint(1, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.625, 0.375), texCoords);
-            adjustedVertexData.getTexCoords(2, texCoords);
+            adjustedVertexData.getPoint(2, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.375, 0.625), texCoords);            
-            adjustedVertexData.getTexCoords(3, texCoords);
+            adjustedVertexData.getPoint(3, "texCoords", texCoords);
             Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
         }
         
@@ -154,21 +155,21 @@ package tests.textures
         
         private function createStandardVertexData():VertexData
         {
-            var vertexData:VertexData = new VertexData(4);
-            vertexData.setTexCoords(0, 0.0, 0.0);
-            vertexData.setTexCoords(1, 1.0, 0.0);
-            vertexData.setTexCoords(2, 0.0, 1.0);
-            vertexData.setTexCoords(3, 1.0, 1.0);
+            var vertexData:VertexData = new VertexData("texCoords(float2)", 4);
+            vertexData.setPoint(0, "texCoords", 0.0, 0.0);
+            vertexData.setPoint(1, "texCoords", 1.0, 0.0);
+            vertexData.setPoint(2, "texCoords", 0.0, 1.0);
+            vertexData.setPoint(3, "texCoords", 1.0, 1.0);
             return vertexData;            
         }
         
         private function createVertexDataWithMovedTexCoords():VertexData
         {
-            var vertexData:VertexData = new VertexData(4);
-            vertexData.setTexCoords(0, 0.25, 0.25);
-            vertexData.setTexCoords(1, 0.75, 0.25);
-            vertexData.setTexCoords(2, 0.25, 0.75);
-            vertexData.setTexCoords(3, 0.75, 0.75);
+            var vertexData:VertexData = new VertexData("texCoords(float2)", 4);
+            vertexData.setPoint(0, "texCoords", 0.25, 0.25);
+            vertexData.setPoint(1, "texCoords", 0.75, 0.25);
+            vertexData.setPoint(2, "texCoords", 0.25, 0.75);
+            vertexData.setPoint(3, "texCoords", 0.75, 0.75);
             return vertexData;
         }
         

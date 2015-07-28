@@ -136,11 +136,11 @@ package starling.filters
             mPassTextures = new <Texture>[];
             mMode = FragmentFilterMode.REPLACE;
 
-            mVertexData = new VertexData(4);
-            mVertexData.setTexCoords(0, 0, 0);
-            mVertexData.setTexCoords(1, 1, 0);
-            mVertexData.setTexCoords(2, 0, 1);
-            mVertexData.setTexCoords(3, 1, 1);
+            mVertexData = new VertexData("position(float2), texCoords(float2)", 4);
+            mVertexData.setPoint(0, "texCoords", 0, 0);
+            mVertexData.setPoint(1, "texCoords", 1, 0);
+            mVertexData.setPoint(2, "texCoords", 0, 1);
+            mVertexData.setPoint(3, "texCoords", 1, 1);
             
             mIndexData = new <uint>[0, 1, 2, 1, 3, 2];
             mIndexData.fixed = true;
@@ -273,9 +273,9 @@ package starling.filters
             RenderSupport.setBlendFactors(PMA);
             support.loadIdentity();  // now we'll draw in stage coordinates!
 
-            context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
+            context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, mVertexData.getOffsetIn32Bits("position"),
                                       Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, VertexData.TEXCOORD_OFFSET,
+            context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, mVertexData.getOffsetIn32Bits("texCoords"),
                                       Context3DVertexBufferFormat.FLOAT_2);
             
             // draw all passes
@@ -360,14 +360,14 @@ package starling.filters
         
         private function updateBuffers(context:Context3D, bounds:Rectangle):void
         {
-            mVertexData.setPosition(0, bounds.x, bounds.y);
-            mVertexData.setPosition(1, bounds.right, bounds.y);
-            mVertexData.setPosition(2, bounds.x, bounds.bottom);
-            mVertexData.setPosition(3, bounds.right, bounds.bottom);
+            mVertexData.setPoint(0, "position", bounds.x, bounds.y);
+            mVertexData.setPoint(1, "position", bounds.right, bounds.y);
+            mVertexData.setPoint(2, "position", bounds.x, bounds.bottom);
+            mVertexData.setPoint(3, "position", bounds.right, bounds.bottom);
             
             if (mVertexBuffer == null)
             {
-                mVertexBuffer = context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
+                mVertexBuffer = context.createVertexBuffer(4, mVertexData.vertexSizeIn32Bits);
                 mIndexBuffer  = context.createIndexBuffer(6);
                 mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
             }

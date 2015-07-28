@@ -38,7 +38,7 @@ package starling.display
     public class Quad extends DisplayObject
     {
         private var mTinted:Boolean;
-        
+
         /** The raw vertex data of the quad. */
         protected var mVertexData:VertexData;
         
@@ -58,14 +58,15 @@ package starling.display
                 throw new ArgumentError("Invalid size: width and height must not be zero");
 
             mTinted = color != 0xffffff;
-            
-            mVertexData = new VertexData(4, premultipliedAlpha);
-            mVertexData.setPosition(0, 0.0, 0.0);
-            mVertexData.setPosition(1, width, 0.0);
-            mVertexData.setPosition(2, 0.0, height);
-            mVertexData.setPosition(3, width, height);
-            mVertexData.setUniformColor(color);
-            
+
+            mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)", 4);
+            mVertexData.setPremultipliedAlpha("color", premultipliedAlpha, false);
+            mVertexData.setUniformColorAndAlpha("color", color, 1.0);
+            mVertexData.setPoint(0, "position", 0.0, 0.0);
+            mVertexData.setPoint(1, "position", width, 0.0);
+            mVertexData.setPoint(2, "position", 0.0, height);
+            mVertexData.setPoint(3, "position", width, height);
+
             onVertexDataChanged();
         }
         
@@ -76,86 +77,86 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            if (resultRect == null) resultRect = new Rectangle();
+            if (out == null) out = new Rectangle();
             
             if (targetSpace == this) // optimization
             {
-                mVertexData.getPosition(3, sHelperPoint);
-                resultRect.setTo(0.0, 0.0, sHelperPoint.x, sHelperPoint.y);
+                mVertexData.getPoint(3, "position", sHelperPoint);
+                out.setTo(0.0, 0.0, sHelperPoint.x, sHelperPoint.y);
             }
             else if (targetSpace == parent && rotation == 0.0) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
-                mVertexData.getPosition(3, sHelperPoint);
-                resultRect.setTo(x - pivotX * scaleX,      y - pivotY * scaleY,
-                                 sHelperPoint.x * scaleX, sHelperPoint.y * scaleY);
-                if (scaleX < 0) { resultRect.width  *= -1; resultRect.x -= resultRect.width;  }
-                if (scaleY < 0) { resultRect.height *= -1; resultRect.y -= resultRect.height; }
+                mVertexData.getPoint(3, "position", sHelperPoint);
+                out.setTo(x - pivotX * scaleX, y - pivotY * scaleY,
+                          sHelperPoint.x * scaleX, sHelperPoint.y * scaleY);
+                if (scaleX < 0) { out.width  *= -1; out.x -= out.width;  }
+                if (scaleY < 0) { out.height *= -1; out.y -= out.height; }
             }
             else if (is3D && stage)
             {
                 stage.getCameraPosition(targetSpace, sHelperPoint3D);
                 getTransformationMatrix3D(targetSpace, sHelperMatrix3D);
-                mVertexData.getBoundsProjected(sHelperMatrix3D, sHelperPoint3D, 0, 4, resultRect);
+                mVertexData.getBoundsProjected("position", sHelperMatrix3D, sHelperPoint3D, 0, 4, out);
             }
             else
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
-                mVertexData.getBounds(sHelperMatrix, 0, 4, resultRect);
+                mVertexData.getBounds("position", sHelperMatrix, 0, 4, out);
             }
             
-            return resultRect;
+            return out;
         }
         
         /** Returns the color of a vertex at a certain index. */
         public function getVertexColor(vertexID:int):uint
         {
-            return mVertexData.getColor(vertexID);
+            return mVertexData.getColor(vertexID, "color");
         }
         
         /** Sets the color of a vertex at a certain index. */
         public function setVertexColor(vertexID:int, color:uint):void
         {
-            mVertexData.setColor(vertexID, color);
+            mVertexData.setColor(vertexID, "color", color);
             onVertexDataChanged();
-            
+
             if (color != 0xffffff) mTinted = true;
-            else mTinted = mVertexData.tinted;
+            else mTinted = mVertexData.isTinted();
         }
         
         /** Returns the alpha value of a vertex at a certain index. */
         public function getVertexAlpha(vertexID:int):Number
         {
-            return mVertexData.getAlpha(vertexID);
+            return mVertexData.getAlpha(vertexID, "color");
         }
         
         /** Sets the alpha value of a vertex at a certain index. */
         public function setVertexAlpha(vertexID:int, alpha:Number):void
         {
-            mVertexData.setAlpha(vertexID, alpha);
+            mVertexData.setAlpha(vertexID, "color", alpha);
             onVertexDataChanged();
-            
+
             if (alpha != 1.0) mTinted = true;
-            else mTinted = mVertexData.tinted;
+            else mTinted = mVertexData.isTinted();
         }
         
         /** Returns the color of the quad, or of vertex 0 if vertices have different colors. */
         public function get color():uint 
         { 
-            return mVertexData.getColor(0); 
+            return mVertexData.getColor(0, "color");
         }
         
         /** Sets the colors of all vertices to a certain value. */
         public function set color(value:uint):void 
         {
-            mVertexData.setUniformColor(value);
+            mVertexData.setUniformColorAndAlpha("color", value, 1.0);
             onVertexDataChanged();
-            
+
             if (value != 0xffffff || alpha != 1.0) mTinted = true;
-            else mTinted = mVertexData.tinted;
+            else mTinted = mVertexData.isTinted();
         }
         
         /** @inheritDoc **/
@@ -164,7 +165,7 @@ package starling.display
             super.alpha = value;
             
             if (value < 1.0) mTinted = true;
-            else mTinted = mVertexData.tinted;
+            else mTinted = mVertexData.isTinted();
         }
         
         /** Copies the raw vertex data to a VertexData instance. */
@@ -178,7 +179,7 @@ package starling.display
         public function copyVertexDataTransformedTo(targetData:VertexData, targetVertexID:int=0,
                                                     matrix:Matrix=null):void
         {
-            mVertexData.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
+            mVertexData.copyToTransformed(targetData, targetVertexID, matrix);
         }
         
         /** @inheritDoc */
@@ -191,7 +192,10 @@ package starling.display
         public function get tinted():Boolean { return mTinted; }
         
         /** Indicates if the rgb values are stored premultiplied with the alpha value; this can
-         *  affect the rendering. (Most developers don't have to care, though.) */
-        public function get premultipliedAlpha():Boolean { return mVertexData.premultipliedAlpha; }
+         *  affect the rendering. (Most of the time, you don't have to care, though.) */
+        public function get premultipliedAlpha():Boolean
+        {
+            return mVertexData.getPremultipliedAlpha();
+        }
     }
 }

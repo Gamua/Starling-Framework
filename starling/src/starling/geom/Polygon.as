@@ -246,8 +246,8 @@ package starling.geom
                 target.numVertices = requiredTargetLength;
 
             copyToByteArray(target.rawData,
-                targetIndex * VertexData.BYTES_PER_VERTEX,
-                VertexData.BYTES_PER_VERTEX - VertexData.BYTES_PER_ELEMENT * 2);
+                targetIndex * target.vertexSizeInBytes + target.getOffsetInBytes("position"),
+                target.vertexSizeInBytes - target.getSizeInBytes("position"));
         }
 
         public function copyToByteArray(target:ByteArray, targetPos:int=0, stride:int=0):void
