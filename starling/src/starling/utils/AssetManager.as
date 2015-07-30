@@ -231,6 +231,13 @@ package starling.utils
         {
             return mAtlases[name] as TextureAtlas;
         }
+
+        /** Returns all texture atlas names that start with a certain string, sorted alphabetically.
+         *  If you pass a result vector, the names will be added to that vector. */
+        public function getTextureAtlasNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        {
+            return getDictionaryKeys(mAtlases, prefix, result);
+        }
         
         /** Returns a sound with a certain name, or null if it's not found. */
         public function getSound(name:String):Sound
