@@ -375,7 +375,7 @@ package tests.utils
             matrix.translate(5, 6);
 
             var vd2:VertexData = new VertexData(format, 2);
-            vd1.copyToTransformed(vd2, 0, matrix, "pos");
+            vd1.copyToTransformed(vd2, 0, matrix);
 
             assertEquals(0xaabbcc, vd2.getColor(0, "color"));
             assertEquals(0x334455, vd2.getColor(1, "color"));
@@ -390,18 +390,18 @@ package tests.utils
         [Test]
         public function testCopyToTransformedWithDifferentFormats():void
         {
-            var format:String = "pos(float2), color(bytes4)";
+            var format:String = "color(bytes4), position(float2)";
             var vd1:VertexData = new VertexData(format, 2);
-            vd1.setPoint(0, "pos", 10, 20);
+            vd1.setPoint(0, "position", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
-            vd1.setPoint(1, "pos", 30, 40);
+            vd1.setPoint(1, "position", 30, 40);
             vd1.setColor(1, "color", 0x334455);
 
             var matrix:Matrix = new Matrix();
             matrix.translate(5, 6);
 
-            var vd2:VertexData = new VertexData("flavor(float1), pos(float2)", 2);
-            vd1.copyToTransformed(vd2, 0, matrix, "pos");
+            var vd2:VertexData = new VertexData("position(float2), flavor(float1)", 2);
+            vd1.copyToTransformed(vd2, 0, matrix);
 
             assertEquals(0.0, vd2.getFloat(0, "flavor"));
             assertEquals(0.0, vd2.getFloat(1, "flavor"));
@@ -409,8 +409,8 @@ package tests.utils
             var p1:Point = new Point(15, 26);
             var p2:Point = new Point(35, 46);
 
-            Helpers.comparePoints(p1, vd2.getPoint(0, "pos"));
-            Helpers.comparePoints(p2, vd2.getPoint(1, "pos"));
+            Helpers.comparePoints(p1, vd2.getPoint(0, "position"));
+            Helpers.comparePoints(p2, vd2.getPoint(1, "position"));
         }
 
         [Test]

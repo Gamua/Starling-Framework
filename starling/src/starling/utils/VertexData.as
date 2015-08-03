@@ -19,7 +19,6 @@ package starling.utils
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
-    import flash.utils.Dictionary;
     import flash.utils.Endian;
 
     import starling.core.Starling;
@@ -93,11 +92,17 @@ package starling.utils
 
         private var _rawData:ByteArray;
         private var _format:String;
-        private var _attributes:Dictionary;
+        private var _formatID:int;
+        private var _attributes:Vector.<Attribute>;
+        private var _numAttributes:int;
+        private var _posOffset:int;  // in bytes
         private var _vertexSize:int; // in bytes
         private var _numVertices:int;
 
-        /** Helper objects. */
+        // every format string has an integer index; that allows fast format comparison.
+        private static var sFormats:Vector.<String> = new <String>[];
+
+        // helper objects
         private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
 
@@ -145,8 +150,8 @@ package starling.utils
             var clone:VertexData = new VertexData(_format, _numVertices);
             clone.rawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
 
-            for (var attrName:String in _attributes)
-                clone._attributes.pma = _attributes.pma;
+            for (var i:int=0; i<_numAttributes; ++i)
+                clone._attributes[i].pma = _attributes[i].pma;
 
             return clone;
         }
@@ -163,14 +168,18 @@ package starling.utils
         public function copyTo(target:VertexData, targetVertexID:int=0,
                                vertexID:int=0, numVertices:int=-1):void
         {
-            copyToTransformed(target, targetVertexID, null, "position", vertexID, numVertices);
+            copyToTransformed(target, targetVertexID, null, vertexID, numVertices);
         }
 
         /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices')
          *  of this instance to another vertex data object, starting at a certain index.
-         *  At the same time, the attribute with the given name (which should point to a 2D Point)
-         *  is transformed via multiplication with a matrix. If the target is not big enough,
-         *  it will be resized to fit all the new vertices.
+         *  At the same time, the 2D position of each vertex will be transformed via a matrix-
+         *  multiplication. If the target is not big enough, it will be resized to fit all the
+         *  new vertices.
+         *
+         *  <p>The position of a vertex is either an attribute with the name "position", or (if
+         *  such an attribute is not found) the first attribute of each vertex. It must consist
+         *  of two float values containing the x- and y-coordinates of the vertex.</p>
          *
          *  <p>Source and target do not need to have the exact same format. Only properties that
          *  exist in the target will be copied; others will be ignored. If a property with the
@@ -178,13 +187,12 @@ package starling.utils
          *  Copying will be fastest, though, if the two formats are identical.</p>
          */
         public function copyToTransformed(target:VertexData, targetVertexID:int, matrix:Matrix,
-                                          attrName:String="position", vertexID:int=0,
-                                          numVertices:int=-1):void
+                                          vertexID:int=0, numVertices:int=-1):void
         {
             if (numVertices < 0 || vertexID + numVertices > _numVertices)
                 numVertices = _numVertices - vertexID;
 
-            if (target._format == _format)
+            if (_formatID == target._formatID)
             {
                 if (target._numVertices < targetVertexID + numVertices)
                     target._numVertices = targetVertexID + numVertices;
@@ -197,23 +205,44 @@ package starling.utils
                 targetRawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
 
                 if (matrix)
-                    target.transformPoints(attrName, matrix, targetVertexID, numVertices);
+                {
+                    var x:Number, y:Number;
+                    var position:int = targetVertexID * _vertexSize + _posOffset;
+                    var endPosition:int = position + (numVertices * _vertexSize);
+
+                    while (position < endPosition)
+                    {
+                        targetRawData.position = position;
+                        x = targetRawData.readFloat();
+                        y = targetRawData.readFloat();
+
+                        targetRawData.position = position;
+                        targetRawData.writeFloat(matrix.a * x + matrix.c * y + matrix.tx);
+                        targetRawData.writeFloat(matrix.d * y + matrix.b * x + matrix.ty);
+
+                        position += _vertexSize;
+                    }
+                }
             }
             else
             {
                 if (target._numVertices < targetVertexID + numVertices)
                     target.numVertices  = targetVertexID + numVertices; // ensure correct alphas!
 
-                for (var name:String in _attributes)
+                for (var i:int=0; i<_numAttributes; ++i)
                 {
+                    var srcAttr:Attribute = _attributes[i];
+                    var tgtAttr:Attribute = target.getAttribute(srcAttr.name);
+
                     // only copy attributes that exist in the target, as well
-                    if (name in target._attributes)
+                    if (tgtAttr)
                     {
-                        if (name == attrName)
-                            copyAttributeToTransformed(target, targetVertexID, matrix, name,
+                        if (tgtAttr.offset == target._posOffset) // faster than string compare
+                            copyAttributeToTransformed(target, targetVertexID, matrix, srcAttr.name,
                                     vertexID, numVertices);
                         else
-                            copyAttributeTo(target, targetVertexID, name, vertexID, numVertices);
+                            copyAttributeToTransformed(target, targetVertexID, null, srcAttr.name,
+                                    vertexID, numVertices);
                     }
                 }
             }
@@ -231,7 +260,7 @@ package starling.utils
 
         /** Copies a specific attribute of a range of vertices to another VertexData instance.
          *  Beware that both name and format must be identical in the target VertexData object.
-         *  At the same time, the attribute (which should point to a 2D Point) is transformed
+         *  At the same time, a specific attribute (which should point to a 2D Point) is transformed
          *  via multiplication with a matrix. If the target is not big enough, it will be resized
          *  to fit all the new vertices.
          */
@@ -239,13 +268,16 @@ package starling.utils
                                                    matrix:Matrix, attrName:String="position",
                                                    vertexID:int=0, numVertices:int=-1):void
         {
-            if (!(attrName in _attributes))
-                throw new ArgumentError("Attribute '" + attrName + "' not found in source");
+            var sourceAttribute:Attribute = getAttribute(attrName);
+            var targetAttribute:Attribute = target.getAttribute(attrName);
 
-            if (!(attrName in target._attributes))
-                throw new ArgumentError("Attribute '" + attrName + "' not found in target");
+            if (sourceAttribute == null)
+                throw new ArgumentError("Attribute '" + attrName + "' not found in source data");
 
-            if (_attributes[attrName].format != target._attributes[attrName].format)
+            if (targetAttribute == null)
+                throw new ArgumentError("Attribute '" + attrName + "' not found in target data");
+
+            if (sourceAttribute.format != targetAttribute.format)
                 throw new IllegalOperationError("Attribute formats differ between source and target");
 
             if (numVertices < 0 || vertexID + numVertices > _numVertices)
@@ -257,8 +289,6 @@ package starling.utils
             var i:int, j:int, x:Number, y:Number;
             var sourceData:ByteArray = _rawData;
             var targetData:ByteArray = target._rawData;
-            var sourceAttribute:Attribute = _attributes[attrName];
-            var targetAttribute:Attribute = target._attributes[attrName];
             var sourceDelta:int = _vertexSize - sourceAttribute.size;
             var targetDelta:int = target._vertexSize - targetAttribute.size;
             var attributeSizeIn32Bits:int = sourceAttribute.size / 4;
@@ -381,7 +411,7 @@ package starling.utils
         /** Reads an RGB color from the specified vertex and attribute (no alpha). */
         public function getColor(vertexID:int, attrName:String="color"):uint
         {
-            var attribute:Attribute = _attributes[attrName];
+            var attribute:Attribute = getAttribute(attrName);
             _rawData.position = vertexID * _vertexSize + attribute.offset;
             var rgba:uint = switchEndian(_rawData.readUnsignedInt());
             if (attribute.pma) rgba = unmultiplyAlpha(rgba);
@@ -398,7 +428,7 @@ package starling.utils
         /** Reads the alpha value from the specified vertex and attribute. */
         public function getAlpha(vertexID:int, attrName:String="color"):Number
         {
-            _rawData.position = vertexID * _vertexSize + _attributes[attrName].offset;
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             var rgba:uint = switchEndian(_rawData.readUnsignedInt());
             return (rgba & 0xff) / 255.0;
         }
@@ -413,7 +443,7 @@ package starling.utils
         /** Writes the given RGB and alpha values to the specified vertex and attribute. */
         public function setColorAndAlpha(vertexID:int, attrName:String, color:uint, alpha:Number):void
         {
-            var attribute:Attribute = _attributes[attrName];
+            var attribute:Attribute = getAttribute(attrName);
             var minAlpha:Number = attribute.pma ? 5.0 / 255.0 : 0.0;
 
             if (alpha < minAlpha) alpha = minAlpha;
@@ -445,7 +475,7 @@ package starling.utils
                 numVertices = _numVertices - vertexID;
 
             var i:int;
-            var attribute:Attribute = _attributes[attrName];
+            var attribute:Attribute = getAttribute(attrName);
 
             if (attribute.pma)
             {
@@ -490,7 +520,7 @@ package starling.utils
             }
             else
             {
-                var attribute:Attribute = _attributes[attrName];
+                var attribute:Attribute = getAttribute(attrName);
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
                 var offset:int = vertexID * _vertexSize + attribute.offset;
@@ -564,7 +594,7 @@ package starling.utils
             }
             else
             {
-                var attribute:Attribute = _attributes[attrName];
+                var attribute:Attribute = getAttribute(attrName);
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
                 var offset:int = vertexID * _vertexSize + attribute.offset;
@@ -608,14 +638,14 @@ package starling.utils
          *  the alpha value. */
         public function getPremultipliedAlpha(attrName:String="color"):Boolean
         {
-            return _attributes[attrName].pma;
+            return getAttribute(attrName).pma;
         }
 
         /** Changes the way alpha and color values are stored. Optionally updates all existing
          *  vertices. */
         public function setPremultipliedAlpha(attrName:String, value:Boolean=true, updateData:Boolean=true):void
         {
-            var attribute:Attribute = _attributes[attrName];
+            var attribute:Attribute = getAttribute(attrName);
 
             if (updateData && value != attribute.pma)
             {
@@ -666,7 +696,7 @@ package starling.utils
                 numVertices = _numVertices - vertexID;
 
             var x:Number, y:Number;
-            var attribute:Attribute = _attributes[attrName];
+            var attribute:Attribute = getAttribute(attrName);
             var position:int = vertexID * _vertexSize + attribute.offset;
             var endPosition:int = position + (numVertices * _vertexSize);
 
@@ -688,7 +718,7 @@ package starling.utils
         public function translatePoint(vertexID:int, attrName:String, deltaX:Number, deltaY:Number):void
         {
             var x:Number, y:Number;
-            var position:int = vertexID * _vertexSize + _attributes[attrName].offset;
+            var position:int = vertexID * _vertexSize + getAttribute(attrName).offset;
 
             _rawData.position = position;
             x = _rawData.readFloat();
@@ -703,37 +733,37 @@ package starling.utils
           * Typical values: <code>float1, float2, float3, float4, bytes4</code>. */
         public function getFormat(attrName:String):String
         {
-            return _attributes[attrName].format;
+            return getAttribute(attrName).format;
         }
 
         /** Returns the size of a certain vertex attribute in bytes. */
         public function getSizeInBytes(attrName:String):int
         {
-            return _attributes[attrName].size;
+            return getAttribute(attrName).size;
         }
 
         /** Returns the size of a certain vertex attribute in 32 bit units. */
         public function getSizeIn32Bits(attrName:String):int
         {
-            return _attributes[attrName].size / 4;
+            return getAttribute(attrName).size / 4;
         }
 
         /** Returns the offset (in bytes) of an attribute within a vertex. */
         public function getOffsetInBytes(attrName:String):int
         {
-            return _attributes[attrName].offset;
+            return getAttribute(attrName).offset;
         }
 
         /** Returns the offset (in 32 bit units) of an attribute within a vertex. */
         public function getOffsetIn32Bits(attrName:String):int
         {
-            return _attributes[attrName].offset / 4;
+            return getAttribute(attrName).offset / 4;
         }
 
         /** Indicates if the VertexData instances contains an attribute with the specified name. */
         public function hasAttribute(attrName:String):Boolean
         {
-            return attrName in _attributes;
+            return getAttribute(attrName) != null;
         }
 
         // VertexBuffer helpers
@@ -757,7 +787,7 @@ package starling.utils
          *  in the vertex shader. */
         public function setVertexBufferAttribute(buffer:VertexBuffer3D, index:int, attrName:String):void
         {
-            var attribute:Attribute = _attributes[attrName];
+            var attribute:Attribute = getAttribute(attrName);
 
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -781,7 +811,7 @@ package starling.utils
             if (format == null || format == "")
                 throw new ArgumentError("Format string must not be empty");
 
-            _attributes = new Dictionary();
+            _attributes = new <Attribute>[];
             _format = "";
 
             var i:int;
@@ -803,16 +833,41 @@ package starling.utils
                     throw new ArgumentError("Invalid attribute format: " + attrFormat + ". " +
                             "Typical values are 'float2' and 'bytes4'");
 
+                if (attrName == "position")
+                    _posOffset = offset;
+
                 var attrSize:int = ATTR_FORMAT_SIZES[attrFormat];
-                var attribute:Attribute = new Attribute(attrFormat, offset, attrSize);
+                var attribute:Attribute = new Attribute(attrName, attrFormat, offset, attrSize);
 
                 offset += attrSize;
 
                 _format += (i == 0 ? "" : ", ") + attrName + "(" + attrFormat + ")";
-                _attributes[attrName] = attribute;
+                _attributes[_attributes.length] = attribute; // avoid 'push'
             }
 
             _vertexSize = offset;
+            _numAttributes = _attributes.length;
+            _formatID = sFormats.indexOf(_format);
+
+            if (_formatID == -1)
+            {
+                _formatID = sFormats.length;
+                sFormats.push(_format);
+            }
+        }
+
+        [Inline]
+        private final function getAttribute(name:String):Attribute
+        {
+            var i:int, attribute:Attribute;
+
+            for (i=0; i<_numAttributes; ++i)
+            {
+                attribute = _attributes[i] as Attribute;
+                if (attribute.name == name) return attribute;
+            }
+
+            return null;
         }
 
         [Inline]
@@ -868,15 +923,18 @@ package starling.utils
         {
             _rawData.length = value * _vertexSize;
 
-            for (var attrName:String in _attributes)
+            for (var i:int=0; i<_numAttributes; ++i)
             {
+                var attribute:Attribute = _attributes[i] as Attribute;
+                var attrName:String = attribute.name;
+
                 // alpha values of all color-properties must be initialized with "1.0"
 
                 if (attrName.indexOf("color") != -1 || attrName.indexOf("Color") != -1)
                 {
-                    var offset:int = _attributes[attrName].offset + 3;
-                    for (var i:int=_numVertices; i<value; ++i)
-                        _rawData[i * _vertexSize + offset] = 0xff;
+                    var offset:int = attribute.offset + 3;
+                    for (var j:int=_numVertices; j<value; ++j)
+                        _rawData[j * _vertexSize + offset] = 0xff;
                 }
             }
 
@@ -911,13 +969,15 @@ package starling.utils
 
 class Attribute
 {
+    public var name:String;
     public var format:String;
     public var offset:int; // in bytes
     public var size:int;   // in bytes
     public var pma:Boolean;
 
-    public function Attribute(format:String, offset:int, size:int, pma:Boolean=false)
+    public function Attribute(name:String, format:String, offset:int, size:int, pma:Boolean=false)
     {
+        this.name = name;
         this.format = format;
         this.offset = offset;
         this.size = size;

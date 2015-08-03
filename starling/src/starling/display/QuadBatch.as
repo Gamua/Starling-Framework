@@ -339,10 +339,10 @@ package starling.display
             }
             
             quadBatch.mVertexData.copyToTransformed(mVertexData, vertexID, modelViewMatrix,
-                                                    "position", 0, numQuads*4);
+                                                    0, numQuads * 4);
             
             if (alpha != 1.0)
-                mVertexData.scaleAlphas("color", alpha, vertexID, numQuads*4);
+                mVertexData.scaleAlphas("color", alpha, vertexID, numQuads * 4);
             
             mSyncRequired = true;
             mNumQuads += numQuads;
