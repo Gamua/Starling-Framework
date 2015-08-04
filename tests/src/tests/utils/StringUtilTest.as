@@ -22,5 +22,32 @@ package tests.utils
         {
             assertEquals("a", StringUtil.clean("a"));
         }
+
+        [Test]
+        public function testTrimStart():void
+        {
+            assertEquals("hugo ", StringUtil.trimStart("   hugo "));
+            assertEquals("hugo ", StringUtil.trimStart("\n hugo "));
+            assertEquals("hugo ", StringUtil.trimStart("\r hugo "));
+            assertEquals("", StringUtil.trimStart("\r\n "));
+        }
+
+        [Test]
+        public function testTrimEnd():void
+        {
+            assertEquals(" hugo", StringUtil.trimEnd(" hugo   "));
+            assertEquals(" hugo", StringUtil.trimEnd(" hugo\n "));
+            assertEquals(" hugo", StringUtil.trimEnd(" hugo\r "));
+            assertEquals("", StringUtil.trimEnd("\r\n "));
+        }
+
+        [Test]
+        public function testTrim():void
+        {
+            assertEquals("hugo", StringUtil.trim("   hugo   "));
+            assertEquals("hugo", StringUtil.trim(" \nhugo\r "));
+            assertEquals("hugo", StringUtil.trim(" \nhugo\r "));
+            assertEquals("", StringUtil.trim(" \r \n "));
+        }
     }
 }

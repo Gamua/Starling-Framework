@@ -34,13 +34,62 @@ package starling.utils
          *  with a single character to save memory. Find more information about this AS3 oddity
          *  <a href="http://jacksondunstan.com/articles/2260">here</a>.
          *
-         *  @param  str String to clean
+         *  @param  string The String to clean
          *  @return The input string, but with a master string only one character larger than it.
          *  @author Jackson Dunstan, JacksonDunstan.com
          */
-        public static function clean(str:String):String
+        public static function clean(string:String):String
         {
-            return ("_" + str).substr(1);
+            return ("_" + string).substr(1);
+        }
+
+        /** Removes all leading white-space and control characters from the given String.
+         *
+         *  <p>Beware: this method does not make a proper Unicode white-space check,
+         *  but simply trims all character codes of '0x20' or below.</p>
+         */
+        public static function trimStart(string:String):String
+        {
+            var pos:int;
+            var length:int = string.length;
+
+            for (pos = 0; pos < length; ++pos)
+                if (string.charCodeAt(pos) > 0x20) break;
+
+            return string.substring(pos, length);
+        }
+
+        /** Removes all trailing white-space and control characters from the given String.
+         *
+         *  <p>Beware: this method does not make a proper Unicode white-space check,
+         *  but simply trims all character codes of '0x20' or below.</p>
+         */
+        public static function trimEnd(string:String):String
+        {
+            for (var pos:int = string.length - 1; pos >= 0; --pos)
+                if (string.charCodeAt(pos) > 0x20) break;
+
+            return string.substring(0, pos + 1);
+        }
+
+        /** Removes all leading and trailing white-space and control characters from the given
+         *  String.
+         *
+         *  <p>Beware: this method does not make a proper Unicode white-space check,
+         *  but simply trims all character codes of '0x20' or below.</p>
+         */
+        public static function trim(string:String):String
+        {
+            var startPos:int, endPos:int;
+            var length:int = string.length;
+
+            for (startPos = 0; startPos < length; ++startPos)
+                if (string.charCodeAt(startPos) > 0x20) break;
+
+            for (endPos = string.length - 1; endPos >= startPos; --endPos)
+                if (string.charCodeAt(endPos) > 0x20) break;
+
+            return string.substring(startPos, endPos + 1);
         }
     }
 }
