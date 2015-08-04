@@ -817,27 +817,33 @@ package starling.utils
             _attributes = new <Attribute>[];
             _format = "";
 
-            var i:int, attribute:Attribute, matches:Array;
             var parts:Array = format.split(",");
             var numParts:int = parts.length;
             var offset:int = 0;
 
-            for (i=0; i<numParts; ++i)
+            for (var i:int=0; i<numParts; ++i)
             {
-                matches = parts[i].match(ATTR_REGEX);
+                var attrDesc:String = parts[i];
+                var openBracketPos:int  = attrDesc.indexOf("(");
+                var closeBracketPos:int = attrDesc.indexOf(")");
 
-                if (matches.length != 3)
-                    throw new ArgumentError("Invalid format string: " + parts[i]);
+                if (openBracketPos == -1 || closeBracketPos == -1)
+                    throw new ArgumentError(("Missing parentheses: " + attrDesc));
 
-                attribute = new Attribute(matches[1], matches[2], offset);
+                var attrName:String = StringUtil.trim(attrDesc.substring(0, openBracketPos));
+                var attrFormat:String = StringUtil.trim(attrDesc.substring(openBracketPos + 1, closeBracketPos));
 
-                if (attribute.name == "position")
+                if (attrName.length == 0 || attrFormat.length == 0)
+                    throw new ArgumentError(("Invalid format string: " + attrDesc));
+
+                if (attrName == "position")
                     _posOffset = offset;
 
-                offset += attribute.size;
+                var attr:Attribute = new Attribute(attrName, attrFormat, offset);
+                offset += attr.size;
 
-                _format += (i == 0 ? "" : ", ") + attribute.name + "(" + attribute.format + ")";
-                _attributes[_attributes.length] = attribute; // avoid 'push'
+                _format += (i == 0 ? "" : ", ") + attr.name + "(" + attr.format + ")";
+                _attributes[_attributes.length] = attr; // avoid 'push'
             }
 
             _vertexSize = offset;
