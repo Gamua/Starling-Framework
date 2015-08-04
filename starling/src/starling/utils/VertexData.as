@@ -504,7 +504,7 @@ package starling.utils
          *  If you pass an 'out' Rectangle, the result will be stored in this rectangle
          *  instead of creating a new object. To use all vertices for the calculation, set
          *  'numVertices' to '-1'. */
-        public function getBounds(attrName:String="position", transformationMatrix:Matrix=null,
+        public function getBounds(attrName:String="position", matrix:Matrix=null,
                                   vertexID:int=0, numVertices:int=-1, out:Rectangle=null):Rectangle
         {
             if (out == null) out = new Rectangle();
@@ -513,11 +513,11 @@ package starling.utils
 
             if (numVertices == 0)
             {
-                if (transformationMatrix == null)
+                if (matrix == null)
                     out.setEmpty();
                 else
                 {
-                    MatrixUtil.transformCoords(transformationMatrix, 0, 0, sHelperPoint);
+                    MatrixUtil.transformCoords(matrix, 0, 0, sHelperPoint);
                     out.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
                 }
             }
@@ -529,7 +529,7 @@ package starling.utils
                 var offset:int = vertexID * _vertexSize + attribute.offset;
                 var x:Number, y:Number, i:int;
 
-                if (transformationMatrix == null)
+                if (matrix == null)
                 {
                     for (i=0; i<numVertices; ++i)
                     {
@@ -553,7 +553,7 @@ package starling.utils
                         y = _rawData.readFloat();
                         offset += _vertexSize;
 
-                        MatrixUtil.transformCoords(transformationMatrix, x, y, sHelperPoint);
+                        MatrixUtil.transformCoords(matrix, x, y, sHelperPoint);
 
                         if (minX > sHelperPoint.x) minX = sHelperPoint.x;
                         if (maxX < sHelperPoint.x) maxX = sHelperPoint.x;
@@ -576,7 +576,7 @@ package starling.utils
          *  <p>If you pass an 'out' Rectangle, the result will be stored in this rectangle
          *  instead of creating a new object. To use all vertices for the calculation, set
          *  'numVertices' to '-1'.</p> */
-        public function getBoundsProjected(attrName:String, transformationMatrix:Matrix3D,
+        public function getBoundsProjected(attrName:String, matrix:Matrix3D,
                                            camPos:Vector3D, vertexID:int=0, numVertices:int=-1,
                                            out:Rectangle=null):Rectangle
         {
@@ -587,8 +587,8 @@ package starling.utils
 
             if (numVertices == 0)
             {
-                if (transformationMatrix)
-                    MatrixUtil.transformCoords3D(transformationMatrix, 0, 0, 0, sHelperPoint3D);
+                if (matrix)
+                    MatrixUtil.transformCoords3D(matrix, 0, 0, 0, sHelperPoint3D);
                 else
                     sHelperPoint3D.setTo(0, 0, 0);
 
@@ -610,8 +610,8 @@ package starling.utils
                     y = _rawData.readFloat();
                     offset += _vertexSize;
 
-                    if (transformationMatrix)
-                        MatrixUtil.transformCoords3D(transformationMatrix, x, y, 0, sHelperPoint3D);
+                    if (matrix)
+                        MatrixUtil.transformCoords3D(matrix, x, y, 0, sHelperPoint3D);
                     else
                         sHelperPoint3D.setTo(x, y, 0);
 
