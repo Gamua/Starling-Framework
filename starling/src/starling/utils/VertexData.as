@@ -82,13 +82,7 @@ package starling.utils
     public class VertexData
     {
         private static const ATTR_REGEX:RegExp = /(\w+)\s*\(\s*(\w+)\s*\)/;
-        private static const ATTR_FORMAT_SIZES:Object = {
-            "bytes4": 4,
-            "float1": 4,
-            "float2": 8,
-            "float3": 12,
-            "float4": 16
-        };
+
 
         private var _rawData:ByteArray;
         private var _format:String;
@@ -184,7 +178,8 @@ package starling.utils
          *  <p>Source and target do not need to have the exact same format. Only properties that
          *  exist in the target will be copied; others will be ignored. If a property with the
          *  same name but a different format exists in the target, an exception will be raised.
-         *  Copying will be fastest, though, if the two formats are identical.</p>
+         *  Beware, though, that the copy-operation becomes much more expensive when the formats
+         *  differ.</p>
          */
         public function copyToTransformed(target:VertexData, targetVertexID:int, matrix:Matrix,
                                           vertexID:int=0, numVertices:int=-1):void
@@ -234,15 +229,14 @@ package starling.utils
                     var srcAttr:Attribute = _attributes[i];
                     var tgtAttr:Attribute = target.getAttribute(srcAttr.name);
 
-                    // only copy attributes that exist in the target, as well
-                    if (tgtAttr)
+                    if (tgtAttr) // only copy attributes that exist in the target, as well
                     {
-                        if (tgtAttr.offset == target._posOffset) // faster than string compare
-                            copyAttributeToTransformed(target, targetVertexID, matrix, srcAttr.name,
-                                    vertexID, numVertices);
+                        if (srcAttr.offset == _posOffset)
+                            copyAttributeToTransformed_internal(target, targetVertexID, matrix,
+                                    srcAttr, tgtAttr, vertexID, numVertices);
                         else
-                            copyAttributeToTransformed(target, targetVertexID, null, srcAttr.name,
-                                    vertexID, numVertices);
+                            copyAttributeToTransformed_internal(target, targetVertexID, null,
+                                    srcAttr, tgtAttr, vertexID, numVertices);
                     }
                 }
             }
@@ -277,6 +271,15 @@ package starling.utils
             if (targetAttribute == null)
                 throw new ArgumentError("Attribute '" + attrName + "' not found in target data");
 
+            copyAttributeToTransformed_internal(target, targetVertexID, matrix,
+                    sourceAttribute, targetAttribute, vertexID, numVertices);
+        }
+
+        private function copyAttributeToTransformed_internal(
+                target:VertexData, targetVertexID:int, matrix:Matrix,
+                sourceAttribute:Attribute, targetAttribute:Attribute,
+                vertexID:int, numVertices:int):void
+        {
             if (sourceAttribute.format != targetAttribute.format)
                 throw new IllegalOperationError("Attribute formats differ between source and target");
 
@@ -814,34 +817,26 @@ package starling.utils
             _attributes = new <Attribute>[];
             _format = "";
 
-            var i:int;
+            var i:int, attribute:Attribute, matches:Array;
             var parts:Array = format.split(",");
             var numParts:int = parts.length;
             var offset:int = 0;
 
             for (i=0; i<numParts; ++i)
             {
-                var matches:Array = parts[i].match(ATTR_REGEX);
+                matches = parts[i].match(ATTR_REGEX);
 
                 if (matches.length != 3)
                     throw new ArgumentError("Invalid format string: " + parts[i]);
 
-                var attrName:String  = matches[1];
-                var attrFormat:String = matches[2];
+                attribute = new Attribute(matches[1], matches[2], offset);
 
-                if (!(attrFormat in ATTR_FORMAT_SIZES))
-                    throw new ArgumentError("Invalid attribute format: " + attrFormat + ". " +
-                            "Typical values are 'float2' and 'bytes4'");
-
-                if (attrName == "position")
+                if (attribute.name == "position")
                     _posOffset = offset;
 
-                var attrSize:int = ATTR_FORMAT_SIZES[attrFormat];
-                var attribute:Attribute = new Attribute(attrName, attrFormat, offset, attrSize);
+                offset += attribute.size;
 
-                offset += attrSize;
-
-                _format += (i == 0 ? "" : ", ") + attrName + "(" + attrFormat + ")";
+                _format += (i == 0 ? "" : ", ") + attribute.name + "(" + attribute.format + ")";
                 _attributes[_attributes.length] = attribute; // avoid 'push'
             }
 
@@ -969,18 +964,31 @@ package starling.utils
 
 class Attribute
 {
+    private static const FORMAT_SIZES:Object = {
+        "bytes4": 4,
+        "float1": 4,
+        "float2": 8,
+        "float3": 12,
+        "float4": 16
+    };
+
     public var name:String;
     public var format:String;
     public var offset:int; // in bytes
     public var size:int;   // in bytes
     public var pma:Boolean;
 
-    public function Attribute(name:String, format:String, offset:int, size:int, pma:Boolean=false)
+    public function Attribute(name:String, format:String, offset:int, pma:Boolean=false)
     {
+        if (!(format in FORMAT_SIZES))
+            throw new ArgumentError(
+                    "Invalid attribute format: " + format + ". " +
+                    "Use one of the following: 'float1'-'float4', 'bytes4'");
+
         this.name = name;
         this.format = format;
         this.offset = offset;
-        this.size = size;
         this.pma = pma;
+        this.size = FORMAT_SIZES[format];
     }
 }
