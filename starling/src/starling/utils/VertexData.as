@@ -331,14 +331,14 @@ package starling.utils
         /** Reads a float value from the specified vertex and attribute. */
         public function getFloat(vertexID:int, attrName:String):Number
         {
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             return _rawData.readFloat();
         }
 
         /** Writes a float value to the specified vertex and attribute. */
         public function setFloat(vertexID:int, attrName:String, value:Number):void
         {
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(value);
         }
 
@@ -347,7 +347,7 @@ package starling.utils
         {
             if (out == null) out = new Point();
 
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             out.x = _rawData.readFloat();
             out.y = _rawData.readFloat();
 
@@ -357,7 +357,7 @@ package starling.utils
         /** Writes the given coordinates to the specified vertex and attribute. */
         public function setPoint(vertexID:int, attrName:String, x:Number, y:Number):void
         {
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
         }
@@ -368,7 +368,7 @@ package starling.utils
         {
             if (out == null) out = new Vector3D();
 
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             out.x = _rawData.readFloat();
             out.y = _rawData.readFloat();
             out.z = _rawData.readFloat();
@@ -379,7 +379,7 @@ package starling.utils
         /** Writes the given coordinates to the specified vertex and attribute. */
         public function setPoint3D(vertexID:int, attrName:String, x:Number, y:Number, z:Number):void
         {
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
             _rawData.writeFloat(z);
@@ -391,7 +391,7 @@ package starling.utils
         {
             if (out == null) out = new Vector3D();
 
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             out.x = _rawData.readFloat();
             out.y = _rawData.readFloat();
             out.z = _rawData.readFloat();
@@ -404,7 +404,7 @@ package starling.utils
         public function setPoint4D(vertexID:int, attrName:String,
                                    x:Number, y:Number, z:Number, w:Number=1.0):void
         {
-            _rawData.position = vertexID * _vertexSize + getOffsetInBytes(attrName);
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
             _rawData.writeFloat(z);
@@ -675,7 +675,7 @@ package starling.utils
         /** Indicates if any vertices have a non-white color or are not fully opaque. */
         public function isTinted(attrName:String="color"):Boolean
         {
-            var offset:int = getOffsetInBytes(attrName);
+            var offset:int = getAttribute(attrName).offset;
 
             for (var i:int=0; i<_numVertices; ++i)
             {
