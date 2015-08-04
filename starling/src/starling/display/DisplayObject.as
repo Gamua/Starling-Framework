@@ -313,8 +313,9 @@ package starling.display
                     sHelperMatrixAlt.invert();
                 }
 
-                MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, sHelperPoint);
-                return mMask.hitTest(sHelperPoint, true) != null;
+                var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
+                MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
+                return mMask.hitTest(helperPoint, true) != null;
             }
             else return true;
         }
