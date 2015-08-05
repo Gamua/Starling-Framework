@@ -84,6 +84,7 @@ package starling.display
             mEnabled = true;
             mUseHandCursor = true;
             mTextBounds = new Rectangle(0, 0, mBody.width, mBody.height);
+            mTriggerBounds = new Rectangle();
             
             mContents = new Sprite();
             mContents.addChild(mBody);
