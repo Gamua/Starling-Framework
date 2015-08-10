@@ -328,9 +328,9 @@ package starling.text
 
                                 // remove characters and add them again to next line
                                 var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
-                                var removeIndex:int = currentLine.length - numCharsToRemove;
-                                
-                                currentLine.splice(removeIndex, numCharsToRemove);
+
+                                for (var j:int=0; j<numCharsToRemove; ++j) // faster than 'splice'
+                                    currentLine.pop();
                                 
                                 if (currentLine.length == 0)
                                     break;
