@@ -253,8 +253,10 @@ package starling.text
          *  @param textFormat the default text format that's currently set on the text field.
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
-        
-        final protected function requiresRedraw():void 
+
+        /** Forces a redraw of the current contents right before the display object is rendered.
+         *  Useful especially in combination with the "formatText" method. */
+        protected final function requireRedraw():void
         {
         	mRequiresRedraw = true;
         }
