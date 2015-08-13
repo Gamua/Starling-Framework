@@ -253,6 +253,11 @@ package starling.text
          *  @param textFormat the default text format that's currently set on the text field.
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
+        
+        final protected function requiresRedraw():void 
+        {
+        	mRequiresRedraw = true;
+        }
 
         private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
         {
