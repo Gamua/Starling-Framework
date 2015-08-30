@@ -376,6 +376,8 @@ package starling.text
                 else             textField.text     = mText;
             }
         }
+		
+		static private const sBD:BitmapData = new BitmapData(1, 1, false);
         
         private function calculateFilterOffset(textField:flash.text.TextField,
                                                hAlign:String, vAlign:String):Point
@@ -388,33 +390,23 @@ package starling.text
                 var textWidth:Number  = textField.textWidth;
                 var textHeight:Number = textField.textHeight;
                 var bounds:Rectangle  = new Rectangle();
-                
-                for each (var filter:BitmapFilter in filters)
-                {
-                    var blurX:Number    = "blurX"    in filter ? filter["blurX"]    : 0;
-                    var blurY:Number    = "blurY"    in filter ? filter["blurY"]    : 0;
-                    var angleDeg:Number = "angle"    in filter ? filter["angle"]    : 0;
-                    var distance:Number = "distance" in filter ? filter["distance"] : 0;
-                    var angle:Number = deg2rad(angleDeg);
-                    var marginX:Number = blurX * 1.33; // that's an empirical value
-                    var marginY:Number = blurY * 1.33;
-                    var offsetX:Number  = Math.cos(angle) * distance - marginX / 2.0;
-                    var offsetY:Number  = Math.sin(angle) * distance - marginY / 2.0;
-                    var filterBounds:Rectangle = new Rectangle(
-                        offsetX, offsetY, textWidth + marginX, textHeight + marginY);
-                    
-                    bounds = bounds.union(filterBounds);
-                }
-                
-                if (hAlign == HAlign.LEFT && bounds.x < 0)
+				
+				for each (var filter:BitmapFilter in filters) {
+					var filterBounds:Rectangle = sBD.generateFilterRect( sBD.rect, filter );
+					bounds = bounds.union(filterBounds);
+				}
+				bounds.width -= 1;
+				bounds.height -= 1;
+				
+				if (hAlign == HAlign.LEFT && bounds.x < 0)
                     resultOffset.x = -bounds.x;
-                else if (hAlign == HAlign.RIGHT && bounds.y > 0)
-                    resultOffset.x = -(bounds.right - textWidth);
+                else if (hAlign == HAlign.RIGHT && bounds.right > 0)
+                    resultOffset.x = -bounds.right;
                 
                 if (vAlign == VAlign.TOP && bounds.y < 0)
                     resultOffset.y = -bounds.y;
-                else if (vAlign == VAlign.BOTTOM && bounds.y > 0)
-                    resultOffset.y = -(bounds.bottom - textHeight);
+                else if (vAlign == VAlign.BOTTOM && bounds.bottom > 0)
+                    resultOffset.y = -bounds.bottom;
             }
             
             return resultOffset;
