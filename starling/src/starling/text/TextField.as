@@ -305,15 +305,16 @@ package starling.text
                 sNativeTextField.embedFonts = false;
             
             formatText(sNativeTextField, textFormat);
+			
+			// if 'nativeFilters' are in use, the text field might grow beyond its bounds
+			var filterOffset:Rectangle = calculateFilterOffset(sNativeTextField);
             
             if (mAutoScale)
-                autoScaleNativeTextField(sNativeTextField);
+                autoScaleNativeTextField(sNativeTextField, filterOffset);
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
 			
-			// if 'nativeFilters' are in use, the text field might grow beyond its bounds
-			var filterOffset:Rectangle = calculateFilterOffset(sNativeTextField);
             if (isHorizontalAutoSize)
                 sNativeTextField.width = width = Math.ceil(textWidth + filterOffset.width + FLASH_TEXT_OFFSET * 2);
             if (isVerticalAutoSize)
@@ -380,11 +381,11 @@ package starling.text
             return bitmapData;
         }
         
-        private function autoScaleNativeTextField(textField:flash.text.TextField):void
+       private function autoScaleNativeTextField(textField:flash.text.TextField, filterOffset:Rectangle):void
         {
-            var size:Number   = Number(textField.defaultTextFormat.size);
-            var maxHeight:int = textField.height - 4;
-            var maxWidth:int  = textField.width  - 4;
+            var size:Number = Number(textField.defaultTextFormat.size);
+            var maxWidth:int  = textField.width  - FLASH_TEXT_OFFSET * 2 - filterOffset.width;
+            var maxHeight:int = textField.height - FLASH_TEXT_OFFSET * 2 - filterOffset.height;
             
             while (textField.textWidth > maxWidth || textField.textHeight > maxHeight)
             {
