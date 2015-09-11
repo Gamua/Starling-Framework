@@ -22,20 +22,23 @@ package starling.textures
         private var mOptimizeForRenderToTexture:Boolean = false;
         private var mOnReady:Function = null;
         private var mRepeat:Boolean = false;
+		private var mPremultipliedAlpha:Boolean;
         
         public function TextureOptions(scale:Number=1.0, mipMapping:Boolean=false, 
-                                       format:String="bgra", repeat:Boolean=false)
+                                       format:String="bgra", repeat:Boolean=false,
+									   premultipliedAlpha:Boolean=false)
         {
             mScale = scale;
             mFormat = format;
             mMipMapping = mipMapping;
             mRepeat = repeat;
+			mPremultipliedAlpha = premultipliedAlpha;
         }
         
         /** Creates a clone of the TextureOptions object with the exact same properties. */
         public function clone():TextureOptions
         {
-            var clone:TextureOptions = new TextureOptions(mScale, mMipMapping, mFormat, mRepeat);
+            var clone:TextureOptions = new TextureOptions(mScale, mMipMapping, mFormat, mRepeat, mPremultipliedAlpha);
             clone.mOptimizeForRenderToTexture = mOptimizeForRenderToTexture;
             clone.mOnReady = mOnReady;
             return clone;
@@ -48,26 +51,31 @@ package starling.textures
         {
             mScale = value > 0 ? value : Starling.contentScaleFactor;
         }
-        
+
         /** The <code>Context3DTextureFormat</code> of the underlying texture data. Only used
          *  for textures that are created from Bitmaps; the format of ATF files is set when they
          *  are created. */
         public function get format():String { return mFormat; }
         public function set format(value:String):void { mFormat = value; }
-        
+
         /** Indicates if the texture contains mip maps. */ 
         public function get mipMapping():Boolean { return mMipMapping; }
         public function set mipMapping(value:Boolean):void { mMipMapping = value; }
-        
+
         /** Indicates if the texture will be used as render target. */
         public function get optimizeForRenderToTexture():Boolean { return mOptimizeForRenderToTexture; }
         public function set optimizeForRenderToTexture(value:Boolean):void { mOptimizeForRenderToTexture = value; }
-     
+
         /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
          *  Note: this only works in textures with sidelengths that are powers of two and 
          *  that are not loaded from a texture atlas (i.e. no subtextures). @default false */
         public function get repeat():Boolean { return mRepeat; }
         public function set repeat(value:Boolean):void { mRepeat = value; }
+
+		/** Indicates if the texture has rbg premultiplied by alpha. Only used
+		 * for textures that are created from Atf; BitmapData are always premultiplied. */ 
+		public function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
+		public function set premultipliedAlpha(value:Boolean):void { mPremultipliedAlpha = value; }
 
         /** A callback that is used only for ATF textures; if it is set, the ATF data will be
          *  decoded asynchronously. The texture can only be used when the callback has been

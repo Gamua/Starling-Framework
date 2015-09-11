@@ -1267,7 +1267,12 @@ package starling.utils
          *  <code>Context3DTextureFormat</code> assigned to this property. @default "bgra" */
         public function get textureFormat():String { return mDefaultTextureOptions.format; }
         public function set textureFormat(value:String):void { mDefaultTextureOptions.format = value; }
-        
+
+		/** Textures that are created from ATF will be uploaded to the GPU will have the
+		 *  <code>premultipledAlpha</code> setting assigned here. @default "false" */
+		public function get premultipliedAlpha():Boolean { return mDefaultTextureOptions.premultipliedAlpha; }
+		public function set premultipliedAlpha(value:Boolean):void { mDefaultTextureOptions.premultipliedAlpha = value; }
+
         /** Specifies whether a check should be made for the existence of a URL policy file before
          *  loading an object from a remote server. More information about this topic can be found 
          *  in the 'flash.system.LoaderContext' documentation. @default false */
