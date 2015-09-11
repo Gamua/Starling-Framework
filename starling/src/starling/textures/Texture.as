@@ -161,7 +161,8 @@ package starling.textures
             else if (data is ByteArray)
             {
                 texture = fromAtfData(data as ByteArray,
-                    options.scale, options.mipMapping, options.onReady, options.repeat);
+                    options.scale, options.mipMapping, options.onReady, options.repeat,
+					options.premultipliedAlpha);
             }
             else
                 throw new ArgumentError("Unsupported 'data' type: " + getQualifiedClassName(data));
@@ -181,11 +182,12 @@ package starling.textures
          *  @param scale    the scale factor of the created texture.
          *  @param format   the context3D texture format to use. Ignored for ATF data.
          *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
+		 *  @param pma		the premultiplied alpha state of the texture. Only useful for ATF data.
          */
         public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
                                                  optimizeForRenderToTexture:Boolean=false,
                                                  scale:Number=1, format:String="bgra",
-                                                 repeat:Boolean=false):Texture
+                                                 repeat:Boolean=false, pma:Boolean=false):Texture
         {
             var texture:Texture;
             var asset:Object = new assetClass();
@@ -201,7 +203,8 @@ package starling.textures
             }
             else if (asset is ByteArray)
             {
-                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null, repeat);
+                texture = Texture.fromAtfData(asset as ByteArray, scale,
+										      mipMapping, null, repeat, pma);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadAtfData(new assetClass());
@@ -280,9 +283,15 @@ package starling.textures
          *
          *  <p>If the 'async' parameter contains a callback function, the texture is decoded
          *  asynchronously. It can only be used when the callback has been executed. This is the
-         *  expected function definition: <code>function(texture:Texture):void;</code></p> */
+         *  expected function definition: <code>function(texture:Texture):void;</code></p> 
+		 * 
+		 *	<p>To avoid issues when blending with ATF textures (see https://github.com/Gamua/Starling-Framework/issues/762),
+		 *  you can premultiply the RGB channels by the alpha channel of the source image before supplying it to the ATF converter
+		 *  and set the 'pma' parameter to true. Note that you can do let the AssetManager know if your ATF texture is premultiplied
+		 *  by setting premultipliedAlpha to true in your TextureOptions.</p>
+		 * */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true,
-                                           async:Function=null, repeat:Boolean=false):Texture
+                                           async:Function=null, repeat:Boolean=false, pma:Boolean=false):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -292,7 +301,7 @@ package starling.textures
                 atfData.width, atfData.height, atfData.format, false);
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format,
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1,
-                false, false, scale, repeat);
+                pma, false, scale, repeat);
 
             concreteTexture.uploadAtfData(data, 0, async);
             concreteTexture.onRestore = function():void
