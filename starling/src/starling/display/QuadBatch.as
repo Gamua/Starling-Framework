@@ -739,7 +739,7 @@ package starling.display
             
             if (mTexture)
                 programName = getImageProgramName(tinted, mTexture.mipMapping, 
-                    mTexture.repeat, mTexture.format, mSmoothing);
+                    mTexture.repeat, mTexture.format, mTexture.premultipliedAlpha, mSmoothing);
             
             var program:Program3D = target.getProgram(programName);
             
@@ -778,10 +778,25 @@ package starling.display
                     
                     fragmentShader = tinted ?
                         "tex ft1,  v1, fs0 <???> \n" + // sample texture 0
-                        "mul  oc, ft1,  v0       \n"   // multiply color with texel color
+							((!texture.premultipliedAlpha && Starling.current.convertToPMA) ?
+								"mul ft1, ft1, v0 \n" + // multiply color with texel color
+								"mul ft1.xyz, ft1.xyz, ft1.w \n" + // convert to pma
+								"mov oc, ft1 \n"
+								:
+								"mul oc, ft1, v0 \n" // multiply color with texel color
+							)
                         :
-                        "tex  oc,  v1, fs0 <???> \n";  // sample texture 0
+							((!texture.premultipliedAlpha && Starling.current.convertToPMA) ?
+								"tex  ft1,  v1, fs0 <???> \n" + // sample texture 0
+								"mul ft1.xyz, ft1.xyz, ft1.w \n" + // convert to pma
+								"mov oc, ft1 \n"
+								:
+								"tex  oc,  v1, fs0 <???> \n"  // sample texture 0
+							);
+                        
                     
+					
+					
                     fragmentShader = fragmentShader.replace("<???>",
                         RenderSupport.getTextureLookupFlags(
                             mTexture.format, mTexture.mipMapping, mTexture.repeat, smoothing));
@@ -796,7 +811,7 @@ package starling.display
         
         private static function getImageProgramName(tinted:Boolean, mipMap:Boolean=true, 
                                                     repeat:Boolean=false, format:String="bgra",
-                                                    smoothing:String="bilinear"):String
+													pma:Boolean=false, smoothing:String="bilinear"):String
         {
             var bitField:uint = 0;
             
@@ -813,6 +828,9 @@ package starling.display
                 bitField |= 1 << 5;
             else if (format == "compressedAlpha")
                 bitField |= 1 << 6;
+			
+			if (!pma && Starling.current.convertToPMA)
+				bitField |= 1 << (!pma ? 7 : 8);
             
             var name:String = sProgramNameCache[bitField];
             

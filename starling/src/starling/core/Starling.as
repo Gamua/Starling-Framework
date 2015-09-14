@@ -39,7 +39,7 @@ package starling.core
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
     import flash.utils.setTimeout;
-
+    
     import starling.animation.Juggler;
     import starling.display.DisplayObject;
     import starling.display.Stage;
@@ -211,6 +211,7 @@ package starling.core
         private var mStarted:Boolean;
         private var mRendering:Boolean;
         private var mSupportHighResolutions:Boolean;
+		private var mConvertToPMA:Boolean;
         
         private var mViewPort:Rectangle;
         private var mPreviousViewPort:Rectangle;
@@ -1086,7 +1087,21 @@ package starling.core
                 if (contextValid) updateViewPort(true);
             }
         }
-        
+		
+		/** Indicates that if a texture is not premultipliedAlpha (ie: ATF textures in particular), 
+		 *  Starling will convert it to pma in the fragment shader. Note that it will add a MUL op
+		 *  in the shader for each pixel of theses textures. Activating this flag will fix issues
+		 *  with theses textures for some blend modes (like additive blend mode).
+		 *  @default false */
+		public function get convertToPMA():Boolean { return mConvertToPMA; }
+		public function set convertToPMA(value:Boolean):void 
+		{
+			if (mConvertToPMA != value)
+			{
+				mConvertToPMA = value;
+			}
+		}
+		
         /** The TouchProcessor is passed all mouse and touch input and is responsible for
          *  dispatching TouchEvents to the Starling display tree. If you want to handle these
          *  types of input manually, pass your own custom subclass to this property. */

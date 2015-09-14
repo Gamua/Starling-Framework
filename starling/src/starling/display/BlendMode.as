@@ -12,6 +12,7 @@ package starling.display
 {
     import flash.display3D.Context3DBlendFactor;
     
+    import starling.core.Starling;
     import starling.errors.AbstractClassError;
     
     /** A class that provides constant values for visual blend mode effects. 
@@ -101,6 +102,9 @@ package starling.display
          *  value. Throws an ArgumentError if the mode does not exist. */
         public static function getBlendFactors(mode:String, premultipliedAlpha:Boolean=true):Array
         {
+			if ( Starling.current.convertToPMA )
+				premultipliedAlpha = true;
+			
             var modes:Object = sBlendFactors[int(premultipliedAlpha)];
             if (mode in modes) return modes[mode];
             else throw new ArgumentError("Invalid blend mode");
