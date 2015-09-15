@@ -81,9 +81,6 @@ package starling.utils
      */
     public class VertexData
     {
-        private static const ATTR_REGEX:RegExp = /(\w+)\s*\(\s*(\w+)\s*\)/;
-
-
         private var _rawData:ByteArray;
         private var _format:String;
         private var _formatID:int;
