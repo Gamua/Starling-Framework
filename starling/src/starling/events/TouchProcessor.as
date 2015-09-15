@@ -344,8 +344,8 @@ package starling.events
             return false;
         }
         
-        /** Indicates if it multitouch simulation should be activated. When the user presses
-         *  ctrl/cmd (and optionally shift), he'll see a second touch curser that mimics the first.
+        /** Indicates if multitouch simulation should be activated. When the user presses
+         *  ctrl/cmd (and optionally shift), he'll see a second touch cursor that mimics the first.
          *  That's an easy way to develop and test multitouch when there's only a mouse available.
          */
         public function get simulateMultitouch():Boolean { return mTouchMarker != null; }
