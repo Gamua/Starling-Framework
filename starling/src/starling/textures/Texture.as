@@ -147,7 +147,7 @@ package starling.textures
             
             if (asset is Bitmap)
             {
-                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, false, scale, format);
+                texture = Texture.fromBitmap(asset as Bitmap, mipMapping, optimizeForRenderToTexture, scale, format);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
