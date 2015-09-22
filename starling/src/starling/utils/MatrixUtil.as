@@ -68,7 +68,7 @@ package starling.utils
         /** Determines if the matrix is an identity matrix. */
         public static function isIdentity(matrix:Matrix):Boolean
         {
-            return matrix.a  == 1.0 && matrix.b  == 1.0 && matrix.c == 0.0 && matrix.d == 1.0 &&
+            return matrix.a  == 1.0 && matrix.b  == 0.0 && matrix.c == 0.0 && matrix.d == 1.0 &&
                    matrix.tx == 0.0 && matrix.ty == 0.0;
         }
 
