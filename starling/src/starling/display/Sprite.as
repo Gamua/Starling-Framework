@@ -14,8 +14,9 @@ package starling.display
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
-    import starling.core.RenderSupport;
+
+    import starling.core.Painter;
+    import starling.core.RenderState;
     import starling.events.Event;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
@@ -197,17 +198,19 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
+            var state:RenderState = painter.state;
+
             if (mClipRect)
             {
-                var clipRect:Rectangle = support.pushClipRect(getClipRect(stage, sHelperRect));
-                if (clipRect.isEmpty())
-                {
-                    // empty clipping bounds - no need to render children.
-                    support.popClipRect();
-                    return;
-                }
+                painter.pushState();
+
+                // TODO intersect clipping rectangles
+
+                var clipRect:Rectangle = getClipRect(stage, sHelperRect);
+                if (clipRect.isEmpty()) return;
+                else state.clipRect = clipRect;
             }
             
             if (mFlattenedContents || mFlattenRequested)
@@ -220,29 +223,29 @@ package starling.display
                     QuadBatch.compile(this, mFlattenedContents);
                     if (mFlattenOptimized) QuadBatch.optimize(mFlattenedContents);
 
-                    support.applyClipRect(); // compiling filters might change scissor rect. :-\
                     mFlattenRequested = false;
                 }
-                
-                var alpha:Number = parentAlpha * this.alpha;
+
+                var alpha:Number = state.alpha;
                 var numBatches:int = mFlattenedContents.length;
-                var mvpMatrix:Matrix3D = support.mvpMatrix3D;
+                var mvpMatrix:Matrix3D = state.mvpMatrix3D;
                 
-                support.finishQuadBatch();
-                support.raiseDrawCount(numBatches);
-                
+                painter.finishQuadBatch();
+                painter.drawCount += numBatches;
+
                 for (var i:int=0; i<numBatches; ++i)
                 {
                     var quadBatch:QuadBatch = mFlattenedContents[i];
                     var blendMode:String = quadBatch.blendMode == BlendMode.AUTO ?
-                        support.blendMode : quadBatch.blendMode;
+                         state.blendMode : quadBatch.blendMode;
+                    painter.prepareToDraw(quadBatch.premultipliedAlpha);
                     quadBatch.renderCustom(mvpMatrix, alpha, blendMode);
                 }
             }
-            else super.render(support, parentAlpha);
+            else super.render(painter);
             
             if (mClipRect)
-                support.popClipRect();
+                painter.popState();
         }
     }
 }

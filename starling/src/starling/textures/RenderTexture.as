@@ -16,7 +16,8 @@ package starling.textures
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
 
-    import starling.core.RenderSupport;
+    import starling.core.Painter;
+    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
@@ -70,8 +71,8 @@ package starling.textures
      */
     public class RenderTexture extends SubTexture
     {
-        private const CONTEXT_POT_SUPPORT_KEY:String = "RenderTexture.supportsNonPotDimensions";
-        private const PMA:Boolean = true;
+        private static const CONTEXT_POT_SUPPORT_KEY:String = "RenderTexture.supportsNonPotDimensions";
+        private static const PMA:Boolean = true;
         
         private var mActiveTexture:Texture;
         private var mBufferTexture:Texture;
@@ -79,8 +80,7 @@ package starling.textures
         private var mDrawing:Boolean;
         private var mBufferReady:Boolean;
         private var mIsPersistent:Boolean;
-        private var mSupport:RenderSupport;
-        
+
         /** helper object */
         private static var sClipRect:Rectangle = new Rectangle();
         
@@ -127,18 +127,12 @@ package starling.textures
 
             // [/Workaround]
 
+            mIsPersistent = persistent;
             mActiveTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format, repeat);
             mActiveTexture.root.onRestore = mActiveTexture.root.clear;
-            
+
             super(mActiveTexture, new Rectangle(0, 0, width, height), true, null, false);
-            
-            var rootWidth:Number  = mActiveTexture.root.width;
-            var rootHeight:Number = mActiveTexture.root.height;
-            
-            mIsPersistent = persistent;
-            mSupport = new RenderSupport();
-            mSupport.setProjectionMatrix(0, 0, rootWidth, rootHeight, width, height);
-            
+
             if (persistent && (!optimizePersistentBuffers || !SystemUtil.supportsRelaxedTargetClearRequirement))
             {
                 mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format, repeat);
@@ -151,7 +145,6 @@ package starling.textures
         /** @inheritDoc */
         public override function dispose():void
         {
-            mSupport.dispose();
             mActiveTexture.dispose();
             
             if (isDoubleBuffered)
@@ -200,28 +193,37 @@ package starling.textures
         
         private function render(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
         {
+            var painter:Painter = Starling.painter;
+            var state:RenderState = painter.state;
             var filter:FragmentFilter = object.filter;
             var mask:DisplayObject = object.mask;
 
-            mSupport.loadIdentity();
-            mSupport.blendMode = object.blendMode == BlendMode.AUTO ?
+            painter.pushState();
+
+            state.alpha *= alpha;
+            state.setModelviewMatricesToIdentity();
+            state.blendMode = object.blendMode == BlendMode.AUTO ?
                 BlendMode.NORMAL : object.blendMode;
 
-            if (matrix) mSupport.prependMatrix(matrix);
-            else        mSupport.transformMatrix(object);
+            if (matrix) state.transformModelviewMatrix(matrix);
+            else        state.transformModelviewMatrix(object.transformationMatrix);
 
-            if (mask)   mSupport.pushMask(mask);
+            if (mask)   painter.drawMask(mask);
 
-            if (filter) filter.render(object, mSupport, alpha);
-            else        object.render(mSupport, alpha);
+            if (filter) filter.render(object, painter);
+            else        object.render(painter);
 
-            if (mask)   mSupport.popMask();
+            if (mask)   painter.eraseMask(mask);
+
+            painter.popState();
         }
         
         private function renderBundled(renderBlock:Function, object:DisplayObject=null,
                                        matrix:Matrix=null, alpha:Number=1.0,
                                        antiAliasing:int=0):void
         {
+            var painter:Painter = Starling.painter;
+            var state:RenderState = painter.state;
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             if (!Starling.current.contextValid) return;
@@ -235,20 +237,24 @@ package starling.textures
                 mHelperImage.texture = mBufferTexture;
             }
 
-            var previousRenderTarget:Texture = mSupport.renderTarget;
-            
+            painter.pushState();
+
+            var rootTexture:Texture = mActiveTexture.root;
+            state.setProjectionMatrix(0, 0, rootTexture.width, rootTexture.height, width, height);
+
             // limit drawing to relevant area
             sClipRect.setTo(0, 0, mActiveTexture.width, mActiveTexture.height);
 
-            mSupport.pushClipRect(sClipRect);
-            mSupport.setRenderTarget(mActiveTexture, antiAliasing);
+            state.clipRect = sClipRect;
+            state.setRenderTarget(mActiveTexture, antiAliasing);
+            painter.prepareToDraw(PMA);
             
             if (isDoubleBuffered || !isPersistent || !mBufferReady)
-                mSupport.clear();
+                painter.clear();
 
             // draw buffer
             if (isDoubleBuffered && mBufferReady)
-                mHelperImage.render(mSupport, 1.0);
+                mHelperImage.render(painter);
             else
                 mBufferReady = true;
             
@@ -260,10 +266,8 @@ package starling.textures
             finally
             {
                 mDrawing = false;
-                mSupport.finishQuadBatch();
-                mSupport.nextFrame();
-                mSupport.renderTarget = previousRenderTarget;
-                mSupport.popClipRect();
+                painter.finishQuadBatch();
+                painter.popState();
             }
         }
         
@@ -272,11 +276,13 @@ package starling.textures
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             if (!Starling.current.contextValid) return;
-            var previousRenderTarget:Texture = mSupport.renderTarget;
 
-            mSupport.renderTarget = mActiveTexture;
-            mSupport.clear(rgb, alpha);
-            mSupport.renderTarget = previousRenderTarget;
+            var painter:Painter = Starling.painter;
+            painter.pushState();
+            painter.state.renderTarget = mActiveTexture;
+            painter.clear(rgb, alpha);
+            painter.popState();
+
             mBufferReady = true;
         }
         

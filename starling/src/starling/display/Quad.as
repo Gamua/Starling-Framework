@@ -15,10 +15,10 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
-    
-    import starling.core.RenderSupport;
+
+    import starling.core.Painter;
     import starling.utils.VertexData;
-    
+
     /** A Quad represents a rectangle with a uniform color or a color gradient.
      *  
      *  <p>You can set one color per vertex. The colors will smoothly fade into each other over the area
@@ -183,9 +183,9 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
-            support.batchQuad(this, parentAlpha);
+            painter.batchQuad(this);
         }
         
         /** Returns true if the quad (or any of its vertices) is non-white or non-opaque. */

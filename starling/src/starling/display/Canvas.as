@@ -12,14 +12,14 @@ package starling.display
 {
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
-    import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
-    import starling.core.RenderSupport;
+    import starling.core.Painter;
+    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.events.Event;
@@ -130,28 +130,27 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
             if (mIndexData.length == 0) return;
             if (mSyncRequired) syncBuffers();
 
-            support.finishQuadBatch();
-            support.raiseDrawCount();
-
-            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = 1.0;
-            sRenderAlpha[3] = parentAlpha * this.alpha;
-
+            var state:RenderState = painter.state;
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
 
-            // apply the current blend mode
-            support.applyBlendMode(false);
+            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = 1.0;
+            sRenderAlpha[3] = state.alpha;
+
+            painter.finishQuadBatch();
+            painter.drawCount += 1;
+            painter.prepareToDraw(false);
 
             mVertexData.setVertexBufferAttribute(mVertexBuffer, 0, "position");
             mVertexData.setVertexBufferAttribute(mVertexBuffer, 1, "color");
 
             context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, support.mvpMatrix3D, true);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, state.mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
             context.drawTriangles(mIndexBuffer, 0, mIndexData.length / 3);

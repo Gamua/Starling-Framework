@@ -11,7 +11,7 @@
 package starling.core
 {
     import flash.system.System;
-    
+
     import starling.display.BlendMode;
     import starling.display.Quad;
     import starling.display.Sprite;
@@ -21,7 +21,7 @@ package starling.core
     import starling.text.TextField;
     import starling.utils.HAlign;
     import starling.utils.VAlign;
-    
+
     /** A small, lightweight box that displays the current framerate, memory consumption and
      *  the number of draw calls per frame. The display is updated automatically once per frame. */
     internal class StatsDisplay extends Sprite
@@ -91,14 +91,14 @@ package starling.core
                             "\nDRW: " + (mTotalTime > 0 ? mDrawCount-2 : mDrawCount); // ignore self 
         }
         
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
-            // The display should always be rendered with two draw calls, so that we can
-            // always reduce the draw count by that number to get the number produced by the 
-            // actual content.
-            
-            support.finishQuadBatch();
-            super.render(support, parentAlpha);
+            // By calling "finishQuadBatch" here, we can make sure that the stats display is
+            // always rendered with exactly two draw calls. That is taken into account when showing
+            // the drawCount value (see 'ignore self' comment above)
+
+            painter.finishQuadBatch();
+            super.render(painter);
         }
         
         /** The number of Stage3D draw calls per second. */

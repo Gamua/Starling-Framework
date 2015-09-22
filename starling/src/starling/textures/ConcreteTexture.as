@@ -22,13 +22,13 @@ package starling.textures
     import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
 
-    import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.errors.MissingContextError;
     import starling.errors.NotSupportedError;
     import starling.events.Event;
     import starling.utils.Color;
+    import starling.utils.RenderUtil;
     import starling.utils.execute;
 
     use namespace starling_internal;
@@ -265,7 +265,7 @@ package starling.textures
             // FP 11.8 plugin/projector: calling clear on a compressed texture doesn't work there
             // (while it *does* work on iOS + Android).
             
-            try { RenderSupport.clear(color, alpha); }
+            try { RenderUtil.clear(color, alpha); }
             catch (e:Error) {}
             
             context.setRenderToBackBuffer();

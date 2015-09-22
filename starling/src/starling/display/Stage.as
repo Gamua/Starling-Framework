@@ -16,7 +16,8 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Vector3D;
     
-    import starling.core.RenderSupport;
+    import starling.core.Painter;
+    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
@@ -110,7 +111,7 @@ package starling.display
         /** Draws the complete stage into a BitmapData object.
          *
          *  <p>If you encounter problems with transparency, start Starling in BASELINE profile
-         *  (or higher). BASELINE_CONSTRAINED might not support transparency on all platforms.
+         *  (or higher). BASELINE_CONSTRAINED might not painter transparency on all platforms.
          *  </p>
          *
          *  @param destination  If you pass null, the object will be created for you.
@@ -123,7 +124,8 @@ package starling.display
         public function drawToBitmapData(destination:BitmapData=null,
                                          transparent:Boolean=true):BitmapData
         {
-            var support:RenderSupport = new RenderSupport();
+            var painter:Painter = new Painter();
+            var state:RenderState = painter.state;
             var star:Starling = Starling.current;
 
             if (destination == null)
@@ -133,15 +135,15 @@ package starling.display
                 destination = new BitmapData(width, height, transparent);
             }
             
-            support.renderTarget = null;
-            support.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, cameraPosition);
+            state.renderTarget = null;
+            state.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, cameraPosition);
             
-            if (transparent) support.clear();
-            else             support.clear(mColor, 1);
+            if (transparent) painter.clear();
+            else             painter.clear(mColor, 1);
             
-            render(support, 1.0);
-            support.finishQuadBatch();
-            support.dispose();
+            render(painter);
+            painter.finishQuadBatch();
+            painter.dispose();
             
             Starling.current.context.drawToBitmapData(destination);
             Starling.current.context.present(); // required on some platforms to avoid flickering

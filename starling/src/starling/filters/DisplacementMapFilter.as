@@ -14,17 +14,14 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DTextureFormat;
-    import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
-    import flash.utils.ByteArray;
-    import flash.utils.Endian;
 
-    import starling.core.RenderSupport;
     import starling.core.Starling;
     import starling.textures.Texture;
+    import starling.utils.RenderUtil;
     import starling.utils.StringUtil;
     import starling.utils.VertexData;
 
@@ -95,9 +92,9 @@ package starling.filters
             mMapTexCoordBuffer = mMapTexCoords.createVertexBuffer();
             
             var target:Starling = Starling.current;
-            var mapFlags:String = RenderSupport.getTextureLookupFlags(
+            var mapFlags:String = RenderUtil.getTextureLookupFlags(
                                       mapTexture.format, mapTexture.mipMapping, mapTexture.repeat);
-            var inputFlags:String = RenderSupport.getTextureLookupFlags(
+            var inputFlags:String = RenderUtil.getTextureLookupFlags(
                                         Context3DTextureFormat.BGRA, false, mRepeat);
             var programName:String = StringUtil.format("DMF_m{0}_i{1}", mapFlags, inputFlags);
             

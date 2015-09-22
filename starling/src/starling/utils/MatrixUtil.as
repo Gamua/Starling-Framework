@@ -20,10 +20,13 @@ package starling.utils
     /** A utility class containing methods related to the Matrix class. */
     public class MatrixUtil
     {
-        /** Helper objects. */
+        // helper objects
         private static var sRawData:Vector.<Number> =
             new <Number>[1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1];
         private static var sRawData2:Vector.<Number> = new Vector.<Number>(16, true);
+        private static var sPoint3D:Vector3D = new Vector3D();
+        private static var sMatrixData:Vector.<Number> =
+                new <Number>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         /** @private */
         public function MatrixUtil() { throw new AbstractClassError(); }
@@ -60,6 +63,25 @@ package starling.utils
             resultMatrix.ty = sRawData2[13];
 
             return resultMatrix;
+        }
+
+        /** Determines if the matrix is an identity matrix. */
+        public static function isIdentity(matrix:Matrix):Boolean
+        {
+            return matrix.a  == 1.0 && matrix.b  == 1.0 && matrix.c == 0.0 && matrix.d == 1.0 &&
+                   matrix.tx == 0.0 && matrix.ty == 0.0;
+        }
+
+        /** Determines if the 3D matrix is an identity matrix. */
+        public static function isIdentity3D(matrix:Matrix3D):Boolean
+        {
+            var data:Vector.<Number> = sRawData2;
+            matrix.copyRawDataTo(data);
+
+            return data[ 0] == 1.0 && data[ 1] == 0.0 && data[ 2] == 0.0 && data[ 3] == 0.0 &&
+                   data[ 4] == 0.0 && data[ 5] == 1.0 && data[ 6] == 0.0 && data[ 7] == 0.0 &&
+                   data[ 8] == 0.0 && data[ 9] == 0.0 && data[10] == 1.0 && data[11] == 0.0 &&
+                   data[12] == 0.0 && data[13] == 0.0 && data[14] == 0.0 && data[15] == 1.0;
         }
 
         public static function transformPoint(matrix:Matrix, point:Point,
@@ -185,6 +207,77 @@ package starling.utils
                          matrix.c * cosX - matrix.a * sinX,
                          matrix.d * cosX - matrix.b * sinX,
                          matrix.tx, matrix.ty);
+        }
+
+        /** Creates a perspective projection matrix suitable for 2D and 3D rendering.
+         *
+         *  <p>The first 4 parameters define which area of the stage you want to view (the camera
+         *  will 'zoom' to exactly this region). The final 3 parameters determine the perspective
+         *  in which you're looking at the stage.</p>
+         *
+         *  <p>The stage is always on the rectangle that is spawned up between x- and y-axis (with
+         *  the given size). All objects that are exactly on that rectangle (z equals zero) will be
+         *  rendered in their true size, without any distortion.</p>
+         *
+         *  <p>If you pass only the first 4 parameters, the camera will be set up above the center
+         *  of the stage, with a field of view of 1.0 rad.</p>
+         */
+        public static function createPerspectiveProjectionMatrix(
+                x:Number, y:Number, width:Number, height:Number,
+                stageWidth:Number=0, stageHeight:Number=0, cameraPos:Vector3D=null,
+                out:Matrix3D=null):Matrix3D
+        {
+            if (out == null) out = new Matrix3D();
+            if (stageWidth  <= 0) stageWidth = width;
+            if (stageHeight <= 0) stageHeight = height;
+            if (cameraPos == null)
+            {
+                cameraPos = sPoint3D;
+                cameraPos.setTo(
+                        stageWidth / 2, stageHeight / 2,   // -> center of stage
+                        stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
+            }
+
+            const focalLength:Number = Math.abs(cameraPos.z);
+            const offsetX:Number = cameraPos.x - stageWidth  / 2;
+            const offsetY:Number = cameraPos.y - stageHeight / 2;
+            const far:Number    = focalLength * 20;
+            const near:Number   = 1;
+            const scaleX:Number = stageWidth  / width;
+            const scaleY:Number = stageHeight / height;
+
+            // set up general perspective
+            sMatrixData[ 0] =  2 * focalLength / stageWidth;  // 0,0
+            sMatrixData[ 5] = -2 * focalLength / stageHeight; // 1,1  [negative to invert y-axis]
+            sMatrixData[10] =  far / (far - near);            // 2,2
+            sMatrixData[14] = -far * near / (far - near);     // 2,3
+            sMatrixData[11] =  1;                             // 3,2
+
+            // now zoom in to visible area
+            sMatrixData[0] *=  scaleX;
+            sMatrixData[5] *=  scaleY;
+            sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
+            sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
+
+            out.copyRawDataFrom(sMatrixData);
+            out.prependTranslation(
+                    -stageWidth /2.0 - offsetX,
+                    -stageHeight/2.0 - offsetY,
+                    focalLength);
+
+            return out;
+        }
+
+        /** Creates a orthographic projection matrix suitable for 2D rendering. */
+        public static function createOrthographicProjectionMatrix(
+                x:Number, y:Number, width:Number, height:Number, out:Matrix=null):Matrix
+        {
+            if (out == null) out = new Matrix();
+
+            out.setTo(2.0/width, 0, 0, -2.0/height,
+                    -(2*x + width) / width, (2*y + height) / height);
+
+            return out;
         }
     }
 }

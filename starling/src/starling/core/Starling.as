@@ -17,7 +17,6 @@ package starling.core
     import flash.display.StageScaleMode;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DCompareMode;
-    import flash.display3D.Context3DRenderMode;
     import flash.display3D.Context3DTriangleFace;
     import flash.display3D.Program3D;
     import flash.errors.IllegalOperationError;
@@ -48,6 +47,7 @@ package starling.core
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
     import starling.utils.HAlign;
+    import starling.utils.RenderUtil;
     import starling.utils.SystemUtil;
     import starling.utils.VAlign;
     import starling.utils.execute;
@@ -197,7 +197,7 @@ package starling.core
         private var mRootClass:Class;
         private var mRoot:DisplayObject;
         private var mJuggler:Juggler;
-        private var mSupport:RenderSupport;
+        private var mPainter:Painter;
         private var mTouchProcessor:TouchProcessor;
         private var mAntiAliasing:int;
         private var mSimulateMultitouch:Boolean;
@@ -217,7 +217,7 @@ package starling.core
         private var mClippedViewPort:Rectangle;
 
         private var mNativeStage:flash.display.Stage;
-        private var mNativeOverlay:flash.display.Sprite;
+        private var mNativeOverlay:Sprite;
         private var mNativeStageContentScaleFactor:Number;
 
         private static var sCurrent:Starling;
@@ -279,7 +279,7 @@ package starling.core
             mEnableErrorChecking = false;
             mSupportHighResolutions = false;
             mLastFrameTimestamp = getTimer() / 1000.0;
-            mSupport  = new RenderSupport();
+            mPainter = new Painter();
             
             // for context data, we actually reference by stage3D, since it survives a context loss
             sContextData[stage3D] = new Dictionary();
@@ -323,7 +323,7 @@ package starling.core
                           " in the application descriptor.");
 
                 mShareContext = false;
-                requestContext3D(stage3D, renderMode, profile);
+                RenderUtil.requestContext3D(stage3D, renderMode, profile);
             }
         }
         
@@ -347,7 +347,7 @@ package starling.core
                 mNativeStage.removeEventListener(touchEventType, onTouch, false);
             
             if (mStage) mStage.dispose();
-            if (mSupport) mSupport.dispose();
+            if (mPainter) mPainter.dispose();
             if (mTouchProcessor) mTouchProcessor.dispose();
             if (sCurrent == this) sCurrent = null;
             if (mContext && !mShareContext) 
@@ -362,70 +362,6 @@ package starling.core
         }
         
         // functions
-        
-        private function requestContext3D(stage3D:Stage3D, renderMode:String, profile:Object):void
-        {
-            var profiles:Array;
-            var currentProfile:String;
-            
-            if (profile == "auto")
-                profiles = ["standardExtended", "standard", "standardConstrained", "baselineExtended", "baseline", "baselineConstrained"];
-            else if (profile is String)
-                profiles = [profile as String];
-            else if (profile is Array)
-                profiles = profile as Array;
-            else
-                throw new ArgumentError("Profile must be of type 'String' or 'Array'");
-            
-            mStage3D.addEventListener(Event.CONTEXT3D_CREATE, onCreated, false, 100);
-            mStage3D.addEventListener(ErrorEvent.ERROR, onError, false, 100);
-            
-            requestNextProfile();
-            
-            function requestNextProfile():void
-            {
-                currentProfile = profiles.shift();
-
-                try { execute(mStage3D.requestContext3D, renderMode, currentProfile); }
-                catch (error:Error)
-                {
-                    if (profiles.length != 0) setTimeout(requestNextProfile, 1);
-                    else throw error;
-                }
-            }
-            
-            function onCreated(event:Event):void
-            {
-                var context:Context3D = stage3D.context3D;
-
-                if (renderMode == Context3DRenderMode.AUTO && profiles.length != 0 &&
-                    context.driverInfo.indexOf("Software") != -1)
-                {
-                    onError(event);
-                }
-                else
-                {
-                    mProfile = currentProfile;
-                    onFinished();
-                }
-            }
-            
-            function onError(event:Event):void
-            {
-                if (profiles.length != 0)
-                {
-                    event.stopImmediatePropagation();
-                    setTimeout(requestNextProfile, 1);
-                }
-                else onFinished();
-            }
-            
-            function onFinished():void
-            {
-                mStage3D.removeEventListener(Event.CONTEXT3D_CREATE, onCreated);
-                mStage3D.removeEventListener(ErrorEvent.ERROR, onError);
-            }
-        }
         
         private function initialize():void
         {
@@ -512,14 +448,13 @@ package starling.core
 
             var scaleX:Number = mViewPort.width  / mStage.stageWidth;
             var scaleY:Number = mViewPort.height / mStage.stageHeight;
-            
+
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mContext.setCulling(Context3DTriangleFace.NONE);
 
-            mSupport.nextFrame();
-            mSupport.stencilReferenceValue = 0;
-            mSupport.renderTarget = null; // back buffer
-            mSupport.setProjectionMatrix(
+            mPainter.nextFrame();
+            mPainter.state.renderTarget = null; // back buffer
+            mPainter.state.setProjectionMatrix(
                 mViewPort.x < 0 ? -mViewPort.x / scaleX : 0.0,
                 mViewPort.y < 0 ? -mViewPort.y / scaleY : 0.0,
                 mClippedViewPort.width  / scaleX,
@@ -527,13 +462,13 @@ package starling.core
                 mStage.stageWidth, mStage.stageHeight, mStage.cameraPosition);
             
             if (!mShareContext)
-                RenderSupport.clear(mStage.color, 1.0);
+                mPainter.clear(mStage.color, 1.0);
             
-            mStage.render(mSupport, 1.0);
-            mSupport.finishQuadBatch();
+            mStage.render(mPainter);
+            mPainter.finishQuadBatch();
             
             if (mStatsDisplay)
-                mStatsDisplay.drawCount = mSupport.drawCount;
+                mStatsDisplay.drawCount = mPainter.drawCount;
             
             if (!mShareContext)
                 mContext.present();
@@ -853,7 +788,7 @@ package starling.core
         {
             deleteProgram(name);
             
-            var program:Program3D = RenderSupport.assembleAgal(vertexShader, fragmentShader);
+            var program:Program3D = RenderUtil.assembleAgal(vertexShader, fragmentShader);
             programs[name] = program;
             
             return program;
@@ -891,6 +826,9 @@ package starling.core
         
         /** The default juggler of this instance. Will be advanced once per frame. */
         public function get juggler():Juggler { return mJuggler; }
+
+        /** The painter of this instance, which is used for all rendering. */
+        public function get painter():Painter { return mPainter; }
         
         /** The render context of this instance. */
         public function get context():Context3D { return mContext; }
@@ -1121,10 +1059,13 @@ package starling.core
         public static function get all():Vector.<Starling> { return sAll; }
         
         /** The render context of the currently active Starling instance. */
-        public static function get context():Context3D { return sCurrent ? sCurrent.context : null; }
+        public static function get context():Context3D { return sCurrent ? sCurrent.mContext : null; }
         
         /** The default juggler of the currently active Starling instance. */
-        public static function get juggler():Juggler { return sCurrent ? sCurrent.juggler : null; }
+        public static function get juggler():Juggler { return sCurrent ? sCurrent.mJuggler : null; }
+
+        /** The painter used for all rendering of the currently active Starling instance. */
+        public static function get painter():Painter { return sCurrent ? sCurrent.mPainter : null; }
         
         /** The contentScaleFactor of the currently active Starling instance. */
         public static function get contentScaleFactor():Number 

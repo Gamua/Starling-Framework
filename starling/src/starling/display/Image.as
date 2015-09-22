@@ -14,12 +14,12 @@ package starling.display
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
-    import starling.core.RenderSupport;
+
+    import starling.core.Painter;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;
-    
+
     /** An Image is a quad with a texture mapped onto it.
      *  
      *  <p>The Image class is the Starling equivalent of Flash's Bitmap class. Instead of 
@@ -180,9 +180,9 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
-            support.batchQuad(this, parentAlpha, mTexture, mSmoothing);
+            painter.batchQuad(this, mTexture, mSmoothing);
         }
     }
 }

@@ -14,8 +14,8 @@ package starling.display
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
-    import starling.core.RenderSupport;
+
+    import starling.core.Painter;
     import starling.events.Event;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
@@ -97,19 +97,19 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
-            if (is2D) super.render(support, parentAlpha);
+            if (is2D) super.render(painter);
             else
             {
-                support.finishQuadBatch();
-                support.pushMatrix3D();
-                support.transformMatrix3D(this);
+                painter.finishQuadBatch();
+                painter.pushState();
+                painter.state.transformModelviewMatrix3D(transformationMatrix3D);
 
-                super.render(support, parentAlpha);
+                super.render(painter);
 
-                support.finishQuadBatch();
-                support.popMatrix3D();
+                painter.finishQuadBatch();
+                painter.popState();
             }
         }
 

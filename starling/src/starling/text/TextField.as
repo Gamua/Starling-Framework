@@ -21,7 +21,7 @@ package starling.text
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
 
-    import starling.core.RenderSupport;
+    import starling.core.Painter;
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
@@ -159,10 +159,10 @@ package starling.text
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
             if (mRequiresRedraw) redraw();
-            super.render(support, parentAlpha);
+            super.render(painter);
         }
         
         /** Forces the text field to be constructed right away. Normally, 

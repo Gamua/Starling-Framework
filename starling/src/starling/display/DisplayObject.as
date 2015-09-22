@@ -20,8 +20,8 @@ package starling.display
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
     import flash.utils.getQualifiedClassName;
-    
-    import starling.core.RenderSupport;
+
+    import starling.core.Painter;
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
@@ -33,7 +33,7 @@ package starling.display
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.VAlign;
-    
+
     /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
     
@@ -107,7 +107,7 @@ package starling.display
      *  subclass DisplayObject:</p>
      *  
      *  <ul>
-     *    <li><code>function render(support:RenderSupport, parentAlpha:Number):void</code></li>
+     *    <li><code>function render(support:RenderSupport):void</code></li>
      *    <li><code>function getBounds(targetSpace:DisplayObject, 
      *                                 resultRect:Rectangle=null):Rectangle</code></li>
      *  </ul>
@@ -356,11 +356,11 @@ package starling.display
             }
         }
         
-        /** Renders the display object with the help of a support object. Never call this method
+        /** Renders the display object with the help of a painter object. Never call this method
          *  directly, except from within another render method.
-         *  @param support Provides utility functions for rendering.
-         *  @param parentAlpha The accumulated alpha value from the object's parent up to the stage. */
-        public function render(support:RenderSupport, parentAlpha:Number):void
+         *  @param painter Provides utility functions for rendering.
+         */
+        public function render(painter:Painter):void
         {
             throw new AbstractMethodError();
         }

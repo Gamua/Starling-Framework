@@ -11,20 +11,18 @@
 package starling.display
 {
     import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
-    
-    import starling.core.RenderSupport;
+
+    import starling.core.Painter;
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
     import starling.utils.MatrixUtil;
-    
+
     use namespace starling_internal;
     
     /**
@@ -296,7 +294,7 @@ package starling.display
             {
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
-                
+
                 for (var i:int=0; i<numChildren; ++i)
                 {
                     mChildren[i].getBounds(targetSpace, resultRect);
@@ -306,7 +304,7 @@ package starling.display
                     if (minY > resultRect.y)      minY = resultRect.y;
                     if (maxY < resultRect.bottom) maxY = resultRect.bottom;
                 }
-                
+
                 resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             }
             
@@ -342,12 +340,10 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
-            var alpha:Number = parentAlpha * this.alpha;
             var numChildren:int = mChildren.length;
-            var blendMode:String = support.blendMode;
-            
+
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = mChildren[i];
@@ -357,19 +353,16 @@ package starling.display
                     var filter:FragmentFilter = child.filter;
                     var mask:DisplayObject = child.mask;
 
-                    support.pushMatrix();
-                    support.transformMatrix(child);
-                    support.blendMode = child.blendMode;
+                    painter.pushState(child.transformationMatrix, child.alpha, child.blendMode);
 
-                    if (mask) support.pushMask(mask);
+                    if (mask) painter.drawMask(mask);
 
-                    if (filter) filter.render(child, support, alpha);
-                    else        child.render(support, alpha);
+                    if (filter) filter.render(child, painter);
+                    else        child.render(painter);
 
-                    if (mask) support.popMask();
+                    if (mask) painter.eraseMask(mask);
                     
-                    support.blendMode = blendMode;
-                    support.popMatrix();
+                    painter.popState();
                 }
             }
         }
