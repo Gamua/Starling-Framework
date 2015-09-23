@@ -68,8 +68,9 @@ package starling.core
         // members
 
         private var mDrawCount:int;
-        private var mActualRenderTarget:TextureBase;
         private var mStencilReferenceValues:Dictionary;
+        private var mActualRenderTarget:TextureBase;
+        private var mActualCulling:String;
 
         private var mState:RenderState;
         private var mStateStack:Vector.<RenderState>;
@@ -302,6 +303,7 @@ package starling.core
             applyBlendMode(premultipliedAlpha);
             applyRenderTarget();
             applyClipRect();
+            applyCulling();
         }
 
         /** Clears the render context with a certain color and alpha value. Since this also
@@ -337,10 +339,20 @@ package starling.core
             }
         }
 
-        /** Activates the current blend mode on the active rendering context. */
         private function applyBlendMode(premultipliedAlpha:Boolean):void
         {
             RenderUtil.setBlendFactors(premultipliedAlpha, mState.blendMode);
+        }
+
+        private function applyCulling():void
+        {
+            var culling:String = mState.culling;
+
+            if (culling != mActualCulling)
+            {
+                Starling.context.setCulling(culling);
+                mActualCulling = culling;
+            }
         }
 
         private function applyRenderTarget():void

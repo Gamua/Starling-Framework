@@ -90,15 +90,16 @@ package scenes
             return sprite;
         }
         
-        public override function render(support:Painter):void
+        public override function render(painter:Painter):void
         {
             // Starling does not make any depth-tests, so we use a trick in order to only show
             // the front quads: we're activating backface culling, i.e. we hide triangles at which
             // we look from behind. 
             
-            Starling.current.context.setCulling(Context3DTriangleFace.BACK);
-            super.render(support);
-            Starling.current.context.setCulling(Context3DTriangleFace.NONE);
+            painter.pushState();
+            painter.state.culling = Context3DTriangleFace.BACK;
+            super.render(painter);
+            painter.popState();
         }
     }
 }

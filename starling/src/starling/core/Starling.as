@@ -450,7 +450,6 @@ package starling.core
             var scaleY:Number = mViewPort.height / mStage.stageHeight;
 
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
-            mContext.setCulling(Context3DTriangleFace.NONE);
 
             mPainter.nextFrame();
             mPainter.state.renderTarget = null; // back buffer
