@@ -30,7 +30,7 @@ before_script:
     - export FLASH_PLAYER_EXE="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
     # Adobe AIR SDK
     - mkdir -p air_sdk
-    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/latest/AIRSDK_Compiler.tbz2
+    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/19.0/AIRSDK_Compiler.tbz2
     - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
     # Apache Flex SDK
     - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.0/binaries/apache-flex-sdk-4.14.0-bin.zip
