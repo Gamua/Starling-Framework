@@ -84,6 +84,7 @@ package starling.display
             mEnabled = true;
             mUseHandCursor = true;
             mTextBounds = new Rectangle(0, 0, mBody.width, mBody.height);
+            mTriggerBounds = new Rectangle();
             
             mContents = new Sprite();
             mContents.addChild(mBody);
@@ -189,6 +190,11 @@ package starling.display
         public function set state(value:String):void
         {
             mState = value;
+            refreshState();
+        }
+
+        private function refreshState():void
+        {
             mContents.x = mContents.y = 0;
             mContents.scaleX = mContents.scaleY = mContents.alpha = 1.0;
 
@@ -228,19 +234,35 @@ package starling.display
          *  texture will be made slightly smaller, while a button with a down state texture
          *  remains unscaled. */
         public function get scaleWhenDown():Number { return mScaleWhenDown; }
-        public function set scaleWhenDown(value:Number):void { mScaleWhenDown = value; }
+        public function set scaleWhenDown(value:Number):void
+        {
+            mScaleWhenDown = value;
+            if (mState == ButtonState.DOWN) refreshState();
+        }
 
         /** The scale factor of the button while the mouse cursor hovers over it. @default 1.0 */
         public function get scaleWhenOver():Number { return mScaleWhenOver; }
-        public function set scaleWhenOver(value:Number):void { mScaleWhenOver = value; }
+        public function set scaleWhenOver(value:Number):void
+        {
+            mScaleWhenOver = value;
+            if (mState == ButtonState.OVER) refreshState();
+        }
 
         /** The alpha value of the button on touch. @default 1.0 */
         public function get alphaWhenDown():Number { return mAlphaWhenDown; }
-        public function set alphaWhenDown(value:Number):void { mAlphaWhenDown = value; }
+        public function set alphaWhenDown(value:Number):void
+        {
+            mAlphaWhenDown = value;
+            if (mState == ButtonState.DOWN) refreshState();
+        }
 
         /** The alpha value of the button when it is disabled. @default 0.5 */
         public function get alphaWhenDisabled():Number { return mAlphaWhenDisabled; }
-        public function set alphaWhenDisabled(value:Number):void { mAlphaWhenDisabled = value; }
+        public function set alphaWhenDisabled(value:Number):void
+        {
+            mAlphaWhenDisabled = value;
+            if (mState == ButtonState.DISABLED) refreshState();
+        }
         
         /** Indicates if the button can be triggered. */
         public function get enabled():Boolean { return mEnabled; }

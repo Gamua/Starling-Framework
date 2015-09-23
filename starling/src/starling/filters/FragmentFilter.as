@@ -545,20 +545,16 @@ package starling.filters
         /** @private */
         starling_internal function compile(object:DisplayObject):QuadBatch
         {
-            if (mCache) return mCache;
-            else
-            {
-                var support:RenderSupport;
-                var stage:Stage = object.stage;
-                var quadBatch:QuadBatch;
+            var support:RenderSupport;
+            var stage:Stage = object.stage;
+            var quadBatch:QuadBatch;
 
-                support = new RenderSupport();
-                object.getTransformationMatrix(stage, support.modelViewMatrix);
-                quadBatch = renderPasses(object, support, 1.0, true);
-                support.dispose();
+            support = new RenderSupport();
+            object.getTransformationMatrix(stage, support.modelViewMatrix);
+            quadBatch = renderPasses(object, support, 1.0, true);
+            support.dispose();
 
-                return quadBatch;
-            }
+            return quadBatch;
         }
         
         // properties

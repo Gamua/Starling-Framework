@@ -254,6 +254,13 @@ package starling.text
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
 
+        /** Forces a redraw of the current contents right before the display object is rendered.
+         *  Useful especially in combination with the "formatText" method. */
+        protected final function requireRedraw():void
+        {
+        	mRequiresRedraw = true;
+        }
+
         private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
         {
             var width:Number  = mHitArea.width  * scale;

@@ -333,18 +333,19 @@ package tests.display
         [Test]
         public function testReverseFrames():void
         {
+            var i:int;
             var numFrames:int = 4;
             var frames:Vector.<Texture> = createFrames(numFrames);
             var movie:MovieClip = new MovieClip(frames, 5);
             movie.setFrameDuration(0, 0.4);
 
-            for (var i:int=0; i<numFrames; ++i)
+            for (i=0; i<numFrames; ++i)
                 assertEquals(movie.getFrameTexture(i), frames[i]);
 
             movie.advanceTime(0.5);
             movie.reverseFrames();
 
-            for (var i:int=0; i<numFrames; ++i)
+            for (i=0; i<numFrames; ++i)
                 assertEquals(movie.getFrameTexture(i), frames[numFrames - i - 1]);
 
             assertEquals(movie.currentFrame, 2);
