@@ -303,31 +303,32 @@ package starling.textures
             return concreteTexture;
         }
 
-        /** Creates a video texture from a NetStream. Beware that the texture must not be used
-         *  before the 'onComplete' callback has been executed; until then, it will have a size
-         *  of zero pixels.
+        /** Creates a video texture from a NetStream.
          *
-         *  <p>Here is a minimal sample showing how to stream a video from a file:</p>
+         *  <p>Below, you'll find  a minimal sample showing how to stream a video from a file.
+         *  Note that <code>ns.play()</code> is called only after creating the texture, and
+         *  outside the <code>onComplete</code>-callback. It's recommended to always make the
+         *  calls in this order; otherwise, playback won't start on some platforms.</p>
          *
          *  <listing>
          *  var nc:NetConnection = new NetConnection();
          *  nc.connect(null);
          *  
-         *  var file:File = File.applicationDirectory.resolvePath("bugs-bunny.m4v");
          *  var ns:NetStream = new NetStream(nc);
-         *  ns.play(file.url);
-         *  
          *  var texture:Texture = Texture.fromNetStream(ns, 1, function():void
          *  {
          *      addChild(new Image(texture));
-         *  });</listing>
+         *  });
+         *  
+         *  var file:File = File.applicationDirectory.resolvePath("bugs-bunny.m4v");
+         *  ns.play(file.url);</listing>
          *
          *  @param stream  the NetStream from which the video data is streamed. Beware that 'play'
-         *                 should be called outside the 'onComplete' callback, otherwise the
-         *                 texture will never be ready.
+         *                 should be called only after the method returns, and outside the
+         *                 <code>onComplete</code> callback.
          *  @param scale   the scale factor of the created texture. This affects the reported
          *                 width and height of the texture object.
-         *  @param onComplete will be executed when the texture is ready. May contain a parameter
+         *  @param onComplete will be executed when the texture is ready. Contains a parameter
          *                 of type 'Texture'.
          */
         public static function fromNetStream(stream:NetStream, scale:Number=1,
