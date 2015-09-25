@@ -53,7 +53,6 @@ package
             var scaleFactor:int = viewPort.width < 480 ? 1 : 2; // midway between 320 and 640
 
             Starling.multitouchEnabled = true; // useful on mobile devices
-            Starling.handleLostContext = true; // recommended everywhere when using AssetManager
             RenderTexture.optimizePersistentBuffers = iOS; // safe on iOS, dangerous on Android
 
             mStarling = new Starling(Game, stage, viewPort, null, "auto", "auto");

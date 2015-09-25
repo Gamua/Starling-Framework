@@ -19,6 +19,7 @@ package starling.filters
     import flash.geom.Matrix3D;
     import flash.geom.Point;
 
+    import starling.core.Painter;
     import starling.core.Starling;
     import starling.textures.Texture;
     import starling.utils.RenderUtil;
@@ -91,16 +92,16 @@ package starling.filters
             if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
             mMapTexCoordBuffer = mMapTexCoords.createVertexBuffer();
             
-            var target:Starling = Starling.current;
+            var painter:Painter = Starling.painter;
             var mapFlags:String = RenderUtil.getTextureLookupFlags(
                                       mapTexture.format, mapTexture.mipMapping, mapTexture.repeat);
             var inputFlags:String = RenderUtil.getTextureLookupFlags(
                                         Context3DTextureFormat.BGRA, false, mRepeat);
             var programName:String = StringUtil.format("DMF_m{0}_i{1}", mapFlags, inputFlags);
             
-            if (target.hasProgram(programName))
+            if (painter.hasProgram(programName))
             {
-                mShaderProgram = target.getProgram(programName);
+                mShaderProgram = painter.getProgram(programName);
             }
             else
             {
@@ -128,7 +129,7 @@ package starling.filters
                     "tex  oc, ft3, fs0 " + inputFlags // read input texture at displaced coords
                 ].join("\n");
                 
-                mShaderProgram = target.registerProgramFromSource(programName, 
+                mShaderProgram = painter.registerProgramFromSource(programName,
                     vertexShader, fragmentShader);
             }
         }

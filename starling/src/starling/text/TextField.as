@@ -820,12 +820,12 @@ package starling.text
          *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
         private static function get bitmapFonts():Dictionary
         {
-            var fonts:Dictionary = Starling.current.contextData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            var fonts:Dictionary = Starling.painter.sharedData[BITMAP_FONT_DATA_NAME] as Dictionary;
             
             if (fonts == null)
             {
                 fonts = new Dictionary();
-                Starling.current.contextData[BITMAP_FONT_DATA_NAME] = fonts;
+                Starling.painter.sharedData[BITMAP_FONT_DATA_NAME] = fonts;
             }
             
             return fonts;

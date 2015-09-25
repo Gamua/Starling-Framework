@@ -162,5 +162,20 @@ package starling.utils
             resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             return resultRect;
         }
+
+        /** Compares all properties of the given rectangle, returning true only if
+         *  they are equal (with the given accuracy 'e'). */
+        public static function compare(r1:Rectangle, r2:Rectangle, e:Number=0.0001):Boolean
+        {
+            if (r1 == null) return r2 == null;
+            else if (r2 == null) return false;
+            else
+            {
+                return r1.x > r2.x - e && r1.x < r2.x + e &&
+                       r1.y > r2.y - e && r1.y < r2.y + e &&
+                       r1.width  > r2.width  - e && r1.width  < r2.width  + e &&
+                       r1.height > r2.height - e && r1.height < r2.height + e;
+            }
+        }
     }
 }

@@ -149,7 +149,7 @@ package starling.display
             mVertexData.setVertexBufferAttribute(mVertexBuffer, 0, "position");
             mVertexData.setVertexBufferAttribute(mVertexBuffer, 1, "color");
 
-            context.setProgram(Starling.current.getProgram(PROGRAM_NAME));
+            context.setProgram(painter.getProgram(PROGRAM_NAME));
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, state.mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
@@ -204,8 +204,8 @@ package starling.display
 
         private static function registerPrograms():void
         {
-            var target:Starling = Starling.current;
-            if (target.hasProgram(PROGRAM_NAME)) return; // already registered
+            var painter:Painter = Starling.painter;
+            if (painter.hasProgram(PROGRAM_NAME)) return; // already registered
 
             var vertexShader:String =
                     "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output space
@@ -214,7 +214,7 @@ package starling.display
             var fragmentShader:String =
                     "mov oc, v0";           // just forward incoming color
 
-            target.registerProgramFromSource(PROGRAM_NAME, vertexShader, fragmentShader);
+            painter.registerProgramFromSource(PROGRAM_NAME, vertexShader, fragmentShader);
         }
 
         private function applyFillColor(vertexIndex:int, numVertices:int):void
@@ -228,11 +228,9 @@ package starling.display
         {
             destroyBuffers();
 
+            var numIndices:Number = mIndexData.length;
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
-
-            var numVertices:Number = mVertexData.numVertices;
-            var numIndices:Number  = mIndexData.length;
 
             mVertexBuffer = mVertexData.createVertexBuffer(true);
 

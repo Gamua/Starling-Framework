@@ -266,7 +266,6 @@ package starling.textures
             finally
             {
                 mDrawing = false;
-                painter.finishQuadBatch();
                 painter.popState();
             }
         }
@@ -291,13 +290,13 @@ package starling.textures
          *  really ... elegant check here. */
         private function get supportsNonPotDimensions():Boolean
         {
-            var target:Starling = Starling.current;
+            var painter:Painter = Starling.painter;
             var context:Context3D = Starling.context;
-            var support:Object = target.contextData[CONTEXT_POT_SUPPORT_KEY];
+            var support:Object = painter.sharedData[CONTEXT_POT_SUPPORT_KEY];
 
             if (support == null)
             {
-                if (target.profile != "baselineConstrained" && "createRectangleTexture" in context)
+                if (painter.profile != "baselineConstrained" && "createRectangleTexture" in context)
                 {
                     var texture:TextureBase;
                     var buffer:VertexBuffer3D;
@@ -326,7 +325,7 @@ package starling.textures
                     support = false;
                 }
 
-                target.contextData[CONTEXT_POT_SUPPORT_KEY] = support;
+                painter.sharedData[CONTEXT_POT_SUPPORT_KEY] = support;
             }
 
             return support;

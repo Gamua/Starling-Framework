@@ -204,13 +204,18 @@ package starling.display
 
             if (mClipRect)
             {
-                painter.pushState();
-
-                // TODO intersect clipping rectangles
-
                 var clipRect:Rectangle = getClipRect(stage, sHelperRect);
+
+                if (state.clipRect)
+                    RectangleUtil.intersect(clipRect, state.clipRect, clipRect);
+
                 if (clipRect.isEmpty()) return;
-                else state.clipRect = clipRect;
+                else
+                {
+                    painter.finishQuadBatch();
+                    painter.pushState();
+                    state.clipRect = clipRect;
+                }
             }
             
             if (mFlattenedContents || mFlattenRequested)

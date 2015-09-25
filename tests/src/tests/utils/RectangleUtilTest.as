@@ -11,7 +11,11 @@
 package tests.utils
 {
     import flash.geom.Rectangle;
-    
+
+    import org.flexunit.asserts.assertFalse;
+
+    import org.flexunit.asserts.assertTrue;
+
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
     import tests.Helpers;
@@ -105,6 +109,19 @@ package tests.utils
             RectangleUtil.normalize(rect);
             
             Helpers.compareRectangles(rect, new Rectangle(1, 2, 3, 4));
+        }
+
+        [Test]
+        public function testCompare():void
+        {
+            var rect:Rectangle = new Rectangle(1, 2, 3, 4);
+            var rect2:Rectangle = new Rectangle(2, 3, 4, 5);
+
+            assertTrue(RectangleUtil.compare(rect, rect));
+            assertTrue(RectangleUtil.compare(null, null));
+            assertFalse(RectangleUtil.compare(rect, null));
+            assertFalse(RectangleUtil.compare(null, rect));
+            assertFalse(RectangleUtil.compare(rect, rect2));
         }
     }
 }

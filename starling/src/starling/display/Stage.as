@@ -11,11 +11,12 @@
 package starling.display
 {
     import flash.display.BitmapData;
+    import flash.display3D.Context3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
+
     import starling.core.Painter;
     import starling.core.RenderState;
     import starling.core.Starling;
@@ -24,7 +25,7 @@ package starling.display
     import starling.events.Event;
     import starling.filters.FragmentFilter;
     import starling.utils.MatrixUtil;
-    
+
     use namespace starling_internal;
     
     /** Dispatched when the Flash container is resized. */
@@ -111,7 +112,7 @@ package starling.display
         /** Draws the complete stage into a BitmapData object.
          *
          *  <p>If you encounter problems with transparency, start Starling in BASELINE profile
-         *  (or higher). BASELINE_CONSTRAINED might not painter transparency on all platforms.
+         *  (or higher). BASELINE_CONSTRAINED might not support transparency on all platforms.
          *  </p>
          *
          *  @param destination  If you pass null, the object will be created for you.
@@ -124,17 +125,18 @@ package starling.display
         public function drawToBitmapData(destination:BitmapData=null,
                                          transparent:Boolean=true):BitmapData
         {
-            var painter:Painter = new Painter();
+            var painter:Painter = Starling.painter;
             var state:RenderState = painter.state;
-            var star:Starling = Starling.current;
+            var context:Context3D = painter.context;
 
             if (destination == null)
             {
-                var width:int  = star.backBufferWidth  * star.backBufferPixelsPerPoint;
-                var height:int = star.backBufferHeight * star.backBufferPixelsPerPoint;
+                var width:int  = context.backBufferWidth;
+                var height:int = context.backBufferHeight;
                 destination = new BitmapData(width, height, transparent);
             }
-            
+
+            painter.pushState();
             state.renderTarget = null;
             state.setProjectionMatrix(0, 0, mWidth, mHeight, mWidth, mHeight, cameraPosition);
             
@@ -143,11 +145,11 @@ package starling.display
             
             render(painter);
             painter.finishQuadBatch();
-            painter.dispose();
-            
-            Starling.current.context.drawToBitmapData(destination);
-            Starling.current.context.present(); // required on some platforms to avoid flickering
-            
+
+            context.drawToBitmapData(destination);
+            context.present(); // required on some platforms to avoid flickering
+
+            painter.popState();
             return destination;
         }
         

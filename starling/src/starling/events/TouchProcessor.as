@@ -12,7 +12,8 @@ package starling.events
 {
     import flash.geom.Point;
     import flash.utils.getDefinitionByName;
-    
+
+    import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.Stage;
 
@@ -53,12 +54,14 @@ package starling.events
         private var mStage:Stage;
         private var mRoot:DisplayObject;
         private var mElapsedTime:Number;
-        private var mTouchMarker:TouchMarker;
         private var mLastTaps:Vector.<Touch>;
         private var mShiftDown:Boolean = false;
         private var mCtrlDown:Boolean  = false;
         private var mMultitapTime:Number = 0.3;
         private var mMultitapDistance:Number = 25;
+
+        private var mTouchMarker:TouchMarker;
+        private var mSimulateMultitouch:Boolean;
         
         /** A vector of arrays with the arguments that were passed to the "enqueue"
          *  method (the oldest being at the end of the vector). */
@@ -198,7 +201,7 @@ package starling.events
             mQueue.unshift(arguments);
             
             // multitouch simulation (only with mouse)
-            if (mCtrlDown && simulateMultitouch && touchID == 0) 
+            if (mCtrlDown && mTouchMarker && touchID == 0)
             {
                 mTouchMarker.moveMarker(globalX, globalY, mShiftDown);
                 mQueue.unshift([1, phase, mTouchMarker.mockX, mTouchMarker.mockY]);
@@ -348,20 +351,37 @@ package starling.events
          *  ctrl/cmd (and optionally shift), he'll see a second touch cursor that mimics the first.
          *  That's an easy way to develop and test multitouch when there's only a mouse available.
          */
-        public function get simulateMultitouch():Boolean { return mTouchMarker != null; }
+        public function get simulateMultitouch():Boolean { return mSimulateMultitouch; }
         public function set simulateMultitouch(value:Boolean):void
-        { 
+        {
             if (simulateMultitouch == value) return; // no change
-            if (value)
+
+            mSimulateMultitouch = value;
+            var target:Starling = Starling.current;
+
+            if (value && mTouchMarker == null)
             {
-                mTouchMarker = new TouchMarker();
-                mTouchMarker.visible = false;
-                mStage.addChild(mTouchMarker);
+                if (Starling.current.contextValid)
+                    createTouchMarker();
+                else
+                    target.addEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);
             }
-            else
+            else if (!value && mTouchMarker)
             {                
                 mTouchMarker.removeFromParent(true);
                 mTouchMarker = null;
+            }
+
+            function createTouchMarker():void
+            {
+                target.removeEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);
+
+                if (mTouchMarker == null)
+                {
+                    mTouchMarker = new TouchMarker();
+                    mTouchMarker.visible = false;
+                    mStage.addChild(mTouchMarker);
+                }
             }
         }
         
@@ -381,7 +401,7 @@ package starling.events
         public function get root():DisplayObject { return mRoot; }
         public function set root(value:DisplayObject):void { mRoot = value; }
         
-        /** The stage object to which the touch objects are (per default) dispatched. */
+        /** The stage object to which the touch events are (per default) dispatched. */
         public function get stage():Stage { return mStage; }
         
         /** Returns the number of fingers / touch points that are currently on the stage. */
@@ -396,7 +416,7 @@ package starling.events
                 var wasCtrlDown:Boolean = mCtrlDown;
                 mCtrlDown = event.type == KeyboardEvent.KEY_DOWN;
                 
-                if (simulateMultitouch && wasCtrlDown != mCtrlDown)
+                if (mTouchMarker && wasCtrlDown != mCtrlDown)
                 {
                     mTouchMarker.visible = mCtrlDown;
                     mTouchMarker.moveCenter(mStage.stageWidth/2, mStage.stageHeight/2);

@@ -13,7 +13,6 @@ package starling.utils
     import com.adobe.utils.AGALMiniAssembler;
 
     import flash.display.Stage3D;
-
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DRenderMode;
@@ -26,9 +25,7 @@ package starling.utils
     import starling.core.Starling;
     import starling.display.BlendMode;
     import starling.errors.AbstractClassError;
-
     import starling.errors.MissingContextError;
-
     import starling.textures.TextureSmoothing;
 
     /** A utility class containing methods related to Stage3D and rendering in general. */

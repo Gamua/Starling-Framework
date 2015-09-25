@@ -234,7 +234,9 @@ package starling.display
             
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? alpha : 1.0;
             sRenderAlpha[3] = alpha;
-            
+
+            RenderUtil.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
+
             context.setProgram(getProgram(tinted));
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
@@ -732,14 +734,14 @@ package starling.display
         
         private function getProgram(tinted:Boolean):Program3D
         {
-            var target:Starling = Starling.current;
+            var painter:Painter = Starling.painter;
             var programName:String = QUAD_PROGRAM_NAME;
             
             if (mTexture)
                 programName = getImageProgramName(tinted, mTexture.mipMapping, 
                     mTexture.repeat, mTexture.format, mSmoothing);
             
-            var program:Program3D = target.getProgram(programName);
+            var program:Program3D = painter.getProgram(programName);
             
             if (!program)
             {
@@ -785,7 +787,7 @@ package starling.display
                             mTexture.format, mTexture.mipMapping, mTexture.repeat, smoothing));
                 }
                 
-                program = target.registerProgramFromSource(programName,
+                program = painter.registerProgramFromSource(programName,
                     vertexShader, fragmentShader);
             }
             

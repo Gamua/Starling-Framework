@@ -13,7 +13,8 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Program3D;
-    
+
+    import starling.core.Painter;
     import starling.core.Starling;
     import starling.textures.Texture;
     import starling.utils.Color;
@@ -98,10 +99,10 @@ package starling.filters
         private function createProgram(tinted:Boolean):Program3D
         {
             var programName:String = tinted ? TINTED_PROGRAM_NAME : NORMAL_PROGRAM_NAME;
-            var target:Starling = Starling.current;
+            var painter:Painter = Starling.painter;
             
-            if (target.hasProgram(programName))
-                return target.getProgram(programName);
+            if (painter.hasProgram(programName))
+                return painter.getProgram(programName);
             
             // vc0-3 - mvp matrix
             // vc4   - kernel offset
@@ -150,7 +151,7 @@ package starling.filters
             else fragmentShader +=
                 "add  oc, ft5, ft4                              \n";   // add to output color
             
-            return target.registerProgramFromSource(programName, vertexShader, fragmentShader);
+            return painter.registerProgramFromSource(programName, vertexShader, fragmentShader);
         }
         
         /** @private */

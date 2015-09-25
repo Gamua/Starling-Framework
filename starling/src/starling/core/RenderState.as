@@ -11,6 +11,7 @@
 package starling.core
 {
     import flash.display3D.Context3DTriangleFace;
+    import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
@@ -251,6 +252,12 @@ package starling.core
         public function set renderTarget(value:Texture):void { setRenderTarget(value); }
         public function get renderTarget():Texture { return _renderTarget; }
 
+        /** @private */
+        internal function get renderTargetBase():TextureBase
+        {
+            return _renderTarget ? _renderTarget.base : null;
+        }
+
         /** Sets the triangle culling mode. Allows to exclude triangles from rendering based on
          *  their orientation relative to the view plane.
          *  @default Context3DTriangleFace.NONE
@@ -261,9 +268,6 @@ package starling.core
         /** The clipping rectangle can be used to limit rendering in the current render target to
          *  a certain area. This method expects the rectangle in stage coordinates. To avoid
          *  any clipping, assign <code>null</code>.
-         *
-         *  <p>If you change the returned object directly, your changes won't show up.
-         *  Make an assignment instead.</p>
          *
          *  @default null
          */

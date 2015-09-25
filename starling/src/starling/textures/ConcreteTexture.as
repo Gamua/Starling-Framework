@@ -277,16 +277,16 @@ package starling.textures
         /** Indicates if the base texture was optimized for being used in a render texture. */
         public function get optimizedForRenderTexture():Boolean { return mOptimizedForRenderTexture; }
         
-        /** If Starling's "handleLostContext" setting is enabled, the function that you provide
-         *  here will be called after a context loss. On execution, a new base texture will
-         *  already have been created; however, it will be empty. Call one of the "upload..."
-         *  methods from within the callbacks to restore the actual texture data. */
+        /** The function that you provide here will be called after a context loss.
+         *  On execution, a new base texture will already have been created; however,
+         *  it will be empty. Call one of the "upload..." methods from within the callbacks
+         *  to restore the actual texture data. */
         public function get onRestore():Function { return mOnRestore; }
         public function set onRestore(value:Function):void
         {
             Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            if (Starling.handleLostContext && value != null)
+            if (value)
             {
                 mOnRestore = value;
                 Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
