@@ -286,7 +286,7 @@ package starling.textures
         {
             Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
-            if (value)
+            if (value != null)
             {
                 mOnRestore = value;
                 Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
