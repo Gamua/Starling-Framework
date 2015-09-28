@@ -14,6 +14,8 @@ package starling.geom
     import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
 
+    import starling.utils.IndexData;
+
     import starling.utils.VectorUtil;
     import starling.utils.VertexData;
 
@@ -156,9 +158,12 @@ package starling.geom
         }
 
         /** Calculates a possible representation of the polygon via triangles. The resulting
-         *  vector contains a list of vertex indices, where every three indices describe a triangle
-         *  referencing the vertices of the polygon. */
-        public function triangulate(result:Vector.<uint>=null):Vector.<uint>
+         *  IndexData instance will reference the polygon vertices as they are saved in this
+         *  Polygon instance, optionally incremented by the given offset.
+         *
+         *  <p>If you pass an indexData object, the new indices will be appended to it.
+         *  Otherwise, a new instance will be created.</p> */
+        public function triangulate(indexData:IndexData=null, offset:int=0):IndexData
         {
             // Algorithm "Ear clipping method" described here:
             // -> https://en.wikipedia.org/wiki/Polygon_triangulation
@@ -166,18 +171,17 @@ package starling.geom
             // Implementation inspired by:
             // -> http://polyk.ivank.net
 
-            if (result == null) result = new <uint>[];
-
             var numVertices:int = this.numVertices;
-            var i:int, restIndexPos:int, numRestIndices:int, resultPos:int;
+            var numTriangles:int = numVertices >= 3 ? numVertices - 2 : 0;
+            var i:int, restIndexPos:int, numRestIndices:int;
 
-            if (numVertices < 3) return result;
+            if (indexData == null) indexData = new IndexData(numTriangles * 3);
+            if (numTriangles == 0) return indexData;
 
             sRestIndices.length = numVertices;
             for (i=0; i<numVertices; ++i) sRestIndices[i] = i;
 
             restIndexPos = 0;
-            resultPos = result.length;
             numRestIndices = numVertices;
 
             while (numRestIndices > 3)
@@ -216,9 +220,7 @@ package starling.geom
 
                 if (earFound)
                 {
-                    result[resultPos++] = i0; // -> result.push(i0, i1, i2);
-                    result[resultPos++] = i1;
-                    result[resultPos++] = i2;
+                    indexData.appendTriangle(i0 + offset, i1 + offset, i2 + offset);
                     VectorUtil.removeUnsignedIntAt(sRestIndices, (restIndexPos + 1) % numRestIndices);
 
                     numRestIndices--;
@@ -231,11 +233,10 @@ package starling.geom
                 }
             }
 
-            result[resultPos++] = sRestIndices[0]; // -> result.push(...);
-            result[resultPos++] = sRestIndices[1];
-            result[resultPos  ] = sRestIndices[2];
-
-            return result;
+            indexData.appendTriangle(sRestIndices[0] + offset,
+                                     sRestIndices[1] + offset,
+                                     sRestIndices[2] + offset);
+            return indexData;
         }
 
         /** Copies all vertices to a 'VertexData' instance, beginning at a certain target index. */
@@ -467,6 +468,7 @@ import flash.errors.IllegalOperationError;
 import flash.utils.getQualifiedClassName;
 
 import starling.geom.Polygon;
+import starling.utils.IndexData;
 
 class ImmutablePolygon extends Polygon
 {
@@ -546,22 +548,17 @@ class Ellipse extends ImmutablePolygon
         return vertices;
     }
 
-    override public function triangulate(result:Vector.<uint> = null):Vector.<uint>
+    override public function triangulate(indexData:IndexData=null, offset:int=0):IndexData
     {
-        if (result == null) result = new <uint>[];
+        if (indexData == null) indexData = new IndexData((numVertices - 2) * 3);
 
         var from:uint = 1;
         var to:uint = numVertices - 1;
-        var pos:uint = result.length;
 
         for (var i:int=from; i<to; ++i)
-        {
-            result[pos++] = 0;
-            result[pos++] = i;
-            result[pos++] = i + 1;
-        }
+            indexData.appendTriangle(offset, offset + i, offset + i + 1);
 
-        return result;
+        return indexData;
     }
 
     override public function contains(x:Number, y:Number):Boolean
@@ -608,11 +605,14 @@ class Rectangle extends ImmutablePolygon
         super([x, y, x + width, y, x + width, y + height, x, y + height]);
     }
 
-    override public function triangulate(result:Vector.<uint> = null):Vector.<uint>
+    override public function triangulate(indexData:IndexData=null, offset:int=0):IndexData
     {
-        if (result == null) result = new <uint>[];
-        result.push(0, 1, 3, 1, 2, 3);
-        return result;
+        if (indexData == null) indexData = new IndexData(6);
+
+        indexData.appendTriangle(offset,     offset + 1, offset + 3);
+        indexData.appendTriangle(offset + 1, offset + 2, offset + 3);
+
+        return indexData;
     }
 
     override public function contains(x:Number, y:Number):Boolean

@@ -35,6 +35,7 @@ package starling.filters
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.textures.Texture;
+    import starling.utils.IndexData;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
@@ -102,7 +103,7 @@ package starling.filters
         
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
-        private var mIndexData:Vector.<uint>;
+        private var mIndexData:IndexData;
         private var mIndexBuffer:IndexBuffer3D;
         
         private var mCacheRequested:Boolean;
@@ -114,7 +115,6 @@ package starling.filters
         
         /** Helper objects that may be used recursively (thus not static). */
         private var mHelperMatrix:Matrix     = new Matrix();
-        private var mHelperMatrix3D:Matrix3D = new Matrix3D();
         private var mHelperRect:Rectangle    = new Rectangle();
         private var mHelperRect2:Rectangle   = new Rectangle();
 
@@ -143,8 +143,9 @@ package starling.filters
             mVertexData.setPoint(2, "texCoords", 0, 1);
             mVertexData.setPoint(3, "texCoords", 1, 1);
             
-            mIndexData = new <uint>[0, 1, 2, 1, 3, 2];
-            mIndexData.fixed = true;
+            mIndexData = new IndexData(6);
+            mIndexData.appendTriangle(0, 1, 2);
+            mIndexData.appendTriangle(1, 3, 2);
 
             if (Starling.current.contextValid)
                 createPrograms();
@@ -352,8 +353,7 @@ package starling.filters
             if (mVertexBuffer == null)
             {
                 mVertexBuffer = mVertexData.createVertexBuffer();
-                mIndexBuffer  = context.createIndexBuffer(6);
-                mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
+                mIndexBuffer  = mIndexData.createIndexBuffer(true);
             }
 
             mVertexData.uploadToVertexBuffer(mVertexBuffer);

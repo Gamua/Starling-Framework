@@ -13,7 +13,6 @@ package tests.geom
     import flash.geom.Point;
 
     import org.flexunit.assertThat;
-
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertTrue;
@@ -52,10 +51,10 @@ package tests.geom
         {
             var polygon:Polygon = new Polygon([0, 1,  2, 3,  4, 5]);
             var clone:Polygon = polygon.clone();
-            assertEquals(3, polygon.numVertices);
-            Helpers.comparePoints(new Point(0, 1), polygon.getVertex(0));
-            Helpers.comparePoints(new Point(2, 3), polygon.getVertex(1));
-            Helpers.comparePoints(new Point(4, 5), polygon.getVertex(2));
+            assertEquals(3, clone.numVertices);
+            Helpers.comparePoints(new Point(0, 1), clone.getVertex(0));
+            Helpers.comparePoints(new Point(2, 3), clone.getVertex(1));
+            Helpers.comparePoints(new Point(4, 5), clone.getVertex(2));
         }
 
         [Test]
@@ -76,7 +75,7 @@ package tests.geom
             var p5:Point = new Point(0, 1);
 
             var polygon:Polygon = new Polygon([p0, p1, p2, p3, p4, p5]);
-            var indices:Vector.<uint> = polygon.triangulate();
+            var indices:Vector.<uint> = polygon.triangulate().toVector();
             var expected:Vector.<uint> = new <uint>[1,2,3, 1,3,4, 0,1,4, 0,4,5];
 
             Helpers.compareVectorsOfUints(indices, expected);
@@ -90,13 +89,13 @@ package tests.geom
             var p2:Point = new Point(0, 1);
 
             var polygon:Polygon = new Polygon([p0]);
-            assertEquals(0, polygon.triangulate().length);
+            assertEquals(0, polygon.triangulate().numIndices);
 
             polygon.addVertices(p1);
-            assertEquals(0, polygon.triangulate().length);
+            assertEquals(0, polygon.triangulate().numIndices);
 
             polygon.addVertices(p2);
-            assertEquals(3, polygon.triangulate().length);
+            assertEquals(3, polygon.triangulate().numIndices);
         }
 
         [Test]
@@ -116,7 +115,7 @@ package tests.geom
             var p3:Point = new Point(1, 1);
 
             var polygon:Polygon = new Polygon([p0, p1, p2, p3]);
-            var indices:Vector.<uint> = polygon.triangulate();
+            var indices:Vector.<uint> = polygon.triangulate().toVector();
             var expected:Vector.<uint> = new <uint>[0,1,2, 0,2,3];
 
             Helpers.compareVectorsOfUints(indices, expected);
@@ -215,7 +214,7 @@ package tests.geom
         public function testArea():void
         {
             var polygon:Polygon;
-            var p0:Point, p1:Point, p2:Point, p3:Point, p4:Point, p5:Point;
+            var p0:Point, p1:Point, p2:Point, p3:Point;
 
             // 0--1
             // | /

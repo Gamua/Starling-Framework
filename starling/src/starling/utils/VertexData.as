@@ -28,14 +28,17 @@ package starling.utils
      *  to Stage3D vertex buffers. <em>You only have to work with this class if you're writing
      *  your own rendering code (e.g. if you create custom display objects).</em>
      *
-     *  <p>To render objects with Stage3D, you have to organize vertex data in so-called
-     *  vertex buffers. Those buffers reside in graphics memory and can be accessed very
-     *  efficiently by the GPU. However, before you can move data into vertex buffers,
-     *  you have to set it up in conventional memory - that is, in a Vector or a ByteArray.
-     *  Since it's quite cumbersome to manually set up those data structures, the VertexData
-     *  class provides a simple way to create and manipulate vertex data with an arbitrary
-     *  format. The data is stored in a ByteArray (one vertex after the other) that can
-     *  easily be uploaded to a vertex buffer.</p>
+     *  <p>To render objects with Stage3D, you have to organize vertices and indices in so-called
+     *  vertex- and index buffers. Vertex buffers store the coordinates of the vertices that make
+     *  up an object; index buffers reference those vertices to determine which vertices spawn
+     *  up triangles. Those buffers reside in graphics memory and can be accessed very
+     *  efficiently by the GPU.</p>
+     *
+     *  <p>Before you can move data into the buffers, you have to set it up in conventional
+     *  memory - that is, in a Vector or a ByteArray. Since it's quite cumbersome to manually
+     *  create and manipulate those data structures, the IndexData and VertexData classes provide
+     *  a simple way to do just that. The data is stored in a ByteArray (one index or vertex after
+     *  the other) that can easily be uploaded to a buffer.</p>
      *
      *  <strong>Vertex Format</strong>
      *
@@ -78,6 +81,8 @@ package starling.utils
      *  is saved; for that reason, the VertexData class mimics this behavior. You can choose how
      *  the alpha values should be handled per attribute via the
      *  <code>get/setPremultipliedAlpha()</code> methods.</p>
+     *
+     *  @see IndexData
      */
     public class VertexData
     {
@@ -139,7 +144,7 @@ package starling.utils
                 numVertices = _numVertices - vertexID;
 
             var clone:VertexData = new VertexData(_format, _numVertices);
-            clone.rawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
+            clone._rawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
 
             for (var i:int=0; i<_numAttributes; ++i)
                 clone._attributes[i].pma = _attributes[i].pma;

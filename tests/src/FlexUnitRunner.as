@@ -63,6 +63,7 @@ package
             testsToRun.push(tests.display.MovieClipTest);
             testsToRun.push(tests.utils.RectangleUtilTest);
             testsToRun.push(tests.utils.VertexDataTest);
+            testsToRun.push(tests.utils.IndexDataTest);
             testsToRun.push(tests.utils.MatrixUtilTest);
             testsToRun.push(tests.utils.MathUtilTest);
             testsToRun.push(tests.utils.StringUtilTest);

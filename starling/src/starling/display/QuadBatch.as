@@ -33,6 +33,7 @@ package starling.display
     import starling.filters.FragmentFilterMode;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
+    import starling.utils.IndexData;
     import starling.utils.MatrixUtil;
     import starling.utils.RenderUtil;
     import starling.utils.VertexData;
@@ -81,17 +82,17 @@ package starling.display
         private var mTinted:Boolean;
         private var mTexture:Texture;
         private var mSmoothing:String;
-        
-        private var mVertexBuffer:VertexBuffer3D;
-        private var mIndexData:Vector.<uint>;
+
+        private var mIndexData:IndexData;
         private var mIndexBuffer:IndexBuffer3D;
-        
+        private var mVertexBuffer:VertexBuffer3D;
+
         /** The raw vertex data of the quad. After modifying its contents, call
-         *  'onVertexDataChanged' to upload the changes to the vertex buffers. Don't change the
+         *  'onVertexDataChanged' to upload the changes to the vertex buffers. Do not change the
          *  size of this object manually; instead, use the 'capacity' property of the QuadBatch. */
         protected var mVertexData:VertexData;
 
-        /** Helper objects. */
+        // Helper objects
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         private static var sProgramNameCache:Dictionary = new Dictionary();
@@ -101,7 +102,7 @@ package starling.display
         {
             mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)", 0);
             mVertexData.setPremultipliedAlpha("color", true);
-            mIndexData = new <uint>[];
+            mIndexData = new IndexData(768); // room for 128 quads
             mNumQuads = 0;
             mTinted = false;
             mSyncRequired = false;
@@ -123,7 +124,7 @@ package starling.display
             destroyBuffers();
             
             mVertexData.numVertices = 0;
-            mIndexData.length = 0;
+            mIndexData.clear();
             mNumQuads = 0;
 
             if (mTexture && mOwnsTexture)
@@ -148,7 +149,7 @@ package starling.display
         {
             var clone:QuadBatch = new QuadBatch();
             clone.mVertexData = mVertexData.clone(0, mNumQuads * 4);
-            clone.mIndexData = mIndexData.slice(0, mNumQuads * 6);
+            clone.mIndexData = mIndexData.clone(0, mNumQuads * 6);
             clone.mNumQuads = mNumQuads;
             clone.mTinted = mTinted;
             clone.mTexture = mTexture;
@@ -173,18 +174,10 @@ package starling.display
         {
             destroyBuffers();
 
-            var numVertices:int = mVertexData.numVertices;
-            var numIndices:int = mIndexData.length;
-            var context:Context3D = Starling.context;
+            if (mVertexData.numVertices == 0) return;
 
-            if (numVertices == 0) return;
-            if (context == null)  throw new MissingContextError();
-            
             mVertexBuffer = mVertexData.createVertexBuffer(true);
-
-            mIndexBuffer = context.createIndexBuffer(numIndices);
-            mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
-            
+            mIndexBuffer  = mIndexData.createIndexBuffer(true);
             mSyncRequired = false;
         }
         
@@ -714,16 +707,12 @@ package starling.display
             if (mNumQuads > value) mNumQuads = value;
             
             mVertexData.numVertices = value * 4;
-            mIndexData.length = value * 6;
-            
+
             for (var i:int=oldCapacity; i<value; ++i)
             {
-                mIndexData[int(i*6  )] = i*4;
-                mIndexData[int(i*6+1)] = i*4 + 1;
-                mIndexData[int(i*6+2)] = i*4 + 2;
-                mIndexData[int(i*6+3)] = i*4 + 1;
-                mIndexData[int(i*6+4)] = i*4 + 3;
-                mIndexData[int(i*6+5)] = i*4 + 2;
+                var index:int = i * 4;
+                mIndexData.appendTriangle(index,     index + 1, index + 2);
+                mIndexData.appendTriangle(index + 1, index + 3, index + 2);
             }
 
             destroyBuffers();

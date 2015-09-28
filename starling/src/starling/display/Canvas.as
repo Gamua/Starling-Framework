@@ -24,6 +24,7 @@ package starling.display
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.geom.Polygon;
+    import starling.utils.IndexData;
     import starling.utils.VertexData;
 
     /** A display object supporting basic vector drawing functionality. In its current state,
@@ -38,7 +39,7 @@ package starling.display
 
         private var mVertexData:VertexData;
         private var mVertexBuffer:VertexBuffer3D;
-        private var mIndexData:Vector.<uint>;
+        private var mIndexData:IndexData;
         private var mIndexBuffer:IndexBuffer3D;
 
         private var mFillColor:uint;
@@ -53,7 +54,7 @@ package starling.display
         {
             mPolygons   = new <Polygon>[];
             mVertexData = new VertexData("position(float2), color(bytes4)", 0);
-            mIndexData  = new <uint>[];
+            mIndexData  = new IndexData(96); // room for 32 triangles
             mSyncRequired = false;
 
             mFillColor = 0xffffff;
@@ -123,8 +124,8 @@ package starling.display
         /** Removes all existing vertices. */
         public function clear():void
         {
+            mIndexData.clear();
             mVertexData.numVertices = 0;
-            mIndexData.length = 0;
             mPolygons.length = 0;
             destroyBuffers();
         }
@@ -132,7 +133,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(painter:Painter):void
         {
-            if (mIndexData.length == 0) return;
+            if (mIndexData.numIndices == 0) return;
             if (mSyncRequired) syncBuffers();
 
             var state:RenderState = painter.state;
@@ -153,7 +154,7 @@ package starling.display
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, state.mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
-            context.drawTriangles(mIndexBuffer, 0, mIndexData.length / 3);
+            context.drawTriangles(mIndexBuffer, 0, mIndexData.numTriangles);
 
             context.setVertexBufferAt(0, null);
             context.setVertexBufferAt(1, null);
@@ -185,16 +186,9 @@ package starling.display
         private function appendPolygon(polygon:Polygon):void
         {
             var oldNumVertices:int = mVertexData.numVertices;
-            var oldNumIndices:int = mIndexData.length;
 
-            polygon.triangulate(mIndexData);
+            polygon.triangulate(mIndexData, oldNumVertices);
             polygon.copyToVertexData(mVertexData, oldNumVertices);
-
-            var newNumIndices:int = mIndexData.length;
-
-            // triangulation was done with vertex-indices of polygon only; now add correct offset.
-            for (var i:int=oldNumIndices; i<newNumIndices; ++i)
-                mIndexData[i] += oldNumVertices;
 
             applyFillColor(oldNumVertices, polygon.numVertices);
 
@@ -228,15 +222,9 @@ package starling.display
         {
             destroyBuffers();
 
-            var numIndices:Number = mIndexData.length;
-            var context:Context3D = Starling.context;
-            if (context == null) throw new MissingContextError();
-
+            mIndexData.trim();
             mVertexBuffer = mVertexData.createVertexBuffer(true);
-
-            mIndexBuffer = context.createIndexBuffer(numIndices);
-            mIndexBuffer.uploadFromVector(mIndexData, 0, numIndices);
-
+            mIndexBuffer  = mIndexData.createIndexBuffer(true);
             mSyncRequired = false;
         }
 
