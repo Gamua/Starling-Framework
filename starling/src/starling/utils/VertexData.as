@@ -46,7 +46,7 @@ package starling.utils
      *  string, you tell the class the attributes of each vertex. Here's an example:</p>
      *
      *  <pre>
-     *  var vertexData:VertexData = new VertexData("position(float2), color(bytes4)", 20);
+     *  var vertexData:VertexData = new VertexData("position(float2), color(bytes4)");
      *  vertexData.setPoint(0, "position", 320, 480);
      *  vertexData.setColor(0, "color", 0xff00ff);
      *  </pre>
@@ -101,11 +101,14 @@ package starling.utils
         // helper objects
         private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
+        private static var sBytes:ByteArray = new ByteArray();
 
-        /** Creates a new VertexData object with the given format and size.
+        /** Creates an empty VertexData object with the given format and initial capacity.
          *
-         *  <p>The format string describes the attributes of each vertex. It consists of a
-         *  comma-separated list of attribute names and their format, e.g.:</p>
+         *  @param format
+         *
+         *  Describes the attributes of each vertex, consisting of a comma-separated
+         *  list of attribute names and their format, e.g.:
          *
          *  <pre>"position(float2), color(bytes4), texCoords(float2)"</pre>
          *
@@ -125,15 +128,39 @@ package starling.utils
          *        will automatically be initialized with "1.0" when the VertexData object is
          *        created or resized.</li>
          *  </ul>
+         *
+         *  @param initialCapacity
+         *
+         *  The initial capacity affects just the way the internal ByteArray is allocated, not the
+         *  <code>numIndices</code> value, which will always be zero when the constructor returns.
+         *  The reason for this behavior is the peculiar way in which ByteArrays organize their
+         *  memory:
+         *
+         *  <p>The first time you set the length of a ByteArray, it will adhere to that:
+         *  a ByteArray with length 20 will take up 20 bytes (plus some overhead). When you change
+         *  it to a smaller length, it will stick to the original value, e.g. with a length of 10
+         *  it will still take up 20 bytes. However, now comes the weird part: change it to
+         *  anything above the original length, and it will allocate 4096 bytes!</p>
+         *
+         *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
+         *  usage of your VertexData instances.</p>
          */
-        public function VertexData(format:String, numVertices:int)
+        public function VertexData(format:String, initialCapacity:int=32)
         {
             parseFormat(format);
 
+            _numVertices = 0;
             _rawData = new ByteArray();
             _rawData.endian = Endian.LITTLE_ENDIAN;
+            _rawData.length = initialCapacity * _vertexSize; // just for the initial allocation
+            _rawData.length = 0;                             // changes length, but not memory!
+        }
 
-            this.numVertices = numVertices;
+        /** Explicitly frees up the memory used by the ByteArray. */
+        public function clear():void
+        {
+            _rawData.clear();
+            _numVertices = 0;
         }
 
         /** Creates a duplicate of either the complete vertex data object, or of a subset.
@@ -143,8 +170,9 @@ package starling.utils
             if (numVertices < 0 || vertexID + numVertices > _numVertices)
                 numVertices = _numVertices - vertexID;
 
-            var clone:VertexData = new VertexData(_format, _numVertices);
+            var clone:VertexData = new VertexData(_format, numVertices);
             clone._rawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
+            clone._numVertices = numVertices;
 
             for (var i:int=0; i<_numAttributes; ++i)
                 clone._attributes[i].pma = _attributes[i].pma;
@@ -328,6 +356,22 @@ package starling.utils
             }
         }
 
+        /** Optimizes the ByteArray so that it has exactly the required capacity, without
+         *  wasting any memory. If your VertexData object grows larger than the initial capacity
+         *  you passed to the constructor, call this method to avoid the 4k memory problem. */
+        public function trim():void
+        {
+            sBytes.length = _rawData.length;
+            sBytes.position = 0;
+            sBytes.writeBytes(_rawData);
+
+            _rawData.clear();
+            _rawData.length = sBytes.length;
+            _rawData.writeBytes(sBytes);
+
+            sBytes.clear();
+        }
+
         // read / write attributes
 
         /** Reads a float value from the specified vertex and attribute. */
@@ -340,6 +384,9 @@ package starling.utils
         /** Writes a float value to the specified vertex and attribute. */
         public function setFloat(vertexID:int, attrName:String, value:Number):void
         {
+            if (_numVertices < vertexID + 1)
+                 numVertices = vertexID + 1;
+
             _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(value);
         }
@@ -359,6 +406,9 @@ package starling.utils
         /** Writes the given coordinates to the specified vertex and attribute. */
         public function setPoint(vertexID:int, attrName:String, x:Number, y:Number):void
         {
+            if (_numVertices < vertexID + 1)
+                 numVertices = vertexID + 1;
+
             _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
@@ -381,6 +431,9 @@ package starling.utils
         /** Writes the given coordinates to the specified vertex and attribute. */
         public function setPoint3D(vertexID:int, attrName:String, x:Number, y:Number, z:Number):void
         {
+            if (_numVertices < vertexID + 1)
+                 numVertices = vertexID + 1;
+
             _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
@@ -406,6 +459,9 @@ package starling.utils
         public function setPoint4D(vertexID:int, attrName:String,
                                    x:Number, y:Number, z:Number, w:Number=1.0):void
         {
+            if (_numVertices < vertexID + 1)
+                 numVertices = vertexID + 1;
+
             _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
@@ -426,7 +482,7 @@ package starling.utils
         /** Writes the RGB color to the specified vertex and attribute (alpha is not changed). */
         public function setColor(vertexID:int, attrName:String, color:uint):void
         {
-            var alpha:Number = getAlpha(vertexID, attrName);
+            var alpha:Number = vertexID < _numVertices ? getAlpha(vertexID, attrName) : 1.0;
             setColorAndAlpha(vertexID, attrName, color, alpha);
         }
 
@@ -441,13 +497,16 @@ package starling.utils
         /** Writes the given alpha value to the specified vertex and attribute (range 0-1). */
         public function setAlpha(vertexID:int, attrName:String, alpha:Number):void
         {
-            var color:uint = getColor(vertexID, attrName);
+            var color:uint = vertexID < _numVertices ? getColor(vertexID, attrName) : 0x0;
             setColorAndAlpha(vertexID, attrName, color, alpha);
         }
 
         /** Writes the given RGB and alpha values to the specified vertex and attribute. */
         public function setColorAndAlpha(vertexID:int, attrName:String, color:uint, alpha:Number):void
         {
+            if (_numVertices < vertexID + 1)
+                 numVertices = vertexID + 1;
+
             var attribute:Attribute = getAttribute(attrName);
             var minAlpha:Number = attribute.pma ? 5.0 / 255.0 : 0.0;
 
@@ -459,6 +518,9 @@ package starling.utils
 
             _rawData.position = vertexID * _vertexSize + attribute.offset;
             _rawData.writeUnsignedInt(switchEndian(rgba));
+
+            if (_numVertices < vertexID + 1)
+                 numVertices = vertexID + 1;
         }
 
         /** Sets the specified range of vertices to the same RGB and alpha values. */
@@ -920,10 +982,13 @@ package starling.utils
 
         // properties
 
-        /** The total number of vertices. */
+        /** The total number of vertices. If you make the object bigger, it will be filled up with
+         *  <code>1.0</code> for all alpha values and zero for everything else. */
         public function get numVertices():int { return _numVertices; }
         public function set numVertices(value:int):void
         {
+            if (_numVertices == value) return;
+
             _rawData.length = value * _vertexSize;
 
             for (var i:int=0; i<_numAttributes; ++i)

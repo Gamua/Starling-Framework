@@ -36,7 +36,7 @@ package tests.utils
         [Test]
         public function testFormatParsing():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 0);
+            var vd:VertexData = new VertexData(STD_FORMAT);
 
             assertEquals(2, vd.getSizeIn32Bits("position"));
             assertEquals(8, vd.getSizeInBytes("position"));
@@ -66,56 +66,77 @@ package tests.utils
         [Test(expects="Error")]
         public function testEmptyFormatString():void
         {
-            new VertexData("", 3);
+            new VertexData("");
         }
 
         [Test(expects="Error")]
         public function testInvalidFormatString():void
         {
-            new VertexData("color(double2)", 1);
+            new VertexData("color(double2)");
         }
 
         [Test(expects="Error")]
         public function testInvalidFormatString2():void
         {
-            new VertexData("color.float4", 1);
+            new VertexData("color.float4");
         }
 
         [Test]
         public function testNormalizeFormat():void
         {
             var format:String = " flavor (float1) , direction( float2 ),count(bytes4)  ";
-            var vd:VertexData = new VertexData(format, 0);
+            var vd:VertexData = new VertexData(format);
 
             assertEquals("flavor(float1), direction(float2), count(bytes4)", vd.format);
         }
 
         [Test]
-        public function testGetNumVertices():void
+        public function testNumVertices():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 4);
-            assertEquals(4, vd.numVertices);
+            var vd:VertexData = new VertexData(STD_FORMAT);
+            assertEquals(0, vd.numVertices);
+
+            vd.setPoint(0, "position", 1, 2);
+            assertEquals(1, vd.numVertices);
+            assertEquals(1.0, vd.getAlpha(0));
+            Helpers.comparePoints(new Point(1, 2), vd.getPoint(0, "position"));
+
+            vd.setAlpha(2, "color", 0.5);
+            assertEquals(3, vd.numVertices);
+            assertEquals(1.0, vd.getAlpha(1));
+            assertThat(vd.getAlpha(2), closeTo(0.5, 0.003));
+
+            vd.numVertices = 0;
+            assertEquals(0, vd.numVertices);
+
+            vd.numVertices = 10;
+            assertEquals(10, vd.numVertices);
+
+            for (var i:int=0; i<10; ++i)
+                assertEquals(1.0, vd.getAlpha(i));
         }
 
         [Test(expects="Error")]
         public function testBoundsLow():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 3);
+            var vd:VertexData = new VertexData(STD_FORMAT);
+            vd.numVertices = 3;
             vd.getColor(-1, "color");
         }
 
         [Test(expects="Error")]
         public function testBoundsHigh():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 3);
+            var vd:VertexData = new VertexData(STD_FORMAT);
+            vd.numVertices = 3;
             vd.getColor(3, "color");
         }
 
         [Test]
         public function testWriteAndReadSimpleAttributes():void
         {
-            var vd:VertexData = new VertexData(
-                "pos1D(float1), pos2D(float2), pos3D(float3), pos4D(float4)", 3);
+            var vd:VertexData = new VertexData("pos1D(float1), pos2D(float2), pos3D(float3), pos4D(float4)");
+            vd.numVertices = 3;
 
             vd.setFloat(1, "pos1D", 0.5);
             assertThat(0.0, closeTo(vd.getFloat(0, "pos1D"), E));
@@ -147,7 +168,8 @@ package tests.utils
         [Test]
         public function testColor():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 3);
+            var vd:VertexData = new VertexData(STD_FORMAT);
+            vd.numVertices = 3;
             vd.setPremultipliedAlpha("color");
 
             assertEquals(3, vd.numVertices);
@@ -208,7 +230,8 @@ package tests.utils
         [Test]
         public function testSetUniformColorAndAlpha():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 3);
+            var vd:VertexData = new VertexData(STD_FORMAT);
+            vd.numVertices = 3;
             vd.setUniformColorAndAlpha("color", 0x7f7f7f, 0.5);
 
             for (var i:int=0; i<3; ++i)
@@ -226,7 +249,8 @@ package tests.utils
 
             function makeTest(pma:Boolean):void
             {
-                var vd:VertexData = new VertexData(STD_FORMAT, 3);
+                var vd:VertexData = new VertexData(STD_FORMAT);
+                vd.numVertices = 3;
                 vd.setPremultipliedAlpha("color", pma);
                 vd.setUniformColorAndAlpha("color", 0xffffff, 0.9);
                 vd.scaleAlphas("color", 0.9);
@@ -242,7 +266,7 @@ package tests.utils
         [Test]
         public function testTranslatePoint():void
         {
-            var vd:VertexData = new VertexData("pos(float2)", 2);
+            var vd:VertexData = new VertexData("pos(float2)");
             vd.setPoint(0, "pos", 10, 20);
             vd.setPoint(1, "pos", 30, 40);
             vd.translatePoint(0, "pos", 5, 6);
@@ -254,7 +278,7 @@ package tests.utils
         [Test]
         public function testGetBounds():void
         {
-            var vd:VertexData = new VertexData("position(float2)", 0);
+            var vd:VertexData = new VertexData("position(float2)");
             var bounds:Rectangle = vd.getBounds();
             var expectedBounds:Rectangle = new Rectangle();
 
@@ -281,7 +305,7 @@ package tests.utils
         public function testGetBoundsProjected():void
         {
             var camPos:Vector3D = new Vector3D(0, 0, 10);
-            var vd:VertexData = new VertexData("pos(float2)", 0);
+            var vd:VertexData = new VertexData("pos(float2)");
             var bounds:Rectangle = vd.getBoundsProjected("pos", null, camPos);
             var expectedBounds:Rectangle = new Rectangle();
 
@@ -301,6 +325,28 @@ package tests.utils
         }
 
         [Test]
+        public function testClone():void
+        {
+            var vd1:VertexData = new VertexData(STD_FORMAT, 2);
+            vd1.setPoint(0, "position", 1, 2);
+            vd1.setColor(0, "color", 0xaabbcc);
+            vd1.setPoint(0, "texCoords", 0.1, 0.2);
+            vd1.setPoint(1, "position", 3, 4);
+            vd1.setColor(1, "color", 0x334455);
+            vd1.setPoint(1, "texCoords", 0.3, 0.4);
+
+            var clone:VertexData = vd1.clone();
+            assertEquals(vd1.numVertices, clone.numVertices);
+            Helpers.compareByteArrays(vd1.rawData, clone.rawData);
+
+            clone = vd1.clone(1, 1);
+            assertEquals(1, clone.numVertices);
+            assertEquals(vd1.getColor(1), clone.getColor(0));
+            Helpers.comparePoints(vd1.getPoint(1, "position"),  clone.getPoint(0, "position"));
+            Helpers.comparePoints(vd1.getPoint(1, "texCoords"), clone.getPoint(0, "texCoords"));
+        }
+
+        [Test]
         public function testCopyToWithIdenticalFormats():void
         {
             var vd1:VertexData = new VertexData(STD_FORMAT, 2);
@@ -311,7 +357,7 @@ package tests.utils
             vd1.setColor(1, "color", 0x334455);
             vd1.setPoint(1, "texCoords", 0.3, 0.4);
 
-            var vd2:VertexData = new VertexData(STD_FORMAT, 0);
+            var vd2:VertexData = new VertexData(STD_FORMAT, 2);
             vd1.copyTo(vd2);
 
             Helpers.compareByteArrays(vd1.rawData, vd2.rawData);
@@ -331,7 +377,7 @@ package tests.utils
         [Test]
         public function testCopyToWithDifferentFormats():void
         {
-            var vd1:VertexData = new VertexData(STD_FORMAT, 2);
+            var vd1:VertexData = new VertexData(STD_FORMAT);
             vd1.setPoint(0, "position", 1, 2);
             vd1.setColor(0, "color", 0xaabbcc);
             vd1.setPoint(0, "texCoords", 0.1, 0.2);
@@ -339,7 +385,7 @@ package tests.utils
             vd1.setColor(1, "color", 0x334455);
             vd1.setPoint(1, "texCoords", 0.3, 0.4);
 
-            var vd2:VertexData = new VertexData("texCoords(float2)", 0);
+            var vd2:VertexData = new VertexData("texCoords(float2)");
             vd1.copyTo(vd2);
 
             assertEquals(2, vd2.numVertices);
@@ -347,7 +393,7 @@ package tests.utils
             Helpers.comparePoints(vd1.getPoint(1, "texCoords"), vd2.getPoint(1, "texCoords"));
 
             var origin:Point = new Point();
-            var vd3:VertexData = new VertexData(STD_FORMAT, 0);
+            var vd3:VertexData = new VertexData(STD_FORMAT);
             vd2.copyTo(vd3);
 
             assertEquals(2, vd3.numVertices);
@@ -365,7 +411,7 @@ package tests.utils
         public function testCopyToTransformedWithIdenticalFormats():void
         {
             var format:String = "pos(float2), color(bytes4)";
-            var vd1:VertexData = new VertexData(format, 2);
+            var vd1:VertexData = new VertexData(format);
             vd1.setPoint(0, "pos", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
             vd1.setPoint(1, "pos", 30, 40);
@@ -374,7 +420,7 @@ package tests.utils
             var matrix:Matrix = new Matrix();
             matrix.translate(5, 6);
 
-            var vd2:VertexData = new VertexData(format, 2);
+            var vd2:VertexData = new VertexData(format);
             vd1.copyToTransformed(vd2, 0, matrix);
 
             assertEquals(0xaabbcc, vd2.getColor(0, "color"));
@@ -391,7 +437,7 @@ package tests.utils
         public function testCopyToTransformedWithDifferentFormats():void
         {
             var format:String = "color(bytes4), position(float2)";
-            var vd1:VertexData = new VertexData(format, 2);
+            var vd1:VertexData = new VertexData(format);
             vd1.setPoint(0, "position", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
             vd1.setPoint(1, "position", 30, 40);
@@ -400,7 +446,7 @@ package tests.utils
             var matrix:Matrix = new Matrix();
             matrix.translate(5, 6);
 
-            var vd2:VertexData = new VertexData("position(float2), flavor(float1)", 2);
+            var vd2:VertexData = new VertexData("position(float2), flavor(float1)");
             vd1.copyToTransformed(vd2, 0, matrix);
 
             assertEquals(0.0, vd2.getFloat(0, "flavor"));
@@ -416,7 +462,7 @@ package tests.utils
         [Test]
         public function testTransformPoints():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT, 2);
+            var vd:VertexData = new VertexData(STD_FORMAT);
             vd.setPoint(0, "position", 10, 20);
             vd.setPoint(1, "position", 30, 40);
 

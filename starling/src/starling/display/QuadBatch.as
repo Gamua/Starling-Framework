@@ -100,9 +100,9 @@ package starling.display
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
         {
-            mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)", 0);
+            mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)");
             mVertexData.setPremultipliedAlpha("color", true);
-            mIndexData = new IndexData(768); // room for 128 quads
+            mIndexData = new IndexData();
             mNumQuads = 0;
             mTinted = false;
             mSyncRequired = false;
@@ -123,7 +123,7 @@ package starling.display
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             destroyBuffers();
             
-            mVertexData.numVertices = 0;
+            mVertexData.clear();
             mIndexData.clear();
             mNumQuads = 0;
 

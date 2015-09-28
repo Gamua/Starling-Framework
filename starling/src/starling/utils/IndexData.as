@@ -44,21 +44,36 @@ package starling.utils
         private var _rawData:ByteArray;
         private var _numIndices:int;
 
-        // helper object
+        // helper objects
         private static var sVector:Vector.<uint> = new <uint>[];
         private static var sBytes:ByteArray = new ByteArray();
 
-        /** Creates a new IndexData instance with the given capacity (in indices). The capacity
-         *  affects the size of the internal ByteArray, not the <code>numIndices</code> value,
-         *  which will always be zero when the constructor returns. For more information about this
-         *  behavior, please refer to the documentation of the <code>numIndices</code>-property.
+        /** Creates an empty IndexData instance with the given capacity (in indices).
+         *
+         *  @param initialCapacity
+         *
+         *  The initial capacity affects just the way the internal ByteArray is allocated, not the
+         *  <code>numIndices</code> value, which will always be zero when the constructor returns.
+         *  The reason for this behavior is the peculiar way in which ByteArrays organize their
+         *  memory:
+         *
+         *  <p>The first time you set the length of a ByteArray, it will adhere to that:
+         *  a ByteArray with length 20 will take up 20 bytes (plus some overhead). When you change
+         *  it to a smaller length, it will stick to the original value, e.g. with a length of 10
+         *  it will still take up 20 bytes. However, now comes the weird part: change it to
+         *  anything above the original length, and it will allocate 4096 bytes!</p>
+         *
+         *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
+         *  usage of your VertexData instances.</p>
+         *
          */
-        public function IndexData(initialCapacity:int=24)
+        public function IndexData(initialCapacity:int=48)
         {
+            _numIndices = 0;
             _rawData = new ByteArray();
             _rawData.endian = Endian.LITTLE_ENDIAN;
-            _rawData.length = initialCapacity * INDEX_SIZE;
-            _numIndices = 0;
+            _rawData.length = initialCapacity * INDEX_SIZE; // just for the initial allocation
+            _rawData.length = 0;                            // changes length, but not memory!
         }
 
         /** Explicitly frees up the memory used by the ByteArray. */
@@ -101,11 +116,11 @@ package starling.utils
         /** Sets an index at the specified position. */
         public function setIndex(indexID:int, index:uint):void
         {
+            if (_numIndices < indexID + 1)
+                 numIndices = indexID + 1;
+
             _rawData.position = indexID * INDEX_SIZE;
             _rawData.writeShort(index);
-
-            if (_numIndices < indexID + 1)
-                _numIndices = indexID + 1;
         }
 
         /** Reads the index from the specified position. */
@@ -207,19 +222,7 @@ package starling.utils
         // properties
 
         /** The total number of indices. If you make the object bigger, it will be filled up with
-         *  indices set to zero.
-         *
-         *  <p>Beware: ByteArrays organize their memory in a very peculiar way. The first time
-         *  you set their length, they adhere to that: a ByteArray with length 20 will take up 20
-         *  bytes. When you change it to a smaller length, they will stick to the original value,
-         *  i.e. a length of 10 will still take up 20 bytes. However, here comes the surprise:
-         *  change them to anything above their original length, and they will allocate a total
-         *  of 4096 bytes!</p>
-         *
-         *  <p>That's why it is important to always make use of the <code>initialCapacity</code>
-         *  parameter in the IndexData constructor, as this determines the initial size of the
-         *  ByteArray.</p>
-         */
+         *  indices set to zero. */
         public function get numIndices():int { return _numIndices; }
         public function set numIndices(value:int):void
         {

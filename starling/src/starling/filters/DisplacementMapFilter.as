@@ -68,6 +68,7 @@ package starling.filters
             mMapTexture = mapTexture;
             mMapPoint = new Point();
             mMapTexCoords = new VertexData("texCoords(float2)", 4);
+            mMapTexCoords.numVertices = 4;
             mComponentX = componentX;
             mComponentY = componentY;
             mScaleX = scaleX;

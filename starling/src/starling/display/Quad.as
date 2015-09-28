@@ -61,11 +61,11 @@ package starling.display
 
             mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)", 4);
             mVertexData.setPremultipliedAlpha("color", premultipliedAlpha, false);
-            mVertexData.setUniformColorAndAlpha("color", color, 1.0);
             mVertexData.setPoint(0, "position", 0.0, 0.0);
             mVertexData.setPoint(1, "position", width, 0.0);
             mVertexData.setPoint(2, "position", 0.0, height);
             mVertexData.setPoint(3, "position", width, height);
+            mVertexData.setUniformColorAndAlpha("color", color, 1.0);
 
             onVertexDataChanged();
         }

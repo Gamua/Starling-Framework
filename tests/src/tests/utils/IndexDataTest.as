@@ -28,7 +28,7 @@ package tests.utils
         [Test]
         public function testSetIndex():void
         {
-            var indexData:IndexData = new IndexData();
+            var indexData:IndexData = new IndexData(0);
             indexData.setIndex(0, 8);
             assertEquals(1, indexData.numIndices);
             assertEquals(8, indexData.getIndex(0));

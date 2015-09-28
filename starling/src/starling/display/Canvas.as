@@ -53,8 +53,8 @@ package starling.display
         public function Canvas()
         {
             mPolygons   = new <Polygon>[];
-            mVertexData = new VertexData("position(float2), color(bytes4)", 0);
-            mIndexData  = new IndexData(96); // room for 32 triangles
+            mVertexData = new VertexData("position(float2), color(bytes4)");
+            mIndexData  = new IndexData();
             mSyncRequired = false;
 
             mFillColor = 0xffffff;
@@ -125,7 +125,7 @@ package starling.display
         public function clear():void
         {
             mIndexData.clear();
-            mVertexData.numVertices = 0;
+            mVertexData.clear();
             mPolygons.length = 0;
             destroyBuffers();
         }
@@ -223,8 +223,9 @@ package starling.display
             destroyBuffers();
 
             mIndexData.trim();
-            mVertexBuffer = mVertexData.createVertexBuffer(true);
+            mVertexData.trim();
             mIndexBuffer  = mIndexData.createIndexBuffer(true);
+            mVertexBuffer = mVertexData.createVertexBuffer(true);
             mSyncRequired = false;
         }
 
