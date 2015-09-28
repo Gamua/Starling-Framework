@@ -26,6 +26,21 @@ package tests.utils
         }
 
         [Test]
+        public function testSetIndex():void
+        {
+            var indexData:IndexData = new IndexData();
+            indexData.setIndex(0, 8);
+            assertEquals(1, indexData.numIndices);
+            assertEquals(8, indexData.getIndex(0));
+
+            indexData.setIndex(2, 9);
+            assertEquals(3, indexData.numIndices);
+            assertEquals(8, indexData.getIndex(0));
+            assertEquals(0, indexData.getIndex(1));
+            assertEquals(9, indexData.getIndex(2));
+        }
+
+        [Test]
         public function testAppendTriangle():void
         {
             var indexData:IndexData = new IndexData();

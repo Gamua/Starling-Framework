@@ -104,8 +104,8 @@ package starling.utils
             _rawData.position = indexID * INDEX_SIZE;
             _rawData.writeShort(index);
 
-            if (_numIndices < index + 1)
-                _numIndices = index + 1;
+            if (_numIndices < indexID + 1)
+                _numIndices = indexID + 1;
         }
 
         /** Reads the index from the specified position. */
