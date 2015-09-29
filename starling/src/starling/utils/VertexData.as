@@ -19,6 +19,7 @@ package starling.utils
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
+    import flash.utils.Dictionary;
     import flash.utils.Endian;
 
     import starling.core.Starling;
@@ -95,8 +96,8 @@ package starling.utils
         private var _vertexSize:int; // in bytes
         private var _numVertices:int;
 
-        // every format string has an integer index; that allows fast format comparison.
-        private static var sFormats:Vector.<String> = new <String>[];
+        private static var sFormats:Vector.<String> = new <String>[];  // fast format comparison
+        private static var sFormatCache:Dictionary = new Dictionary(); // avoid multiple parsing
 
         // helper objects
         private static var sHelperPoint:Point = new Point();
@@ -877,48 +878,73 @@ package starling.utils
         {
             if (format == null || format == "")
                 throw new ArgumentError("Format string must not be empty");
-
-            _attributes = new <Attribute>[];
-            _format = "";
-
-            var parts:Array = format.split(",");
-            var numParts:int = parts.length;
-            var offset:int = 0;
-
-            for (var i:int=0; i<numParts; ++i)
+            else if (format in sFormatCache)
+                readSettingsFromCache(format);
+            else
             {
-                var attrDesc:String = parts[i];
-                var openBracketPos:int  = attrDesc.indexOf("(");
-                var closeBracketPos:int = attrDesc.indexOf(")");
+                _attributes = new <Attribute>[];
+                _format = "";
 
-                if (openBracketPos == -1 || closeBracketPos == -1)
-                    throw new ArgumentError(("Missing parentheses: " + attrDesc));
+                var parts:Array = format.split(",");
+                var numParts:int = parts.length;
+                var offset:int = 0;
 
-                var attrName:String = StringUtil.trim(attrDesc.substring(0, openBracketPos));
-                var attrFormat:String = StringUtil.trim(attrDesc.substring(openBracketPos + 1, closeBracketPos));
+                for (var i:int=0; i<numParts; ++i)
+                {
+                    var attrDesc:String = parts[i];
+                    var openBracketPos:int  = attrDesc.indexOf("(");
+                    var closeBracketPos:int = attrDesc.indexOf(")");
 
-                if (attrName.length == 0 || attrFormat.length == 0)
-                    throw new ArgumentError(("Invalid format string: " + attrDesc));
+                    if (openBracketPos == -1 || closeBracketPos == -1)
+                        throw new ArgumentError(("Missing parentheses: " + attrDesc));
 
-                if (attrName == "position")
-                    _posOffset = offset;
+                    var attrName:String = StringUtil.trim(attrDesc.substring(0, openBracketPos));
+                    var attrFormat:String = StringUtil.trim(attrDesc.substring(openBracketPos + 1, closeBracketPos));
 
-                var attr:Attribute = new Attribute(attrName, attrFormat, offset);
-                offset += attr.size;
+                    if (attrName.length == 0 || attrFormat.length == 0)
+                        throw new ArgumentError(("Invalid format string: " + attrDesc));
 
-                _format += (i == 0 ? "" : ", ") + attr.name + "(" + attr.format + ")";
-                _attributes[_attributes.length] = attr; // avoid 'push'
+                    if (attrName == "position")
+                        _posOffset = offset;
+
+                    var attr:Attribute = new Attribute(attrName, attrFormat, offset);
+                    offset += attr.size;
+
+                    _format += (i == 0 ? "" : ", ") + attr.name + "(" + attr.format + ")";
+                    _attributes[_attributes.length] = attr; // avoid 'push'
+                }
+
+                _vertexSize = offset;
+                _numAttributes = _attributes.length;
+                _formatID = sFormats.indexOf(_format);
+
+                if (_formatID == -1)
+                {
+                    _formatID = sFormats.length;
+                    sFormats[_formatID] = _format;
+                }
+
+                writeSettingsToCache(format);
             }
+        }
 
-            _vertexSize = offset;
-            _numAttributes = _attributes.length;
-            _formatID = sFormats.indexOf(_format);
+        private function readSettingsFromCache(format:String):void
+        {
+            var formatInfo:Object = sFormatCache[format];
+            _format = formatInfo.format;
+            _formatID = formatInfo.formatID;
+            _posOffset = formatInfo.posOffset;
+            _vertexSize = formatInfo.vertexSize;
+            _numAttributes = formatInfo.attributes.length;
+            _attributes = formatInfo.attributes.slice();
+        }
 
-            if (_formatID == -1)
-            {
-                _formatID = sFormats.length;
-                sFormats.push(_format);
-            }
+        private function writeSettingsToCache(format:String):void
+        {
+            sFormatCache[format] = {
+                format: _format, formatID: _formatID, posOffset: _posOffset,
+                vertexSize: _vertexSize, attributes: _attributes.slice()
+            };
         }
 
         [Inline]
@@ -928,7 +954,7 @@ package starling.utils
 
             for (i=0; i<_numAttributes; ++i)
             {
-                attribute = _attributes[i] as Attribute;
+                attribute = _attributes[i];
                 if (attribute.name == name) return attribute;
             }
 
