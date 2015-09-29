@@ -152,6 +152,27 @@ package starling.utils
             _numIndices += 3;
         }
 
+        /** Appends two triangles spawning up the quad with the given indices.
+         *  The indices of the vertices are arranged like this:
+         *
+         *  <pre>
+         *  a - b
+         *  | / |
+         *  c - d
+         *  </pre>
+         */
+        public function appendQuad(a:uint, b:uint, c:uint, d:uint):void
+        {
+            _rawData.position = _numIndices * INDEX_SIZE;
+            _rawData.writeShort(a);
+            _rawData.writeShort(b);
+            _rawData.writeShort(c);
+            _rawData.writeShort(b);
+            _rawData.writeShort(d);
+            _rawData.writeShort(c);
+            _numIndices += 6;
+        }
+
         /** Creates a vector containing all indices. If you pass an existing vector to the method,
          *  its contents will be overwritten. */
         public function toVector(out:Vector.<uint>=null):Vector.<uint>

@@ -711,8 +711,7 @@ package starling.display
             for (var i:int=oldCapacity; i<value; ++i)
             {
                 var index:int = i * 4;
-                mIndexData.appendTriangle(index,     index + 1, index + 2);
-                mIndexData.appendTriangle(index + 1, index + 3, index + 2);
+                mIndexData.appendQuad(index, index+1, index+2, index+3);
             }
 
             destroyBuffers();

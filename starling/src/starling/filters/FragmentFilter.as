@@ -144,8 +144,7 @@ package starling.filters
             mVertexData.setPoint(3, "texCoords", 1, 1);
             
             mIndexData = new IndexData(6);
-            mIndexData.appendTriangle(0, 1, 2);
-            mIndexData.appendTriangle(1, 3, 2);
+            mIndexData.appendQuad(0, 1, 2, 3);
 
             if (Starling.current.contextValid)
                 createPrograms();
