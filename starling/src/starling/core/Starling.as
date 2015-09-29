@@ -573,7 +573,7 @@ package starling.core
             stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextRestored, false, 10, true);
 
-            trace("[Starling] Render context initialized. Display Driver:", context.driverInfo);
+            trace("[Starling] Context ready. Display Driver:", context.driverInfo);
             initialize();
         }
 
