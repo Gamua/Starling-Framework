@@ -101,7 +101,6 @@ package starling.display
         public function QuadBatch()
         {
             mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)");
-            mVertexData.setPremultipliedAlpha("color", true);
             mIndexData = new IndexData();
             mNumQuads = 0;
             mTinted = false;
@@ -221,7 +220,7 @@ package starling.display
             if (mNumQuads == 0) return;
             if (mSyncRequired) syncBuffers();
             
-            var pma:Boolean = mVertexData.getPremultipliedAlpha();
+            var pma:Boolean = mVertexData.premultipliedAlpha;
             var context:Context3D = Starling.context;
             var tinted:Boolean = mTinted || (alpha != 1.0);
             
@@ -298,7 +297,7 @@ package starling.display
                 mTexture = texture;
                 mTinted = mForceTinted || quad.tinted || alpha != 1.0;
                 mSmoothing = smoothing;
-                mVertexData.setPremultipliedAlpha("color", quad.premultipliedAlpha);
+                mVertexData.premultipliedAlpha = quad.premultipliedAlpha;
             }
             
             quad.copyVertexDataTransformedTo(mVertexData, vertexID, modelviewMatrix);
@@ -328,7 +327,7 @@ package starling.display
                 mTexture = quadBatch.mTexture;
                 mTinted = mForceTinted || quadBatch.mTinted || alpha != 1.0;
                 mSmoothing = quadBatch.mSmoothing;
-                mVertexData.setPremultipliedAlpha("color", quadBatch.premultipliedAlpha, false);
+                mVertexData.premultipliedAlpha = quadBatch.premultipliedAlpha;
             }
             
             quadBatch.mVertexData.copyToTransformed(mVertexData, vertexID, modelviewMatrix,
@@ -473,7 +472,7 @@ package starling.display
                     var state:RenderState = painter.state;
                     painter.finishQuadBatch();
                     painter.drawCount += 1;
-                    painter.prepareToDraw(mVertexData.getPremultipliedAlpha());
+                    painter.prepareToDraw(mVertexData.premultipliedAlpha);
                     renderCustom(state.mvpMatrix3D, state.alpha, state.blendMode);
                 }
             }
@@ -666,7 +665,7 @@ package starling.display
         public function get smoothing():String { return mSmoothing; }
         
         /** Indicates if the rgb values are stored premultiplied with the alpha value. */
-        public function get premultipliedAlpha():Boolean { return mVertexData.getPremultipliedAlpha(); }
+        public function get premultipliedAlpha():Boolean { return mVertexData.premultipliedAlpha; }
         
         /** Indicates if the batch itself should be batched on rendering. This makes sense only
          *  if it contains only a small number of quads (we recommend no more than 16). Otherwise,

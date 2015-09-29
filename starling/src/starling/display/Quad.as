@@ -60,7 +60,7 @@ package starling.display
             mTinted = color != 0xffffff;
 
             mVertexData = new VertexData("position(float2), color(bytes4), texCoords(float2)", 4);
-            mVertexData.setPremultipliedAlpha("color", premultipliedAlpha, false);
+            mVertexData.premultipliedAlpha = premultipliedAlpha;
             mVertexData.setPoint(0, "position", 0.0, 0.0);
             mVertexData.setPoint(1, "position", width, 0.0);
             mVertexData.setPoint(2, "position", 0.0, height);
@@ -195,7 +195,7 @@ package starling.display
          *  affect the rendering. (Most of the time, you don't have to care, though.) */
         public function get premultipliedAlpha():Boolean
         {
-            return mVertexData.getPremultipliedAlpha();
+            return mVertexData.premultipliedAlpha;
         }
     }
 }

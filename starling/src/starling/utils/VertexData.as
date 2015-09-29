@@ -76,12 +76,12 @@ package starling.utils
      *  <strong>Premultiplied Alpha</strong>
      *
      *  <p>The color values of the "BitmapData" object contain premultiplied alpha values, which
-     *  means that the <code>rgb</code> values were multiplied with the <code>alpha</code> value
+     *  means that the <code>rgb</code> values were multiplied with the <code>alpha</code> values
      *  before saving them. Since textures are often created from bitmap data, they contain the
-     *  values in the same style. On rendering, it makes a difference in which way the alpha value
+     *  values in the same style. On rendering, it makes a difference in which way the color data
      *  is saved; for that reason, the VertexData class mimics this behavior. You can choose how
-     *  the alpha values should be handled per attribute via the
-     *  <code>get/setPremultipliedAlpha()</code> methods.</p>
+     *  the alpha values of any stored colors should be handled via the
+     *  <code>setPremultipliedAlpha</code> method.</p>
      *
      *  @see IndexData
      */
@@ -90,6 +90,7 @@ package starling.utils
         private var _rawData:ByteArray;
         private var _format:String;
         private var _formatID:int;
+        private var _premultipliedAlpha:Boolean;
         private var _attributes:Vector.<Attribute>;
         private var _numAttributes:int;
         private var _posOffset:int;  // in bytes
@@ -151,6 +152,7 @@ package starling.utils
             parseFormat(format);
 
             _numVertices = 0;
+            _premultipliedAlpha = true;
             _rawData = new ByteArray();
             _rawData.endian = Endian.LITTLE_ENDIAN;
             _rawData.length = initialCapacity * _vertexSize; // just for the initial allocation
@@ -174,10 +176,7 @@ package starling.utils
             var clone:VertexData = new VertexData(_format, numVertices);
             clone._rawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
             clone._numVertices = numVertices;
-
-            for (var i:int=0; i<_numAttributes; ++i)
-                clone._attributes[i].pma = _attributes[i].pma;
-
+            clone._premultipliedAlpha = _premultipliedAlpha;
             return clone;
         }
 
@@ -188,7 +187,8 @@ package starling.utils
          *  <p>Source and target do not need to have the exact same format. Only properties that
          *  exist in the target will be copied; others will be ignored. If a property with the
          *  same name but a different format exists in the target, an exception will be raised.
-         *  Copying will be faster, though, if the two formats are identical.</p>
+         *  Beware, though, that the copy-operation becomes much more expensive when the formats
+         *  differ.</p>
          */
         public function copyTo(target:VertexData, targetVertexID:int=0,
                                vertexID:int=0, numVertices:int=-1):void
@@ -373,6 +373,14 @@ package starling.utils
             sBytes.clear();
         }
 
+        /** Returns a string representation of the VertexData object,
+         *  describing both its format and size. */
+        public function toString():String
+        {
+            return StringUtil.format("[VertexData format=\"{0}\" numVertices={1}]",
+                    _format, _numVertices);
+        }
+
         // read / write attributes
 
         /** Reads a float value from the specified vertex and attribute. */
@@ -476,7 +484,7 @@ package starling.utils
             var attribute:Attribute = getAttribute(attrName);
             _rawData.position = vertexID * _vertexSize + attribute.offset;
             var rgba:uint = switchEndian(_rawData.readUnsignedInt());
-            if (attribute.pma) rgba = unmultiplyAlpha(rgba);
+            if (_premultipliedAlpha) rgba = unmultiplyAlpha(rgba);
             return (rgba >> 8) & 0xffffff;
         }
 
@@ -509,13 +517,13 @@ package starling.utils
                  numVertices = vertexID + 1;
 
             var attribute:Attribute = getAttribute(attrName);
-            var minAlpha:Number = attribute.pma ? 5.0 / 255.0 : 0.0;
+            var minAlpha:Number = _premultipliedAlpha ? 5.0 / 255.0 : 0.0;
 
             if (alpha < minAlpha) alpha = minAlpha;
             else if (alpha > 1.0) alpha = 1.0;
 
             var rgba:uint = ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff);
-            if (attribute.pma && alpha != 1.0) rgba = premultiplyAlpha(rgba);
+            if (_premultipliedAlpha && alpha != 1.0) rgba = premultiplyAlpha(rgba);
 
             _rawData.position = vertexID * _vertexSize + attribute.offset;
             _rawData.writeUnsignedInt(switchEndian(rgba));
@@ -543,15 +551,15 @@ package starling.utils
                 numVertices = _numVertices - vertexID;
 
             var i:int;
-            var attribute:Attribute = getAttribute(attrName);
 
-            if (attribute.pma)
+            if (_premultipliedAlpha)
             {
                 for (i = 0; i < numVertices; ++i)
                     setAlpha(vertexID + i, attrName, getAlpha(vertexID + i) * factor);
             }
             else
             {
+                var attribute:Attribute = getAttribute(attrName);
                 var offset:int = vertexID * _vertexSize + attribute.offset + 3;
                 var oldAlpha:Number;
 
@@ -694,47 +702,47 @@ package starling.utils
             return out;
         }
 
-        /** Returns a string representation of the VertexData object,
-         *  describing both its format and size. */
-        public function toString():String
+        /** Indicates if color attributes should be stored premultiplied with the alpha value.
+         *  Changing this value does <strong>not</strong> modify any existing color data.
+         *  If you want that, use the 'setPremultipliedAlpha' method instead.
+         *  @default true */
+        public function get premultipliedAlpha():Boolean { return _premultipliedAlpha; }
+        public function set premultipliedAlpha(value:Boolean):void
         {
-            return StringUtil.format("[VertexData format=\"{0}\" numVertices={1}]",
-                _format, _numVertices);
-        }
-
-        /** Indicates if the rgb values of the specified attribute are stored premultiplied with
-         *  the alpha value. */
-        public function getPremultipliedAlpha(attrName:String="color"):Boolean
-        {
-            return getAttribute(attrName).pma;
+            setPremultipliedAlpha(value, false);
         }
 
         /** Changes the way alpha and color values are stored. Optionally updates all existing
          *  vertices. */
-        public function setPremultipliedAlpha(attrName:String, value:Boolean=true, updateData:Boolean=true):void
+        public function setPremultipliedAlpha(value:Boolean, updateData:Boolean):void
         {
-            var attribute:Attribute = getAttribute(attrName);
-
-            if (updateData && value != attribute.pma)
+            if (updateData && value != _premultipliedAlpha)
             {
-                var offset:int = attribute.offset;
-                var oldColor:uint;
-                var newColor:uint;
-
-                for (var i:int=0; i<_numVertices; ++i)
+                for (var i:int=0; i<_numAttributes; ++i)
                 {
-                    _rawData.position = offset;
-                    oldColor = switchEndian(_rawData.readUnsignedInt());
-                    newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
+                    var attribute:Attribute = _attributes[i];
+                    if (attribute.isColor)
+                    {
+                        var offset:int = attribute.offset;
+                        var oldColor:uint;
+                        var newColor:uint;
 
-                    _rawData.position = offset;
-                    _rawData.writeUnsignedInt(switchEndian(newColor));
+                        for (var j:int=0; j<_numVertices; ++j)
+                        {
+                            _rawData.position = offset;
+                            oldColor = switchEndian(_rawData.readUnsignedInt());
+                            newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
 
-                    offset += _vertexSize;
+                            _rawData.position = offset;
+                            _rawData.writeUnsignedInt(switchEndian(newColor));
+
+                            offset += _vertexSize;
+                        }
+                    }
                 }
             }
 
-            attribute.pma = value;
+            _premultipliedAlpha = value;
         }
 
         /** Indicates if any vertices have a non-white color or are not fully opaque. */
@@ -936,14 +944,14 @@ package starling.utils
             _posOffset = formatInfo.posOffset;
             _vertexSize = formatInfo.vertexSize;
             _numAttributes = formatInfo.attributes.length;
-            _attributes = formatInfo.attributes.slice();
+            _attributes = formatInfo.attributes;
         }
 
         private function writeSettingsToCache(format:String):void
         {
             sFormatCache[format] = {
                 format: _format, formatID: _formatID, posOffset: _posOffset,
-                vertexSize: _vertexSize, attributes: _attributes.slice()
+                vertexSize: _vertexSize, attributes: _attributes
             };
         }
 
@@ -1019,13 +1027,10 @@ package starling.utils
 
             for (var i:int=0; i<_numAttributes; ++i)
             {
-                var attribute:Attribute = _attributes[i] as Attribute;
-                var attrName:String = attribute.name;
-
-                // alpha values of all color-properties must be initialized with "1.0"
-
-                if (attrName.indexOf("color") != -1 || attrName.indexOf("Color") != -1)
+                var attribute:Attribute = _attributes[i];
+                if (attribute.isColor)
                 {
+                    // alpha values of all color-properties must be initialized with "1.0"
                     var offset:int = attribute.offset + 3;
                     for (var j:int=_numVertices; j<value; ++j)
                         _rawData[j * _vertexSize + offset] = 0xff;
@@ -1071,13 +1076,16 @@ class Attribute
         "float4": 16
     };
 
+    // Never change the properties after initialization! They are shared by all VertexData
+    // objects that use the same format. Ideally, there should be only getters, but the
+    // performance hit is not worth it.
+
     public var name:String;
     public var format:String;
     public var offset:int; // in bytes
     public var size:int;   // in bytes
-    public var pma:Boolean;
 
-    public function Attribute(name:String, format:String, offset:int, pma:Boolean=false)
+    public function Attribute(name:String, format:String, offset:int)
     {
         if (!(format in FORMAT_SIZES))
             throw new ArgumentError(
@@ -1087,7 +1095,11 @@ class Attribute
         this.name = name;
         this.format = format;
         this.offset = offset;
-        this.pma = pma;
         this.size = FORMAT_SIZES[format];
+    }
+
+    public function get isColor():Boolean
+    {
+        return name.indexOf("color") != -1 || name.indexOf("Color") != -1;
     }
 }

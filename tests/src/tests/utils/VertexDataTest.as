@@ -170,10 +170,10 @@ package tests.utils
         {
             var vd:VertexData = new VertexData(STD_FORMAT);
             vd.numVertices = 3;
-            vd.setPremultipliedAlpha("color");
+            vd.premultipliedAlpha = true;
 
             assertEquals(3, vd.numVertices);
-            assertTrue(vd.getPremultipliedAlpha("color"));
+            assertTrue(vd.premultipliedAlpha);
 
             // per default, all alpha values should be '1.0'
             assertEquals(1.0, vd.getAlpha(0, "color"));
@@ -210,8 +210,8 @@ package tests.utils
 
             // changing the pma setting should update contents
 
-            vd.setPremultipliedAlpha("color", false);
-            assertFalse(vd.getPremultipliedAlpha("color"));
+            vd.setPremultipliedAlpha(false, true);
+            assertFalse(vd.premultipliedAlpha);
 
             assertEquals(0xffaabb, vd.getColor(0, "color"));
             assertEquals(0x112233, vd.getColor(1, "color"));
@@ -232,6 +232,7 @@ package tests.utils
         {
             var vd:VertexData = new VertexData(STD_FORMAT);
             vd.numVertices = 3;
+            vd.premultipliedAlpha = false;
             vd.setUniformColorAndAlpha("color", 0x7f7f7f, 0.5);
 
             for (var i:int=0; i<3; ++i)
@@ -251,7 +252,7 @@ package tests.utils
             {
                 var vd:VertexData = new VertexData(STD_FORMAT);
                 vd.numVertices = 3;
-                vd.setPremultipliedAlpha("color", pma);
+                vd.premultipliedAlpha = pma;
                 vd.setUniformColorAndAlpha("color", 0xffffff, 0.9);
                 vd.scaleAlphas("color", 0.9);
 

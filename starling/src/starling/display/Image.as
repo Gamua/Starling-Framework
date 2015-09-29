@@ -65,7 +65,7 @@ package starling.display
                 mSmoothing = TextureSmoothing.BILINEAR;
                 mVertexDataCacheInvalid = true;
                 mVertexDataCache = new VertexData(mVertexData.format, 4);
-                mVertexDataCache.setPremultipliedAlpha("color", pma);
+                mVertexDataCache.premultipliedAlpha = pma;
             }
             else
             {
@@ -161,8 +161,8 @@ package starling.display
             else if (value != mTexture)
             {
                 mTexture = value;
-                mVertexData.setPremultipliedAlpha("color", mTexture.premultipliedAlpha);
-                mVertexDataCache.setPremultipliedAlpha("color", mTexture.premultipliedAlpha, false);
+                mVertexData.setPremultipliedAlpha(mTexture.premultipliedAlpha, true);
+                mVertexDataCache.setPremultipliedAlpha(mTexture.premultipliedAlpha, true);
                 onVertexDataChanged();
             }
         }
