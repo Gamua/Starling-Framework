@@ -13,11 +13,9 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.IndexBuffer3D;
-    import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
@@ -491,17 +489,6 @@ package starling.filters
         protected function deactivate(pass:int, context:Context3D, texture:Texture):void
         {
             // clean up resources
-        }
-        
-        /** Assembles fragment- and vertex-shaders, passed as Strings, to a Program3D. 
-         *  If any argument is  null, it is replaced by the class constants STD_FRAGMENT_SHADER or
-         *  STD_VERTEX_SHADER, respectively. */
-        protected function assembleAgal(fragmentShader:String=null, vertexShader:String=null):Program3D
-        {
-            if (fragmentShader == null) fragmentShader = STD_FRAGMENT_SHADER;
-            if (vertexShader   == null) vertexShader   = STD_VERTEX_SHADER;
-            
-            return RenderUtil.assembleAgal(vertexShader, fragmentShader);
         }
         
         // cache

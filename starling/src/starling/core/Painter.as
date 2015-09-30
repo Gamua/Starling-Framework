@@ -15,7 +15,6 @@ package starling.core
     import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DStencilAction;
     import flash.display3D.Context3DTriangleFace;
-    import flash.display3D.Program3D;
     import flash.display3D.textures.TextureBase;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
@@ -29,6 +28,7 @@ package starling.core
     import starling.display.Quad;
     import starling.display.QuadBatch;
     import starling.events.Event;
+    import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
@@ -116,6 +116,7 @@ package starling.core
             mBackBufferHeight = mContext ? mContext.backBufferHeight : 0;
             mBackBufferScaleFactor = 1.0;
             mStencilReferenceValues = new Dictionary(true);
+            mPrograms = new Dictionary();
             mData = new Dictionary();
 
             mState = new RenderState();
@@ -137,7 +138,7 @@ package starling.core
             if (!mShareContext)
                 mContext.dispose(false);
 
-            for each (var program:Program3D in mPrograms)
+            for each (var program:Program in mPrograms)
                 program.dispose();
         }
 
@@ -160,7 +161,6 @@ package starling.core
         {
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
-            mPrograms = new Dictionary();
 
             if (mQuadBatchListPos == -1)
             {
@@ -209,29 +209,18 @@ package starling.core
 
         // program management
 
-        /** Registers a compiled program under a certain name.
+        /** Registers a program under a certain name.
          *  If the name was already used, the previous program is overwritten. */
-        public function registerProgram(name:String, program:Program3D):void
+        public function registerProgram(name:String, program:Program):void
         {
             deleteProgram(name);
             mPrograms[name] = program;
-        }
-
-        /** Compiles a program and registers it under a certain name.
-         *  If the name was already used, the previous program is overwritten. */
-        public function registerProgramFromSource(name:String, vertexShader:String,
-                                                  fragmentShader:String):Program3D
-        {
-            deleteProgram(name);
-            var program:Program3D = RenderUtil.assembleAgal(vertexShader, fragmentShader);
-            mPrograms[name] = program;
-            return program;
         }
 
         /** Deletes the program of a certain name. */
         public function deleteProgram(name:String):void
         {
-            var program:Program3D = getProgram(name);
+            var program:Program = getProgram(name);
             if (program)
             {
                 program.dispose();
@@ -239,10 +228,12 @@ package starling.core
             }
         }
 
-        /** Returns the program registered under a certain name. */
-        public function getProgram(name:String):Program3D
+        /** Returns the program registered under a certain name, or null if no program with
+         *  this name has been registred. */
+        public function getProgram(name:String):Program
         {
-            return mPrograms[name] as Program3D;
+            if (name in mPrograms) return mPrograms[name];
+            else return null;
         }
 
         /** Indicates if a program is registered under a certain name. */

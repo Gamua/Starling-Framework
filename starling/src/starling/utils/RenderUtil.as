@@ -31,8 +31,6 @@ package starling.utils
     /** A utility class containing methods related to Stage3D and rendering in general. */
     public class RenderUtil
     {
-        private static var sAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-
         /** @private */
         public function RenderUtil()
         {
@@ -54,26 +52,6 @@ package starling.utils
         {
             var blendFactors:Array = BlendMode.getBlendFactors(blendMode, premultipliedAlpha);
             Starling.context.setBlendFactors(blendFactors[0], blendFactors[1]);
-        }
-
-        /** Assembles fragment- and vertex-shaders, passed as Strings, to a Program3D. If you
-         *  pass a 'resultProgram', it will be uploaded to that program; otherwise, a new program
-         *  will be created on the current Stage3D context. */
-        public static function assembleAgal(vertexShader:String, fragmentShader:String,
-                                            resultProgram:Program3D=null):Program3D
-        {
-            if (resultProgram == null)
-            {
-                var context:Context3D = Starling.context;
-                if (context == null) throw new MissingContextError();
-                resultProgram = context.createProgram();
-            }
-
-            resultProgram.upload(
-                    sAssembler.assemble(Context3DProgramType.VERTEX, vertexShader),
-                    sAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentShader));
-
-            return resultProgram;
         }
 
         /** Returns the flags that are required for AGAL texture lookup,

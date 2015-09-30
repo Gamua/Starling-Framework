@@ -24,6 +24,7 @@ package starling.display
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.geom.Polygon;
+    import starling.rendering.Program;
     import starling.utils.IndexData;
     import starling.utils.VertexData;
 
@@ -32,7 +33,7 @@ package starling.display
      */
     public class Canvas extends DisplayObject
     {
-        private static const PROGRAM_NAME:String = "Shape";
+        private static const PROGRAM_NAME:String = "Canvas";
 
         private var mSyncRequired:Boolean;
         private var mPolygons:Vector.<Polygon>;
@@ -41,6 +42,7 @@ package starling.display
         private var mVertexBuffer:VertexBuffer3D;
         private var mIndexData:IndexData;
         private var mIndexBuffer:IndexBuffer3D;
+        private var mProgram:Program;
 
         private var mFillColor:uint;
         private var mFillAlpha:Number;
@@ -60,7 +62,7 @@ package starling.display
             mFillColor = 0xffffff;
             mFillAlpha = 1.0;
 
-            registerPrograms();
+            registerProgram();
 
             // handle lost context
             Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
@@ -68,7 +70,6 @@ package starling.display
 
         private function onContextCreated(event:Object):void
         {
-            registerPrograms();
             syncBuffers();
         }
 
@@ -147,10 +148,10 @@ package starling.display
             painter.drawCount += 1;
             painter.prepareToDraw(false);
 
+            mProgram.activate(context);
             mVertexData.setVertexBufferAttribute(mVertexBuffer, 0, "position");
             mVertexData.setVertexBufferAttribute(mVertexBuffer, 1, "color");
 
-            context.setProgram(painter.getProgram(PROGRAM_NAME));
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, state.mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
 
@@ -196,19 +197,23 @@ package starling.display
             mSyncRequired = true;
         }
 
-        private static function registerPrograms():void
+        private function registerProgram():void
         {
             var painter:Painter = Starling.painter;
-            if (painter.hasProgram(PROGRAM_NAME)) return; // already registered
+            mProgram = painter.getProgram(PROGRAM_NAME);
 
-            var vertexShader:String =
+            if (mProgram == null)
+            {
+                var vertexShader:String =
                     "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output space
                     "mul v0, va1, vc4 \n";  // multiply color with alpha, pass it to fragment shader
 
-            var fragmentShader:String =
+                var fragmentShader:String =
                     "mov oc, v0";           // just forward incoming color
 
-            painter.registerProgramFromSource(PROGRAM_NAME, vertexShader, fragmentShader);
+                mProgram = Program.fromSource(vertexShader, fragmentShader);
+                painter.registerProgram(PROGRAM_NAME, mProgram);
+            }
         }
 
         private function applyFillColor(vertexIndex:int, numVertices:int):void

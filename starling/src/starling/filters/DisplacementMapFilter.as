@@ -14,13 +14,13 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DTextureFormat;
-    import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
 
     import starling.core.Painter;
     import starling.core.Starling;
+    import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.RenderUtil;
     import starling.utils.StringUtil;
@@ -49,7 +49,7 @@ package starling.filters
         private var mScaleY:Number;
         private var mRepeat:Boolean;
         
-        private var mShaderProgram:Program3D;
+        private var mProgram:Program;
         private var mMapTexCoords:VertexData;
         private var mMapTexCoordBuffer:VertexBuffer3D;
         
@@ -102,7 +102,7 @@ package starling.filters
             
             if (painter.hasProgram(programName))
             {
-                mShaderProgram = painter.getProgram(programName);
+                mProgram = painter.getProgram(programName);
             }
             else
             {
@@ -129,9 +129,9 @@ package starling.filters
                     "add ft3,  v0, ft2", // add displacement values to texture coords
                     "tex  oc, ft3, fs0 " + inputFlags // read input texture at displaced coords
                 ].join("\n");
-                
-                mShaderProgram = painter.registerProgramFromSource(programName,
-                    vertexShader, fragmentShader);
+
+                mProgram = Program.fromSource(vertexShader, fragmentShader);
+                painter.registerProgram(programName, mProgram);
             }
         }
         
@@ -147,11 +147,11 @@ package starling.filters
 
             updateParameters(texture.nativeWidth, texture.nativeHeight);
 
+            mProgram.activate(context);
             mMapTexCoords.setVertexBufferAttribute(mMapTexCoordBuffer, 2, "texCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOneHalf);
             context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 1, sMatrix, true);
             context.setTextureAt(1, mMapTexture.base);
-            context.setProgram(mShaderProgram);
         }
         
         /** @private */

@@ -12,10 +12,10 @@ package starling.filters
 {
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
-    import flash.display3D.Program3D;
 
     import starling.core.Painter;
     import starling.core.Starling;
+    import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.Color;
 
@@ -30,8 +30,8 @@ package starling.filters
         private static const TINTED_PROGRAM_NAME:String = "BF_t";
         private static const MAX_SIGMA:Number = 2.0;
         
-        private var mNormalProgram:Program3D;
-        private var mTintedProgram:Program3D;
+        private var mNormalProgram:Program;
+        private var mTintedProgram:Program;
         
         private var mOffsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
         private var mWeights:Vector.<Number> = new <Number>[0, 0, 0, 0];
@@ -96,7 +96,7 @@ package starling.filters
             mTintedProgram = createProgram(true);
         }
         
-        private function createProgram(tinted:Boolean):Program3D
+        private function createProgram(tinted:Boolean):Program
         {
             var programName:String = tinted ? TINTED_PROGRAM_NAME : NORMAL_PROGRAM_NAME;
             var painter:Painter = Starling.painter;
@@ -150,8 +150,10 @@ package starling.filters
             
             else fragmentShader +=
                 "add  oc, ft5, ft4                              \n";   // add to output color
-            
-            return painter.registerProgramFromSource(programName, vertexShader, fragmentShader);
+
+            var program:Program = Program.fromSource(vertexShader, fragmentShader);
+            painter.registerProgram(programName, program);
+            return program;
         }
         
         /** @private */
@@ -171,12 +173,12 @@ package starling.filters
             
             if (mUniformColor && pass == numPasses - 1)
             {
+                mTintedProgram.activate(context);
                 context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, mColor);
-                context.setProgram(mTintedProgram);
             }
             else
             {
-                context.setProgram(mNormalProgram);
+                mNormalProgram.activate(context);
             }
         }
         

@@ -14,7 +14,6 @@ package starling.display
     import flash.display3D.Context3DProgramType;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.IndexBuffer3D;
-    import flash.display3D.Program3D;
     import flash.display3D.VertexBuffer3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
@@ -27,10 +26,10 @@ package starling.display
     import starling.core.RenderState;
     import starling.core.Starling;
     import starling.core.starling_internal;
-    import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
     import starling.filters.FragmentFilterMode;
+    import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.IndexData;
@@ -229,7 +228,7 @@ package starling.display
 
             RenderUtil.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
 
-            context.setProgram(getProgram(tinted));
+            getProgram(tinted).activate(context);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
 
@@ -719,7 +718,7 @@ package starling.display
 
         // program management
         
-        private function getProgram(tinted:Boolean):Program3D
+        private function getProgram(tinted:Boolean):Program
         {
             var painter:Painter = Starling.painter;
             var programName:String = QUAD_PROGRAM_NAME;
@@ -728,9 +727,9 @@ package starling.display
                 programName = getImageProgramName(tinted, mTexture.mipMapping, 
                     mTexture.repeat, mTexture.format, mSmoothing);
             
-            var program:Program3D = painter.getProgram(programName);
+            var program:Program = painter.getProgram(programName);
             
-            if (!program)
+            if (program == null)
             {
                 // this is the input data we'll pass to the shaders:
                 // 
@@ -773,9 +772,9 @@ package starling.display
                         RenderUtil.getTextureLookupFlags(
                             mTexture.format, mTexture.mipMapping, mTexture.repeat, smoothing));
                 }
-                
-                program = painter.registerProgramFromSource(programName,
-                    vertexShader, fragmentShader);
+
+                program = Program.fromSource(vertexShader, fragmentShader);
+                painter.registerProgram(programName, program);
             }
             
             return program;

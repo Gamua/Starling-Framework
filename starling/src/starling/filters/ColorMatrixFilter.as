@@ -15,10 +15,10 @@ package starling.filters
 {
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
-    import flash.display3D.Program3D;
 
     import starling.core.Painter;
     import starling.core.Starling;
+    import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.Color;
 
@@ -44,7 +44,7 @@ package starling.filters
      */
     public class ColorMatrixFilter extends FragmentFilter
     {
-        private var mShaderProgram:Program3D;
+        private var mProgram:Program;
         private var mUserMatrix:Vector.<Number>;   // offset in range 0-255
         private var mShaderMatrix:Vector.<Number>; // offset in range 0-1, changed order
         
@@ -77,7 +77,7 @@ package starling.filters
             
             if (painter.hasProgram(PROGRAM_NAME))
             {
-                mShaderProgram = painter.getProgram(PROGRAM_NAME);
+                mProgram = painter.getProgram(PROGRAM_NAME);
             }
             else
             {
@@ -93,9 +93,9 @@ package starling.filters
                     "add ft0, ft0, fc4              \n" + // add offset
                     "mul ft0.xyz, ft0.xyz, ft0.www  \n" + // multiply with alpha again (PMA)
                     "mov oc, ft0                    \n";  // copy to output
-                
-                mShaderProgram = painter.registerProgramFromSource(PROGRAM_NAME,
-                    STD_VERTEX_SHADER, fragmentShader);
+
+                mProgram = Program.fromSource(STD_VERTEX_SHADER, fragmentShader);
+                painter.registerProgram(PROGRAM_NAME, mProgram);
             }
         }
         
@@ -104,7 +104,7 @@ package starling.filters
         {
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mShaderMatrix);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, MIN_COLOR);
-            context.setProgram(mShaderProgram);
+            mProgram.activate(context);
         }
         
         // color manipulation

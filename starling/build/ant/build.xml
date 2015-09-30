@@ -110,6 +110,7 @@
       <arg line="-package starling.textures 'Classes to create and work with GPU texture data.'" />
       <arg line="-package starling.utils 'Utility classes and helper methods.'" />
       <arg line="-package starling.filters 'Post processing filters for special effects.'" />
+      <arg line="-package starling.rendering 'All things related to Stage3D rendering.'" />
       <arg line="--strict=false"/>
       <arg line="--output ${basedir}/html"/>
       <arg line="-compiler.fonts.local-fonts-snapshot="/>
