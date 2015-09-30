@@ -579,7 +579,8 @@ package starling.core
 
         private function onContextRestored(event:Event):void
         {
-            trace("[Starling] Render context restored.");
+            trace("[Starling] Context restored.");
+            updateViewPort(true);
             dispatchEventWith(Event.CONTEXT3D_CREATE, false, context);
         }
         
