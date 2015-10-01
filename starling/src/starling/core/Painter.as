@@ -248,10 +248,15 @@ package starling.core
          *  Optionally, you can immediately modify the new state with a transformation matrix,
          *  alpha factor, and blend mode.
          *
-         * @param transformationMatrix Used to transform the current <code>modelviewMatrix</code>.
-         * @param alphaFactor          Multiplied with the current alpha value.
-         * @param blendMode            Replaces the current blend mode; except for "auto", which
-         *                             means the current value remains unchanged.
+         *  <p>Note that any call to <code>drawTriangles</code> will use the currently set state.
+         *  That means that if you're going to change clipping rectangle, render target or culling,
+         *  you should call <code>finishQuadBatch</code> before pushing the new state, so that
+         *  all batched objects are drawn with the intended settings.</p>
+         *
+         *  @param transformationMatrix Used to transform the current <code>modelviewMatrix</code>.
+         *  @param alphaFactor          Multiplied with the current alpha value.
+         *  @param blendMode            Replaces the current blend mode; except for "auto", which
+         *                              means the current value remains unchanged.
          */
         public function pushState(transformationMatrix:Matrix=null, alphaFactor:Number=1.0,
                                   blendMode:String="auto"):void
