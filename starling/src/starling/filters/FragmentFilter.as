@@ -20,8 +20,6 @@ package starling.filters
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
 
-    import starling.core.Painter;
-    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.display.BlendMode;
@@ -32,6 +30,8 @@ package starling.filters
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
     import starling.events.Event;
+    import starling.rendering.Painter;
+    import starling.rendering.RenderState;
     import starling.textures.Texture;
     import starling.utils.IndexData;
     import starling.utils.MathUtil;

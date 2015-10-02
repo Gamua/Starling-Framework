@@ -13,8 +13,8 @@ package starling.filters
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
 
-    import starling.core.Painter;
     import starling.core.Starling;
+    import starling.rendering.Painter;
     import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.Color;

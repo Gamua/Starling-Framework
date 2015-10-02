@@ -15,7 +15,7 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
-    import starling.core.Painter;
+    import starling.rendering.Painter;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.VertexData;

@@ -42,6 +42,7 @@ package starling.core
     import starling.events.ResizeEvent;
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
+    import starling.rendering.Painter;
     import starling.utils.HAlign;
     import starling.utils.SystemUtil;
     import starling.utils.VAlign;

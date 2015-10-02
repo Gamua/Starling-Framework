@@ -21,7 +21,6 @@ package starling.display
     import flash.ui.MouseCursor;
     import flash.utils.getQualifiedClassName;
 
-    import starling.core.Painter;
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
@@ -29,6 +28,7 @@ package starling.display
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
+    import starling.rendering.Painter;
     import starling.utils.HAlign;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;

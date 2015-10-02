@@ -18,8 +18,8 @@ package starling.filters
     import flash.geom.Matrix3D;
     import flash.geom.Point;
 
-    import starling.core.Painter;
     import starling.core.Starling;
+    import starling.rendering.Painter;
     import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.RenderUtil;

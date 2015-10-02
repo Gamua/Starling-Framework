@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.core
+package starling.rendering
 {
     import flash.display3D.Context3DTriangleFace;
     import flash.display3D.textures.TextureBase;

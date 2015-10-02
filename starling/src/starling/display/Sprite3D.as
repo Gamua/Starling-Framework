@@ -15,8 +15,8 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Vector3D;
 
-    import starling.core.Painter;
     import starling.events.Event;
+    import starling.rendering.Painter;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.rad2deg;

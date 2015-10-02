@@ -17,6 +17,7 @@ package starling.core
     import starling.display.Sprite;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
+    import starling.rendering.Painter;
     import starling.text.BitmapFont;
     import starling.text.TextField;
     import starling.utils.HAlign;

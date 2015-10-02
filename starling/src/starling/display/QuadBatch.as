@@ -22,14 +22,14 @@ package starling.display
     import flash.utils.Dictionary;
     import flash.utils.getQualifiedClassName;
 
-    import starling.core.Painter;
-    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
     import starling.filters.FragmentFilterMode;
+    import starling.rendering.Painter;
     import starling.rendering.Program;
+    import starling.rendering.RenderState;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.IndexData;

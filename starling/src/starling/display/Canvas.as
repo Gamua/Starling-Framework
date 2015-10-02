@@ -18,13 +18,13 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
-    import starling.core.Painter;
-    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.geom.Polygon;
+    import starling.rendering.Painter;
     import starling.rendering.Program;
+    import starling.rendering.RenderState;
     import starling.utils.IndexData;
     import starling.utils.VertexData;
 

@@ -2,11 +2,11 @@ package scenes
 {
     import flash.display3D.Context3DTriangleFace;
 
-    import starling.core.Painter;
     import starling.core.Starling;
     import starling.display.Image;
     import starling.display.Sprite3D;
     import starling.events.Event;
+    import starling.rendering.Painter;
     import starling.textures.Texture;
 
     public class Sprite3DScene extends Scene

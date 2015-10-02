@@ -16,11 +16,11 @@ package starling.display
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
 
-    import starling.core.Painter;
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
+    import starling.rendering.Painter;
     import starling.utils.MatrixUtil;
 
     use namespace starling_internal;

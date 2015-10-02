@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.core
+package starling.rendering
 {
     import flash.display.Stage3D;
     import flash.display3D.Context3D;
@@ -28,7 +28,6 @@ package starling.core
     import starling.display.Quad;
     import starling.display.QuadBatch;
     import starling.events.Event;
-    import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;

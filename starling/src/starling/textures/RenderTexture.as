@@ -16,14 +16,14 @@ package starling.textures
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
 
-    import starling.core.Painter;
-    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.errors.MissingContextError;
     import starling.filters.FragmentFilter;
+    import starling.rendering.Painter;
+    import starling.rendering.RenderState;
     import starling.utils.MathUtil;
     import starling.utils.SystemUtil;
     import starling.utils.execute;

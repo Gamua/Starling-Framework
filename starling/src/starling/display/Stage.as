@@ -17,13 +17,13 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Vector3D;
 
-    import starling.core.Painter;
-    import starling.core.RenderState;
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
+    import starling.rendering.Painter;
+    import starling.rendering.RenderState;
     import starling.utils.MatrixUtil;
 
     use namespace starling_internal;

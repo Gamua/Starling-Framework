@@ -15,9 +15,9 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
-    import starling.core.Painter;
-    import starling.core.RenderState;
     import starling.events.Event;
+    import starling.rendering.Painter;
+    import starling.rendering.RenderState;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
 

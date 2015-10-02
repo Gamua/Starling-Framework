@@ -21,7 +21,6 @@ package starling.text
     import flash.text.TextFormat;
     import flash.utils.Dictionary;
 
-    import starling.core.Painter;
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
@@ -30,6 +29,7 @@ package starling.text
     import starling.display.QuadBatch;
     import starling.display.Sprite;
     import starling.events.Event;
+    import starling.rendering.Painter;
     import starling.textures.Texture;
     import starling.utils.HAlign;
     import starling.utils.RectangleUtil;
