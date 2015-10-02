@@ -98,16 +98,29 @@ package starling.utils
         }
 
         /** Copies the index data (or a range of it, defined by 'indexID' and 'numIndices')
-         *  of this instance to another IndexData object, starting at a certain index. If the
-         *  target is not big enough, it will be resized to fit all the new indices. */
-        public function copyTo(target:IndexData, targetIndexID:int=0,
+         *  of this instance to another IndexData object, starting at a certain target index.
+         *  If the target is not big enough, it will be resized to fit all the new indices.
+         *
+         *  <p>By passing a non-zero <code>offset</code>, you can raise all copied indices
+         *  by that value in the target object.</p> */
+        public function copyTo(target:IndexData, targetIndexID:int=0, offset:int=0,
                                indexID:int=0, numIndices:int=-1):void
         {
             if (numIndices < 0 || indexID + numIndices > _numIndices)
                 numIndices = _numIndices - indexID;
 
-            target._rawData.position = targetIndexID * INDEX_SIZE;
-            target._rawData.writeBytes(_rawData, indexID * INDEX_SIZE, numIndices * INDEX_SIZE);
+            var targetRawData:ByteArray = target._rawData;
+            targetRawData.position = targetIndexID * INDEX_SIZE;
+
+            if (offset == 0)
+                targetRawData.writeBytes(_rawData, indexID * INDEX_SIZE, numIndices * INDEX_SIZE);
+            else
+            {
+                _rawData.position = indexID * INDEX_SIZE;
+
+                for (var i:int=0; i<numIndices; ++i)
+                    targetRawData.writeShort(_rawData.readUnsignedShort() + offset);
+            }
 
             if (target._numIndices < targetIndexID + numIndices)
                 target._numIndices = targetIndexID + numIndices;

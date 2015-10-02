@@ -91,7 +91,7 @@ package tests.utils
 
             var target:IndexData = new IndexData();
             target.appendTriangle(7, 8, 9);
-            source.copyTo(target, 0, 3, 3);
+            source.copyTo(target, 0, 0, 3, 3);
 
             assertEquals(3, target.numIndices);
             assertEquals(4, target.getIndex(0));
@@ -100,6 +100,24 @@ package tests.utils
 
             source.copyTo(target, 3);
             assertEquals(9, target.numIndices);
+        }
+
+        [Test]
+        public function testCopyToWithOffset():void
+        {
+            var source:IndexData = new IndexData();
+            source.appendTriangle(1, 2, 3);
+            source.appendTriangle(4, 5, 6);
+
+            var target:IndexData = new IndexData();
+            target.appendTriangle(7, 8, 9);
+            source.copyTo(target, 1, 10, 3, 3);
+
+            assertEquals(4, target.numIndices);
+            assertEquals(7, target.getIndex(0));
+            assertEquals(14, target.getIndex(1));
+            assertEquals(15, target.getIndex(2));
+            assertEquals(16, target.getIndex(3));
         }
 
         [Test]
