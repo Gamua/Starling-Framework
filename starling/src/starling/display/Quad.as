@@ -168,18 +168,12 @@ package starling.display
             else mTinted = mVertexData.isTinted();
         }
         
-        /** Copies the raw vertex data to a VertexData instance. */
-        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
+        /** Copies the raw vertex data to a VertexData instance, optionally transforming the
+         *  vertex positions at the same time. */
+        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0,
+                                         matrix:Matrix=null):void
         {
-            mVertexData.copyTo(targetData, targetVertexID, 0, 4);
-        }
-        
-        /** Transforms the vertex positions of the raw vertex data by a certain matrix and
-         *  copies the result to another VertexData instance. */
-        public function copyVertexDataTransformedTo(targetData:VertexData, targetVertexID:int=0,
-                                                    matrix:Matrix=null):void
-        {
-            mVertexData.copyToTransformed(targetData, targetVertexID, matrix, 0, 4);
+            mVertexData.copyTo(targetData, targetVertexID, matrix, 0, 4);
         }
         
         /** @inheritDoc */

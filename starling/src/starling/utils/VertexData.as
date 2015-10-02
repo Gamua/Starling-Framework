@@ -181,8 +181,14 @@ package starling.utils
         }
 
         /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices')
-         *  of this instance to another vertex data object, starting at a certain index. If the
-         *  target is not big enough, it will be resized to fit all the new vertices.
+         *  of this instance to another vertex data object, starting at a certain target index.
+         *  If the target is not big enough, it will be resized to fit all the new vertices.
+         *
+         *  <p>If you pass a non-null matrix, the 2D position of each vertex will be transformed
+         *  by that matrix before storing it in the target object. (The position being either an
+         *  attribute with the name "position" or, if such an attribute is not found, the first
+         *  attribute of each vertex. It must consist of two float values containing the x- and
+         *  y-coordinates of the vertex.)</p>
          *
          *  <p>Source and target do not need to have the exact same format. Only properties that
          *  exist in the target will be copied; others will be ignored. If a property with the
@@ -190,30 +196,8 @@ package starling.utils
          *  Beware, though, that the copy-operation becomes much more expensive when the formats
          *  differ.</p>
          */
-        public function copyTo(target:VertexData, targetVertexID:int=0,
+        public function copyTo(target:VertexData, targetVertexID:int=0, matrix:Matrix=null,
                                vertexID:int=0, numVertices:int=-1):void
-        {
-            copyToTransformed(target, targetVertexID, null, vertexID, numVertices);
-        }
-
-        /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices')
-         *  of this instance to another vertex data object, starting at a certain index.
-         *  At the same time, the 2D position of each vertex will be transformed via a matrix-
-         *  multiplication. If the target is not big enough, it will be resized to fit all the
-         *  new vertices.
-         *
-         *  <p>The position of a vertex is either an attribute with the name "position", or (if
-         *  such an attribute is not found) the first attribute of each vertex. It must consist
-         *  of two float values containing the x- and y-coordinates of the vertex.</p>
-         *
-         *  <p>Source and target do not need to have the exact same format. Only properties that
-         *  exist in the target will be copied; others will be ignored. If a property with the
-         *  same name but a different format exists in the target, an exception will be raised.
-         *  Beware, though, that the copy-operation becomes much more expensive when the formats
-         *  differ.</p>
-         */
-        public function copyToTransformed(target:VertexData, targetVertexID:int, matrix:Matrix,
-                                          vertexID:int=0, numVertices:int=-1):void
         {
             if (numVertices < 0 || vertexID + numVertices > _numVertices)
                 numVertices = _numVertices - vertexID;

@@ -422,7 +422,7 @@ package tests.utils
             matrix.translate(5, 6);
 
             var vd2:VertexData = new VertexData(format);
-            vd1.copyToTransformed(vd2, 0, matrix);
+            vd1.copyTo(vd2, 0, matrix);
 
             assertEquals(0xaabbcc, vd2.getColor(0, "color"));
             assertEquals(0x334455, vd2.getColor(1, "color"));
@@ -448,7 +448,7 @@ package tests.utils
             matrix.translate(5, 6);
 
             var vd2:VertexData = new VertexData("position(float2), flavor(float1)");
-            vd1.copyToTransformed(vd2, 0, matrix);
+            vd1.copyTo(vd2, 0, matrix);
 
             assertEquals(0.0, vd2.getFloat(0, "flavor"));
             assertEquals(0.0, vd2.getFloat(1, "flavor"));

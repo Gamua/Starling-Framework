@@ -299,7 +299,7 @@ package starling.display
                 mVertexData.premultipliedAlpha = quad.premultipliedAlpha;
             }
             
-            quad.copyVertexDataTransformedTo(mVertexData, vertexID, modelviewMatrix);
+            quad.copyVertexDataTo(mVertexData, vertexID, modelviewMatrix);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlphas("color", alpha, vertexID, 4);
@@ -329,8 +329,7 @@ package starling.display
                 mVertexData.premultipliedAlpha = quadBatch.premultipliedAlpha;
             }
             
-            quadBatch.mVertexData.copyToTransformed(mVertexData, vertexID, modelviewMatrix,
-                                                    0, numQuads * 4);
+            quadBatch.mVertexData.copyTo(mVertexData, vertexID, modelviewMatrix, 0, numQuads * 4);
             
             if (alpha != 1.0)
                 mVertexData.scaleAlphas("color", alpha, vertexID, numQuads * 4);
@@ -431,7 +430,7 @@ package starling.display
             var alpha:Number  = quad.alpha;
             var vertexID:int  = quadID * 4;
 
-            quad.copyVertexDataTransformedTo(mVertexData, vertexID, matrix);
+            quad.copyVertexDataTo(mVertexData, vertexID, matrix);
             if (alpha != 1.0) mVertexData.scaleAlphas("color", alpha, vertexID, 4);
 
             mSyncRequired = true;
