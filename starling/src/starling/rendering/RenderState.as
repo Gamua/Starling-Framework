@@ -88,13 +88,13 @@ package starling.rendering
         {
             _alpha = renderState._alpha;
             _blendMode = renderState._blendMode;
+            _renderTarget = renderState._renderTarget;
             _renderTargetAntiAlias = renderState._renderTargetAntiAlias;
             _culling = renderState._culling;
             _modelviewMatrix.copyFrom(renderState._modelviewMatrix);
             _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
 
             this.modelviewMatrix3D = renderState._modelviewMatrix3D;
-            this.renderTarget = renderState._renderTarget;
             this.clipRect = renderState._clipRect;
         }
 
@@ -104,6 +104,7 @@ package starling.rendering
         {
             _alpha = 1.0;
             _blendMode = BlendMode.NORMAL;
+            _renderTarget = null;
             _renderTargetAntiAlias = 0;
             _culling = Context3DTriangleFace.NONE;
 
@@ -189,9 +190,9 @@ package starling.rendering
                 if (_modelviewMatrix3D == null) _modelviewMatrix3D = Pool.getMatrix3D();
                 _modelviewMatrix3D.copyFrom(value);
             }
-            else
+            else if (_modelviewMatrix3D)
             {
-                if (_modelviewMatrix3D) Pool.putMatrix3D(_modelviewMatrix3D);
+                Pool.putMatrix3D(_modelviewMatrix3D);
                 _modelviewMatrix3D = null;
             }
         }
@@ -249,8 +250,8 @@ package starling.rendering
 
         /** The texture that is currently being rendered into, or <code>null</code>
          *  to render into the back buffer. */
-        public function set renderTarget(value:Texture):void { setRenderTarget(value); }
         public function get renderTarget():Texture { return _renderTarget; }
+        public function set renderTarget(value:Texture):void { setRenderTarget(value); }
 
         /** @private */
         internal function get renderTargetBase():TextureBase
@@ -276,9 +277,7 @@ package starling.rendering
         {
             if (value)
             {
-                if (_clipRect == null)
-                    _clipRect = Pool.getRectangle();
-
+                if (_clipRect == null) _clipRect = Pool.getRectangle();
                 _clipRect.copyFrom(value);
             }
             else if (_clipRect)
