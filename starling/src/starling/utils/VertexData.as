@@ -1047,6 +1047,18 @@ package starling.utils
         {
             return _vertexSize / 4;
         }
+
+        /** The size (in bytes) of the raw vertex data. */
+        public function get sizeInBytes():int
+        {
+            return _numVertices * _vertexSize;
+        }
+
+        /** The size (in 32 bit units) of the raw vertex data. */
+        public function get sizeIn32Bits():int
+        {
+            return _numVertices * _vertexSize / 4;
+        }
     }
 }
 
