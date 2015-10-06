@@ -21,6 +21,7 @@ package starling.rendering
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
     import starling.utils.Pool;
+    import starling.utils.RectangleUtil;
 
     /** The RenderState stores a combination of settings that are currently used for rendering.
      *  This includes modelview and transformation matrices as well as context3D related settings.
@@ -94,8 +95,11 @@ package starling.rendering
             _modelviewMatrix.copyFrom(renderState._modelviewMatrix);
             _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
 
-            this.modelviewMatrix3D = renderState._modelviewMatrix3D;
-            this.clipRect = renderState._clipRect;
+            if (_modelviewMatrix3D || renderState._modelviewMatrix3D)
+                this.modelviewMatrix3D = renderState._modelviewMatrix3D;
+
+            if (_clipRect || renderState._clipRect)
+                this.clipRect = renderState._clipRect;
         }
 
         /** Resets the RenderState to the default settings. (Check each property documentation
@@ -215,6 +219,17 @@ package starling.rendering
         }
 
         // other methods
+
+        /** Indicates if switching from this state to another one would require a draw operation.
+         *  This is the case if render target, culling or clipping rectangle are different. */
+        public function switchRequiresDraw(nextState:RenderState):Boolean
+        {
+            var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
+            var nextTarget:TextureBase = nextState._renderTarget ? nextState._renderTarget.base : null;
+
+            return currentTarget != nextTarget || _culling != nextState._culling ||
+                   !RectangleUtil.compare(_clipRect, nextState._clipRect);
+        }
 
         /** Changes the the current render target.
          *  @param target       Either a texture or <code>null</code> to render into the back buffer.

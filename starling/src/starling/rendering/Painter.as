@@ -282,12 +282,8 @@ package starling.rendering
 
             var nextState:RenderState = mStateStack[mStateStackPos];
 
-            if (mState.renderTargetBase != nextState.renderTargetBase ||
-                mState.culling != nextState.culling ||
-                !RectangleUtil.compare(mState.clipRect, nextState.clipRect))
-            {
+            if (mState.switchRequiresDraw(nextState))
                 finishQuadBatch();
-            }
 
             mState.copyFrom(nextState);
             mStateStackPos--;
