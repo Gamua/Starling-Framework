@@ -10,14 +10,13 @@
 
 package starling.utils
 {
-    import com.adobe.utils.AGALMiniAssembler;
-
     import flash.display.Stage3D;
     import flash.display3D.Context3D;
-    import flash.display3D.Context3DProgramType;
+    import flash.display3D.Context3DMipFilter;
     import flash.display3D.Context3DRenderMode;
+    import flash.display3D.Context3DTextureFilter;
     import flash.display3D.Context3DTextureFormat;
-    import flash.display3D.Program3D;
+    import flash.display3D.Context3DWrapMode;
     import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.utils.setTimeout;
@@ -25,7 +24,7 @@ package starling.utils
     import starling.core.Starling;
     import starling.display.BlendMode;
     import starling.errors.AbstractClassError;
-    import starling.errors.MissingContextError;
+    import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
 
     /** A utility class containing methods related to Stage3D and rendering in general. */
@@ -75,6 +74,81 @@ package starling.utils
                 options.push("linear", mipMapping ? "miplinear" : "mipnone");
 
             return "<" + options.join() + ">";
+        }
+
+        /** Calls <code>setSamplerStateAt</code> at the current context,
+         *  converting the given parameters to their low level counterparts. */
+        public static function setSamplerStateAt(sampler:int, mipMapping:Boolean,
+                                                 smoothing:String="bilinear",
+                                                 repeat:Boolean=false):void
+        {
+            var wrap:String = repeat ? Context3DWrapMode.REPEAT : Context3DWrapMode.CLAMP;
+            var filter:String;
+            var mipFilter:String;
+
+            if (smoothing == TextureSmoothing.NONE)
+            {
+                filter = Context3DTextureFilter.NEAREST;
+                mipFilter = mipMapping ? Context3DMipFilter.MIPNEAREST : Context3DMipFilter.MIPNONE;
+            }
+            else if (smoothing == TextureSmoothing.BILINEAR)
+            {
+                filter = Context3DTextureFilter.LINEAR;
+                mipFilter = mipMapping ? Context3DMipFilter.MIPNEAREST : Context3DMipFilter.MIPNONE;
+            }
+            else
+            {
+                filter = Context3DTextureFilter.LINEAR;
+                mipFilter = mipMapping ? Context3DMipFilter.MIPLINEAR : Context3DMipFilter.MIPNONE;
+            }
+
+            Starling.context.setSamplerStateAt(sampler, wrap, filter, mipFilter);
+        }
+
+        /** Creates an AGAL source string with a <code>tex</code> operation, including an options
+         *  list with the appropriate format flag.
+         *
+         *  <p>Note that values for <code>repeat/clamp</code>, <code>filter</code> and
+         *  <code>mip-filter</code> are not included in the options list, since it's preferred
+         *  to set those values at runtime via <code>setSamplerStateAt</code>.</p>
+         *
+         *  <p>Starling expects every color to have its alpha value premultiplied into
+         *  the RGB channels. Thus, if this method encounters a non-PMA texture, it will
+         *  (per default) convert the color in the result register to PMA mode, resulting
+         *  in an additional <code>mul</code>-operation.</p>
+         *
+         *  @param resultReg  the register to write the result into.
+         *  @param uvReg      the register containing the texture coordinates.
+         *  @param sampler    the texture sampler to use.
+         *  @param texture    the texture that's active in the given texture sampler.
+         *  @param convertToPmaIfRequired  indicates if a non-PMA color should be converted to PMA.
+         *
+         *  @return the AGAL source code, line break(s) included.
+         */
+        public static function createAGALTexOperation(
+                resultReg:String, uvReg:String, sampler:int, texture:Texture,
+                convertToPmaIfRequired:Boolean=true):String
+        {
+            var format:String = texture.format;
+            var formatFlag:String;
+
+            switch (format)
+            {
+                case Context3DTextureFormat.COMPRESSED:
+                    formatFlag = "dxt1"; break;
+                case Context3DTextureFormat.COMPRESSED_ALPHA:
+                    formatFlag = "dxt5"; break;
+                default:
+                    formatFlag = "rgba";
+            }
+
+            var operation:String = "tex " + resultReg + ", " + uvReg + ", fs" + sampler +
+                            " <2d, " + formatFlag + ">\n";
+
+            if (convertToPmaIfRequired && !texture.premultipliedAlpha)
+                operation += "mul " + resultReg + ".xyz, " + resultReg + ".xyz, " + resultReg + ".www\n";
+
+            return operation;
         }
 
         /** Requests a context3D object from the given Stage3D object.
