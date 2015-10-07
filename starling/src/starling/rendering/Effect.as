@@ -36,12 +36,12 @@ package starling.rendering
      *  recommended to override the following methods:</p>
      *
      *  <ul>
-     *    <li><code>getProgram():Program</code> — must create the actual program containing vertex-
-     *        and fragment-shaders. A program will be created only once for each render context;
-     *        this is taken care of by the base class.</li>
-     *    <li><code>getProgramVariantID():uint</code> (optional) — implement this if your
+     *    <li><code>createProgram():Program</code> — must create the actual program containing 
+     *        vertex- and fragment-shaders. A program will be created only once for each render
+     *        context; this is taken care of by the base class.</li>
+     *    <li><code>get programVariantName():uint</code> (optional) — implement this if your
      *        effect requires different programs, depending on its settings. The recommended
-     *        way to do this is via a bit-mask that uniquely describes the current settings.</li>
+     *        way to do this is via a bit-mask that uniquely encodes the current settings.</li>
      *    <li><code>get vertexFormat():String</code> — must return the <code>VertexData</code>
      *        format that this effect requires for its vertices.</li>
      *    <li><code>beforeDraw(context:Context3D):void</code> — Set up your context by
@@ -50,7 +50,7 @@ package starling.rendering
      *        <code>context.drawTriangles()</code>. Clean up any context configuration here.</li>
      *  </ul>
      *
-     *  <p>Furthermore, you should add properties that contain the data you need during rendering,
+     *  <p>Furthermore, you should add properties that manage the data you need during rendering,
      *  e.g. the texture(s) that should be used, program constants, etc. I recommend to look
      *  at the implementation of Starling's <code>ColoredEffect</code> for a simple blueprint
      *  of a custom effect.</p>
@@ -95,10 +95,10 @@ package starling.rendering
         private var _alpha:Number;
         private var _mvpMatrix:Matrix3D;
         private var _onRestore:Function;
-        private var _programNameCache:Dictionary;
 
         // helper object
         private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
+        private static var sProgramNameCache:Dictionary = new Dictionary();
 
         /** Sets up the basic properties of an effect. Only call this constructor from a subclass;
          *  the Effect class itself is abstract. */
@@ -112,7 +112,6 @@ package starling.rendering
 
             _alpha = 1.0;
             _mvpMatrix = new Matrix3D();
-            _programNameCache = new Dictionary();
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
@@ -210,7 +209,7 @@ package starling.rendering
         {
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
 
-            getProgram().activate(context);
+            program.activate(context);
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
         }
@@ -221,49 +220,84 @@ package starling.rendering
         {
         }
 
-        // program creation
-
-        /** Implement this method if the effect requires a different program depending on the
-         *  current settings. Ideally, you do this by creating a bit mask encoding all the options.
-         *  This method is called often, so do not allocate any temporary objects.
-         *
-         *  @return per default, zero.
-         */
-        protected function getProgramVariantID():uint
-        {
-            return 0;
-        }
-
-        /** Returns a unique name for the program instance. This name is used to register the
-         *  program in the current <code>Painter</code>, which is shared by all Starling instances
-         *  that use the same Stage3D context.
-         *
-         *  <p>The default implementation efficiently combines the qualified class name of the effect
-         *  with the program variant ID. It shouldn't be necessary to override this method.</p>
-         */
-        protected function getProgramName():String
-        {
-            var variantID:uint = getProgramVariantID();
-            var name:String = _programNameCache[variantID];
-
-            if (name == null)
-            {
-                name = getQualifiedClassName(this);
-                if (variantID != 0) name += "#" + variantID.toString(16);
-                _programNameCache[variantID] = name;
-            }
-
-            return name;
-        }
+        // program management
 
         /** Creates the program (a combination of vertex- and fragment-shader) used to render
          *  the effect with the current settings. Override this method in a subclass to create
          *  your shaders. This method will only be called once; the program is automatically stored
          *  in the <code>Painter</code> and re-used by all instances of this effect.
          */
-        protected function getProgram():Program
+        protected function createProgram():Program
         {
             throw new AbstractMethodError();
+        }
+
+        /** Override this method if the effect requires a different program depending on the
+         *  current settings. Ideally, you do this by creating a bit mask encoding all the options.
+         *  This method is called often, so do not allocate any temporary objects.
+         *
+         *  @default 0
+         */
+        protected function get programVariantName():uint
+        {
+            return 0;
+        }
+
+        /** Override this method if you want a custom base name for the program.
+         *  @default the fully qualified class name
+         */
+        protected function get programBaseName():String
+        {
+            return getQualifiedClassName(this);
+        }
+
+        /** Returns the full name of the program, which is used to register it at the current
+         *  <code>Painter</code>.
+         *
+         *  <p>The default implementation efficiently combines the program's base and variant
+         *  names (e.g. <code>LightEffect#42</code>). It shouldn't be necessary to override
+         *  this method.</p>
+         */
+        protected function get programName():String
+        {
+            var baseName:String  = this.programBaseName;
+            var variantName:uint = this.programVariantName;
+            var nameCache:Dictionary = sProgramNameCache[baseName];
+
+            if (nameCache == null)
+            {
+                nameCache = new Dictionary();
+                sProgramNameCache[baseName] = nameCache;
+            }
+
+            var name:String = nameCache[variantName];
+
+            if (name == null)
+            {
+                if (variantName) name = baseName + "#" + variantName.toString(16);
+                else             name = baseName;
+
+                nameCache[variantName] = name;
+            }
+
+            return name;
+        }
+
+        /** Returns the current program, either by creating a new one (via
+         *  <code>createProgram</code>) or by getting it from the <code>Painter</code>. */
+        protected function get program():Program
+        {
+            var name:String = this.programName;
+            var painter:Painter = Starling.painter;
+            var program:Program = painter.getProgram(name);
+
+            if (program == null)
+            {
+                program = createProgram();
+                painter.registerProgram(name, program);
+            }
+
+            return program;
         }
 
         // properties

@@ -12,8 +12,6 @@ package starling.rendering
 {
     import flash.display3D.Context3D;
 
-    import starling.core.Starling;
-
     /** A concrete effect drawing a mesh of colored vertices. */
     public class ColoredEffect extends Effect
     {
@@ -22,26 +20,16 @@ package starling.rendering
         { }
 
         /** @private */
-        override protected function getProgram():Program
+        override protected function createProgram():Program
         {
-            var name:String = getProgramName();
-            var painter:Painter = Starling.painter;
-            var program:Program = painter.getProgram(name);
+            var vertexShader:String =
+                "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clipspace
+                "mul v0, va1, vc4 \n";  // multiply alpha (vc4) with color (va1)
 
-            if (program == null)
-            {
-                var vertexShader:String =
-                    "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clipspace
-                    "mul v0, va1, vc4 \n";  // multiply alpha (vc4) with color (va1)
+            var fragmentShader:String =
+                "mov oc, v0       \n";  // output color
 
-                var fragmentShader:String =
-                    "mov oc, v0       \n";  // output color
-
-                program = Program.fromSource(vertexShader, fragmentShader);
-                painter.registerProgram(name, program);
-            }
-
-            return program;
+            return Program.fromSource(vertexShader, fragmentShader);
         }
 
         /** Activates the program, sets up two vertex program constants (<code>vc0-3</code> -

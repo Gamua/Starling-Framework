@@ -13,7 +13,6 @@ package starling.rendering
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
 
-    import starling.core.Starling;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.RenderUtil;
@@ -28,8 +27,10 @@ package starling.rendering
         {  }
 
         /** @private */
-        override protected function getProgramVariantID():uint
+        override protected function get programVariantName():uint
         {
+            if (_texture == null) return 0xfff;
+
             var bitField:uint = 0;
             var formatBits:int = 0;
 
@@ -50,30 +51,20 @@ package starling.rendering
         }
 
         /** @private */
-        override protected function getProgram():Program
+        override protected function createProgram():Program
         {
-            if (_texture == null) return super.getProgram();
+            if (_texture == null) return super.createProgram();
 
-            var painter:Painter = Starling.painter;
-            var programName:String = getProgramName();
-            var program:Program = painter.getProgram(programName);
+            var vertexShader:String =
+                "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clip-space
+                "mul v0, va1, vc4 \n" + // multiply alpha (vc4) with color (va1), pass to fp
+                "mov v1, va2      \n";  // pass texture coordinates to fragment program
 
-            if (program == null)
-            {
-                var vertexShader:String =
-                    "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clip-space
-                    "mul v0, va1, vc4 \n" + // multiply alpha (vc4) with color (va1), pass to fp
-                    "mov v1, va2      \n";  // pass texture coordinates to fragment program
+            var fragmentShader:String =
+                RenderUtil.createAGALTexOperation("ft1", "v1", 0, _texture) +
+                "mul oc, ft1, v0";  // multiply color with texel color
 
-                var fragmentShader:String =
-                    RenderUtil.createAGALTexOperation("ft1", "v1", 0, _texture) +
-                    "mul oc, ft1, v0";  // multiply color with texel color
-
-                program = Program.fromSource(vertexShader, fragmentShader);
-                painter.registerProgram(programName, program);
-            }
-
-            return program;
+            return Program.fromSource(vertexShader, fragmentShader);
         }
 
         /** Does the same as the base class' method, plus activates the current texture with the
