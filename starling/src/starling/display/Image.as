@@ -16,9 +16,9 @@ package starling.display
     import flash.geom.Rectangle;
 
     import starling.rendering.Painter;
+    import starling.rendering.VertexData;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
-    import starling.utils.VertexData;
 
     /** An Image is a quad with a texture mapped onto it.
      *  

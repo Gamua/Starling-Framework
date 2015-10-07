@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.utils
+package starling.rendering
 {
     import flash.display3D.Context3D;
     import flash.display3D.IndexBuffer3D;
@@ -17,6 +17,7 @@ package starling.utils
 
     import starling.core.Starling;
     import starling.errors.MissingContextError;
+    import starling.utils.StringUtil;
 
     /** The IndexData class manages a raw list of vertex indices, allowing direct upload
      *  to Stage3D index buffers. <em>You only have to work with this class if you're writing

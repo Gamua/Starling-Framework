@@ -14,10 +14,9 @@ package starling.geom
     import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
 
-    import starling.utils.IndexData;
-
+    import starling.rendering.IndexData;
+    import starling.rendering.VertexData;
     import starling.utils.VectorUtil;
-    import starling.utils.VertexData;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
      *  line segments.
@@ -468,7 +467,7 @@ import flash.errors.IllegalOperationError;
 import flash.utils.getQualifiedClassName;
 
 import starling.geom.Polygon;
-import starling.utils.IndexData;
+import starling.rendering.IndexData;
 
 class ImmutablePolygon extends Polygon
 {

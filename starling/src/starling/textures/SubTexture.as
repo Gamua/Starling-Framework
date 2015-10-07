@@ -16,9 +16,9 @@ package starling.textures
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
 
+    import starling.rendering.VertexData;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
-    import starling.utils.VertexData;
 
     /** A SubTexture represents a section of another texture. This is achieved solely by 
      *  manipulation of texture coordinates, making the class very efficient. 

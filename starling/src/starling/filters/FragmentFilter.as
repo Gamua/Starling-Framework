@@ -30,16 +30,16 @@ package starling.filters
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
     import starling.events.Event;
+    import starling.rendering.IndexData;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
+    import starling.rendering.VertexData;
     import starling.textures.Texture;
-    import starling.utils.IndexData;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
     import starling.utils.RenderUtil;
     import starling.utils.SystemUtil;
-    import starling.utils.VertexData;
 
     /** The FragmentFilter class is the base class for all filter effects in Starling.
      *  All other filters of this package extend this class. You can attach them to any display

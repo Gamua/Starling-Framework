@@ -22,11 +22,11 @@ package starling.display
     import starling.errors.MissingContextError;
     import starling.events.Event;
     import starling.geom.Polygon;
+    import starling.rendering.IndexData;
     import starling.rendering.Painter;
     import starling.rendering.Program;
     import starling.rendering.RenderState;
-    import starling.utils.IndexData;
-    import starling.utils.VertexData;
+    import starling.rendering.VertexData;
 
     /** A display object supporting basic vector drawing functionality. In its current state,
      *  the main use of this class is to provide a range of forms that can be used as masks.

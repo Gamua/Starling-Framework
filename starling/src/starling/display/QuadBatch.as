@@ -19,14 +19,14 @@ package starling.display
     import starling.core.starling_internal;
     import starling.filters.FragmentFilter;
     import starling.filters.FragmentFilterMode;
+    import starling.rendering.IndexData;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
     import starling.rendering.TexturedColoredEffect;
+    import starling.rendering.VertexData;
     import starling.textures.Texture;
-    import starling.utils.IndexData;
     import starling.utils.MatrixUtil;
     import starling.utils.RenderUtil;
-    import starling.utils.VertexData;
 
     use namespace starling_internal;
     

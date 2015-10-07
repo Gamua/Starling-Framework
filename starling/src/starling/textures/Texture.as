@@ -26,10 +26,10 @@ package starling.textures
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
     import starling.errors.NotSupportedError;
+    import starling.rendering.VertexData;
     import starling.utils.Color;
     import starling.utils.MathUtil;
     import starling.utils.SystemUtil;
-    import starling.utils.VertexData;
     import starling.utils.execute;
 
     /** <p>A texture stores the information that represents an image. It cannot be added to the

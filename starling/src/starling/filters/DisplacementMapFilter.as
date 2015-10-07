@@ -21,10 +21,10 @@ package starling.filters
     import starling.core.Starling;
     import starling.rendering.Painter;
     import starling.rendering.Program;
+    import starling.rendering.VertexData;
     import starling.textures.Texture;
     import starling.utils.RenderUtil;
     import starling.utils.StringUtil;
-    import starling.utils.VertexData;
 
     /** The DisplacementMapFilter class uses the pixel values from the specified texture (called
      *  the displacement map) to perform a displacement of an object. You can use this filter 

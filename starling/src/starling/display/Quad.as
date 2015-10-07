@@ -17,7 +17,7 @@ package starling.display
     import flash.geom.Vector3D;
 
     import starling.rendering.Painter;
-    import starling.utils.VertexData;
+    import starling.rendering.VertexData;
 
     /** A Quad represents a rectangle with a uniform color or a color gradient.
      *  

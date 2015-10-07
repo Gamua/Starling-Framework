@@ -24,8 +24,6 @@ package starling.rendering
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
     import starling.errors.MissingContextError;
-    import starling.utils.IndexData;
-    import starling.utils.VertexData;
     import starling.utils.execute;
 
     /** An effect encapsulates one or more shader programs, index buffers, and vertex buffers
