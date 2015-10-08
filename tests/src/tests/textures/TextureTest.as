@@ -19,10 +19,11 @@ package tests.textures
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
 
+    import starling.rendering.VertexData;
+
     import starling.textures.ConcreteTexture;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
-    import starling.utils.VertexData;
 
     import tests.Helpers;
 

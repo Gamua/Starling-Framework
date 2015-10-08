@@ -19,7 +19,6 @@ package starling.rendering
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
-    import flash.utils.Dictionary;
     import flash.utils.Endian;
 
     import starling.core.Starling;
@@ -46,21 +45,18 @@ package starling.rendering
      *
      *  <strong>Vertex Format</strong>
      *
-     *  <p>The VertexData class requires a custom format string on initialization. With that
-     *  string, you tell the class the attributes of each vertex. Here's an example:</p>
+     *  <p>The VertexData class requires a custom format string on initialization, or an instance
+     *  of the VertexDataFormat class. Here is an example:</p>
      *
-     *  <pre>
-     *  var vertexData:VertexData = new VertexData("position(float2), color(bytes4)");
+     *  <listing>
+     *  vertexData = new VertexData("position(float2), color(bytes4)");
      *  vertexData.setPoint(0, "position", 320, 480);
-     *  vertexData.setColor(0, "color", 0xff00ff);
-     *  </pre>
+     *  vertexData.setColor(0, "color", 0xff00ff);</listing>
      *
      *  <p>This instance is set up with two attributes: "position" and "color". The keywords
      *  in parentheses depict the format and size of the data that each property uses; in this
-     *  case, we store two floats for the position (taking up the x- and y-coordinates) and four
-     *  bytes for the color. (The available formats are the same as those defined in the
-     *  <code>Context3DVertexBufferFormat</code> class:
-     *  <code>float1, float2, float3, float4, bytes4</code>.)</p>
+     *  case, we store two floats for the position (for the x- and y-coordinates) and four
+     *  bytes for the color. Please refer to the VertexDataFormat documentation for details.</p>
      *
      *  <p>The attribute names are then used to read and write data to the respective positions
      *  inside a vertex. Furthermore, they come in handy when copying data from one VertexData
@@ -78,30 +74,24 @@ package starling.rendering
      *
      *  <strong>Premultiplied Alpha</strong>
      *
-     *  <p>The color values of the "BitmapData" object contain premultiplied alpha values, which
+     *  <p>Per default, color values are stored with premultiplied alpha values, which
      *  means that the <code>rgb</code> values were multiplied with the <code>alpha</code> values
-     *  before saving them. Since textures are often created from bitmap data, they contain the
-     *  values in the same style. On rendering, it makes a difference in which way the color data
-     *  is saved; for that reason, the VertexData class mimics this behavior. You can choose how
-     *  the alpha values of any stored colors should be handled via the
-     *  <code>setPremultipliedAlpha</code> method.</p>
+     *  before saving them. You can change this behavior with the <code>premultipliedAlpha</code>
+     *  property.</p>
      *
+     *  @see VertexDataFormat
      *  @see IndexData
      */
     public class VertexData
     {
         private var _rawData:ByteArray;
-        private var _format:String;
-        private var _formatID:int;
-        private var _premultipliedAlpha:Boolean;
-        private var _attributes:Vector.<Attribute>;
+        private var _numVertices:int;
+        private var _format:VertexDataFormat;
+        private var _attributes:Vector.<VertexDataAttribute>;
         private var _numAttributes:int;
+        private var _premultipliedAlpha:Boolean;
         private var _posOffset:int;  // in bytes
         private var _vertexSize:int; // in bytes
-        private var _numVertices:int;
-
-        private static var sFormats:Vector.<String> = new <String>[];  // fast format comparison
-        private static var sFormatCache:Dictionary = new Dictionary(); // avoid multiple parsing
 
         // helper objects
         private static var sHelperPoint:Point = new Point();
@@ -112,27 +102,8 @@ package starling.rendering
          *
          *  @param format
          *
-         *  Describes the attributes of each vertex, consisting of a comma-separated
-         *  list of attribute names and their format, e.g.:
-         *
-         *  <pre>"position(float2), color(bytes4), texCoords(float2)"</pre>
-         *
-         *  <p>This set of attributes will be allocated for each vertex, and they will be
-         *  stored in exactly the given order.</p>
-         *
-         *  <ul>
-         *    <li>Names are used to access the specific attributes of a vertex. They are
-         *        completely arbitrary.</li>
-         *    <li>The available formats can be found in the <code>Context3DVertexBufferFormat</code>
-         *        class in the <code>flash.display3D</code> package.</li>
-         *    <li>Both names and format strings are case-sensitive.</li>
-         *    <li>Always use <code>bytes4</code> for color data that you want to access with the
-         *        respective methods.</li>
-         *    <li>Furthermore, the attribute names of colors should include the string "color"
-         *        (or the camelcase variant). If that's the case, the "alpha" value of the color
-         *        will automatically be initialized with "1.0" when the VertexData object is
-         *        created or resized.</li>
-         *  </ul>
+         *  Either a VertexDataFormat instance or a String that describes the data format.
+         *  Refer to the VertexDataFormat class for more information.
          *
          *  @param initialCapacity
          *
@@ -150,10 +121,16 @@ package starling.rendering
          *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
          *  usage of your VertexData instances.</p>
          */
-        public function VertexData(format:String, initialCapacity:int=32)
+        public function VertexData(format:*, initialCapacity:int=32)
         {
-            parseFormat(format);
+            if (format is VertexDataFormat) _format = format;
+            else if (format is String) _format = VertexDataFormat.fromString(format as String);
+            else throw new ArgumentError("'format' must be String or VertexDataFormat");
 
+            _attributes = _format.attributes;
+            _numAttributes = _attributes.length;
+            _posOffset = _format.hasAttribute("position") ? _format.getOffsetInBytes("position") : 0;
+            _vertexSize = _format.vertexSizeInBytes;
             _numVertices = 0;
             _premultipliedAlpha = true;
             _rawData = new ByteArray();
@@ -205,7 +182,7 @@ package starling.rendering
             if (numVertices < 0 || vertexID + numVertices > _numVertices)
                 numVertices = _numVertices - vertexID;
 
-            if (_formatID == target._formatID)
+            if (_format === target._format)
             {
                 if (target._numVertices < targetVertexID + numVertices)
                     target._numVertices = targetVertexID + numVertices;
@@ -244,44 +221,36 @@ package starling.rendering
 
                 for (var i:int=0; i<_numAttributes; ++i)
                 {
-                    var srcAttr:Attribute = _attributes[i];
-                    var tgtAttr:Attribute = target.getAttribute(srcAttr.name);
+                    var srcAttr:VertexDataAttribute = _attributes[i];
+                    var tgtAttr:VertexDataAttribute = target.getAttribute(srcAttr.name);
 
                     if (tgtAttr) // only copy attributes that exist in the target, as well
                     {
                         if (srcAttr.offset == _posOffset)
-                            copyAttributeToTransformed_internal(target, targetVertexID, matrix,
+                            copyAttributeTo_internal(target, targetVertexID, matrix,
                                     srcAttr, tgtAttr, vertexID, numVertices);
                         else
-                            copyAttributeToTransformed_internal(target, targetVertexID, null,
+                            copyAttributeTo_internal(target, targetVertexID, null,
                                     srcAttr, tgtAttr, vertexID, numVertices);
                     }
                 }
             }
         }
 
-        /** Copies a specific attribute of a range of vertices to another VertexData instance.
-         *  Beware that both name and format must be identical in the target VertexData object.
+        /** Copies a specific attribute of all contained vertices (or a range of them, defined by
+         *  'vertexID' and 'numVertices') to another VertexData instance. Beware that both name
+         *  and format of the attribute must be identical in source and target.
          *  If the target is not big enough, it will be resized to fit all the new vertices.
+         *
+         *  <p>If you pass a non-null matrix, the specified attribute will be transformed by
+         *  that matrix before storing it in the target object. It must consist of two float
+         *  values.</p>
          */
         public function copyAttributeTo(target:VertexData, targetVertexID:int, attrName:String,
-                                        vertexID:int=0, numVertices:int=-1):void
+                                        matrix:Matrix=null, vertexID:int=0, numVertices:int=-1):void
         {
-            copyAttributeToTransformed(target, targetVertexID, null, attrName, vertexID, numVertices);
-        }
-
-        /** Copies a specific attribute of a range of vertices to another VertexData instance.
-         *  Beware that both name and format must be identical in the target VertexData object.
-         *  At the same time, a specific attribute (which should point to a 2D Point) is transformed
-         *  via multiplication with a matrix. If the target is not big enough, it will be resized
-         *  to fit all the new vertices.
-         */
-        public function copyAttributeToTransformed(target:VertexData, targetVertexID:int,
-                                                   matrix:Matrix, attrName:String="position",
-                                                   vertexID:int=0, numVertices:int=-1):void
-        {
-            var sourceAttribute:Attribute = getAttribute(attrName);
-            var targetAttribute:Attribute = target.getAttribute(attrName);
+            var sourceAttribute:VertexDataAttribute = getAttribute(attrName);
+            var targetAttribute:VertexDataAttribute = target.getAttribute(attrName);
 
             if (sourceAttribute == null)
                 throw new ArgumentError("Attribute '" + attrName + "' not found in source data");
@@ -289,13 +258,13 @@ package starling.rendering
             if (targetAttribute == null)
                 throw new ArgumentError("Attribute '" + attrName + "' not found in target data");
 
-            copyAttributeToTransformed_internal(target, targetVertexID, matrix,
+            copyAttributeTo_internal(target, targetVertexID, matrix,
                     sourceAttribute, targetAttribute, vertexID, numVertices);
         }
 
-        private function copyAttributeToTransformed_internal(
+        private function copyAttributeTo_internal(
                 target:VertexData, targetVertexID:int, matrix:Matrix,
-                sourceAttribute:Attribute, targetAttribute:Attribute,
+                sourceAttribute:VertexDataAttribute, targetAttribute:VertexDataAttribute,
                 vertexID:int, numVertices:int):void
         {
             if (sourceAttribute.format != targetAttribute.format)
@@ -365,7 +334,7 @@ package starling.rendering
         public function toString():String
         {
             return StringUtil.format("[VertexData format=\"{0}\" numVertices={1}]",
-                    _format, _numVertices);
+                    _format.formatString, _numVertices);
         }
 
         // read / write attributes
@@ -468,7 +437,7 @@ package starling.rendering
         /** Reads an RGB color from the specified vertex and attribute (no alpha). */
         public function getColor(vertexID:int, attrName:String="color"):uint
         {
-            var attribute:Attribute = getAttribute(attrName);
+            var attribute:VertexDataAttribute = getAttribute(attrName);
             _rawData.position = vertexID * _vertexSize + attribute.offset;
             var rgba:uint = switchEndian(_rawData.readUnsignedInt());
             if (_premultipliedAlpha) rgba = unmultiplyAlpha(rgba);
@@ -503,7 +472,7 @@ package starling.rendering
             if (_numVertices < vertexID + 1)
                  numVertices = vertexID + 1;
 
-            var attribute:Attribute = getAttribute(attrName);
+            var attribute:VertexDataAttribute = getAttribute(attrName);
             var minAlpha:Number = _premultipliedAlpha ? 5.0 / 255.0 : 0.0;
 
             if (alpha < minAlpha) alpha = minAlpha;
@@ -546,7 +515,7 @@ package starling.rendering
             }
             else
             {
-                var attribute:Attribute = getAttribute(attrName);
+                var attribute:VertexDataAttribute = getAttribute(attrName);
                 var offset:int = vertexID * _vertexSize + attribute.offset + 3;
                 var oldAlpha:Number;
 
@@ -583,7 +552,7 @@ package starling.rendering
             }
             else
             {
-                var attribute:Attribute = getAttribute(attrName);
+                var attribute:VertexDataAttribute = getAttribute(attrName);
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
                 var offset:int = vertexID * _vertexSize + attribute.offset;
@@ -657,7 +626,7 @@ package starling.rendering
             }
             else
             {
-                var attribute:Attribute = getAttribute(attrName);
+                var attribute:VertexDataAttribute = getAttribute(attrName);
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
                 var offset:int = vertexID * _vertexSize + attribute.offset;
@@ -691,7 +660,7 @@ package starling.rendering
 
         /** Indicates if color attributes should be stored premultiplied with the alpha value.
          *  Changing this value does <strong>not</strong> modify any existing color data.
-         *  If you want that, use the 'setPremultipliedAlpha' method instead.
+         *  If you want that, use the <code>setPremultipliedAlpha</code> method instead.
          *  @default true */
         public function get premultipliedAlpha():Boolean { return _premultipliedAlpha; }
         public function set premultipliedAlpha(value:Boolean):void
@@ -707,7 +676,7 @@ package starling.rendering
             {
                 for (var i:int=0; i<_numAttributes; ++i)
                 {
-                    var attribute:Attribute = _attributes[i];
+                    var attribute:VertexDataAttribute = _attributes[i];
                     if (attribute.isColor)
                     {
                         var offset:int = attribute.offset;
@@ -759,7 +728,7 @@ package starling.rendering
                 numVertices = _numVertices - vertexID;
 
             var x:Number, y:Number;
-            var attribute:Attribute = getAttribute(attrName);
+            var attribute:VertexDataAttribute = getAttribute(attrName);
             var position:int = vertexID * _vertexSize + attribute.offset;
             var endPosition:int = position + (numVertices * _vertexSize);
 
@@ -850,12 +819,8 @@ package starling.rendering
          *  in the vertex shader. */
         public function setVertexBufferAttribute(buffer:VertexBuffer3D, index:int, attrName:String):void
         {
-            var attribute:Attribute = getAttribute(attrName);
-
-            var context:Context3D = Starling.context;
-            if (context == null) throw new MissingContextError();
-
-            context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
+            var attribute:VertexDataAttribute = getAttribute(attrName);
+            Starling.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
         }
 
         /** Uploads the complete data (or a section of it) to the given vertex buffer. */
@@ -867,90 +832,15 @@ package starling.rendering
             buffer.uploadFromByteArray(_rawData, 0, vertexID, numVertices);
         }
 
-        // helpers
-
-        private function parseFormat(format:String):void
-        {
-            if (format == null || format == "")
-                throw new ArgumentError("Format string must not be empty");
-            else if (format in sFormatCache)
-                readSettingsFromCache(format);
-            else
-            {
-                _attributes = new <Attribute>[];
-                _format = "";
-
-                var parts:Array = format.split(",");
-                var numParts:int = parts.length;
-                var offset:int = 0;
-
-                for (var i:int=0; i<numParts; ++i)
-                {
-                    var attrDesc:String = parts[i];
-                    var openBracketPos:int  = attrDesc.indexOf("(");
-                    var closeBracketPos:int = attrDesc.indexOf(")");
-
-                    if (openBracketPos == -1 || closeBracketPos == -1)
-                        throw new ArgumentError(("Missing parentheses: " + attrDesc));
-
-                    var attrName:String = StringUtil.trim(attrDesc.substring(0, openBracketPos));
-                    var attrFormat:String = StringUtil.trim(attrDesc.substring(openBracketPos + 1, closeBracketPos));
-
-                    if (attrName.length == 0 || attrFormat.length == 0)
-                        throw new ArgumentError(("Invalid format string: " + attrDesc));
-
-                    if (attrName == "position")
-                        _posOffset = offset;
-
-                    var attr:Attribute = new Attribute(attrName, attrFormat, offset);
-                    offset += attr.size;
-
-                    _format += (i == 0 ? "" : ", ") + attr.name + "(" + attr.format + ")";
-                    _attributes[_attributes.length] = attr; // avoid 'push'
-                }
-
-                _vertexSize = offset;
-                _numAttributes = _attributes.length;
-                _formatID = sFormats.indexOf(_format);
-
-                if (_formatID == -1)
-                {
-                    _formatID = sFormats.length;
-                    sFormats[_formatID] = _format;
-                }
-
-                writeSettingsToCache(format);
-            }
-        }
-
-        private function readSettingsFromCache(format:String):void
-        {
-            var formatInfo:Object = sFormatCache[format];
-            _format = formatInfo.format;
-            _formatID = formatInfo.formatID;
-            _posOffset = formatInfo.posOffset;
-            _vertexSize = formatInfo.vertexSize;
-            _numAttributes = formatInfo.attributes.length;
-            _attributes = formatInfo.attributes;
-        }
-
-        private function writeSettingsToCache(format:String):void
-        {
-            sFormatCache[format] = {
-                format: _format, formatID: _formatID, posOffset: _posOffset,
-                vertexSize: _vertexSize, attributes: _attributes
-            };
-        }
-
         [Inline]
-        private final function getAttribute(name:String):Attribute
+        private final function getAttribute(attrName:String):VertexDataAttribute
         {
-            var i:int, attribute:Attribute;
+            var i:int, attribute:VertexDataAttribute;
 
             for (i=0; i<_numAttributes; ++i)
             {
                 attribute = _attributes[i];
-                if (attribute.name == name) return attribute;
+                if (attribute.name == attrName) return attribute;
             }
 
             return null;
@@ -1014,7 +904,7 @@ package starling.rendering
 
             for (var i:int=0; i<_numAttributes; ++i)
             {
-                var attribute:Attribute = _attributes[i];
+                var attribute:VertexDataAttribute = _attributes[i];
                 if (attribute.isColor)
                 {
                     // alpha values of all color-properties must be initialized with "1.0"
@@ -1033,10 +923,16 @@ package starling.rendering
             return _rawData;
         }
 
-        /** The normalized format that describes the attributes of each vertex. */
-        public function get format():String
+        /** The format that describes the attributes of each vertex. */
+        public function get format():VertexDataFormat
         {
             return _format;
+        }
+
+        /** The format string that describes the attributes of each vertex. */
+        public function get formatString():String
+        {
+            return _format.formatString;
         }
 
         /** The size (in bytes) of each vertex. */
@@ -1062,43 +958,5 @@ package starling.rendering
         {
             return _numVertices * _vertexSize / 4;
         }
-    }
-}
-
-class Attribute
-{
-    private static const FORMAT_SIZES:Object = {
-        "bytes4": 4,
-        "float1": 4,
-        "float2": 8,
-        "float3": 12,
-        "float4": 16
-    };
-
-    // Never change the properties after initialization! They are shared by all VertexData
-    // objects that use the same format. Ideally, there should be only getters, but the
-    // performance hit is not worth it.
-
-    public var name:String;
-    public var format:String;
-    public var offset:int; // in bytes
-    public var size:int;   // in bytes
-
-    public function Attribute(name:String, format:String, offset:int)
-    {
-        if (!(format in FORMAT_SIZES))
-            throw new ArgumentError(
-                    "Invalid attribute format: " + format + ". " +
-                    "Use one of the following: 'float1'-'float4', 'bytes4'");
-
-        this.name = name;
-        this.format = format;
-        this.offset = offset;
-        this.size = FORMAT_SIZES[format];
-    }
-
-    public function get isColor():Boolean
-    {
-        return name.indexOf("color") != -1 || name.indexOf("Color") != -1;
     }
 }

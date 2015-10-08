@@ -96,7 +96,7 @@ package starling.rendering
         private var _mvpMatrix:Matrix3D;
         private var _onRestore:Function;
 
-        // helper object
+        // helper objects
         private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
         private static var sProgramNameCache:Dictionary = new Dictionary();
 
@@ -308,9 +308,9 @@ package starling.rendering
         public function get onRestore():Function { return _onRestore; }
         public function set onRestore(value:Function):void { _onRestore = value; }
 
-        /** Returns the format String that this effect requires from the VertexData
+        /** Returns the data format that this effect requires from the VertexData
          *  that it renders. */
-        public function get vertexFormat():String
+        public function get vertexFormat():VertexDataFormat
         {
             throw new AbstractMethodError();
         }

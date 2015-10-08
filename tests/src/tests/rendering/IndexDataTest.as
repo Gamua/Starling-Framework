@@ -8,11 +8,11 @@
 //
 // =================================================================================================
 
-package tests.utils
+package tests.rendering
 {
     import org.flexunit.asserts.assertEquals;
 
-    import starling.utils.IndexData;
+    import starling.rendering.IndexData;
 
     import tests.Helpers;
 

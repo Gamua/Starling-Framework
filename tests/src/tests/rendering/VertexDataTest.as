@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests.utils
+package tests.rendering
 {
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -23,8 +23,8 @@ package tests.utils
     import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
 
+    import starling.rendering.VertexData;
     import starling.utils.Color;
-    import starling.utils.VertexData;
 
     import tests.Helpers;
 
@@ -60,34 +60,7 @@ package tests.utils
             assertEquals(3, vd.getOffsetIn32Bits("texCoords"));
             assertEquals(12, vd.getOffsetInBytes("texCoords"));
 
-            assertEquals(STD_FORMAT, vd.format);
-        }
-
-        [Test(expects="Error")]
-        public function testEmptyFormatString():void
-        {
-            new VertexData("");
-        }
-
-        [Test(expects="Error")]
-        public function testInvalidFormatString():void
-        {
-            new VertexData("color(double2)");
-        }
-
-        [Test(expects="Error")]
-        public function testInvalidFormatString2():void
-        {
-            new VertexData("color.float4");
-        }
-
-        [Test]
-        public function testNormalizeFormat():void
-        {
-            var format:String = " flavor (float1) , direction( float2 ),count(bytes4)  ";
-            var vd:VertexData = new VertexData(format);
-
-            assertEquals("flavor(float1), direction(float2), count(bytes4)", vd.format);
+            assertEquals(STD_FORMAT, vd.formatString);
         }
 
         [Test]

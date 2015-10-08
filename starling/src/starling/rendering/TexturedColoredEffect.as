@@ -20,11 +20,14 @@ package starling.rendering
     /** A concrete effect drawing a mesh of colored, textured vertices. */
     public class TexturedColoredEffect extends ColoredEffect
     {
+        private static const FORMAT:VertexDataFormat =
+                VertexDataFormat.fromString("position(float2), color(bytes4), texCoords(float2)");
+
         private var _texture:Texture;
 
         /** Creates a new TexturedColoredEffect instance. */
         public function TexturedColoredEffect()
-        {  }
+        { }
 
         /** @private */
         override protected function get programVariantName():uint
@@ -78,7 +81,7 @@ package starling.rendering
             {
                 RenderUtil.setSamplerStateAt(0, _texture.mipMapping, TextureSmoothing.BILINEAR);
                 context.setTextureAt(0, _texture.base);
-                context.setVertexBufferAt(2, vertexBuffer, 3, "float2");
+                vertexFormat.setVertexBufferAttribute(vertexBuffer, 2, "texCoords");
             }
         }
 
@@ -95,9 +98,9 @@ package starling.rendering
         }
 
         /** @return "position(float2), color(bytes4), texCoords(float2)" */
-        override public function get vertexFormat():String
+        override public function get vertexFormat():VertexDataFormat
         {
-            return "position(float2), color(bytes4), texCoords(float2)";
+            return FORMAT;
         }
 
         /** The texture to be mapped onto the vertices. */

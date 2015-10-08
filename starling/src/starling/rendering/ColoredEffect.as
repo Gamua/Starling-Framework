@@ -15,6 +15,9 @@ package starling.rendering
     /** A concrete effect drawing a mesh of colored vertices. */
     public class ColoredEffect extends Effect
     {
+        private static const FORMAT:VertexDataFormat =
+                VertexDataFormat.fromString("position(float2), color(bytes4)");
+
         /** Creates a new ColoredEffect instance. */
         public function ColoredEffect()
         { }
@@ -37,13 +40,10 @@ package starling.rendering
          *  (<code>va0</code> - position, <code>va1</code> - color). */
         override protected function beforeDraw(context:Context3D):void
         {
-            // TODO make a "VertexFormat" class that allows to read the required offset
-            //      and size information from the string
-
             super.beforeDraw(context);
 
-            context.setVertexBufferAt(0, vertexBuffer, 0, "float2");
-            context.setVertexBufferAt(1, vertexBuffer, 2, "bytes4");
+            vertexFormat.setVertexBufferAttribute(vertexBuffer, 0, "position");
+            vertexFormat.setVertexBufferAttribute(vertexBuffer, 1, "color");
         }
 
         /** Resets the vertex buffer attributes. */
@@ -56,9 +56,9 @@ package starling.rendering
         }
 
         /** @return "position(float2), color(bytes4)" */
-        override public function get vertexFormat():String
+        override public function get vertexFormat():VertexDataFormat
         {
-            return "position(float2), color(bytes4)";
+            return FORMAT;
         }
     }
 }
