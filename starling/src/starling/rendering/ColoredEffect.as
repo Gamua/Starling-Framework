@@ -55,10 +55,10 @@ package starling.rendering
             super.afterDraw(context);
         }
 
-        /** @return "position(float2), color(bytes4)" */
-        override public function get vertexFormat():VertexDataFormat
-        {
-            return FORMAT;
-        }
+        /** Returns the data format that this effect requires from the VertexData
+         *  that it renders.
+         *
+         *  @return "position(float2), color(bytes4)" */
+        override public function get vertexFormat():VertexDataFormat { return FORMAT; }
     }
 }

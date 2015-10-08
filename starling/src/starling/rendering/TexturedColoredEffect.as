@@ -97,11 +97,11 @@ package starling.rendering
             super.afterDraw(context);
         }
 
-        /** @return "position(float2), color(bytes4), texCoords(float2)" */
-        override public function get vertexFormat():VertexDataFormat
-        {
-            return FORMAT;
-        }
+        /** Returns the data format that this effect requires from the VertexData
+         *  that it renders.
+         *
+         *  @return "position(float2), color(bytes4), texCoords(float2)" */
+        override public function get vertexFormat():VertexDataFormat { return FORMAT; }
 
         /** The texture to be mapped onto the vertices. */
         public function get texture():Texture { return _texture; }
