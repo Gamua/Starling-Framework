@@ -22,7 +22,7 @@ package starling.display
     import starling.rendering.IndexData;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
-    import starling.rendering.TexturedColoredEffect;
+    import starling.rendering.MeshEffect;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
@@ -71,7 +71,7 @@ package starling.display
         private var mTexture:Texture;
         private var mSmoothing:String;
 
-        private var mEffect:TexturedColoredEffect;
+        private var mEffect:MeshEffect;
         private var mIndexData:IndexData;
 
         /** The raw vertex data of the quad. After modifying its contents, call
@@ -85,7 +85,7 @@ package starling.display
         /** Creates a new QuadBatch instance with empty batch data. */
         public function QuadBatch()
         {
-            mEffect = new TexturedColoredEffect();
+            mEffect = new MeshEffect();
             mEffect.onRestore = onVertexDataChanged;
             mVertexData = new VertexData(mEffect.vertexFormat);
             mIndexData = new IndexData();

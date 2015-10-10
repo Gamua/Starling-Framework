@@ -16,23 +16,21 @@ package starling.rendering
     import flash.display3D.VertexBuffer3D;
     import flash.events.Event;
     import flash.geom.Matrix3D;
-    import flash.system.Capabilities;
     import flash.utils.Dictionary;
     import flash.utils.getQualifiedClassName;
 
     import starling.core.Starling;
-    import starling.errors.AbstractClassError;
-    import starling.errors.AbstractMethodError;
     import starling.errors.MissingContextError;
     import starling.utils.execute;
 
-    /** An effect encapsulates one or more shader programs, index buffers, and vertex buffers
-     *  for Stage3D rendering.
+    /** An effect configures the render context and sets up shader programs as well as index- and
+     *  vertex-buffers. Extend this class to write custom rendering code for your display objects.
      *
      *  <p><strong>Extending the Effect class</strong></p>
      *
-     *  <p>While the abstract Effect class provides the basic mechanisms of low-level rendering,
-     *  the actual rendering code needs to be implemented by its subclasses. To do so, it is
+     *  <p>This class provides the basic mechanisms of low-level rendering. The implementation
+     *  of the base class can only render white triangles with a constant alpha value; most of the
+     *  time, you'll want to use an existing subclass, or create your own. For the latter, it is
      *  recommended to override the following methods:</p>
      *
      *  <ul>
@@ -52,7 +50,7 @@ package starling.rendering
      *
      *  <p>Furthermore, you should add properties that manage the data you need during rendering,
      *  e.g. the texture(s) that should be used, program constants, etc. I recommend to look
-     *  at the implementation of Starling's <code>ColoredEffect</code> for a simple blueprint
+     *  at the implementation of Starling's <code>MeshEffect</code> for a simple blueprint
      *  of a custom effect.</p>
      *
      *  <strong>Using the Effect class</strong>
@@ -62,7 +60,7 @@ package starling.rendering
      *
      *  <listing>
      *  // create effect
-     *  var effect:TexturedColoredEffect = new TexturedColoredEffect();
+     *  var effect:MeshEffect = new MeshEffect();
      *  
      *  // configure effect
      *  effect.mvpMatrix = getMvpMatrix();
@@ -81,12 +79,16 @@ package starling.rendering
      *  superset of this format).</p>
      *
      *  @see starling.utils.RenderUtil
-     *  @see TexturedColoredEffect
-     *  @see ColoredEffect
+     *  @see MeshEffect
      *
      */
     public class Effect
     {
+        /** The vertex format expected by <code>uploadVertexData</code>:
+         *  <code>"position(float2)"</code> */
+        public static const VERTEX_FORMAT:VertexDataFormat =
+            VertexDataFormat.fromString("position(float2)");
+
         private var _indexBuffer:IndexBuffer3D;
         private var _indexBufferSize:int;  // in number of indices
         private var _vertexBuffer:VertexBuffer3D;
@@ -100,16 +102,9 @@ package starling.rendering
         private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
         private static var sProgramNameCache:Dictionary = new Dictionary();
 
-        /** Sets up the basic properties of an effect. Only call this constructor from a subclass;
-         *  the Effect class itself is abstract. */
+        /** Creates a new effect. */
         public function Effect()
         {
-            if (Capabilities.isDebugger &&
-                getQualifiedClassName(this) == "starling.rendering::Effect")
-            {
-                throw new AbstractClassError();
-            }
-
             _alpha = 1.0;
             _mvpMatrix = new Matrix3D();
 
@@ -185,7 +180,7 @@ package starling.rendering
 
         // rendering
 
-        /** Draws the triangles described by index- and vertex-buffers, or a range of them.
+        /** Draws the triangles described by the index- and vertex-buffers, or a range of them.
          *  This calls <code>beforeDraw</code>, <code>context.drawTriangles</code>, and
          *  <code>afterDraw</code>, in this order. */
         public function render(firstIndex:int=0, numTriangles:int=-1):void
@@ -229,12 +224,19 @@ package starling.rendering
          */
         protected function createProgram():Program
         {
-            throw new AbstractMethodError();
+            var vertexShader:String =
+                "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clipspace
+                "mov v0, vc4      \n";  // pass alpha to fragment program
+
+            var fragmentShader:String =
+                "mov oc, v0       \n";  // output color
+
+            return Program.fromSource(vertexShader, fragmentShader);
         }
 
         /** Override this method if the effect requires a different program depending on the
          *  current settings. Ideally, you do this by creating a bit mask encoding all the options.
-         *  This method is called often, so do not allocate any temporary objects.
+         *  This method is called often, so do not allocate any temporary objects when overriding.
          *
          *  @default 0
          */
@@ -308,12 +310,9 @@ package starling.rendering
         public function get onRestore():Function { return _onRestore; }
         public function set onRestore(value:Function):void { _onRestore = value; }
 
-        /** Returns the data format that this effect requires from the VertexData
-         *  that it renders. */
-        public function get vertexFormat():VertexDataFormat
-        {
-            throw new AbstractMethodError();
-        }
+        /** The data format that this effect requires from the VertexData that it renders:
+         *  <code>"position(float2)"</code> */
+        public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
 
         /** The alpha value of the object rendered by the effect. Must be taken into account
          *  by all subclasses. */
