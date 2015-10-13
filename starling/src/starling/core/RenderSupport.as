@@ -106,7 +106,7 @@ package starling.core
             mClipRectStack = new <Rectangle>[];
             
             mCurrentQuadBatchID = 0;
-            mQuadBatches = new <QuadBatch>[createQuadBatch()];
+            mQuadBatches = new <QuadBatch>[new QuadBatch(true)];
 
             loadIdentity();
             setProjectionMatrix(0, 0, 400, 300);
@@ -609,7 +609,7 @@ package starling.core
                 ++mDrawCount;
                 
                 if (mQuadBatches.length <= mCurrentQuadBatchID)
-                    mQuadBatches.push(createQuadBatch());
+                    mQuadBatches.push(new QuadBatch(true));
             }
         }
         
@@ -640,15 +640,6 @@ package starling.core
             }
         }
 
-        private function createQuadBatch():QuadBatch
-        {
-            var profile:String = Starling.current.profile;
-            var forceTinted:Boolean = (profile != "baselineConstrained" && profile != "baseline");
-            var quadBatch:QuadBatch = new QuadBatch();
-            quadBatch.forceTinted = forceTinted;
-            return quadBatch;
-        }
-        
         // other helper methods
         
         /** Deprecated. Call 'setBlendFactors' instead. */
