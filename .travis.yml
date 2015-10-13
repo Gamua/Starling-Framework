@@ -30,7 +30,7 @@ before_script:
     - export FLASH_PLAYER_EXE="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
     # Adobe AIR SDK
     - mkdir -p air_sdk
-    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/latest/AIRSDK_Compiler.tbz2
+    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/19.0/AIRSDK_Compiler.tbz2
     - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
     # Apache Flex SDK
     - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.0/binaries/apache-flex-sdk-4.14.0-bin.zip
@@ -39,14 +39,14 @@ before_script:
     - echo env.PLAYERGLOBAL_HOME=libs/player > flex_sdk/env.properties
     # Init Apache Flex SDK
     - mkdir -p flex_sdk/frameworks/libs/player/11.1/
-    - mkdir -p flex_sdk/frameworks/libs/player/18.0/
-    - cp -f air_sdk/frameworks/libs/player/18.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
-    - cp -f air_sdk/frameworks/libs/player/18.0/playerglobal.swc flex_sdk/frameworks/libs/player/18.0/
+    - mkdir -p flex_sdk/frameworks/libs/player/19.0/
+    - cp -f air_sdk/frameworks/libs/player/19.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
+    - cp -f air_sdk/frameworks/libs/player/19.0/playerglobal.swc flex_sdk/frameworks/libs/player/19.0/
     # Set env. variable used by Ant and Gradle
     - export FLEX_HOME="$TRAVIS_BUILD_DIR/flex_sdk"
     # Init Adobe AIR SDK
     - mkdir -p air_sdk/frameworks/libs/player/11.1/
-    - cp -f air_sdk/frameworks/libs/player/18.0/playerglobal.swc air_sdk/frameworks/libs/player/11.1/
+    - cp -f air_sdk/frameworks/libs/player/19.0/playerglobal.swc air_sdk/frameworks/libs/player/11.1/
     # Set env. variable used by Ant and Gradle
     - export AIR_HOME="$TRAVIS_BUILD_DIR/air_sdk"
     # permissions
