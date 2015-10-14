@@ -15,6 +15,8 @@ package starling.textures
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.textures.TextureBase;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.media.Camera;
     import flash.net.NetStream;
@@ -29,6 +31,7 @@ package starling.textures
     import starling.rendering.VertexData;
     import starling.utils.Color;
     import starling.utils.MathUtil;
+    import starling.utils.MatrixUtil;
     import starling.utils.SystemUtil;
     import starling.utils.execute;
 
@@ -113,6 +116,11 @@ package starling.textures
      */
     public class Texture
     {
+        // helper objects
+        private static var sRectangle:Rectangle = new Rectangle();
+        private static var sMatrix:Matrix = new Matrix();
+        private static var sPoint:Point = new Point();
+
         /** @private */
         public function Texture()
         {
@@ -510,42 +518,110 @@ package starling.textures
             return new SubTexture(texture, region, false, frame, rotated);
         }
 
-        /** Converts texture coordinates and vertex positions of raw vertex data into the format
-         *  required for rendering. While the texture coordinates of an image always use the
-         *  range <code>[0, 1]</code>, the actual coordinates could be different: you
-         *  might be working with a SubTexture or a texture frame. This method
-         *  adjusts the texture and vertex coordinates accordingly.
+        /** Sets up a VertexData instance with the correct positions for four vertices so that
+         *  the texture can be mapped onto it unscaled. If the texture has a <code>frame</code>,
+         *  the vertices will be offset accordingly.
+         *
+         *  @param vertexData  the VertexData instance to which the positions will be written.
+         *  @param vertexID    the start position within the VertexData instance.
+         *  @param attrName    the attribute name referencing the vertex positions.
+         *  @param bounds      useful only for textures with a frame. This will position the
+         *                     vertices at the correct position within the given bounds,
+         *                     distorted appropriately.
          */
-        public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
+        public function setupVertexPositions(vertexData:VertexData, vertexID:int=0,
+                                             attrName:String="position",
+                                             bounds:Rectangle=null):void
         {
-            // override in subclass
+            var frame:Rectangle = this.frame;
+            var width:Number    = this.width;
+            var height:Number   = this.height;
+
+            if (frame)
+                sRectangle.setTo(-frame.x, -frame.y, width, height);
+            else
+                sRectangle.setTo(0, 0, width, height);
+
+            vertexData.setPoint(vertexID,     attrName, sRectangle.left,  sRectangle.top);
+            vertexData.setPoint(vertexID + 1, attrName, sRectangle.right, sRectangle.top);
+            vertexData.setPoint(vertexID + 2, attrName, sRectangle.left,  sRectangle.bottom);
+            vertexData.setPoint(vertexID + 3, attrName, sRectangle.right, sRectangle.bottom);
+
+            if (bounds)
+            {
+                var scaleX:Number = bounds.width  / frameWidth;
+                var scaleY:Number = bounds.height / frameHeight;
+
+                if (scaleX != 1.0 || scaleY != 1.0)
+                {
+                    sMatrix.identity();
+                    sMatrix.scale(scaleX, scaleY);
+                    sMatrix.translate(bounds.x, bounds.y);
+                    vertexData.transformPoints(attrName, sMatrix, vertexID, 4);
+                }
+            }
         }
 
-        /** Converts texture coordinates into the format required for rendering. While the texture
-         *  coordinates of an image always use the range <code>[0, 1]</code>, the actual
-         *  coordinates could be different: you might be working with a SubTexture. This method
-         *  adjusts the coordinates accordingly.
-         *
-         *  @param texCoords  a ByteArray containing UV coordinates (optionally, among other data).
-         *                    U and V coordinates always have to come in pairs of 'float'.
-         *                    The ByteArray is modified in place.
-         *  @param startPos   the position of the first U coordinate in the vector.
-         *  @param stride     the distance (in bytes) of consecutive UV pairs.
-         *  @param count      the number of UV pairs that should be adjusted, or "-1" for all of them.
-         */
-        public function adjustTexCoords(texCoords:ByteArray,
-                                        startPos:int=0, stride:int=0, count:int=-1):void
+        /** Transforms the given texture coordinates from the local coordinate system
+         *  into the root texture's coordinate system. */
+        public function localToGlobal(u:Number, v:Number, out:Point=null):Point
         {
-            // override in subclasses
+            if (out == null) out = new Point();
+            if (this == root) out.setTo(u, v);
+            else MatrixUtil.transformCoords(transformationMatrixToRoot, u, v, out);
+            return out;
+        }
+
+        /** Transforms the given texture coordinates from the root texture's coordinate system
+         *  to the local coordinate system. */
+        public function globalToLocal(u:Number, v:Number, out:Point=null):Point
+        {
+            if (out == null) out = new Point();
+            if (this == root) out.setTo(u, v);
+            else
+            {
+                sMatrix = new Matrix();
+                sMatrix.copyFrom(transformationMatrixToRoot);
+                sMatrix.invert();
+                MatrixUtil.transformCoords(sMatrix, u, v, out);
+            }
+            return out;
+        }
+
+        /** Writes the given texture coordinates to a VertexData instance after transforming
+         *  them into the root texture's coordinate system. That way, the texture coordinates
+         *  can be used directly to sample the texture in the fragment shader. */
+        public function setTexCoords(vertexData:VertexData, vertexID:int, attrName:String,
+                                     u:Number, v:Number):void
+        {
+            localToGlobal(u, v, sPoint);
+            vertexData.setPoint(vertexID, attrName, sPoint.x, sPoint.y);
+        }
+
+        /** Reads a pair of texture coordinates from the given VertexData instance and transforms
+         *  them into the current texture's coordinate system. (Remember, the VertexData instance
+         *  will always contain the coordinates in the root texture's coordinate system!) */
+        public function getTexCoords(vertexData:VertexData, vertexID:int,
+                                     attrName:String="texCoords", out:Point=null):Point
+        {
+            if (out == null) out = new Point();
+            vertexData.getPoint(vertexID, attrName, out);
+            return globalToLocal(out.x, out.y, out);
         }
 
         // properties
 
         /** The texture frame if it has one (see class description), otherwise <code>null</code>.
-         *  Only SubTextures can have a frame.
-         *
          *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
         public function get frame():Rectangle { return null; }
+
+        /** The height of the texture in points, taking into account the frame rectangle
+         *  (if there is one). */
+        public function get frameWidth():Number { return frame ? frame.width : width; }
+
+        /** The width of the texture in points, taking into account the frame rectangle
+         *  (if there is one). */
+        public function get frameHeight():Number { return frame ? frame.height : height; }
 
         /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
          *  Note: this only works in textures with sidelengths that are powers of two and
@@ -581,6 +657,18 @@ package starling.textures
 
         /** Indicates if the alpha values are premultiplied into the RGB values. */
         public function get premultipliedAlpha():Boolean { return false; }
+
+        /** The matrix that is used to transform the texture coordinates into the coordinate
+         *  space of the parent texture, if there is one. @default null
+         *
+         *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
+        public function get transformationMatrix():Matrix { return null; }
+
+        /** The matrix that is used to transform the texture coordinates into the coordinate
+         *  space of the root texture, if this instance is not the root. @default null
+         *
+         *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
+        public function get transformationMatrixToRoot():Matrix { return null; }
 
         /** Returns the maximum size constraint (for both width and height) for textures in the
          *  current Context3D profile. */

@@ -23,8 +23,9 @@ package starling.rendering
     import starling.errors.MissingContextError;
     import starling.utils.execute;
 
-    /** An effect configures the render context and sets up shader programs as well as index- and
-     *  vertex-buffers. Extend this class to write custom rendering code for your display objects.
+    /** An effect encapsulates all steps of a Stage3D draw operation. It configures the
+     *  render context and sets up shader programs as well as index- and vertex-buffers.
+     *  Extend this class when you need custom rendering code for your display objects.
      *
      *  <p><strong>Extending the Effect class</strong></p>
      *
@@ -166,7 +167,7 @@ package starling.rendering
         {
             if (_vertexBuffer)
             {
-                if (vertexData.sizeInBytes <= _vertexBufferSize)
+                if (vertexData.sizeIn32Bits <= _vertexBufferSize)
                     vertexData.uploadToVertexBuffer(_vertexBuffer);
                 else
                     purgeBuffers(false, true);

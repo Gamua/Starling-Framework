@@ -22,7 +22,7 @@ package starling.rendering
     {
         /** The vertex format expected by <code>uploadVertexData</code>:
          *  <code>"position(float2), color(bytes4), texCoords(float2)"</code> */
-        private static const VERTEX_FORMAT:VertexDataFormat =
+        public static const VERTEX_FORMAT:VertexDataFormat =
                 VertexDataFormat.fromString("position(float2), color(bytes4), texCoords(float2)");
 
         private var _texture:Texture;

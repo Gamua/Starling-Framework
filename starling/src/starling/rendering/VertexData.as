@@ -488,17 +488,6 @@ package starling.rendering
                  numVertices = vertexID + 1;
         }
 
-        /** Sets the specified range of vertices to the same RGB and alpha values. */
-        public function setUniformColorAndAlpha(attrName:String, color:uint, alpha:Number,
-                                                vertexID:int=0, numVertices:int=-1):void
-        {
-            if (numVertices < 0 || vertexID + numVertices > _numVertices)
-                numVertices = _numVertices - vertexID;
-
-            for (var i:int=0; i<numVertices; ++i)
-                setColorAndAlpha(vertexID + i, attrName, color, alpha);
-        }
-
         /** Multiplies the alpha values of subsequent vertices by a certain factor. */
         public function scaleAlphas(attrName:String, factor:Number, vertexID:int=0, numVertices:int=-1):void
         {

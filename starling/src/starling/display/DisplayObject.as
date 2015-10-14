@@ -358,7 +358,9 @@ package starling.display
         
         /** Renders the display object with the help of a painter object. Never call this method
          *  directly, except from within another render method.
-         *  @param painter Provides utility functions for rendering.
+         *
+         *  @param painter Captures the current render state and provides utility functions
+         *                 for rendering.
          */
         public function render(painter:Painter):void
         {
@@ -559,7 +561,8 @@ package starling.display
         }
 
         // stage event handling
-        
+
+        /** @private */
         public override function dispatchEvent(event:Event):void
         {
             if (event.type == Event.REMOVED_FROM_STAGE && stage == null)

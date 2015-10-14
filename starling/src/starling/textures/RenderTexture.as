@@ -138,7 +138,7 @@ package starling.textures
                 mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format, repeat);
                 mBufferTexture.root.onRestore = mBufferTexture.root.clear;
                 mHelperImage = new Image(mBufferTexture);
-                mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
+                // mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
         }
         

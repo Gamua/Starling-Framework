@@ -46,19 +46,14 @@ package starling.utils
                     alpha);
         }
 
-        /** Sets up the render context's blending factors with a certain blend mode. */
-        public static function setBlendFactors(premultipliedAlpha:Boolean, blendMode:String="normal"):void
-        {
-            var blendFactors:Array = BlendMode.getBlendFactors(blendMode, premultipliedAlpha);
-            Starling.context.setBlendFactors(blendFactors[0], blendFactors[1]);
-        }
-
         /** Returns the flags that are required for AGAL texture lookup,
          *  including the '&lt;' and '&gt;' delimiters. */
         public static function getTextureLookupFlags(format:String, mipMapping:Boolean,
                                                      repeat:Boolean=false,
                                                      smoothing:String="bilinear"):String
         {
+            // TODO this method can probably be removed
+
             var options:Array = ["2d", repeat ? "repeat" : "clamp"];
 
             if (format == Context3DTextureFormat.COMPRESSED)

@@ -41,6 +41,32 @@ package starling.utils
             return resultPoint;
         }
 
+        /** Calculates if the point <code>p</code> is inside the triangle <code>a-b-c</code>. */
+        public static function isPointInTriangle(p:Point, a:Point, b:Point, c:Point):Boolean
+        {
+            // This algorithm is described well in this article:
+            // http://www.blackpawn.com/texts/pointinpoly/default.html
+
+            var v0x:Number = c.x - a.x;
+            var v0y:Number = c.y - a.y;
+            var v1x:Number = b.x - a.x;
+            var v1y:Number = b.y - a.y;
+            var v2x:Number = p.x - a.x;
+            var v2y:Number = p.y - a.y;
+
+            var dot00:Number = v0x * v0x + v0y * v0y;
+            var dot01:Number = v0x * v1x + v0y * v1y;
+            var dot02:Number = v0x * v2x + v0y * v2y;
+            var dot11:Number = v1x * v1x + v1y * v1y;
+            var dot12:Number = v1x * v2x + v1y * v2y;
+
+            var invDen:Number = 1.0 / (dot00 * dot11 - dot01 * dot01);
+            var u:Number = (dot11 * dot02 - dot01 * dot12) * invDen;
+            var v:Number = (dot00 * dot12 - dot01 * dot02) * invDen;
+
+            return (u >= 0) && (v >= 0) && (u + v < 1);
+        }
+
         /** Moves a radian angle into the range [-PI, +PI], while keeping the direction intact. */
         public static function normalizeAngle(angle:Number):Number
         {

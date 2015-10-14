@@ -11,18 +11,21 @@
 package starling.utils
 {
     import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
+    import flash.geom.Vector3D;
+
     import starling.errors.AbstractClassError;
 
     /** A utility class containing methods related to the Rectangle class. */
     public class RectangleUtil
     {
-        /** Helper objects. */
-        private static const sHelperPoint:Point = new Point();
+        // helper objects
+        private static const sPoint:Point = new Point();
+        private static const sPoint3D:Vector3D = new Vector3D();
         private static const sPositions:Vector.<Point> =
-            new <Point>[ new Point(0, 0), new Point(1, 0), new Point(0, 1), new Point(1, 1) ];
+            new <Point>[new Point(), new Point(), new Point(), new Point()];
 
         /** @private */
         public function RectangleUtil() { throw new AbstractClassError(); }
@@ -139,28 +142,80 @@ package starling.utils
         /** Calculates the bounds of a rectangle after transforming it by a matrix.
          *  If you pass a 'resultRect', the result will be stored in this rectangle
          *  instead of creating a new object. */
-        public static function getBounds(rectangle:Rectangle, transformationMatrix:Matrix,
+        public static function getBounds(rectangle:Rectangle, matrix:Matrix,
                                          resultRect:Rectangle=null):Rectangle
         {
             if (resultRect == null) resultRect = new Rectangle();
             
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
             var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+            var positions:Vector.<Point> = getPositions(rectangle, sPositions);
             
             for (var i:int=0; i<4; ++i)
             {
-                MatrixUtil.transformCoords(transformationMatrix,
-                    sPositions[i].x * rectangle.width, sPositions[i].y * rectangle.height,
-                    sHelperPoint);
-                
-                if (minX > sHelperPoint.x) minX = sHelperPoint.x;
-                if (maxX < sHelperPoint.x) maxX = sHelperPoint.x;
-                if (minY > sHelperPoint.y) minY = sHelperPoint.y;
-                if (maxY < sHelperPoint.y) maxY = sHelperPoint.y;
+                MatrixUtil.transformCoords(matrix, positions[i].x, positions[i].y, sPoint);
+
+                if (minX > sPoint.x) minX = sPoint.x;
+                if (maxX < sPoint.x) maxX = sPoint.x;
+                if (minY > sPoint.y) minY = sPoint.y;
+                if (maxY < sPoint.y) maxY = sPoint.y;
             }
             
             resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
             return resultRect;
+        }
+
+        /** Calculates the bounds of a rectangle projected into the XY-plane of a certain 3D space
+         *  as they appear from the given camera position. Note that 'camPos' is expected in the
+         *  target coordinate system (the same that the XY-plane lies in).
+         *
+         *  <p>If you pass an 'out' Rectangle, the result will be stored in this rectangle
+         *  instead of creating a new object.</p> */
+        public static function getBoundsProjected(rectangle:Rectangle, matrix:Matrix3D,
+                                                  camPos:Vector3D, out:Rectangle=null):Rectangle
+        {
+            if (out == null) out = new Rectangle();
+            if (camPos == null) throw new ArgumentError("camPos must not be null");
+
+            var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+            var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+            var positions:Vector.<Point> = getPositions(rectangle, sPositions);
+
+            for (var i:int=0; i<4; ++i)
+            {
+                var position:Point = positions[i];
+
+                if (matrix)
+                    MatrixUtil.transformCoords3D(matrix, position.x, position.y, 0, sPoint3D);
+                else
+                    sPoint3D.setTo(position.x, position.y, 0);
+
+                MathUtil.intersectLineWithXYPlane(camPos, sPoint3D, sPoint);
+
+                if (minX > sPoint.x) minX = sPoint.x;
+                if (maxX < sPoint.x) maxX = sPoint.x;
+                if (minY > sPoint.y) minY = sPoint.y;
+                if (maxY < sPoint.y) maxY = sPoint.y;
+            }
+
+            out.setTo(minX, minY, maxX - minX, maxY - minY);
+            return out;
+        }
+
+        /** Returns a vector containing the positions of the four edges of the given rectangle. */
+        public static function getPositions(rectangle:Rectangle,
+                                            out:Vector.<Point>=null):Vector.<Point>
+        {
+            if (out == null) out = new Vector.<Point>(4, true);
+
+            for (var i:int=0; i<4; ++i)
+                if (out[i] == null) out[i] = new Point();
+
+            out[0].x = rectangle.left;  out[0].y = rectangle.top;
+            out[1].x = rectangle.right; out[1].y = rectangle.top;
+            out[2].x = rectangle.left;  out[2].y = rectangle.bottom;
+            out[3].x = rectangle.right; out[3].y = rectangle.bottom;
+            return out;
         }
 
         /** Compares all properties of the given rectangle, returning true only if

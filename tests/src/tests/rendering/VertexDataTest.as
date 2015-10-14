@@ -201,21 +201,6 @@ package tests.rendering
         }
 
         [Test]
-        public function testSetUniformColorAndAlpha():void
-        {
-            var vd:VertexData = new VertexData(STD_FORMAT);
-            vd.numVertices = 3;
-            vd.premultipliedAlpha = false;
-            vd.setUniformColorAndAlpha("color", 0x7f7f7f, 0.5);
-
-            for (var i:int=0; i<3; ++i)
-            {
-                assertThat(vd.getAlpha(i), closeTo(0.5, 0.005));
-                assertEquals(0x7f7f7f, vd.getColor(i));
-            }
-        }
-
-        [Test]
         public function testScaleAlpha():void
         {
             makeTest(true);
@@ -223,13 +208,17 @@ package tests.rendering
 
             function makeTest(pma:Boolean):void
             {
+                var i:int;
                 var vd:VertexData = new VertexData(STD_FORMAT);
                 vd.numVertices = 3;
                 vd.premultipliedAlpha = pma;
-                vd.setUniformColorAndAlpha("color", 0xffffff, 0.9);
+
+                for (i=0; i<3; ++i)
+                    vd.setColorAndAlpha(i, "color", 0xffffff, 0.9);
+
                 vd.scaleAlphas("color", 0.9);
 
-                for (var i:int=0; i<3; ++i)
+                for (i=0; i<3; ++i)
                 {
                     assertThat(vd.getAlpha(i), closeTo(0.81, 0.005));
                     assertEquals(0xffffff, vd.getColor(i));

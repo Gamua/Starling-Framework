@@ -35,6 +35,7 @@ package starling.textures
         private var mWidth:Number;
         private var mHeight:Number;
         private var mTransformationMatrix:Matrix;
+        private var mTransformationMatrixToRoot:Matrix;
         
         /** Helper object. */
         private static var sTexCoords:Point = new Point();
@@ -66,6 +67,7 @@ package starling.textures
             mRotated = rotated;
             mWidth  = rotated ? mRegion.height : mRegion.width;
             mHeight = rotated ? mRegion.width  : mRegion.height;
+            mTransformationMatrixToRoot = new Matrix();
             mTransformationMatrix = new Matrix();
             
             if (rotated)
@@ -84,6 +86,13 @@ package starling.textures
                                         mRegion.height / mParent.height);
             mTransformationMatrix.translate(mRegion.x  / mParent.width,
                                             mRegion.y  / mParent.height);
+
+            var texture:SubTexture = this;
+            while (texture)
+            {
+                mTransformationMatrixToRoot.concat(texture.mTransformationMatrix);
+                texture = texture.parent as SubTexture;
+            }
         }
         
         /** Disposes the parent texture if this texture owns it. */
@@ -91,63 +100,6 @@ package starling.textures
         {
             if (mOwnsParent) mParent.dispose();
             super.dispose();
-        }
-
-        /** @inheritDoc */
-        public override function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
-        {
-            var startIndex:int = vertexID * vertexData.vertexSizeInBytes + vertexData.getOffsetInBytes("texCoords");
-            var stride:int = vertexData.vertexSizeInBytes - vertexData.getSizeInBytes("texCoords");
-
-            adjustTexCoords(vertexData.rawData, startIndex, stride, count);
-
-            if (mFrame)
-            {
-                if (count != 4)
-                    throw new ArgumentError("Textures with a frame can only be used on quads");
-
-                var deltaRight:Number  = mFrame.width  + mFrame.x - mWidth;
-                var deltaBottom:Number = mFrame.height + mFrame.y - mHeight;
-
-                vertexData.translatePoint(vertexID,     "position", -mFrame.x, -mFrame.y);
-                vertexData.translatePoint(vertexID + 1, "position", -deltaRight, -mFrame.y);
-                vertexData.translatePoint(vertexID + 2, "position", -mFrame.x, -deltaBottom);
-                vertexData.translatePoint(vertexID + 3, "position", -deltaRight, -deltaBottom);
-            }
-        }
-
-        /** @inheritDoc */
-        public override function adjustTexCoords(texCoords:ByteArray,
-                                                 startPos:int=0, stride:int=0, count:int=-1):void
-        {
-            if (count < 0)
-                count = (texCoords.length - startPos - 8) / (stride + 8) + 1;
-
-            var texture:SubTexture = this;
-            var u:Number, v:Number;
-
-            sMatrix.identity();
-
-            while (texture)
-            {
-                sMatrix.concat(texture.mTransformationMatrix);
-                texture = texture.parent as SubTexture;
-            }
-
-            texCoords.position = startPos;
-
-            for (var i:int=0; i<count; ++i)
-            {
-                u = texCoords.readFloat();
-                v = texCoords.readFloat();
-
-                MatrixUtil.transformCoords(sMatrix, u, v, sTexCoords);
-
-                texCoords.position -= 8;
-                texCoords.writeFloat(sTexCoords.x);
-                texCoords.writeFloat(sTexCoords.y);
-                texCoords.position += stride;
-            }
         }
 
         /** The texture which the SubTexture is based on. */
@@ -164,28 +116,11 @@ package starling.textures
          *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
         public function get region():Rectangle { return mRegion; }
 
-        /** The clipping rectangle, which is the region provided on initialization 
-         *  scaled into [0.0, 1.0]. */
-        public function get clipping():Rectangle
-        {
-            var topLeft:Point = new Point();
-            var bottomRight:Point = new Point();
-            
-            MatrixUtil.transformCoords(mTransformationMatrix, 0.0, 0.0, topLeft);
-            MatrixUtil.transformCoords(mTransformationMatrix, 1.0, 1.0, bottomRight);
-            
-            var clipping:Rectangle = new Rectangle(topLeft.x, topLeft.y,
-                bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-            
-            RectangleUtil.normalize(clipping);
-            return clipping;
-        }
-        
-        /** The matrix that is used to transform the texture coordinates into the coordinate
-         *  space of the parent texture (used internally by the "adjust..."-methods).
-         *
-         *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
-        public function get transformationMatrix():Matrix { return mTransformationMatrix; }
+        /** @inheritDoc */
+        public override function get transformationMatrix():Matrix { return mTransformationMatrix; }
+
+        /** @inheritDoc */
+        public override function get transformationMatrixToRoot():Matrix { return mTransformationMatrixToRoot; }
         
         /** @inheritDoc */
         public override function get base():TextureBase { return mParent.base; }

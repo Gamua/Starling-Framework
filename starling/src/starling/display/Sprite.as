@@ -15,6 +15,8 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
+    import starling.errors.NotSupportedError;
+
     import starling.events.Event;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
@@ -53,9 +55,6 @@ package starling.display
      */
     public class Sprite extends DisplayObjectContainer
     {
-        private var mFlattenedContents:Vector.<QuadBatch>;
-        private var mFlattenRequested:Boolean;
-        private var mFlattenOptimized:Boolean;
         private var mClipRect:Rectangle;
         
         /** Helper objects. */
@@ -67,24 +66,6 @@ package starling.display
         public function Sprite()
         {
             super();
-        }
-        
-        /** @inheritDoc */
-        public override function dispose():void
-        {
-            disposeFlattenedContents();
-            super.dispose();
-        }
-        
-        private function disposeFlattenedContents():void
-        {
-            if (mFlattenedContents)
-            {
-                for (var i:int=0, max:int=mFlattenedContents.length; i<max; ++i)
-                    mFlattenedContents[i].dispose();
-                
-                mFlattenedContents = null;
-            }
         }
         
         /** Optimizes the sprite for optimal rendering performance. Changes in the
@@ -110,8 +91,7 @@ package starling.display
          */
         public function flatten(ignoreChildOrder:Boolean=false):void
         {
-            mFlattenRequested = true;
-            mFlattenOptimized = ignoreChildOrder;
+            throw new NotSupportedError("flattening is not yet implemented");
             broadcastEventWith(Event.FLATTEN);
         }
         
@@ -119,14 +99,13 @@ package starling.display
          *  Changes to the sprite's children will immediately become visible again. */ 
         public function unflatten():void
         {
-            mFlattenRequested = false;
-            disposeFlattenedContents();
+            throw new NotSupportedError("flattening is not yet implemented");
         }
         
         /** Indicates if the sprite was flattened. */
         public function get isFlattened():Boolean 
         { 
-            return (mFlattenedContents != null) || mFlattenRequested; 
+            return false;
         }
         
         /** The object's clipping rectangle in its local coordinate system.
@@ -212,42 +191,13 @@ package starling.display
                 if (clipRect.isEmpty()) return;
                 else
                 {
-                    painter.finishQuadBatch();
+                    painter.finishMeshBatch();
                     painter.pushState();
                     state.clipRect = clipRect;
                 }
             }
             
-            if (mFlattenedContents || mFlattenRequested)
-            {
-                if (mFlattenedContents == null)
-                    mFlattenedContents = new <QuadBatch>[];
-                
-                if (mFlattenRequested)
-                {
-                    QuadBatch.compile(this, mFlattenedContents);
-                    if (mFlattenOptimized) QuadBatch.optimize(mFlattenedContents);
-
-                    mFlattenRequested = false;
-                }
-
-                var alpha:Number = state.alpha;
-                var numBatches:int = mFlattenedContents.length;
-                var mvpMatrix:Matrix3D = state.mvpMatrix3D;
-                
-                painter.finishQuadBatch();
-                painter.drawCount += numBatches;
-
-                for (var i:int=0; i<numBatches; ++i)
-                {
-                    var quadBatch:QuadBatch = mFlattenedContents[i];
-                    var blendMode:String = quadBatch.blendMode == BlendMode.AUTO ?
-                         state.blendMode : quadBatch.blendMode;
-                    painter.prepareToDraw(quadBatch.premultipliedAlpha);
-                    quadBatch.renderCustom(mvpMatrix, alpha, blendMode);
-                }
-            }
-            else super.render(painter);
+            super.render(painter);
             
             if (mClipRect)
                 painter.popState();

@@ -25,8 +25,8 @@ package starling.text
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
     import starling.display.Image;
+    import starling.display.MeshBatch;
     import starling.display.Quad;
-    import starling.display.QuadBatch;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.rendering.Painter;
@@ -118,7 +118,7 @@ package starling.text
         private var mBorder:DisplayObjectContainer;
         
         private var mImage:Image;
-        private var mQuadBatch:QuadBatch;
+        private var mMeshBatch:MeshBatch;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -149,7 +149,7 @@ package starling.text
         {
             removeEventListener(Event.FLATTEN, onFlatten);
             if (mImage) mImage.texture.dispose();
-            if (mQuadBatch) mQuadBatch.dispose();
+            if (mMeshBatch) mMeshBatch.dispose();
             super.dispose();
         }
         
@@ -183,10 +183,10 @@ package starling.text
         
         private function createRenderedContents():void
         {
-            if (mQuadBatch)
+            if (mMeshBatch)
             {
-                mQuadBatch.removeFromParent(true); 
-                mQuadBatch = null; 
+                mMeshBatch.removeFromParent(true);
+                mMeshBatch = null;
             }
             
             if (mTextBounds == null) 
@@ -431,14 +431,14 @@ package starling.text
                 mImage = null; 
             }
             
-            if (mQuadBatch == null) 
+            if (mMeshBatch == null)
             { 
-                mQuadBatch = new QuadBatch(); 
-                mQuadBatch.touchable = false;
-                addChild(mQuadBatch); 
+                mMeshBatch = new MeshBatch();
+                mMeshBatch.touchable = false;
+                addChild(mMeshBatch);
             }
             else
-                mQuadBatch.reset();
+                mMeshBatch.clear();
             
             var bitmapFont:BitmapFont = getBitmapFont(mFontName);
             if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
@@ -459,14 +459,14 @@ package starling.text
                 vAlign = VAlign.TOP;
             }
             
-            bitmapFont.fillQuadBatch(mQuadBatch, width, height, mText,
+            bitmapFont.fillMeshBatch(mMeshBatch, width, height, mText,
                     mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning, mLeading);
             
-            mQuadBatch.batchable = mBatchable;
+            mMeshBatch.batchable = mBatchable;
             
             if (mAutoSize != TextFieldAutoSize.NONE)
             {
-                mTextBounds = mQuadBatch.getBounds(mQuadBatch, mTextBounds);
+                mTextBounds = mMeshBatch.getBounds(mMeshBatch, mTextBounds);
                 
                 if (isHorizontalAutoSize)
                     mHitArea.width  = mTextBounds.x + mTextBounds.width;
@@ -521,7 +521,7 @@ package starling.text
         public function get textBounds():Rectangle
         {
             if (mRequiresRedraw) redraw();
-            if (mTextBounds == null) mTextBounds = mQuadBatch.getBounds(mQuadBatch);
+            if (mTextBounds == null) mTextBounds = mMeshBatch.getBounds(mMeshBatch);
             return mTextBounds.clone();
         }
         
@@ -738,7 +738,7 @@ package starling.text
         public function set batchable(value:Boolean):void
         { 
             mBatchable = value;
-            if (mQuadBatch) mQuadBatch.batchable = value;
+            if (mMeshBatch) mMeshBatch.batchable = value;
         }
 
         /** The native Flash BitmapFilters to apply to this TextField.

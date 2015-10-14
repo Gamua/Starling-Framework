@@ -53,7 +53,7 @@ package starling.filters
         private var mMapTexCoords:VertexData;
         private var mMapTexCoordBuffer:VertexBuffer3D;
         
-        /** Helper objects */
+        // helper objects
         private static var sOneHalf:Vector.<Number> = new <Number>[0.5, 0.5, 0.5, 0.5];
         private static var sMatrix:Matrix3D = new Matrix3D();
         private static var sMatrixData:Vector.<Number> = 
@@ -196,12 +196,11 @@ package starling.filters
             var maxU:Number = textureWidth  / (mapTexture.width  * scale);
             var maxV:Number = textureHeight / (mapTexture.height * scale);
 
-            mMapTexCoords.setPoint(0, "texCoords", -mapX,        -mapY);
-            mMapTexCoords.setPoint(1, "texCoords", -mapX + maxU, -mapY);
-            mMapTexCoords.setPoint(2, "texCoords", -mapX,        -mapY + maxV);
-            mMapTexCoords.setPoint(3, "texCoords", -mapX + maxU, -mapY + maxV);
+            mMapTexture.setTexCoords(mMapTexCoords, 0, "texCoords", -mapX, -mapY);
+            mMapTexture.setTexCoords(mMapTexCoords, 1, "texCoords", -mapX + maxU, -mapY);
+            mMapTexture.setTexCoords(mMapTexCoords, 2, "texCoords", -mapX, -mapY + maxV);
+            mMapTexture.setTexCoords(mMapTexCoords, 3, "texCoords", -mapX + maxU, -mapY + maxV);
 
-            mMapTexture.adjustVertexData(mMapTexCoords, 0, 4);
             mMapTexCoords.uploadToVertexBuffer(mMapTexCoordBuffer);
         }
         

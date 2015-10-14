@@ -10,7 +10,9 @@
 
 package tests.utils
 {
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
 
     import org.flexunit.asserts.assertFalse;
 
@@ -122,6 +124,22 @@ package tests.utils
             assertFalse(RectangleUtil.compare(rect, null));
             assertFalse(RectangleUtil.compare(null, rect));
             assertFalse(RectangleUtil.compare(rect, rect2));
+        }
+
+        [Test]
+        public function testGetBoundsProjected():void
+        {
+            var camPos:Vector3D = new Vector3D(0, 0, 10);
+            var bounds:Rectangle, expected:Rectangle;
+
+            var matrix3D:Matrix3D = new Matrix3D();
+            matrix3D.appendTranslation(0, 0, 5);
+
+            var rectangle:Rectangle = new Rectangle(0, 0, 5, 5);
+            bounds = RectangleUtil.getBoundsProjected(rectangle, matrix3D, camPos);
+            expected = new Rectangle(0, 0, 10, 10);
+
+            Helpers.compareRectangles(expected, bounds);
         }
     }
 }

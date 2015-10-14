@@ -11,9 +11,9 @@
 package tests.display
 {
     import flash.display3D.Context3DBlendFactor;
-    
+
     import flexunit.framework.Assert;
-    
+
     import starling.display.BlendMode;
 
     public class BlendModeTest
@@ -22,34 +22,13 @@ package tests.display
         public function testRegisterBlendMode():void
         {
             var name:String = "test";
+            var srcFactor:String = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
+            var dstFactor:String = Context3DBlendFactor.DESTINATION_COLOR;
             
-            // register for pma = true; should set factors for both pma possibilities.
-            
-            BlendMode.register(name, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA,
-                                     Context3DBlendFactor.DESTINATION_COLOR, true);
-            
-            var modesPma:Array = BlendMode.getBlendFactors(name, true);
-            var modesNoPma:Array = BlendMode.getBlendFactors(name, false);
-            
-            Assert.assertEquals(Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA, modesPma[0]);
-            Assert.assertEquals(Context3DBlendFactor.DESTINATION_COLOR, modesPma[1]);
-            
-            Assert.assertEquals(Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA, modesNoPma[0]);
-            Assert.assertEquals(Context3DBlendFactor.DESTINATION_COLOR, modesNoPma[1]);
-            
-            // now overwrite for pma = false; should not change pma = true factors.
-            
-            BlendMode.register(name, Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO, 
-                               false);
-            
-            modesPma = BlendMode.getBlendFactors(name, true);
-            modesNoPma = BlendMode.getBlendFactors(name, false);
-            
-            Assert.assertEquals(Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA, modesPma[0]);
-            Assert.assertEquals(Context3DBlendFactor.DESTINATION_COLOR, modesPma[1]);
-            
-            Assert.assertEquals(Context3DBlendFactor.ONE, modesNoPma[0]);
-            Assert.assertEquals(Context3DBlendFactor.ZERO, modesNoPma[1]);
+            BlendMode.register(name, srcFactor, dstFactor);
+
+            Assert.assertEquals(srcFactor, BlendMode.get(name).sourceFactor);
+            Assert.assertEquals(dstFactor, BlendMode.get(name).destinationFactor);
         }
     }
 }

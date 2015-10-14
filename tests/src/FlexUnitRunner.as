@@ -12,6 +12,7 @@ package
     import tests.display.BlendModeTest;
     import tests.display.DisplayObjectContainerTest;
     import tests.display.DisplayObjectTest;
+    import tests.display.MeshTest;
     import tests.display.MovieClipTest;
     import tests.display.QuadTest;
     import tests.display.Sprite3DTest;
@@ -54,6 +55,7 @@ package
             testsToRun.push(BlendModeTest);
             testsToRun.push(UtilsTest);
             testsToRun.push(JugglerTest);
+            testsToRun.push(MeshTest);
             testsToRun.push(QuadTest);
             testsToRun.push(AssetManagerTest);
             testsToRun.push(TweenTest);

@@ -98,7 +98,7 @@ package starling.core
             // always rendered with exactly two draw calls. That is taken into account when showing
             // the drawCount value (see 'ignore self' comment above)
 
-            painter.finishQuadBatch();
+            painter.finishMeshBatch();
             super.render(painter);
         }
         

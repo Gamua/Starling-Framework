@@ -11,11 +11,12 @@
 package starling.geom
 {
     import flash.geom.Point;
-    import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
 
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
+    import starling.utils.MathUtil;
+    import starling.utils.Pool;
     import starling.utils.VectorUtil;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
@@ -171,7 +172,7 @@ package starling.geom
             // -> http://polyk.ivank.net
 
             var numVertices:int = this.numVertices;
-            var numTriangles:int = numVertices >= 3 ? numVertices - 2 : 0;
+            var numTriangles:int = this.numTriangles;
             var i:int, restIndexPos:int, numRestIndices:int;
 
             if (indexData == null) indexData = new IndexData(numTriangles * 3);
@@ -183,6 +184,11 @@ package starling.geom
             restIndexPos = 0;
             numRestIndices = numVertices;
 
+            var a:Point = Pool.getPoint();
+            var b:Point = Pool.getPoint();
+            var c:Point = Pool.getPoint();
+            var p:Point = Pool.getPoint();
+
             while (numRestIndices > 3)
             {
                 // In each step, we look at 3 subsequent vertices. If those vertices spawn up
@@ -190,26 +196,25 @@ package starling.geom
                 // We remove those ears until only one remains -> each ear is one of our wanted
                 // triangles.
 
+                var otherIndex:uint;
+                var earFound:Boolean = false;
                 var i0:uint = sRestIndices[ restIndexPos      % numRestIndices];
                 var i1:uint = sRestIndices[(restIndexPos + 1) % numRestIndices];
                 var i2:uint = sRestIndices[(restIndexPos + 2) % numRestIndices];
 
-                var ax:Number = mCoords[2 * i0];
-                var ay:Number = mCoords[2 * i0 + 1];
-                var bx:Number = mCoords[2 * i1];
-                var by:Number = mCoords[2 * i1 + 1];
-                var cx:Number = mCoords[2 * i2];
-                var cy:Number = mCoords[2 * i2 + 1];
-                var earFound:Boolean = false;
+                a.setTo(mCoords[2 * i0], mCoords[2 * i0 + 1]);
+                b.setTo(mCoords[2 * i1], mCoords[2 * i1 + 1]);
+                c.setTo(mCoords[2 * i2], mCoords[2 * i2 + 1]);
 
-                if (isConvexTriangle(ax, ay, bx, by, cx, cy))
+                if (isConvexTriangle(a.x, a.y, b.x, b.y, c.x, c.y))
                 {
                     earFound = true;
                     for (i = 3; i < numRestIndices; ++i)
                     {
-                        var otherIndex:uint = sRestIndices[(restIndexPos + i) % numRestIndices];
-                        if (isPointInTriangle(mCoords[2 * otherIndex], mCoords[2 * otherIndex + 1],
-                                ax, ay, bx, by, cx, cy))
+                        otherIndex = sRestIndices[(restIndexPos + i) % numRestIndices];
+                        p.setTo(mCoords[2 * otherIndex], mCoords[2 * otherIndex + 1]);
+
+                        if (MathUtil.isPointInTriangle(p, a, b, c))
                         {
                             earFound = false;
                             break;
@@ -232,6 +237,11 @@ package starling.geom
                 }
             }
 
+            Pool.putPoint(a);
+            Pool.putPoint(b);
+            Pool.putPoint(c);
+            Pool.putPoint(p);
+
             indexData.appendTriangle(sRestIndices[0] + offset,
                                      sRestIndices[1] + offset,
                                      sRestIndices[2] + offset);
@@ -239,30 +249,17 @@ package starling.geom
         }
 
         /** Copies all vertices to a 'VertexData' instance, beginning at a certain target index. */
-        public function copyToVertexData(target:VertexData, targetIndex:int=0):void
+        public function copyToVertexData(target:VertexData=null, targetVertexID:int=0,
+                                         attrName:String="position"):void
         {
-            var requiredTargetLength:int = targetIndex + numVertices;
+            var numVertices:int = this.numVertices;
+            var requiredTargetLength:int = targetVertexID + numVertices;
+
             if (target.numVertices < requiredTargetLength)
                 target.numVertices = requiredTargetLength;
 
-            copyToByteArray(target.rawData,
-                targetIndex * target.vertexSizeInBytes + target.getOffsetInBytes("position"),
-                target.vertexSizeInBytes - target.getSizeInBytes("position"));
-        }
-
-        public function copyToByteArray(target:ByteArray, targetPos:int=0, stride:int=0):void
-        {
-            var numVertices:int = this.numVertices;
-            target.position = targetPos;
-
             for (var i:int=0; i<numVertices; ++i)
-            {
-                target.writeFloat(mCoords[i * 2]);
-                target.writeFloat(mCoords[i * 2 + 1]);
-                target.position += stride;
-            }
-
-            target.position = 0;
+                target.setPoint(targetVertexID + i, attrName, mCoords[i * 2], mCoords[i * 2 + 1]);
         }
 
         /** Creates a string that contains the values of all included points. */
@@ -313,35 +310,6 @@ package starling.geom
         {
             // dot product of [the normal of (a->b)] and (b->c) must be positive
             return (ay - by) * (cx - bx) + (bx - ax) * (cy - by) >= 0;
-        }
-
-        /** Calculates if a point (px, py) is inside the area of a 2D triangle. */
-        private static function isPointInTriangle(px:Number, py:Number,
-                                                  ax:Number, ay:Number,
-                                                  bx:Number, by:Number,
-                                                  cx:Number, cy:Number):Boolean
-        {
-            // This algorithm is described well in this article:
-            // http://www.blackpawn.com/texts/pointinpoly/default.html
-
-            var v0x:Number = cx - ax;
-            var v0y:Number = cy - ay;
-            var v1x:Number = bx - ax;
-            var v1y:Number = by - ay;
-            var v2x:Number = px - ax;
-            var v2y:Number = py - ay;
-
-            var dot00:Number = v0x * v0x + v0y * v0y;
-            var dot01:Number = v0x * v1x + v0y * v1y;
-            var dot02:Number = v0x * v2x + v0y * v2y;
-            var dot11:Number = v1x * v1x + v1y * v1y;
-            var dot12:Number = v1x * v2x + v1y * v2y;
-
-            var invDen:Number = 1.0 / (dot00 * dot11 - dot01 * dot01);
-            var u:Number = (dot11 * dot02 - dot01 * dot12) * invDen;
-            var v:Number = (dot00 * dot12 - dot01 * dot02) * invDen;
-
-            return (u >= 0) && (v >= 0) && (u + v < 1);
         }
 
         /** Finds out if the vector a->b intersects c->d. */
@@ -459,6 +427,13 @@ package starling.geom
                 for (var i:int=oldLength; i < value; ++i)
                     mCoords[i * 2] = mCoords[i * 2 + 1] = 0.0;
             }
+        }
+
+        /** Returns the number of triangles that will be required when triangulating the polygon. */
+        public function get numTriangles():int
+        {
+            var numVertices:int = this.numVertices;
+            return numVertices >= 3 ? numVertices - 2 : 0;
         }
     }
 }

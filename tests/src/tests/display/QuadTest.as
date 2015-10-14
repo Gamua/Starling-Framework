@@ -10,25 +10,31 @@
 
 package tests.display
 {
+    import flash.geom.Point;
     import flash.geom.Rectangle;
-    
-    import flexunit.framework.Assert;
-    
-    import starling.core.starling_internal;
+
+    import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertNull;
+    import org.hamcrest.number.closeTo;
+
     import starling.display.Quad;
     import starling.display.Sprite;
+    import starling.textures.ConcreteTexture;
+    import starling.textures.Texture;
     import starling.utils.Color;
+
     import tests.Helpers;
-    
-    use namespace starling_internal;
 
     public class QuadTest
-    {		
+    {
+        private static const E:Number = 0.0001;
+
         [Test]
         public function testQuad():void
         {
             var quad:Quad = new Quad(100, 200, Color.AQUA);            
-            Assert.assertEquals(Color.AQUA, quad.color);            
+            assertEquals(Color.AQUA, quad.color);
         }
         
         [Test]
@@ -40,85 +46,12 @@ package tests.display
             quad.setVertexColor(2, Color.BLUE);
             quad.setVertexColor(3, Color.FUCHSIA);
             
-            Assert.assertEquals(Color.AQUA,    quad.getVertexColor(0));
-            Assert.assertEquals(Color.BLACK,   quad.getVertexColor(1));
-            Assert.assertEquals(Color.BLUE,    quad.getVertexColor(2));
-            Assert.assertEquals(Color.FUCHSIA, quad.getVertexColor(3));
+            assertEquals(Color.AQUA,    quad.getVertexColor(0));
+            assertEquals(Color.BLACK,   quad.getVertexColor(1));
+            assertEquals(Color.BLUE,    quad.getVertexColor(2));
+            assertEquals(Color.FUCHSIA, quad.getVertexColor(3));
         }
-        
-        [Test]
-        public function testTinted():void
-        {
-            var quad:Quad = new Quad(100, 100);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.setVertexColor(2, 0xffffff);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.setVertexAlpha(2, 1.0);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.setVertexColor(3, 0xff0000);
-            Assert.assertTrue(quad.tinted);
-            
-            quad.setVertexColor(3, 0xffffff);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.setVertexAlpha(3, 0.5);
-            Assert.assertTrue(quad.tinted);
-            
-            quad.setVertexAlpha(3, 1.0);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.color = 0xff0000;
-            Assert.assertTrue(quad.tinted);
-            
-            quad.color = 0xffffff;
-            Assert.assertFalse(quad.tinted);
-            
-            quad.alpha = 0.5;
-            Assert.assertTrue(quad.tinted);
-            
-            quad.alpha = 1.0;
-            Assert.assertFalse(quad.tinted);
-            
-            quad.color = 0xff0000;
-            quad.setVertexColor(0, 0xffffff);
-            quad.setVertexColor(1, 0xffffff);
-            quad.setVertexColor(2, 0xffffff);
-            Assert.assertTrue(quad.tinted);
-            quad.setVertexColor(3, 0xffffff);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.setVertexAlpha(0, 0.5);
-            quad.setVertexAlpha(1, 0.5);
-            quad.setVertexAlpha(2, 0.5);
-            quad.setVertexAlpha(3, 0.5);
-            Assert.assertTrue(quad.tinted);
-            quad.setVertexAlpha(0, 1.0);
-            quad.setVertexAlpha(1, 1.0);
-            quad.setVertexAlpha(2, 1.0);
-            Assert.assertTrue(quad.tinted);
-            quad.setVertexAlpha(3, 1.0);
-            Assert.assertFalse(quad.tinted);
-            
-            quad.setVertexAlpha(2, 0.5);
-            quad.setVertexColor(2, 0xffffff);
-            Assert.assertTrue(quad.tinted);
-        }
-        
-        [Test]
-        public function testTinted2():void
-        {
-            // https://github.com/PrimaryFeather/Starling-Framework/issues/123
-            
-            var quad:Quad = new Quad(100, 100);
-            quad.color = 0xff0000;
-            quad.alpha = 0.5;
-            quad.color = 0xffffff;
-            Assert.assertTrue(quad.tinted);
-        }
-        
+
         [Test]
         public function testBounds():void
         {
@@ -153,23 +86,52 @@ package tests.display
         public function testWidthAndHeight():void
         {
             var quad:Quad = new Quad(100, 50);
-            Assert.assertEquals(100, quad.width);
-            Assert.assertEquals(50,  quad.height);
+            assertEquals(100, quad.width);
+            assertEquals(50,  quad.height);
             
             quad.scaleX = -1;
-            Assert.assertEquals(100, quad.width);
+            assertEquals(100, quad.width);
             
             quad.pivotX = 100;
-            Assert.assertEquals(100, quad.width);
+            assertEquals(100, quad.width);
             
             quad.pivotX = -10;
-            Assert.assertEquals(100, quad.width);
+            assertEquals(100, quad.width);
             
             quad.scaleY = -1;
-            Assert.assertEquals(50, quad.height);
+            assertEquals(50, quad.height);
             
             quad.pivotY = 20;
-            Assert.assertEquals(50, quad.height);
+            assertEquals(50, quad.height);
+        }
+
+        [Test]
+        public function testHitTest():void
+        {
+            var quad:Quad = new Quad(100, 50);
+            assertEquals(quad, quad.hitTest(new Point(0.1, 0.1)));
+            assertEquals(quad, quad.hitTest(new Point(99.9, 49.9)));
+            assertNull(quad.hitTest(new Point(-0.1, -0.1)));
+            assertNull(quad.hitTest(new Point(100.1, 25)));
+            assertNull(quad.hitTest(new Point(50, 50.1)));
+            assertNull(quad.hitTest(new Point(100.1, 50.1)));
+        }
+
+        [Test]
+        public function testReadjustSize():void
+        {
+            var texture:Texture = new ConcreteTexture(null, null, 100, 50, false, true);
+            var quad:Quad = new Quad(10, 20);
+            quad.texture = texture;
+
+            assertThat(quad.width, closeTo(10, E));
+            assertThat(quad.height, closeTo(20, E));
+            assertEquals(texture, quad.texture);
+
+            quad.readjustSize();
+
+            assertThat(quad.width, closeTo(texture.frameWidth, E));
+            assertThat(quad.height, closeTo(texture.frameHeight, E));
         }
     }
 }

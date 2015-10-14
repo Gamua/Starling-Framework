@@ -14,7 +14,7 @@ package starling.text
     import flash.utils.Dictionary;
 
     import starling.display.Image;
-    import starling.display.QuadBatch;
+    import starling.display.MeshBatch;
     import starling.display.Sprite;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
@@ -232,7 +232,7 @@ package starling.text
         }
         
         /** Draws text into a QuadBatch. */
-        public function fillQuadBatch(quadBatch:QuadBatch, width:Number, height:Number, text:String,
+        public function fillMeshBatch(meshBatch:MeshBatch, width:Number, height:Number, text:String,
                                       fontSize:Number=-1, color:uint=0xffffff, 
                                       hAlign:String="center", vAlign:String="center",      
                                       autoScale:Boolean=true, 
@@ -251,7 +251,7 @@ package starling.text
                 mHelperImage.x = charLocation.x;
                 mHelperImage.y = charLocation.y;
                 mHelperImage.scaleX = mHelperImage.scaleY = charLocation.scale;
-                quadBatch.addImage(mHelperImage);
+                meshBatch.addMesh(mHelperImage);
             }
 
             CharLocation.rechargePool();

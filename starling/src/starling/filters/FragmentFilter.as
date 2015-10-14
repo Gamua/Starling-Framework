@@ -21,11 +21,10 @@ package starling.filters
     import flash.utils.getQualifiedClassName;
 
     import starling.core.Starling;
-    import starling.core.starling_internal;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Image;
-    import starling.display.QuadBatch;
+    import starling.display.MeshBatch;
     import starling.display.Stage;
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
@@ -38,7 +37,6 @@ package starling.filters
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
-    import starling.utils.RenderUtil;
     import starling.utils.SystemUtil;
 
     /** The FragmentFilter class is the base class for all filter effects in Starling.
@@ -105,7 +103,7 @@ package starling.filters
         private var mIndexBuffer:IndexBuffer3D;
         
         private var mCacheRequested:Boolean;
-        private var mCache:QuadBatch;
+        private var mCache:MeshBatch;
         
         /** Helper objects. */
         private static var sStageBounds:Rectangle = new Rectangle();
@@ -204,7 +202,7 @@ package starling.filters
         }
         
         private function renderPasses(object:DisplayObject, painter:Painter,
-                                      intoCache:Boolean=false):QuadBatch
+                                      intoCache:Boolean=false):MeshBatch
         {
             var passTexture:Texture;
             var cacheTexture:Texture = null;
@@ -227,13 +225,13 @@ package starling.filters
             if (bounds.isEmpty())
             {
                 disposePassTextures();
-                return intoCache ? new QuadBatch() : null; 
+                return intoCache ? new MeshBatch() : null;
             }
             
             updateBuffers(context, boundsPot);
             updatePassTextures(boundsPot.width, boundsPot.height, mResolution * scale);
             
-            painter.finishQuadBatch();
+            painter.finishMeshBatch();
             painter.drawCount += mNumPasses;
             painter.pushState();
             state.clipRect = boundsPot;
@@ -256,10 +254,10 @@ package starling.filters
             painter.prepareToDraw(PMA);
             painter.clear();
             object.render(painter);
-            painter.finishQuadBatch();
+            painter.finishMeshBatch();
             
             // prepare drawing of actual filter passes
-            RenderUtil.setBlendFactors(PMA);
+            BlendMode.get(BlendMode.NORMAL).activate();
             state.setModelviewMatricesToIdentity();  // now we'll draw in stage coordinates!
 
             mVertexData.setVertexBufferAttribute(mVertexBuffer, mVertexPosAtID, "position");
@@ -321,7 +319,7 @@ package starling.filters
                 // the filter output in object coordinates, we wrap it in a QuadBatch: that way,
                 // we can modify it with a transformation matrix.
                 
-                var quadBatch:QuadBatch = new QuadBatch();
+                var meshBatch:MeshBatch = new MeshBatch();
                 var image:Image = new Image(cacheTexture);
                 
                 // targetSpace could be null, so we calculate the matrix from the other side
@@ -330,10 +328,10 @@ package starling.filters
                 object.getTransformationMatrix(targetSpace, sTransformationMatrix).invert();
                 MatrixUtil.prependTranslation(sTransformationMatrix,
                     bounds.x + mOffsetX, bounds.y + mOffsetY);
-                quadBatch.addImage(image, 1.0, sTransformationMatrix);
-                quadBatch.ownsTexture = true;
+                meshBatch.addMesh(image, sTransformationMatrix);
+                // meshBatch.ownsTexture = true; // TODO check and re-implement
 
-                return quadBatch;
+                return meshBatch;
             }
             else return null;
         }
@@ -508,27 +506,6 @@ package starling.filters
         {
             mCacheRequested = false;
             disposeCache();
-        }
-        
-        // flattening
-        
-        /** @private */
-        starling_internal function compile(object:DisplayObject):QuadBatch
-        {
-            if (mCache) return mCache;
-            else
-            {
-                var painter:Painter = Starling.painter;
-                var stage:Stage = object.stage;
-                var quadBatch:QuadBatch;
-
-                painter.pushState();
-                object.getTransformationMatrix(stage, painter.state.modelviewMatrix);
-                quadBatch = renderPasses(object, painter, true);
-                painter.popState();
-
-                return quadBatch;
-            }
         }
         
         // properties

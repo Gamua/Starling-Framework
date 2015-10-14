@@ -25,8 +25,8 @@ package starling.rendering
 
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
-    import starling.display.Quad;
-    import starling.display.QuadBatch;
+    import starling.display.Mesh;
+    import starling.display.MeshBatch;
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
@@ -90,9 +90,9 @@ package starling.rendering
         private var mStateStack:Vector.<RenderState>;
         private var mStateStackPos:int;
 
-        private var mQuadBatch:QuadBatch;
-        private var mQuadBatchList:Vector.<QuadBatch>;
-        private var mQuadBatchListPos:int;
+        private var mMeshBatch:MeshBatch;
+        private var mMeshBatchList:Vector.<MeshBatch>;
+        private var mMeshBatchListPos:int;
 
         // helper objects
         private static var sPoint3D:Vector3D = new Vector3D();
@@ -122,17 +122,17 @@ package starling.rendering
             mStateStack = new <RenderState>[];
             mStateStackPos = -1;
 
-            mQuadBatch = null;
-            mQuadBatchList = new <QuadBatch>[];
-            mQuadBatchListPos = -1;
+            mMeshBatch = null;
+            mMeshBatchList = new <MeshBatch>[];
+            mMeshBatchListPos = -1;
         }
         
         /** Disposes all quad batches, programs, and - if it is not being shared -
          *  the render context. */
         public function dispose():void
         {
-            for each (var quadBatch:QuadBatch in mQuadBatchList)
-                quadBatch.dispose();
+            for each (var meshBatch:MeshBatch in mMeshBatchList)
+                meshBatch.dispose();
 
             if (!mShareContext)
                 mContext.dispose(false);
@@ -161,12 +161,12 @@ package starling.rendering
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
 
-            if (mQuadBatchListPos == -1)
+            if (mMeshBatchListPos == -1)
             {
                 // context was created for the first time
-                mQuadBatch = createQuadBatch();
-                mQuadBatchList[0] = mQuadBatch;
-                mQuadBatchListPos = 0;
+                mMeshBatch = new MeshBatch();
+                mMeshBatchList[0] = mMeshBatch;
+                mMeshBatchListPos = 0;
             }
         }
 
@@ -228,7 +228,7 @@ package starling.rendering
         }
 
         /** Returns the program registered under a certain name, or null if no program with
-         *  this name has been registred. */
+         *  this name has been registered. */
         public function getProgram(name:String):Program
         {
             if (name in mPrograms) return mPrograms[name];
@@ -283,7 +283,7 @@ package starling.rendering
             var nextState:RenderState = mStateStack[mStateStackPos];
 
             if (mState.switchRequiresDraw(nextState))
-                finishQuadBatch();
+                finishMeshBatch();
 
             mState.copyFrom(nextState);
             mStateStackPos--;
@@ -302,7 +302,7 @@ package starling.rendering
         {
             if (mContext == null) return;
 
-            finishQuadBatch();
+            finishMeshBatch();
 
             mContext.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.INCREMENT_SATURATE);
@@ -322,7 +322,7 @@ package starling.rendering
         {
             if (mContext == null) return;
 
-            finishQuadBatch();
+            finishMeshBatch();
 
             mContext.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.DECREMENT_SATURATE);
@@ -345,78 +345,54 @@ package starling.rendering
                 mState.transformModelviewMatrix(mask.transformationMatrix);
 
             mask.render(this);
-            finishQuadBatch();
+            finishMeshBatch();
 
             popState();
         }
 
-        // quad rendering
+        // mesh rendering
         
-        /** Adds a quad to the current batch of unrendered quads. If there is a state change,
-         *  all previous quads are rendered at once, and the batch is reset. */
-        public function batchQuad(quad:Quad, texture:Texture=null, smoothing:String=null):void
+        /** Adds a mesh to the current batch of unrendered meshes. If the current batch is not
+         *  compatible with the  mesh, all previous meshes are rendered at once and the batch
+         *  is cleared. */
+        public function batchMesh(mesh:Mesh):void
         {
             var alpha:Number = mState.alpha;
             var blendMode:String = mState.blendMode;
             var modelviewMatrix:Matrix = mState.modelviewMatrix;
 
-            if (mQuadBatch.isStateChange(quad.tinted, alpha, texture, smoothing, blendMode))
-                finishQuadBatch();
+            if (!mMeshBatch.canAddMesh(mesh, blendMode))
+                finishMeshBatch();
 
-            mQuadBatch.addQuad(quad, alpha, texture, smoothing, modelviewMatrix, blendMode);
+            mMeshBatch.addMesh(mesh, modelviewMatrix, alpha, blendMode);
         }
-        
-        /** Adds a batch of quads to the current batch of unrendered quads. If there is a state
-         *  change, all previous quads are rendered at once. 
-         *
-         *  <p>Note that copying the contents of the QuadBatch to the current "cumulative"
-         *  batch takes some time. If the batch consists of more than just a few quads,
-         *  you may be better off calling the "render(Custom)" method on the batch instead.
-         *  Otherwise, the additional CPU effort will be more expensive than what you save by
-         *  avoiding the draw call. (Rule of thumb: no more than 16-20 quads.)</p> */
-        public function batchQuadBatch(quadBatch:QuadBatch):void
+
+        /** Renders the current mesh batch and clears it. */
+        public function finishMeshBatch():void
         {
-            var alpha:Number = mState.alpha;
-            var blendMode:String = mState.blendMode;
-            var modelviewMatrix:Matrix = mState.modelviewMatrix;
+            var meshBatch:MeshBatch = mMeshBatch;
+            if (meshBatch.numTriangles == 0) return;
 
-            if (mQuadBatch.isStateChange(
-                    quadBatch.tinted, alpha, quadBatch.texture, quadBatch.smoothing,
-                    blendMode, quadBatch.numQuads))
-            {
-                finishQuadBatch();
-            }
-            
-            mQuadBatch.addQuadBatch(quadBatch, alpha, modelviewMatrix, blendMode);
+            mMeshBatchListPos++;
+
+            if (mMeshBatchList.length < mMeshBatchListPos + 1)
+                mMeshBatchList[mMeshBatchListPos] = new MeshBatch();
+
+            mMeshBatch = mMeshBatchList[mMeshBatchListPos];
+
+            pushState();
+
+            mState.blendMode = meshBatch.blendMode;
+            mState.modelviewMatrix.identity();
+            mState.alpha = 1.0;
+
+            meshBatch.render(this);
+            meshBatch.clear();
+
+            popState();
         }
         
-        /** Renders the current quad batch and resets it. */
-        public function finishQuadBatch():void
-        {
-            if (mQuadBatch.numQuads != 0)
-            {
-                sMatrix3D.copyFrom(mState.projectionMatrix3D);
-
-                if (mState.is3D)
-                    sMatrix3D.prepend(mState.modelviewMatrix3D);
-
-                // TODO this should move to the batch object's "render" method
-                prepareToDraw(mQuadBatch.premultipliedAlpha);
-
-                mQuadBatch.renderCustom(sMatrix3D);
-                mQuadBatch.reset();
-
-                mQuadBatchListPos++;
-                mDrawCount++;
-
-                if (mQuadBatchList.length < mQuadBatchListPos + 1)
-                    mQuadBatchList[mQuadBatchListPos] = createQuadBatch();
-
-                mQuadBatch = mQuadBatchList[mQuadBatchListPos];
-            }
-        }
-        
-        /** Resets the current state, the state stack, quad batch index, stencil reference value,
+        /** Resets the current state, the state stack, mesh batch index, stencil reference value,
          *  and draw count. Furthermore, depth testing is disabled. */
         public function nextFrame():void
         {
@@ -426,8 +402,8 @@ package starling.rendering
             mState.reset();
             mDrawCount = 0;
             mStateStackPos = -1;
-            mQuadBatchListPos = 0;
-            mQuadBatch = mQuadBatchList[0];
+            mMeshBatchListPos = 0;
+            mMeshBatch = mMeshBatchList[0];
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
         }
 
@@ -437,9 +413,9 @@ package starling.rendering
          *  blend mode, render target and clipping rectangle. Always call this method before
          *  <code>context.drawTriangles()</code>.
          */
-        public function prepareToDraw(premultipliedAlpha:Boolean):void
+        public function prepareToDraw(premultipliedAlpha:Boolean=true):void
         {
-            applyBlendMode(premultipliedAlpha);
+            applyBlendMode();
             applyRenderTarget();
             applyClipRect();
             applyCulling();
@@ -462,33 +438,24 @@ package starling.rendering
             mContext.present();
         }
 
-        private function createQuadBatch():QuadBatch
-        {
-            var profile:String = mContext.profile;
-            var forceTinted:Boolean = (profile != "baselineConstrained" && profile != "baseline");
-            var quadBatch:QuadBatch = new QuadBatch();
-            quadBatch.forceTinted = forceTinted;
-            return quadBatch;
-        }
-
-        /** Disposes redundant quad batches if the number of allocated batches is more than
+        /** Disposes redundant mesh batches if the number of allocated batches is more than
          *  twice the number of used batches. Only executed when there are at least 16 batches. */
         private function trimQuadBatches():void
         {
-            var numUsedBatches:int  = mQuadBatchListPos + 1;
-            var numTotalBatches:int = mQuadBatchList.length;
+            var numUsedBatches:int  = mMeshBatchListPos + 1;
+            var numTotalBatches:int = mMeshBatchList.length;
 
             if (numTotalBatches >= 16 && numTotalBatches > 2*numUsedBatches)
             {
                 var numToRemove:int = numTotalBatches - numUsedBatches;
                 for (var i:int=0; i<numToRemove; ++i)
-                    mQuadBatchList.pop().dispose();
+                    mMeshBatchList.pop().dispose();
             }
         }
 
-        private function applyBlendMode(premultipliedAlpha:Boolean):void
+        private function applyBlendMode():void
         {
-            RenderUtil.setBlendFactors(premultipliedAlpha, mState.blendMode);
+            BlendMode.get(mState.blendMode).activate();
         }
 
         private function applyCulling():void

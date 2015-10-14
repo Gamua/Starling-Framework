@@ -102,13 +102,13 @@ package starling.display
             if (is2D) super.render(painter);
             else
             {
-                painter.finishQuadBatch();
+                painter.finishMeshBatch();
                 painter.pushState();
                 painter.state.transformModelviewMatrix3D(transformationMatrix3D);
 
                 super.render(painter);
 
-                painter.finishQuadBatch();
+                painter.finishMeshBatch();
                 painter.popState();
             }
         }

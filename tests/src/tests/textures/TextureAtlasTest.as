@@ -49,10 +49,10 @@ package tests.textures
             var annST:SubTexture = ann as SubTexture;
             var bobST:SubTexture = bob as SubTexture;
             
-            Assert.assertEquals(0, annST.clipping.x);
-            Assert.assertEquals(0, annST.clipping.y);
-            Assert.assertEquals(0.25, bobST.clipping.x);
-            Assert.assertEquals(0.5, bobST.clipping.y);
+            Assert.assertEquals(0, annST.region.x);
+            Assert.assertEquals(0, annST.region.y);
+            Assert.assertEquals(16, bobST.region.x);
+            Assert.assertEquals(32, bobST.region.y);
         }
         
         [Test]

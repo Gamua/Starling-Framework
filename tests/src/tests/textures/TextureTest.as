@@ -44,61 +44,31 @@ package tests.textures
             var rootHeight:int = 128;
             var subTexture:SubTexture;
             var subSubTexture:SubTexture;
-            var vertexData:VertexData = createStandardVertexData();
-            var adjustedVertexData:VertexData;            
-            var texture:ConcreteTexture = new ConcreteTexture(null, null, rootWidth, rootHeight, false, false);
             var texCoords:Point = new Point();
-            
-            // test subtexture filling the whole base texture
+            var expected:Point = new Point();
+            var texture:ConcreteTexture = new ConcreteTexture(
+                    null, null, rootWidth, rootHeight, false, false);
+
+            // test sub texture filling the whole base texture
             subTexture = new SubTexture(texture, new Rectangle(0, 0, rootWidth, rootHeight));            
-            adjustedVertexData = vertexData.clone(); 
-            subTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            Helpers.compareByteArrays(vertexData.rawData, adjustedVertexData.rawData);
+            subTexture.localToGlobal(1, 1, texCoords);
+            expected.setTo(1, 1);
+            Helpers.comparePoints(expected, texCoords);
 
             // test subtexture with 50% of the size of the base texture
             subTexture = new SubTexture(texture,
                 new Rectangle(rootWidth/4, rootHeight/4, rootWidth/2, rootHeight/2));
-            adjustedVertexData = vertexData.clone();
-            subTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            
-            adjustedVertexData.getPoint(0, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.25, 0.25), texCoords);
-            adjustedVertexData.getPoint(1, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.75, 0.25), texCoords);
-            adjustedVertexData.getPoint(2, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.25, 0.75), texCoords);            
-            adjustedVertexData.getPoint(3, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.75, 0.75), texCoords);
-            
+            subTexture.localToGlobal(1, 0.5, texCoords);
+            expected.setTo(0.75, 0.5);
+            Helpers.comparePoints(expected, texCoords);
+
             // test subtexture of subtexture
             subSubTexture = new SubTexture(subTexture,
                 new Rectangle(subTexture.width/4, subTexture.height/4, 
                               subTexture.width/2, subTexture.height/2));
-            adjustedVertexData = vertexData.clone();
-            subSubTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            
-            adjustedVertexData.getPoint(0, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.375, 0.375), texCoords);
-            adjustedVertexData.getPoint(1, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.625, 0.375), texCoords);
-            adjustedVertexData.getPoint(2, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.375, 0.625), texCoords);            
-            adjustedVertexData.getPoint(3, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
-            
-            // test subtexture over moved texture coords (same effect as above)
-            vertexData = createVertexDataWithMovedTexCoords();
-            adjustedVertexData = vertexData.clone(); 
-            subTexture.adjustVertexData(adjustedVertexData, 0, 4);
-            
-            adjustedVertexData.getPoint(0, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.375, 0.375), texCoords);
-            adjustedVertexData.getPoint(1, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.625, 0.375), texCoords);
-            adjustedVertexData.getPoint(2, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.375, 0.625), texCoords);            
-            adjustedVertexData.getPoint(3, "texCoords", texCoords);
-            Helpers.comparePoints(new Point(0.625, 0.625), texCoords);
+            subSubTexture.localToGlobal(1, 0.5, texCoords);
+            expected.setTo(0.625, 0.5);
+            Helpers.comparePoints(expected, texCoords);
         }
         
         [Test]
@@ -108,72 +78,61 @@ package tests.textures
             var rootHeight:int = 128;
             var subTexture:SubTexture;
             var subSubTexture:SubTexture;
-            var texCoords:ByteArray;
+            var texCoords:Point = new Point();
+            var expected:Point = new Point();
             var texture:ConcreteTexture =
                 new ConcreteTexture(null, null, rootWidth, rootHeight, false, false);
 
             // rotate full region once
             subTexture = new SubTexture(texture, null, false, null, true);
-            texCoords = createStandardTexCoords();
-
-            subTexture.adjustTexCoords(texCoords);
-            Helpers.compareByteArraysOfFloats(texCoords, createTexCoords(1,0, 1,1, 0,0, 0,1));
+            subTexture.localToGlobal(1, 1, texCoords);
+            expected.setTo(0, 1);
+            Helpers.comparePoints(expected, texCoords);
 
             // rotate again
             subSubTexture = new SubTexture(subTexture, null, false, null, true);
-            texCoords = createStandardTexCoords();
-
-            subSubTexture.adjustTexCoords(texCoords);
-            Helpers.compareByteArraysOfFloats(texCoords, createTexCoords(1,1, 0,1, 1,0, 0,0));
+            subSubTexture.localToGlobal(1, 1, texCoords);
+            expected.setTo(0, 0);
+            Helpers.comparePoints(expected, texCoords);
 
             // now get rotated region
             subTexture = new SubTexture(texture,
                 new Rectangle(rootWidth/4, rootHeight/2, rootWidth/2, rootHeight/4),
                 false, null, true);
-            texCoords = createStandardTexCoords();
-
-            subTexture.adjustTexCoords(texCoords);
-            Helpers.compareByteArraysOfFloats(texCoords,
-                createTexCoords(0.75, 0.5,   0.75, 0.75,   0.25, 0.5,   0.25, 0.75));
-
-            function createStandardTexCoords():ByteArray
-            {
-                return createTexCoords(0, 0, 1, 0, 0, 1, 1, 1);
-            }
-
-            function createTexCoords(u0:Number, v0:Number, u1:Number, v1:Number,
-                                     u2:Number, v2:Number, u3:Number, v3:Number):ByteArray
-            {
-                var bytes:ByteArray = new ByteArray();
-                bytes.endian = Endian.LITTLE_ENDIAN;
-                bytes.writeFloat(u0); bytes.writeFloat(v0);
-                bytes.writeFloat(u1); bytes.writeFloat(v1);
-                bytes.writeFloat(u2); bytes.writeFloat(v2);
-                bytes.writeFloat(u3); bytes.writeFloat(v3);
-                return bytes;
-            }
+            subTexture.localToGlobal(1, 1, texCoords);
+            expected.setTo(0.25, 0.75);
+            Helpers.comparePoints(expected, texCoords);
         }
-        
-        private function createStandardVertexData():VertexData
+
+        [Test]
+        public function testSetupVertexPositions():void
         {
-            var vertexData:VertexData = new VertexData("texCoords(float2)", 4);
-            vertexData.setPoint(0, "texCoords", 0.0, 0.0);
-            vertexData.setPoint(1, "texCoords", 1.0, 0.0);
-            vertexData.setPoint(2, "texCoords", 0.0, 1.0);
-            vertexData.setPoint(3, "texCoords", 1.0, 1.0);
-            return vertexData;            
+            var size:Rectangle = new Rectangle(0, 0, 60, 40);
+            var frame:Rectangle = new Rectangle(-20, -30, 100, 100);
+            var texture:ConcreteTexture =
+                new ConcreteTexture(null, null, size.width, size.height, false, false);
+            var subTexture:SubTexture = new SubTexture(texture, null, false, frame);
+            var vertexData:VertexData = new VertexData("pos(float2)");
+            var expected:Rectangle = new Rectangle();
+            var result:Rectangle, bounds:Rectangle;
+
+            assertEquals(100, subTexture.frameWidth);
+            assertEquals(100, subTexture.frameHeight);
+
+            subTexture.setupVertexPositions(vertexData, 0, "pos");
+            assertEquals(4, vertexData.numVertices);
+
+            result = vertexData.getBounds("pos");
+            expected.setTo(20, 30, 60, 40);
+            Helpers.compareRectangles(expected, result);
+
+            bounds = new Rectangle(1, 2, 200, 50);
+            subTexture.setupVertexPositions(vertexData, 0, "pos", bounds);
+            result = vertexData.getBounds("pos");
+            expected.setTo(41, 17, 120, 20);
+            Helpers.compareRectangles(expected, result);
         }
-        
-        private function createVertexDataWithMovedTexCoords():VertexData
-        {
-            var vertexData:VertexData = new VertexData("texCoords(float2)", 4);
-            vertexData.setPoint(0, "texCoords", 0.25, 0.25);
-            vertexData.setPoint(1, "texCoords", 0.75, 0.25);
-            vertexData.setPoint(2, "texCoords", 0.25, 0.75);
-            vertexData.setPoint(3, "texCoords", 0.75, 0.75);
-            return vertexData;
-        }
-        
+
         [Test]
         public function testGetRoot():void
         {
@@ -186,7 +145,7 @@ package tests.textures
             assertEquals(texture, subSubTexture.root);
             assertEquals(texture.base, subSubTexture.base);
         }
-        
+
         [Test]
         public function testGetSize():void
         {

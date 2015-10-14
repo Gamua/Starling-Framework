@@ -156,7 +156,8 @@ package starling.rendering
                 setIndex(i, getIndex(i) + offset);
         }
 
-        /** Appends three indices representing a triangle. */
+        /** Appends three indices representing a triangle. Reference the vertices clockwise,
+         *  as this defines the front side of the triangle. */
         public function appendTriangle(a:uint, b:uint, c:uint):void
         {
             _rawData.position = _numIndices * INDEX_SIZE;

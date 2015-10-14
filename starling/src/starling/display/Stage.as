@@ -144,7 +144,7 @@ package starling.display
             else             painter.clear(mColor, 1);
             
             render(painter);
-            painter.finishQuadBatch();
+            painter.finishMeshBatch();
 
             context.drawToBitmapData(destination);
             context.present(); // required on some platforms to avoid flickering
