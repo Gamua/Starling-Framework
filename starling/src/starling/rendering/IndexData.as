@@ -110,6 +110,9 @@ package starling.rendering
             if (numIndices < 0 || indexID + numIndices > _numIndices)
                 numIndices = _numIndices - indexID;
 
+            if (target._numIndices < targetIndexID + numIndices)
+                target._numIndices = targetIndexID + numIndices;
+
             var targetRawData:ByteArray = target._rawData;
             targetRawData.position = targetIndexID * INDEX_SIZE;
 
@@ -119,12 +122,19 @@ package starling.rendering
             {
                 _rawData.position = indexID * INDEX_SIZE;
 
-                for (var i:int=0; i<numIndices; ++i)
+                // by reading junks of 32 instead of 16 bits, we can spare half the time
+                while (numIndices > 1)
+                {
+                    var indexAB:uint = _rawData.readUnsignedInt();
+                    var indexA:uint  = ((indexAB & 0xffff0000) >> 16) + offset;
+                    var indexB:uint  = ((indexAB & 0x0000ffff)      ) + offset;
+                    targetRawData.writeUnsignedInt(indexA << 16 | indexB);
+                    numIndices -= 2;
+                }
+
+                if (numIndices)
                     targetRawData.writeShort(_rawData.readUnsignedShort() + offset);
             }
-
-            if (target._numIndices < targetIndexID + numIndices)
-                target._numIndices = targetIndexID + numIndices;
         }
 
         /** Sets an index at the specified position. */
