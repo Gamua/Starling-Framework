@@ -301,12 +301,6 @@ package tests.rendering
             var clone:VertexData = vd1.clone();
             assertEquals(vd1.numVertices, clone.numVertices);
             Helpers.compareByteArrays(vd1.rawData, clone.rawData);
-
-            clone = vd1.clone(1, 1);
-            assertEquals(1, clone.numVertices);
-            assertEquals(vd1.getColor(1), clone.getColor(0));
-            Helpers.comparePoints(vd1.getPoint(1, "position"),  clone.getPoint(0, "position"));
-            Helpers.comparePoints(vd1.getPoint(1, "texCoords"), clone.getPoint(0, "texCoords"));
         }
 
         [Test]

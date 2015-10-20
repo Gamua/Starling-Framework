@@ -32,13 +32,13 @@ package starling.rendering
      *  your own rendering code (e.g. if you create custom display objects).</em>
      *
      *  <p>To render objects with Stage3D, you have to organize vertices and indices in so-called
-     *  vertex- and index buffers. Vertex buffers store the coordinates of the vertices that make
+     *  vertex- and index-buffers. Vertex buffers store the coordinates of the vertices that make
      *  up an object; index buffers reference those vertices to determine which vertices spawn
      *  up triangles. Those buffers reside in graphics memory and can be accessed very
      *  efficiently by the GPU.</p>
      *
      *  <p>Before you can move data into the buffers, you have to set it up in conventional
-     *  memory - that is, in a Vector or a ByteArray. Since it's quite cumbersome to manually
+     *  memory — that is, in a Vector or a ByteArray. Since it's quite cumbersome to manually
      *  create and manipulate those data structures, the IndexData and VertexData classes provide
      *  a simple way to do just that. The data is stored in a ByteArray (one index or vertex after
      *  the other) that can easily be uploaded to a buffer.</p>
@@ -146,16 +146,12 @@ package starling.rendering
             _numVertices = 0;
         }
 
-        /** Creates a duplicate of either the complete vertex data object, or of a subset.
-         *  To clone all vertices, call the method without any arguments. */
-        public function clone(vertexID:int=0, numVertices:int=-1):VertexData
+        /** Creates a duplicate of the vertex data object. */
+        public function clone():VertexData
         {
-            if (numVertices < 0 || vertexID + numVertices > _numVertices)
-                numVertices = _numVertices - vertexID;
-
-            var clone:VertexData = new VertexData(_format, numVertices);
-            clone._rawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
-            clone._numVertices = numVertices;
+            var clone:VertexData = new VertexData(_format, _numVertices);
+            clone._rawData.writeBytes(_rawData);
+            clone._numVertices = _numVertices;
             clone._premultipliedAlpha = _premultipliedAlpha;
             return clone;
         }
