@@ -97,10 +97,10 @@ if options.update_ios_deploy || !File.exist?($ios_deploy_executable)
     execute("git clone #{quiet} git://github.com/phonegap/ios-deploy.git", options.verbose)
     Dir.chdir("ios-deploy/") do
       log "Compiling ios-deploy"
-      execute("make ios-deploy", options.verbose)
+      execute("xcodebuild", options.verbose)
     end
   end
-  FileUtils.mv(File.join($temp_path, "/ios-deploy/ios-deploy"), $script_path)
+  FileUtils.mv(File.join($temp_path, "/ios-deploy/build/Release/ios-deploy"), $script_path)
 end
 
 # install the app if a valid path was given
