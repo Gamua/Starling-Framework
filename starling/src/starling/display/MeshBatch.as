@@ -47,6 +47,8 @@ package starling.display
      */
     public class MeshBatch extends Mesh implements IMeshBatch
     {
+        public static const MAX_NUM_VERTICES:int = 65535;
+
         private var _effect:MeshEffect;
         private var _vertexSyncRequired:Boolean;
         private var _indexSyncRequired:Boolean;
@@ -141,11 +143,11 @@ package starling.display
          *  will check if the texture, smoothing or blend mode differ in any way. */
         public function canAddMesh(mesh:Mesh, blendMode:String):Boolean
         {
-            // TODO check for size limit (max. number of vertices in a vertex buffer: 65535)
             // TODO check texture smoothing
 
             var numVertices:int = _vertexData.numVertices;
             if (numVertices == 0) return true;
+            if (numVertices + mesh.numVertices > MAX_NUM_VERTICES) return false;
 
             var meshTexture:Texture = mesh.texture;
 
