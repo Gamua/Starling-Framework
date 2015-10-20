@@ -98,6 +98,7 @@ package starling.rendering
         private var _alpha:Number;
         private var _mvpMatrix:Matrix3D;
         private var _onRestore:Function;
+        private var _programBaseName:String;
 
         // helper objects
         private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
@@ -108,6 +109,7 @@ package starling.rendering
         {
             _alpha = 1.0;
             _mvpMatrix = new Matrix3D();
+            _programBaseName = getQualifiedClassName(this).split("::").pop();
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
@@ -246,13 +248,11 @@ package starling.rendering
             return 0;
         }
 
-        /** Override this method if you want a custom base name for the program.
-         *  @default the fully qualified class name
+        /** Returns the base name for the program.
+         *  @default the class name
          */
-        protected function get programBaseName():String
-        {
-            return getQualifiedClassName(this);
-        }
+        protected function get programBaseName():String { return _programBaseName; }
+        protected function set programBaseName(value:String):void { _programBaseName = value; }
 
         /** Returns the full name of the program, which is used to register it at the current
          *  <code>Painter</code>.
