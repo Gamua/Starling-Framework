@@ -42,10 +42,9 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
-            if (forTouch && (!visible || !touchable)) return null;
-            if (!hitTestMask(localPoint)) return null;
+            if (!visible || !touchable || !hitTestMask(localPoint)) return null;
 
             // we could also use the standard hit test implementation, but the polygon class can
             // do that much more efficiently (it contains custom implementations for circles, etc).

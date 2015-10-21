@@ -124,10 +124,9 @@ package starling.display
         }
 
         /** @inheritDoc */
-        override public function hitTest(localPoint:Point, forTouch:Boolean = false):DisplayObject
+        override public function hitTest(localPoint:Point):DisplayObject
         {
-            if (forTouch && (!visible || !touchable)) return null;
-            else if (!hitTestMask(localPoint)) return null;
+            if (!visible || !touchable || !hitTestMask(localPoint)) return null;
             else if (_bounds.containsPoint(localPoint)) return this;
             else return null;
         }

@@ -283,13 +283,12 @@ package starling.display
             throw new AbstractMethodError();
         }
         
-        /** Returns the object that is found topmost beneath a point in local coordinates, or nil if 
-         *  the test fails. If "forTouch" is true, untouchable and invisible objects will cause
-         *  the test to fail. */
-        public function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        /** Returns the object that is found topmost beneath a point in local coordinates, or nil
+         *  if the test fails. Untouchable and invisible objects will cause the test to fail. */
+        public function hitTest(localPoint:Point):DisplayObject
         {
             // on a touch test, invisible or untouchable objects cause the test to fail
-            if (forTouch && (!mVisible || !mTouchable)) return null;
+            if (!mVisible || !mTouchable) return null;
 
             // if we've got a mask and the hit occurs outside, fail
             if (mMask && !hitTestMask(localPoint)) return null;
@@ -315,7 +314,7 @@ package starling.display
 
                 var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
                 MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
-                return mMask.hitTest(helperPoint, true) != null;
+                return mMask.hitTest(helperPoint) != null;
             }
             else return true;
         }

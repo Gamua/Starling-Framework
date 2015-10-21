@@ -114,13 +114,12 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
-            if (is2D) return super.hitTest(localPoint, forTouch);
+            if (is2D) return super.hitTest(localPoint);
             else
             {
-                if (forTouch && (!visible || !touchable))
-                    return null;
+                if (!visible || !touchable) return null;
 
                 // We calculate the interception point between the 3D plane that is spawned up
                 // by this sprite3D and the straight line between the camera and the hit point.
@@ -132,7 +131,7 @@ package starling.display
                 MatrixUtil.transformCoords3D(sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
                 MathUtil.intersectLineWithXYPlane(sHelperPoint, sHelperPointAlt, localPoint);
 
-                return super.hitTest(localPoint, forTouch);
+                return super.hitTest(localPoint);
             }
         }
 

@@ -179,7 +179,7 @@ package starling.events
                 if (touch.phase == TouchPhase.HOVER || touch.phase == TouchPhase.BEGAN)
                 {
                     sHelperPoint.setTo(touch.globalX, touch.globalY);
-                    touch.target = mRoot.hitTest(sHelperPoint, true);
+                    touch.target = mRoot.hitTest(sHelperPoint);
                 }
             }
             

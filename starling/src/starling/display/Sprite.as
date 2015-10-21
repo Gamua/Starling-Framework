@@ -168,12 +168,12 @@ package starling.display
         }
         
         /** @inheritDoc */
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
             if (mClipRect != null && !mClipRect.containsPoint(localPoint))
                 return null;
             else
-                return super.hitTest(localPoint, forTouch);
+                return super.hitTest(localPoint);
         }
         
         /** @inheritDoc */

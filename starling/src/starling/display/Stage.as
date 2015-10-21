@@ -93,10 +93,9 @@ package starling.display
 
         /** Returns the object that is found topmost beneath a point in stage coordinates, or  
          *  the stage itself if nothing else is found. */
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
-            if (forTouch && (!visible || !touchable))
-                return null;
+            if (!visible || !touchable) return null;
             
             // locations outside of the stage area shouldn't be accepted
             if (localPoint.x < 0 || localPoint.x > mWidth ||
@@ -104,9 +103,8 @@ package starling.display
                 return null;
             
             // if nothing else is hit, the stage returns itself as target
-            var target:DisplayObject = super.hitTest(localPoint, forTouch);
-            if (target == null) target = this;
-            return target;
+            var target:DisplayObject = super.hitTest(localPoint);
+            return target ? target : this;
         }
         
         /** Draws the complete stage into a BitmapData object.

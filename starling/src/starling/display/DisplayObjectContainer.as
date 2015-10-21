@@ -312,10 +312,9 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
-            if (forTouch && (!visible || !touchable)) return null;
-            if (!hitTestMask(localPoint)) return null;
+            if (!visible || !touchable || !hitTestMask(localPoint)) return null;
 
             var target:DisplayObject = null;
             var localX:Number = localPoint.x;
@@ -331,9 +330,9 @@ package starling.display
                 sHelperMatrix.invert();
 
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
-                target = child.hitTest(sHelperPoint, forTouch);
+                target = child.hitTest(sHelperPoint);
 
-                if (target) return forTouch && mTouchGroup ? this : target;
+                if (target) return mTouchGroup ? this : target;
             }
 
             return null;
