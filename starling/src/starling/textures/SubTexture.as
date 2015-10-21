@@ -151,10 +151,7 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get scale():Number { return mParent.scale; }
-        
-        /** @inheritDoc */
-        public override function get repeat():Boolean { return mParent.repeat; }
-        
+
         /** @inheritDoc */
         public override function get frame():Rectangle { return mFrame; }
     }

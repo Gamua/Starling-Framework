@@ -43,6 +43,7 @@ package starling.filters
     {
         private var mMapTexture:Texture;
         private var mMapPoint:Point;
+        private var mMapRepeat:Boolean;
         private var mComponentX:uint;
         private var mComponentY:uint;
         private var mScaleX:Number;
@@ -95,7 +96,7 @@ package starling.filters
             
             var painter:Painter = Starling.painter;
             var mapFlags:String = RenderUtil.getTextureLookupFlags(
-                                      mapTexture.format, mapTexture.mipMapping, mapTexture.repeat);
+                                      mapTexture.format, mapTexture.mipMapping, mMapRepeat);
             var inputFlags:String = RenderUtil.getTextureLookupFlags(
                                         Context3DTextureFormat.BGRA, false, mRepeat);
             var programName:String = StringUtil.format("DMF_m{0}_i{1}", mapFlags, inputFlags);
@@ -243,6 +244,10 @@ package starling.filters
             if (value) mMapPoint.setTo(value.x, value.y);
             else mMapPoint.setTo(0, 0);
         }
+
+        /** Indicates how the pixels of the map texture will be wrapped. */
+        public function get mapRepeat():Boolean { return mMapRepeat; }
+        public function set mapRepeat(value:Boolean):void { mMapRepeat = value; }
         
         /** Indicates how the pixels at the edge of the input image (the filtered object) will
          *  be wrapped at the edge. */

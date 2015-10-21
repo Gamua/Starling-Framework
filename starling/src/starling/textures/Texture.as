@@ -157,19 +157,19 @@ package starling.textures
             if (data is Class)
             {
                 texture = fromEmbeddedAsset(data as Class,
-                    options.mipMapping, options.optimizeForRenderToTexture, options.scale,
-                    options.format, options.repeat);
+                    options.mipMapping, options.optimizeForRenderToTexture,
+                    options.scale, options.format);
             }
             else if (data is BitmapData)
             {
                 texture = fromBitmapData(data as BitmapData,
-                    options.mipMapping, options.optimizeForRenderToTexture, options.scale,
-                    options.format, options.repeat);
+                    options.mipMapping, options.optimizeForRenderToTexture,
+                    options.scale, options.format);
             }
             else if (data is ByteArray)
             {
                 texture = fromAtfData(data as ByteArray,
-                    options.scale, options.mipMapping, options.onReady, options.repeat);
+                    options.scale, options.mipMapping, options.onReady);
             }
             else
                 throw new ArgumentError("Unsupported 'data' type: " + getQualifiedClassName(data));
@@ -188,12 +188,10 @@ package starling.textures
          *                     render target
          *  @param scale    the scale factor of the created texture.
          *  @param format   the context3D texture format to use. Ignored for ATF data.
-         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=false,
                                                  optimizeForRenderToTexture:Boolean=false,
-                                                 scale:Number=1, format:String="bgra",
-                                                 repeat:Boolean=false):Texture
+                                                 scale:Number=1, format:String="bgra"):Texture
         {
             var texture:Texture;
             var asset:Object = new assetClass();
@@ -201,7 +199,7 @@ package starling.textures
             if (asset is Bitmap)
             {
                 texture = Texture.fromBitmap(asset as Bitmap, mipMapping,
-                                             optimizeForRenderToTexture, scale, format, repeat);
+                                             optimizeForRenderToTexture, scale, format);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -209,7 +207,7 @@ package starling.textures
             }
             else if (asset is ByteArray)
             {
-                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null, repeat);
+                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadAtfData(new assetClass());
@@ -237,15 +235,13 @@ package starling.textures
          *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
-         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=false,
                                           optimizeForRenderToTexture:Boolean=false,
-                                          scale:Number=1, format:String="bgra",
-                                          repeat:Boolean=false):Texture
+                                          scale:Number=1, format:String="bgra"):Texture
         {
             return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture,
-                                  scale, format, repeat);
+                                  scale, format);
         }
 
         /** Creates a texture object from bitmap data.
@@ -261,16 +257,14 @@ package starling.textures
          *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
-         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=false,
                                               optimizeForRenderToTexture:Boolean=false,
-                                              scale:Number=1, format:String="bgra",
-                                              repeat:Boolean=false):Texture
+                                              scale:Number=1, format:String="bgra"):Texture
         {
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true,
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
-                                                format, repeat);
+                                                format);
 
             texture.root.uploadBitmapData(data);
             texture.root.onRestore = function():void
@@ -295,10 +289,9 @@ package starling.textures
          *                    loading process. However, don't use the texture before the callback
          *                    has been executed. This is the expected function definition:
          *                    <code>function(texture:Texture):void;</code>
-         *  @param repeat     the repeat value of the texture. Only useful for power-of-two textures.
          */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true,
-                                           async:Function=null, repeat:Boolean=false):Texture
+                                           async:Function=null):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -308,7 +301,7 @@ package starling.textures
                 atfData.width, atfData.height, atfData.format, false);
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format,
                 atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1,
-                false, false, scale, repeat);
+                false, false, scale);
 
             concreteTexture.uploadAtfData(data, 0, async);
             concreteTexture.onRestore = function():void
@@ -450,11 +443,10 @@ package starling.textures
          *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory (at the price of reduced image quality).
-         *  @param repeat  the repeat mode of the texture. Only useful for power-of-two textures.
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
                                      mipMapping:Boolean=false, optimizeForRenderToTexture:Boolean=false,
-                                     scale:Number=-1, format:String="bgra", repeat:Boolean=false):Texture
+                                     scale:Number=-1, format:String="bgra"):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
 
@@ -466,18 +458,16 @@ package starling.textures
 
             var origWidth:Number  = width  * scale;
             var origHeight:Number = height * scale;
-            var useRectTexture:Boolean = !mipMapping && !repeat &&
+            var useRectTexture:Boolean = !mipMapping &&
                 Starling.current.profile != "baselineConstrained" &&
-                "createRectangleTexture" in context && format.indexOf("compressed") == -1;
+                format.indexOf("compressed") == -1;
 
             if (useRectTexture)
             {
                 actualWidth  = Math.ceil(origWidth  - 0.000000001); // avoid floating point errors
                 actualHeight = Math.ceil(origHeight - 0.000000001);
 
-                // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
-                // methods only through those lookups, we stay compatible with older SDKs.
-                nativeTexture = context["createRectangleTexture"](
+                nativeTexture = context.createRectangleTexture(
                     actualWidth, actualHeight, format, optimizeForRenderToTexture);
             }
             else
@@ -485,13 +475,13 @@ package starling.textures
                 actualWidth  = MathUtil.getNextPowerOfTwo(origWidth);
                 actualHeight = MathUtil.getNextPowerOfTwo(origHeight);
 
-                nativeTexture = context.createTexture(actualWidth, actualHeight, format,
-                                                      optimizeForRenderToTexture);
+                nativeTexture = context.createTexture(
+                    actualWidth, actualHeight, format, optimizeForRenderToTexture);
             }
 
             var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
                 actualWidth, actualHeight, mipMapping, premultipliedAlpha,
-                optimizeForRenderToTexture, scale, repeat);
+                optimizeForRenderToTexture, scale);
 
             concreteTexture.onRestore = concreteTexture.clear;
 
@@ -622,11 +612,6 @@ package starling.textures
         /** The width of the texture in points, taking into account the frame rectangle
          *  (if there is one). */
         public function get frameHeight():Number { return frame ? frame.height : height; }
-
-        /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
-         *  Note: this only works in textures with sidelengths that are powers of two and
-         *  that are not loaded from a texture atlas (i.e. no subtextures). @default false */
-        public function get repeat():Boolean { return false; }
 
         /** The width of the texture in points. */
         public function get width():Number { return 0; }

@@ -46,7 +46,6 @@ package starling.textures
         private var mPremultipliedAlpha:Boolean;
         private var mOptimizedForRenderTexture:Boolean;
         private var mScale:Number;
-        private var mRepeat:Boolean;
         private var mOnRestore:Function;
         private var mDataUploaded:Boolean;
         private var mTextureReadyCallback:Function;
@@ -58,8 +57,7 @@ package starling.textures
          *  mip-mapping, and if the channels contain premultiplied alpha values. */
         public function ConcreteTexture(base:TextureBase, format:String, width:int, height:int, 
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
-                                        optimizedForRenderTexture:Boolean=false,
-                                        scale:Number=1, repeat:Boolean=false)
+                                        optimizedForRenderTexture:Boolean=false, scale:Number=1)
         {
             mScale = scale <= 0 ? 1.0 : scale;
             mBase = base;
@@ -69,7 +67,6 @@ package starling.textures
             mMipMapping = mipMapping;
             mPremultipliedAlpha = premultipliedAlpha;
             mOptimizedForRenderTexture = optimizedForRenderTexture;
-            mRepeat = repeat;
             mOnRestore = null;
             mDataUploaded = false;
             mTextureReadyCallback = null;
@@ -323,8 +320,5 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
-        
-        /** @inheritDoc */
-        public override function get repeat():Boolean { return mRepeat; }
     }
 }

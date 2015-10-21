@@ -28,7 +28,7 @@ package starling.textures
             var width:Number  = "videoWidth"  in base ? base["videoWidth"]  : 0;
             var height:Number = "videoHeight" in base ? base["videoHeight"] : 0;
 
-            super(base, format, width, height, false, false, false, scale, false);
+            super(base, format, width, height, false, false, false, scale);
 
             if (getQualifiedClassName(base) != "flash.display3D.textures::VideoTexture")
                 throw new ArgumentError("'base' must be VideoTexture");

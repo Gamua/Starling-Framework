@@ -1253,12 +1253,7 @@ package starling.utils
         public function get useMipMaps():Boolean { return mDefaultTextureOptions.mipMapping; }
         public function set useMipMaps(value:Boolean):void { mDefaultTextureOptions.mipMapping = value; }
         
-        /** Textures that are created from Bitmaps or ATF files will have the repeat setting
-         *  assigned here. @default false */
-        public function get textureRepeat():Boolean { return mDefaultTextureOptions.repeat; }
-        public function set textureRepeat(value:Boolean):void { mDefaultTextureOptions.repeat = value; }
-
-        /** Textures that are created from Bitmaps or ATF files will have the scale factor 
+        /** Textures that are created from Bitmaps or ATF files will have the scale factor
          *  assigned here. @default 1 */
         public function get scaleFactor():Number { return mDefaultTextureOptions.scale; }
         public function set scaleFactor(value:Number):void { mDefaultTextureOptions.scale = value; }
