@@ -59,34 +59,33 @@ package starling.display
             var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT, 4);
             var indexData:IndexData = new IndexData(6);
 
-            super(vertexData, indexData);
-
-            if (width == 0.0 || height == 0.0)
-                throw new ArgumentError("Invalid size: width and height must not be zero");
-
-            setupVertexPositions();
-            setupTextureCoordinates();
+            setupVertexPositions(vertexData, _bounds);
+            setupTextureCoordinates(vertexData);
+            indexData.appendQuad(0, 1, 2, 3);
 
             for (var i:int=0; i<4; ++i)
                 vertexData.setColor(i, "color", color);
 
-            indexData.appendQuad(0, 1, 2, 3);
+            super(vertexData, indexData);
+
+            if (width == 0.0 || height == 0.0)
+                throw new ArgumentError("Invalid size: width and height must not be zero");
         }
 
-        private function setupVertexPositions():void
+        private function setupVertexPositions(vertexData:VertexData, bounds:Rectangle):void
         {
-            _vertexData.setPoint(0, "position", _bounds.left,  _bounds.top);
-            _vertexData.setPoint(1, "position", _bounds.right, _bounds.top);
-            _vertexData.setPoint(2, "position", _bounds.left,  _bounds.bottom);
-            _vertexData.setPoint(3, "position", _bounds.right, _bounds.bottom);
+            vertexData.setPoint(0, "position", bounds.left,  bounds.top);
+            vertexData.setPoint(1, "position", bounds.right, bounds.top);
+            vertexData.setPoint(2, "position", bounds.left,  bounds.bottom);
+            vertexData.setPoint(3, "position", bounds.right, bounds.bottom);
         }
 
-        private function setupTextureCoordinates():void
+        private function setupTextureCoordinates(vertexData:VertexData):void
         {
-            _vertexData.setPoint(0, "texCoords", 0.0, 0.0);
-            _vertexData.setPoint(1, "texCoords", 1.0, 0.0);
-            _vertexData.setPoint(2, "texCoords", 0.0, 1.0);
-            _vertexData.setPoint(3, "texCoords", 1.0, 1.0);
+            vertexData.setPoint(0, "texCoords", 0.0, 0.0);
+            vertexData.setPoint(1, "texCoords", 1.0, 0.0);
+            vertexData.setPoint(2, "texCoords", 0.0, 1.0);
+            vertexData.setPoint(3, "texCoords", 1.0, 1.0);
         }
 
         /** @inheritDoc */
@@ -168,7 +167,7 @@ package starling.display
             if (value == _texture) return;
 
             if (value == null)
-                setupVertexPositions();
+                setupVertexPositions(_vertexData, _bounds);
             else if (_texture)
                 value.setupVertexPositions(_vertexData, 0, "position", _bounds);
 
