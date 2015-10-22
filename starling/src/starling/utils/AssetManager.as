@@ -747,7 +747,6 @@ package starling.utils
                 removeEventListener(Event.CANCEL, cancel);
                 mNumLoadingQueues--;
                 canceled = true;
-                onProgress = null;
             }
 
             function finish():void
