@@ -121,6 +121,7 @@ package scenes
                 {
                     addTestObjects(16);
                     mContainer.scale *= 0.99;
+                    mFailCount = 0;
                 }
             }
             if (mPhase == 1)
@@ -133,7 +134,10 @@ package scenes
                         benchmarkComplete();
                 }
                 else
+                {
                     removeTestObjects(1);
+                    mContainer.scale /= 0.9993720513; // 0.99 ^ (1/16)
+                }
             }
 
             if (mFrameCount % int(mTargetFps / 4) == 0)
