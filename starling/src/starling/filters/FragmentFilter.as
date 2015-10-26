@@ -91,7 +91,7 @@ package starling.filters
         
         private var mNumPasses:int;
         private var mPassTextures:Vector.<Texture>;
-        private var mRepeat:Boolean;
+        private var mTextureRepeat:Boolean;
 
         private var mMode:String;
         private var mResolution:Number;
@@ -389,7 +389,7 @@ package starling.filters
                 disposePassTextures();
 
                 for (var i:int=0; i<numPassTextures; ++i)
-                    mPassTextures[i] = Texture.empty(width, height, PMA, false, true, scale, "bgra", mRepeat);
+                    mPassTextures[i] = Texture.empty(width, height, PMA, false, true, scale, "bgra", mTextureRepeat);
             }
         }
         
@@ -603,8 +603,8 @@ package starling.filters
         protected function get numPasses():int { return mNumPasses; }
         
         /** Set repeat to allow subclasses to use 'repeat' or 'wrap' flags in AGAL texture sampling */
-        protected function set repeat(value:Boolean):void { mRepeat = value; }
-        protected function get repeat():Boolean { return mRepeat; }
+        protected function set textureRepeat(value:Boolean):void { mTextureRepeat = value; }
+        protected function get textureRepeat():Boolean { return mTextureRepeat; }
         
         /** The ID of the vertex buffer attribute that stores the vertex position. */ 
         protected final function get vertexPosAtID():int { return mVertexPosAtID; }
