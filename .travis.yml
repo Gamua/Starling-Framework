@@ -33,7 +33,7 @@ before_script:
     - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/19.0/AIRSDK_Compiler.tbz2
     - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
     # Apache Flex SDK
-    - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.0/binaries/apache-flex-sdk-4.14.0-bin.zip
+    - wget -O flex_sdk.zip http://mirrors.gigenet.com/apache/flex/4.14.1/binaries/apache-flex-sdk-4.14.1-bin.zip
     - unzip -q flex_sdk.zip -d flex_sdk
     # Init PlayerGlobals
     - echo env.PLAYERGLOBAL_HOME=libs/player > flex_sdk/env.properties
