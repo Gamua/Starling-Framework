@@ -26,7 +26,6 @@ package starling.rendering
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Mesh;
-    import starling.display.MeshBatch;
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
@@ -76,8 +75,10 @@ package starling.rendering
         private var mPrograms:Dictionary;
         private var mData:Dictionary;
         private var mDrawCount:int;
+        private var mFrameID:uint;
         private var mEnableErrorChecking:Boolean;
         private var mStencilReferenceValues:Dictionary;
+        private var mBatchProcessor:BatchProcessor;
 
         private var mActualRenderTarget:TextureBase;
         private var mActualCulling:String;
@@ -90,13 +91,8 @@ package starling.rendering
         private var mStateStack:Vector.<RenderState>;
         private var mStateStackPos:int;
 
-        private var mMeshBatch:MeshBatch;
-        private var mMeshBatchList:Vector.<MeshBatch>;
-        private var mMeshBatchListPos:int;
-
         // helper objects
         private static var sPoint3D:Vector3D = new Vector3D();
-        private static var sMatrix3D:Matrix3D = new Matrix3D();
         private static var sClipRect:Rectangle = new Rectangle();
         private static var sBufferRect:Rectangle = new Rectangle();
         private static var sScissorRect:Rectangle = new Rectangle();
@@ -121,24 +117,35 @@ package starling.rendering
             mState = new RenderState();
             mStateStack = new <RenderState>[];
             mStateStackPos = -1;
+            mBatchProcessor = new BatchProcessor();
+            mBatchProcessor.onBatchComplete = renderBatch;
 
-            mMeshBatch = null;
-            mMeshBatchList = new <MeshBatch>[];
-            mMeshBatchListPos = -1;
         }
         
         /** Disposes all quad batches, programs, and - if it is not being shared -
          *  the render context. */
         public function dispose():void
         {
-            for each (var meshBatch:MeshBatch in mMeshBatchList)
-                meshBatch.dispose();
+            mBatchProcessor.dispose();
 
             if (!mShareContext)
                 mContext.dispose(false);
 
             for each (var program:Program in mPrograms)
                 program.dispose();
+        }
+
+        private function renderBatch(meshBatch:IMeshBatch):void
+        {
+            pushState();
+
+            state.blendMode = meshBatch.blendMode;
+            state.modelviewMatrix.identity();
+            state.alpha = 1.0;
+
+            meshBatch.render(this);
+
+            popState();
         }
 
         // context handling
@@ -160,14 +167,6 @@ package starling.rendering
         {
             mContext = mStage3D.context3D;
             mContext.enableErrorChecking = mEnableErrorChecking;
-
-            if (mMeshBatchListPos == -1)
-            {
-                // context was created for the first time
-                mMeshBatch = new MeshBatch();
-                mMeshBatchList[0] = mMeshBatch;
-                mMeshBatchListPos = 0;
-            }
         }
 
         /** Sets the viewport dimensions and other attributes of the rendering buffer.
@@ -353,58 +352,44 @@ package starling.rendering
         // mesh rendering
         
         /** Adds a mesh to the current batch of unrendered meshes. If the current batch is not
-         *  compatible with the  mesh, all previous meshes are rendered at once and the batch
-         *  is cleared. */
-        public function batchMesh(mesh:Mesh):void
+         *  compatible with the mesh, all previous meshes are rendered at once and the batch
+         *  is cleared.
+         *
+         *  @param mesh        the mesh to add to the current (or new) batch.
+         *  @param batchClass  the class that should be used to batch/render the mesh;
+         *                     must implement <code>IMeshBatch</code>.
+         */
+        public function batchMesh(mesh:Mesh, batchClass:Class):void
         {
-            var alpha:Number = mState.alpha;
-            var blendMode:String = mState.blendMode;
-            var modelviewMatrix:Matrix = mState.modelviewMatrix;
-
-            if (!mMeshBatch.canAddMesh(mesh, blendMode))
-                finishMeshBatch();
-
-            mMeshBatch.addMesh(mesh, modelviewMatrix, alpha, blendMode);
+            mBatchProcessor.addMesh(mesh, batchClass,
+                    mState.modelviewMatrix, mState.alpha, mState.blendMode);
         }
 
-        /** Renders the current mesh batch and clears it. */
+        /** Finishes the current mesh batch and prepares the next one. */
         public function finishMeshBatch():void
         {
-            var meshBatch:MeshBatch = mMeshBatch;
-            if (meshBatch.numTriangles == 0) return;
-
-            mMeshBatchListPos++;
-
-            if (mMeshBatchList.length < mMeshBatchListPos + 1)
-                mMeshBatchList[mMeshBatchListPos] = new MeshBatch();
-
-            mMeshBatch = mMeshBatchList[mMeshBatchListPos];
-
-            pushState();
-
-            mState.blendMode = meshBatch.blendMode;
-            mState.modelviewMatrix.identity();
-            mState.alpha = 1.0;
-
-            meshBatch.render(this);
-            meshBatch.clear();
-
-            popState();
+            mBatchProcessor.finishBatch();
         }
-        
+
+        public function finishFrame():void
+        {
+            if (mFrameID % 60 == 0)
+                mBatchProcessor.trim();
+
+            mBatchProcessor.finishBatch();
+            mBatchProcessor.clear();
+        }
+
         /** Resets the current state, the state stack, mesh batch index, stencil reference value,
          *  and draw count. Furthermore, depth testing is disabled. */
         public function nextFrame():void
         {
-            trimQuadBatches();
             stencilReferenceValue = 0;
-
-            mState.reset();
+            mFrameID++;
             mDrawCount = 0;
             mStateStackPos = -1;
-            mMeshBatchListPos = 0;
-            mMeshBatch = mMeshBatchList[0];
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
+            mState.reset();
         }
 
         // helper methods
@@ -436,21 +421,6 @@ package starling.rendering
             mState.renderTarget = null;
             mActualRenderTarget = null;
             mContext.present();
-        }
-
-        /** Disposes redundant mesh batches if the number of allocated batches is more than
-         *  twice the number of used batches. Only executed when there are at least 16 batches. */
-        private function trimQuadBatches():void
-        {
-            var numUsedBatches:int  = mMeshBatchListPos + 1;
-            var numTotalBatches:int = mMeshBatchList.length;
-
-            if (numTotalBatches >= 16 && numTotalBatches > 2*numUsedBatches)
-            {
-                var numToRemove:int = numTotalBatches - numUsedBatches;
-                for (var i:int=0; i<numToRemove; ++i)
-                    mMeshBatchList.pop().dispose();
-            }
         }
 
         private function applyBlendMode():void
@@ -561,7 +531,8 @@ package starling.rendering
         }
 
         /** The current render state, containing some of the context settings, projection- and
-         *  modelview-matrix, etc.
+         *  modelview-matrix, etc. Always returns the same instance, even after calls to "pushState"
+         *  and "popState".
          */
         public function get state():RenderState { return mState; }
 

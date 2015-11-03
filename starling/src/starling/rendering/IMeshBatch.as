@@ -44,5 +44,11 @@ package starling.rendering
 
         /** This method does the actual rendering of the object. */
         function render(painter:Painter):void;
+
+        /** Releases all resources of the batch. */
+        function dispose():void;
+
+        /** The currently used blend mode (set by the first mesh that is added to the batch). */
+        function get blendMode():String;
     }
 }

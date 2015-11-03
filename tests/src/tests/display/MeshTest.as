@@ -173,11 +173,11 @@ package tests.display
             assertEquals(mesh, mesh.hitTest(new Point(1.49, 1.49)));
 
             mesh.visible = false;
-            assertNull(mesh.hitTest(new Point(0.75, 0.75), true));
+            assertNull(mesh.hitTest(new Point(0.75, 0.75)));
 
             mesh.visible = true;
             mesh.touchable = false;
-            assertNull(mesh.hitTest(new Point(0.75, 0.75), true));
+            assertNull(mesh.hitTest(new Point(0.75, 0.75)));
         }
     }
 }

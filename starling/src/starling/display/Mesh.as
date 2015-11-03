@@ -223,7 +223,7 @@ package starling.display
         /** @inheritDoc */
         public override function render(painter:Painter):void
         {
-            painter.batchMesh(this);
+            painter.batchMesh(this, MeshBatch);
         }
 
         // properties

@@ -169,7 +169,7 @@ package starling.display
             }
             else if (_batchable)
             {
-                painter.batchMesh(this);
+                super.render(painter);
             }
             else
             {

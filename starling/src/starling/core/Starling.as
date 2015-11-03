@@ -445,7 +445,7 @@ package starling.core
                 mPainter.clear(mStage.color, 1.0);
             
             mStage.render(mPainter);
-            mPainter.finishMeshBatch();
+            mPainter.finishFrame();
             
             if (mStatsDisplay)
                 mStatsDisplay.drawCount = mPainter.drawCount;
