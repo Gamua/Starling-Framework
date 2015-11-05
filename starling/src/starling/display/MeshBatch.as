@@ -11,30 +11,29 @@
 package starling.display
 {
     import flash.geom.Matrix;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
 
-    import starling.core.starling_internal;
-    import starling.rendering.IMeshBatch;
     import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
+    import starling.utils.GeometryUtil;
 
-    use namespace starling_internal;
-    
     /** Combines a number of meshes to one display object and renders them efficiently.
      *
      *  <p>The most basic tangible display object in Starling is the Mesh. However, a mesh cannot
      *  render itself; it just holds the data describing its geometry. Rendering is done by the
-     *  "MeshBatch" class. As its name suggests, it also acts as a batch for an arbitrary number
+     *  "MeshBatch" class. As its name suggests, it acts as a batch for an arbitrary number
      *  of Mesh instances; add meshes to a batch and they are all rendered together,
      *  in one draw call.</p>
      *
      *  <p>You can only batch meshes that share similar properties, e.g. they need to have the
      *  same texture and the same blend mode. The first object you add to a batch will decide
-     *  this state; call <code>canBatchMesh</code> to find out if another mesh shares that state.
-     *  You may also clear the batch, which will reset that state and remove all geometry that
-     *  has been added thus far.</p>
+     *  this state; call <code>canAddMesh</code> to find out if a new mesh shares that state.
+     *  To reset the current state, you can call <code>clear</code>; this will also remove all
+     *  geometry that has been added thus far.</p>
      *
      *  <p>Starling will use MeshBatch instances (or compatible objects) for all rendering.
      *  You can also use MeshBatch instances yourself, though, as they are also display objects.
@@ -43,46 +42,92 @@ package starling.display
      *  and indices between buffers and GPU memory.</p>
      *
      *  @see Mesh
-     *  @see Sprite  
+     *  @see Sprite
      */
-    public class MeshBatch extends Mesh implements IMeshBatch
+    public class MeshBatch extends DisplayObject
     {
         public static const MAX_NUM_VERTICES:int = 65535;
 
-        private var _effect:MeshEffect;
+        /** The Effect that is used to render the mesh. */
+        protected var _effect:MeshEffect;
+
+        /** The aggregate mesh, which is a combination of all added meshes. */
+        protected var _mesh:Mesh;
+
         private var _vertexSyncRequired:Boolean;
         private var _indexSyncRequired:Boolean;
         private var _batchable:Boolean;
 
+        private var _texture:Texture;
+        private var _vertexData:VertexData;
+        private var _indexData:IndexData;
+
         /** Creates a new, empty MeshBatch instance. */
         public function MeshBatch()
         {
+            _mesh = createMesh();
+            _effect = createEffect();
+            _effect.onRestore = setVertexAndIndexDataChanged;
+
+            // direct access for better performance
+            _vertexData = _mesh.vertexData;
+            _indexData = _mesh.indexData;
+        }
+
+        /** Override this method in subclasses to customize the aggregate mesh. */
+        protected function createMesh():Mesh
+        {
             var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT);
             var indexData:IndexData = new IndexData();
-
-            super(vertexData, indexData);
-
-            _effect = new MeshEffect();
-            _effect.onRestore = setVertexAndIndexDataChanged;
+            return new Mesh(vertexData, indexData);
         }
+
+        /** Override this method in subclasses to provide a custom effect for rendering. */
+        protected function createEffect():MeshEffect
+        {
+            return new MeshEffect();
+        }
+
+        // display object overrides
 
         /** @inheritDoc */
         override public function dispose():void
         {
             _effect.dispose();
+            _mesh.dispose();
             super.dispose();
         }
 
         /** @inheritDoc */
-        override protected function setVertexDataChanged():void
+        override public function hitTest(localPoint:Point):DisplayObject
+        {
+            return _mesh.hitTest(localPoint);
+        }
+
+        /** @inheritDoc */
+        override public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
+        {
+            return GeometryUtil.calculateBounds(_vertexData, this, targetSpace, out);
+        }
+
+        /** To call when the vertex data was changed. */
+        protected function setVertexDataChanged():void
         {
             _vertexSyncRequired = true;
         }
 
-        /** @inheritDoc */
-        override protected function setIndexDataChanged():void
+        /** To call when the index data was changed. */
+        protected function setIndexDataChanged():void
         {
             _indexSyncRequired = true;
+        }
+
+        /** To call when both vertex- and index-data were changed.
+         *  Calls the other two <code>dataChanged</code>-methods internally. */
+        protected function setVertexAndIndexDataChanged():void
+        {
+            setVertexDataChanged();
+            setIndexDataChanged();
         }
 
         private function syncVertexBuffer():void
@@ -97,14 +142,14 @@ package starling.display
             _indexSyncRequired = false;
         }
 
-        /** Removes all geometry, sets the texture to <code>null</code>. */
+        /** Removes all geometry. */
         public function clear():void
         {
             _texture = null;
             _vertexData.numVertices = 0;
-            _indexData.numIndices = 0;
+            _indexData.numIndices   = 0;
             _vertexSyncRequired = true;
-            _indexSyncRequired = true;
+            _indexSyncRequired  = true;
         }
 
         /** Adds a mesh to the batch.
@@ -125,12 +170,12 @@ package starling.display
 
             if (vertexID == 0)
             {
-                _texture = mesh.texture;
+                _texture = _mesh.texture = mesh.texture;
                 this.blendMode = blendMode;
             }
 
-            mesh.copyIndexDataTo(_indexData, indexID, vertexID);
-            mesh.copyVertexDataTo(_vertexData, vertexID, matrix);
+            mesh.indexData.copyTo(_indexData, indexID, vertexID);
+            mesh.vertexData.copyTo(_vertexData, vertexID, matrix);
 
             if (alpha != 1.0)
                 _vertexData.scaleAlphas("color", alpha, vertexID);
@@ -147,14 +192,14 @@ package starling.display
 
             var numVertices:int = _vertexData.numVertices;
             if (numVertices == 0) return true;
-            if (numVertices + mesh.numVertices > MAX_NUM_VERTICES) return false;
+            if (numVertices + mesh.vertexData.numVertices > MAX_NUM_VERTICES) return false;
 
-            var meshTexture:Texture = mesh.texture;
+            var newTexture:Texture = mesh.texture;
 
-            if (_texture == null && meshTexture == null)
+            if (_texture == null && newTexture == null)
                 return this.blendMode == blendMode;
-            else if (_texture && meshTexture)
-                return _texture.base == meshTexture.base &&
+            else if (_texture && newTexture)
+                return _texture.base == newTexture.base &&
                     this.blendMode == blendMode;
             else return false;
         }
@@ -169,7 +214,7 @@ package starling.display
             }
             else if (_batchable)
             {
-                super.render(painter);
+                painter.batchMesh(_mesh, MeshBatch);
             }
             else
             {
@@ -183,7 +228,7 @@ package starling.display
                 _effect.mvpMatrix = painter.state.mvpMatrix3D;
                 _effect.alpha = painter.state.alpha;
                 _effect.texture = _texture;
-                _effect.render(0, numTriangles);
+                _effect.render(0, _indexData.numTriangles);
             }
         }
 
@@ -191,5 +236,8 @@ package starling.display
          *  or if it will draw itself right away. */
         public function get batchable():Boolean { return _batchable; }
         public function set batchable(value:Boolean):void { _batchable = value; }
+
+        /** The aggregate mesh, which is a combination of all added meshes. */
+        public function get mesh():Mesh { return _mesh; }
     }
 }

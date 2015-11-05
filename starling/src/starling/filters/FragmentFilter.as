@@ -251,7 +251,7 @@ package starling.filters
                 bounds.x, bounds.y, boundsPot.width, boundsPot.height,
                 stage.stageWidth, stage.stageHeight, stage.cameraPosition);
 
-            painter.prepareToDraw(PMA);
+            painter.prepareToDraw();
             painter.clear();
             object.render(painter);
             painter.finishMeshBatch();
@@ -292,7 +292,7 @@ package starling.filters
                         state.setModelviewMatricesToIdentity();
                         state.transformModelviewMatrix(mHelperMatrix);
                         state.blendMode = object.blendMode;
-                        painter.prepareToDraw(PMA);
+                        painter.prepareToDraw();
                     }
                 }
                 

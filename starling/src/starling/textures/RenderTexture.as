@@ -247,7 +247,7 @@ package starling.textures
 
             state.clipRect = sClipRect;
             state.setRenderTarget(mActiveTexture, antiAliasing);
-            painter.prepareToDraw(PMA);
+            painter.prepareToDraw();
             
             if (isDoubleBuffered || !isPersistent || !mBufferReady)
                 painter.clear();

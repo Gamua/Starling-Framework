@@ -13,29 +13,30 @@ package starling.rendering
     import flash.geom.Matrix;
 
     import starling.display.Mesh;
+    import starling.display.MeshBatch;
 
     /** This class manages a list of mesh batches of different types;
      *  it acts as a "meta" MeshBatch that initiates all rendering.
      */
     public class BatchProcessor
     {
-        private var _batches:Vector.<IMeshBatch>;
+        private var _batches:Vector.<MeshBatch>;
         private var _batchPool:BatchPool;
-        private var _currentBatch:IMeshBatch;
+        private var _currentBatch:MeshBatch;
         private var _currentBatchClass:Class;
         private var _onBatchComplete:Function;
 
         /** Creates a new batch processor. */
         public function BatchProcessor()
         {
-            _batches = new <IMeshBatch>[];
+            _batches = new <MeshBatch>[];
             _batchPool = new BatchPool();
         }
 
         /** Disposes all batches (including those in the reusable pool). */
         public function dispose():void
         {
-            for each (var batch:IMeshBatch in _batches)
+            for each (var batch:MeshBatch in _batches)
                 batch.dispose();
 
             _batches.length = 0;
@@ -75,7 +76,7 @@ package starling.rendering
          *  prepares initialization of a new one. */
         public function finishBatch():void
         {
-            var meshBatch:IMeshBatch = _currentBatch;
+            var meshBatch:MeshBatch = _currentBatch;
 
             if (meshBatch)
             {
@@ -91,14 +92,10 @@ package starling.rendering
         public function clear():void
         {
             var numBatches:int = _batches.length;
-            var batch:IMeshBatch;
+            var batch:MeshBatch;
 
             for (var i:int=0; i<numBatches; ++i)
-            {
-                batch = _batches[i];
-                batch.clear();
-                _batchPool.put(batch);
-            }
+                _batchPool.put(_batches[i]);
 
             _batches.length = 0;
             _currentBatch = null;
@@ -121,7 +118,7 @@ package starling.rendering
 
 import flash.utils.Dictionary;
 
-import starling.rendering.IMeshBatch;
+import starling.display.MeshBatch;
 
 class BatchPool
 {
@@ -134,7 +131,7 @@ class BatchPool
 
     public function purge():void
     {
-        for each (var batchList:Vector.<IMeshBatch> in _batchLists)
+        for each (var batchList:Vector.<MeshBatch> in _batchLists)
         {
             for (var i:int=0; i<batchList.length; ++i)
                 batchList[i].dispose();
@@ -143,12 +140,12 @@ class BatchPool
         }
     }
 
-    public function get(batchClass:Class):IMeshBatch
+    public function get(batchClass:Class):MeshBatch
     {
-        var batchList:Vector.<IMeshBatch> = _batchLists[batchClass];
+        var batchList:Vector.<MeshBatch> = _batchLists[batchClass];
         if (batchList == null)
         {
-            batchList = new <IMeshBatch>[];
+            batchList = new <MeshBatch>[];
             _batchLists[batchClass] = batchList;
         }
 
@@ -156,10 +153,11 @@ class BatchPool
         else return new batchClass();
     }
 
-    public function put(meshBatch:IMeshBatch):void
+    public function put(meshBatch:MeshBatch):void
     {
+        meshBatch.clear();
         var batchClass:Class = Object(meshBatch).constructor as Class;
-        var batchList:Vector.<IMeshBatch> = _batchLists[batchClass];
+        var batchList:Vector.<MeshBatch> = _batchLists[batchClass];
         batchList[batchList.length] = meshBatch;
     }
 }

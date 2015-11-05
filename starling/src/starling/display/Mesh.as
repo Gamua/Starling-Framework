@@ -10,11 +10,8 @@
 
 package starling.display
 {
-    import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
 
     import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
@@ -23,8 +20,7 @@ package starling.display
     import starling.rendering.VertexDataFormat;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
-    import starling.utils.MathUtil;
-    import starling.utils.Pool;
+    import starling.utils.GeometryUtil;
 
     /** The base class for all tangible (non-container) display objects, spawned up by a number
      *  of triangles.
@@ -40,7 +36,6 @@ package starling.display
      *  "IMeshBatch" interface, as well.</p>
      *
      *  @see MeshBatch
-     *  @see starling.rendering.IMeshBatch
      *  @see starling.rendering.VertexData
      *  @see starling.rendering.IndexData
      */
@@ -49,20 +44,12 @@ package starling.display
         /** The vertex format expected by the Mesh (the same as found in the MeshEffect-class). */
         public static const VERTEX_FORMAT:VertexDataFormat = MeshEffect.VERTEX_FORMAT;
 
-        /** The texture mapped to the mesh. */
-        protected var _texture:Texture;
-
-        /** The vertex data describing all vertices of the mesh. */
-        protected var _vertexData:VertexData;
-
-        /** The index data describing how the vertices are interconnected. */
-        protected var _indexData:IndexData;
+        private var _texture:Texture;
+        private var _vertexData:VertexData;
+        private var _indexData:IndexData;
 
         // helper objects
         private static var sPoint:Point = new Point();
-        private static var sPoint3D:Vector3D = new Vector3D();
-        private static var sMatrix:Matrix = new Matrix();
-        private static var sMatrix3D:Matrix3D = new Matrix3D();
 
         /** Creates a new mesh with the given vertices and indices. */
         public function Mesh(vertexData:VertexData, indexData:IndexData)
@@ -72,9 +59,6 @@ package starling.display
 
             _vertexData = vertexData;
             _indexData = indexData;
-
-            setVertexDataChanged();
-            setIndexDataChanged();
         }
 
         /** @inheritDoc */
@@ -90,70 +74,13 @@ package starling.display
         override public function hitTest(localPoint:Point):DisplayObject
         {
             if (!visible || !touchable || !hitTestMask(localPoint)) return null;
-
-            var i:int;
-            var result:DisplayObject = null;
-            var numIndices:int = _indexData.numIndices;
-            var p0:Point = Pool.getPoint();
-            var p1:Point = Pool.getPoint();
-            var p2:Point = Pool.getPoint();
-
-            for (i=0; i<numIndices; i+=3)
-            {
-                _vertexData.getPoint(_indexData.getIndex(i  ), "position", p0);
-                _vertexData.getPoint(_indexData.getIndex(i+1), "position", p1);
-                _vertexData.getPoint(_indexData.getIndex(i+2), "position", p2);
-
-                if (MathUtil.isPointInTriangle(localPoint, p0, p1, p2))
-                {
-                    result = this;
-                    break;
-                }
-            }
-
-            Pool.putPoint(p0);
-            Pool.putPoint(p1);
-            Pool.putPoint(p2);
-
-            return result;
+            else return GeometryUtil.containsPoint(_vertexData, _indexData, localPoint) ? this : null;
         }
 
         /** @inheritDoc */
         override public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            if (out == null) out = new Rectangle();
-
-            // TODO find some optimizations
-
-            if (is3D && stage)
-            {
-                stage.getCameraPosition(targetSpace, sPoint3D);
-                getTransformationMatrix3D(targetSpace, sMatrix3D);
-                _vertexData.getBoundsProjected("position", sMatrix3D, sPoint3D, 0, -1, out);
-            }
-            else
-            {
-                getTransformationMatrix(targetSpace, sMatrix);
-                _vertexData.getBounds("position", sMatrix, 0, -1, out);
-            }
-
-            return out;
-        }
-
-        /** Copies the vertex data of the mesh to the target, optionally transforming all
-         *  "position" attributes with the given matrix. */
-        public function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0,
-                                         matrix:Matrix=null):void
-        {
-            _vertexData.copyTo(targetData, targetVertexID, matrix);
-        }
-
-        /** Copies the index data of the mesh to the target, optionally adding a certain
-         *  offset to each value. */
-        public function copyIndexDataTo(targetData:IndexData, targetIndexID:int=0,
-                                        offset:int=0):void
-        {
-            _indexData.copyTo(targetData, targetIndexID, offset);
+            return GeometryUtil.calculateBounds(_vertexData, this, targetSpace, out);
         }
 
         /** Returns the alpha value of the vertex at the specified index. */
@@ -166,7 +93,6 @@ package starling.display
         public function setVertexAlpha(vertexID:int, alpha:Number):void
         {
             _vertexData.setAlpha(vertexID, "color", alpha);
-            setVertexDataChanged();
         }
 
         /** Returns the RGB color of the vertex at the specified index. */
@@ -179,7 +105,6 @@ package starling.display
         public function setVertexColor(vertexID:int, color:uint):void
         {
             _vertexData.setColor(vertexID, "color", color);
-            setVertexDataChanged();
         }
 
         /** Returns the texture coordinates of the vertex at the specified index. */
@@ -194,30 +119,6 @@ package starling.display
         {
             if (_texture) _texture.setTexCoords(_vertexData, vertexID, "texCoords", u, v);
             else _vertexData.setPoint(vertexID, "texCoords", u, v);
-
-            setVertexDataChanged();
-        }
-
-        /** This method needs to be called when the vertex data changes in any way.
-         *  Override it to get notified of such a change. */
-        protected function setVertexDataChanged():void
-        {
-            // override in subclasses, if necessary
-        }
-
-        /** This method needs to be called when the index data changes in any way.
-         *  Override it to get notified of such a change. */
-        protected function setIndexDataChanged():void
-        {
-            // override in subclasses, if necessary
-        }
-
-        /** To call when both vertex- and index-data have changed. Calls the other
-         *  two <code>dataChanged</code>-methods internally. */
-        protected function setVertexAndIndexDataChanged():void
-        {
-            setVertexDataChanged();
-            setIndexDataChanged();
         }
 
         /** @inheritDoc */
@@ -238,8 +139,6 @@ package starling.display
 
             for (i=0; i<numVertices; ++i)
                 _vertexData.setColor(i, "color", value);
-
-            setVertexDataChanged();
         }
 
         /** The texture mapped to the mesh. */
@@ -258,20 +157,20 @@ package starling.display
             }
 
             _texture = value;
-            setVertexDataChanged();
         }
 
         /** The texture smoothing used when sampling the texture. */
         public function get smoothing():String { return TextureSmoothing.BILINEAR; }
         public function set smoothing(value:String):void { /* FIXME */ }
 
-        /** The total number of vertices of the mesh. */
-        public function get numVertices():int { return _vertexData.numVertices; }
+        /** The vertex data describing all vertices of the mesh.
+         *  Never change this object directly, except from subclasses;
+         *  this property is solely provided for rendering. */
+        public function get vertexData():VertexData { return _vertexData; }
 
-        /** The total number of triangles spawning up the mesh. */
-        public function get numTriangles():int { return _indexData.numTriangles; }
-
-        /** The format of the internal vertex data. */
-        public function get vertexFormat():VertexDataFormat { return _vertexData.format; }
+        /** The index data describing how the vertices are interconnected.
+         *  Never change this object directly, except from subclasses;
+         *  this property is solely provided for rendering. */
+        public function get indexData():IndexData { return _indexData; }
     }
 }

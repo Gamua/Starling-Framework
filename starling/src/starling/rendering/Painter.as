@@ -26,6 +26,7 @@ package starling.rendering
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Mesh;
+    import starling.display.MeshBatch;
     import starling.events.Event;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
@@ -135,7 +136,7 @@ package starling.rendering
                 program.dispose();
         }
 
-        private function renderBatch(meshBatch:IMeshBatch):void
+        private function renderBatch(meshBatch:MeshBatch):void
         {
             pushState();
 
@@ -398,7 +399,7 @@ package starling.rendering
          *  blend mode, render target and clipping rectangle. Always call this method before
          *  <code>context.drawTriangles()</code>.
          */
-        public function prepareToDraw(premultipliedAlpha:Boolean=true):void
+        public function prepareToDraw():void
         {
             applyBlendMode();
             applyRenderTarget();

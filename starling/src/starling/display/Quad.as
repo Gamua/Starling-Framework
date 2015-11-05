@@ -135,11 +135,10 @@ package starling.display
          *  to synchronize quad and texture size after assigning a texture with a different size.*/
         public function readjustSize():void
         {
-            if (_texture)
+            if (texture)
             {
-                _bounds.setTo(0, 0, _texture.frameWidth, _texture.frameHeight);
-                _texture.setupVertexPositions(_vertexData);
-                setVertexDataChanged();
+                _bounds.setTo(0, 0, texture.frameWidth, texture.frameHeight);
+                texture.setupVertexPositions(vertexData);
             }
         }
 
@@ -163,12 +162,12 @@ package starling.display
          */
         override public function set texture(value:Texture):void
         {
-            if (value == _texture) return;
+            if (value == texture) return;
 
             if (value == null)
-                setupVertexPositions(_vertexData, _bounds);
-            else if (_texture)
-                value.setupVertexPositions(_vertexData, 0, "position", _bounds);
+                setupVertexPositions(vertexData, _bounds);
+            else if (texture)
+                value.setupVertexPositions(vertexData, 0, "position", _bounds);
 
             super.texture = value;
         }
