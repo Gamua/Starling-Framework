@@ -279,7 +279,7 @@ package starling.rendering
             {
                 if (a == getBasicQuadIndexAt(_numIndices))
                 {
-                    var oddTriangleID:Boolean = _numIndices & 1;
+                    var oddTriangleID:Boolean = (_numIndices & 1) != 0;
                     var evenTriangleID:Boolean = !oddTriangleID;
 
                     if ((evenTriangleID && b == a + 1 && c == b + 1) ||
@@ -428,6 +428,7 @@ package starling.rendering
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
+            if (_numIndices == 0) return null;
 
             var buffer:IndexBuffer3D = context.createIndexBuffer(_numIndices, bufferUsage);
 
@@ -441,7 +442,8 @@ package starling.rendering
             if (numIndices < 0 || indexID + numIndices > _numIndices)
                 numIndices = _numIndices - indexID;
 
-            buffer.uploadFromByteArray(rawData, 0, indexID, numIndices);
+            if (numIndices > 0)
+                buffer.uploadFromByteArray(rawData, 0, indexID, numIndices);
         }
 
         /** Optimizes the ByteArray so that it has exactly the required capacity, without

@@ -113,6 +113,8 @@ package starling.display
 
             if (index >= 0 && index <= numChildren)
             {
+                setRequiresRedraw();
+
                 if (child.parent == this)
                 {
                     setChildIndex(child, index); // avoids dispatching events
@@ -158,6 +160,8 @@ package starling.display
         {
             if (index >= 0 && index < mChildren.length)
             {
+                setRequiresRedraw();
+
                 var child:DisplayObject = mChildren[index];
                 child.dispatchEventWith(Event.REMOVED, true);
                 
@@ -231,6 +235,7 @@ package starling.display
             if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
             spliceChildren(oldIndex, 1);
             spliceChildren(index, 0, child);
+            setRequiresRedraw();
         }
         
         /** Swaps the indexes of two children. */
@@ -249,6 +254,7 @@ package starling.display
             var child2:DisplayObject = getChildAt(index2);
             mChildren[index1] = child2;
             mChildren[index2] = child1;
+            setRequiresRedraw();
         }
         
         /** Sorts the children according to a given function (that works just like the sort function
@@ -258,6 +264,7 @@ package starling.display
             sSortBuffer.length = mChildren.length;
             mergeSort(mChildren, compareFunction, 0, mChildren.length, sSortBuffer);
             sSortBuffer.length = 0;
+            setRequiresRedraw();
         }
         
         /** Determines if a certain object is a child of the container (recursively). */
@@ -342,30 +349,44 @@ package starling.display
         public override function render(painter:Painter):void
         {
             var numChildren:int = mChildren.length;
+            var frameID:uint = painter.frameID;
+            var selfOrParentChanged:Boolean = _lastParentOrSelfChangeFrameID == frameID;
 
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = mChildren[i];
-                
-                if (child.hasVisibleArea)
+
+                if (child._hasVisibleArea)
                 {
-                    var filter:FragmentFilter = child.filter;
-                    var mask:DisplayObject = child.mask;
+                    if (selfOrParentChanged)
+                        child._lastParentOrSelfChangeFrameID = frameID;
 
-                    painter.pushState(child.transformationMatrix, child.alpha, child.blendMode);
+                    if (child._lastParentOrSelfChangeFrameID != frameID &&
+                        child._lastChildChangeFrameID != frameID)
+                    {
+                        painter.drawFromCache(child._pushToken, child._popToken);
+                    }
+                    else
+                    {
+                        var filter:FragmentFilter = child._filter;
+                        var mask:DisplayObject = child._mask;
 
-                    if (mask) painter.drawMask(mask);
+                        painter.pushState(child._pushToken);
+                        painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
-                    if (filter) filter.render(child, painter);
-                    else        child.render(painter);
+                        if (mask) painter.drawMask(mask);
 
-                    if (mask) painter.eraseMask(mask);
-                    
-                    painter.popState();
+                        if (filter) filter.render(child, painter);
+                        else        child.render(painter);
+
+                        if (mask) painter.eraseMask(mask);
+
+                        painter.popState(child._popToken);
+                    }
                 }
             }
         }
-        
+
         /** Dispatches an event on all children (recursively). The event must not bubble. */
         public function broadcastEvent(event:Event):void
         {
@@ -389,9 +410,9 @@ package starling.display
         
         /** Dispatches an event with the given parameters on all children (recursively). 
          *  The method uses an internal pool of event objects to avoid allocations. */
-        public function broadcastEventWith(type:String, data:Object=null):void
+        public function broadcastEventWith(eventType:String, data:Object=null):void
         {
-            var event:Event = Event.fromPool(type, false, data);
+            var event:Event = Event.fromPool(eventType, false, data);
             broadcastEvent(event);
             Event.toPool(event);
         }
@@ -415,10 +436,9 @@ package starling.display
             // This is a port of the C++ merge sort algorithm shown here:
             // http://www.cprogramming.com/tutorial/computersciencetheory/mergesort.html
             
-            if (length <= 1) return;
-            else
+            if (length > 1)
             {
-                var i:int = 0;
+                var i:int;
                 var endIndex:int = startIndex + length;
                 var halfLength:int = length / 2;
                 var l:int = startIndex;              // current position in the left subvector

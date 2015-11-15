@@ -22,8 +22,8 @@ package starling.utils
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
 
-    /** A utility class that helps with common tasks related to geometry and vertex meshes. */
-    public class GeometryUtil
+    /** A utility class that helps with tasks that are common when working with meshes. */
+    public class MeshUtil
     {
         // helper objects
         private static var sPoint3D:Vector3D = new Vector3D();
@@ -31,7 +31,7 @@ package starling.utils
         private static var sMatrix3D:Matrix3D = new Matrix3D();
 
         /** @private */
-        public function GeometryUtil() { throw new AbstractClassError(); }
+        public function MeshUtil() { throw new AbstractClassError(); }
 
         /** Determines if a point is inside a mesh that is spawned up by the given
          *  vertex- and index-data. */

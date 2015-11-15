@@ -20,7 +20,7 @@ package starling.display
     import starling.rendering.VertexDataFormat;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
-    import starling.utils.GeometryUtil;
+    import starling.utils.MeshUtil;
 
     /** The base class for all tangible (non-container) display objects, spawned up by a number
      *  of triangles.
@@ -74,13 +74,13 @@ package starling.display
         override public function hitTest(localPoint:Point):DisplayObject
         {
             if (!visible || !touchable || !hitTestMask(localPoint)) return null;
-            else return GeometryUtil.containsPoint(_vertexData, _indexData, localPoint) ? this : null;
+            else return MeshUtil.containsPoint(_vertexData, _indexData, localPoint) ? this : null;
         }
 
         /** @inheritDoc */
         override public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            return GeometryUtil.calculateBounds(_vertexData, this, targetSpace, out);
+            return MeshUtil.calculateBounds(_vertexData, this, targetSpace, out);
         }
 
         /** Returns the alpha value of the vertex at the specified index. */
@@ -93,6 +93,7 @@ package starling.display
         public function setVertexAlpha(vertexID:int, alpha:Number):void
         {
             _vertexData.setAlpha(vertexID, "color", alpha);
+            setRequiresRedraw();
         }
 
         /** Returns the RGB color of the vertex at the specified index. */
@@ -105,6 +106,7 @@ package starling.display
         public function setVertexColor(vertexID:int, color:uint):void
         {
             _vertexData.setColor(vertexID, "color", color);
+            setRequiresRedraw();
         }
 
         /** Returns the texture coordinates of the vertex at the specified index. */
@@ -119,6 +121,8 @@ package starling.display
         {
             if (_texture) _texture.setTexCoords(_vertexData, vertexID, "texCoords", u, v);
             else _vertexData.setPoint(vertexID, "texCoords", u, v);
+
+            setRequiresRedraw();
         }
 
         /** @inheritDoc */
@@ -139,6 +143,8 @@ package starling.display
 
             for (i=0; i<numVertices; ++i)
                 _vertexData.setColor(i, "color", value);
+
+            setRequiresRedraw();
         }
 
         /** The texture mapped to the mesh. */
@@ -157,6 +163,7 @@ package starling.display
             }
 
             _texture = value;
+            setRequiresRedraw();
         }
 
         /** The texture smoothing used when sampling the texture. */
@@ -172,5 +179,14 @@ package starling.display
          *  Never change this object directly, except from subclasses;
          *  this property is solely provided for rendering. */
         public function get indexData():IndexData { return _indexData; }
+
+        /** The total number of vertices in the mesh. */
+        public function get numVertices():int { return _vertexData.numVertices; }
+
+        /** The total number of indices referencing vertices. */
+        public function get numIndices():int { return _indexData.numIndices; }
+
+        /** The format of the internal vertex data. */
+        public function get vertexFormat():VertexDataFormat { return _vertexData.format; }
     }
 }

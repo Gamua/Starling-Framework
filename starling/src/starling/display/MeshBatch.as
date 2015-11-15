@@ -14,12 +14,14 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
+    import starling.events.Event;
     import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
-    import starling.utils.GeometryUtil;
+    import starling.utils.MeshSubset;
+    import starling.utils.MeshUtil;
 
     /** Combines a number of meshes to one display object and renders them efficiently.
      *
@@ -62,6 +64,9 @@ package starling.display
         private var _vertexData:VertexData;
         private var _indexData:IndexData;
 
+        // helper object
+        private static var sFullMeshSubset:MeshSubset = new MeshSubset();
+
         /** Creates a new, empty MeshBatch instance. */
         public function MeshBatch()
         {
@@ -72,6 +77,9 @@ package starling.display
             // direct access for better performance
             _vertexData = _mesh.vertexData;
             _indexData = _mesh.indexData;
+
+            // as long as 'batchable' is false, batches disrupt the render cache
+            addEventListener(Event.ENTER_FRAME, onEnterFrameWhileNotBatchable);
         }
 
         /** Override this method in subclasses to customize the aggregate mesh. */
@@ -86,6 +94,14 @@ package starling.display
         protected function createEffect():MeshEffect
         {
             return new MeshEffect();
+        }
+
+        private function onEnterFrameWhileNotBatchable():void
+        {
+            // we need to use a private event listener, otherwise we'd run into
+            // problems when subclasses want to disable the render cache, as well.
+
+            setRequiresRedraw();
         }
 
         // display object overrides
@@ -107,7 +123,7 @@ package starling.display
         /** @inheritDoc */
         override public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            return GeometryUtil.calculateBounds(_vertexData, this, targetSpace, out);
+            return MeshUtil.calculateBounds(_vertexData, this, targetSpace, out);
         }
 
         /** To call when the vertex data was changed. */
@@ -155,30 +171,39 @@ package starling.display
         /** Adds a mesh to the batch.
          *
          *  @param mesh      the mesh to add to the batch.
-         *  @param matrix    transforms the mesh with a certain matrix before adding it.
+         *  @param matrix    transform all vertex positions with a certain matrix. If this
+         *                   parameter is omitted, <code>mesh.transformationMatrix</code>
+         *                   will be used instead (except if the last parameter is enabled).
          *  @param alpha     will be multiplied with each vertex' alpha value.
-         *  @param blendMode will replace the blend mode of the mesh instance.
+         *  @param blendMode if given, replaces the blend mode of the mesh instance.
+         *  @param subset    the subset of the mesh you want to add, or <code>null</code> for
+         *                   the complete mesh.
+         *  @param ignoreTransformation  to copy the vertices without any transformation, pass
+         *                   <code>null</code> as 'matrix' parameter and <code>true</code> for this
+         *                   one.
          */
-        public function addMesh(mesh:Mesh, matrix:Matrix=null,
-                                alpha:Number=1.0, blendMode:String=null):void
+        public function addMesh(mesh:Mesh, matrix:Matrix=null, alpha:Number=1.0, blendMode:String=null,
+                                subset:MeshSubset=null, ignoreTransformation:Boolean=false):void
         {
-            if (matrix == null) matrix = mesh.transformationMatrix;
+            if (matrix == null && !ignoreTransformation) matrix = mesh.transformationMatrix;
             if (blendMode == null) blendMode = mesh.blendMode;
+            if (subset == null) subset = sFullMeshSubset;
 
-            var vertexID:int = _vertexData.numVertices;
-            var indexID:int  = _indexData.numIndices;
+            var targetVertexID:int = _vertexData.numVertices;
+            var targetIndexID:int  = _indexData.numIndices;
 
-            if (vertexID == 0)
+            if (targetVertexID == 0)
             {
-                _texture = _mesh.texture = mesh.texture;
-                this.blendMode = blendMode;
+                _mesh.texture = _texture = mesh.texture;
+                _mesh.blendMode = this.blendMode = blendMode;
             }
 
-            mesh.indexData.copyTo(_indexData, indexID, vertexID);
-            mesh.vertexData.copyTo(_vertexData, vertexID, matrix);
+            mesh.vertexData.copyTo(_vertexData, targetVertexID, matrix, subset.vertexID, subset.numVertices);
+            mesh.indexData.copyTo(_indexData, targetIndexID, targetVertexID - subset.vertexID,
+                subset.indexID, subset.numIndices);
 
-            if (alpha != 1.0)
-                _vertexData.scaleAlphas("color", alpha, vertexID);
+            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID);
+            if (_batchable) setRequiresRedraw();
 
             _indexSyncRequired = _vertexSyncRequired = true;
         }
@@ -208,11 +233,7 @@ package starling.display
          *  to the painter's current batch. Otherwise, this will actually do the drawing. */
         override public function render(painter:Painter):void
         {
-            if (_vertexData.numVertices == 0)
-            {
-                // nothing to do
-            }
-            else if (_batchable)
+            if (_batchable)
             {
                 painter.batchMesh(_mesh, MeshBatch);
             }
@@ -235,7 +256,16 @@ package starling.display
         /** Indicates if this object will be added to the painter's batch on rendering,
          *  or if it will draw itself right away. */
         public function get batchable():Boolean { return _batchable; }
-        public function set batchable(value:Boolean):void { _batchable = value; }
+        public function set batchable(value:Boolean):void
+        {
+            if (value != _batchable) // self-rendering must disrupt the render cache
+            {
+                _batchable = value;
+
+                if (value) removeEventListener(Event.ENTER_FRAME, onEnterFrameWhileNotBatchable);
+                else       addEventListener(Event.ENTER_FRAME, onEnterFrameWhileNotBatchable);
+            }
+        }
 
         /** The aggregate mesh, which is a combination of all added meshes. */
         public function get mesh():Mesh { return _mesh; }

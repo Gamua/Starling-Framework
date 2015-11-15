@@ -109,7 +109,7 @@ package starling.text
         private var mKerning:Boolean;
         private var mLeading:Number;
         private var mNativeFilters:Array;
-        private var mRequiresRedraw:Boolean;
+        private var mRequiresRecomposition:Boolean;
         private var mIsHtmlText:Boolean;
         private var mTextBounds:Rectangle;
         private var mBatchable:Boolean;
@@ -128,6 +128,8 @@ package starling.text
         public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
                                   fontSize:Number=12, color:uint=0x0, bold:Boolean=false)
         {
+            // TODO TextFields should extend MeshBatch
+
             mText = text ? text : "";
             mFontSize = fontSize;
             mColor = color;
@@ -140,42 +142,34 @@ package starling.text
             mAutoSize = TextFieldAutoSize.NONE;
             mHitArea = new Rectangle(0, 0, width, height);
             this.fontName = fontName;
-            
-            addEventListener(Event.FLATTEN, onFlatten);
         }
         
         /** Disposes the underlying texture data. */
         public override function dispose():void
         {
-            removeEventListener(Event.FLATTEN, onFlatten);
             if (mImage) mImage.texture.dispose();
             if (mMeshBatch) mMeshBatch.dispose();
             super.dispose();
         }
         
-        private function onFlatten():void
-        {
-            if (mRequiresRedraw) redraw();
-        }
-        
         /** @inheritDoc */
         public override function render(painter:Painter):void
         {
-            if (mRequiresRedraw) redraw();
+            if (mRequiresRecomposition) recompose();
             super.render(painter);
         }
         
         /** Forces the text field to be constructed right away. Normally, 
          *  it will only do so lazily, i.e. before being rendered. */
-        public function redraw():void
+        public function recompose():void
         {
-            if (mRequiresRedraw)
+            if (mRequiresRecomposition)
             {
                 if (getBitmapFont(mFontName)) createComposedContents();
                 else                          createRenderedContents();
 
                 updateBorder();
-                mRequiresRedraw = false;
+                mRequiresRecomposition = false;
             }
         }
         
@@ -253,13 +247,6 @@ package starling.text
          *  @param textFormat the default text format that's currently set on the text field.
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
-
-        /** Forces a redraw of the current contents right before the display object is rendered.
-         *  Useful especially in combination with the "formatText" method. */
-        protected final function requireRedraw():void
-        {
-        	mRequiresRedraw = true;
-        }
 
         private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
         {
@@ -502,7 +489,13 @@ package starling.text
             bottomLine.y = height - 1;
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }
-        
+
+        private function setRequiresRecomposition():void
+        {
+            mRequiresRecomposition = true;
+            setRequiresRedraw();
+        }
+
         // properties
         
         private function get isHorizontalAutoSize():Boolean
@@ -520,7 +513,7 @@ package starling.text
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
-            if (mRequiresRedraw) redraw();
+            if (mRequiresRecomposition) recompose();
             if (mTextBounds == null) mTextBounds = mMeshBatch.getBounds(mMeshBatch);
             return mTextBounds.clone();
         }
@@ -528,7 +521,7 @@ package starling.text
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            if (mRequiresRedraw) redraw();
+            if (mRequiresRecomposition) recompose();
             getTransformationMatrix(targetSpace, sHelperMatrix);
             return RectangleUtil.getBounds(mHitArea, sHelperMatrix, resultRect);
         }
@@ -549,14 +542,14 @@ package starling.text
             // of the text/font stays the same (this applies to the height, as well).
             
             mHitArea.width = value;
-            mRequiresRedraw = true;
+            setRequiresRecomposition();
         }
         
         /** @inheritDoc */
         public override function set height(value:Number):void
         {
             mHitArea.height = value;
-            mRequiresRedraw = true;
+            setRequiresRecomposition();
         }
         
         /** The displayed text. */
@@ -567,7 +560,7 @@ package starling.text
             if (mText != value)
             {
                 mText = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -581,7 +574,7 @@ package starling.text
                     registerBitmapFont(new BitmapFont());
                 
                 mFontName = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -593,7 +586,7 @@ package starling.text
             if (mFontSize != value)
             {
                 mFontSize = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -606,7 +599,7 @@ package starling.text
             if (mColor != value)
             {
                 mColor = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -620,7 +613,7 @@ package starling.text
             if (mHAlign != value)
             {
                 mHAlign = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -634,7 +627,7 @@ package starling.text
             if (mVAlign != value)
             {
                 mVAlign = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -667,7 +660,7 @@ package starling.text
             if (mBold != value)
             {
                 mBold = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -678,7 +671,7 @@ package starling.text
             if (mItalic != value)
             {
                 mItalic = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -689,7 +682,7 @@ package starling.text
             if (mUnderline != value)
             {
                 mUnderline = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -700,7 +693,7 @@ package starling.text
             if (mKerning != value)
             {
                 mKerning = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -712,7 +705,7 @@ package starling.text
             if (mAutoScale != value)
             {
                 mAutoScale = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -726,7 +719,7 @@ package starling.text
             if (mAutoSize != value)
             {
                 mAutoSize = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         
@@ -736,7 +729,7 @@ package starling.text
          *  draw call. @default false */
         public function get batchable():Boolean { return mBatchable; }
         public function set batchable(value:Boolean):void
-        { 
+        {
             mBatchable = value;
             if (mMeshBatch) mMeshBatch.batchable = value;
         }
@@ -748,7 +741,7 @@ package starling.text
         public function set nativeFilters(value:Array) : void
         {
             mNativeFilters = value.concat();
-            mRequiresRedraw = true;
+            setRequiresRecomposition();
         }
 
         /** Indicates if the assigned text should be interpreted as HTML code. For a description
@@ -762,7 +755,7 @@ package starling.text
             if (mIsHtmlText != value)
             {
                 mIsHtmlText = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
 
@@ -773,7 +766,7 @@ package starling.text
             if (mLeading != value)
             {
                 mLeading = value;
-                mRequiresRedraw = true;
+                setRequiresRecomposition();
             }
         }
         

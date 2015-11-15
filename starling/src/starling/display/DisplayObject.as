@@ -28,6 +28,7 @@ package starling.display
     import starling.events.EventDispatcher;
     import starling.events.TouchEvent;
     import starling.filters.FragmentFilter;
+    import starling.rendering.BatchToken;
     import starling.rendering.Painter;
     import starling.utils.HAlign;
     import starling.utils.MathUtil;
@@ -128,7 +129,7 @@ package starling.display
      */
     public class DisplayObject extends EventDispatcher
     {
-        // members
+        // private members
         
         private var mX:Number;
         private var mY:Number;
@@ -149,12 +150,21 @@ package starling.display
         private var mTransformationMatrix:Matrix;
         private var mTransformationMatrix3D:Matrix3D;
         private var mOrientationChanged:Boolean;
-        private var mFilter:FragmentFilter;
         private var mIs3D:Boolean;
-        private var mMask:DisplayObject;
         private var mIsMask:Boolean;
-        
-        /** Helper objects. */
+
+        // internal members (for fast access on rendering)
+
+        /** @private */ internal var _lastParentOrSelfChangeFrameID:uint;
+        /** @private */ internal var _lastChildChangeFrameID:uint;
+        /** @private */ internal var _pushToken:BatchToken = new BatchToken();
+        /** @private */ internal var _popToken:BatchToken = new BatchToken();
+        /** @private */ internal var _hasVisibleArea:Boolean;
+        /** @private */ internal var _filter:FragmentFilter;
+        /** @private */ internal var _mask:DisplayObject;
+
+        // helper objects
+
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
@@ -175,18 +185,17 @@ package starling.display
             
             mX = mY = mPivotX = mPivotY = mRotation = mSkewX = mSkewY = 0.0;
             mScaleX = mScaleY = mAlpha = 1.0;            
-            mVisible = mTouchable = true;
+            mVisible = mTouchable = _hasVisibleArea = true;
             mBlendMode = BlendMode.AUTO;
             mTransformationMatrix = new Matrix();
-            mOrientationChanged = mUseHandCursor = false;
         }
         
         /** Disposes all resources of the display object. 
           * GPU buffers are released, event listeners are removed, filters and masks are disposed. */
         public function dispose():void
         {
-            if (mFilter) mFilter.dispose();
-            if (mMask) mMask.dispose();
+            if (_filter) _filter.dispose();
+            if (_mask) _mask.dispose();
             removeEventListeners();
             mask = null; // revert 'isMask' property, just to be sure.
         }
@@ -291,7 +300,7 @@ package starling.display
             if (!mVisible || !mTouchable) return null;
 
             // if we've got a mask and the hit occurs outside, fail
-            if (mMask && !hitTestMask(localPoint)) return null;
+            if (_mask && !hitTestMask(localPoint)) return null;
             
             // otherwise, check bounding box
             if (getBounds(this, sHelperRect).containsPoint(localPoint)) return this;
@@ -303,18 +312,18 @@ package starling.display
          *  to having one that's infinitely big). */
         public function hitTestMask(localPoint:Point):Boolean
         {
-            if (mMask)
+            if (_mask)
             {
-                if (mMask.stage) getTransformationMatrix(mMask, sHelperMatrixAlt);
+                if (_mask.stage) getTransformationMatrix(_mask, sHelperMatrixAlt);
                 else
                 {
-                    sHelperMatrixAlt.copyFrom(mMask.transformationMatrix);
+                    sHelperMatrixAlt.copyFrom(_mask.transformationMatrix);
                     sHelperMatrixAlt.invert();
                 }
 
                 var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
                 MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
-                return mMask.hitTest(helperPoint) != null;
+                return _mask.hitTest(helperPoint) != null;
             }
             else return true;
         }
@@ -366,20 +375,12 @@ package starling.display
             throw new AbstractMethodError();
         }
         
-        /** Indicates if an object occupies any visible area. This is the case when its 'alpha',
-         *  'scaleX' and 'scaleY' values are not zero, its 'visible' property is enabled, and
-         *  if it is not currently used as a mask for another display object. */
-        public function get hasVisibleArea():Boolean
-        {
-            return mAlpha != 0.0 && mVisible && !mIsMask && mScaleX != 0.0 && mScaleY != 0.0;
-        }
-        
         /** Moves the pivot point to a certain position within the local coordinate system
          *  of the object. If you pass no arguments, it will be centered. */ 
         public function alignPivot(hAlign:String="center", vAlign:String="center"):void
         {
             var bounds:Rectangle = getBounds(this, sHelperRect);
-            mOrientationChanged = true;
+            setOrientationChanged();
             
             if (hAlign == HAlign.LEFT)        mPivotX = bounds.x;
             else if (hAlign == HAlign.CENTER) mPivotX = bounds.x + bounds.width / 2.0;
@@ -529,6 +530,36 @@ package starling.display
         internal function get isMask():Boolean
         {
             return mIsMask;
+        }
+
+        /** Forces the object to be redrawn in the next frame.
+         *  This will prevent the object to be drawn from the render cache.
+         *
+         *  <p>Subclasses must call this method each time the object changes in any way.
+         *  Furthermore, this method may be registered as an <code>ENTER_FRAME</code> event
+         *  handler to circumvent any caching. That's useful when a class does not support
+         *  the render cache (like Sprite3D).</p>
+         */
+        protected function setRequiresRedraw():void
+        {
+            var parent:DisplayObject = mParent;
+            var frameID:int = Starling.frameID;
+
+            _hasVisibleArea = mAlpha != 0.0 && mVisible && !mIsMask && mScaleX != 0.0 && mScaleY != 0.0;
+            _lastParentOrSelfChangeFrameID = frameID;
+
+            while (parent && parent._lastChildChangeFrameID != frameID)
+            {
+                parent._lastChildChangeFrameID = frameID;
+                parent = parent.mParent;
+            }
+        }
+
+        /** @private */
+        internal function setOrientationChanged():void
+        {
+            mOrientationChanged = true;
+            setRequiresRedraw();
         }
 
         // helpers
@@ -693,6 +724,7 @@ package starling.display
         {
             const PI_Q:Number = Math.PI / 4.0;
 
+            setRequiresRedraw();
             mOrientationChanged = false;
             mTransformationMatrix.copyFrom(matrix);
             mPivotX = mPivotY = 0;
@@ -742,7 +774,7 @@ package starling.display
         /** Indicates if this object or any of its parents is a 'Sprite3D' object. */
         public function get is3D():Boolean { return mIs3D; }
 
-        /** Indicates if the mouse cursor should transform into a hand while it's over the sprite. 
+        /** Indicates if the mouse cursor should transform into a hand while it's over the sprite.
          *  @default false */
         public function get useHandCursor():Boolean { return mUseHandCursor; }
         public function set useHandCursor(value:Boolean):void
@@ -799,7 +831,7 @@ package starling.display
             if (mX != value)
             {
                 mX = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -810,7 +842,7 @@ package starling.display
             if (mY != value)
             {
                 mY = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -821,7 +853,7 @@ package starling.display
             if (mPivotX != value)
             {
                 mPivotX = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -832,7 +864,7 @@ package starling.display
             if (mPivotY != value)
             {
                 mPivotY = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -844,7 +876,7 @@ package starling.display
             if (mScaleX != value)
             {
                 mScaleX = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -856,7 +888,7 @@ package starling.display
             if (mScaleY != value)
             {
                 mScaleY = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
 
@@ -874,7 +906,7 @@ package starling.display
             if (mSkewX != value)
             {
                 mSkewX = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -887,7 +919,7 @@ package starling.display
             if (mSkewY != value)
             {
                 mSkewY = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
@@ -901,20 +933,31 @@ package starling.display
             if (mRotation != value)
             {            
                 mRotation = value;
-                mOrientationChanged = true;
+                setOrientationChanged();
             }
         }
         
         /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
         public function get alpha():Number { return mAlpha; }
         public function set alpha(value:Number):void 
-        { 
-            mAlpha = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value); 
+        {
+            if (value != mAlpha)
+            {
+                mAlpha = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value);
+                setRequiresRedraw();
+            }
         }
         
         /** The visibility of the object. An invisible object will be untouchable. */
         public function get visible():Boolean { return mVisible; }
-        public function set visible(value:Boolean):void { mVisible = value; }
+        public function set visible(value:Boolean):void
+        {
+            if (value != mVisible)
+            {
+                mVisible = value;
+                setRequiresRedraw();
+            }
+        }
         
         /** Indicates if this object (and its children) will receive touch events. */
         public function get touchable():Boolean { return mTouchable; }
@@ -924,7 +967,14 @@ package starling.display
          *   @default auto
          *   @see starling.display.BlendMode */ 
         public function get blendMode():String { return mBlendMode; }
-        public function set blendMode(value:String):void { mBlendMode = value; }
+        public function set blendMode(value:String):void
+        {
+            if (value != mBlendMode)
+            {
+                mBlendMode = value;
+                setRequiresRedraw();
+            }
+        }
         
         /** The name of the display object (default: null). Used by 'getChildByName()' of 
          *  display object containers. */
@@ -937,8 +987,15 @@ package starling.display
          *  performance reasons). Furthermore, when you set this property to 'null' or
          *  assign a different filter, the previous filter is NOT disposed automatically
          *  (since you might want to reuse it). */
-        public function get filter():FragmentFilter { return mFilter; }
-        public function set filter(value:FragmentFilter):void { mFilter = value; }
+        public function get filter():FragmentFilter { return _filter; }
+        public function set filter(value:FragmentFilter):void
+        {
+            if (value != _filter)
+            {
+                _filter = value;
+                setRequiresRedraw();
+            }
+        }
 
         /** The display object that acts as a mask for the current object.
          *  Assign <code>null</code> to remove it.
@@ -960,16 +1017,30 @@ package starling.display
          *  @see Canvas
          *  @default null
          */
-        public function get mask():DisplayObject { return mMask; }
+        public function get mask():DisplayObject { return _mask; }
         public function set mask(value:DisplayObject):void
         {
-            if (mMask != value)
+            if (_mask != value)
             {
-                if (mMask) mMask.mIsMask = false;
+                if (_mask) _mask.mIsMask = false;
                 if (value) value.mIsMask = true;
 
-                mMask = value;
+                if (value && _mask == null) // -> masks disrupt the render cache
+                    addEventListener(Event.ENTER_FRAME, onEnterFrameWithMask);
+                else if (value == null)
+                    removeEventListener(Event.ENTER_FRAME, onEnterFrameWithMask);
+
+                _mask = value;
+                setRequiresRedraw();
             }
+        }
+
+        private function onEnterFrameWithMask():void
+        {
+            // we need to use a private event listener, otherwise we'd run into
+            // problems when subclasses want to disable the render cache, as well.
+
+            setRequiresRedraw();
         }
 
         /** The display object container that contains this display object. */

@@ -15,6 +15,8 @@ package starling.display
     import flash.geom.Point;
     import flash.geom.Vector3D;
 
+    import starling.events.EnterFrameEvent;
+
     import starling.events.Event;
     import starling.rendering.Painter;
     import starling.utils.MathUtil;
@@ -56,12 +58,10 @@ package starling.display
      *
      *  <p><strong>Limitations</strong></p>
      *
-     *  <p>A Sprite3D object cannot be flattened (although you can flatten objects <em>within</em>
-     *  a Sprite3D), and it does not work with the "clipRect" property. Furthermore, a filter
-     *  applied to a Sprite3D object cannot be cached.</p>
-     *
      *  <p>On rendering, each Sprite3D requires its own draw call — except if the object does not
-     *  contain any 3D transformations ('z', 'rotationX/Y' and 'pivotZ' are zero).</p>
+     *  contain any 3D transformations ('z', 'rotationX/Y' and 'pivotZ' are zero). Furthermore,
+     *  it interrupts the render cache, i.e. the cache cannot contain objects within different
+     *  3D coordinate systems. Flat contents within the Sprite3D will be cached, though.</p>
      *
      */
     public class Sprite3D extends DisplayObjectContainer
@@ -77,6 +77,7 @@ package starling.display
         private var mTransformationMatrix:Matrix;
         private var mTransformationMatrix3D:Matrix3D;
         private var mTransformationChanged:Boolean;
+        private var mIs2D:Boolean;
 
         /** Helper objects. */
         private static var sHelperPoint:Vector3D    = new Vector3D();
@@ -94,12 +95,13 @@ package starling.display
 
             addEventListener(Event.ADDED, onAddedChild);
             addEventListener(Event.REMOVED, onRemovedChild);
+            addEventListener(Event.ENTER_FRAME, onEnterFrame);
         }
 
         /** @inheritDoc */
         public override function render(painter:Painter):void
         {
-            if (is2D) super.render(painter);
+            if (mIs2D) super.render(painter);
             else
             {
                 painter.finishMeshBatch();
@@ -116,7 +118,7 @@ package starling.display
         /** @inheritDoc */
         public override function hitTest(localPoint:Point):DisplayObject
         {
-            if (is2D) return super.hitTest(localPoint);
+            if (mIs2D) return super.hitTest(localPoint);
             else
             {
                 if (!visible || !touchable) return null;
@@ -135,7 +137,22 @@ package starling.display
             }
         }
 
+        override protected function setRequiresRedraw():void
+        {
+            mIs2D = mZ > -E && mZ < E &&
+                    mRotationX > -E && mRotationX < E &&
+                    mRotationY > -E && mRotationY < E &&
+                    mPivotZ > -E && mPivotZ < E;
+
+            super.setRequiresRedraw();
+        }
+
         // helpers
+
+        private function onEnterFrame(event:EnterFrameEvent):void
+        {
+            if (!mIs2D) setRequiresRedraw();
+        }
 
         private function onAddedChild(event:Event):void
         {
@@ -189,18 +206,8 @@ package starling.display
             if (pivotX != 0.0 || pivotY != 0.0 || mPivotZ != 0.0)
                 mTransformationMatrix3D.prependTranslation(-pivotX, -pivotY, -mPivotZ);
 
-            if (is2D) MatrixUtil.convertTo2D(mTransformationMatrix3D, mTransformationMatrix);
-            else      mTransformationMatrix.identity();
-        }
-
-        /** Indicates if the object can be represented by a 2D transformation. */
-        [Inline]
-        private final function get is2D():Boolean
-        {
-            return mZ > -E && mZ < E &&
-                mRotationX > -E && mRotationX < E &&
-                mRotationY > -E && mRotationY < E &&
-                mPivotZ > -E && mPivotZ < E;
+            if (mIs2D) MatrixUtil.convertTo2D(mTransformationMatrix3D, mTransformationMatrix);
+            else       mTransformationMatrix.identity();
         }
 
         // properties
@@ -261,6 +268,7 @@ package starling.display
         {
             mZ = value;
             mTransformationChanged = true;
+            setRequiresRedraw();
         }
 
         /** @inheritDoc */
@@ -283,6 +291,7 @@ package starling.display
         {
             mPivotZ = value;
             mTransformationChanged = true;
+            setRequiresRedraw();
         }
 
         /** @inheritDoc */
@@ -305,6 +314,7 @@ package starling.display
         {
             mScaleZ = value;
             mTransformationChanged = true;
+            setRequiresRedraw();
         }
 
         /** @private */
@@ -340,6 +350,7 @@ package starling.display
         {
             mRotationX = MathUtil.normalizeAngle(value);
             mTransformationChanged = true;
+            setRequiresRedraw();
         }
 
         /** The rotation of the object about the y axis, in radians.
@@ -349,6 +360,7 @@ package starling.display
         {
             mRotationY = MathUtil.normalizeAngle(value);
             mTransformationChanged = true;
+            setRequiresRedraw();
         }
 
         /** The rotation of the object about the z axis, in radians.

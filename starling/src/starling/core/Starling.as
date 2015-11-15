@@ -199,7 +199,8 @@ package starling.core
         private var mPainter:Painter;
         private var mTouchProcessor:TouchProcessor;
         private var mAntiAliasing:int;
-        private var mLastFrameTimestamp:Number;
+        private var mFrameTimestamp:Number;
+        private var mFrameID:uint;
         private var mLeftMouseDown:Boolean;
         private var mStatsDisplay:StatsDisplay;
         private var mStarted:Boolean;
@@ -268,7 +269,7 @@ package starling.core
             mJuggler = new Juggler();
             mAntiAliasing = 0;
             mSupportHighResolutions = false;
-            mLastFrameTimestamp = getTimer() / 1000.0;
+            mFrameTimestamp = getTimer() / 1000.0;
             mPainter = createPainter(stage3D);
             
             // all other modes are problematic in Starling, so we force those here
@@ -355,7 +356,7 @@ package starling.core
                 dispatchEventWith(Event.CONTEXT3D_CREATE, false, context);
 
             initializeRoot();
-            mLastFrameTimestamp = getTimer() / 1000.0;
+            mFrameTimestamp = getTimer() / 1000.0;
         }
         
         private function initializeRoot():void
@@ -387,9 +388,9 @@ package starling.core
         public function nextFrame():void
         {
             var now:Number = getTimer() / 1000.0;
-            var passedTime:Number = now - mLastFrameTimestamp;
-            mLastFrameTimestamp = now;
-            
+            var passedTime:Number = now - mFrameTimestamp;
+            mFrameTimestamp = now;
+
             // to avoid overloading time-based animations, the maximum delta is truncated.
             if (passedTime > 1.0) passedTime = 1.0;
 
@@ -446,7 +447,8 @@ package starling.core
             
             mStage.render(mPainter);
             mPainter.finishFrame();
-            
+            mPainter.frameID = ++mFrameID;
+
             if (mStatsDisplay)
                 mStatsDisplay.drawCount = mPainter.drawCount;
             
@@ -537,7 +539,7 @@ package starling.core
         public function start():void 
         { 
             mStarted = mRendering = true;
-            mLastFrameTimestamp = getTimer() / 1000.0;
+            mFrameTimestamp = getTimer() / 1000.0;
         }
         
         /** Stops all logic and input processing, effectively freezing the app in its current state.
@@ -915,6 +917,9 @@ package starling.core
                 mTouchProcessor = value;
             }
         }
+
+        /** The number of frames that have been rendered since this instance was created. */
+        public function get frameID():uint { return mFrameID; }
         
         /** Indicates if the Context3D object is currently valid (i.e. it hasn't been lost or
          *  disposed). */
@@ -956,6 +961,12 @@ package starling.core
             else 
                 Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
                                                MultitouchInputMode.NONE;
+        }
+
+        /** The number of frames that have been rendered since the current instance was created. */
+        public static function get frameID():uint
+        {
+            return sCurrent ? sCurrent.mFrameID : 0;
         }
     }
 }

@@ -792,6 +792,7 @@ package starling.rendering
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
+            if (_numVertices == 0) return null;
 
             var buffer:VertexBuffer3D = context.createVertexBuffer(
                 _numVertices, _vertexSize / 4, bufferUsage);
@@ -814,7 +815,8 @@ package starling.rendering
             if (numVertices < 0 || vertexID + numVertices > _numVertices)
                 numVertices = _numVertices - vertexID;
 
-            buffer.uploadFromByteArray(_rawData, 0, vertexID, numVertices);
+            if (numVertices > 0)
+                buffer.uploadFromByteArray(_rawData, 0, vertexID, numVertices);
         }
 
         [Inline]

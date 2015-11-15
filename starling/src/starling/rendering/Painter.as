@@ -80,6 +80,7 @@ package starling.rendering
         private var mEnableErrorChecking:Boolean;
         private var mStencilReferenceValues:Dictionary;
         private var mBatchProcessor:BatchProcessor;
+        private var mBatchCache:BatchProcessor;
 
         private var mActualRenderTarget:TextureBase;
         private var mActualCulling:String;
@@ -118,9 +119,12 @@ package starling.rendering
             mState = new RenderState();
             mStateStack = new <RenderState>[];
             mStateStackPos = -1;
-            mBatchProcessor = new BatchProcessor();
-            mBatchProcessor.onBatchComplete = renderBatch;
 
+            mBatchProcessor = new BatchProcessor();
+            mBatchProcessor.onBatchComplete = drawBatch;
+
+            mBatchCache = new BatchProcessor();
+            mBatchCache.onBatchComplete = drawBatch;
         }
         
         /** Disposes all quad batches, programs, and - if it is not being shared -
@@ -134,19 +138,6 @@ package starling.rendering
 
             for each (var program:Program in mPrograms)
                 program.dispose();
-        }
-
-        private function renderBatch(meshBatch:MeshBatch):void
-        {
-            pushState();
-
-            state.blendMode = meshBatch.blendMode;
-            state.modelviewMatrix.identity();
-            state.alpha = 1.0;
-
-            meshBatch.render(this);
-
-            popState();
         }
 
         // context handling
@@ -244,29 +235,36 @@ package starling.rendering
         // state stack
 
         /** Pushes the current render state to a stack from which it can be restored later.
-         *  Optionally, you can immediately modify the new state with a transformation matrix,
-         *  alpha factor, and blend mode.
          *
          *  <p>Note that any call to <code>drawTriangles</code> will use the currently set state.
          *  That means that if you're going to change clipping rectangle, render target or culling,
          *  you should call <code>finishQuadBatch</code> before pushing the new state, so that
          *  all batched objects are drawn with the intended settings.</p>
          *
+         *  <p>If you pass a BatchToken, it will be updated to point to the current location within
+         *  the render cache. That way, you can later reference this location to render a subset of
+         *  the cache.</p>
+         */
+        public function pushState(token:BatchToken=null):void
+        {
+            mStateStackPos++;
+
+            if (mStateStack.length < mStateStackPos + 1) mStateStack[mStateStackPos] = new RenderState();
+            if (token) mBatchProcessor.fillToken(token);
+
+            mStateStack[mStateStackPos].copyFrom(mState);
+        }
+
+        /** Modifies the current state with a transformation matrix, alpha factor, and blend mode.
+         *
          *  @param transformationMatrix Used to transform the current <code>modelviewMatrix</code>.
          *  @param alphaFactor          Multiplied with the current alpha value.
          *  @param blendMode            Replaces the current blend mode; except for "auto", which
          *                              means the current value remains unchanged.
          */
-        public function pushState(transformationMatrix:Matrix=null, alphaFactor:Number=1.0,
-                                  blendMode:String="auto"):void
+        public function setStateTo(transformationMatrix:Matrix, alphaFactor:Number=1.0,
+                                   blendMode:String="auto"):void
         {
-            mStateStackPos++;
-
-            if (mStateStack.length < mStateStackPos + 1)
-                mStateStack[mStateStackPos] = new RenderState();
-
-            mStateStack[mStateStackPos].copyFrom(mState);
-
             if (transformationMatrix) mState.transformModelviewMatrix(transformationMatrix);
             if (alphaFactor != 1.0) mState.alpha *= alphaFactor;
             if (blendMode != BlendMode.AUTO) mState.blendMode = blendMode;
@@ -275,15 +273,15 @@ package starling.rendering
         /** Restores the render state that was last pushed to the stack. If this changes
          *  clipping rectangle, render target or culling, the current batch will be drawn
          *  right away. */
-        public function popState():void
+        public function popState(token:BatchToken=null):void
         {
             if (mStateStackPos < 0)
                 throw new IllegalOperationError("Cannot pop empty state stack");
 
             var nextState:RenderState = mStateStack[mStateStackPos];
 
-            if (mState.switchRequiresDraw(nextState))
-                finishMeshBatch();
+            if (mState.switchRequiresDraw(nextState)) finishMeshBatch();
+            if (token) mBatchProcessor.fillToken(token);
 
             mState.copyFrom(nextState);
             mStateStackPos--;
@@ -372,13 +370,22 @@ package starling.rendering
             mBatchProcessor.finishBatch();
         }
 
+        /** Completes all unfinished batches, cleanup procedures. */
         public function finishFrame():void
         {
-            if (mFrameID % 60 == 0)
+            if (mFrameID % 99 == 0) // odd number -> alternating processors
                 mBatchProcessor.trim();
 
             mBatchProcessor.finishBatch();
+            swapBatchProcessors();
             mBatchProcessor.clear();
+        }
+
+        private function swapBatchProcessors():void
+        {
+            var tmp:BatchProcessor = mBatchProcessor;
+            mBatchProcessor = mBatchCache;
+            mBatchCache = tmp;
         }
 
         /** Resets the current state, the state stack, mesh batch index, stencil reference value,
@@ -386,11 +393,32 @@ package starling.rendering
         public function nextFrame():void
         {
             stencilReferenceValue = 0;
-            mFrameID++;
             mDrawCount = 0;
             mStateStackPos = -1;
+            mBatchProcessor.clear();
             mContext.setDepthTest(false, Context3DCompareMode.ALWAYS);
             mState.reset();
+        }
+
+        /** Draws all meshes from the render cache between <code>startToken</code> and (but
+         *  not including) <code>endToken</code>. The render cache contains all meshes
+         *  rendered in the previous frame. */
+        public function drawFromCache(startToken:BatchToken, endToken:BatchToken):void
+        {
+            mBatchProcessor.addMeshesFrom(mBatchCache, startToken, endToken);
+        }
+
+        private function drawBatch(meshBatch:MeshBatch):void
+        {
+            pushState();
+
+            state.blendMode = meshBatch.blendMode;
+            state.modelviewMatrix.identity();
+            state.alpha = 1.0;
+
+            meshBatch.render(this);
+
+            popState();
         }
 
         // helper methods
@@ -542,6 +570,10 @@ package starling.rendering
 
         /** The Context3D instance this painter renders into. */
         public function get context():Context3D { return mContext; }
+
+        /** The number of frames that have been rendered with the current Starling instance. */
+        public function get frameID():uint { return mFrameID; }
+        public function set frameID(value:uint):void { mFrameID = value; }
 
         /** Indicates if another Starling instance (or another Stage3D framework altogether)
          *  uses the same render context. @default false */
