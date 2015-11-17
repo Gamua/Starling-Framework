@@ -68,8 +68,14 @@ package starling.utils
             sApplicationActive = true;
             
             for each (var call:Array in sWaitingCalls)
-                call[0].apply(null, call[1]);
-            
+            {
+                try { call[0].apply(null, call[1]); }
+                catch (e:Error)
+                {
+                    trace("[Starling] Error in 'executeWhenApplicationIsActive' call:", e.message);
+                }
+            }
+
             sWaitingCalls = [];
         }
         
