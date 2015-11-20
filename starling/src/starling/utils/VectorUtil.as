@@ -24,7 +24,7 @@ package starling.utils
 
         /** Inserts a value into the 'int'-Vector at the specified index. Supports negative
          *  indices (counting from the end); gaps will be filled up with zeroes. */
-        public static function insertIntAt(vector:Vector.<int>, index:int, value:uint):void
+        public static function insertIntAt(vector:Vector.<int>, index:int, value:int):void
         {
             var i:int;
             var length:uint = vector.length;
