@@ -41,7 +41,7 @@ package starling.display
      */
     public class Button extends DisplayObjectContainer
     {
-        private static const MAX_DRAG_DIST:Number = 50;
+        public var MAX_DRAG_DIST:Number = 50;
         
         private var mUpState:Texture;
         private var mDownState:Texture;
