@@ -198,11 +198,18 @@ package starling.events
             }
         }
         
-        /** Returns if there are listeners registered for a certain event type. */
-        public function hasEventListener(type:String):Boolean
+        /** If called with one argument, figures out if there are any listeners registered for
+         *  the given event type. If called with two arguments, also determines if a specific
+         *  listener is registered. */
+        public function hasEventListener(type:String, listener:Function=null):Boolean
         {
             var listeners:Vector.<Function> = mEventListeners ? mEventListeners[type] : null;
-            return listeners ? listeners.length != 0 : false;
+            if (listeners == null) return false;
+            else
+            {
+                if (listener != null) return listeners.indexOf(listener) != -1;
+                else return listeners.length != 0;
+            }
         }
     }
 }

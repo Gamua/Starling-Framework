@@ -10,13 +10,17 @@
 
 package tests.events
 {
-    import flexunit.framework.Assert;
-    
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
+
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.EventDispatcher;
+
     import tests.Helpers;
-    
+
     public class EventTest
     {		
         [Test]
@@ -45,11 +49,11 @@ package tests.events
             var event:Event = new Event(eventType, true);
             child.dispatchEvent(event);
             
-            Assert.assertTrue(grandParentEventHandlerHit);
-            Assert.assertTrue(parentEventHandlerHit);
-            Assert.assertTrue(childEventHandlerHit);
+            assertTrue(grandParentEventHandlerHit);
+            assertTrue(parentEventHandlerHit);
+            assertTrue(childEventHandlerHit);
             
-            Assert.assertEquals(3, hitCount);
+            assertEquals(3, hitCount);
             
             // remove event handler
             
@@ -57,8 +61,8 @@ package tests.events
             parent.removeEventListener(eventType, onParentEvent);
             child.dispatchEvent(event);
             
-            Assert.assertFalse(parentEventHandlerHit);
-            Assert.assertEquals(5, hitCount);
+            assertFalse(parentEventHandlerHit);
+            assertEquals(5, hitCount);
             
             // don't bubble
             
@@ -68,32 +72,32 @@ package tests.events
             parent.addEventListener(eventType, onParentEvent);
             child.dispatchEvent(event);
             
-            Assert.assertEquals(6, hitCount);
-            Assert.assertTrue(childEventHandlerHit);
-            Assert.assertFalse(parentEventHandlerHit);
-            Assert.assertFalse(grandParentEventHandlerHit);
+            assertEquals(6, hitCount);
+            assertTrue(childEventHandlerHit);
+            assertFalse(parentEventHandlerHit);
+            assertFalse(grandParentEventHandlerHit);
             
             function onGrandParentEvent(event:Event):void
             {
                 grandParentEventHandlerHit = true;                
-                Assert.assertEquals(child, event.target);
-                Assert.assertEquals(grandParent, event.currentTarget);
+                assertEquals(child, event.target);
+                assertEquals(grandParent, event.currentTarget);
                 hitCount++;
             }
             
             function onParentEvent(event:Event):void
             {
                 parentEventHandlerHit = true;                
-                Assert.assertEquals(child, event.target);
-                Assert.assertEquals(parent, event.currentTarget);
+                assertEquals(child, event.target);
+                assertEquals(parent, event.currentTarget);
                 hitCount++;
             }
             
             function onChildEvent(event:Event):void
             {
                 childEventHandlerHit = true;                               
-                Assert.assertEquals(child, event.target);
-                Assert.assertEquals(child, event.currentTarget);
+                assertEquals(child, event.target);
+                assertEquals(child, event.currentTarget);
                 hitCount++;
             }
         }
@@ -121,7 +125,7 @@ package tests.events
             
             child.dispatchEvent(new Event(eventType, true));
             
-            Assert.assertEquals(3, hitCount);
+            assertEquals(3, hitCount);
             
             // stop immediate propagation at parent
             
@@ -133,7 +137,7 @@ package tests.events
             
             child.dispatchEvent(new Event(eventType, true));
             
-            Assert.assertEquals(5, hitCount);
+            assertEquals(5, hitCount);
             
             function onEvent(event:Event):void
             {
@@ -165,28 +169,28 @@ package tests.events
             
             hitCount = 0;
             dispatcher.dispatchEvent(new Event("Type1"));
-            Assert.assertEquals(1, hitCount);
+            assertEquals(1, hitCount);
             
             dispatcher.dispatchEvent(new Event("Type2"));
-            Assert.assertEquals(2, hitCount);
+            assertEquals(2, hitCount);
             
             dispatcher.dispatchEvent(new Event("Type3"));
-            Assert.assertEquals(3, hitCount);
+            assertEquals(3, hitCount);
             
             hitCount = 0;
             dispatcher.removeEventListener("Type1", onEvent);
             dispatcher.dispatchEvent(new Event("Type1"));
-            Assert.assertEquals(0, hitCount);
+            assertEquals(0, hitCount);
             
             dispatcher.dispatchEvent(new Event("Type3"));
-            Assert.assertEquals(1, hitCount);
+            assertEquals(1, hitCount);
             
             hitCount = 0;
             dispatcher.removeEventListeners();
             dispatcher.dispatchEvent(new Event("Type1"));
             dispatcher.dispatchEvent(new Event("Type2"));
             dispatcher.dispatchEvent(new Event("Type3"));
-            Assert.assertEquals(0, hitCount);
+            assertEquals(0, hitCount);
             
             function onEvent(event:Event):void
             {
@@ -220,7 +224,7 @@ package tests.events
             dispatcher.addEventListener("test", onEvent);
             
             dispatcher.dispatchEvent(new Event("test"));
-            Assert.assertEquals(1, callCount);
+            assertEquals(1, callCount);
             
             function onEvent(event:Event):void
             {
@@ -251,8 +255,8 @@ package tests.events
             
             child.dispatchEvent(new Event(eventType, true));
             
-            Assert.assertNull(parent.parent);
-            Assert.assertEquals(3, hitCount);
+            assertNull(parent.parent);
+            assertEquals(3, hitCount);
             
             function onEvent():void
             {
@@ -288,24 +292,24 @@ package tests.events
             child.dispatchEventWith(eventType, true);
             
             // main bubble
-            Assert.assertEquals(targets[0], child);
-            Assert.assertEquals(currentTargets[0], child);
+            assertEquals(targets[0], child);
+            assertEquals(currentTargets[0], child);
             
             // main bubble
-            Assert.assertEquals(targets[1], child);
-            Assert.assertEquals(currentTargets[1], parent);
+            assertEquals(targets[1], child);
+            assertEquals(currentTargets[1], parent);
             
             // inner bubble
-            Assert.assertEquals(targets[2], parent);
-            Assert.assertEquals(currentTargets[2], parent);
+            assertEquals(targets[2], parent);
+            assertEquals(currentTargets[2], parent);
             
             // inner bubble
-            Assert.assertEquals(targets[3], parent);
-            Assert.assertEquals(currentTargets[3], grandParent);
+            assertEquals(targets[3], parent);
+            assertEquals(currentTargets[3], grandParent);
             
             // main bubble
-            Assert.assertEquals(targets[4], child);
-            Assert.assertEquals(currentTargets[4], grandParent);
+            assertEquals(targets[4], child);
+            assertEquals(currentTargets[4], grandParent);
             
             function onEvent(event:Event):void
             {
@@ -318,6 +322,30 @@ package tests.events
                 parent.removeEventListener(eventType, onEvent_redispatch);
                 parent.dispatchEvent(event);
             }
+        }
+
+        [Test]
+        public function testHasEventListener():void
+        {
+            const eventType:String = "event";
+            var dispatcher:EventDispatcher = new EventDispatcher();
+
+            assertFalse(dispatcher.hasEventListener(eventType));
+            assertFalse(dispatcher.hasEventListener(eventType, onEvent));
+
+            dispatcher.addEventListener(eventType, onEvent);
+
+            assertTrue(dispatcher.hasEventListener(eventType));
+            assertTrue(dispatcher.hasEventListener(eventType, onEvent));
+            assertFalse(dispatcher.hasEventListener(eventType, onSomethingElse));
+
+            dispatcher.removeEventListener(eventType, onEvent);
+
+            assertFalse(dispatcher.hasEventListener(eventType));
+            assertFalse(dispatcher.hasEventListener(eventType, onEvent));
+
+            function onEvent():void {}
+            function onSomethingElse():void {}
         }
     }
 }
