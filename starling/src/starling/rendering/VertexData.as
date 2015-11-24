@@ -103,7 +103,8 @@ package starling.rendering
          *  @param format
          *
          *  Either a VertexDataFormat instance or a String that describes the data format.
-         *  Refer to the VertexDataFormat class for more information.
+         *  Refer to the VertexDataFormat class for more information. If you don't pass a format,
+         *  the default <code>MeshStyle.VERTEX_FORMAT</code> will be used.
          *
          *  @param initialCapacity
          *
@@ -121,9 +122,10 @@ package starling.rendering
          *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
          *  usage of your VertexData instances.</p>
          */
-        public function VertexData(format:*, initialCapacity:int=32)
+        public function VertexData(format:*=null, initialCapacity:int=32)
         {
-            if (format is VertexDataFormat) _format = format;
+            if (format == null) _format = MeshStyle.VERTEX_FORMAT;
+            else if (format is VertexDataFormat) _format = format;
             else if (format is String) _format = VertexDataFormat.fromString(format as String);
             else throw new ArgumentError("'format' must be String or VertexDataFormat");
 
@@ -134,7 +136,7 @@ package starling.rendering
             _numVertices = 0;
             _premultipliedAlpha = true;
             _rawData = new ByteArray();
-            _rawData.endian = Endian.LITTLE_ENDIAN;
+            _rawData.endian = sBytes.endian = Endian.LITTLE_ENDIAN;
             _rawData.length = initialCapacity * _vertexSize; // just for the initial allocation
             _rawData.length = 0;                             // changes length, but not memory!
         }
@@ -910,10 +912,59 @@ package starling.rendering
             return _rawData;
         }
 
-        /** The format that describes the attributes of each vertex. */
+        /** The format that describes the attributes of each vertex.
+         *  When you assign a different format, the raw data will be converted accordingly,
+         *  i.e. attributes with the same name will still point to the same data.
+         *  New properties will be filled up with zeros (except for colors, which will be
+         *  initialized with an alpha value of 1.0). As a side-effect, the instance will also
+         *  be trimmed. */
         public function get format():VertexDataFormat
         {
             return _format;
+        }
+
+        public function set format(value:VertexDataFormat):void
+        {
+            if (_format === value) return;
+
+            var a:int, i:int;
+            var srcVertexSize:int = _format.vertexSizeInBytes;
+            var tgtVertexSize:int = value.vertexSizeInBytes;
+            var numAttributes:int = value.numAttributes;
+
+            sBytes.length = value.vertexSizeInBytes * _numVertices;
+
+            for (a=0; a<numAttributes; ++a)
+            {
+                var tgtAttr:VertexDataAttribute = value.attributes[a];
+                var srcAttr:VertexDataAttribute = getAttribute(tgtAttr.name);
+
+                if (srcAttr) // copy attributes that exist in both targets
+                {
+                    for (i=0; i<_numVertices; ++i)
+                    {
+                        sBytes.position = tgtVertexSize * i + tgtAttr.offset;
+                        sBytes.writeBytes(_rawData, srcVertexSize * i + srcAttr.offset, srcAttr.size);
+                    }
+                }
+                else if (tgtAttr.isColor) // initialize color values with an alpha of "1.0"
+                {
+                    var offset:int = tgtAttr.offset + 3;
+                    for (i=0; i<_numVertices; ++i)
+                        sBytes[tgtVertexSize * i + offset] = 0xff;
+                }
+            }
+
+            _rawData.clear();
+            _rawData.length = sBytes.length;
+            _rawData.writeBytes(sBytes);
+            sBytes.clear();
+
+            _format = value;
+            _attributes = _format.attributes;
+            _numAttributes = _attributes.length;
+            _posOffset = _format.hasAttribute("position") ? _format.getOffsetInBytes("position") : 0;
+            _vertexSize = _format.vertexSizeInBytes;
         }
 
         /** The format string that describes the attributes of each vertex. */

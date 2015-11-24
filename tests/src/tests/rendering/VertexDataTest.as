@@ -24,6 +24,7 @@ package tests.rendering
     import org.hamcrest.number.closeTo;
 
     import starling.rendering.VertexData;
+    import starling.rendering.VertexDataFormat;
     import starling.utils.Color;
 
     import tests.Helpers;
@@ -440,6 +441,28 @@ package tests.rendering
             Helpers.comparePoints(position, new Point(15, 26));
             vd.getPoint(1, "position", position);
             Helpers.comparePoints(position, new Point(15, 10));
+        }
+
+        [Test]
+        public function testChangeFormat():void
+        {
+            var vd:VertexData = new VertexData(STD_FORMAT);
+            var p0:Point = new Point(10, 20);
+            var p1:Point = new Point(30, 40);
+            vd.setPoint(0, "position", p0.x, p0.y);
+            vd.setPoint(1, "position", p1.x, p1.y);
+
+            vd.format = VertexDataFormat.fromString(
+                    "newCoords(float2), position(float2), newColor(bytes4)");
+
+            Helpers.comparePoints(p0, vd.getPoint(0, "position"));
+            Helpers.comparePoints(p1, vd.getPoint(1, "position"));
+            Helpers.comparePoints(new Point(), vd.getPoint(0, "newCoords"));
+            Helpers.comparePoints(new Point(), vd.getPoint(1, "newCoords"));
+            assertEquals(0x0, vd.getColor(0, "newColor"));
+            assertEquals(0x0, vd.getColor(1, "newColor"));
+            assertEquals(1.0, vd.getAlpha(0, "newColor"));
+            assertEquals(1.0, vd.getAlpha(1, "newColor"));
         }
     }
 }
