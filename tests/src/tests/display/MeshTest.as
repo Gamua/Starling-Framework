@@ -20,6 +20,7 @@ package tests.display
 
     import starling.display.Mesh;
     import starling.rendering.IndexData;
+    import starling.rendering.MeshStyle;
     import starling.rendering.VertexData;
     import starling.textures.ConcreteTexture;
     import starling.textures.Texture;
@@ -52,7 +53,7 @@ package tests.display
         [Test]
         public function testColor():void
         {
-            var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT);
+            var vertexData:VertexData = new VertexData();
             vertexData.numVertices = 3;
 
             var indexData:IndexData = new IndexData();
@@ -76,7 +77,7 @@ package tests.display
         [Test]
         public function testAlpha():void
         {
-            var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT);
+            var vertexData:VertexData = new VertexData();
             vertexData.numVertices = 3;
 
             var indexData:IndexData = new IndexData();
@@ -99,7 +100,7 @@ package tests.display
             var rootTexture:Texture = new ConcreteTexture(null, null, 100, 100, false, true);
             var subTexture:Texture = Texture.fromTexture(rootTexture, new Rectangle(50, 50, 50, 50));
 
-            var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT);
+            var vertexData:VertexData = new VertexData();
             vertexData.setPoint(0, "position",  0, 0);
             vertexData.setPoint(1, "position",  1, 0);
             vertexData.setPoint(2, "position",  0, 1);
@@ -151,7 +152,7 @@ package tests.display
             //    |/
             //    4
 
-            var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT, 5);
+            var vertexData:VertexData = new VertexData(MeshStyle.VERTEX_FORMAT, 5);
             vertexData.setPoint(0, "position", 1, 0);
             vertexData.setPoint(1, "position", 0, 1);
             vertexData.setPoint(2, "position", 1, 1);

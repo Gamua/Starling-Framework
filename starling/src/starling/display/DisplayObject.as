@@ -535,12 +535,15 @@ package starling.display
         /** Forces the object to be redrawn in the next frame.
          *  This will prevent the object to be drawn from the render cache.
          *
-         *  <p>Subclasses must call this method each time the object changes in any way.
-         *  Furthermore, this method may be registered as an <code>ENTER_FRAME</code> event
-         *  handler to circumvent any caching. That's useful when a class does not support
-         *  the render cache (like Sprite3D).</p>
+         *  <p>This method is called every time the object changes in any way. When creating
+         *  custom mesh styles or any other custom rendering code, call this method if the object
+         *  needs to be redrawn.</p>
+         *
+         *  <p>If an object does not support the render cache (similar to the 'Sprite3D' class),
+         *  this method may be called from within an <code>ENTER_FRAME</code> event handler to
+         *  circumvent any caching.</p>
          */
-        protected function setRequiresRedraw():void
+        public function setRequiresRedraw():void
         {
             var parent:DisplayObject = mParent;
             var frameID:int = Starling.frameID;
@@ -555,14 +558,13 @@ package starling.display
             }
         }
 
-        /** @private */
-        internal function setOrientationChanged():void
+        // helpers
+
+        private function setOrientationChanged():void
         {
             mOrientationChanged = true;
             setRequiresRedraw();
         }
-
-        // helpers
         
         private final function isEquivalent(a:Number, b:Number, epsilon:Number=0.0001):Boolean
         {
@@ -1037,7 +1039,7 @@ package starling.display
 
         private function onEnterFrameWithMask():void
         {
-            // we need to use a private event listener, otherwise we'd run into
+            // we need to wrap 'setRequiresRedraw' with this method, otherwise we'd run into
             // problems when subclasses want to disable the render cache, as well.
 
             setRequiresRedraw();

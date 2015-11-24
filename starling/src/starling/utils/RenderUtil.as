@@ -71,6 +71,38 @@ package starling.utils
             return "<" + options.join() + ">";
         }
 
+        /** Returns a bit field uniquely describing texture format and premultiplied alpha,
+         *  so that each required AGAL variant will get its unique ID. This method is most
+         *  useful when overriding the <code>programVariantName</code> method of custom
+         *  effects.
+         *
+         *  @return a bit field using the 3 least significant bits.
+         */
+        public static function getTextureVariantBits(texture:Texture):uint
+        {
+            if (texture == null) return 0;
+
+            var bitField:uint = 0;
+            var formatBits:uint = 0;
+
+            switch (texture.format)
+            {
+                case Context3DTextureFormat.COMPRESSED_ALPHA:
+                    formatBits = 3; break;
+                case Context3DTextureFormat.COMPRESSED:
+                    formatBits = 2; break;
+                default:
+                    formatBits = 1;
+            }
+
+            bitField |= formatBits;
+
+            if (!texture.premultipliedAlpha)
+                bitField |= 1 << 2;
+
+            return bitField;
+        }
+
         /** Calls <code>setSamplerStateAt</code> at the current context,
          *  converting the given parameters to their low level counterparts. */
         public static function setSamplerStateAt(sampler:int, mipMapping:Boolean,

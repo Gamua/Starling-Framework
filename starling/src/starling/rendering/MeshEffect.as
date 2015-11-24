@@ -31,30 +31,16 @@ package starling.rendering
         public function MeshEffect()
         { }
 
-        /** @private */
+        /** Override this method if the effect requires a different program depending on the
+         *  current settings. Ideally, you do this by creating a bit mask encoding all the options.
+         *  This method is called often, so do not allocate any temporary objects when overriding.
+         *
+         *  <p>In the implementation of the "MeshEffect" class, the 3 least significant bits are
+         *  filled.</p>
+         */
         override protected function get programVariantName():uint
         {
-            if (_texture == null) return 0;
-
-            var bitField:uint = 0;
-            var formatBits:uint = 0;
-
-            switch (_texture.format)
-            {
-                case Context3DTextureFormat.COMPRESSED_ALPHA:
-                    formatBits = 3; break;
-                case Context3DTextureFormat.COMPRESSED:
-                    formatBits = 2; break;
-                default:
-                    formatBits = 1;
-            }
-
-            bitField |= formatBits;
-
-            if (!_texture.premultipliedAlpha)
-                bitField |= 1 << 2;
-
-            return bitField;
+            return RenderUtil.getTextureVariantBits(_texture);
         }
 
         /** @private */
@@ -103,7 +89,6 @@ package starling.rendering
         {
             super.beforeDraw(context);
 
-            vertexFormat.setVertexBufferAttribute(vertexBuffer, 0, "position");
             vertexFormat.setVertexBufferAttribute(vertexBuffer, 1, "color");
 
             if (_texture)
@@ -118,7 +103,6 @@ package starling.rendering
          *  <code>context.drawTriangles</code>. Resets texture and vertex buffer attributes. */
         override protected function afterDraw(context:Context3D):void
         {
-            context.setVertexBufferAt(0, null);
             context.setVertexBufferAt(1, null);
 
             if (_texture)

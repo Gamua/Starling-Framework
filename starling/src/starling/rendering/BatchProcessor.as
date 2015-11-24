@@ -24,7 +24,7 @@ package starling.rendering
         private var _batches:Vector.<MeshBatch>;
         private var _batchPool:BatchPool;
         private var _currentBatch:MeshBatch;
-        private var _currentBatchClass:Class;
+        private var _currentStyleType:Class;
         private var _onBatchComplete:Function;
         private var _cacheToken:BatchToken;
 
@@ -50,7 +50,6 @@ package starling.rendering
             _batches.length = 0;
             _batchPool.purge();
             _currentBatch = null;
-            _currentBatchClass = null;
         }
 
         /** Adds a mesh to the current batch, or to a new one if the current one does not support
@@ -58,8 +57,6 @@ package starling.rendering
          *  one.
          *
          *  @param mesh       the mesh to add to the current (or new) batch.
-         *  @param batchClass the class that should be used to batch/render the mesh;
-         *                    must implement <code>IMeshBatch</code>.
          *  @param matrix     transform all vertex positions with a certain matrix. If this
          *                    parameter is omitted, <code>mesh.transformationMatrix</code>
          *                    will be used instead (except if the last parameter is enabled).
@@ -71,22 +68,18 @@ package starling.rendering
          *                    <code>null</code> as 'matrix' parameter and <code>true</code> for this
          *                    one.
          */
-        public function addMesh(mesh:Mesh, batchClass:Class,
-                                matrix:Matrix=null, alpha:Number=1.0, blendMode:String=null,
+        public function addMesh(mesh:Mesh, matrix:Matrix=null, alpha:Number=1.0, blendMode:String=null,
                                 subset:MeshSubset=null, ignoreTransformation:Boolean=false):void
         {
             if (subset == null) subset = sFullMeshSubset;
 
-            var canAdd:Boolean = _currentBatch != null && _currentBatchClass == batchClass &&
-                                 _currentBatch.canAddMesh(mesh, blendMode);
-            if (!canAdd)
+            if (_currentBatch == null || !_currentBatch.canAddMesh(mesh, blendMode))
             {
                 finishBatch();
 
-                _currentBatch = _batchPool.get(batchClass);
-                _currentBatchClass = batchClass;
+                _currentStyleType = mesh.style.type;
+                _currentBatch = _batchPool.get(_currentStyleType);
                 _cacheToken.setTo(_batches.length);
-
                 _batches[_batches.length] = _currentBatch;
             }
 
@@ -110,7 +103,7 @@ package starling.rendering
             if (meshBatch)
             {
                 _currentBatch = null;
-                _currentBatchClass = null;
+                _currentStyleType = null;
 
                 if (_onBatchComplete != null)
                     _onBatchComplete(meshBatch);
@@ -127,7 +120,7 @@ package starling.rendering
 
             _batches.length = 0;
             _currentBatch = null;
-            _currentBatchClass = null;
+            _currentStyleType = null;
             _cacheToken.reset();
         }
 
@@ -181,8 +174,7 @@ package starling.rendering
                 if (subset.numVertices != 0)
                 {
                     meshBatch = batchProcessor._batches[i];
-                    addMesh(meshBatch.mesh, Object(meshBatch).constructor as Class,
-                            null, 1.0, null, subset, true);
+                    addMesh(meshBatch.mesh, null, 1.0, null, subset, true);
                 }
             }
 
@@ -222,24 +214,30 @@ class BatchPool
         }
     }
 
-    public function get(batchClass:Class):MeshBatch
+    public function get(styleType:Class):MeshBatch
     {
-        var batchList:Vector.<MeshBatch> = _batchLists[batchClass];
+        var batchList:Vector.<MeshBatch> = _batchLists[styleType];
         if (batchList == null)
         {
             batchList = new <MeshBatch>[];
-            _batchLists[batchClass] = batchList;
+            _batchLists[styleType] = batchList;
         }
 
         if (batchList.length > 0) return batchList.pop();
-        else return new batchClass();
+        else return new MeshBatch();
     }
 
     public function put(meshBatch:MeshBatch):void
     {
+        var styleType:Class = meshBatch.style.type;
+        var batchList:Vector.<MeshBatch> = _batchLists[styleType];
+        if (batchList == null)
+        {
+            batchList = new <MeshBatch>[];
+            _batchLists[styleType] = batchList;
+        }
+
         meshBatch.clear();
-        var batchClass:Class = Object(meshBatch).constructor as Class;
-        var batchList:Vector.<MeshBatch> = _batchLists[batchClass];
         batchList[batchList.length] = meshBatch;
     }
 }

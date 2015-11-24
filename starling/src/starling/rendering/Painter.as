@@ -353,15 +353,10 @@ package starling.rendering
         /** Adds a mesh to the current batch of unrendered meshes. If the current batch is not
          *  compatible with the mesh, all previous meshes are rendered at once and the batch
          *  is cleared.
-         *
-         *  @param mesh        the mesh to add to the current (or new) batch.
-         *  @param batchClass  the class that should be used to batch/render the mesh;
-         *                     must implement <code>IMeshBatch</code>.
          */
-        public function batchMesh(mesh:Mesh, batchClass:Class):void
+        public function batchMesh(mesh:Mesh):void
         {
-            mBatchProcessor.addMesh(mesh, batchClass,
-                    mState.modelviewMatrix, mState.alpha, mState.blendMode);
+            mBatchProcessor.addMesh(mesh, mState.modelviewMatrix, mState.alpha, mState.blendMode);
         }
 
         /** Finishes the current mesh batch and prepares the next one. */

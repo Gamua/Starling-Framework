@@ -17,6 +17,7 @@ package starling.display
     import flash.geom.Vector3D;
 
     import starling.rendering.IndexData;
+    import starling.rendering.MeshStyle;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
     import starling.utils.RectangleUtil;
@@ -56,20 +57,19 @@ package starling.display
         {
             _bounds = new Rectangle(0, 0, width, height);
 
-            var vertexData:VertexData = new VertexData(Mesh.VERTEX_FORMAT, 4);
+            var vertexData:VertexData = new VertexData(MeshStyle.VERTEX_FORMAT, 4);
             var indexData:IndexData = new IndexData(6);
 
             setupVertexPositions(vertexData, _bounds);
             setupTextureCoordinates(vertexData);
             indexData.appendQuad(0, 1, 2, 3);
 
-            for (var i:int=0; i<4; ++i)
-                vertexData.setColor(i, "color", color);
-
             super(vertexData, indexData);
 
             if (width == 0.0 || height == 0.0)
                 throw new ArgumentError("Invalid size: width and height must not be zero");
+
+            this.color = color;
         }
 
         private function setupVertexPositions(vertexData:VertexData, bounds:Rectangle):void
@@ -135,6 +135,8 @@ package starling.display
          *  to synchronize quad and texture size after assigning a texture with a different size.*/
         public function readjustSize():void
         {
+            var texture:Texture = style.texture;
+
             if (texture)
             {
                 _bounds.setTo(0, 0, texture.frameWidth, texture.frameHeight);
@@ -152,22 +154,26 @@ package starling.display
             return quad;
         }
 
-        /** The texture that is mapped to the quad. Per default, it is mapped to the complete
-         *  quad, i.e. to the complete area between the top left and bottom right vertices. This
-         *  can be changed via the <code>setTexCoords</code>-method.
+        /** The texture that is mapped to the quad (or <code>null</code>, if there is none).
+         *  Per default, it is mapped to the complete quad, i.e. to the complete area between the
+         *  top left and bottom right vertices. This can be changed with the
+         *  <code>setTexCoords</code>-method.
          *
          *  <p>Note that the size of the quad will not change when you assign a texture, which
-         *  means that the texture might be distorted. Call <code>readjustSize</code> to
+         *  means that the texture might be distorted at first. Call <code>readjustSize</code> to
          *  synchronize quad and texture size.</p>
+         *
+         *  <p>You could also set the texture via the <code>style.texture</code> property.
+         *  That way, however, the texture frame won't be taken into account. Since only rectangular
+         *  objects can make use of a texture frame, only a property on the Quad class can do that.
+         *  </p>
          */
         override public function set texture(value:Texture):void
         {
             if (value == texture) return;
 
-            if (value == null)
-                setupVertexPositions(vertexData, _bounds);
-            else if (texture)
-                value.setupVertexPositions(vertexData, 0, "position", _bounds);
+            if (value) value.setupVertexPositions(vertexData, 0, "position", _bounds);
+            else setupVertexPositions(vertexData, _bounds);
 
             super.texture = value;
         }

@@ -10,55 +10,76 @@
 
 package starling.display
 {
+    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
+    import starling.core.starling_internal;
     import starling.rendering.IndexData;
-    import starling.rendering.MeshEffect;
+    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.rendering.VertexDataFormat;
     import starling.textures.Texture;
-    import starling.textures.TextureSmoothing;
     import starling.utils.MeshUtil;
+
+    use namespace starling_internal;
 
     /** The base class for all tangible (non-container) display objects, spawned up by a number
      *  of triangles.
      *
-     *  <p>Since Starling uses Stage3D for rendering, all tangible (non-container) objects must be
-     *  constructed from triangles. A mesh stores the information of its triangles through
-     *  VertexData and IndexData structures. Each vertex may store a color value and (optionally)
-     *  a texture coordinate, should there be a texture mapped onto it.</p>
+     *  <p>Since Starling uses Stage3D for rendering, all rendered objects must be constructed
+     *  from triangles. A mesh stores the information of its triangles through VertexData and
+     *  IndexData structures. The default format stores position, color and texture coordinates
+     *  for each vertex.</p>
      *
-     *  <p>The rendering of a mesh is done by the "MeshBatch" class, which inherits from "Mesh"
-     *  and adds batching and rendering mechanisms. Any custom display object should extend the
-     *  mesh class, and may optionally provide its own rendering facility by implementing the
-     *  "IMeshBatch" interface, as well.</p>
+     *  <p>How a mesh is rendered depends on its style. Per default, this is an instance
+     *  of the <code>MeshStyle</code> base class; however, subclasses may extend its behavior
+     *  to add support for color transformations, normal mapping, etc.</p>
      *
      *  @see MeshBatch
+     *  @see MeshStyle
      *  @see starling.rendering.VertexData
      *  @see starling.rendering.IndexData
      */
     public class Mesh extends DisplayObject
     {
-        /** The vertex format expected by the Mesh (the same as found in the MeshEffect-class). */
-        public static const VERTEX_FORMAT:VertexDataFormat = MeshEffect.VERTEX_FORMAT;
-
-        private var _texture:Texture;
+        private var _style:MeshStyle;
         private var _vertexData:VertexData;
         private var _indexData:IndexData;
 
-        // helper objects
-        private static var sPoint:Point = new Point();
-
-        /** Creates a new mesh with the given vertices and indices. */
-        public function Mesh(vertexData:VertexData, indexData:IndexData)
+        /** Creates a new mesh with the given vertices and indices.
+         *  If you don't pass a style, an instance of <code>MeshStyle</code> will be created
+         *  for you. Note that the format of the vertex data will be matched to the
+         *  given style right away. */
+        public function Mesh(vertexData:VertexData, indexData:IndexData, style:MeshStyle=null)
         {
             if (vertexData == null) throw new ArgumentError("VertexData must not be null");
             if (indexData == null)  throw new ArgumentError("IndexData must not be null");
 
             _vertexData = vertexData;
             _indexData = indexData;
+
+            this.style = style ? style : new MeshStyle();
+        }
+
+        /** Copies the raw vertex data to the given VertexData instance.
+         *  If you pass a matrix, all vertices will be transformed during the process.
+         *  Note that the texture coordinates are always in the coordinate system of the root
+         *  texture, ready for rendering. */
+        public function copyVertexDataTo(target:VertexData, targetVertexID:int=0, matrix:Matrix=null,
+                                         vertexID:int=0, numVertices:int=-1):void
+        {
+            _vertexData.copyTo(target, targetVertexID, matrix, vertexID, numVertices);
+        }
+
+        /** Copies the raw index data to the given IndexData instance.
+         *  The given offset value will be added to all indices during the process.
+         */
+        public function copyIndexDataTo(target:IndexData, targetIndexID:int=0, offset:int=0,
+                                        indexID:int=0, numIndices:int=-1):void
+        {
+            _indexData.copyTo(target, targetIndexID, offset, indexID, numIndices);
         }
 
         /** @inheritDoc */
@@ -83,102 +104,124 @@ package starling.display
             return MeshUtil.calculateBounds(_vertexData, this, targetSpace, out);
         }
 
+        /** @inheritDoc */
+        override public function render(painter:Painter):void
+        {
+            painter.batchMesh(this);
+        }
+
+        /** Sets the style that is used to render the mesh. Styles (which are always subclasses of
+         *  <code>MeshStyle</code>) provide a means to completely modify the way a mesh is rendered.
+         *  For example, they may add support for color transformations or normal mapping.
+         *
+         *  <p>When assigning a new style, the vertex format will be changed to fit it.
+         *  Do not use the same style instance on multiple objects! Instead, make use of
+         *  <code>style.clone()</code> to assign an identical style to multiple meshes.</p>
+         *
+         *  @param meshStyle             the style to assign.
+         *  @param mergeWithPredecessor  if enabled, all attributes of the previous style will be
+         *                               be copied to the new one, if possible.
+         */
+        public function setStyle(meshStyle:MeshStyle, mergeWithPredecessor:Boolean=true):void
+        {
+            if (meshStyle == null)
+                throw new ArgumentError("'meshStyle' must not be null");
+
+            if (meshStyle.target)
+                throw new ArgumentError("This style is already used on another mesh. " +
+                    "Call 'style.clone()' to use an identical style on multiple meshes.");
+
+            if (_style)
+            {
+                if (mergeWithPredecessor) meshStyle.copyFrom(_style);
+                _style.clearTarget();
+            }
+
+            _style = meshStyle;
+            _style.setTarget(this, _vertexData, _indexData);
+        }
+
+        // vertex manipulation
+
         /** Returns the alpha value of the vertex at the specified index. */
         public function getVertexAlpha(vertexID:int):Number
         {
-            return _vertexData.getAlpha(vertexID);
+            return _style.getVertexAlpha(vertexID);
         }
 
         /** Sets the alpha value of the vertex at the specified index to a certain value. */
         public function setVertexAlpha(vertexID:int, alpha:Number):void
         {
-            _vertexData.setAlpha(vertexID, "color", alpha);
-            setRequiresRedraw();
+            _style.setVertexAlpha(vertexID, alpha);
         }
 
         /** Returns the RGB color of the vertex at the specified index. */
         public function getVertexColor(vertexID:int):uint
         {
-            return _vertexData.getColor(vertexID);
+            return _style.getVertexColor(vertexID);
         }
 
         /** Sets the RGB color of the vertex at the specified index to a certain value. */
         public function setVertexColor(vertexID:int, color:uint):void
         {
-            _vertexData.setColor(vertexID, "color", color);
-            setRequiresRedraw();
+            _style.setVertexColor(vertexID, color);
         }
 
         /** Returns the texture coordinates of the vertex at the specified index. */
         public function getTexCoords(vertexID:int, out:Point = null):Point
         {
-            if (_texture) return _texture.getTexCoords(_vertexData, vertexID, "texCoords", out);
-            else return _vertexData.getPoint(vertexID, "texCoords", out);
+            return _style.getTexCoords(vertexID, out);
         }
 
         /** Sets the texture coordinates of the vertex at the specified index to the given values. */
         public function setTexCoords(vertexID:int, u:Number, v:Number):void
         {
-            if (_texture) _texture.setTexCoords(_vertexData, vertexID, "texCoords", u, v);
-            else _vertexData.setPoint(vertexID, "texCoords", u, v);
-
-            setRequiresRedraw();
-        }
-
-        /** @inheritDoc */
-        public override function render(painter:Painter):void
-        {
-            painter.batchMesh(this, MeshBatch);
+            _style.setTexCoords(vertexID, u, v);
         }
 
         // properties
 
-        /** Changes the color of all vertices to the same value. The getter simply returns the
-         *  color of the first vertex. */
-        public function get color():uint { return _vertexData.getColor(0); }
-        public function set color(value:uint):void
-        {
-            var i:int;
-            var numVertices:int = _vertexData.numVertices;
-
-            for (i=0; i<numVertices; ++i)
-                _vertexData.setColor(i, "color", value);
-
-            setRequiresRedraw();
-        }
-
-        /** The texture mapped to the mesh. */
-        public function get texture():Texture { return _texture; }
-        public function set texture(value:Texture):void
-        {
-            if (_texture == value) return;
-
-            var i:int;
-            var numVertices:int = _vertexData.numVertices;
-
-            for (i=0; i<numVertices; ++i)
-            {
-                getTexCoords(i, sPoint);
-                if (value) value.setTexCoords(_vertexData, i, "texCoords", sPoint.x, sPoint.y);
-            }
-
-            _texture = value;
-            setRequiresRedraw();
-        }
-
-        /** The texture smoothing used when sampling the texture. */
-        public function get smoothing():String { return TextureSmoothing.BILINEAR; }
-        public function set smoothing(value:String):void { /* FIXME */ }
-
         /** The vertex data describing all vertices of the mesh.
-         *  Never change this object directly, except from subclasses;
-         *  this property is solely provided for rendering. */
-        public function get vertexData():VertexData { return _vertexData; }
+         *  Any change requires a call to <code>setRequiresRedraw</code>. */
+        protected function get vertexData():VertexData { return _vertexData; }
 
         /** The index data describing how the vertices are interconnected.
-         *  Never change this object directly, except from subclasses;
-         *  this property is solely provided for rendering. */
-        public function get indexData():IndexData { return _indexData; }
+         *  Any change requires a call to <code>setRequiresRedraw</code>. */
+        protected function get indexData():IndexData { return _indexData; }
+
+        /** The style that is used to render the mesh. Styles (which are always subclasses of
+         *  <code>MeshStyle</code>) provide a means to completely modify the way a mesh is rendered.
+         *  For example, they may add support for color transformations or normal mapping.
+         *
+         *  <ul>
+         *    <li>When assigning a new style, the vertex format will be changed to fit it.</li>
+         *    <li>Do not use the same style instance on multiple objects! Instead, make use of
+         *  <code>style.clone()</code> to assign an identical style to multiple meshes.</li>
+         *    <li>Note that all attributes of the previous style will be copied to the new one
+         *       (if possible). To prevent that, call the <code>setStyle</code> method instead.</li>
+         *  </ul>
+         *
+         *  @default MeshStyle
+         */
+        public function get style():MeshStyle { return _style; }
+        public function set style(value:MeshStyle):void
+        {
+            setStyle(value);
+        }
+
+        /** The texture that is mapped to the mesh (or <code>null</code>, if there is none). */
+        public function get texture():Texture { return _style.texture; }
+        public function set texture(value:Texture):void { _style.texture = value; }
+
+        /** Changes the color of all vertices to the same value.
+         *  The getter simply returns the color of the first vertex. */
+        public function get color():uint { return _style.color; }
+        public function set color(value:uint):void { _style.color = value; }
+
+        /** The smoothing filter that is used for the texture.
+         *  @default bilinear */
+        public function get textureSmoothing():String { return _style.textureSmoothing; }
+        public function set textureSmoothing(value:String):void { _style.textureSmoothing = value; }
 
         /** The total number of vertices in the mesh. */
         public function get numVertices():int { return _vertexData.numVertices; }
@@ -186,7 +229,10 @@ package starling.display
         /** The total number of indices referencing vertices. */
         public function get numIndices():int { return _indexData.numIndices; }
 
-        /** The format of the internal vertex data. */
-        public function get vertexFormat():VertexDataFormat { return _vertexData.format; }
+        /** The total number of triangles in this mesh. */
+        public function get numTriangles():int { return _indexData.numTriangles; }
+
+        /** The format used to store the vertices. */
+        public function get vertexFormat():VertexDataFormat { return _style.vertexFormat; }
     }
 }

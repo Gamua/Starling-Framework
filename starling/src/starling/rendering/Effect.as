@@ -56,8 +56,7 @@ package starling.rendering
      *
      *  <strong>Using the Effect class</strong>
      *
-     *  <p>Using a concrete effect always follows steps similar to those shown in the following
-     *  example:</p>
+     *  <p>Using an effect always follows steps similar to those shown in the following example:</p>
      *
      *  <listing>
      *  // create effect
@@ -76,12 +75,10 @@ package starling.rendering
      *  effect.render(0, numTriangles);</listing>
      *
      *  <p>Note that the <code>VertexData</code> being uploaded has to be created with the same
-     *  format as the one returned by the effect's <code>vertexFormat</code> property (or a
-     *  superset of this format).</p>
+     *  format as the one returned by the effect's <code>vertexFormat</code> property.</p>
      *
      *  @see starling.utils.RenderUtil
      *  @see MeshEffect
-     *
      */
     public class Effect
     {
@@ -200,22 +197,31 @@ package starling.rendering
         }
 
         /** This method is called by <code>render</code>, directly before
-         *  <code>context.drawTriangles</code>. The base implementation activates the program
-         *  and sets up two vertex program constants: MVP matrix (<code>vc0-3</code>) and
-         *  the alpha value (all components of <code>vc4</code>). */
+         *  <code>context.drawTriangles</code>. It activates the program and sets up
+         *  the context with the following constants and attributes:
+         *
+         *  <ul>
+         *    <li><code>vc0-vc3</code> — MVP matrix</li>
+         *    <li><code>vc4</code> — alpha value (same value for all components)</li>
+         *    <li><code>va0</code> — vertex position (xy)</li>
+         *  </ul>
+         */
         protected function beforeDraw(context:Context3D):void
         {
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
 
             program.activate(context);
+            vertexFormat.setVertexBufferAttribute(vertexBuffer, 0, "position");
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
         }
 
         /** This method is called by <code>render</code>, directly after
-         *  <code>context.drawTriangles</code>. The base implementation is empty. */
+         *  <code>context.drawTriangles</code>. Resets vertex buffer attributes.
+         */
         protected function afterDraw(context:Context3D):void
         {
+            context.setVertexBufferAt(0, null);
         }
 
         // program management
@@ -320,7 +326,7 @@ package starling.rendering
         public function get alpha():Number { return _alpha; }
         public function set alpha(value:Number):void { _alpha = value; }
 
-        /** The MVP matrix (modelview-projection) used to transform all vertices into clipspace. */
+        /** The MVP (modelview-projection) matrix transforms vertices into clipspace. */
         public function get mvpMatrix():Matrix3D { return _mvpMatrix; }
         public function set mvpMatrix(value:Matrix3D):void { _mvpMatrix.copyFrom(value); }
 

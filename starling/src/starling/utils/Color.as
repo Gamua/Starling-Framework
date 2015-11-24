@@ -58,6 +58,20 @@ package starling.utils
         {
             return (alpha << 24) | (red << 16) | (green << 8) | blue;
         }
+
+        /** Converts a color to a vector containing the RGBA components (in this order) scaled
+         *  between 0 and 1. */
+        public static function toVector(color:uint, out:Vector.<Number>=null):Vector.<Number>
+        {
+            if (out == null) out = new Vector.<Number>(4, true);
+
+            out[0] = ((color >> 16) & 0xff) / 255.0;
+            out[1] = ((color >>  8) & 0xff) / 255.0;
+            out[2] = ( color        & 0xff) / 255.0;
+            out[3] = ((color >> 24) & 0xff) / 255.0;
+
+            return out;
+        }
         
         /** @private */
         public function Color() { throw new AbstractClassError(); }

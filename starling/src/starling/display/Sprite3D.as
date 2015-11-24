@@ -137,7 +137,7 @@ package starling.display
             }
         }
 
-        override protected function setRequiresRedraw():void
+        public override function setRequiresRedraw():void
         {
             mIs2D = mZ > -E && mZ < E &&
                     mRotationX > -E && mRotationX < E &&
