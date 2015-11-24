@@ -26,10 +26,13 @@ package starling.rendering
                 VertexDataFormat.fromString("position(float2), color(bytes4), texCoords(float2)");
 
         private var _texture:Texture;
+        private var _textureSmoothing:String;
 
         /** Creates a new MeshEffect instance. */
         public function MeshEffect()
-        { }
+        {
+            _textureSmoothing = TextureSmoothing.BILINEAR;
+        }
 
         /** Override this method if the effect requires a different program depending on the
          *  current settings. Ideally, you do this by creating a bit mask encoding all the options.
@@ -93,7 +96,7 @@ package starling.rendering
 
             if (_texture)
             {
-                RenderUtil.setSamplerStateAt(0, _texture.mipMapping, TextureSmoothing.BILINEAR);
+                RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing);
                 context.setTextureAt(0, _texture.base);
                 vertexFormat.setVertexBufferAttribute(vertexBuffer, 2, "texCoords");
             }
@@ -121,5 +124,9 @@ package starling.rendering
         /** The texture to be mapped onto the vertices. */
         public function get texture():Texture { return _texture; }
         public function set texture(value:Texture):void { _texture = value; }
+
+        /** The smoothing filter that is used for the texture. @default bilinear */
+        public function get textureSmoothing():String { return _textureSmoothing; }
+        public function set textureSmoothing(value:String):void { _textureSmoothing = value; }
     }
 }

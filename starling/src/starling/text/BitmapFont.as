@@ -423,8 +423,8 @@ package starling.text
         public function set lineHeight(value:Number):void { mLineHeight = value; }
         
         /** The smoothing filter that is used for the texture. */ 
-        public function get smoothing():String { return mHelperImage.smoothing; }
-        public function set smoothing(value:String):void { mHelperImage.smoothing = value; } 
+        public function get smoothing():String { return mHelperImage.textureSmoothing; }
+        public function set smoothing(value:String):void { mHelperImage.textureSmoothing = value; }
         
         /** The baseline of the font. This property does not affect text rendering;
          *  it's just an information that may be useful for exact text placement. */

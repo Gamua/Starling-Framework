@@ -132,6 +132,7 @@ package starling.rendering
         public function updateEffect(effect:MeshEffect):void
         {
             effect.texture = _texture;
+            effect.textureSmoothing = _textureSmoothing;
         }
 
         /** Indicates if the current instance can be batched with the given style.
@@ -139,12 +140,14 @@ package starling.rendering
          */
         public function canBatchWith(meshStyle:MeshStyle):Boolean
         {
-            var newTexture:Texture = meshStyle._texture;
-
             if (_type == meshStyle._type)
             {
+                var newTexture:Texture = meshStyle._texture;
+
                 if (_texture == null && newTexture == null) return true;
-                else if (_texture && newTexture) return _texture.base == newTexture.base;
+                else if (_texture && newTexture)
+                    return _texture.base == newTexture.base &&
+                           _textureSmoothing == meshStyle._textureSmoothing;
                 else return false;
             }
             else return false;
@@ -283,8 +286,7 @@ package starling.rendering
             }
         }
 
-        /** The smoothing filter that is used for the texture.
-         *  @default bilinear */
+        /** The smoothing filter that is used for the texture. @default bilinear */
         public function get textureSmoothing():String { return _textureSmoothing; }
         public function set textureSmoothing(value:String):void
         {
