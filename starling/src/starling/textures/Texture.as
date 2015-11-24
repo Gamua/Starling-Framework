@@ -570,7 +570,7 @@ package starling.textures
             if (this == root) out.setTo(u, v);
             else
             {
-                sMatrix = new Matrix();
+                sMatrix.identity();
                 sMatrix.copyFrom(transformationMatrixToRoot);
                 sMatrix.invert();
                 MatrixUtil.transformCoords(sMatrix, u, v, out);
