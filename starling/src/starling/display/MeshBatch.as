@@ -72,16 +72,8 @@ package starling.display
             _mesh = new Mesh(_vertexData, _indexData);
             _style = _mesh.style;
 
-            // as long as 'batchable' is false, batches disrupt the render cache
-            addEventListener(Event.ENTER_FRAME, onEnterFrameWhileNotBatchable);
-        }
-
-        private function onEnterFrameWhileNotBatchable():void
-        {
-            // we need to wrap 'setRequiresRedraw' with this method, otherwise we'd run into
-            // problems when subclasses want to disable the render cache, as well.
-
-            setRequiresRedraw();
+            // per default, 'batchable' is false -> no render cache
+            updateSupportsRenderCache();
         }
 
         // display object overrides
@@ -108,6 +100,12 @@ package starling.display
         override public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
             return MeshUtil.calculateBounds(_vertexData, this, targetSpace, out);
+        }
+
+        /** @inheritDoc */
+        override protected function get supportsRenderCache():Boolean
+        {
+            return _batchable && super.supportsRenderCache;
         }
 
         private function setVertexAndIndexDataChanged():void
@@ -246,9 +244,7 @@ package starling.display
             if (value != _batchable) // self-rendering must disrupt the render cache
             {
                 _batchable = value;
-
-                if (value) removeEventListener(Event.ENTER_FRAME, onEnterFrameWhileNotBatchable);
-                else       addEventListener(Event.ENTER_FRAME, onEnterFrameWhileNotBatchable);
+                updateSupportsRenderCache();
             }
         }
 

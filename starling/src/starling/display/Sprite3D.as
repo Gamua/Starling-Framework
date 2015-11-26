@@ -139,12 +139,20 @@ package starling.display
 
         public override function setRequiresRedraw():void
         {
+            var was2D:Boolean = mIs2D;
+
             mIs2D = mZ > -E && mZ < E &&
                     mRotationX > -E && mRotationX < E &&
                     mRotationY > -E && mRotationY < E &&
                     mPivotZ > -E && mPivotZ < E;
 
+            if (mIs2D != was2D) updateSupportsRenderCache();
             super.setRequiresRedraw();
+        }
+
+        protected override function get supportsRenderCache():Boolean
+        {
+            return mIs2D && super.supportsRenderCache;
         }
 
         // helpers

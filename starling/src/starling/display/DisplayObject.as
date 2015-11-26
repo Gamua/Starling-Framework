@@ -532,6 +532,8 @@ package starling.display
             return mIsMask;
         }
 
+        // render cache
+
         /** Forces the object to be redrawn in the next frame.
          *  This will prevent the object to be drawn from the render cache.
          *
@@ -539,9 +541,9 @@ package starling.display
          *  custom mesh styles or any other custom rendering code, call this method if the object
          *  needs to be redrawn.</p>
          *
-         *  <p>If an object does not support the render cache (similar to the 'Sprite3D' class),
-         *  this method may be called from within an <code>ENTER_FRAME</code> event handler to
-         *  circumvent any caching.</p>
+         *  <p>If a class does not support the render cache (like <code>Sprite3D</code>),
+         *  it may override <code>supportsRenderCache</code>. That way, the object will be
+         *  redrawn automatically each frame.</p>
          */
         public function setRequiresRedraw():void
         {
@@ -556,6 +558,39 @@ package starling.display
                 parent._lastChildChangeFrameID = frameID;
                 parent = parent.mParent;
             }
+        }
+
+        /** Indicates if this class supports the render cache.
+         *  Subclasses that need to circumvent the cache have to override this method and call
+         *  <code>updateSupportsRenderCache</code> whenever that boolean changes. Don't forget
+         *  to combine the result with <code>super.supportsRenderCache</code> when overriding
+         *  the method!
+         *
+         *  <p>Note that when a container does not support the render cache, its children will
+         *  still be cached! This just means that batching is interrupted at this object when
+         *  the display tree is traversed.</p>
+         */
+        protected function get supportsRenderCache():Boolean
+        {
+            return _mask == null;
+        }
+
+        /** Must be called when support for the render cache changes. The actual value is read
+         *  from the <code>supportsRenderCache</code> property. */
+        protected function updateSupportsRenderCache():void
+        {
+            if (supportsRenderCache)
+                removeEventListener(Event.ENTER_FRAME, onEnterFrameWithoutRenderCache);
+            else
+                addEventListener(Event.ENTER_FRAME, onEnterFrameWithoutRenderCache);
+        }
+
+        private function onEnterFrameWithoutRenderCache():void
+        {
+            // by wrapping 'setRequiresRedraw' in a private method, we can make sure that no
+            // subclasses are messing with this event handler.
+
+            setRequiresRedraw();
         }
 
         // helpers
@@ -1027,22 +1062,10 @@ package starling.display
                 if (_mask) _mask.mIsMask = false;
                 if (value) value.mIsMask = true;
 
-                if (value && _mask == null) // -> masks disrupt the render cache
-                    addEventListener(Event.ENTER_FRAME, onEnterFrameWithMask);
-                else if (value == null)
-                    removeEventListener(Event.ENTER_FRAME, onEnterFrameWithMask);
-
                 _mask = value;
                 setRequiresRedraw();
+                updateSupportsRenderCache();
             }
-        }
-
-        private function onEnterFrameWithMask():void
-        {
-            // we need to wrap 'setRequiresRedraw' with this method, otherwise we'd run into
-            // problems when subclasses want to disable the render cache, as well.
-
-            setRequiresRedraw();
         }
 
         /** The display object container that contains this display object. */
