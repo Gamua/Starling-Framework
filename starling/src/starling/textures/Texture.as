@@ -407,13 +407,15 @@ package starling.textures
          *
          *  @param width   in points; number of pixels depends on scale parameter
          *  @param height  in points; number of pixels depends on scale parameter
-         *  @param color   expected in ARGB format (include alpha!)
+         *  @param color   the RGB color the texture will be filled up
+         *  @param alpha   the alpha value that will be used for every pixel
          *  @param optimizeForRenderToTexture  indicates if this texture will be used as render target
          *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory.
          */
-        public static function fromColor(width:Number, height:Number, color:uint=0xffffffff,
+        public static function fromColor(width:Number, height:Number,
+                                         color:uint=0xffffff, alpha:Number=1.0,
                                          optimizeForRenderToTexture:Boolean=false,
                                          scale:Number=-1, format:String="bgra"):Texture
         {
@@ -422,7 +424,7 @@ package starling.textures
             texture.root.clear(color, Color.getAlpha(color) / 255.0);
             texture.root.onRestore = function():void
             {
-                texture.root.clear(color, Color.getAlpha(color) / 255.0);
+                texture.root.clear(color, alpha);
             };
 
             return texture;
