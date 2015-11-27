@@ -88,6 +88,8 @@ package starling.events
         public static const SELECT:String = "select";
         /** An event type to be utilized in custom events. Not used by Starling right now. */
         public static const READY:String = "ready";
+        /** An event type to be utilized in custom events. Not used by Starling right now. */
+        public static const UPDATE:String = "update";
         
         private static var sEventPool:Vector.<Event> = new <Event>[];
         
