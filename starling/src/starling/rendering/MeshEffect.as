@@ -38,8 +38,7 @@ package starling.rendering
          *  current settings. Ideally, you do this by creating a bit mask encoding all the options.
          *  This method is called often, so do not allocate any temporary objects when overriding.
          *
-         *  <p>In the implementation of the "MeshEffect" class, the 3 least significant bits are
-         *  filled.</p>
+         *  <p>Reserve 8 bits for the variant name of the base class.</p>
          */
         override protected function get programVariantName():uint
         {
