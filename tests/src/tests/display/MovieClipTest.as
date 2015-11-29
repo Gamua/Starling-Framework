@@ -12,8 +12,6 @@ package tests.display
 {
     import flash.display3D.Context3DTextureFormat;
 
-    import flexunit.framework.Assert;
-
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
@@ -43,18 +41,16 @@ package tests.display
             var texture3:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
-            
+
             assertThat(movie.width, closeTo(texture0.width, E));
             assertThat(movie.height, closeTo(texture0.height, E));
             assertThat(movie.totalTime, closeTo(frameDuration, E));
             assertEquals(1, movie.numFrames);
             assertEquals(0, movie.currentFrame);
-            assertEquals(true, movie.loop);
-            assertEquals(true, movie.isPlaying);
-            
-            movie.pause();
-            assertFalse(movie.isPlaying);
-            
+
+            movie.loop = true;
+            assertTrue(movie.loop);
+
             movie.play();
             assertTrue(movie.isPlaying);
             
@@ -105,7 +101,7 @@ package tests.display
             var fps:Number = 4.0;
             var frameDuration:Number = 1.0 / fps;
             var format:String = Context3DTextureFormat.BGRA;
-            
+
             var texture0:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
             var texture1:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
             var texture2:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
@@ -115,6 +111,8 @@ package tests.display
             movie.addFrame(texture2, null, 0.5);
             movie.addFrame(texture3);
             movie.addFrameAt(0, texture1);
+            movie.play();
+            movie.loop = true;
             
             assertEquals(0, movie.currentFrame);
             movie.advanceTime(frameDuration / 2.0);
@@ -181,16 +179,17 @@ package tests.display
             var movie:MovieClip = new MovieClip(frames, fps);
             movie.addEventListener(Event.COMPLETE, onMovieCompleted);
             movie.loop = false;
+            movie.play();
             
             assertFalse(movie.isComplete);
-            movie.advanceTime(frameDuration);
-            assertEquals(0, movie.currentFrame);
-            assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             assertEquals(1, movie.currentFrame);
             assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             assertEquals(2, movie.currentFrame);
+            assertEquals(0, completedCount);
+            movie.advanceTime(frameDuration);
+            assertEquals(3, movie.currentFrame);
             assertEquals(0, completedCount);
             movie.advanceTime(frameDuration * 0.5);
             movie.advanceTime(frameDuration * 0.5);
@@ -207,9 +206,6 @@ package tests.display
             
             assertFalse(movie.isComplete);
             movie.advanceTime(frameDuration);
-            assertEquals(0, movie.currentFrame);
-            assertEquals(0, completedCount);
-            movie.advanceTime(frameDuration);
             assertEquals(1, movie.currentFrame);
             assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
@@ -217,6 +213,9 @@ package tests.display
             assertEquals(0, completedCount);
             movie.advanceTime(frameDuration);
             assertEquals(3, movie.currentFrame);
+            assertEquals(0, completedCount);
+            movie.advanceTime(frameDuration);
+            assertEquals(0, movie.currentFrame);
             assertEquals(1, completedCount);
             movie.advanceTime(movie.numFrames * 2 * frameDuration);
             assertEquals(3, completedCount);
@@ -236,9 +235,10 @@ package tests.display
             
             var frames:Vector.<Texture> = createFrames(4);
             var movie:MovieClip = new MovieClip(frames, fps);
-            
+
             movie.loop = true;
             movie.addEventListener(Event.COMPLETE, onMovieCompleted);
+            movie.play();
             movie.advanceTime(1.75);
             
             assertFalse(movie.isPlaying);
@@ -270,7 +270,7 @@ package tests.display
                 throwsError = true;
             }
             
-            Assert.assertTrue(throwsError);
+            assertTrue(throwsError);
         }
         
         [Test]
@@ -280,11 +280,17 @@ package tests.display
             var frames:Vector.<Texture> = createFrames(3);
             var movie:MovieClip = new MovieClip(frames, fps);
             movie.addEventListener(Event.COMPLETE, onMovieCompleted);
+            movie.play();
             movie.advanceTime(1.0);
             
             function onMovieCompleted():void
             {
-                Assert.assertEquals(frames[2], movie.texture);
+                if (movie.texture == frames[2])
+                    trace("success");
+                else
+                    trace("error");
+
+                assertEquals(frames[2], movie.texture);
             }
         }
         
@@ -295,11 +301,10 @@ package tests.display
             
             var frames:Vector.<Texture> = createFrames(2);
             var movie:MovieClip = new MovieClip(frames, 2);
+            movie.loop = true;
+            movie.play();
             
             movie.addEventListener(Event.COMPLETE, onComplete);
-            assertEquals(frames[0], movie.texture);
-            
-            movie.advanceTime(0.5);
             assertEquals(frames[0], movie.texture);
             
             movie.advanceTime(0.5);
@@ -307,6 +312,9 @@ package tests.display
             
             movie.advanceTime(0.5);
             assertEquals(frames[0], movie.texture);
+            
+            movie.advanceTime(0.5);
+            assertEquals(frames[1], movie.texture);
             
             function onComplete():void { /* does not have to do anything */ }
         }
@@ -316,7 +324,8 @@ package tests.display
         {
             var frames:Vector.<Texture> = createFrames(5);
             var movie:MovieClip = new MovieClip(frames, 5);
-            
+
+            movie.play();
             movie.addEventListener(Event.COMPLETE, onComplete);
             movie.advanceTime(1.3);
             
@@ -340,6 +349,7 @@ package tests.display
             var frames:Vector.<Texture> = createFrames(numFrames);
             var movie:MovieClip = new MovieClip(frames, 5);
             movie.setFrameDuration(0, 0.4);
+            movie.play();
 
             for (i=0; i<numFrames; ++i)
                 assertEquals(movie.getFrameTexture(i), frames[i]);
@@ -354,6 +364,133 @@ package tests.display
             assertThat(movie.currentTime, 0.5);
             assertThat(movie.getFrameDuration(0), closeTo(0.2, E));
             assertThat(movie.getFrameDuration(3), closeTo(0.4, E));
+        }
+
+        [Test]
+        public function testSetCurrentTime():void
+        {
+            var actionCount:int = 0;
+            var numFrames:int = 4;
+            var frames:Vector.<Texture> = createFrames(numFrames);
+            var movie:MovieClip = new MovieClip(frames, numFrames);
+            movie.setFrameAction(1, onAction);
+            movie.play();
+
+            movie.currentTime = 0.1;
+            assertEquals(0, movie.currentFrame);
+            assertThat(movie.currentTime, closeTo(0.1, E));
+            assertEquals(0, actionCount);
+
+            movie.currentTime = 0.25;
+            assertEquals(1, movie.currentFrame);
+            assertThat(movie.currentTime, closeTo(0.25, E));
+            assertEquals(0, actionCount);
+
+            // 'advanceTime' should now get that action executed
+            movie.advanceTime(0.01);
+            assertEquals(1, actionCount);
+            movie.advanceTime(0.01);
+            assertEquals(1, actionCount);
+
+            movie.currentTime = 0.3;
+            assertEquals(1, movie.currentFrame);
+            assertThat(movie.currentTime, closeTo(0.3, E));
+
+            movie.currentTime = 1.0;
+            assertEquals(3, movie.currentFrame);
+            assertThat(movie.currentTime, closeTo(1.0, E));
+
+            function onAction():void { ++actionCount; }
+        }
+
+        [Test]
+        public function testBasicFrameActions():void
+        {
+            var actionCount:int = 0;
+            var completeCount:int = 0;
+
+            var numFrames:int = 4;
+            var frames:Vector.<Texture> = createFrames(numFrames);
+            var movie:MovieClip = new MovieClip(frames, numFrames);
+            movie.setFrameAction(1, onFrame);
+            movie.setFrameAction(3, onFrame);
+            movie.loop = false;
+            movie.play();
+
+            // simple test of two actions
+            movie.advanceTime(1.0);
+            assertEquals(2, actionCount);
+
+            // now pause movie in action
+            movie.loop = true;
+            movie.setFrameAction(2, pauseMovie);
+            movie.advanceTime(1.0);
+            assertEquals(3, actionCount);
+            assertThat(movie.currentTime, closeTo(0.5, E));
+            assertFalse(movie.isPlaying);
+
+            // restarting the clip should execute the action at the current frame
+            movie.advanceTime(1.0);
+            assertFalse(movie.isPlaying);
+            assertEquals(3, actionCount);
+
+            // remove that action
+            movie.play();
+            movie.setFrameAction(2, null);
+            movie.currentFrame = 0;
+            movie.advanceTime(1.0);
+            assertTrue(movie.isPlaying);
+            assertEquals(5, actionCount);
+
+            // add a COMPLETE event handler as well
+            movie.addEventListener(Event.COMPLETE, onComplete);
+            movie.advanceTime(1.0);
+            assertEquals(7, actionCount);
+            assertEquals(1, completeCount);
+
+            // frame action should be executed before COMPLETE action, so we can pause the movie
+            movie.setFrameAction(3, pauseMovie);
+            movie.advanceTime(1.0);
+            assertEquals(8, actionCount);
+            assertFalse(movie.isPlaying);
+            assertEquals(1, completeCount);
+
+            // adding a frame action while we're in the first frame and then moving on -> no action
+            movie.currentFrame = 0;
+            assertEquals(0, movie.currentFrame);
+            movie.setFrameAction(0, onFrame);
+            movie.play();
+            movie.advanceTime(0.1);
+            assertEquals(8, actionCount);
+            movie.advanceTime(0.1);
+            assertEquals(8, actionCount);
+
+            // but after stopping the clip, the action should be executed
+            movie.stop();
+            movie.play();
+            movie.advanceTime(0.1);
+            assertEquals(9, actionCount);
+            movie.advanceTime(0.1);
+            assertEquals(9, actionCount);
+
+            function onFrame(movieParam:MovieClip, frameID:int):void
+            {
+                actionCount++;
+                assertEquals(movie, movieParam);
+                assertEquals(frameID, movie.currentFrame);
+                assertThat(movie.currentTime, closeTo(frameID / numFrames, E));
+            }
+
+            function pauseMovie():void
+            {
+                movie.pause();
+            }
+
+            function onComplete():void
+            {
+                assertThat(movie.currentTime, closeTo(movie.totalTime, E));
+                completeCount++;
+            }
         }
         
         private function createFrames(count:int):Vector.<Texture>

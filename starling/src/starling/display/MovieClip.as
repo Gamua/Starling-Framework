@@ -17,7 +17,7 @@ package starling.display
     import starling.animation.IAnimatable;
     import starling.events.Event;
     import starling.textures.Texture;
-    
+
     /** Dispatched whenever the movie has displayed its last frame. */
     [Event(name="complete", type="starling.events.Event")]
 
@@ -30,7 +30,7 @@ package starling.display
      *  
      *  <p>You can specify the desired framerate via the constructor. You can, however, manually 
      *  give each frame a custom duration. You can also play a sound whenever a certain frame 
-     *  appears.</p>
+     *  appears, or execute a callback (a "frame action").</p>
      *  
      *  <p>The methods <code>play</code> and <code>pause</code> control playback of the movie. You
      *  will receive an event of type <code>Event.COMPLETE</code> when the movie finished
@@ -47,7 +47,7 @@ package starling.display
         private var _frames:Vector.<MovieClipFrame>;
         private var _defaultFrameDuration:Number;
         private var _currentTime:Number;
-        private var _currentFrame:int;
+        private var _currentFrameID:int;
         private var _loop:Boolean;
         private var _playing:Boolean;
         private var _muted:Boolean;
@@ -78,7 +78,7 @@ package starling.display
             _loop = true;
             _playing = true;
             _currentTime = 0.0;
-            _currentFrame = 0;
+            _currentFrameID = 0;
             _wasStopped = true;
             _frames = new <MovieClipFrame>[];
 
@@ -157,6 +157,20 @@ package starling.display
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             _frames[frameID].sound = sound;
         }
+
+        /** Returns the method that is executed at a certain frame. */
+        public function getFrameAction(frameID:int):Function
+        {
+            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
+            return _frames[frameID].action;
+        }
+
+        /** Sets an action that will be executed whenever a certain frame is reached. */
+        public function setFrameAction(frameID:int, action:Function):void
+        {
+            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
+            _frames[frameID].action = action;
+        }
         
         /** Returns the duration of a certain frame (in seconds). */
         public function getFrameDuration(frameID:int):Number
@@ -179,7 +193,7 @@ package starling.display
         {
             _frames.reverse();
             _currentTime = totalTime - _currentTime;
-            _currentFrame = numFrames - _currentFrame - 1;
+            _currentFrameID = numFrames - _currentFrameID - 1;
             updateStartTimes();
         }
         
@@ -220,92 +234,122 @@ package starling.display
             }
         }
 
-        private function playSound(frame:int):void
-        {
-            if (!_muted)
-            {
-                var sound:Sound = _frames[frame].sound;
-                if (sound) sound.play(0, 0, _soundTransform);
-            }
-        }
-
         // IAnimatable
 
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
-            if (!_playing || passedTime <= 0.0) return;
+            if (!_playing) return;
 
-            var finalFrame:int;
-            var previousFrame:int = _currentFrame;
-            var restTime:Number = 0.0;
-            var dispatchCompleteEvent:Boolean = false;
-            var totalTime:Number = this.totalTime;
+            // The tricky part in this method is that whenever a callback is executed
+            // (a frame action or a 'COMPLETE' event handler), that callback might modify the clip.
+            // Thus, we have to start over with the remaining time whenever that happens.
+
+            var frame:MovieClipFrame = _frames[_currentFrameID];
 
             if (_wasStopped)
             {
                 // if the clip was stopped and started again,
-                // we need to play the frame's sound manually.
+                // sound and action of this frame need to be repeated.
 
                 _wasStopped = false;
-                playSound(_currentFrame);
-            }
+                frame.playSound(_soundTransform);
 
-            if (_loop && _currentTime >= totalTime)
-            { 
-                _currentTime = 0.0;
-                _currentFrame = 0;
-            }
-            
-            if (_currentTime < totalTime)
-            {
-                _currentTime += passedTime;
-                finalFrame = _frames.length - 1;
-                
-                while (_currentTime > _frames[_currentFrame].startTime +
-                                      _frames[_currentFrame].duration)
+                if (frame.action != null)
                 {
-                    if (_currentFrame == finalFrame)
-                    {
-                        if (_loop && !hasEventListener(Event.COMPLETE))
-                        {
-                            _currentTime -= totalTime;
-                            _currentFrame = 0;
-                        }
-                        else
-                        {
-                            restTime = _currentTime - totalTime;
-                            dispatchCompleteEvent = true;
-                            _currentFrame = finalFrame;
-                            _currentTime = totalTime;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        _currentFrame++;
-                    }
-
-                    if (!_muted && _frames[_currentFrame].sound)
-                        playSound(_currentFrame);
+                    frame.executeAction(this, _currentFrameID);
+                    advanceTime(passedTime);
+                    return;
                 }
-                
-                // special case when we reach *exactly* the total time.
-                if (_currentFrame == finalFrame && _currentTime == totalTime)
-                    dispatchCompleteEvent = true;
             }
-            
-            if (_currentFrame != previousFrame)
-                texture = _frames[_currentFrame].texture;
-            
-            if (dispatchCompleteEvent)
-                dispatchEventWith(Event.COMPLETE);
-            
-            if (_loop && restTime > 0.0)
-                advanceTime(restTime);
+
+            if (_currentTime == totalTime)
+            {
+                if (_loop)
+                {
+                    _currentTime = 0.0;
+                    _currentFrameID = 0;
+                    frame = _frames[0];
+                    frame.playSound(_soundTransform);
+                    texture = frame.texture;
+
+                    if (frame.action != null)
+                    {
+                        frame.executeAction(this, _currentFrameID);
+                        advanceTime(passedTime);
+                        return;
+                    }
+                }
+                else return;
+            }
+
+            var finalFrameID:int = _frames.length - 1;
+            var restTimeInFrame:Number = frame.duration - _currentTime + frame.startTime;
+            var dispatchCompleteEvent:Boolean = false;
+            var frameAction:Function = null;
+            var previousFrameID:int = _currentFrameID;
+            var changedFrame:Boolean;
+
+            while (passedTime >= restTimeInFrame)
+            {
+                changedFrame = false;
+                passedTime -= restTimeInFrame;
+                _currentTime = frame.startTime + frame.duration;
+
+                if (_currentFrameID == finalFrameID)
+                {
+                    if (hasEventListener(Event.COMPLETE))
+                    {
+                        dispatchCompleteEvent = true;
+                    }
+                    else if (_loop)
+                    {
+                        _currentTime = 0;
+                        _currentFrameID = 0;
+                        changedFrame = true;
+                    }
+                    else return;
+                }
+                else
+                {
+                    _currentFrameID += 1;
+                    changedFrame = true;
+                }
+
+                frame = _frames[_currentFrameID];
+                frameAction = frame.action;
+
+                if (changedFrame)
+                    frame.playSound(_soundTransform);
+
+                if (dispatchCompleteEvent)
+                {
+                    texture = frame.texture;
+                    dispatchEventWith(Event.COMPLETE);
+                    advanceTime(passedTime);
+                    return;
+                }
+                else if (frameAction != null)
+                {
+                    texture = frame.texture;
+                    frame.executeAction(this, _currentFrameID);
+                    advanceTime(passedTime);
+                    return;
+                }
+
+                restTimeInFrame = frame.duration;
+            }
+
+            if (previousFrameID != _currentFrameID)
+                texture = _frames[_currentFrameID].texture;
+
+            _currentTime += passedTime;
         }
         
-        // properties  
+        // properties
+
+        /** The total number of frames. */
+        public function get numFrames():int { return _frames.length; }
         
         /** The total duration of the clip in seconds. */
         public function get totalTime():Number 
@@ -316,11 +360,22 @@ package starling.display
         
         /** The time that has passed since the clip was started (each loop starts at zero). */
         public function get currentTime():Number { return _currentTime; }
-        
-        /** The total number of frames. */
-        public function get numFrames():int { return _frames.length; }
-        
-        /** Indicates if the clip should loop. */
+        public function set currentTime(value:Number):void
+        {
+            if (value < 0 || value > totalTime) throw new ArgumentError("Invalid time: " + value);
+
+            var lastFrameID:int = _frames.length - 1;
+            _currentTime = value;
+            _currentFrameID = 0;
+
+            while (_currentFrameID < lastFrameID && _frames[_currentFrameID + 1].startTime <= value)
+                ++_currentFrameID;
+
+            var frame:MovieClipFrame = _frames[_currentFrameID];
+            texture = frame.texture;
+        }
+
+        /** Indicates if the clip should loop. @default true */
         public function get loop():Boolean { return _loop; }
         public function set loop(value:Boolean):void { _loop = value; }
         
@@ -334,17 +389,11 @@ package starling.display
         public function set soundTransform(value:SoundTransform):void { _soundTransform = value; }
 
         /** The index of the frame that is currently displayed. */
-        public function get currentFrame():int { return _currentFrame; }
+        public function get currentFrame():int { return _currentFrameID; }
         public function set currentFrame(value:int):void
         {
-            _currentFrame = value;
-            _currentTime = 0.0;
-            
-            for (var i:int=0; i<value; ++i)
-                _currentTime += getFrameDuration(i);
-            
-            texture = _frames[_currentFrame].texture;
-            if (_playing && !_wasStopped) playSound(_currentFrame);
+            if (value < 0 || value >= numFrames) throw new ArgumentError("Invalid frame id");
+            currentTime = _frames[value].startTime;
         }
         
         /** The default number of frames per second. Individual frames can have different 
@@ -385,6 +434,9 @@ package starling.display
 }
 
 import flash.media.Sound;
+import flash.media.SoundTransform;
+
+import starling.display.MovieClip;
 import starling.textures.Texture;
 
 class MovieClipFrame
@@ -400,4 +452,24 @@ class MovieClipFrame
     public var sound:Sound;
     public var duration:Number;
     public var startTime:Number;
+    public var action:Function;
+
+    public function playSound(transform:SoundTransform):void
+    {
+        if (sound) sound.play(0, 0, transform);
+    }
+
+    public function executeAction(movie:MovieClip, frameID:int):void
+    {
+        if (action != null)
+        {
+            var numArgs:int = action.length;
+
+            if (numArgs == 0) action();
+            else if (numArgs == 1) action(movie);
+            else if (numArgs == 2) action(movie, frameID);
+            else throw new Error("Frame actions support zero, one or two parameters: " +
+                    "movie:MovieClip, frameID:int");
+        }
+    }
 }
