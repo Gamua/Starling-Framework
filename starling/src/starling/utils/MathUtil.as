@@ -24,7 +24,7 @@ package starling.utils
         public function MathUtil() { throw new AbstractClassError(); }
 
         /** Calculates the intersection point between the xy-plane and an infinite line
-         *  that is defined by two 3D points. */
+         *  that is defined by two 3D points in the same coordinate system. */
         public static function intersectLineWithXYPlane(pointA:Vector3D, pointB:Vector3D,
                                                         resultPoint:Point=null):Point
         {
