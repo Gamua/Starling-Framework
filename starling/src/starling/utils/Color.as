@@ -72,6 +72,22 @@ package starling.utils
 
             return out;
         }
+
+        /** Multiplies all channels of an (A)RGB color with a certain factor. */
+        public static function multiply(color:uint, factor:Number):uint
+        {
+            var alpha:uint = ((color >> 24) & 0xff) * factor;
+            var red:uint   = ((color >> 16) & 0xff) * factor;
+            var green:uint = ((color >>  8) & 0xff) * factor;
+            var blue:uint  = ( color        & 0xff) * factor;
+
+            if (alpha > 255) alpha = 255;
+            if (red   > 255) red   = 255;
+            if (green > 255) green = 255;
+            if (blue  > 255) blue  = 255;
+
+            return argb(alpha, red, green, blue);
+        }
         
         /** @private */
         public function Color() { throw new AbstractClassError(); }
