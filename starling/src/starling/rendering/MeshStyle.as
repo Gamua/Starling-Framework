@@ -10,6 +10,7 @@
 
 package starling.rendering
 {
+    import flash.geom.Matrix;
     import flash.geom.Point;
 
     import starling.core.starling_internal;
@@ -129,10 +130,12 @@ package starling.rendering
          *
          *  <p>Must be overridden by all subclasses!</p>
          */
-        public function updateEffect(effect:MeshEffect):void
+        public function updateEffect(effect:MeshEffect, state:RenderState):void
         {
             effect.texture = _texture;
             effect.textureSmoothing = _textureSmoothing;
+            effect.mvpMatrix = state.mvpMatrix3D;
+            effect.alpha = state.alpha;
         }
 
         /** Indicates if the current instance can be batched with the given style.
@@ -151,6 +154,31 @@ package starling.rendering
                 else return false;
             }
             else return false;
+        }
+
+        /** Copies the raw vertex data of the target mesh to the given VertexData instance.
+         *  If you pass a matrix, all vertices will be transformed during the process.
+         *
+         *  <p>This method is called on batching. Subclasses may override it if they need to modify
+         *  the vertex data in that process. Per default, just the "position" attribute is
+         *  transformed.</p>
+         */
+        public function copyVertexDataTo(target:VertexData, targetVertexID:int=0, matrix:Matrix=null,
+                                         vertexID:int=0, numVertices:int=-1):void
+        {
+            _vertexData.copyTo(target, targetVertexID, matrix, vertexID, numVertices);
+        }
+
+        /** Copies the raw index data to the given IndexData instance.
+         *  The given offset value will be added to all indices during the process.
+         *
+         *  <p>This method is called on batching. Subclasses may override it if they need to modify
+         *  the index data in that process.</p>
+         */
+        public function copyIndexDataTo(target:IndexData, targetIndexID:int=0, offset:int=0,
+                                        indexID:int=0, numIndices:int=-1):void
+        {
+            _indexData.copyTo(target, targetIndexID, offset, indexID, numIndices);
         }
 
         /** Call this method if the target needs to be redrawn.

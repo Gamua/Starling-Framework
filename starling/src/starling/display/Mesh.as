@@ -63,25 +63,6 @@ package starling.display
             this.style = style ? style : new MeshStyle();
         }
 
-        /** Copies the raw vertex data to the given VertexData instance.
-         *  If you pass a matrix, all vertices will be transformed during the process.
-         *  Note that the texture coordinates are always in the coordinate system of the root
-         *  texture, ready for rendering. */
-        public function copyVertexDataTo(target:VertexData, targetVertexID:int=0, matrix:Matrix=null,
-                                         vertexID:int=0, numVertices:int=-1):void
-        {
-            _vertexData.copyTo(target, targetVertexID, matrix, vertexID, numVertices);
-        }
-
-        /** Copies the raw index data to the given IndexData instance.
-         *  The given offset value will be added to all indices during the process.
-         */
-        public function copyIndexDataTo(target:IndexData, targetIndexID:int=0, offset:int=0,
-                                        indexID:int=0, numIndices:int=-1):void
-        {
-            _indexData.copyTo(target, targetIndexID, offset, indexID, numIndices);
-        }
-
         /** @inheritDoc */
         override public function dispose():void
         {
@@ -229,7 +210,8 @@ package starling.display
         /** The total number of indices referencing vertices. */
         public function get numIndices():int { return _indexData.numIndices; }
 
-        /** The total number of triangles in this mesh. */
+        /** The total number of triangles in this mesh.
+         *  (In other words: the number of indices divided by three.) */
         public function get numTriangles():int { return _indexData.numTriangles; }
 
         /** The format used to store the vertices. */

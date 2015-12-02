@@ -157,10 +157,11 @@ package starling.display
 
             var targetVertexID:int = _vertexData.numVertices;
             var targetIndexID:int  = _indexData.numIndices;
+            var meshStyle:MeshStyle = mesh.style;
 
             if (targetVertexID == 0)
             {
-                var styleType:Class = mesh.style.type;
+                var styleType:Class = meshStyle.type;
 
                 if (_style.type != styleType)
                 {
@@ -180,12 +181,12 @@ package starling.display
                     _effect.onRestore = setVertexAndIndexDataChanged;
                 }
 
-                _style.copyFrom(mesh.style);
+                _style.copyFrom(meshStyle);
                 _mesh.blendMode = this.blendMode = blendMode;
             }
 
-            mesh.copyVertexDataTo(_vertexData, targetVertexID, matrix, subset.vertexID, subset.numVertices);
-            mesh.copyIndexDataTo(_indexData, targetIndexID, targetVertexID - subset.vertexID,
+            meshStyle.copyVertexDataTo(_vertexData, targetVertexID, matrix, subset.vertexID, subset.numVertices);
+            meshStyle.copyIndexDataTo(_indexData, targetIndexID, targetVertexID - subset.vertexID,
                 subset.indexID, subset.numIndices);
 
             if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID);
@@ -229,9 +230,7 @@ package starling.display
                 if (_vertexSyncRequired) syncVertexBuffer();
                 if (_indexSyncRequired)  syncIndexBuffer();
 
-                _style.updateEffect(_effect);
-                _effect.mvpMatrix = painter.state.mvpMatrix3D;
-                _effect.alpha = painter.state.alpha;
+                _style.updateEffect(_effect, painter.state);
                 _effect.render(0, _indexData.numTriangles);
             }
         }
