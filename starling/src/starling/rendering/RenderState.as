@@ -226,9 +226,10 @@ package starling.rendering
         {
             var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
             var nextTarget:TextureBase = nextState._renderTarget ? nextState._renderTarget.base : null;
+            var clipRectChanges:Boolean = _clipRect || nextState._clipRect ?
+                     !RectangleUtil.compare(_clipRect, nextState._clipRect) : false;
 
-            return currentTarget != nextTarget || _culling != nextState._culling ||
-                   !RectangleUtil.compare(_clipRect, nextState._clipRect);
+            return currentTarget != nextTarget || _culling != nextState._culling || clipRectChanges;
         }
 
         /** Changes the the current render target.

@@ -30,8 +30,7 @@ package starling.rendering
 
         // helper objects
         private static var sCacheToken:BatchToken = new BatchToken();
-        private static var sFullMeshSubset:MeshSubset = new MeshSubset();
-        private static var sTempMeshSubset:MeshSubset = new MeshSubset();
+        private static var sMeshSubset:MeshSubset = new MeshSubset();
 
         /** Creates a new batch processor. */
         public function BatchProcessor()
@@ -71,9 +70,20 @@ package starling.rendering
         public function addMesh(mesh:Mesh, matrix:Matrix=null, alpha:Number=1.0, blendMode:String=null,
                                 subset:MeshSubset=null, ignoreTransformation:Boolean=false):void
         {
-            if (subset == null) subset = sFullMeshSubset;
+            if (subset == null)
+            {
+                subset = sMeshSubset;
+                subset.vertexID = subset.indexID = 0;
+                subset.numVertices = mesh.numVertices;
+                subset.numIndices  = mesh.numIndices;
+            }
+            else
+            {
+                if (subset.numVertices < 0) subset.numVertices = mesh.numVertices - subset.vertexID;
+                if (subset.numIndices  < 0) subset.numIndices  = mesh.numIndices  - subset.indexID;
+            }
 
-            if (_currentBatch == null || !_currentBatch.canAddMesh(mesh, blendMode))
+            if (_currentBatch == null || !_currentBatch.canAddMesh(mesh, blendMode, subset.numVertices))
             {
                 finishBatch();
 
@@ -83,15 +93,9 @@ package starling.rendering
                 _batches[_batches.length] = _currentBatch;
             }
 
-            var numVertices:int = subset.numVertices;
-            var numIndices:int  = subset.numIndices;
-
-            if (numVertices < 0) numVertices = mesh.numVertices - subset.vertexID;
-            if (numIndices  < 0) numIndices  = mesh.numIndices  - subset.indexID;
-
             _currentBatch.addMesh(mesh, matrix, alpha, blendMode, subset, ignoreTransformation);
-            _cacheToken.vertexID += numVertices;
-            _cacheToken.indexID  += numIndices;
+            _cacheToken.vertexID += subset.numVertices;
+            _cacheToken.indexID  += subset.numIndices;
         }
 
         /** Finishes the current batch, i.e. call the 'onComplete' callback on the batch and
@@ -156,7 +160,7 @@ package starling.rendering
 
             for (var i:int = startToken.batchID; i <= endToken.batchID; ++i)
             {
-                subset = sTempMeshSubset;
+                subset = sMeshSubset;
                 subset.setTo(); // resets subset
 
                 if (i == startToken.batchID)
@@ -174,7 +178,7 @@ package starling.rendering
                 if (subset.numVertices != 0)
                 {
                     meshBatch = batchProcessor._batches[i];
-                    addMesh(meshBatch.mesh, null, 1.0, null, subset, true);
+                    addMesh(meshBatch, null, 1.0, null, subset, true);
                 }
             }
 
