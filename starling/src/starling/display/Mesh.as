@@ -10,7 +10,6 @@
 
 package starling.display
 {
-    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
@@ -44,9 +43,9 @@ package starling.display
      */
     public class Mesh extends DisplayObject
     {
-        private var _style:MeshStyle;
-        private var _vertexData:VertexData;
-        private var _indexData:IndexData;
+        /** @private */ internal var _style:MeshStyle;
+        /** @private */ internal var _vertexData:VertexData;
+        /** @private */ internal var _indexData:IndexData;
 
         /** Creates a new mesh with the given vertices and indices.
          *  If you don't pass a style, an instance of <code>MeshStyle</code> will be created

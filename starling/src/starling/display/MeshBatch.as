@@ -11,17 +11,13 @@
 package starling.display
 {
     import flash.geom.Matrix;
-    import flash.geom.Point;
-    import flash.geom.Rectangle;
 
-    import starling.events.Event;
     import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
     import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.utils.MeshSubset;
-    import starling.utils.MeshUtil;
 
     /** Combines a number of meshes to one display object and renders them efficiently.
      *
@@ -46,20 +42,14 @@ package starling.display
      *  @see Mesh
      *  @see Sprite
      */
-    public class MeshBatch extends DisplayObject
+    public class MeshBatch extends Mesh
     {
         private static const MAX_NUM_VERTICES:int = 65535;
 
         private var _effect:MeshEffect;
-        private var _style:MeshStyle;
-        private var _mesh:Mesh;
-
+        private var _batchable:Boolean;
         private var _vertexSyncRequired:Boolean;
         private var _indexSyncRequired:Boolean;
-        private var _batchable:Boolean;
-
-        private var _vertexData:VertexData;
-        private var _indexData:IndexData;
 
         // helper object
         private static var sFullMeshSubset:MeshSubset = new MeshSubset();
@@ -67,10 +57,10 @@ package starling.display
         /** Creates a new, empty MeshBatch instance. */
         public function MeshBatch()
         {
-            _vertexData = new VertexData(MeshStyle.VERTEX_FORMAT);
-            _indexData = new IndexData();
-            _mesh = new Mesh(_vertexData, _indexData);
-            _style = _mesh.style;
+            var vertexData:VertexData = new VertexData(MeshStyle.VERTEX_FORMAT);
+            var indexData:IndexData = new IndexData();
+
+            super(vertexData, indexData);
 
             // per default, 'batchable' is false -> no render cache
             updateSupportsRenderCache();
@@ -81,25 +71,8 @@ package starling.display
         /** @inheritDoc */
         override public function dispose():void
         {
-            // the ownership of vertex- and index-data is on the mesh;
-            // thus, the mesh will dispose them.
-
             if (_effect) _effect.dispose();
-            if (_mesh)   _mesh.dispose();
-
             super.dispose();
-        }
-
-        /** @inheritDoc */
-        override public function hitTest(localPoint:Point):DisplayObject
-        {
-            return _mesh.hitTest(localPoint);
-        }
-
-        /** @inheritDoc */
-        override public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
-        {
-            return MeshUtil.calculateBounds(_vertexData, this, targetSpace, out);
         }
 
         /** @inheritDoc */
@@ -157,13 +130,13 @@ package starling.display
 
             var targetVertexID:int = _vertexData.numVertices;
             var targetIndexID:int  = _indexData.numIndices;
-            var meshStyle:MeshStyle = mesh.style;
+            var meshStyle:MeshStyle = mesh._style;
 
             if (targetVertexID == 0)
             {
-                var styleType:Class = meshStyle.type;
+                var meshStyleType:Class = meshStyle.type;
 
-                if (_style.type != styleType)
+                if (_style.type != meshStyleType)
                 {
                     if (_effect)
                     {
@@ -171,8 +144,7 @@ package starling.display
                         _effect = null;
                     }
 
-                    _style = new styleType() as MeshStyle;
-                    _mesh.style = _style;
+                    setStyle(new meshStyleType() as MeshStyle, false);
                 }
 
                 if (_effect == null)
@@ -182,7 +154,7 @@ package starling.display
                 }
 
                 _style.copyFrom(meshStyle);
-                _mesh.blendMode = this.blendMode = blendMode;
+                this.blendMode = blendMode;
             }
 
             meshStyle.copyVertexDataTo(_vertexData, targetVertexID, matrix, subset.vertexID, subset.numVertices);
@@ -197,16 +169,21 @@ package starling.display
 
         /** Indicates if the given mesh instance fits to the current state of the batch.
          *  Will always return <code>true</code> for the first added object; later calls
-         *  will check if style or blend mode differ in any way. */
-        public function canAddMesh(mesh:Mesh, blendMode:String=null):Boolean
+         *  will check if style or blend mode differ in any way.
+         *
+         *  @param mesh         the mesh to add to the batch.
+         *  @param blendMode    if <code>null</code>, <code>mesh.blendMode</code> will be used
+         *  @param numVertices  if <code>-1</code>, <code>mesh.numVertices</code> will be used
+         *  @return
+         */
+        public function canAddMesh(mesh:Mesh, blendMode:String=null, numVertices:int=-1):Boolean
         {
-            var numVertices:int = _vertexData.numVertices;
-
+            if (numVertices < 0) numVertices = _vertexData.numVertices;
             if (numVertices == 0) return true;
             if (numVertices + mesh.numVertices > MAX_NUM_VERTICES) return false;
             if (blendMode == null) blendMode = mesh.blendMode;
 
-            return _style.canBatchWith(mesh.style) && this.blendMode == blendMode;
+            return _style.canBatchWith(mesh._style) && this.blendMode == blendMode;
         }
 
         /** If the <code>batchable</code> property is enabled, this method will add the batch
@@ -219,7 +196,7 @@ package starling.display
             }
             else if (_batchable)
             {
-                painter.batchMesh(_mesh);
+                painter.batchMesh(this);
             }
             else
             {
@@ -245,21 +222,6 @@ package starling.display
                 _batchable = value;
                 updateSupportsRenderCache();
             }
-        }
-
-        /** The aggregate mesh, which is a combination of all added meshes. */
-        public function get mesh():Mesh
-        {
-            // TODO when BatchProcessor becomes a display object, make this property internal.
-            //      It's not used anywhere else right now.
-            return _mesh;
-        }
-
-        /** The style of the aggregate mesh. */
-        public function get style():MeshStyle { return _style; }
-        public function set style(value:MeshStyle):void
-        {
-            _style = _mesh.style = value;
         }
     }
 }
