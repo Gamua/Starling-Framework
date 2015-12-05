@@ -31,9 +31,9 @@ package
         private const StageWidth:int  = 320;
         private const StageHeight:int = 480;
 
-        private var mStarling:Starling;
-        private var mBackground:Loader;
-        private var mProgressBar:ProgressBar;
+        private var _starling:Starling;
+        private var _background:Loader;
+        private var _progressBar:ProgressBar;
 
         public function Scaffold_Mobile()
         {
@@ -50,16 +50,16 @@ package
             Starling.multitouchEnabled = true; // useful on mobile devices
             RenderTexture.optimizePersistentBuffers = iOS; // safe on iOS, dangerous on Android
 
-            mStarling = new Starling(Root, stage, viewPort, null, "auto", "auto");
-            mStarling.stage.stageWidth    = StageWidth;  // <- same size on all devices!
-            mStarling.stage.stageHeight   = StageHeight; // <- same size on all devices!
-            mStarling.enableErrorChecking = Capabilities.isDebugger;
-            mStarling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
+            _starling = new Starling(Root, stage, viewPort, null, "auto", "auto");
+            _starling.stage.stageWidth    = StageWidth;  // <- same size on all devices!
+            _starling.stage.stageHeight   = StageHeight; // <- same size on all devices!
+            _starling.enableErrorChecking = Capabilities.isDebugger;
+            _starling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
             {
                 loadAssets(scaleFactor, startGame);
             });
 
-            mStarling.start();
+            _starling.start();
             initElements(scaleFactor);
 
             // When the game becomes inactive, we pause Starling; otherwise, the enter frame event
@@ -68,9 +68,9 @@ package
             if (!SystemUtil.isDesktop)
             {
                 NativeApplication.nativeApplication.addEventListener(
-                    flash.events.Event.ACTIVATE, function (e:*):void { mStarling.start(); });
+                    flash.events.Event.ACTIVATE, function (e:*):void { _starling.start(); });
                 NativeApplication.nativeApplication.addEventListener(
-                    flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(true); });
+                    flash.events.Event.DEACTIVATE, function (e:*):void { _starling.stop(true); });
             }
         }
 
@@ -95,7 +95,7 @@ package
 
             assets.loadQueue(function(ratio:Number):void
             {
-                mProgressBar.ratio = ratio;
+                _progressBar.ratio = ratio;
                 if (ratio == 1)
                 {
                     // now would be a good time for a clean-up
@@ -109,7 +109,7 @@ package
 
         private function startGame(assets:AssetManager):void
         {
-            var root:Root = mStarling.root as Root;
+            var root:Root = _starling.root as Root;
             root.start(assets);
             setTimeout(removeElements, 150); // delay to make 100% sure there's no flickering.
         }
@@ -126,38 +126,38 @@ package
             stream.readBytes(bytes, 0, stream.bytesAvailable);
             stream.close();
 
-            mBackground = new Loader();
-            mBackground.loadBytes(bytes);
-            mBackground.scaleX = 1.0 / scaleFactor;
-            mBackground.scaleY = 1.0 / scaleFactor;
-            mStarling.nativeOverlay.addChild(mBackground);
+            _background = new Loader();
+            _background.loadBytes(bytes);
+            _background.scaleX = 1.0 / scaleFactor;
+            _background.scaleY = 1.0 / scaleFactor;
+            _starling.nativeOverlay.addChild(_background);
 
-            mBackground.contentLoaderInfo.addEventListener(flash.events.Event.COMPLETE,
+            _background.contentLoaderInfo.addEventListener(flash.events.Event.COMPLETE,
                 function(e:Object):void
                 {
-                    (mBackground.content as Bitmap).smoothing = true;
+                    (_background.content as Bitmap).smoothing = true;
                 });
 
             // While the assets are loaded, we will display a progress bar.
 
-            mProgressBar = new ProgressBar(175, 20);
-            mProgressBar.x = (StageWidth - mProgressBar.width) / 2;
-            mProgressBar.y =  StageHeight * 0.7;
-            mStarling.nativeOverlay.addChild(mProgressBar);
+            _progressBar = new ProgressBar(175, 20);
+            _progressBar.x = (StageWidth - _progressBar.width) / 2;
+            _progressBar.y =  StageHeight * 0.7;
+            _starling.nativeOverlay.addChild(_progressBar);
         }
 
         private function removeElements():void
         {
-            if (mBackground)
+            if (_background)
             {
-                mStarling.nativeOverlay.removeChild(mBackground);
-                mBackground = null;
+                _starling.nativeOverlay.removeChild(_background);
+                _background = null;
             }
 
-            if (mProgressBar)
+            if (_progressBar)
             {
-                mStarling.nativeOverlay.removeChild(mProgressBar);
-                mProgressBar = null;
+                _starling.nativeOverlay.removeChild(_progressBar);
+                _progressBar = null;
             }
         }
     }

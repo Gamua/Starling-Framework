@@ -7,8 +7,8 @@ package utils
 
     public class ProgressBar extends Sprite
     {
-        private var mBackground:Shape;
-        private var mBar:Shape;
+        private var _background:Shape;
+        private var _bar:Shape;
 
         public function ProgressBar(width:int, height:int)
         {
@@ -22,11 +22,11 @@ package utils
 
             // create black rounded box for background
 
-            mBackground = new Shape();
-            mBackground.graphics.beginFill(0x0, 0.5);
-            mBackground.graphics.drawRoundRect(0, 0, width, height, cornerRadius, cornerRadius);
-            mBackground.graphics.endFill();
-            addChild(mBackground);
+            _background = new Shape();
+            _background.graphics.beginFill(0x0, 0.5);
+            _background.graphics.drawRoundRect(0, 0, width, height, cornerRadius, cornerRadius);
+            _background.graphics.endFill();
+            addChild(_background);
 
             // create progress bar shape
 
@@ -35,20 +35,20 @@ package utils
             var barMatrix:Matrix = new Matrix();
             barMatrix.createGradientBox(barWidth, barHeight, Math.PI / 2);
 
-            mBar = new Shape();
-            mBar.graphics.beginGradientFill(GradientType.LINEAR,
+            _bar = new Shape();
+            _bar.graphics.beginGradientFill(GradientType.LINEAR,
                 [0xeeeeee, 0xaaaaaa], [1, 1], [0, 255], barMatrix);
-            mBar.graphics.drawRect(0, 0, barWidth, barHeight);
-            mBar.x = padding;
-            mBar.y = padding;
-            mBar.scaleX = 0.0;
-            addChild(mBar);
+            _bar.graphics.drawRect(0, 0, barWidth, barHeight);
+            _bar.x = padding;
+            _bar.y = padding;
+            _bar.scaleX = 0.0;
+            addChild(_bar);
         }
 
-        public function get ratio():Number { return mBar.scaleX; }
+        public function get ratio():Number { return _bar.scaleX; }
         public function set ratio(value:Number):void
         {
-            mBar.scaleX = Math.max(0.0, Math.min(1.0, value));
+            _bar.scaleX = Math.max(0.0, Math.min(1.0, value));
         }
     }
 }

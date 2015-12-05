@@ -15,28 +15,28 @@ package scenes
 
     public class FilterScene extends Scene
     {
-        private var mButton:Button;
-        private var mImage:Image;
-        private var mInfoText:TextField;
-        private var mFilterInfos:Array;
+        private var _button:Button;
+        private var _image:Image;
+        private var _infoText:TextField;
+        private var _filterInfos:Array;
         
         public function FilterScene()
         {
-            mButton = new Button(Game.assets.getTexture("button_normal"), "Switch Filter");
-            mButton.x = int(Constants.CenterX - mButton.width / 2);
-            mButton.y = 15;
-            mButton.addEventListener(Event.TRIGGERED, onButtonTriggered);
-            addChild(mButton);
+            _button = new Button(Game.assets.getTexture("button_normal"), "Switch Filter");
+            _button.x = int(Constants.CenterX - _button.width / 2);
+            _button.y = 15;
+            _button.addEventListener(Event.TRIGGERED, onButtonTriggered);
+            addChild(_button);
             
-            mImage = new Image(Game.assets.getTexture("starling_rocket"));
-            mImage.x = int(Constants.CenterX - mImage.width / 2);
-            mImage.y = 170;
-            addChild(mImage);
+            _image = new Image(Game.assets.getTexture("starling_rocket"));
+            _image.x = int(Constants.CenterX - _image.width / 2);
+            _image.y = 170;
+            addChild(_image);
             
-            mInfoText = new TextField(300, 32, "", "Verdana", 19);
-            mInfoText.x = 10;
-            mInfoText.y = 330;
-            addChild(mInfoText);
+            _infoText = new TextField(300, 32, "", "Verdana", 19);
+            _infoText.x = 10;
+            _infoText.y = 330;
+            addChild(_infoText);
             
             initFilters();
             onButtonTriggered();
@@ -44,16 +44,16 @@ package scenes
         
         private function onButtonTriggered():void
         {
-            var filterInfo:Array = mFilterInfos.shift() as Array;
-            mFilterInfos.push(filterInfo);
+            var filterInfo:Array = _filterInfos.shift() as Array;
+            _filterInfos.push(filterInfo);
             
-            mInfoText.text = filterInfo[0];
-            mImage.filter  = filterInfo[1];
+            _infoText.text = filterInfo[0];
+            _image.filter  = filterInfo[1];
         }
         
         private function initFilters():void
         {
-            mFilterInfos = [
+            _filterInfos = [
                 ["Identity", new ColorMatrixFilter()],
                 ["Blur", new BlurFilter()],
                 ["Drop Shadow", BlurFilter.createDropShadow()],
@@ -61,33 +61,33 @@ package scenes
             ];
             
             var displacementFilter:DisplacementMapFilter = new DisplacementMapFilter(
-                createDisplacementMap(mImage.width, mImage.height), null,
+                createDisplacementMap(_image.width, _image.height), null,
                 BitmapDataChannel.RED, BitmapDataChannel.GREEN, 25, 25);
-            mFilterInfos.push(["Displacement Map", displacementFilter]);
+            _filterInfos.push(["Displacement Map", displacementFilter]);
             
             var invertFilter:ColorMatrixFilter = new ColorMatrixFilter();
             invertFilter.invert();
-            mFilterInfos.push(["Invert", invertFilter]);
+            _filterInfos.push(["Invert", invertFilter]);
             
             var grayscaleFilter:ColorMatrixFilter = new ColorMatrixFilter();
             grayscaleFilter.adjustSaturation(-1);
-            mFilterInfos.push(["Grayscale", grayscaleFilter]);
+            _filterInfos.push(["Grayscale", grayscaleFilter]);
             
             var saturationFilter:ColorMatrixFilter = new ColorMatrixFilter();
             saturationFilter.adjustSaturation(1);
-            mFilterInfos.push(["Saturation", saturationFilter]);
+            _filterInfos.push(["Saturation", saturationFilter]);
             
             var contrastFilter:ColorMatrixFilter = new ColorMatrixFilter();
             contrastFilter.adjustContrast(0.75);
-            mFilterInfos.push(["Contrast", contrastFilter]);
+            _filterInfos.push(["Contrast", contrastFilter]);
 
             var brightnessFilter:ColorMatrixFilter = new ColorMatrixFilter();
             brightnessFilter.adjustBrightness(-0.25);
-            mFilterInfos.push(["Brightness", brightnessFilter]);
+            _filterInfos.push(["Brightness", brightnessFilter]);
 
             var hueFilter:ColorMatrixFilter = new ColorMatrixFilter();
             hueFilter.adjustHue(1);
-            mFilterInfos.push(["Hue", hueFilter]);
+            _filterInfos.push(["Hue", hueFilter]);
         }
         
         private function createDisplacementMap(width:Number, height:Number):Texture

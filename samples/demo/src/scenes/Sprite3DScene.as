@@ -11,18 +11,18 @@ package scenes
 
     public class Sprite3DScene extends Scene
     {
-        private var mCube:Sprite3D;
+        private var _cube:Sprite3D;
         
         public function Sprite3DScene()
         {
             var texture:Texture = Game.assets.getTexture("gamua-logo");
             
-            mCube = createCube(texture);
-            mCube.x = Constants.CenterX;
-            mCube.y = Constants.CenterY;
-            mCube.z = 100;
+            _cube = createCube(texture);
+            _cube.x = Constants.CenterX;
+            _cube.y = Constants.CenterY;
+            _cube.z = 100;
             
-            addChild(mCube);
+            addChild(_cube);
             
             addEventListener(Event.ADDED_TO_STAGE, start);
             addEventListener(Event.REMOVED_FROM_STAGE, stop);
@@ -30,14 +30,14 @@ package scenes
 
         private function start():void
         {
-            Starling.juggler.tween(mCube, 6, { rotationX: 2 * Math.PI, repeatCount: 0 });
-            Starling.juggler.tween(mCube, 7, { rotationY: 2 * Math.PI, repeatCount: 0 });
-            Starling.juggler.tween(mCube, 8, { rotationZ: 2 * Math.PI, repeatCount: 0 });
+            Starling.juggler.tween(_cube, 6, { rotationX: 2 * Math.PI, repeatCount: 0 });
+            Starling.juggler.tween(_cube, 7, { rotationY: 2 * Math.PI, repeatCount: 0 });
+            Starling.juggler.tween(_cube, 8, { rotationZ: 2 * Math.PI, repeatCount: 0 });
         }
 
         private function stop():void
         {
-            Starling.juggler.removeTweens(mCube);
+            Starling.juggler.removeTweens(_cube);
         }
 
         private function createCube(texture:Texture):Sprite3D
