@@ -11,35 +11,36 @@
 package tests.display
 {
     import flash.geom.Rectangle;
-    
+
     import flexunit.framework.Assert;
-    
+
     import org.flexunit.assertThat;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
     import starling.events.Event;
+
     import tests.Helpers;
-    
+
     public class DisplayObjectContainerTest
     {
         private static const E:Number = 0.0001;
         
-        private var mAdded:int;
-        private var mAddedToStage:int;
-        private var mAddedChild:int;
-        private var mRemoved:int;
-        private var mRemovedFromStage:int;
-        private var mRemovedChild:int;
+        private var _added:int;
+        private var _addedToStage:int;
+        private var _addedChild:int;
+        private var _removed:int;
+        private var _removedFromStage:int;
+        private var _removedChild:int;
         
         [Before]
         public function setUp():void 
         {
-            mAdded = mAddedToStage = mAddedChild = 
-            mRemoved = mRemovedFromStage = mRemovedChild = 0;
+            _added = _addedToStage = _addedChild =
+            _removed = _removedFromStage = _removedChild = 0;
         }
         
         [After]
@@ -427,8 +428,8 @@ package tests.display
             
             stage.addChild(sprite);
             sprite.addChild(quad);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(1, mAddedToStage);
+            Assert.assertEquals(1, _added);
+            Assert.assertEquals(1, _addedToStage);
             
             // add same child again
             sprite.addChild(quad);
@@ -438,10 +439,10 @@ package tests.display
             Assert.assertEquals(0, sprite.getChildIndex(quad));
             
             // since the parent does not change, no events should be dispatched 
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(0, mRemovedFromStage);
+            Assert.assertEquals(1, _added);
+            Assert.assertEquals(1, _addedToStage);
+            Assert.assertEquals(0, _removed);
+            Assert.assertEquals(0, _removedFromStage);
         }
         
         [Test]
@@ -512,36 +513,36 @@ package tests.display
             stage.addEventListener(Event.REMOVED, onRemovedChild);
             
             sprite.addChild(quad);            
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(0, mAddedToStage);
-            Assert.assertEquals(0, mRemovedFromStage);
-            Assert.assertEquals(0, mAddedChild);
-            Assert.assertEquals(0, mRemovedChild);
+            Assert.assertEquals(1, _added);
+            Assert.assertEquals(0, _removed);
+            Assert.assertEquals(0, _addedToStage);
+            Assert.assertEquals(0, _removedFromStage);
+            Assert.assertEquals(0, _addedChild);
+            Assert.assertEquals(0, _removedChild);
             
             stage.addChild(sprite);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(0, mRemovedFromStage);
-            Assert.assertEquals(1, mAddedChild);
-            Assert.assertEquals(0, mRemovedChild);
+            Assert.assertEquals(1, _added);
+            Assert.assertEquals(0, _removed);
+            Assert.assertEquals(1, _addedToStage);
+            Assert.assertEquals(0, _removedFromStage);
+            Assert.assertEquals(1, _addedChild);
+            Assert.assertEquals(0, _removedChild);
             
             stage.removeChild(sprite);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(1, mRemovedFromStage);
-            Assert.assertEquals(1, mAddedChild);
-            Assert.assertEquals(1, mRemovedChild);
+            Assert.assertEquals(1, _added);
+            Assert.assertEquals(0, _removed);
+            Assert.assertEquals(1, _addedToStage);
+            Assert.assertEquals(1, _removedFromStage);
+            Assert.assertEquals(1, _addedChild);
+            Assert.assertEquals(1, _removedChild);
             
             sprite.removeChild(quad);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(1, mRemoved);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(1, mRemovedFromStage);
-            Assert.assertEquals(1, mAddedChild);
-            Assert.assertEquals(1, mRemovedChild);
+            Assert.assertEquals(1, _added);
+            Assert.assertEquals(1, _removed);
+            Assert.assertEquals(1, _addedToStage);
+            Assert.assertEquals(1, _removedFromStage);
+            Assert.assertEquals(1, _addedChild);
+            Assert.assertEquals(1, _removedChild);
         }
         
         [Test]
@@ -552,13 +553,13 @@ package tests.display
             stage.addChild(sprite);
             sprite.addEventListener(Event.REMOVED_FROM_STAGE, onSpriteRemovedFromStage);
             sprite.removeFromParent();
-            Assert.assertEquals(1, mRemovedFromStage);
+            Assert.assertEquals(1, _removedFromStage);
             
             function onSpriteRemovedFromStage(e:Event):void
             {
                 // stage should still be accessible in event listener
                 Assert.assertNotNull(sprite.stage);
-                mRemovedFromStage++;
+                _removedFromStage++;
             }
         }
         
@@ -598,12 +599,12 @@ package tests.display
             }
         }
         
-        private function onAdded(event:Event):void { mAdded++; }
-        private function onAddedToStage(event:Event):void { mAddedToStage++; }
-        private function onAddedChild(event:Event):void { mAddedChild++; }
+        private function onAdded(event:Event):void { _added++; }
+        private function onAddedToStage(event:Event):void { _addedToStage++; }
+        private function onAddedChild(event:Event):void { _addedChild++; }
         
-        private function onRemoved(event:Event):void { mRemoved++; }
-        private function onRemovedFromStage(event:Event):void { mRemovedFromStage++; }
-        private function onRemovedChild(event:Event):void { mRemovedChild++; }
+        private function onRemoved(event:Event):void { _removed++; }
+        private function onRemovedFromStage(event:Event):void { _removedFromStage++; }
+        private function onRemovedChild(event:Event):void { _removedChild++; }
     }
 }
