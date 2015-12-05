@@ -27,15 +27,15 @@ package starling.textures
      */
     public class SubTexture extends Texture
     {
-        private var mParent:Texture;
-        private var mOwnsParent:Boolean;
-        private var mRegion:Rectangle;
-        private var mFrame:Rectangle;
-        private var mRotated:Boolean;
-        private var mWidth:Number;
-        private var mHeight:Number;
-        private var mTransformationMatrix:Matrix;
-        private var mTransformationMatrixToRoot:Matrix;
+        private var _parent:Texture;
+        private var _ownsParent:Boolean;
+        private var _region:Rectangle;
+        private var _frame:Rectangle;
+        private var _rotated:Boolean;
+        private var _width:Number;
+        private var _height:Number;
+        private var _transformationMatrix:Matrix;
+        private var _transformationMatrixToRoot:Matrix;
         
         /** Helper object. */
         private static var sTexCoords:Point = new Point();
@@ -60,37 +60,37 @@ package starling.textures
             // TODO: in a future version, the order of arguments of this constructor should
             //       be fixed ('ownsParent' at the very end).
             
-            mParent = parent;
-            mRegion = region ? region.clone() : new Rectangle(0, 0, parent.width, parent.height);
-            mFrame = frame ? frame.clone() : null;
-            mOwnsParent = ownsParent;
-            mRotated = rotated;
-            mWidth  = rotated ? mRegion.height : mRegion.width;
-            mHeight = rotated ? mRegion.width  : mRegion.height;
-            mTransformationMatrixToRoot = new Matrix();
-            mTransformationMatrix = new Matrix();
+            _parent = parent;
+            _region = region ? region.clone() : new Rectangle(0, 0, parent.width, parent.height);
+            _frame = frame ? frame.clone() : null;
+            _ownsParent = ownsParent;
+            _rotated = rotated;
+            _width  = rotated ? _region.height : _region.width;
+            _height = rotated ? _region.width  : _region.height;
+            _transformationMatrixToRoot = new Matrix();
+            _transformationMatrix = new Matrix();
             
             if (rotated)
             {
-                mTransformationMatrix.translate(0, -1);
-                mTransformationMatrix.rotate(Math.PI / 2.0);
+                _transformationMatrix.translate(0, -1);
+                _transformationMatrix.rotate(Math.PI / 2.0);
             }
 
-            if (mFrame && (mFrame.x > 0 || mFrame.y > 0 ||
-                mFrame.right < mWidth || mFrame.bottom < mHeight))
+            if (_frame && (_frame.x > 0 || _frame.y > 0 ||
+                _frame.right < _width || _frame.bottom < _height))
             {
                 trace("[Starling] Warning: frames inside the texture's region are unsupported.");
             }
 
-            mTransformationMatrix.scale(mRegion.width  / mParent.width,
-                                        mRegion.height / mParent.height);
-            mTransformationMatrix.translate(mRegion.x  / mParent.width,
-                                            mRegion.y  / mParent.height);
+            _transformationMatrix.scale(_region.width  / _parent.width,
+                                        _region.height / _parent.height);
+            _transformationMatrix.translate(_region.x  / _parent.width,
+                                            _region.y  / _parent.height);
 
             var texture:SubTexture = this;
             while (texture)
             {
-                mTransformationMatrixToRoot.concat(texture.mTransformationMatrix);
+                _transformationMatrixToRoot.concat(texture._transformationMatrix);
                 texture = texture.parent as SubTexture;
             }
         }
@@ -98,61 +98,61 @@ package starling.textures
         /** Disposes the parent texture if this texture owns it. */
         public override function dispose():void
         {
-            if (mOwnsParent) mParent.dispose();
+            if (_ownsParent) _parent.dispose();
             super.dispose();
         }
 
         /** The texture which the SubTexture is based on. */
-        public function get parent():Texture { return mParent; }
+        public function get parent():Texture { return _parent; }
         
         /** Indicates if the parent texture is disposed when this object is disposed. */
-        public function get ownsParent():Boolean { return mOwnsParent; }
+        public function get ownsParent():Boolean { return _ownsParent; }
         
         /** If true, the SubTexture will show the parent region rotated by 90 degrees (CCW). */
-        public function get rotated():Boolean { return mRotated; }
+        public function get rotated():Boolean { return _rotated; }
 
         /** The region of the parent texture that the SubTexture is showing (in points).
          *
          *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
-        public function get region():Rectangle { return mRegion; }
+        public function get region():Rectangle { return _region; }
 
         /** @inheritDoc */
-        public override function get transformationMatrix():Matrix { return mTransformationMatrix; }
+        public override function get transformationMatrix():Matrix { return _transformationMatrix; }
 
         /** @inheritDoc */
-        public override function get transformationMatrixToRoot():Matrix { return mTransformationMatrixToRoot; }
+        public override function get transformationMatrixToRoot():Matrix { return _transformationMatrixToRoot; }
         
         /** @inheritDoc */
-        public override function get base():TextureBase { return mParent.base; }
+        public override function get base():TextureBase { return _parent.base; }
         
         /** @inheritDoc */
-        public override function get root():ConcreteTexture { return mParent.root; }
+        public override function get root():ConcreteTexture { return _parent.root; }
         
         /** @inheritDoc */
-        public override function get format():String { return mParent.format; }
+        public override function get format():String { return _parent.format; }
         
         /** @inheritDoc */
-        public override function get width():Number { return mWidth; }
+        public override function get width():Number { return _width; }
         
         /** @inheritDoc */
-        public override function get height():Number { return mHeight; }
+        public override function get height():Number { return _height; }
         
         /** @inheritDoc */
-        public override function get nativeWidth():Number { return mWidth * scale; }
+        public override function get nativeWidth():Number { return _width * scale; }
         
         /** @inheritDoc */
-        public override function get nativeHeight():Number { return mHeight * scale; }
+        public override function get nativeHeight():Number { return _height * scale; }
         
         /** @inheritDoc */
-        public override function get mipMapping():Boolean { return mParent.mipMapping; }
+        public override function get mipMapping():Boolean { return _parent.mipMapping; }
         
         /** @inheritDoc */
-        public override function get premultipliedAlpha():Boolean { return mParent.premultipliedAlpha; }
+        public override function get premultipliedAlpha():Boolean { return _parent.premultipliedAlpha; }
         
         /** @inheritDoc */
-        public override function get scale():Number { return mParent.scale; }
+        public override function get scale():Number { return _parent.scale; }
 
         /** @inheritDoc */
-        public override function get frame():Rectangle { return mFrame; }
+        public override function get frame():Rectangle { return _frame; }
     }
 }

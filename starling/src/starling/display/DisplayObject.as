@@ -131,27 +131,27 @@ package starling.display
     {
         // private members
         
-        private var mX:Number;
-        private var mY:Number;
-        private var mPivotX:Number;
-        private var mPivotY:Number;
-        private var mScaleX:Number;
-        private var mScaleY:Number;
-        private var mSkewX:Number;
-        private var mSkewY:Number;
-        private var mRotation:Number;
-        private var mAlpha:Number;
-        private var mVisible:Boolean;
-        private var mTouchable:Boolean;
-        private var mBlendMode:String;
-        private var mName:String;
-        private var mUseHandCursor:Boolean;
-        private var mParent:DisplayObjectContainer;  
-        private var mTransformationMatrix:Matrix;
-        private var mTransformationMatrix3D:Matrix3D;
-        private var mOrientationChanged:Boolean;
-        private var mIs3D:Boolean;
-        private var mIsMask:Boolean;
+        private var _x:Number;
+        private var _y:Number;
+        private var _pivotX:Number;
+        private var _pivotY:Number;
+        private var _scaleX:Number;
+        private var _scaleY:Number;
+        private var _skewX:Number;
+        private var _skewY:Number;
+        private var _rotation:Number;
+        private var _alpha:Number;
+        private var _visible:Boolean;
+        private var _touchable:Boolean;
+        private var _blendMode:String;
+        private var _name:String;
+        private var _useHandCursor:Boolean;
+        private var _parent:DisplayObjectContainer;
+        private var _transformationMatrix:Matrix;
+        private var _transformationMatrix3D:Matrix3D;
+        private var _orientationChanged:Boolean;
+        private var _is3D:Boolean;
+        private var _isMask:Boolean;
 
         // internal members (for fast access on rendering)
 
@@ -184,11 +184,11 @@ package starling.display
                 throw new AbstractClassError();
             }
             
-            mX = mY = mPivotX = mPivotY = mRotation = mSkewX = mSkewY = 0.0;
-            mScaleX = mScaleY = mAlpha = 1.0;            
-            mVisible = mTouchable = _hasVisibleArea = true;
-            mBlendMode = BlendMode.AUTO;
-            mTransformationMatrix = new Matrix();
+            _x = _y = _pivotX = _pivotY = _rotation = _skewX = _skewY = 0.0;
+            _scaleX = _scaleY = _alpha = 1.0;
+            _visible = _touchable = _hasVisibleArea = true;
+            _blendMode = BlendMode.AUTO;
+            _transformationMatrix = new Matrix();
         }
         
         /** Disposes all resources of the display object. 
@@ -204,7 +204,7 @@ package starling.display
         /** Removes the object from its parent, if it has one, and optionally disposes it. */
         public function removeFromParent(dispose:Boolean=false):void
         {
-            if (mParent) mParent.removeChild(this, dispose);
+            if (_parent) _parent.removeChild(this, dispose);
             else if (dispose) this.dispose();
         }
         
@@ -224,7 +224,7 @@ package starling.display
             {
                 return resultMatrix;
             }
-            else if (targetSpace == mParent || (targetSpace == null && mParent == null))
+            else if (targetSpace == _parent || (targetSpace == null && _parent == null))
             {
                 resultMatrix.copyFrom(transformationMatrix);
                 return resultMatrix;
@@ -238,12 +238,12 @@ package starling.display
                 while (currentObject != targetSpace)
                 {
                     resultMatrix.concat(currentObject.transformationMatrix);
-                    currentObject = currentObject.mParent;
+                    currentObject = currentObject._parent;
                 }
                 
                 return resultMatrix;
             }
-            else if (targetSpace.mParent == this) // optimization
+            else if (targetSpace._parent == this) // optimization
             {
                 targetSpace.getTransformationMatrix(this, resultMatrix);
                 resultMatrix.invert();
@@ -261,7 +261,7 @@ package starling.display
             while (currentObject != commonParent)
             {
                 resultMatrix.concat(currentObject.transformationMatrix);
-                currentObject = currentObject.mParent;
+                currentObject = currentObject._parent;
             }
             
             if (commonParent == targetSpace)
@@ -274,7 +274,7 @@ package starling.display
             while (currentObject != commonParent)
             {
                 sHelperMatrix.concat(currentObject.transformationMatrix);
-                currentObject = currentObject.mParent;
+                currentObject = currentObject._parent;
             }
             
             // 4. now combine the two matrices
@@ -298,7 +298,7 @@ package starling.display
         public function hitTest(localPoint:Point):DisplayObject
         {
             // on a touch test, invisible or untouchable objects cause the test to fail
-            if (!mVisible || !mTouchable) return null;
+            if (!_visible || !_touchable) return null;
 
             // if we've got a mask and the hit occurs outside, fail
             if (_mask && !hitTestMask(localPoint)) return null;
@@ -383,14 +383,14 @@ package starling.display
             var bounds:Rectangle = getBounds(this, sHelperRect);
             setOrientationChanged();
             
-            if (hAlign == HAlign.LEFT)        mPivotX = bounds.x;
-            else if (hAlign == HAlign.CENTER) mPivotX = bounds.x + bounds.width / 2.0;
-            else if (hAlign == HAlign.RIGHT)  mPivotX = bounds.x + bounds.width; 
+            if (hAlign == HAlign.LEFT)        _pivotX = bounds.x;
+            else if (hAlign == HAlign.CENTER) _pivotX = bounds.x + bounds.width / 2.0;
+            else if (hAlign == HAlign.RIGHT)  _pivotX = bounds.x + bounds.width;
             else throw new ArgumentError("Invalid horizontal alignment: " + hAlign);
             
-            if (vAlign == VAlign.TOP)         mPivotY = bounds.y;
-            else if (vAlign == VAlign.CENTER) mPivotY = bounds.y + bounds.height / 2.0;
-            else if (vAlign == VAlign.BOTTOM) mPivotY = bounds.y + bounds.height;
+            if (vAlign == VAlign.TOP)         _pivotY = bounds.y;
+            else if (vAlign == VAlign.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
+            else if (vAlign == VAlign.BOTTOM) _pivotY = bounds.y + bounds.height;
             else throw new ArgumentError("Invalid vertical alignment: " + vAlign);
         }
         
@@ -413,7 +413,7 @@ package starling.display
             {
                 return resultMatrix;
             }
-            else if (targetSpace == mParent || (targetSpace == null && mParent == null))
+            else if (targetSpace == _parent || (targetSpace == null && _parent == null))
             {
                 resultMatrix.copyFrom(transformationMatrix3D);
                 return resultMatrix;
@@ -427,12 +427,12 @@ package starling.display
                 while (currentObject != targetSpace)
                 {
                     resultMatrix.append(currentObject.transformationMatrix3D);
-                    currentObject = currentObject.mParent;
+                    currentObject = currentObject._parent;
                 }
 
                 return resultMatrix;
             }
-            else if (targetSpace.mParent == this) // optimization
+            else if (targetSpace._parent == this) // optimization
             {
                 targetSpace.getTransformationMatrix3D(this, resultMatrix);
                 resultMatrix.invert();
@@ -450,7 +450,7 @@ package starling.display
             while (currentObject != commonParent)
             {
                 resultMatrix.append(currentObject.transformationMatrix3D);
-                currentObject = currentObject.mParent;
+                currentObject = currentObject._parent;
             }
 
             if (commonParent == targetSpace)
@@ -463,7 +463,7 @@ package starling.display
             while (currentObject != commonParent)
             {
                 sHelperMatrix3D.append(currentObject.transformationMatrix3D);
-                currentObject = currentObject.mParent;
+                currentObject = currentObject._parent;
             }
 
             // 4. now combine the two matrices
@@ -512,25 +512,25 @@ package starling.display
             // check for a recursion
             var ancestor:DisplayObject = value;
             while (ancestor != this && ancestor != null)
-                ancestor = ancestor.mParent;
+                ancestor = ancestor._parent;
             
             if (ancestor == this)
                 throw new ArgumentError("An object cannot be added as a child to itself or one " +
                                         "of its children (or children's children, etc.)");
             else
-                mParent = value; 
+                _parent = value;
         }
         
         /** @private */
         internal function setIs3D(value:Boolean):void
         {
-            mIs3D = value;
+            _is3D = value;
         }
 
         /** @private */
         internal function get isMask():Boolean
         {
-            return mIsMask;
+            return _isMask;
         }
 
         // render cache
@@ -548,16 +548,16 @@ package starling.display
          */
         public function setRequiresRedraw():void
         {
-            var parent:DisplayObject = mParent;
+            var parent:DisplayObject = _parent;
             var frameID:int = Starling.frameID;
 
-            _hasVisibleArea = mAlpha != 0.0 && mVisible && !mIsMask && mScaleX != 0.0 && mScaleY != 0.0;
+            _hasVisibleArea = _alpha != 0.0 && _visible && !_isMask && _scaleX != 0.0 && _scaleY != 0.0;
             _lastParentOrSelfChangeFrameID = frameID;
 
             while (parent && parent._lastChildChangeFrameID != frameID)
             {
                 parent._lastChildChangeFrameID = frameID;
-                parent = parent.mParent;
+                parent = parent._parent;
             }
         }
 
@@ -598,7 +598,7 @@ package starling.display
 
         private function setOrientationChanged():void
         {
-            mOrientationChanged = true;
+            _orientationChanged = true;
             setRequiresRedraw();
         }
         
@@ -615,12 +615,12 @@ package starling.display
             while (currentObject)
             {
                 sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
-                currentObject = currentObject.mParent;
+                currentObject = currentObject._parent;
             }
 
             currentObject = object2;
             while (currentObject && sAncestors.indexOf(currentObject) == -1)
-                currentObject = currentObject.mParent;
+                currentObject = currentObject._parent;
 
             sAncestors.length = 0;
 
@@ -709,53 +709,53 @@ package starling.display
          *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix():Matrix
         {
-            if (mOrientationChanged)
+            if (_orientationChanged)
             {
-                mOrientationChanged = false;
+                _orientationChanged = false;
                 
-                if (mSkewX == 0.0 && mSkewY == 0.0)
+                if (_skewX == 0.0 && _skewY == 0.0)
                 {
                     // optimization: no skewing / rotation simplifies the matrix math
                     
-                    if (mRotation == 0.0)
+                    if (_rotation == 0.0)
                     {
-                        mTransformationMatrix.setTo(mScaleX, 0.0, 0.0, mScaleY, 
-                            mX - mPivotX * mScaleX, mY - mPivotY * mScaleY);
+                        _transformationMatrix.setTo(_scaleX, 0.0, 0.0, _scaleY,
+                            _x - _pivotX * _scaleX, _y - _pivotY * _scaleY);
                     }
                     else
                     {
-                        var cos:Number = Math.cos(mRotation);
-                        var sin:Number = Math.sin(mRotation);
-                        var a:Number   = mScaleX *  cos;
-                        var b:Number   = mScaleX *  sin;
-                        var c:Number   = mScaleY * -sin;
-                        var d:Number   = mScaleY *  cos;
-                        var tx:Number  = mX - mPivotX * a - mPivotY * c;
-                        var ty:Number  = mY - mPivotX * b - mPivotY * d;
+                        var cos:Number = Math.cos(_rotation);
+                        var sin:Number = Math.sin(_rotation);
+                        var a:Number   = _scaleX *  cos;
+                        var b:Number   = _scaleX *  sin;
+                        var c:Number   = _scaleY * -sin;
+                        var d:Number   = _scaleY *  cos;
+                        var tx:Number  = _x - _pivotX * a - _pivotY * c;
+                        var ty:Number  = _y - _pivotX * b - _pivotY * d;
                         
-                        mTransformationMatrix.setTo(a, b, c, d, tx, ty);
+                        _transformationMatrix.setTo(a, b, c, d, tx, ty);
                     }
                 }
                 else
                 {
-                    mTransformationMatrix.identity();
-                    mTransformationMatrix.scale(mScaleX, mScaleY);
-                    MatrixUtil.skew(mTransformationMatrix, mSkewX, mSkewY);
-                    mTransformationMatrix.rotate(mRotation);
-                    mTransformationMatrix.translate(mX, mY);
+                    _transformationMatrix.identity();
+                    _transformationMatrix.scale(_scaleX, _scaleY);
+                    MatrixUtil.skew(_transformationMatrix, _skewX, _skewY);
+                    _transformationMatrix.rotate(_rotation);
+                    _transformationMatrix.translate(_x, _y);
                     
-                    if (mPivotX != 0.0 || mPivotY != 0.0)
+                    if (_pivotX != 0.0 || _pivotY != 0.0)
                     {
                         // prepend pivot transformation
-                        mTransformationMatrix.tx = mX - mTransformationMatrix.a * mPivotX
-                                                      - mTransformationMatrix.c * mPivotY;
-                        mTransformationMatrix.ty = mY - mTransformationMatrix.b * mPivotX 
-                                                      - mTransformationMatrix.d * mPivotY;
+                        _transformationMatrix.tx = _x - _transformationMatrix.a * _pivotX
+                                                      - _transformationMatrix.c * _pivotY;
+                        _transformationMatrix.ty = _y - _transformationMatrix.b * _pivotX
+                                                      - _transformationMatrix.d * _pivotY;
                     }
                 }
             }
             
-            return mTransformationMatrix; 
+            return _transformationMatrix;
         }
 
         public function set transformationMatrix(matrix:Matrix):void
@@ -763,33 +763,33 @@ package starling.display
             const PI_Q:Number = Math.PI / 4.0;
 
             setRequiresRedraw();
-            mOrientationChanged = false;
-            mTransformationMatrix.copyFrom(matrix);
-            mPivotX = mPivotY = 0;
+            _orientationChanged = false;
+            _transformationMatrix.copyFrom(matrix);
+            _pivotX = _pivotY = 0;
             
-            mX = matrix.tx;
-            mY = matrix.ty;
+            _x = matrix.tx;
+            _y = matrix.ty;
             
-            mSkewX = Math.atan(-matrix.c / matrix.d);
-            mSkewY = Math.atan( matrix.b / matrix.a);
+            _skewX = Math.atan(-matrix.c / matrix.d);
+            _skewY = Math.atan( matrix.b / matrix.a);
 
             // NaN check ("isNaN" causes allocation)
-            if (mSkewX != mSkewX) mSkewX = 0.0;
-            if (mSkewY != mSkewY) mSkewY = 0.0;
+            if (_skewX != _skewX) _skewX = 0.0;
+            if (_skewY != _skewY) _skewY = 0.0;
 
-            mScaleY = (mSkewX > -PI_Q && mSkewX < PI_Q) ?  matrix.d / Math.cos(mSkewX)
-                                                        : -matrix.c / Math.sin(mSkewX);
-            mScaleX = (mSkewY > -PI_Q && mSkewY < PI_Q) ?  matrix.a / Math.cos(mSkewY)
-                                                        :  matrix.b / Math.sin(mSkewY);
+            _scaleY = (_skewX > -PI_Q && _skewX < PI_Q) ?  matrix.d / Math.cos(_skewX)
+                                                        : -matrix.c / Math.sin(_skewX);
+            _scaleX = (_skewY > -PI_Q && _skewY < PI_Q) ?  matrix.a / Math.cos(_skewY)
+                                                        :  matrix.b / Math.sin(_skewY);
 
-            if (isEquivalent(mSkewX, mSkewY))
+            if (isEquivalent(_skewX, _skewY))
             {
-                mRotation = mSkewX;
-                mSkewX = mSkewY = 0;
+                _rotation = _skewX;
+                _skewX = _skewY = 0;
             }
             else
             {
-                mRotation = 0;
+                _rotation = 0;
             }
         }
         
@@ -803,24 +803,24 @@ package starling.display
         {
             // this method needs to be overriden in 3D-supporting subclasses (like Sprite3D).
 
-            if (mTransformationMatrix3D == null)
-                mTransformationMatrix3D = new Matrix3D();
+            if (_transformationMatrix3D == null)
+                _transformationMatrix3D = new Matrix3D();
 
-            return MatrixUtil.convertTo3D(transformationMatrix, mTransformationMatrix3D);
+            return MatrixUtil.convertTo3D(transformationMatrix, _transformationMatrix3D);
         }
 
         /** Indicates if this object or any of its parents is a 'Sprite3D' object. */
-        public function get is3D():Boolean { return mIs3D; }
+        public function get is3D():Boolean { return _is3D; }
 
         /** Indicates if the mouse cursor should transform into a hand while it's over the sprite.
          *  @default false */
-        public function get useHandCursor():Boolean { return mUseHandCursor; }
+        public function get useHandCursor():Boolean { return _useHandCursor; }
         public function set useHandCursor(value:Boolean):void
         {
-            if (value == mUseHandCursor) return;
-            mUseHandCursor = value;
+            if (value == _useHandCursor) return;
+            _useHandCursor = value;
             
-            if (mUseHandCursor)
+            if (_useHandCursor)
                 addEventListener(TouchEvent.TOUCH, onTouch);
             else
                 removeEventListener(TouchEvent.TOUCH, onTouch);
@@ -834,16 +834,16 @@ package starling.display
         /** The bounds of the object relative to the local coordinates of the parent. */
         public function get bounds():Rectangle
         {
-            return getBounds(mParent);
+            return getBounds(_parent);
         }
         
         /** The width of the object in pixels.
          *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
          *  be accurate until the object is part of the display list. */
-        public function get width():Number { return getBounds(mParent, sHelperRect).width; }
+        public function get width():Number { return getBounds(_parent, sHelperRect).width; }
         public function set width(value:Number):void
         {
-            // this method calls 'this.scaleX' instead of changing mScaleX directly.
+            // this method calls 'this.scaleX' instead of changing _scaleX directly.
             // that way, subclasses reacting on size changes need to override only the scaleX method.
             
             scaleX = 1.0;
@@ -854,7 +854,7 @@ package starling.display
         /** The height of the object in pixels.
          *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
          *  be accurate until the object is part of the display list. */
-        public function get height():Number { return getBounds(mParent, sHelperRect).height; }
+        public function get height():Number { return getBounds(_parent, sHelperRect).height; }
         public function set height(value:Number):void
         {
             scaleY = 1.0;
@@ -863,69 +863,69 @@ package starling.display
         }
         
         /** The x coordinate of the object relative to the local coordinates of the parent. */
-        public function get x():Number { return mX; }
+        public function get x():Number { return _x; }
         public function set x(value:Number):void 
         { 
-            if (mX != value)
+            if (_x != value)
             {
-                mX = value;
+                _x = value;
                 setOrientationChanged();
             }
         }
         
         /** The y coordinate of the object relative to the local coordinates of the parent. */
-        public function get y():Number { return mY; }
+        public function get y():Number { return _y; }
         public function set y(value:Number):void 
         {
-            if (mY != value)
+            if (_y != value)
             {
-                mY = value;
+                _y = value;
                 setOrientationChanged();
             }
         }
         
         /** The x coordinate of the object's origin in its own coordinate space (default: 0). */
-        public function get pivotX():Number { return mPivotX; }
+        public function get pivotX():Number { return _pivotX; }
         public function set pivotX(value:Number):void 
         {
-            if (mPivotX != value)
+            if (_pivotX != value)
             {
-                mPivotX = value;
+                _pivotX = value;
                 setOrientationChanged();
             }
         }
         
         /** The y coordinate of the object's origin in its own coordinate space (default: 0). */
-        public function get pivotY():Number { return mPivotY; }
+        public function get pivotY():Number { return _pivotY; }
         public function set pivotY(value:Number):void 
         { 
-            if (mPivotY != value)
+            if (_pivotY != value)
             {
-                mPivotY = value;
+                _pivotY = value;
                 setOrientationChanged();
             }
         }
         
         /** The horizontal scale factor. '1' means no scale, negative values flip the object.
          *  @default 1 */
-        public function get scaleX():Number { return mScaleX; }
+        public function get scaleX():Number { return _scaleX; }
         public function set scaleX(value:Number):void 
         { 
-            if (mScaleX != value)
+            if (_scaleX != value)
             {
-                mScaleX = value;
+                _scaleX = value;
                 setOrientationChanged();
             }
         }
         
         /** The vertical scale factor. '1' means no scale, negative values flip the object.
          *  @default 1 */
-        public function get scaleY():Number { return mScaleY; }
+        public function get scaleY():Number { return _scaleY; }
         public function set scaleY(value:Number):void 
         { 
-            if (mScaleY != value)
+            if (_scaleY != value)
             {
-                mScaleY = value;
+                _scaleY = value;
                 setOrientationChanged();
             }
         }
@@ -936,88 +936,88 @@ package starling.display
         public function set scale(value:Number):void { scaleX = scaleY = value; }
         
         /** The horizontal skew angle in radians. */
-        public function get skewX():Number { return mSkewX; }
+        public function get skewX():Number { return _skewX; }
         public function set skewX(value:Number):void 
         {
             value = MathUtil.normalizeAngle(value);
             
-            if (mSkewX != value)
+            if (_skewX != value)
             {
-                mSkewX = value;
+                _skewX = value;
                 setOrientationChanged();
             }
         }
         
         /** The vertical skew angle in radians. */
-        public function get skewY():Number { return mSkewY; }
+        public function get skewY():Number { return _skewY; }
         public function set skewY(value:Number):void 
         {
             value = MathUtil.normalizeAngle(value);
             
-            if (mSkewY != value)
+            if (_skewY != value)
             {
-                mSkewY = value;
+                _skewY = value;
                 setOrientationChanged();
             }
         }
         
         /** The rotation of the object in radians. (In Starling, all angles are measured 
          *  in radians.) */
-        public function get rotation():Number { return mRotation; }
+        public function get rotation():Number { return _rotation; }
         public function set rotation(value:Number):void 
         {
             value = MathUtil.normalizeAngle(value);
 
-            if (mRotation != value)
+            if (_rotation != value)
             {            
-                mRotation = value;
+                _rotation = value;
                 setOrientationChanged();
             }
         }
         
         /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
-        public function get alpha():Number { return mAlpha; }
+        public function get alpha():Number { return _alpha; }
         public function set alpha(value:Number):void 
         {
-            if (value != mAlpha)
+            if (value != _alpha)
             {
-                mAlpha = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value);
+                _alpha = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value);
                 setRequiresRedraw();
             }
         }
         
         /** The visibility of the object. An invisible object will be untouchable. */
-        public function get visible():Boolean { return mVisible; }
+        public function get visible():Boolean { return _visible; }
         public function set visible(value:Boolean):void
         {
-            if (value != mVisible)
+            if (value != _visible)
             {
-                mVisible = value;
+                _visible = value;
                 setRequiresRedraw();
             }
         }
         
         /** Indicates if this object (and its children) will receive touch events. */
-        public function get touchable():Boolean { return mTouchable; }
-        public function set touchable(value:Boolean):void { mTouchable = value; }
+        public function get touchable():Boolean { return _touchable; }
+        public function set touchable(value:Boolean):void { _touchable = value; }
         
         /** The blend mode determines how the object is blended with the objects underneath. 
          *   @default auto
          *   @see starling.display.BlendMode */ 
-        public function get blendMode():String { return mBlendMode; }
+        public function get blendMode():String { return _blendMode; }
         public function set blendMode(value:String):void
         {
-            if (value != mBlendMode)
+            if (value != _blendMode)
             {
-                mBlendMode = value;
+                _blendMode = value;
                 setRequiresRedraw();
             }
         }
         
         /** The name of the display object (default: null). Used by 'getChildByName()' of 
          *  display object containers. */
-        public function get name():String { return mName; }
-        public function set name(value:String):void { mName = value; }
+        public function get name():String { return _name; }
+        public function set name(value:String):void { _name = value; }
         
         /** The filter that is attached to the display object. The starling.filters
          *  package contains several classes that define specific filters you can use. 
@@ -1060,8 +1060,8 @@ package starling.display
         {
             if (_mask != value)
             {
-                if (_mask) _mask.mIsMask = false;
-                if (value) value.mIsMask = true;
+                if (_mask) _mask._isMask = false;
+                if (value) value._isMask = true;
 
                 _mask = value;
                 setRequiresRedraw();
@@ -1070,13 +1070,13 @@ package starling.display
         }
 
         /** The display object container that contains this display object. */
-        public function get parent():DisplayObjectContainer { return mParent; }
+        public function get parent():DisplayObjectContainer { return _parent; }
         
         /** The topmost object in the display tree the object is part of. */
         public function get base():DisplayObject
         {
             var currentObject:DisplayObject = this;
-            while (currentObject.mParent) currentObject = currentObject.mParent;
+            while (currentObject._parent) currentObject = currentObject._parent;
             return currentObject;
         }
         
@@ -1086,9 +1086,9 @@ package starling.display
         public function get root():DisplayObject
         {
             var currentObject:DisplayObject = this;
-            while (currentObject.mParent)
+            while (currentObject._parent)
             {
-                if (currentObject.mParent is Stage) return currentObject;
+                if (currentObject._parent is Stage) return currentObject;
                 else currentObject = currentObject.parent;
             }
             

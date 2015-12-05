@@ -44,35 +44,35 @@ package starling.animation
     {
         private static const HINT_MARKER:String = '#';
 
-        private var mTarget:Object;
-        private var mTransitionFunc:Function;
-        private var mTransitionName:String;
+        private var _target:Object;
+        private var _transitionFunc:Function;
+        private var _transitionName:String;
         
-        private var mProperties:Vector.<String>;
-        private var mStartValues:Vector.<Number>;
-        private var mEndValues:Vector.<Number>;
-        private var mUpdateFuncs:Vector.<Function>;
+        private var _properties:Vector.<String>;
+        private var _startValues:Vector.<Number>;
+        private var _endValues:Vector.<Number>;
+        private var _updateFuncs:Vector.<Function>;
 
-        private var mOnStart:Function;
-        private var mOnUpdate:Function;
-        private var mOnRepeat:Function;
-        private var mOnComplete:Function;  
+        private var _onStart:Function;
+        private var _onUpdate:Function;
+        private var _onRepeat:Function;
+        private var _onComplete:Function;
         
-        private var mOnStartArgs:Array;
-        private var mOnUpdateArgs:Array;
-        private var mOnRepeatArgs:Array;
-        private var mOnCompleteArgs:Array;
+        private var _onStartArgs:Array;
+        private var _onUpdateArgs:Array;
+        private var _onRepeatArgs:Array;
+        private var _onCompleteArgs:Array;
         
-        private var mTotalTime:Number;
-        private var mCurrentTime:Number;
-        private var mProgress:Number;
-        private var mDelay:Number;
-        private var mRoundToInt:Boolean;
-        private var mNextTween:Tween;
-        private var mRepeatCount:int;
-        private var mRepeatDelay:Number;
-        private var mReverse:Boolean;
-        private var mCurrentCycle:int;
+        private var _totalTime:Number;
+        private var _currentTime:Number;
+        private var _progress:Number;
+        private var _delay:Number;
+        private var _roundToInt:Boolean;
+        private var _nextTween:Tween;
+        private var _repeatCount:int;
+        private var _repeatDelay:Number;
+        private var _reverse:Boolean;
+        private var _currentCycle:int;
         
         /** Creates a tween with a target, duration (in seconds) and a transition function.
          *  @param target the object that you want to animate
@@ -88,17 +88,17 @@ package starling.animation
         /** Resets the tween to its default values. Useful for pooling tweens. */
         public function reset(target:Object, time:Number, transition:Object="linear"):Tween
         {
-            mTarget = target;
-            mCurrentTime = 0.0;
-            mTotalTime = Math.max(0.0001, time);
-            mProgress = 0.0;
-            mDelay = mRepeatDelay = 0.0;
-            mOnStart = mOnUpdate = mOnRepeat = mOnComplete = null;
-            mOnStartArgs = mOnUpdateArgs = mOnRepeatArgs = mOnCompleteArgs = null;
-            mRoundToInt = mReverse = false;
-            mRepeatCount = 1;
-            mCurrentCycle = -1;
-            mNextTween = null;
+            _target = target;
+            _currentTime = 0.0;
+            _totalTime = Math.max(0.0001, time);
+            _progress = 0.0;
+            _delay = _repeatDelay = 0.0;
+            _onStart = _onUpdate = _onRepeat = _onComplete = null;
+            _onStartArgs = _onUpdateArgs = _onRepeatArgs = _onCompleteArgs = null;
+            _roundToInt = _reverse = false;
+            _repeatCount = 1;
+            _currentCycle = -1;
+            _nextTween = null;
             
             if (transition is String)
                 this.transition = transition as String;
@@ -107,10 +107,10 @@ package starling.animation
             else 
                 throw new ArgumentError("Transition must be either a string or a function");
             
-            if (mProperties)  mProperties.length  = 0; else mProperties  = new <String>[];
-            if (mStartValues) mStartValues.length = 0; else mStartValues = new <Number>[];
-            if (mEndValues)   mEndValues.length   = 0; else mEndValues   = new <Number>[];
-            if (mUpdateFuncs) mUpdateFuncs.length = 0; else mUpdateFuncs = new <Function>[];
+            if (_properties)  _properties.length  = 0; else _properties  = new <String>[];
+            if (_startValues) _startValues.length = 0; else _startValues = new <Number>[];
+            if (_endValues)   _endValues.length   = 0; else _endValues   = new <Number>[];
+            if (_updateFuncs) _updateFuncs.length = 0; else _updateFuncs = new <Function>[];
             
             return this;
         }
@@ -132,15 +132,15 @@ package starling.animation
          */
         public function animate(property:String, endValue:Number):void
         {
-            if (mTarget == null) return; // tweening null just does nothing.
+            if (_target == null) return; // tweening null just does nothing.
 
-            var pos:int = mProperties.length;
+            var pos:int = _properties.length;
             var updateFunc:Function = getUpdateFuncFromProperty(property);
 
-            mProperties[pos] = getPropertyName(property);
-            mStartValues[pos] = Number.NaN;
-            mEndValues[pos] = endValue;
-            mUpdateFuncs[pos] = updateFunc;
+            _properties[pos] = getPropertyName(property);
+            _startValues[pos] = Number.NaN;
+            _endValues[pos] = endValue;
+            _updateFuncs[pos] = updateFunc;
         }
 
         /** Animates the 'scaleX' and 'scaleY' properties of an object simultaneously. */
@@ -174,57 +174,57 @@ package starling.animation
         /** @inheritDoc */
         public function advanceTime(time:Number):void
         {
-            if (time == 0 || (mRepeatCount == 1 && mCurrentTime == mTotalTime)) return;
+            if (time == 0 || (_repeatCount == 1 && _currentTime == _totalTime)) return;
             
             var i:int;
-            var previousTime:Number = mCurrentTime;
-            var restTime:Number = mTotalTime - mCurrentTime;
+            var previousTime:Number = _currentTime;
+            var restTime:Number = _totalTime - _currentTime;
             var carryOverTime:Number = time > restTime ? time - restTime : 0.0;
             
-            mCurrentTime += time;
+            _currentTime += time;
             
-            if (mCurrentTime <= 0) 
+            if (_currentTime <= 0)
                 return; // the delay is not over yet
-            else if (mCurrentTime > mTotalTime) 
-                mCurrentTime = mTotalTime;
+            else if (_currentTime > _totalTime)
+                _currentTime = _totalTime;
             
-            if (mCurrentCycle < 0 && previousTime <= 0 && mCurrentTime > 0)
+            if (_currentCycle < 0 && previousTime <= 0 && _currentTime > 0)
             {
-                mCurrentCycle++;
-                if (mOnStart != null) mOnStart.apply(this, mOnStartArgs);
+                _currentCycle++;
+                if (_onStart != null) _onStart.apply(this, _onStartArgs);
             }
 
-            var ratio:Number = mCurrentTime / mTotalTime;
-            var reversed:Boolean = mReverse && (mCurrentCycle % 2 == 1);
-            var numProperties:int = mStartValues.length;
-            mProgress = reversed ? mTransitionFunc(1.0 - ratio) : mTransitionFunc(ratio);
+            var ratio:Number = _currentTime / _totalTime;
+            var reversed:Boolean = _reverse && (_currentCycle % 2 == 1);
+            var numProperties:int = _startValues.length;
+            _progress = reversed ? _transitionFunc(1.0 - ratio) : _transitionFunc(ratio);
 
             for (i=0; i<numProperties; ++i)
             {                
-                if (mStartValues[i] != mStartValues[i]) // isNaN check - "isNaN" causes allocation! 
-                    mStartValues[i] = mTarget[mProperties[i]] as Number;
+                if (_startValues[i] != _startValues[i]) // isNaN check - "isNaN" causes allocation!
+                    _startValues[i] = _target[_properties[i]] as Number;
 
-                var updateFunc:Function = mUpdateFuncs[i] as Function;
-                updateFunc(mProperties[i], mStartValues[i], mEndValues[i]);
+                var updateFunc:Function = _updateFuncs[i] as Function;
+                updateFunc(_properties[i], _startValues[i], _endValues[i]);
             }
 
-            if (mOnUpdate != null) 
-                mOnUpdate.apply(this, mOnUpdateArgs);
+            if (_onUpdate != null)
+                _onUpdate.apply(this, _onUpdateArgs);
             
-            if (previousTime < mTotalTime && mCurrentTime >= mTotalTime)
+            if (previousTime < _totalTime && _currentTime >= _totalTime)
             {
-                if (mRepeatCount == 0 || mRepeatCount > 1)
+                if (_repeatCount == 0 || _repeatCount > 1)
                 {
-                    mCurrentTime = -mRepeatDelay;
-                    mCurrentCycle++;
-                    if (mRepeatCount > 1) mRepeatCount--;
-                    if (mOnRepeat != null) mOnRepeat.apply(this, mOnRepeatArgs);
+                    _currentTime = -_repeatDelay;
+                    _currentCycle++;
+                    if (_repeatCount > 1) _repeatCount--;
+                    if (_onRepeat != null) _onRepeat.apply(this, _onRepeatArgs);
                 }
                 else
                 {
                     // save callback & args: they might be changed through an event listener
-                    var onComplete:Function = mOnComplete;
-                    var onCompleteArgs:Array = mOnCompleteArgs;
+                    var onComplete:Function = _onComplete;
+                    var onCompleteArgs:Array = _onCompleteArgs;
                     
                     // in the 'onComplete' callback, people might want to call "tween.reset" and
                     // add it to another juggler; so this event has to be dispatched *before*
@@ -281,9 +281,9 @@ package starling.animation
 
         private function updateStandard(property:String, startValue:Number, endValue:Number):void
         {
-            var newValue:Number = startValue + mProgress * (endValue - startValue);
-            if (mRoundToInt) newValue = Math.round(newValue);
-            mTarget[property] = newValue;
+            var newValue:Number = startValue + _progress * (endValue - startValue);
+            if (_roundToInt) newValue = Math.round(newValue);
+            _target[property] = newValue;
         }
 
         private function updateRgb(property:String, startValue:Number, endValue:Number):void
@@ -301,12 +301,12 @@ package starling.animation
             var endG:uint = (endColor >>  8) & 0xff;
             var endB:uint = (endColor      ) & 0xff;
 
-            var newA:uint = startA + (endA - startA) * mProgress;
-            var newR:uint = startR + (endR - startR) * mProgress;
-            var newG:uint = startG + (endG - startG) * mProgress;
-            var newB:uint = startB + (endB - startB) * mProgress;
+            var newA:uint = startA + (endA - startA) * _progress;
+            var newR:uint = startR + (endR - startR) * _progress;
+            var newG:uint = startG + (endG - startG) * _progress;
+            var newB:uint = startB + (endB - startB) * _progress;
 
-            mTarget[property] = (newA << 24) | (newR << 16) | (newG << 8) | newB;
+            _target[property] = (newA << 24) | (newR << 16) | (newG << 8) | newB;
         }
 
         private function updateRad(property:String, startValue:Number, endValue:Number):void
@@ -334,111 +334,111 @@ package starling.animation
          *  property is not being animated. */
         public function getEndValue(property:String):Number
         {
-            var index:int = mProperties.indexOf(property);
+            var index:int = _properties.indexOf(property);
             if (index == -1) throw new ArgumentError("The property '" + property + "' is not animated");
-            else return mEndValues[index] as Number;
+            else return _endValues[index] as Number;
         }
         
         /** Indicates if the tween is finished. */
         public function get isComplete():Boolean 
         { 
-            return mCurrentTime >= mTotalTime && mRepeatCount == 1; 
+            return _currentTime >= _totalTime && _repeatCount == 1;
         }        
         
         /** The target object that is animated. */
-        public function get target():Object { return mTarget; }
+        public function get target():Object { return _target; }
         
         /** The transition method used for the animation. @see Transitions */
-        public function get transition():String { return mTransitionName; }
+        public function get transition():String { return _transitionName; }
         public function set transition(value:String):void 
         { 
-            mTransitionName = value;
-            mTransitionFunc = Transitions.getTransition(value);
+            _transitionName = value;
+            _transitionFunc = Transitions.getTransition(value);
             
-            if (mTransitionFunc == null)
+            if (_transitionFunc == null)
                 throw new ArgumentError("Invalid transiton: " + value);
         }
         
         /** The actual transition function used for the animation. */
-        public function get transitionFunc():Function { return mTransitionFunc; }
+        public function get transitionFunc():Function { return _transitionFunc; }
         public function set transitionFunc(value:Function):void
         {
-            mTransitionName = "custom";
-            mTransitionFunc = value;
+            _transitionName = "custom";
+            _transitionFunc = value;
         }
         
         /** The total time the tween will take per repetition (in seconds). */
-        public function get totalTime():Number { return mTotalTime; }
+        public function get totalTime():Number { return _totalTime; }
         
         /** The time that has passed since the tween was created (in seconds). */
-        public function get currentTime():Number { return mCurrentTime; }
+        public function get currentTime():Number { return _currentTime; }
         
         /** The current progress between 0 and 1, as calculated by the transition function. */
-        public function get progress():Number { return mProgress; } 
+        public function get progress():Number { return _progress; }
         
         /** The delay before the tween is started (in seconds). @default 0 */
-        public function get delay():Number { return mDelay; }
+        public function get delay():Number { return _delay; }
         public function set delay(value:Number):void 
         { 
-            mCurrentTime = mCurrentTime + mDelay - value;
-            mDelay = value;
+            _currentTime = _currentTime + _delay - value;
+            _delay = value;
         }
         
         /** The number of times the tween will be executed. 
          *  Set to '0' to tween indefinitely. @default 1 */
-        public function get repeatCount():int { return mRepeatCount; }
-        public function set repeatCount(value:int):void { mRepeatCount = value; }
+        public function get repeatCount():int { return _repeatCount; }
+        public function set repeatCount(value:int):void { _repeatCount = value; }
         
         /** The amount of time to wait between repeat cycles (in seconds). @default 0 */
-        public function get repeatDelay():Number { return mRepeatDelay; }
-        public function set repeatDelay(value:Number):void { mRepeatDelay = value; }
+        public function get repeatDelay():Number { return _repeatDelay; }
+        public function set repeatDelay(value:Number):void { _repeatDelay = value; }
         
         /** Indicates if the tween should be reversed when it is repeating. If enabled, 
          *  every second repetition will be reversed. @default false */
-        public function get reverse():Boolean { return mReverse; }
-        public function set reverse(value:Boolean):void { mReverse = value; }
+        public function get reverse():Boolean { return _reverse; }
+        public function set reverse(value:Boolean):void { _reverse = value; }
         
         /** Indicates if the numeric values should be cast to Integers. @default false */
-        public function get roundToInt():Boolean { return mRoundToInt; }
-        public function set roundToInt(value:Boolean):void { mRoundToInt = value; }        
+        public function get roundToInt():Boolean { return _roundToInt; }
+        public function set roundToInt(value:Boolean):void { _roundToInt = value; }
         
         /** A function that will be called when the tween starts (after a possible delay). */
-        public function get onStart():Function { return mOnStart; }
-        public function set onStart(value:Function):void { mOnStart = value; }
+        public function get onStart():Function { return _onStart; }
+        public function set onStart(value:Function):void { _onStart = value; }
         
         /** A function that will be called each time the tween is advanced. */
-        public function get onUpdate():Function { return mOnUpdate; }
-        public function set onUpdate(value:Function):void { mOnUpdate = value; }
+        public function get onUpdate():Function { return _onUpdate; }
+        public function set onUpdate(value:Function):void { _onUpdate = value; }
         
         /** A function that will be called each time the tween finishes one repetition
          *  (except the last, which will trigger 'onComplete'). */
-        public function get onRepeat():Function { return mOnRepeat; }
-        public function set onRepeat(value:Function):void { mOnRepeat = value; }
+        public function get onRepeat():Function { return _onRepeat; }
+        public function set onRepeat(value:Function):void { _onRepeat = value; }
         
         /** A function that will be called when the tween is complete. */
-        public function get onComplete():Function { return mOnComplete; }
-        public function set onComplete(value:Function):void { mOnComplete = value; }
+        public function get onComplete():Function { return _onComplete; }
+        public function set onComplete(value:Function):void { _onComplete = value; }
         
         /** The arguments that will be passed to the 'onStart' function. */
-        public function get onStartArgs():Array { return mOnStartArgs; }
-        public function set onStartArgs(value:Array):void { mOnStartArgs = value; }
+        public function get onStartArgs():Array { return _onStartArgs; }
+        public function set onStartArgs(value:Array):void { _onStartArgs = value; }
         
         /** The arguments that will be passed to the 'onUpdate' function. */
-        public function get onUpdateArgs():Array { return mOnUpdateArgs; }
-        public function set onUpdateArgs(value:Array):void { mOnUpdateArgs = value; }
+        public function get onUpdateArgs():Array { return _onUpdateArgs; }
+        public function set onUpdateArgs(value:Array):void { _onUpdateArgs = value; }
         
         /** The arguments that will be passed to the 'onRepeat' function. */
-        public function get onRepeatArgs():Array { return mOnRepeatArgs; }
-        public function set onRepeatArgs(value:Array):void { mOnRepeatArgs = value; }
+        public function get onRepeatArgs():Array { return _onRepeatArgs; }
+        public function set onRepeatArgs(value:Array):void { _onRepeatArgs = value; }
         
         /** The arguments that will be passed to the 'onComplete' function. */
-        public function get onCompleteArgs():Array { return mOnCompleteArgs; }
-        public function set onCompleteArgs(value:Array):void { mOnCompleteArgs = value; }
+        public function get onCompleteArgs():Array { return _onCompleteArgs; }
+        public function set onCompleteArgs(value:Array):void { _onCompleteArgs = value; }
         
         /** Another tween that will be started (i.e. added to the same juggler) as soon as 
          *  this tween is completed. */
-        public function get nextTween():Tween { return mNextTween; }
-        public function set nextTween(value:Tween):void { mNextTween = value; }
+        public function get nextTween():Tween { return _nextTween; }
+        public function set nextTween(value:Tween):void { _nextTween = value; }
         
         // tween pooling
         
@@ -456,10 +456,10 @@ package starling.animation
         starling_internal static function toPool(tween:Tween):void
         {
             // reset any object-references, to make sure we don't prevent any garbage collection
-            tween.mOnStart = tween.mOnUpdate = tween.mOnRepeat = tween.mOnComplete = null;
-            tween.mOnStartArgs = tween.mOnUpdateArgs = tween.mOnRepeatArgs = tween.mOnCompleteArgs = null;
-            tween.mTarget = null;
-            tween.mTransitionFunc = null;
+            tween._onStart = tween._onUpdate = tween._onRepeat = tween._onComplete = null;
+            tween._onStartArgs = tween._onUpdateArgs = tween._onRepeatArgs = tween._onCompleteArgs = null;
+            tween._target = null;
+            tween._transitionFunc = null;
             tween.removeEventListeners();
             sTweenPool.push(tween);
         }

@@ -21,66 +21,66 @@ package starling.text
      */ 
     public class BitmapChar
     {
-        private var mTexture:Texture;
-        private var mCharID:int;
-        private var mXOffset:Number;
-        private var mYOffset:Number;
-        private var mXAdvance:Number;
-        private var mKernings:Dictionary;
+        private var _texture:Texture;
+        private var _charID:int;
+        private var _xOffset:Number;
+        private var _yOffset:Number;
+        private var _xAdvance:Number;
+        private var _kernings:Dictionary;
         
         /** Creates a char with a texture and its properties. */
         public function BitmapChar(id:int, texture:Texture, 
                                    xOffset:Number, yOffset:Number, xAdvance:Number)
         {
-            mCharID = id;
-            mTexture = texture;
-            mXOffset = xOffset;
-            mYOffset = yOffset;
-            mXAdvance = xAdvance;
-            mKernings = null;
+            _charID = id;
+            _texture = texture;
+            _xOffset = xOffset;
+            _yOffset = yOffset;
+            _xAdvance = xAdvance;
+            _kernings = null;
         }
         
         /** Adds kerning information relative to a specific other character ID. */
         public function addKerning(charID:int, amount:Number):void
         {
-            if (mKernings == null)
-                mKernings = new Dictionary();
+            if (_kernings == null)
+                _kernings = new Dictionary();
             
-            mKernings[charID] = amount;
+            _kernings[charID] = amount;
         }
         
         /** Retrieve kerning information relative to the given character ID. */
         public function getKerning(charID:int):Number
         {
-            if (mKernings == null || mKernings[charID] == undefined) return 0.0;
-            else return mKernings[charID];
+            if (_kernings == null || _kernings[charID] == undefined) return 0.0;
+            else return _kernings[charID];
         }
         
         /** Creates an image of the char. */
         public function createImage():Image
         {
-            return new Image(mTexture);
+            return new Image(_texture);
         }
         
         /** The unicode ID of the char. */
-        public function get charID():int { return mCharID; }
+        public function get charID():int { return _charID; }
         
         /** The number of points to move the char in x direction on character arrangement. */
-        public function get xOffset():Number { return mXOffset; }
+        public function get xOffset():Number { return _xOffset; }
         
         /** The number of points to move the char in y direction on character arrangement. */
-        public function get yOffset():Number { return mYOffset; }
+        public function get yOffset():Number { return _yOffset; }
         
         /** The number of points the cursor has to be moved to the right for the next char. */
-        public function get xAdvance():Number { return mXAdvance; }
+        public function get xAdvance():Number { return _xAdvance; }
         
         /** The texture of the character. */
-        public function get texture():Texture { return mTexture; }
+        public function get texture():Texture { return _texture; }
         
         /** The width of the character in points. */
-        public function get width():Number { return mTexture.width; }
+        public function get width():Number { return _texture.width; }
         
         /** The height of the character in points. */
-        public function get height():Number { return mTexture.height; }
+        public function get height():Number { return _texture.height; }
     }
 }

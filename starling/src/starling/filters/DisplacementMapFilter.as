@@ -41,18 +41,18 @@ package starling.filters
      */
     public class DisplacementMapFilter extends FragmentFilter
     {
-        private var mMapTexture:Texture;
-        private var mMapPoint:Point;
-        private var mMapRepeat:Boolean;
-        private var mComponentX:uint;
-        private var mComponentY:uint;
-        private var mScaleX:Number;
-        private var mScaleY:Number;
-        private var mRepeat:Boolean;
+        private var _mapTexture:Texture;
+        private var _mapPoint:Point;
+        private var _mapRepeat:Boolean;
+        private var _componentX:uint;
+        private var _componentY:uint;
+        private var _scaleX:Number;
+        private var _scaleY:Number;
+        private var _repeat:Boolean;
         
-        private var mProgram:Program;
-        private var mMapTexCoords:VertexData;
-        private var mMapTexCoordBuffer:VertexBuffer3D;
+        private var _program:Program;
+        private var _mapTexCoords:VertexData;
+        private var _mapTexCoordBuffer:VertexBuffer3D;
         
         // helper objects
         private static var sOneHalf:Vector.<Number> = new <Number>[0.5, 0.5, 0.5, 0.5];
@@ -66,15 +66,15 @@ package starling.filters
                                               scaleX:Number=0.0, scaleY:Number=0.0,
                                               repeat:Boolean=false)
         {
-            mMapTexture = mapTexture;
-            mMapPoint = new Point();
-            mMapTexCoords = new VertexData("texCoords(float2)", 4);
-            mMapTexCoords.numVertices = 4;
-            mComponentX = componentX;
-            mComponentY = componentY;
-            mScaleX = scaleX;
-            mScaleY = scaleY;
-            mRepeat = repeat;
+            _mapTexture = mapTexture;
+            _mapPoint = new Point();
+            _mapTexCoords = new VertexData("texCoords(float2)", 4);
+            _mapTexCoords.numVertices = 4;
+            _componentX = componentX;
+            _componentY = componentY;
+            _scaleX = scaleX;
+            _scaleY = scaleY;
+            _repeat = repeat;
             this.mapPoint = mapPoint;
             
             super();
@@ -83,7 +83,7 @@ package starling.filters
         /** @inheritDoc */
         public override function dispose():void
         {
-            if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
+            if (_mapTexCoordBuffer) _mapTexCoordBuffer.dispose();
             super.dispose();
         }
         
@@ -91,19 +91,19 @@ package starling.filters
         protected override function createPrograms():void
         {
             // the texture coordinates for the map texture are uploaded via a separate buffer
-            if (mMapTexCoordBuffer) mMapTexCoordBuffer.dispose();
-            mMapTexCoordBuffer = mMapTexCoords.createVertexBuffer();
+            if (_mapTexCoordBuffer) _mapTexCoordBuffer.dispose();
+            _mapTexCoordBuffer = _mapTexCoords.createVertexBuffer();
             
             var painter:Painter = Starling.painter;
             var mapFlags:String = RenderUtil.getTextureLookupFlags(
-                                      mapTexture.format, mapTexture.mipMapping, mMapRepeat);
+                                      mapTexture.format, mapTexture.mipMapping, _mapRepeat);
             var inputFlags:String = RenderUtil.getTextureLookupFlags(
-                                        Context3DTextureFormat.BGRA, false, mRepeat);
+                                        Context3DTextureFormat.BGRA, false, _repeat);
             var programName:String = StringUtil.format("DMF_m{0}_i{1}", mapFlags, inputFlags);
             
             if (painter.hasProgram(programName))
             {
-                mProgram = painter.getProgram(programName);
+                _program = painter.getProgram(programName);
             }
             else
             {
@@ -131,8 +131,8 @@ package starling.filters
                     "tex  oc, ft3, fs0 " + inputFlags // read input texture at displaced coords
                 ].join("\n");
 
-                mProgram = Program.fromSource(vertexShader, fragmentShader);
-                painter.registerProgram(programName, mProgram);
+                _program = Program.fromSource(vertexShader, fragmentShader);
+                painter.registerProgram(programName, _program);
             }
         }
         
@@ -148,11 +148,11 @@ package starling.filters
 
             updateParameters(texture.nativeWidth, texture.nativeHeight);
 
-            mProgram.activate(context);
-            mMapTexCoords.setVertexBufferAttribute(mMapTexCoordBuffer, 2, "texCoords");
+            _program.activate(context);
+            _mapTexCoords.setVertexBufferAttribute(_mapTexCoordBuffer, 2, "texCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOneHalf);
             context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 1, sMatrix, true);
-            context.setTextureAt(1, mMapTexture.base);
+            context.setTextureAt(1, _mapTexture.base);
         }
         
         /** @private */
@@ -173,18 +173,18 @@ package starling.filters
             for (var i:int=0; i<16; ++i)
                 sMatrixData[i] = 0;
 
-            if      (mComponentX == BitmapDataChannel.RED)   columnX = 0;
-            else if (mComponentX == BitmapDataChannel.GREEN) columnX = 1;
-            else if (mComponentX == BitmapDataChannel.BLUE)  columnX = 2;
+            if      (_componentX == BitmapDataChannel.RED)   columnX = 0;
+            else if (_componentX == BitmapDataChannel.GREEN) columnX = 1;
+            else if (_componentX == BitmapDataChannel.BLUE)  columnX = 2;
             else                                             columnX = 3;
 
-            if      (mComponentY == BitmapDataChannel.RED)   columnY = 0;
-            else if (mComponentY == BitmapDataChannel.GREEN) columnY = 1;
-            else if (mComponentY == BitmapDataChannel.BLUE)  columnY = 2;
+            if      (_componentY == BitmapDataChannel.RED)   columnY = 0;
+            else if (_componentY == BitmapDataChannel.GREEN) columnY = 1;
+            else if (_componentY == BitmapDataChannel.BLUE)  columnY = 2;
             else                                             columnY = 3;
 
-            sMatrixData[int(columnX * 4    )] = mScaleX * scale / textureWidth;
-            sMatrixData[int(columnY * 4 + 1)] = mScaleY * scale / textureHeight;
+            sMatrixData[int(columnX * 4    )] = _scaleX * scale / textureWidth;
+            sMatrixData[int(columnY * 4 + 1)] = _scaleY * scale / textureHeight;
 
             sMatrix.copyRawDataFrom(sMatrixData);
 
@@ -192,71 +192,71 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
 
-            var mapX:Number = mMapPoint.x   /  mapTexture.width;
-            var mapY:Number = mMapPoint.y   /  mapTexture.height;
+            var mapX:Number = _mapPoint.x   /  mapTexture.width;
+            var mapY:Number = _mapPoint.y   /  mapTexture.height;
             var maxU:Number = textureWidth  / (mapTexture.width  * scale);
             var maxV:Number = textureHeight / (mapTexture.height * scale);
 
-            mMapTexture.setTexCoords(mMapTexCoords, 0, "texCoords", -mapX, -mapY);
-            mMapTexture.setTexCoords(mMapTexCoords, 1, "texCoords", -mapX + maxU, -mapY);
-            mMapTexture.setTexCoords(mMapTexCoords, 2, "texCoords", -mapX, -mapY + maxV);
-            mMapTexture.setTexCoords(mMapTexCoords, 3, "texCoords", -mapX + maxU, -mapY + maxV);
+            _mapTexture.setTexCoords(_mapTexCoords, 0, "texCoords", -mapX, -mapY);
+            _mapTexture.setTexCoords(_mapTexCoords, 1, "texCoords", -mapX + maxU, -mapY);
+            _mapTexture.setTexCoords(_mapTexCoords, 2, "texCoords", -mapX, -mapY + maxV);
+            _mapTexture.setTexCoords(_mapTexCoords, 3, "texCoords", -mapX + maxU, -mapY + maxV);
 
-            mMapTexCoords.uploadToVertexBuffer(mMapTexCoordBuffer);
+            _mapTexCoords.uploadToVertexBuffer(_mapTexCoordBuffer);
         }
         
         // properties
 
         /** Describes which color channel to use in the map image to displace the x result. 
          *  Possible values are constants from the BitmapDataChannel class. */
-        public function get componentX():uint { return mComponentX; }
-        public function set componentX(value:uint):void { mComponentX = value; }
+        public function get componentX():uint { return _componentX; }
+        public function set componentX(value:uint):void { _componentX = value; }
 
         /** Describes which color channel to use in the map image to displace the y result. 
          *  Possible values are constants from the BitmapDataChannel class. */
-        public function get componentY():uint { return mComponentY; }
-        public function set componentY(value:uint):void { mComponentY = value; }
+        public function get componentY():uint { return _componentY; }
+        public function set componentY(value:uint):void { _componentY = value; }
 
         /** The multiplier used to scale the x displacement result from the map calculation. */
-        public function get scaleX():Number { return mScaleX; }
-        public function set scaleX(value:Number):void { mScaleX = value; }
+        public function get scaleX():Number { return _scaleX; }
+        public function set scaleX(value:Number):void { _scaleX = value; }
 
         /** The multiplier used to scale the y displacement result from the map calculation. */
-        public function get scaleY():Number { return mScaleY; }
-        public function set scaleY(value:Number):void { mScaleY = value; }
+        public function get scaleY():Number { return _scaleY; }
+        public function set scaleY(value:Number):void { _scaleY = value; }
         
         /** The texture that will be used to calculate displacement. */
-        public function get mapTexture():Texture { return mMapTexture; }
+        public function get mapTexture():Texture { return _mapTexture; }
         public function set mapTexture(value:Texture):void
         {
-            if (mMapTexture != value)
+            if (_mapTexture != value)
             {
-                mMapTexture = value;
+                _mapTexture = value;
                 createPrograms();
             }
         }
         
         /** A value that contains the offset of the upper-left corner of the target display 
          *  object from the upper-left corner of the map image. */   
-        public function get mapPoint():Point { return mMapPoint; }
+        public function get mapPoint():Point { return _mapPoint; }
         public function set mapPoint(value:Point):void
         {
-            if (value) mMapPoint.setTo(value.x, value.y);
-            else mMapPoint.setTo(0, 0);
+            if (value) _mapPoint.setTo(value.x, value.y);
+            else _mapPoint.setTo(0, 0);
         }
 
         /** Indicates how the pixels of the map texture will be wrapped. */
-        public function get mapRepeat():Boolean { return mMapRepeat; }
-        public function set mapRepeat(value:Boolean):void { mMapRepeat = value; }
+        public function get mapRepeat():Boolean { return _mapRepeat; }
+        public function set mapRepeat(value:Boolean):void { _mapRepeat = value; }
         
         /** Indicates how the pixels at the edge of the input image (the filtered object) will
          *  be wrapped at the edge. */
-        public function get repeat():Boolean { return mRepeat; }
+        public function get repeat():Boolean { return _repeat; }
         public function set repeat(value:Boolean):void 
         { 
-            if (mRepeat != value)
+            if (_repeat != value)
             {
-                mRepeat = value;
+                _repeat = value;
                 createPrograms();
             }
         }

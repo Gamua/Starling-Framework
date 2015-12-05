@@ -95,30 +95,30 @@ package starling.text
         private static var sDefaultTextureFormat:String =
             "BGRA_PACKED" in Context3DTextureFormat ? "bgraPacked4444" : "bgra";
 
-        private var mFontSize:Number;
-        private var mColor:uint;
-        private var mText:String;
-        private var mFontName:String;
-        private var mHAlign:String;
-        private var mVAlign:String;
-        private var mBold:Boolean;
-        private var mItalic:Boolean;
-        private var mUnderline:Boolean;
-        private var mAutoScale:Boolean;
-        private var mAutoSize:String;
-        private var mKerning:Boolean;
-        private var mLeading:Number;
-        private var mNativeFilters:Array;
-        private var mRequiresRecomposition:Boolean;
-        private var mIsHtmlText:Boolean;
-        private var mTextBounds:Rectangle;
-        private var mBatchable:Boolean;
+        private var _fontSize:Number;
+        private var _color:uint;
+        private var _text:String;
+        private var _fontName:String;
+        private var _hAlign:String;
+        private var _vAlign:String;
+        private var _bold:Boolean;
+        private var _italic:Boolean;
+        private var _underline:Boolean;
+        private var _autoScale:Boolean;
+        private var _autoSize:String;
+        private var _kerning:Boolean;
+        private var _leading:Number;
+        private var _nativeFilters:Array;
+        private var _requiresRecomposition:Boolean;
+        private var _isHtmlText:Boolean;
+        private var _textBounds:Rectangle;
+        private var _batchable:Boolean;
         
-        private var mHitArea:Rectangle;
-        private var mBorder:DisplayObjectContainer;
+        private var _hitArea:Rectangle;
+        private var _border:DisplayObjectContainer;
         
-        private var mImage:Image;
-        private var mMeshBatch:MeshBatch;
+        private var _image:Image;
+        private var _meshBatch:MeshBatch;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -130,32 +130,32 @@ package starling.text
         {
             // TODO TextFields should extend MeshBatch
 
-            mText = text ? text : "";
-            mFontSize = fontSize;
-            mColor = color;
-            mHAlign = HAlign.CENTER;
-            mVAlign = VAlign.CENTER;
-            mBorder = null;
-            mKerning = true;
-            mLeading = 0.0;
-            mBold = bold;
-            mAutoSize = TextFieldAutoSize.NONE;
-            mHitArea = new Rectangle(0, 0, width, height);
+            _text = text ? text : "";
+            _fontSize = fontSize;
+            _color = color;
+            _hAlign = HAlign.CENTER;
+            _vAlign = VAlign.CENTER;
+            _border = null;
+            _kerning = true;
+            _leading = 0.0;
+            _bold = bold;
+            _autoSize = TextFieldAutoSize.NONE;
+            _hitArea = new Rectangle(0, 0, width, height);
             this.fontName = fontName;
         }
         
         /** Disposes the underlying texture data. */
         public override function dispose():void
         {
-            if (mImage) mImage.texture.dispose();
-            if (mMeshBatch) mMeshBatch.dispose();
+            if (_image) _image.texture.dispose();
+            if (_meshBatch) _meshBatch.dispose();
             super.dispose();
         }
         
         /** @inheritDoc */
         public override function render(painter:Painter):void
         {
-            if (mRequiresRecomposition) recompose();
+            if (_requiresRecomposition) recompose();
             super.render(painter);
         }
         
@@ -163,13 +163,13 @@ package starling.text
          *  it will only do so lazily, i.e. before being rendered. */
         public function recompose():void
         {
-            if (mRequiresRecomposition)
+            if (_requiresRecomposition)
             {
-                if (getBitmapFont(mFontName)) createComposedContents();
+                if (getBitmapFont(_fontName)) createComposedContents();
                 else                          createRenderedContents();
 
                 updateBorder();
-                mRequiresRecomposition = false;
+                _requiresRecomposition = false;
             }
         }
         
@@ -177,18 +177,18 @@ package starling.text
         
         private function createRenderedContents():void
         {
-            if (mMeshBatch)
+            if (_meshBatch)
             {
-                mMeshBatch.removeFromParent(true);
-                mMeshBatch = null;
+                _meshBatch.removeFromParent(true);
+                _meshBatch = null;
             }
             
-            if (mTextBounds == null) 
-                mTextBounds = new Rectangle();
+            if (_textBounds == null)
+                _textBounds = new Rectangle();
             
             var texture:Texture;
             var scale:Number = Starling.contentScaleFactor;
-            var bitmapData:BitmapData = renderText(scale, mTextBounds);
+            var bitmapData:BitmapData = renderText(scale, _textBounds);
             var format:String = sDefaultTextureFormat;
             var maxTextureSize:int = Texture.maxSize;
             var shrinkHelper:Number = 0;
@@ -201,20 +201,20 @@ package starling.text
                     (maxTextureSize - shrinkHelper) / bitmapData.height
                 );
                 bitmapData.dispose();
-                bitmapData = renderText(scale, mTextBounds);
+                bitmapData = renderText(scale, _textBounds);
                 shrinkHelper += 1;
             }
 
-            mHitArea.width  = bitmapData.width  / scale;
-            mHitArea.height = bitmapData.height / scale;
+            _hitArea.width  = bitmapData.width  / scale;
+            _hitArea.height = bitmapData.height / scale;
             
             texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
             texture.root.onRestore = function():void
             {
-                if (mTextBounds == null)
-                    mTextBounds = new Rectangle();
+                if (_textBounds == null)
+                    _textBounds = new Rectangle();
 
-                bitmapData = renderText(scale, mTextBounds);
+                bitmapData = renderText(scale, _textBounds);
                 texture.root.uploadBitmapData(bitmapData);
                 bitmapData.dispose();
                 bitmapData = null;
@@ -223,17 +223,17 @@ package starling.text
             bitmapData.dispose();
             bitmapData = null;
             
-            if (mImage == null) 
+            if (_image == null)
             {
-                mImage = new Image(texture);
-                mImage.touchable = false;
-                addChild(mImage);
+                _image = new Image(texture);
+                _image.touchable = false;
+                addChild(_image);
             }
             else 
             { 
-                mImage.texture.dispose();
-                mImage.texture = texture; 
-                mImage.readjustSize(); 
+                _image.texture.dispose();
+                _image.texture = texture;
+                _image.readjustSize();
             }
         }
 
@@ -250,10 +250,10 @@ package starling.text
 
         private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
         {
-            var width:Number  = mHitArea.width  * scale;
-            var height:Number = mHitArea.height * scale;
-            var hAlign:String = mHAlign;
-            var vAlign:String = mVAlign;
+            var width:Number  = _hitArea.width  * scale;
+            var height:Number = _hitArea.height * scale;
+            var hAlign:String = _hAlign;
+            var vAlign:String = _vAlign;
             
             if (isHorizontalAutoSize)
             {
@@ -266,10 +266,10 @@ package starling.text
                 vAlign = VAlign.TOP;
             }
 
-            var textFormat:TextFormat = new TextFormat(mFontName,
-                mFontSize * scale, mColor, mBold, mItalic, mUnderline, null, null, hAlign);
-            textFormat.kerning = mKerning;
-            textFormat.leading = mLeading;
+            var textFormat:TextFormat = new TextFormat(_fontName,
+                _fontSize * scale, _color, _bold, _italic, _underline, null, null, hAlign);
+            textFormat.kerning = _kerning;
+            textFormat.leading = _leading;
 
             sNativeTextField.defaultTextFormat = textFormat;
             sNativeTextField.width = width;
@@ -279,11 +279,11 @@ package starling.text
             sNativeTextField.multiline = true;            
             sNativeTextField.wordWrap = true;         
 
-            if (mIsHtmlText) sNativeTextField.htmlText = mText;
-            else             sNativeTextField.text     = mText;
+            if (_isHtmlText) sNativeTextField.htmlText = _text;
+            else             sNativeTextField.text     = _text;
                
             sNativeTextField.embedFonts = true;
-            sNativeTextField.filters = mNativeFilters;
+            sNativeTextField.filters = _nativeFilters;
             
             // we try embedded fonts first, non-embedded fonts are just a fallback
             if (sNativeTextField.textWidth == 0.0 || sNativeTextField.textHeight == 0.0)
@@ -291,7 +291,7 @@ package starling.text
             
             formatText(sNativeTextField, textFormat);
             
-            if (mAutoScale)
+            if (_autoScale)
                 autoScaleNativeTextField(sNativeTextField);
             
             var textWidth:Number  = sNativeTextField.textWidth;
@@ -359,8 +359,8 @@ package starling.text
                 format.size = size--;
                 textField.defaultTextFormat = format;
 
-                if (mIsHtmlText) textField.htmlText = mText;
-                else             textField.text     = mText;
+                if (_isHtmlText) textField.htmlText = _text;
+                else             textField.text     = _text;
             }
         }
         
@@ -411,29 +411,29 @@ package starling.text
         
         private function createComposedContents():void
         {
-            if (mImage) 
+            if (_image)
             {
-                mImage.removeFromParent(true); 
-                mImage.texture.dispose();
-                mImage = null; 
+                _image.removeFromParent(true);
+                _image.texture.dispose();
+                _image = null;
             }
             
-            if (mMeshBatch == null)
+            if (_meshBatch == null)
             { 
-                mMeshBatch = new MeshBatch();
-                mMeshBatch.touchable = false;
-                addChild(mMeshBatch);
+                _meshBatch = new MeshBatch();
+                _meshBatch.touchable = false;
+                addChild(_meshBatch);
             }
             else
-                mMeshBatch.clear();
+                _meshBatch.clear();
             
-            var bitmapFont:BitmapFont = getBitmapFont(mFontName);
-            if (bitmapFont == null) throw new Error("Bitmap font not registered: " + mFontName);
+            var bitmapFont:BitmapFont = getBitmapFont(_fontName);
+            if (bitmapFont == null) throw new Error("Bitmap font not registered: " + _fontName);
             
-            var width:Number  = mHitArea.width;
-            var height:Number = mHitArea.height;
-            var hAlign:String = mHAlign;
-            var vAlign:String = mVAlign;
+            var width:Number  = _hitArea.width;
+            var height:Number = _hitArea.height;
+            var hAlign:String = _hAlign;
+            var vAlign:String = _vAlign;
             
             if (isHorizontalAutoSize)
             {
@@ -446,24 +446,24 @@ package starling.text
                 vAlign = VAlign.TOP;
             }
             
-            bitmapFont.fillMeshBatch(mMeshBatch, width, height, mText,
-                    mFontSize, mColor, hAlign, vAlign, mAutoScale, mKerning, mLeading);
+            bitmapFont.fillMeshBatch(_meshBatch, width, height, _text,
+                    _fontSize, _color, hAlign, vAlign, _autoScale, _kerning, _leading);
             
-            mMeshBatch.batchable = mBatchable;
+            _meshBatch.batchable = _batchable;
             
-            if (mAutoSize != TextFieldAutoSize.NONE)
+            if (_autoSize != TextFieldAutoSize.NONE)
             {
-                mTextBounds = mMeshBatch.getBounds(mMeshBatch, mTextBounds);
+                _textBounds = _meshBatch.getBounds(_meshBatch, _textBounds);
                 
                 if (isHorizontalAutoSize)
-                    mHitArea.width  = mTextBounds.x + mTextBounds.width;
+                    _hitArea.width  = _textBounds.x + _textBounds.width;
                 if (isVerticalAutoSize)
-                    mHitArea.height = mTextBounds.y + mTextBounds.height;
+                    _hitArea.height = _textBounds.y + _textBounds.height;
             }
             else
             {
                 // hit area doesn't change, text bounds can be created on demand
-                mTextBounds = null;
+                _textBounds = null;
             }
         }
         
@@ -471,15 +471,15 @@ package starling.text
         
         private function updateBorder():void
         {
-            if (mBorder == null) return;
+            if (_border == null) return;
             
-            var width:Number  = mHitArea.width;
-            var height:Number = mHitArea.height;
+            var width:Number  = _hitArea.width;
+            var height:Number = _hitArea.height;
             
-            var topLine:Quad    = mBorder.getChildAt(0) as Quad;
-            var rightLine:Quad  = mBorder.getChildAt(1) as Quad;
-            var bottomLine:Quad = mBorder.getChildAt(2) as Quad;
-            var leftLine:Quad   = mBorder.getChildAt(3) as Quad;
+            var topLine:Quad    = _border.getChildAt(0) as Quad;
+            var rightLine:Quad  = _border.getChildAt(1) as Quad;
+            var bottomLine:Quad = _border.getChildAt(2) as Quad;
+            var leftLine:Quad   = _border.getChildAt(3) as Quad;
             
             topLine.width    = width; topLine.height    = 1;
             bottomLine.width = width; bottomLine.height = 1;
@@ -487,12 +487,12 @@ package starling.text
             rightLine.width  = 1;     rightLine.height  = height;
             rightLine.x  = width  - 1;
             bottomLine.y = height - 1;
-            topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
+            topLine.color = rightLine.color = bottomLine.color = leftLine.color = _color;
         }
 
         private function setRequiresRecomposition():void
         {
-            mRequiresRecomposition = true;
+            _requiresRecomposition = true;
             setRequiresRedraw();
         }
 
@@ -500,37 +500,37 @@ package starling.text
         
         private function get isHorizontalAutoSize():Boolean
         {
-            return mAutoSize == TextFieldAutoSize.HORIZONTAL || 
-                   mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+            return _autoSize == TextFieldAutoSize.HORIZONTAL ||
+                   _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
         
         private function get isVerticalAutoSize():Boolean
         {
-            return mAutoSize == TextFieldAutoSize.VERTICAL || 
-                   mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+            return _autoSize == TextFieldAutoSize.VERTICAL ||
+                   _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
         
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
-            if (mRequiresRecomposition) recompose();
-            if (mTextBounds == null) mTextBounds = mMeshBatch.getBounds(mMeshBatch);
-            return mTextBounds.clone();
+            if (_requiresRecomposition) recompose();
+            if (_textBounds == null) _textBounds = _meshBatch.getBounds(_meshBatch);
+            return _textBounds.clone();
         }
         
         /** @inheritDoc */
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
         {
-            if (mRequiresRecomposition) recompose();
+            if (_requiresRecomposition) recompose();
             getTransformationMatrix(targetSpace, sHelperMatrix);
-            return RectangleUtil.getBounds(mHitArea, sHelperMatrix, resultRect);
+            return RectangleUtil.getBounds(_hitArea, sHelperMatrix, resultRect);
         }
         
         /** @inheritDoc */
         public override function hitTest(localPoint:Point):DisplayObject
         {
             if (!visible || !touchable || !hitTestMask(localPoint)) return null;
-            else if (mHitArea.containsPoint(localPoint)) return this;
+            else if (_hitArea.containsPoint(localPoint)) return this;
             else return null;
         }
 
@@ -541,51 +541,51 @@ package starling.text
             // not change the scaling, but make the texture bigger/smaller, while the size 
             // of the text/font stays the same (this applies to the height, as well).
             
-            mHitArea.width = value;
+            _hitArea.width = value;
             setRequiresRecomposition();
         }
         
         /** @inheritDoc */
         public override function set height(value:Number):void
         {
-            mHitArea.height = value;
+            _hitArea.height = value;
             setRequiresRecomposition();
         }
         
         /** The displayed text. */
-        public function get text():String { return mText; }
+        public function get text():String { return _text; }
         public function set text(value:String):void
         {
             if (value == null) value = "";
-            if (mText != value)
+            if (_text != value)
             {
-                mText = value;
+                _text = value;
                 setRequiresRecomposition();
             }
         }
         
         /** The name of the font (true type or bitmap font). */
-        public function get fontName():String { return mFontName; }
+        public function get fontName():String { return _fontName; }
         public function set fontName(value:String):void
         {
-            if (mFontName != value)
+            if (_fontName != value)
             {
                 if (value == BitmapFont.MINI && bitmapFonts[value] == undefined)
                     registerBitmapFont(new BitmapFont());
                 
-                mFontName = value;
+                _fontName = value;
                 setRequiresRecomposition();
             }
         }
         
         /** The size of the font. For bitmap fonts, use <code>BitmapFont.NATIVE_SIZE</code> for 
          *  the original size. */
-        public function get fontSize():Number { return mFontSize; }
+        public function get fontSize():Number { return _fontSize; }
         public function set fontSize(value:Number):void
         {
-            if (mFontSize != value)
+            if (_fontSize != value)
             {
-                mFontSize = value;
+                _fontSize = value;
                 setRequiresRecomposition();
             }
         }
@@ -593,118 +593,118 @@ package starling.text
         /** The color of the text. Note that bitmap fonts should be exported in plain white so
          *  that tinting works correctly. If your bitmap font contains colors, set this property
          *  to <code>Color.WHITE</code> to get the desired result. @default black */
-        public function get color():uint { return mColor; }
+        public function get color():uint { return _color; }
         public function set color(value:uint):void
         {
-            if (mColor != value)
+            if (_color != value)
             {
-                mColor = value;
+                _color = value;
                 setRequiresRecomposition();
             }
         }
         
         /** The horizontal alignment of the text. @default center @see starling.utils.HAlign */
-        public function get hAlign():String { return mHAlign; }
+        public function get hAlign():String { return _hAlign; }
         public function set hAlign(value:String):void
         {
             if (!HAlign.isValid(value))
                 throw new ArgumentError("Invalid horizontal align: " + value);
             
-            if (mHAlign != value)
+            if (_hAlign != value)
             {
-                mHAlign = value;
+                _hAlign = value;
                 setRequiresRecomposition();
             }
         }
         
         /** The vertical alignment of the text. @default center @see starling.utils.VAlign */
-        public function get vAlign():String { return mVAlign; }
+        public function get vAlign():String { return _vAlign; }
         public function set vAlign(value:String):void
         {
             if (!VAlign.isValid(value))
                 throw new ArgumentError("Invalid vertical align: " + value);
             
-            if (mVAlign != value)
+            if (_vAlign != value)
             {
-                mVAlign = value;
+                _vAlign = value;
                 setRequiresRecomposition();
             }
         }
         
         /** Draws a border around the edges of the text field. Useful for visual debugging. 
          *  @default false */
-        public function get border():Boolean { return mBorder != null; }
+        public function get border():Boolean { return _border != null; }
         public function set border(value:Boolean):void
         {
-            if (value && mBorder == null)
+            if (value && _border == null)
             {                
-                mBorder = new Sprite();
-                addChild(mBorder);
+                _border = new Sprite();
+                addChild(_border);
                 
                 for (var i:int=0; i<4; ++i)
-                    mBorder.addChild(new Quad(1.0, 1.0));
+                    _border.addChild(new Quad(1.0, 1.0));
                 
                 updateBorder();
             }
-            else if (!value && mBorder != null)
+            else if (!value && _border != null)
             {
-                mBorder.removeFromParent(true);
-                mBorder = null;
+                _border.removeFromParent(true);
+                _border = null;
             }
         }
         
         /** Indicates whether the text is bold. @default false */
-        public function get bold():Boolean { return mBold; }
+        public function get bold():Boolean { return _bold; }
         public function set bold(value:Boolean):void 
         {
-            if (mBold != value)
+            if (_bold != value)
             {
-                mBold = value;
+                _bold = value;
                 setRequiresRecomposition();
             }
         }
         
         /** Indicates whether the text is italicized. @default false */
-        public function get italic():Boolean { return mItalic; }
+        public function get italic():Boolean { return _italic; }
         public function set italic(value:Boolean):void
         {
-            if (mItalic != value)
+            if (_italic != value)
             {
-                mItalic = value;
+                _italic = value;
                 setRequiresRecomposition();
             }
         }
         
         /** Indicates whether the text is underlined. @default false */
-        public function get underline():Boolean { return mUnderline; }
+        public function get underline():Boolean { return _underline; }
         public function set underline(value:Boolean):void
         {
-            if (mUnderline != value)
+            if (_underline != value)
             {
-                mUnderline = value;
+                _underline = value;
                 setRequiresRecomposition();
             }
         }
         
         /** Indicates whether kerning is enabled. @default true */
-        public function get kerning():Boolean { return mKerning; }
+        public function get kerning():Boolean { return _kerning; }
         public function set kerning(value:Boolean):void
         {
-            if (mKerning != value)
+            if (_kerning != value)
             {
-                mKerning = value;
+                _kerning = value;
                 setRequiresRecomposition();
             }
         }
         
         /** Indicates whether the font size is scaled down so that the complete text fits
          *  into the text field. @default false */
-        public function get autoScale():Boolean { return mAutoScale; }
+        public function get autoScale():Boolean { return _autoScale; }
         public function set autoScale(value:Boolean):void
         {
-            if (mAutoScale != value)
+            if (_autoScale != value)
             {
-                mAutoScale = value;
+                _autoScale = value;
                 setRequiresRecomposition();
             }
         }
@@ -713,12 +713,12 @@ package starling.text
          *  Note that any auto-sizing will make auto-scaling useless. Furthermore, it has 
          *  implications on alignment: horizontally auto-sized text will always be left-, 
          *  vertically auto-sized text will always be top-aligned. @default "none" */
-        public function get autoSize():String { return mAutoSize; }
+        public function get autoSize():String { return _autoSize; }
         public function set autoSize(value:String):void
         {
-            if (mAutoSize != value)
+            if (_autoSize != value)
             {
-                mAutoSize = value;
+                _autoSize = value;
                 setRequiresRecomposition();
             }
         }
@@ -727,20 +727,20 @@ package starling.text
          *  fonts, and it makes sense only for TextFields with no more than 10-15 characters.
          *  Otherwise, the CPU costs will exceed any gains you get from avoiding the additional
          *  draw call. @default false */
-        public function get batchable():Boolean { return mBatchable; }
+        public function get batchable():Boolean { return _batchable; }
         public function set batchable(value:Boolean):void
         {
-            mBatchable = value;
-            if (mMeshBatch) mMeshBatch.batchable = value;
+            _batchable = value;
+            if (_meshBatch) _meshBatch.batchable = value;
         }
 
         /** The native Flash BitmapFilters to apply to this TextField.
          *
          *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
-        public function get nativeFilters():Array { return mNativeFilters; }
+        public function get nativeFilters():Array { return _nativeFilters; }
         public function set nativeFilters(value:Array) : void
         {
-            mNativeFilters = value.concat();
+            _nativeFilters = value.concat();
             setRequiresRecomposition();
         }
 
@@ -749,23 +749,23 @@ package starling.text
          *  Clickable hyperlinks and external images are not supported.
          *
          *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
-        public function get isHtmlText():Boolean { return mIsHtmlText; }
+        public function get isHtmlText():Boolean { return _isHtmlText; }
         public function set isHtmlText(value:Boolean):void
         {
-            if (mIsHtmlText != value)
+            if (_isHtmlText != value)
             {
-                mIsHtmlText = value;
+                _isHtmlText = value;
                 setRequiresRecomposition();
             }
         }
 
         /** The amount of vertical space (called 'leading') between lines. @default 0 */
-        public function get leading():Number { return mLeading; }
+        public function get leading():Number { return _leading; }
         public function set leading(value:Number):void
         {
-            if (mLeading != value)
+            if (_leading != value)
             {
-                mLeading = value;
+                _leading = value;
                 setRequiresRecomposition();
             }
         }

@@ -38,17 +38,17 @@ package starling.textures
     {
         private static const TEXTURE_READY:String = "textureReady"; // defined here for backwards compatibility
         
-        private var mBase:TextureBase;
-        private var mFormat:String;
-        private var mWidth:int;
-        private var mHeight:int;
-        private var mMipMapping:Boolean;
-        private var mPremultipliedAlpha:Boolean;
-        private var mOptimizedForRenderTexture:Boolean;
-        private var mScale:Number;
-        private var mOnRestore:Function;
-        private var mDataUploaded:Boolean;
-        private var mTextureReadyCallback:Function;
+        private var _base:TextureBase;
+        private var _format:String;
+        private var _width:int;
+        private var _height:int;
+        private var _mipMapping:Boolean;
+        private var _premultipliedAlpha:Boolean;
+        private var _optimizedForRenderTexture:Boolean;
+        private var _scale:Number;
+        private var _onRestore:Function;
+        private var _dataUploaded:Boolean;
+        private var _textureReadyCallback:Function;
         
         /** helper object */
         private static var sOrigin:Point = new Point();
@@ -59,26 +59,26 @@ package starling.textures
                                         mipMapping:Boolean, premultipliedAlpha:Boolean,
                                         optimizedForRenderTexture:Boolean=false, scale:Number=1)
         {
-            mScale = scale <= 0 ? 1.0 : scale;
-            mBase = base;
-            mFormat = format;
-            mWidth = width;
-            mHeight = height;
-            mMipMapping = mipMapping;
-            mPremultipliedAlpha = premultipliedAlpha;
-            mOptimizedForRenderTexture = optimizedForRenderTexture;
-            mOnRestore = null;
-            mDataUploaded = false;
-            mTextureReadyCallback = null;
+            _scale = scale <= 0 ? 1.0 : scale;
+            _base = base;
+            _format = format;
+            _width = width;
+            _height = height;
+            _mipMapping = mipMapping;
+            _premultipliedAlpha = premultipliedAlpha;
+            _optimizedForRenderTexture = optimizedForRenderTexture;
+            _onRestore = null;
+            _dataUploaded = false;
+            _textureReadyCallback = null;
         }
         
         /** Disposes the TextureBase object. */
         public override function dispose():void
         {
-            if (mBase)
+            if (_base)
             {
-                mBase.removeEventListener(TEXTURE_READY, onTextureReady);
-                mBase.dispose();
+                _base.removeEventListener(TEXTURE_READY, onTextureReady);
+                _base.dispose();
             }
 
             this.onRestore = null; // removes event listener
@@ -102,21 +102,21 @@ package starling.textures
         {
             var potData:BitmapData;
             
-            if (data.width != mWidth || data.height != mHeight)
+            if (data.width != _width || data.height != _height)
             {
-                potData = new BitmapData(mWidth, mHeight, true, 0);
+                potData = new BitmapData(_width, _height, true, 0);
                 potData.copyPixels(data, data.rect, sOrigin);
                 data = potData;
             }
             
-            if (mBase is flash.display3D.textures.Texture)
+            if (_base is flash.display3D.textures.Texture)
             {
                 var potTexture:flash.display3D.textures.Texture = 
-                    mBase as flash.display3D.textures.Texture;
+                    _base as flash.display3D.textures.Texture;
                 
                 potTexture.uploadFromBitmapData(data);
                 
-                if (mMipMapping && data.width > 1 && data.height > 1)
+                if (_mipMapping && data.width > 1 && data.height > 1)
                 {
                     var currentWidth:int  = data.width  >> 1;
                     var currentHeight:int = data.height >> 1;
@@ -139,13 +139,13 @@ package starling.textures
                     canvas.dispose();
                 }
             }
-            else // if (mBase is RectangleTexture)
+            else // if (_base is RectangleTexture)
             {
-                mBase["uploadFromBitmapData"](data);
+                _base["uploadFromBitmapData"](data);
             }
             
             if (potData) potData.dispose();
-            mDataUploaded = true;
+            _dataUploaded = true;
         }
         
         /** Uploads ATF data from a ByteArray to the texture. Note that the size of the
@@ -162,19 +162,19 @@ package starling.textures
         {
             var isAsync:Boolean = async is Function || async === true;
             var potTexture:flash.display3D.textures.Texture = 
-                  mBase as flash.display3D.textures.Texture;
+                  _base as flash.display3D.textures.Texture;
             
             if (potTexture == null)
                 throw new Error("This texture type does not support ATF data");
             
             if (async is Function)
             {
-                mTextureReadyCallback = async as Function;
-                mBase.addEventListener(TEXTURE_READY, onTextureReady);
+                _textureReadyCallback = async as Function;
+                _base.addEventListener(TEXTURE_READY, onTextureReady);
             }
             
             potTexture.uploadCompressedTextureFromByteArray(data, offset, isAsync);
-            mDataUploaded = true;
+            _dataUploaded = true;
         }
 
         public function attachNetStream(netStream:NetStream, onComplete:Function=null):void
@@ -189,23 +189,23 @@ package starling.textures
 
         internal function attachVideo(type:String, attachment:Object, onComplete:Function=null):void
         {
-            const className:String = getQualifiedClassName(mBase);
+            const className:String = getQualifiedClassName(_base);
 
             if (className == "flash.display3D.textures::VideoTexture")
             {
-                mDataUploaded = true;
-                mTextureReadyCallback = onComplete;
-                mBase["attach" + type](attachment);
-                mBase.addEventListener(TEXTURE_READY, onTextureReady);
+                _dataUploaded = true;
+                _textureReadyCallback = onComplete;
+                _base["attach" + type](attachment);
+                _base.addEventListener(TEXTURE_READY, onTextureReady);
             }
             else throw new Error("This texture type does not support " + type + " data");
         }
 
         private function onTextureReady(event:Object):void
         {
-            mBase.removeEventListener(TEXTURE_READY, onTextureReady);
-            execute(mTextureReadyCallback, this);
-            mTextureReadyCallback = null;
+            _base.removeEventListener(TEXTURE_READY, onTextureReady);
+            execute(_textureReadyCallback, this);
+            _textureReadyCallback = null;
         }
         
         // texture backup (context loss)
@@ -214,10 +214,10 @@ package starling.textures
         {
             // recreate the underlying texture & restore contents
             createBase();
-            if (mOnRestore != null) mOnRestore();
+            if (_onRestore != null) _onRestore();
             
             // if no texture has been uploaded above, we init the texture with transparent pixels.
-            if (!mDataUploaded) clear();
+            if (!_dataUploaded) clear();
         }
         
         /** Recreates the underlying Stage3D texture object with the same dimensions and attributes
@@ -227,20 +227,20 @@ package starling.textures
         starling_internal function createBase():void
         {
             var context:Context3D = Starling.context;
-            var className:String = getQualifiedClassName(mBase);
+            var className:String = getQualifiedClassName(_base);
             
             if (className == "flash.display3D.textures::Texture")
-                mBase = context.createTexture(mWidth, mHeight, mFormat, 
-                                              mOptimizedForRenderTexture);
+                _base = context.createTexture(_width, _height, _format,
+                                              _optimizedForRenderTexture);
             else if (className == "flash.display3D.textures::RectangleTexture")
-                mBase = context["createRectangleTexture"](mWidth, mHeight, mFormat,
-                                                          mOptimizedForRenderTexture);
+                _base = context["createRectangleTexture"](_width, _height, _format,
+                                                          _optimizedForRenderTexture);
             else if (className == "flash.display3D.textures::VideoTexture")
-                mBase = context["createVideoTexture"]();
+                _base = context["createVideoTexture"]();
             else
                 throw new NotSupportedError("Texture type not supported: " + className);
 
-            mDataUploaded = false;
+            _dataUploaded = false;
         }
         
         /** Clears the texture with a certain color and alpha value. The previous contents of the
@@ -251,12 +251,12 @@ package starling.textures
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
             
-            if (mPremultipliedAlpha && alpha < 1.0)
+            if (_premultipliedAlpha && alpha < 1.0)
                 color = Color.rgb(Color.getRed(color)   * alpha,
                                   Color.getGreen(color) * alpha,
                                   Color.getBlue(color)  * alpha);
             
-            context.setRenderToTexture(mBase);
+            context.setRenderToTexture(_base);
             
             // we wrap the clear call in a try/catch block as a workaround for a problem of
             // FP 11.8 plugin/projector: calling clear on a compressed texture doesn't work there
@@ -266,59 +266,59 @@ package starling.textures
             catch (e:Error) {}
             
             context.setRenderToBackBuffer();
-            mDataUploaded = true;
+            _dataUploaded = true;
         }
         
         // properties
         
         /** Indicates if the base texture was optimized for being used in a render texture. */
-        public function get optimizedForRenderTexture():Boolean { return mOptimizedForRenderTexture; }
+        public function get optimizedForRenderTexture():Boolean { return _optimizedForRenderTexture; }
         
         /** The function that you provide here will be called after a context loss.
          *  On execution, a new base texture will already have been created; however,
          *  it will be empty. Call one of the "upload..." methods from within the callbacks
          *  to restore the actual texture data. */
-        public function get onRestore():Function { return mOnRestore; }
+        public function get onRestore():Function { return _onRestore; }
         public function set onRestore(value:Function):void
         {
             Starling.current.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             
             if (value != null)
             {
-                mOnRestore = value;
+                _onRestore = value;
                 Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             }
-            else mOnRestore = null;
+            else _onRestore = null;
         }
         
         /** @inheritDoc */
-        public override function get base():TextureBase { return mBase; }
+        public override function get base():TextureBase { return _base; }
         
         /** @inheritDoc */
         public override function get root():ConcreteTexture { return this; }
         
         /** @inheritDoc */
-        public override function get format():String { return mFormat; }
+        public override function get format():String { return _format; }
         
         /** @inheritDoc */
-        public override function get width():Number  { return mWidth / mScale;  }
+        public override function get width():Number  { return _width / _scale;  }
         
         /** @inheritDoc */
-        public override function get height():Number { return mHeight / mScale; }
+        public override function get height():Number { return _height / _scale; }
         
         /** @inheritDoc */
-        public override function get nativeWidth():Number { return mWidth; }
+        public override function get nativeWidth():Number { return _width; }
         
         /** @inheritDoc */
-        public override function get nativeHeight():Number { return mHeight; }
+        public override function get nativeHeight():Number { return _height; }
         
         /** The scale factor, which influences width and height properties. */
-        public override function get scale():Number { return mScale; }
+        public override function get scale():Number { return _scale; }
         
         /** @inheritDoc */
-        public override function get mipMapping():Boolean { return mMipMapping; }
+        public override function get mipMapping():Boolean { return _mipMapping; }
         
         /** @inheritDoc */
-        public override function get premultipliedAlpha():Boolean { return mPremultipliedAlpha; }
+        public override function get premultipliedAlpha():Boolean { return _premultipliedAlpha; }
     }
 }

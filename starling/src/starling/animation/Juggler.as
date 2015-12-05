@@ -46,22 +46,22 @@ package starling.animation
      */
     public class Juggler implements IAnimatable
     {
-        private var mObjects:Vector.<IAnimatable>;
-        private var mElapsedTime:Number;
+        private var _objects:Vector.<IAnimatable>;
+        private var _elapsedTime:Number;
         
         /** Create an empty juggler. */
         public function Juggler()
         {
-            mElapsedTime = 0;
-            mObjects = new <IAnimatable>[];
+            _elapsedTime = 0;
+            _objects = new <IAnimatable>[];
         }
 
         /** Adds an object to the juggler. */
         public function add(object:IAnimatable):void
         {
-            if (object && mObjects.indexOf(object) == -1) 
+            if (object && _objects.indexOf(object) == -1)
             {
-                mObjects[mObjects.length] = object;
+                _objects[_objects.length] = object;
             
                 var dispatcher:EventDispatcher = object as EventDispatcher;
                 if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
@@ -71,7 +71,7 @@ package starling.animation
         /** Determines if an object has been added to the juggler. */
         public function contains(object:IAnimatable):Boolean
         {
-            return mObjects.indexOf(object) != -1;
+            return _objects.indexOf(object) != -1;
         }
         
         /** Removes an object from the juggler. */
@@ -82,8 +82,8 @@ package starling.animation
             var dispatcher:EventDispatcher = object as EventDispatcher;
             if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
 
-            var index:int = mObjects.indexOf(object);
-            if (index != -1) mObjects[index] = null;
+            var index:int = _objects.indexOf(object);
+            if (index != -1) _objects[index] = null;
         }
         
         /** Removes all tweens with a certain target. */
@@ -91,13 +91,13 @@ package starling.animation
         {
             if (target == null) return;
             
-            for (var i:int=mObjects.length-1; i>=0; --i)
+            for (var i:int=_objects.length-1; i>=0; --i)
             {
-                var tween:Tween = mObjects[i] as Tween;
+                var tween:Tween = _objects[i] as Tween;
                 if (tween && tween.target == target)
                 {
                     tween.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-                    mObjects[i] = null;
+                    _objects[i] = null;
                 }
             }
         }
@@ -107,9 +107,9 @@ package starling.animation
         {
             if (target == null) return false;
             
-            for (var i:int=mObjects.length-1; i>=0; --i)
+            for (var i:int=_objects.length-1; i>=0; --i)
             {
-                var tween:Tween = mObjects[i] as Tween;
+                var tween:Tween = _objects[i] as Tween;
                 if (tween && tween.target == target) return true;
             }
             
@@ -124,11 +124,11 @@ package starling.animation
             // vector is filled with 'null' values. They will be cleaned up on the next call
             // to 'advanceTime'.
             
-            for (var i:int=mObjects.length-1; i>=0; --i)
+            for (var i:int=_objects.length-1; i>=0; --i)
             {
-                var dispatcher:EventDispatcher = mObjects[i] as EventDispatcher;
+                var dispatcher:EventDispatcher = _objects[i] as EventDispatcher;
                 if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-                mObjects[i] = null;
+                _objects[i] = null;
             }
         }
         
@@ -237,11 +237,11 @@ package starling.animation
         /** Advances all objects by a certain time (in seconds). */
         public function advanceTime(time:Number):void
         {   
-            var numObjects:int = mObjects.length;
+            var numObjects:int = _objects.length;
             var currentIndex:int = 0;
             var i:int;
             
-            mElapsedTime += time;
+            _elapsedTime += time;
             if (numObjects == 0) return;
             
             // there is a high probability that the "advanceTime" function modifies the list 
@@ -250,14 +250,14 @@ package starling.animation
             
             for (i=0; i<numObjects; ++i)
             {
-                var object:IAnimatable = mObjects[i];
+                var object:IAnimatable = _objects[i];
                 if (object)
                 {
                     // shift objects into empty slots along the way
                     if (currentIndex != i) 
                     {
-                        mObjects[currentIndex] = object;
-                        mObjects[i] = null;
+                        _objects[currentIndex] = object;
+                        _objects[i] = null;
                     }
                     
                     object.advanceTime(time);
@@ -267,12 +267,12 @@ package starling.animation
             
             if (currentIndex != i)
             {
-                numObjects = mObjects.length; // count might have changed!
+                numObjects = _objects.length; // count might have changed!
                 
                 while (i < numObjects)
-                    mObjects[int(currentIndex++)] = mObjects[int(i++)];
+                    _objects[int(currentIndex++)] = _objects[int(i++)];
                 
-                mObjects.length = currentIndex;
+                _objects.length = currentIndex;
             }
         }
         
@@ -286,9 +286,9 @@ package starling.animation
         }
         
         /** The total life time of the juggler (in seconds). */
-        public function get elapsedTime():Number { return mElapsedTime; }
+        public function get elapsedTime():Number { return _elapsedTime; }
  
         /** The actual vector that contains all objects that are currently being animated. */
-        protected function get objects():Vector.<IAnimatable> { return mObjects; }
+        protected function get objects():Vector.<IAnimatable> { return _objects; }
     }
 }

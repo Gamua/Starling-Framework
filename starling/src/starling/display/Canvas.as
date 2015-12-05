@@ -21,23 +21,23 @@ package starling.display
      */
     public class Canvas extends DisplayObjectContainer
     {
-        private var mPolygons:Vector.<Polygon>;
-        private var mFillColor:uint;
-        private var mFillAlpha:Number;
+        private var _polygons:Vector.<Polygon>;
+        private var _fillColor:uint;
+        private var _fillAlpha:Number;
 
         /** Creates a new (empty) Canvas. Call one or more of the 'draw' methods to add content. */
         public function Canvas()
         {
-            mPolygons  = new <Polygon>[];
-            mFillColor = 0xffffff;
-            mFillAlpha = 1.0;
+            _polygons  = new <Polygon>[];
+            _fillColor = 0xffffff;
+            _fillAlpha = 1.0;
             touchGroup = true;
         }
 
         /** @inheritDoc */
         public override function dispose():void
         {
-            mPolygons.length = 0;
+            _polygons.length = 0;
             super.dispose();
         }
 
@@ -49,8 +49,8 @@ package starling.display
             // we could also use the standard hit test implementation, but the polygon class can
             // do that much more efficiently (it contains custom implementations for circles, etc).
 
-            for (var i:int = 0, len:int = mPolygons.length; i < len; ++i)
-                if (mPolygons[i].containsPoint(localPoint)) return this;
+            for (var i:int = 0, len:int = _polygons.length; i < len; ++i)
+                if (_polygons[i].containsPoint(localPoint)) return this;
 
             return null;
         }
@@ -86,22 +86,22 @@ package starling.display
          *  (such as <code>drawCircle()</code>) will use. */
         public function beginFill(color:uint=0xffffff, alpha:Number=1.0):void
         {
-            mFillColor = color;
-            mFillAlpha = alpha;
+            _fillColor = color;
+            _fillAlpha = alpha;
         }
 
         /** Resets the color to 'white' and alpha to '1'. */
         public function endFill():void
         {
-            mFillColor = 0xffffff;
-            mFillAlpha = 1.0;
+            _fillColor = 0xffffff;
+            _fillAlpha = 1.0;
         }
 
         /** Removes all existing vertices. */
         public function clear():void
         {
             removeChildren(0, -1, true);
-            mPolygons.length = 0;
+            _polygons.length = 0;
         }
 
         private function appendPolygon(polygon:Polygon):void
@@ -115,10 +115,10 @@ package starling.display
             polygon.copyToVertexData(vertexData);
 
             for (var i:int=0; i<numVertices; ++i)
-                vertexData.setColorAndAlpha(i, "color", mFillColor, mFillAlpha);
+                vertexData.setColorAndAlpha(i, "color", _fillColor, _fillAlpha);
 
             addChild(new Mesh(vertexData, indexData));
-            mPolygons[mPolygons.length] = polygon;
+            _polygons[_polygons.length] = polygon;
         }
     }
 }

@@ -93,72 +93,72 @@ package starling.events
         
         private static var sEventPool:Vector.<Event> = new <Event>[];
         
-        private var mTarget:EventDispatcher;
-        private var mCurrentTarget:EventDispatcher;
-        private var mType:String;
-        private var mBubbles:Boolean;
-        private var mStopsPropagation:Boolean;
-        private var mStopsImmediatePropagation:Boolean;
-        private var mData:Object;
+        private var _target:EventDispatcher;
+        private var _currentTarget:EventDispatcher;
+        private var _type:String;
+        private var _bubbles:Boolean;
+        private var _stopsPropagation:Boolean;
+        private var _stopsImmediatePropagation:Boolean;
+        private var _data:Object;
         
         /** Creates an event object that can be passed to listeners. */
         public function Event(type:String, bubbles:Boolean=false, data:Object=null)
         {
-            mType = type;
-            mBubbles = bubbles;
-            mData = data;
+            _type = type;
+            _bubbles = bubbles;
+            _data = data;
         }
         
         /** Prevents listeners at the next bubble stage from receiving the event. */
         public function stopPropagation():void
         {
-            mStopsPropagation = true;            
+            _stopsPropagation = true;
         }
         
         /** Prevents any other listeners from receiving the event. */
         public function stopImmediatePropagation():void
         {
-            mStopsPropagation = mStopsImmediatePropagation = true;
+            _stopsPropagation = _stopsImmediatePropagation = true;
         }
         
         /** Returns a description of the event, containing type and bubble information. */
         public function toString():String
         {
             return StringUtil.format("[{0} type=\"{1}\" bubbles={2}]",
-                getQualifiedClassName(this).split("::").pop(), mType, mBubbles);
+                getQualifiedClassName(this).split("::").pop(), _type, _bubbles);
         }
         
         /** Indicates if event will bubble. */
-        public function get bubbles():Boolean { return mBubbles; }
+        public function get bubbles():Boolean { return _bubbles; }
         
         /** The object that dispatched the event. */
-        public function get target():EventDispatcher { return mTarget; }
+        public function get target():EventDispatcher { return _target; }
         
         /** The object the event is currently bubbling at. */
-        public function get currentTarget():EventDispatcher { return mCurrentTarget; }
+        public function get currentTarget():EventDispatcher { return _currentTarget; }
         
         /** A string that identifies the event. */
-        public function get type():String { return mType; }
+        public function get type():String { return _type; }
         
         /** Arbitrary data that is attached to the event. */
-        public function get data():Object { return mData; }
+        public function get data():Object { return _data; }
         
         // properties for internal use
         
         /** @private */
-        internal function setTarget(value:EventDispatcher):void { mTarget = value; }
+        internal function setTarget(value:EventDispatcher):void { _target = value; }
         
         /** @private */
-        internal function setCurrentTarget(value:EventDispatcher):void { mCurrentTarget = value; } 
+        internal function setCurrentTarget(value:EventDispatcher):void { _currentTarget = value; }
         
         /** @private */
-        internal function setData(value:Object):void { mData = value; }
+        internal function setData(value:Object):void { _data = value; }
         
         /** @private */
-        internal function get stopsPropagation():Boolean { return mStopsPropagation; }
+        internal function get stopsPropagation():Boolean { return _stopsPropagation; }
         
         /** @private */
-        internal function get stopsImmediatePropagation():Boolean { return mStopsImmediatePropagation; }
+        internal function get stopsImmediatePropagation():Boolean { return _stopsImmediatePropagation; }
         
         // event pooling
         
@@ -172,18 +172,18 @@ package starling.events
         /** @private */
         starling_internal static function toPool(event:Event):void
         {
-            event.mData = event.mTarget = event.mCurrentTarget = null;
+            event._data = event._target = event._currentTarget = null;
             sEventPool[sEventPool.length] = event; // avoiding 'push'
         }
         
         /** @private */
         starling_internal function reset(type:String, bubbles:Boolean=false, data:Object=null):Event
         {
-            mType = type;
-            mBubbles = bubbles;
-            mData = data;
-            mTarget = mCurrentTarget = null;
-            mStopsPropagation = mStopsImmediatePropagation = false;
+            _type = type;
+            _bubbles = bubbles;
+            _data = data;
+            _target = _currentTarget = null;
+            _stopsPropagation = _stopsImmediatePropagation = false;
             return this;
         }
     }

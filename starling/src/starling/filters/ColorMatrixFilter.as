@@ -44,9 +44,9 @@ package starling.filters
      */
     public class ColorMatrixFilter extends FragmentFilter
     {
-        private var mProgram:Program;
-        private var mUserMatrix:Vector.<Number>;   // offset in range 0-255
-        private var mShaderMatrix:Vector.<Number>; // offset in range 0-1, changed order
+        private var _program:Program;
+        private var _userMatrix:Vector.<Number>;   // offset in range 0-255
+        private var _shaderMatrix:Vector.<Number>; // offset in range 0-1, changed order
         
         private static const PROGRAM_NAME:String = "CMF";
         private static const MIN_COLOR:Vector.<Number> = new <Number>[0, 0, 0, 0.0001];
@@ -64,8 +64,8 @@ package starling.filters
          */
         public function ColorMatrixFilter(matrix:Vector.<Number>=null)
         {
-            mUserMatrix   = new <Number>[];
-            mShaderMatrix = new <Number>[];
+            _userMatrix   = new <Number>[];
+            _shaderMatrix = new <Number>[];
             
             this.matrix = matrix;
         }
@@ -77,7 +77,7 @@ package starling.filters
             
             if (painter.hasProgram(PROGRAM_NAME))
             {
-                mProgram = painter.getProgram(PROGRAM_NAME);
+                _program = painter.getProgram(PROGRAM_NAME);
             }
             else
             {
@@ -94,17 +94,17 @@ package starling.filters
                     "mul ft0.xyz, ft0.xyz, ft0.www  \n" + // multiply with alpha again (PMA)
                     "mov oc, ft0                    \n";  // copy to output
 
-                mProgram = Program.fromSource(STD_VERTEX_SHADER, fragmentShader);
-                painter.registerProgram(PROGRAM_NAME, mProgram);
+                _program = Program.fromSource(STD_VERTEX_SHADER, fragmentShader);
+                painter.registerProgram(PROGRAM_NAME, _program);
             }
         }
         
         /** @private */
         protected override function activate(pass:int, context:Context3D, texture:Texture):void
         {
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mShaderMatrix);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, _shaderMatrix);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, MIN_COLOR);
-            mProgram.activate(context);
+            _program.activate(context);
         }
         
         // color manipulation
@@ -216,17 +216,17 @@ package starling.filters
                 for (var x:int=0; x<5; ++x)
                 {
                     sTmpMatrix1[int(i+x)] = 
-                        matrix[i]        * mUserMatrix[x]           +
-                        matrix[int(i+1)] * mUserMatrix[int(x +  5)] +
-                        matrix[int(i+2)] * mUserMatrix[int(x + 10)] +
-                        matrix[int(i+3)] * mUserMatrix[int(x + 15)] +
+                        matrix[i]        * _userMatrix[x]           +
+                        matrix[int(i+1)] * _userMatrix[int(x +  5)] +
+                        matrix[int(i+2)] * _userMatrix[int(x + 10)] +
+                        matrix[int(i+3)] * _userMatrix[int(x + 15)] +
                         (x == 4 ? matrix[int(i+4)] : 0);
                 }
                 
                 i+=5;
             }
             
-            copyMatrix(sTmpMatrix1, mUserMatrix);
+            copyMatrix(sTmpMatrix1, _userMatrix);
             updateShaderMatrix();
             return this;
         }
@@ -257,21 +257,21 @@ package starling.filters
             // the shader needs the matrix components in a different order, 
             // and it needs the offsets in the range 0-1.
             
-            mShaderMatrix.length = 0;
-            mShaderMatrix.push(
-                mUserMatrix[0],  mUserMatrix[1],  mUserMatrix[2],  mUserMatrix[3],
-                mUserMatrix[5],  mUserMatrix[6],  mUserMatrix[7],  mUserMatrix[8],
-                mUserMatrix[10], mUserMatrix[11], mUserMatrix[12], mUserMatrix[13], 
-                mUserMatrix[15], mUserMatrix[16], mUserMatrix[17], mUserMatrix[18],
-                mUserMatrix[4] / 255.0,  mUserMatrix[9] / 255.0,  mUserMatrix[14] / 255.0,  
-                mUserMatrix[19] / 255.0
+            _shaderMatrix.length = 0;
+            _shaderMatrix.push(
+                _userMatrix[0],  _userMatrix[1],  _userMatrix[2],  _userMatrix[3],
+                _userMatrix[5],  _userMatrix[6],  _userMatrix[7],  _userMatrix[8],
+                _userMatrix[10], _userMatrix[11], _userMatrix[12], _userMatrix[13],
+                _userMatrix[15], _userMatrix[16], _userMatrix[17], _userMatrix[18],
+                _userMatrix[4] / 255.0,  _userMatrix[9] / 255.0,  _userMatrix[14] / 255.0,
+                _userMatrix[19] / 255.0
             );
         }
         
         // properties
         
         /** A vector of 20 items arranged as a 4x5 matrix. */
-        public function get matrix():Vector.<Number> { return mUserMatrix; }
+        public function get matrix():Vector.<Number> { return _userMatrix; }
         public function set matrix(value:Vector.<Number>):void
         {
             if (value && value.length != 20) 
@@ -279,12 +279,12 @@ package starling.filters
             
             if (value == null)
             {
-                mUserMatrix.length = 0;
-                mUserMatrix.push.apply(mUserMatrix, IDENTITY);
+                _userMatrix.length = 0;
+                _userMatrix.push.apply(_userMatrix, IDENTITY);
             }
             else
             {
-                copyMatrix(value, mUserMatrix);
+                copyMatrix(value, _userMatrix);
             }
             
             updateShaderMatrix();

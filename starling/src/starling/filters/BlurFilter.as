@@ -30,16 +30,16 @@ package starling.filters
         private static const TINTED_PROGRAM_NAME:String = "BF_t";
         private static const MAX_SIGMA:Number = 2.0;
         
-        private var mNormalProgram:Program;
-        private var mTintedProgram:Program;
+        private var _normalProgram:Program;
+        private var _tintedProgram:Program;
         
-        private var mOffsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
-        private var mWeights:Vector.<Number> = new <Number>[0, 0, 0, 0];
-        private var mColor:Vector.<Number>   = new <Number>[1, 1, 1, 1];
+        private var _offsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
+        private var _weights:Vector.<Number> = new <Number>[0, 0, 0, 0];
+        private var _color:Vector.<Number>   = new <Number>[1, 1, 1, 1];
         
-        private var mBlurX:Number;
-        private var mBlurY:Number;
-        private var mUniformColor:Boolean;
+        private var _blurX:Number;
+        private var _blurY:Number;
+        private var _uniformColor:Boolean;
         
         /** helper object */
         private var sTmpWeights:Vector.<Number> = new Vector.<Number>(5, true);
@@ -61,8 +61,8 @@ package starling.filters
         public function BlurFilter(blurX:Number=1, blurY:Number=1, resolution:Number=1)
         {
             super(1, resolution);
-            mBlurX = blurX;
-            mBlurY = blurY;
+            _blurX = blurX;
+            _blurY = blurY;
             updateMarginsAndPasses();
         }
         
@@ -92,8 +92,8 @@ package starling.filters
         /** @private */
         protected override function createPrograms():void
         {
-            mNormalProgram = createProgram(false);
-            mTintedProgram = createProgram(true);
+            _normalProgram = createProgram(false);
+            _tintedProgram = createProgram(true);
         }
         
         private function createProgram(tinted:Boolean):Program
@@ -168,17 +168,17 @@ package starling.filters
             
             updateParameters(pass, texture.nativeWidth, texture.nativeHeight);
             
-            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, mOffsets);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, mWeights);
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, _offsets);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, _weights);
             
-            if (mUniformColor && pass == numPasses - 1)
+            if (_uniformColor && pass == numPasses - 1)
             {
-                mTintedProgram.activate(context);
-                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, mColor);
+                _tintedProgram.activate(context);
+                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, _color);
             }
             else
             {
-                mNormalProgram.activate(context);
+                _normalProgram.activate(context);
             }
         }
         
@@ -192,71 +192,71 @@ package starling.filters
             // to what would be 9 lookups.
             
             var sigma:Number;
-            var horizontal:Boolean = pass < mBlurX;
+            var horizontal:Boolean = pass < _blurX;
             var pixelSize:Number;
             
             if (horizontal)
             {
-                sigma = Math.min(1.0, mBlurX - pass) * MAX_SIGMA;
+                sigma = Math.min(1.0, _blurX - pass) * MAX_SIGMA;
                 pixelSize = 1.0 / textureWidth; 
             }
             else
             {
-                sigma = Math.min(1.0, mBlurY - (pass - Math.ceil(mBlurX))) * MAX_SIGMA;
+                sigma = Math.min(1.0, _blurY - (pass - Math.ceil(_blurX))) * MAX_SIGMA;
                 pixelSize = 1.0 / textureHeight;
             }
             
             const twoSigmaSq:Number = 2 * sigma * sigma; 
             const multiplier:Number = 1.0 / Math.sqrt(twoSigmaSq * Math.PI);
             
-            // get weights on the exact pixels (sTmpWeights) and calculate sums (mWeights)
+            // get weights on the exact pixels (sTmpWeights) and calculate sums (_weights)
             
             for (var i:int=0; i<5; ++i)
                 sTmpWeights[i] = multiplier * Math.exp(-i*i / twoSigmaSq);
             
-            mWeights[0] = sTmpWeights[0];
-            mWeights[1] = sTmpWeights[1] + sTmpWeights[2]; 
-            mWeights[2] = sTmpWeights[3] + sTmpWeights[4];
+            _weights[0] = sTmpWeights[0];
+            _weights[1] = sTmpWeights[1] + sTmpWeights[2];
+            _weights[2] = sTmpWeights[3] + sTmpWeights[4];
 
             // normalize weights so that sum equals "1.0"
             
-            var weightSum:Number = mWeights[0] + 2*mWeights[1] + 2*mWeights[2];
+            var weightSum:Number = _weights[0] + 2*_weights[1] + 2*_weights[2];
             var invWeightSum:Number = 1.0 / weightSum;
             
-            mWeights[0] *= invWeightSum;
-            mWeights[1] *= invWeightSum;
-            mWeights[2] *= invWeightSum;
+            _weights[0] *= invWeightSum;
+            _weights[1] *= invWeightSum;
+            _weights[2] *= invWeightSum;
             
             // calculate intermediate offsets
             
-            var offset1:Number = (  pixelSize * sTmpWeights[1] + 2*pixelSize * sTmpWeights[2]) / mWeights[1];
-            var offset2:Number = (3*pixelSize * sTmpWeights[3] + 4*pixelSize * sTmpWeights[4]) / mWeights[2];
+            var offset1:Number = (  pixelSize * sTmpWeights[1] + 2*pixelSize * sTmpWeights[2]) / _weights[1];
+            var offset2:Number = (3*pixelSize * sTmpWeights[3] + 4*pixelSize * sTmpWeights[4]) / _weights[2];
             
             // depending on pass, we move in x- or y-direction
             
             if (horizontal) 
             {
-                mOffsets[0] = offset1;
-                mOffsets[1] = 0;
-                mOffsets[2] = offset2;
-                mOffsets[3] = 0;
+                _offsets[0] = offset1;
+                _offsets[1] = 0;
+                _offsets[2] = offset2;
+                _offsets[3] = 0;
             }
             else
             {
-                mOffsets[0] = 0;
-                mOffsets[1] = offset1;
-                mOffsets[2] = 0;
-                mOffsets[3] = offset2;
+                _offsets[0] = 0;
+                _offsets[1] = offset1;
+                _offsets[2] = 0;
+                _offsets[3] = offset2;
             }
         }
         
         private function updateMarginsAndPasses():void
         {
-            if (mBlurX == 0 && mBlurY == 0) mBlurX = 0.001;
+            if (_blurX == 0 && _blurY == 0) _blurX = 0.001;
             
-            numPasses = Math.ceil(mBlurX) + Math.ceil(mBlurY);
-            marginX = (3 + Math.ceil(mBlurX)) / resolution;
-            marginY = (3 + Math.ceil(mBlurY)) / resolution;
+            numPasses = Math.ceil(_blurX) + Math.ceil(_blurY);
+            marginX = (3 + Math.ceil(_blurX)) / resolution;
+            marginY = (3 + Math.ceil(_blurY)) / resolution;
         }
         
         /** A uniform color will replace the RGB values of the input color, while the alpha
@@ -264,28 +264,28 @@ package starling.filters
          *  first parameter to deactivate the uniform color. */
         public function setUniformColor(enable:Boolean, color:uint=0x0, alpha:Number=1.0):void
         {
-            mColor[0] = Color.getRed(color)   / 255.0;
-            mColor[1] = Color.getGreen(color) / 255.0;
-            mColor[2] = Color.getBlue(color)  / 255.0;
-            mColor[3] = alpha;
-            mUniformColor = enable;
+            _color[0] = Color.getRed(color)   / 255.0;
+            _color[1] = Color.getGreen(color) / 255.0;
+            _color[2] = Color.getBlue(color)  / 255.0;
+            _color[3] = alpha;
+            _uniformColor = enable;
         }
         
         /** The blur factor in x-direction (stage coordinates). 
          *  The number of required passes will be <code>Math.ceil(value)</code>. */
-        public function get blurX():Number { return mBlurX; }
+        public function get blurX():Number { return _blurX; }
         public function set blurX(value:Number):void 
         { 
-            mBlurX = value; 
+            _blurX = value;
             updateMarginsAndPasses(); 
         }
         
         /** The blur factor in y-direction (stage coordinates). 
          *  The number of required passes will be <code>Math.ceil(value)</code>. */
-        public function get blurY():Number { return mBlurY; }
+        public function get blurY():Number { return _blurY; }
         public function set blurY(value:Number):void 
         { 
-            mBlurY = value; 
+            _blurY = value;
             updateMarginsAndPasses(); 
         }
     }

@@ -58,10 +58,10 @@ package starling.events
         /** Event type for touch or mouse input. */
         public static const TOUCH:String = "touch";
         
-        private var mShiftKey:Boolean;
-        private var mCtrlKey:Boolean;
-        private var mTimestamp:Number;
-        private var mVisitedObjects:Vector.<EventDispatcher>;
+        private var _shiftKey:Boolean;
+        private var _ctrlKey:Boolean;
+        private var _timestamp:Number;
+        private var _visitedObjects:Vector.<EventDispatcher>;
         
         /** Helper object. */
         private static var sTouches:Vector.<Touch> = new <Touch>[];
@@ -72,15 +72,15 @@ package starling.events
         {
             super(type, bubbles, touches);
             
-            mShiftKey = shiftKey;
-            mCtrlKey = ctrlKey;
-            mTimestamp = -1.0;
-            mVisitedObjects = new <EventDispatcher>[];
+            _shiftKey = shiftKey;
+            _ctrlKey = ctrlKey;
+            _timestamp = -1.0;
+            _visitedObjects = new <EventDispatcher>[];
             
             var numTouches:int=touches.length;
             for (var i:int=0; i<numTouches; ++i)
-                if (touches[i].timestamp > mTimestamp)
-                    mTimestamp = touches[i].timestamp;
+                if (touches[i].timestamp > _timestamp)
+                    _timestamp = touches[i].timestamp;
         }
         
         /** Returns a list of touches that originated over a certain target. If you pass a
@@ -169,10 +169,10 @@ package starling.events
                 for (var i:int=0; i<chainLength; ++i)
                 {
                     var chainElement:EventDispatcher = chain[i] as EventDispatcher;
-                    if (mVisitedObjects.indexOf(chainElement) == -1)
+                    if (_visitedObjects.indexOf(chainElement) == -1)
                     {
                         var stopPropagation:Boolean = chainElement.invokeEvent(this);
-                        mVisitedObjects[mVisitedObjects.length] = chainElement;
+                        _visitedObjects[_visitedObjects.length] = chainElement;
                         if (stopPropagation) break;
                     }
                 }
@@ -184,15 +184,15 @@ package starling.events
         // properties
         
         /** The time the event occurred (in seconds since application launch). */
-        public function get timestamp():Number { return mTimestamp; }
+        public function get timestamp():Number { return _timestamp; }
         
         /** All touches that are currently available. */
         public function get touches():Vector.<Touch> { return (data as Vector.<Touch>).concat(); }
         
         /** Indicates if the shift key was pressed when the event occurred. */
-        public function get shiftKey():Boolean { return mShiftKey; }
+        public function get shiftKey():Boolean { return _shiftKey; }
         
         /** Indicates if the ctrl key was pressed when the event occurred. (Mac OS: Cmd or Ctrl) */
-        public function get ctrlKey():Boolean { return mCtrlKey; }
+        public function get ctrlKey():Boolean { return _ctrlKey; }
     }
 }

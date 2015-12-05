@@ -74,12 +74,12 @@ package starling.textures
         private static const CONTEXT_POT_SUPPORT_KEY:String = "RenderTexture.supportsNonPotDimensions";
         private static const PMA:Boolean = true;
         
-        private var mActiveTexture:Texture;
-        private var mBufferTexture:Texture;
-        private var mHelperImage:Image;
-        private var mDrawing:Boolean;
-        private var mBufferReady:Boolean;
-        private var mIsPersistent:Boolean;
+        private var _activeTexture:Texture;
+        private var _bufferTexture:Texture;
+        private var _helperImage:Image;
+        private var _drawing:Boolean;
+        private var _bufferReady:Boolean;
+        private var _isPersistent:Boolean;
 
         /** helper object */
         private static var sClipRect:Rectangle = new Rectangle();
@@ -127,30 +127,30 @@ package starling.textures
 
             // [/Workaround]
 
-            mIsPersistent = persistent;
-            mActiveTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format);
-            mActiveTexture.root.onRestore = mActiveTexture.root.clear;
+            _isPersistent = persistent;
+            _activeTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format);
+            _activeTexture.root.onRestore = _activeTexture.root.clear;
 
-            super(mActiveTexture, new Rectangle(0, 0, width, height), true, null, false);
+            super(_activeTexture, new Rectangle(0, 0, width, height), true, null, false);
 
             if (persistent && (!optimizePersistentBuffers || !SystemUtil.supportsRelaxedTargetClearRequirement))
             {
-                mBufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format);
-                mBufferTexture.root.onRestore = mBufferTexture.root.clear;
-                mHelperImage = new Image(mBufferTexture);
-                // mHelperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
+                _bufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format);
+                _bufferTexture.root.onRestore = _bufferTexture.root.clear;
+                _helperImage = new Image(_bufferTexture);
+                // _helperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
             }
         }
         
         /** @inheritDoc */
         public override function dispose():void
         {
-            mActiveTexture.dispose();
+            _activeTexture.dispose();
             
             if (isDoubleBuffered)
             {
-                mBufferTexture.dispose();
-                mHelperImage.dispose();
+                _bufferTexture.dispose();
+                _helperImage.dispose();
             }
             
             super.dispose();
@@ -172,7 +172,7 @@ package starling.textures
         {
             if (object == null) return;
             
-            if (mDrawing)
+            if (_drawing)
                 render(object, matrix, alpha);
             else
                 renderBundled(render, object, matrix, alpha, antiAliasing);
@@ -231,41 +231,41 @@ package starling.textures
             // switch buffers
             if (isDoubleBuffered)
             {
-                var tmpTexture:Texture = mActiveTexture;
-                mActiveTexture = mBufferTexture;
-                mBufferTexture = tmpTexture;
-                mHelperImage.texture = mBufferTexture;
+                var tmpTexture:Texture = _activeTexture;
+                _activeTexture = _bufferTexture;
+                _bufferTexture = tmpTexture;
+                _helperImage.texture = _bufferTexture;
             }
 
             painter.pushState();
 
-            var rootTexture:Texture = mActiveTexture.root;
+            var rootTexture:Texture = _activeTexture.root;
             state.setProjectionMatrix(0, 0, rootTexture.width, rootTexture.height, width, height);
 
             // limit drawing to relevant area
-            sClipRect.setTo(0, 0, mActiveTexture.width, mActiveTexture.height);
+            sClipRect.setTo(0, 0, _activeTexture.width, _activeTexture.height);
 
             state.clipRect = sClipRect;
-            state.setRenderTarget(mActiveTexture, antiAliasing);
+            state.setRenderTarget(_activeTexture, antiAliasing);
             painter.prepareToDraw();
             
-            if (isDoubleBuffered || !isPersistent || !mBufferReady)
+            if (isDoubleBuffered || !isPersistent || !_bufferReady)
                 painter.clear();
 
             // draw buffer
-            if (isDoubleBuffered && mBufferReady)
-                mHelperImage.render(painter);
+            if (isDoubleBuffered && _bufferReady)
+                _helperImage.render(painter);
             else
-                mBufferReady = true;
+                _bufferReady = true;
             
             try
             {
-                mDrawing = true;
+                _drawing = true;
                 execute(renderBlock, object, matrix, alpha);
             }
             finally
             {
-                mDrawing = false;
+                _drawing = false;
                 painter.popState();
             }
         }
@@ -278,11 +278,11 @@ package starling.textures
 
             var painter:Painter = Starling.painter;
             painter.pushState();
-            painter.state.renderTarget = mActiveTexture;
+            painter.state.renderTarget = _activeTexture;
             painter.clear(rgb, alpha);
             painter.popState();
 
-            mBufferReady = true;
+            _bufferReady = true;
         }
         
         /** On the iPad 1 (and maybe other hardware?) clearing a non-POT RectangleTexture causes
@@ -336,15 +336,15 @@ package starling.textures
         /** Indicates if the render texture is using double buffering. This might be necessary for
          *  persistent textures, depending on the runtime version and the value of
          *  'forceDoubleBuffering'. */
-        private function get isDoubleBuffered():Boolean { return mBufferTexture != null; }
+        private function get isDoubleBuffered():Boolean { return _bufferTexture != null; }
 
         /** Indicates if the texture is persistent over multiple draw calls. */
-        public function get isPersistent():Boolean { return mIsPersistent; }
+        public function get isPersistent():Boolean { return _isPersistent; }
         
         /** @inheritDoc */
-        public override function get base():TextureBase { return mActiveTexture.base; }
+        public override function get base():TextureBase { return _activeTexture.base; }
         
         /** @inheritDoc */
-        public override function get root():ConcreteTexture { return mActiveTexture.root; }
+        public override function get root():ConcreteTexture { return _activeTexture.root; }
     }
 }
