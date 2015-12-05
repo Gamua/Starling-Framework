@@ -12,9 +12,12 @@ package tests.textures
 {
     import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;
-    
-    import flexunit.framework.Assert;
-    
+
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertNotNull;
+    import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
+
     import starling.textures.ConcreteTexture;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
@@ -38,21 +41,21 @@ package tests.textures
             var ann:Texture = atlas.getTexture("ann");            
             var bob:Texture = atlas.getTexture("bob");
             
-            Assert.assertTrue(ann is SubTexture);
-            Assert.assertTrue(bob    is SubTexture);
+            assertTrue(ann is SubTexture);
+            assertTrue(bob    is SubTexture);
             
-            Assert.assertEquals(55.5, ann.width);
-            Assert.assertEquals(16, ann.height);
-            Assert.assertEquals(16, bob.width);
-            Assert.assertEquals(32, bob.height);
+            assertEquals(55.5, ann.width);
+            assertEquals(16, ann.height);
+            assertEquals(16, bob.width);
+            assertEquals(32, bob.height);
             
             var annST:SubTexture = ann as SubTexture;
             var bobST:SubTexture = bob as SubTexture;
             
-            Assert.assertEquals(0, annST.region.x);
-            Assert.assertEquals(0, annST.region.y);
-            Assert.assertEquals(16, bobST.region.x);
-            Assert.assertEquals(32, bobST.region.y);
+            assertEquals(0, annST.region.x);
+            assertEquals(0, annST.region.y);
+            assertEquals(16, bobST.region.x);
+            assertEquals(32, bobST.region.y);
         }
         
         [Test]
@@ -65,14 +68,14 @@ package tests.textures
             atlas.addRegion("ann", new Rectangle(0, 0, 55.5, 16));
             atlas.addRegion("bob", new Rectangle(16, 32, 16, 32));
             
-            Assert.assertNotNull(atlas.getTexture("ann"));
-            Assert.assertNotNull(atlas.getTexture("bob"));
-            Assert.assertNull(atlas.getTexture("carl"));
+            assertNotNull(atlas.getTexture("ann"));
+            assertNotNull(atlas.getTexture("bob"));
+            assertNull(atlas.getTexture("carl"));
             
             atlas.removeRegion("carl"); // should not blow up
             atlas.removeRegion("bob");
             
-            Assert.assertNull(atlas.getTexture("bob"));
+            assertNull(atlas.getTexture("bob"));
         }
         
         [Test]
@@ -82,7 +85,7 @@ package tests.textures
             var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
-            Assert.assertEquals(texture, atlas.texture);
+            assertEquals(texture, atlas.texture);
             
             atlas.addRegion("ann", new Rectangle(0, 0, 8, 8));
             atlas.addRegion("prefix_3", new Rectangle(8, 0, 3, 8));
@@ -92,10 +95,10 @@ package tests.textures
             
             var textures:Vector.<Texture> = atlas.getTextures("prefix_");
             
-            Assert.assertEquals(3, textures.length);
-            Assert.assertEquals(1, textures[0].width);
-            Assert.assertEquals(2, textures[1].width);
-            Assert.assertEquals(3, textures[2].width);
+            assertEquals(3, textures.length);
+            assertEquals(1, textures[0].width);
+            assertEquals(2, textures[1].width);
+            assertEquals(3, textures[2].width);
         }
     }
 }

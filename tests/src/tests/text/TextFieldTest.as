@@ -1,7 +1,7 @@
 package tests.text
 {
-    import flexunit.framework.Assert;
-
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.assertThat;
     import org.hamcrest.number.greaterThan;
     import org.hamcrest.number.lessThanOrEqualTo;
@@ -21,7 +21,7 @@ package tests.text
         public function testTextField():void
         {
             var textField:TextField = new TextField(240, 50, "test text", "_sans", 16);
-            Assert.assertEquals("test text", textField.text);
+            assertEquals("test text", textField.text);
         }
 
         [Test]
@@ -35,7 +35,7 @@ package tests.text
             assertThat(textField.height, greaterThan(maxTextureSize));
 
             var textureSize:Texture = mainTextureFromTextField(textField);
-            Assert.assertTrue(textureSize);
+            assertTrue(textureSize);
             assertThat(textureSize ? textureSize.height * textureSize.scale : 0,
                     lessThanOrEqualTo(maxTextureSize));
         }

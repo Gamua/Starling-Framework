@@ -52,7 +52,7 @@ package tests.animation
             juggler.advanceTime(0.4); // -> 1.2 (complete)
             juggler.advanceTime(0.4); // -> 1.6 (start of new tween)
             
-            Assert.assertTrue(startReached);
+            assertTrue(startReached);
         }
         
         [Test]
@@ -62,9 +62,9 @@ package tests.animation
             var quad:Quad = new Quad(100, 100);
             var tween:Tween = new Tween(quad, 1.0);
             
-            Assert.assertFalse(juggler.contains(tween));
+            assertFalse(juggler.contains(tween));
             juggler.add(tween);
-            Assert.assertTrue(juggler.contains(tween));
+            assertTrue(juggler.contains(tween));
         }
         
         [Test]
@@ -82,18 +82,18 @@ package tests.animation
             tween1.animate("x", 100);
             tween2.animate("y", 100);
             
-            Assert.assertTrue(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
-            Assert.assertTrue(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertTrue(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertTrue(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
             
             juggler.purge();
             
-            Assert.assertFalse(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
-            Assert.assertFalse(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertFalse(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertFalse(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
             
             juggler.advanceTime(10);
             
-            Assert.assertEquals(0, quad.x);
-            Assert.assertEquals(0, quad.y);
+            assertEquals(0, quad.x);
+            assertEquals(0, quad.y);
         }
         
         [Test]

@@ -41,10 +41,10 @@ package tests.utils
             assertEquals(6, rawData[13]);
 
             for each (i in [2, 3, 6, 7, 8, 9, 11, 14])
-                Assert.assertEquals(0, rawData[i]);
+                assertEquals(0, rawData[i]);
 
             for each (i in [10, 15])
-                Assert.assertEquals(1, rawData[i]);
+                assertEquals(1, rawData[i]);
         }
 
         [Test]

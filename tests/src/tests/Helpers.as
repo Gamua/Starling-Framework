@@ -15,10 +15,10 @@ package tests
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
-    
-    import org.flexunit.Assert;
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.fail;
     import org.hamcrest.number.closeTo;
 
     public class Helpers
@@ -109,7 +109,7 @@ package tests
             }
             catch (e:Error)
             {
-                Assert.fail("Error thrown: " + e.message);
+                fail("Error thrown: " + e.message);
             }
         }
     }

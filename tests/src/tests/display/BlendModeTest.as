@@ -12,7 +12,7 @@ package tests.display
 {
     import flash.display3D.Context3DBlendFactor;
 
-    import flexunit.framework.Assert;
+    import org.flexunit.asserts.assertEquals;
 
     import starling.display.BlendMode;
 
@@ -27,8 +27,8 @@ package tests.display
             
             BlendMode.register(name, srcFactor, dstFactor);
 
-            Assert.assertEquals(srcFactor, BlendMode.get(name).sourceFactor);
-            Assert.assertEquals(dstFactor, BlendMode.get(name).destinationFactor);
+            assertEquals(srcFactor, BlendMode.get(name).sourceFactor);
+            assertEquals(dstFactor, BlendMode.get(name).destinationFactor);
         }
     }
 }

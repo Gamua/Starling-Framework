@@ -61,28 +61,28 @@ package tests.animation
             assertThat(quad.x, closeTo(startX + (endX-startX)/3.0, E));
             assertThat(quad.y, closeTo(startY + (endY-startY)/3.0, E));
             assertThat(quad.alpha, closeTo(startAlpha + (endAlpha-startAlpha)/3.0, E));
-            Assert.assertEquals(1, startCount);
-            Assert.assertEquals(1, updateCount);
-            Assert.assertEquals(0, completeCount);
-            Assert.assertFalse(tween.isComplete);
+            assertEquals(1, startCount);
+            assertEquals(1, updateCount);
+            assertEquals(0, completeCount);
+            assertFalse(tween.isComplete);
             
             tween.advanceTime(totalTime / 3.0);
             assertThat(quad.x, closeTo(startX + 2*(endX-startX)/3.0, E));
             assertThat(quad.y, closeTo(startY + 2*(endY-startY)/3.0, E));
             assertThat(quad.alpha, closeTo(startAlpha + 2*(endAlpha-startAlpha)/3.0, E));
-            Assert.assertEquals(1, startCount);
-            Assert.assertEquals(2, updateCount);
-            Assert.assertEquals(0, completeCount);
-            Assert.assertFalse(tween.isComplete);
+            assertEquals(1, startCount);
+            assertEquals(2, updateCount);
+            assertEquals(0, completeCount);
+            assertFalse(tween.isComplete);
             
             tween.advanceTime(totalTime / 3.0);
             assertThat(quad.x, closeTo(endX, E));
             assertThat(quad.y, closeTo(endY, E));
             assertThat(quad.alpha, closeTo(endAlpha, E));
-            Assert.assertEquals(1, startCount);
-            Assert.assertEquals(3, updateCount);
-            Assert.assertEquals(1, completeCount);
-            Assert.assertTrue(tween.isComplete);
+            assertEquals(1, startCount);
+            assertEquals(3, updateCount);
+            assertEquals(1, completeCount);
+            assertTrue(tween.isComplete);
         }
         
         [Test]
@@ -311,10 +311,10 @@ package tests.animation
             tween.fadeTo(0);
             tween.scaleTo(1.5);
             
-            Assert.assertEquals(100, tween.getEndValue("x"));
-            Assert.assertEquals(0, tween.getEndValue("alpha"));
-            Assert.assertEquals(1.5, tween.getEndValue("scaleX"));
-            Assert.assertEquals(1.5, tween.getEndValue("scaleY"));
+            assertEquals(100, tween.getEndValue("x"));
+            assertEquals(0, tween.getEndValue("alpha"));
+            assertEquals(1.5, tween.getEndValue("scaleX"));
+            assertEquals(1.5, tween.getEndValue("scaleY"));
         }
         
         [Test]
@@ -322,7 +322,7 @@ package tests.animation
         {
             var quad:Quad = new Quad(100, 100);
             var tween:Tween = new Tween(quad, 1.0, easeIn);
-            Assert.assertEquals(0.0, tween.progress);
+            assertEquals(0.0, tween.progress);
             
             tween.advanceTime(0.5);
             assertThat(tween.progress, closeTo(easeIn(0.5), E));
@@ -397,9 +397,9 @@ package tests.animation
             
             tween.advanceTime(advanceTime);
             
-            Assert.assertEquals(1, updateCount);
-            Assert.assertEquals(1, startCount);
-            Assert.assertEquals(advanceTime >= time ? 1 : 0, completeCount);
+            assertEquals(1, updateCount);
+            assertEquals(1, startCount);
+            assertEquals(advanceTime >= time ? 1 : 0, completeCount);
         }
     }
 }
