@@ -17,7 +17,6 @@ package starling.geom
     import starling.rendering.VertexData;
     import starling.utils.MathUtil;
     import starling.utils.Pool;
-    import starling.utils.VectorUtil;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
      *  line segments.
@@ -225,7 +224,7 @@ package starling.geom
                 if (earFound)
                 {
                     indexData.appendTriangle(i0 + offset, i1 + offset, i2 + offset);
-                    VectorUtil.removeUnsignedIntAt(sRestIndices, (restIndexPos + 1) % numRestIndices);
+                    sRestIndices.removeAt((restIndexPos + 1) % numRestIndices);
 
                     numRestIndices--;
                     restIndexPos = 0;

@@ -113,7 +113,7 @@ package starling.events
             {
                 for (i=_lastTaps.length-1; i>=0; --i)
                     if (_elapsedTime - _lastTaps[i].timestamp > _multitapTime)
-                        _lastTaps.splice(i, 1);
+                        _lastTaps.removeAt(i);
             }
             
             while (_queue.length > 0)
@@ -141,8 +141,8 @@ package starling.events
                 // remove ended touches
                 for (i=_currentTouches.length-1; i>=0; --i)
                     if (_currentTouches[i].phase == TouchPhase.ENDED)
-                        _currentTouches.splice(i, 1);
-                
+                        _currentTouches.removeAt(i);
+
                 sUpdatedTouches.length = 0;
             }
         }
@@ -312,23 +312,23 @@ package starling.events
             if (nearbyTap)
             {
                 touch.tapCount = nearbyTap.tapCount + 1;
-                _lastTaps.splice(_lastTaps.indexOf(nearbyTap), 1);
+                _lastTaps.removeAt(_lastTaps.indexOf(nearbyTap));
             }
             else
             {
                 touch.tapCount = 1;
             }
             
-            _lastTaps.push(touch.clone());
+            _lastTaps[_lastTaps.length] = touch.clone(); // avoiding 'push'
         }
         
         private function addCurrentTouch(touch:Touch):void
         {
             for (var i:int=_currentTouches.length-1; i>=0; --i)
                 if (_currentTouches[i].id == touch.id)
-                    _currentTouches.splice(i, 1);
-            
-            _currentTouches.push(touch);
+                    _currentTouches.removeAt(i);
+
+            _currentTouches[_currentTouches.length] = touch; // avoiding 'push'
         }
         
         private function getCurrentTouch(touchID:int):Touch

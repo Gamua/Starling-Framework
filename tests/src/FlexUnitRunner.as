@@ -24,7 +24,6 @@ package
     import tests.text.TextFieldTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
-    import tests.utils.ArrayUtilTest;
     import tests.utils.AssetManagerTest;
     import tests.utils.ColorTest;
     import tests.utils.MathUtilTest;
@@ -74,7 +73,6 @@ package
             testsToRun.push(StringUtilTest);
             testsToRun.push(Sprite3DTest);
             testsToRun.push(PolygonTest);
-            testsToRun.push(ArrayUtilTest);
             testsToRun.push(IndexDataTest);
             testsToRun.push(VertexDataTest);
             testsToRun.push(VertexDataFormatTest);

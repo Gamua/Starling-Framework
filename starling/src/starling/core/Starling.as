@@ -326,7 +326,7 @@ package starling.core
                 _nativeStage.removeEventListener(touchEventType, onTouch, false);
 
             var index:int =  sAll.indexOf(this);
-            if (index != -1) sAll.splice(index, 1);
+            if (index != -1) sAll.removeAt(index);
 
             var numInstancesSharingThisPainter:int =
                 sAll.filter(function(s:Starling, ...rest):Boolean

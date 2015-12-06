@@ -121,11 +121,9 @@ package starling.display
                 }
                 else
                 {
+                    _children.insertAt(index, child);
+
                     child.removeFromParent();
-
-                    if (index == numChildren) _children[numChildren] = child;
-                    else spliceChildren(index, 0, child);
-
                     child.setParent(this);
                     child.dispatchEventWith(Event.ADDED, true);
                     
@@ -174,7 +172,7 @@ package starling.display
                 
                 child.setParent(null);
                 index = _children.indexOf(child); // index might have changed by event handler
-                if (index >= 0) spliceChildren(index, 1);
+                if (index >= 0) _children.removeAt(index);
                 if (dispose) child.dispose();
                 
                 return child;
@@ -233,8 +231,9 @@ package starling.display
             var oldIndex:int = getChildIndex(child);
             if (oldIndex == index) return;
             if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
-            spliceChildren(oldIndex, 1);
-            spliceChildren(index, 0, child);
+
+            _children.removeAt(oldIndex);
+            _children.insertAt(index, child);
             setRequiresRedraw();
         }
         
@@ -472,50 +471,6 @@ package starling.display
                 for(i = startIndex; i < endIndex; i++)
                     input[i] = buffer[int(i - startIndex)];
             }
-        }
-
-        /** Custom implementation of 'Vector.splice'. The native method always create temporary
-         *  objects that have to be garbage collected. This implementation does not cause such
-         *  issues. */
-        private function spliceChildren(startIndex:int, deleteCount:uint=uint.MAX_VALUE,
-                                        insertee:DisplayObject=null):void
-        {
-            var vector:Vector.<DisplayObject> = _children;
-            var oldLength:uint  = vector.length;
-
-            if (startIndex < 0) startIndex += oldLength;
-            if (startIndex < 0) startIndex = 0; else if (startIndex > oldLength) startIndex = oldLength;
-            if (startIndex + deleteCount > oldLength) deleteCount = oldLength - startIndex;
-
-            var i:int;
-            var insertCount:int = insertee ? 1 : 0;
-            var deltaLength:int = insertCount - deleteCount;
-            var newLength:uint  = oldLength + deltaLength;
-            var shiftCount:int  = oldLength - startIndex - deleteCount;
-
-            if (deltaLength < 0)
-            {
-                i = startIndex + insertCount;
-                while (shiftCount)
-                {
-                    vector[i] = vector[int(i - deltaLength)];
-                    --shiftCount; ++i;
-                }
-                vector.length = newLength;
-            }
-            else if (deltaLength > 0)
-            {
-                i = 1;
-                while (shiftCount)
-                {
-                    vector[int(newLength - i)] = vector[int(oldLength - i)];
-                    --shiftCount; ++i;
-                }
-                vector.length = newLength;
-            }
-
-            if (insertee)
-                vector[startIndex] = insertee;
         }
 
         /** @private */
