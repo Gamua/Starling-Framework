@@ -33,9 +33,9 @@ package starling.utils
         /** Calculates the intersection between two Rectangles. If the rectangles do not intersect,
          *  this method returns an empty Rectangle object with its properties set to 0. */
         public static function intersect(rect1:Rectangle, rect2:Rectangle, 
-                                         resultRect:Rectangle=null):Rectangle
+                                         out:Rectangle=null):Rectangle
         {
-            if (resultRect == null) resultRect = new Rectangle();
+            if (out == null) out = new Rectangle();
             
             var left:Number   = rect1.x      > rect2.x      ? rect1.x      : rect2.x;
             var right:Number  = rect1.right  < rect2.right  ? rect1.right  : rect2.right;
@@ -43,11 +43,11 @@ package starling.utils
             var bottom:Number = rect1.bottom < rect2.bottom ? rect1.bottom : rect2.bottom;
             
             if (left > right || top > bottom)
-                resultRect.setEmpty();
+                out.setEmpty();
             else
-                resultRect.setTo(left, top, right-left, bottom-top);
+                out.setTo(left, top, right-left, bottom-top);
             
-            return resultRect;
+            return out;
         }
         
         /** Calculates a rectangle with the same aspect ratio as the given 'rectangle',
@@ -62,10 +62,10 @@ package starling.utils
          */
         public static function fit(rectangle:Rectangle, into:Rectangle, 
                                    scaleMode:String="showAll", pixelPerfect:Boolean=false,
-                                   resultRect:Rectangle=null):Rectangle
+                                   out:Rectangle=null):Rectangle
         {
             if (!ScaleMode.isValid(scaleMode)) throw new ArgumentError("Invalid scaleMode: " + scaleMode);
-            if (resultRect == null) resultRect = new Rectangle();
+            if (out == null) out = new Rectangle();
             
             var width:Number   = rectangle.width;
             var height:Number  = rectangle.height;
@@ -87,12 +87,12 @@ package starling.utils
             width  *= factor;
             height *= factor;
             
-            resultRect.setTo(
+            out.setTo(
                 into.x + (into.width  - width)  / 2,
                 into.y + (into.height - height) / 2,
                 width, height);
             
-            return resultRect;
+            return out;
         }
         
         /** Calculates the next whole-number multiplier or divisor, moving either up or down. */
@@ -140,12 +140,12 @@ package starling.utils
         }
 
         /** Calculates the bounds of a rectangle after transforming it by a matrix.
-         *  If you pass a 'resultRect', the result will be stored in this rectangle
+         *  If you pass an <code>out</code>-rectangle, the result will be stored in this rectangle
          *  instead of creating a new object. */
         public static function getBounds(rectangle:Rectangle, matrix:Matrix,
-                                         resultRect:Rectangle=null):Rectangle
+                                         out:Rectangle=null):Rectangle
         {
-            if (resultRect == null) resultRect = new Rectangle();
+            if (out == null) out = new Rectangle();
             
             var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
             var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
@@ -161,8 +161,8 @@ package starling.utils
                 if (maxY < sPoint.y) maxY = sPoint.y;
             }
             
-            resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
-            return resultRect;
+            out.setTo(minX, minY, maxX - minX, maxY - minY);
+            return out;
         }
 
         /** Calculates the bounds of a rectangle projected into the XY-plane of a certain 3D space

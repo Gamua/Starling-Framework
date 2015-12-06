@@ -26,19 +26,19 @@ package starling.utils
         /** Calculates the intersection point between the xy-plane and an infinite line
          *  that is defined by two 3D points in the same coordinate system. */
         public static function intersectLineWithXYPlane(pointA:Vector3D, pointB:Vector3D,
-                                                        resultPoint:Point=null):Point
+                                                        out:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
+            if (out == null) out = new Point();
 
             var vectorX:Number = pointB.x - pointA.x;
             var vectorY:Number = pointB.y - pointA.y;
             var vectorZ:Number = pointB.z - pointA.z;
             var lambda:Number = -pointA.z / vectorZ;
 
-            resultPoint.x = pointA.x + lambda * vectorX;
-            resultPoint.y = pointA.y + lambda * vectorY;
+            out.x = pointA.x + lambda * vectorX;
+            out.y = pointA.y + lambda * vectorY;
 
-            return resultPoint;
+            return out;
         }
 
         /** Calculates if the point <code>p</code> is inside the triangle <code>a-b-c</code>. */

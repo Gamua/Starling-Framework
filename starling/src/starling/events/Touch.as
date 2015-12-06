@@ -67,35 +67,35 @@ package starling.events
         }
         
         /** Converts the current location of a touch to the local coordinate system of a display 
-         *  object. If you pass a 'resultPoint', the result will be stored in this point instead 
-         *  of creating a new object.*/
-        public function getLocation(space:DisplayObject, resultPoint:Point=null):Point
+         *  object. If you pass an <code>out</code>-point, the result will be stored in this point
+         *  instead of creating a new object.*/
+        public function getLocation(space:DisplayObject, out:Point=null):Point
         {
             sHelperPoint.setTo(_globalX, _globalY);
-            return space.globalToLocal(sHelperPoint, resultPoint);
+            return space.globalToLocal(sHelperPoint, out);
         }
         
         /** Converts the previous location of a touch to the local coordinate system of a display 
-         *  object. If you pass a 'resultPoint', the result will be stored in this point instead 
-         *  of creating a new object.*/
-        public function getPreviousLocation(space:DisplayObject, resultPoint:Point=null):Point
+         *  object. If you pass an <code>out</code>-point, the result will be stored in this point
+         *  instead of creating a new object.*/
+        public function getPreviousLocation(space:DisplayObject, out:Point=null):Point
         {
             sHelperPoint.setTo(_previousGlobalX, _previousGlobalY);
-            return space.globalToLocal(sHelperPoint, resultPoint);
+            return space.globalToLocal(sHelperPoint, out);
         }
         
         /** Returns the movement of the touch between the current and previous location. 
-         *  If you pass a 'resultPoint', the result will be stored in this point instead 
+         *  If you pass an <code>out</code>-point, the result will be stored in this point instead
          *  of creating a new object. */ 
-        public function getMovement(space:DisplayObject, resultPoint:Point=null):Point
+        public function getMovement(space:DisplayObject, out:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
-            getLocation(space, resultPoint);
-            var x:Number = resultPoint.x;
-            var y:Number = resultPoint.y;
-            getPreviousLocation(space, resultPoint);
-            resultPoint.setTo(x - resultPoint.x, y - resultPoint.y);
-            return resultPoint;
+            if (out == null) out = new Point();
+            getLocation(space, out);
+            var x:Number = out.x;
+            var y:Number = out.y;
+            getPreviousLocation(space, out);
+            out.setTo(x - out.x, y - out.y);
+            return out;
         }
         
         /** Indicates if the target or one of its children is touched. */ 

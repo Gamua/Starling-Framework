@@ -31,11 +31,11 @@ package starling.utils
         /** @private */
         public function MatrixUtil() { throw new AbstractClassError(); }
 
-        /** Converts a 2D matrix to a 3D matrix. If you pass a 'resultMatrix',
+        /** Converts a 2D matrix to a 3D matrix. If you pass an <code>out</code>-matrix,
          *  the result will be stored in this matrix instead of creating a new object. */
-        public static function convertTo3D(matrix:Matrix, resultMatrix:Matrix3D=null):Matrix3D
+        public static function convertTo3D(matrix:Matrix, out:Matrix3D=null):Matrix3D
         {
-            if (resultMatrix == null) resultMatrix = new Matrix3D();
+            if (out == null) out = new Matrix3D();
 
             sRawData[ 0] = matrix.a;
             sRawData[ 1] = matrix.b;
@@ -44,25 +44,25 @@ package starling.utils
             sRawData[12] = matrix.tx;
             sRawData[13] = matrix.ty;
 
-            resultMatrix.copyRawDataFrom(sRawData);
-            return resultMatrix;
+            out.copyRawDataFrom(sRawData);
+            return out;
         }
 
         /** Converts a 3D matrix to a 2D matrix. Beware that this will work only for a 3D matrix
          *  describing a pure 2D transformation. */
-        public static function convertTo2D(matrix3D:Matrix3D, resultMatrix:Matrix=null):Matrix
+        public static function convertTo2D(matrix3D:Matrix3D, out:Matrix=null):Matrix
         {
-            if (resultMatrix == null) resultMatrix = new Matrix();
+            if (out == null) out = new Matrix();
 
             matrix3D.copyRawDataTo(sRawData2);
-            resultMatrix.a  = sRawData2[ 0];
-            resultMatrix.b  = sRawData2[ 1];
-            resultMatrix.c  = sRawData2[ 4];
-            resultMatrix.d  = sRawData2[ 5];
-            resultMatrix.tx = sRawData2[12];
-            resultMatrix.ty = sRawData2[13];
+            out.a  = sRawData2[ 0];
+            out.b  = sRawData2[ 1];
+            out.c  = sRawData2[ 4];
+            out.d  = sRawData2[ 5];
+            out.tx = sRawData2[12];
+            out.ty = sRawData2[13];
 
-            return resultMatrix;
+            return out;
         }
 
         /** Determines if the matrix is an identity matrix. */
@@ -84,47 +84,49 @@ package starling.utils
                    data[12] == 0.0 && data[13] == 0.0 && data[14] == 0.0 && data[15] == 1.0;
         }
 
+        /** Transform a point with the given matrix. */
         public static function transformPoint(matrix:Matrix, point:Point,
-                                              resultPoint:Point=null):Point
+                                              out:Point=null):Point
         {
-            return transformCoords(matrix, point.x, point.y, resultPoint);
+            return transformCoords(matrix, point.x, point.y, out);
         }
 
+        /** Transforms a 3D point with the given matrix. */
         public static function transformPoint3D(matrix:Matrix3D, point:Vector3D,
-                                                resultPoint:Vector3D=null):Vector3D
+                                                out:Vector3D=null):Vector3D
         {
-            return transformCoords3D(matrix, point.x, point.y, point.z, resultPoint);
+            return transformCoords3D(matrix, point.x, point.y, point.z, out);
         }
 
-        /** Uses a matrix to transform 2D coordinates into a different space. If you pass a
-         *  'resultPoint', the result will be stored in this point instead of creating a
-         *  new object. */
+        /** Uses a matrix to transform 2D coordinates into a different space. If you pass an
+         *  <code>out</code>-point, the result will be stored in this point instead of creating
+         *  a new object. */
         public static function transformCoords(matrix:Matrix, x:Number, y:Number,
-                                               resultPoint:Point=null):Point
+                                               out:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
+            if (out == null) out = new Point();
 
-            resultPoint.x = matrix.a * x + matrix.c * y + matrix.tx;
-            resultPoint.y = matrix.d * y + matrix.b * x + matrix.ty;
+            out.x = matrix.a * x + matrix.c * y + matrix.tx;
+            out.y = matrix.d * y + matrix.b * x + matrix.ty;
 
-            return resultPoint;
+            return out;
         }
 
         /** Uses a matrix to transform 3D coordinates into a different space. If you pass a
          *  'resultVector', the result will be stored in this vector3D instead of creating a
          *  new object. */
         public static function transformCoords3D(matrix:Matrix3D, x:Number, y:Number, z:Number,
-                                                 resultPoint:Vector3D=null):Vector3D
+                                                 out:Vector3D=null):Vector3D
         {
-            if (resultPoint == null) resultPoint = new Vector3D();
+            if (out == null) out = new Vector3D();
 
             matrix.copyRawDataTo(sRawData2);
-            resultPoint.x = x * sRawData2[0] + y * sRawData2[4] + z * sRawData2[ 8] + sRawData2[12];
-            resultPoint.y = x * sRawData2[1] + y * sRawData2[5] + z * sRawData2[ 9] + sRawData2[13];
-            resultPoint.z = x * sRawData2[2] + y * sRawData2[6] + z * sRawData2[10] + sRawData2[14];
-            resultPoint.w = x * sRawData2[3] + y * sRawData2[7] + z * sRawData2[11] + sRawData2[15];
+            out.x = x * sRawData2[0] + y * sRawData2[4] + z * sRawData2[ 8] + sRawData2[12];
+            out.y = x * sRawData2[1] + y * sRawData2[5] + z * sRawData2[ 9] + sRawData2[13];
+            out.z = x * sRawData2[2] + y * sRawData2[6] + z * sRawData2[10] + sRawData2[14];
+            out.w = x * sRawData2[3] + y * sRawData2[7] + z * sRawData2[11] + sRawData2[15];
 
-            return resultPoint;
+            return out;
         }
 
         /** Appends a skew transformation to a matrix (angles in radians). The skew matrix

@@ -158,13 +158,13 @@ package starling.display
          *  To change the position of the camera, you can modify the properties 'fieldOfView',
          *  'focalDistance' and 'projectionOffset'.
          */
-        public function getCameraPosition(space:DisplayObject=null, result:Vector3D=null):Vector3D
+        public function getCameraPosition(space:DisplayObject=null, out:Vector3D=null):Vector3D
         {
             getTransformationMatrix3D(space, sHelperMatrix);
 
             return MatrixUtil.transformCoords3D(sHelperMatrix,
                 _width / 2 + _projectionOffset.x, _height / 2 + _projectionOffset.y,
-               -focalLength, result);
+                -focalLength, out);
         }
 
         // enter frame event optimization

@@ -280,9 +280,9 @@ package starling.display
         // other methods
         
         /** @inheritDoc */ 
-        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            if (resultRect == null) resultRect = new Rectangle();
+            if (out == null) out = new Rectangle();
             
             var numChildren:int = _children.length;
             
@@ -290,11 +290,11 @@ package starling.display
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
                 MatrixUtil.transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
-                resultRect.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
+                out.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
             }
             else if (numChildren == 1)
             {
-                _children[0].getBounds(targetSpace, resultRect);
+                _children[0].getBounds(targetSpace, out);
             }
             else
             {
@@ -303,18 +303,18 @@ package starling.display
 
                 for (var i:int=0; i<numChildren; ++i)
                 {
-                    _children[i].getBounds(targetSpace, resultRect);
+                    _children[i].getBounds(targetSpace, out);
 
-                    if (minX > resultRect.x)      minX = resultRect.x;
-                    if (maxX < resultRect.right)  maxX = resultRect.right;
-                    if (minY > resultRect.y)      minY = resultRect.y;
-                    if (maxY < resultRect.bottom) maxY = resultRect.bottom;
+                    if (minX > out.x)      minX = out.x;
+                    if (maxX < out.right)  maxX = out.right;
+                    if (minY > out.y)      minY = out.y;
+                    if (maxY < out.bottom) maxY = out.bottom;
                 }
 
-                resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
+                out.setTo(minX, minY, maxX - minX, maxY - minY);
             }
             
-            return resultRect;
+            return out;
         }
 
         /** @inheritDoc */

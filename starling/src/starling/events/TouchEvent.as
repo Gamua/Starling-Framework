@@ -83,13 +83,13 @@ package starling.events
                     _timestamp = touches[i].timestamp;
         }
         
-        /** Returns a list of touches that originated over a certain target. If you pass a
-         *  'result' vector, the touches will be added to this vector instead of creating a new 
-         *  object. */
+        /** Returns a list of touches that originated over a certain target. If you pass an
+         *  <code>out</code>-vector, the touches will be added to this vector instead of creating
+         *  a new object. */
         public function getTouches(target:DisplayObject, phase:String=null,
-                                   result:Vector.<Touch>=null):Vector.<Touch>
+                                   out:Vector.<Touch>=null):Vector.<Touch>
         {
-            if (result == null) result = new <Touch>[];
+            if (out == null) out = new <Touch>[];
             var allTouches:Vector.<Touch> = data as Vector.<Touch>;
             var numTouches:int = allTouches.length;
             
@@ -100,9 +100,9 @@ package starling.events
                 var correctPhase:Boolean = (phase == null || phase == touch.phase);
                     
                 if (correctTarget && correctPhase)
-                    result[result.length] = touch; // avoiding 'push'
+                    out[out.length] = touch; // avoiding 'push'
             }
-            return result;
+            return out;
         }
         
         /** Returns a touch that originated over a certain target. 

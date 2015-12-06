@@ -172,14 +172,14 @@ package starling.text
         }
         
         /** Returns a vector containing all the character IDs that are contained in this font. */
-        public function getCharIDs(result:Vector.<int>=null):Vector.<int>
+        public function getCharIDs(out:Vector.<int>=null):Vector.<int>
         {
-            if (result == null) result = new <int>[];
+            if (out == null) out = new <int>[];
 
             for(var key:* in _chars)
-                result[result.length] = int(key);
+                out[out.length] = int(key);
 
-            return result;
+            return out;
         }
 
         /** Checks whether a provided string can be displayed with the font. */

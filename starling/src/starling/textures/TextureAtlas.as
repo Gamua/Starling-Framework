@@ -134,22 +134,22 @@ package starling.textures
         
         /** Returns all textures that start with a certain string, sorted alphabetically
          *  (especially useful for "MovieClip"). */
-        public function getTextures(prefix:String="", result:Vector.<Texture>=null):Vector.<Texture>
+        public function getTextures(prefix:String="", out:Vector.<Texture>=null):Vector.<Texture>
         {
-            if (result == null) result = new <Texture>[];
+            if (out == null) out = new <Texture>[];
             
             for each (var name:String in getNames(prefix, sNames)) 
-                result[result.length] = getTexture(name); // avoid 'push'
+                out[out.length] = getTexture(name); // avoid 'push'
 
             sNames.length = 0;
-            return result;
+            return out;
         }
         
         /** Returns all texture names that start with a certain string, sorted alphabetically. */
-        public function getNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        public function getNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
             var name:String;
-            if (result == null) result = new <String>[];
+            if (out == null) out = new <String>[];
             
             if (_subTextureNames == null)
             {
@@ -161,9 +161,9 @@ package starling.textures
 
             for each (name in _subTextureNames)
                 if (name.indexOf(prefix) == 0)
-                    result[result.length] = name;
+                    out[out.length] = name;
             
-            return result;
+            return out;
         }
         
         /** Returns the region rectangle associated with a specific name, or <code>null</code>

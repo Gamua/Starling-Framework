@@ -248,7 +248,7 @@ package starling.text
          */
         protected function formatText(textField:flash.text.TextField, textFormat:TextFormat):void {}
 
-        private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
+        private function renderText(scale:Number, out:Rectangle):BitmapData
         {
             var width:Number  = _hitArea.width  * scale;
             var height:Number = _hitArea.height * scale;
@@ -338,7 +338,7 @@ package starling.text
             sNativeTextField.text = "";
             
             // update textBounds rectangle
-            resultTextBounds.setTo((textOffsetX + filterOffset.x) / scale,
+            out.setTo((textOffsetX + filterOffset.x) / scale,
                                    (textOffsetY + filterOffset.y) / scale,
                                    textWidth / scale, textHeight / scale);
             
@@ -519,11 +519,11 @@ package starling.text
         }
         
         /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        public override function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
             if (_requiresRecomposition) recompose();
             getTransformationMatrix(targetSpace, sHelperMatrix);
-            return RectangleUtil.getBounds(_hitArea, sHelperMatrix, resultRect);
+            return RectangleUtil.getBounds(_hitArea, sHelperMatrix, out);
         }
         
         /** @inheritDoc */

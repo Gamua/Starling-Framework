@@ -114,13 +114,13 @@ package starling.geom
         }
 
         /** Returns the coordinates of a certain vertex. */
-        public function getVertex(index:int, result:Point=null):Point
+        public function getVertex(index:int, out:Point=null):Point
         {
             if (index >= 0 && index < numVertices)
             {
-                result ||= new Point();
-                result.setTo(_coords[index * 2], _coords[index * 2 + 1]);
-                return result;
+                out ||= new Point();
+                out.setTo(_coords[index * 2], _coords[index * 2 + 1]);
+                return out;
             }
             else throw new RangeError("Invalid index: " + index);
         }

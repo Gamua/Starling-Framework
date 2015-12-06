@@ -110,7 +110,7 @@ package starling.display
      *  <ul>
      *    <li><code>function render(support:RenderSupport):void</code></li>
      *    <li><code>function getBounds(targetSpace:DisplayObject, 
-     *                                 resultRect:Rectangle=null):Rectangle</code></li>
+     *                                 out:Rectangle=null):Rectangle</code></li>
      *  </ul>
      *  
      *  <p>Have a look at the Quad class for a sample implementation of the 'getBounds' method.
@@ -209,25 +209,25 @@ package starling.display
         }
         
         /** Creates a matrix that represents the transformation from the local coordinate system 
-         *  to another. If you pass a 'resultMatrix', the result will be stored in this matrix
-         *  instead of creating a new object. */ 
+         *  to another. If you pass an <code>out</code>-matrix, the result will be stored in this
+         *  matrix instead of creating a new object. */
         public function getTransformationMatrix(targetSpace:DisplayObject, 
-                                                resultMatrix:Matrix=null):Matrix
+                                                out:Matrix=null):Matrix
         {
             var commonParent:DisplayObject;
             var currentObject:DisplayObject;
             
-            if (resultMatrix) resultMatrix.identity();
-            else resultMatrix = new Matrix();
+            if (out) out.identity();
+            else out = new Matrix();
             
             if (targetSpace == this)
             {
-                return resultMatrix;
+                return out;
             }
             else if (targetSpace == _parent || (targetSpace == null && _parent == null))
             {
-                resultMatrix.copyFrom(transformationMatrix);
-                return resultMatrix;
+                out.copyFrom(transformationMatrix);
+                return out;
             }
             else if (targetSpace == null || targetSpace == base)
             {
@@ -237,18 +237,18 @@ package starling.display
                 currentObject = this;
                 while (currentObject != targetSpace)
                 {
-                    resultMatrix.concat(currentObject.transformationMatrix);
+                    out.concat(currentObject.transformationMatrix);
                     currentObject = currentObject._parent;
                 }
                 
-                return resultMatrix;
+                return out;
             }
             else if (targetSpace._parent == this) // optimization
             {
-                targetSpace.getTransformationMatrix(this, resultMatrix);
-                resultMatrix.invert();
+                targetSpace.getTransformationMatrix(this, out);
+                out.invert();
                 
-                return resultMatrix;
+                return out;
             }
             
             // 1. find a common parent of this and the target space
@@ -260,12 +260,12 @@ package starling.display
             currentObject = this;
             while (currentObject != commonParent)
             {
-                resultMatrix.concat(currentObject.transformationMatrix);
+                out.concat(currentObject.transformationMatrix);
                 currentObject = currentObject._parent;
             }
             
             if (commonParent == targetSpace)
-                return resultMatrix;
+                return out;
             
             // 3. now move up from target until we reach the common parent
             
@@ -280,15 +280,15 @@ package starling.display
             // 4. now combine the two matrices
             
             sHelperMatrix.invert();
-            resultMatrix.concat(sHelperMatrix);
+            out.concat(sHelperMatrix);
             
-            return resultMatrix;
+            return out;
         }
         
         /** Returns a rectangle that completely encloses the object as it appears in another 
-         *  coordinate system. If you pass a 'resultRectangle', the result will be stored in this 
-         *  rectangle instead of creating a new object. */ 
-        public function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+         *  coordinate system. If you pass an <code>out</code>-rectangle, the result will be
+         *  stored in this rectangle instead of creating a new object. */
+        public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
             throw new AbstractMethodError();
         }
@@ -330,38 +330,38 @@ package starling.display
         }
 
         /** Transforms a point from the local coordinate system to global (stage) coordinates.
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
-         *  creating a new object. */
-        public function localToGlobal(localPoint:Point, resultPoint:Point=null):Point
+         *  If you pass an <code>out</code>-point, the result will be stored in this point instead
+         *  of creating a new object. */
+        public function localToGlobal(localPoint:Point, out:Point=null):Point
         {
             if (is3D)
             {
                 sHelperPoint3D.setTo(localPoint.x, localPoint.y, 0);
-                return local3DToGlobal(sHelperPoint3D, resultPoint);
+                return local3DToGlobal(sHelperPoint3D, out);
             }
             else
             {
                 getTransformationMatrix(base, sHelperMatrixAlt);
-                return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, resultPoint);
+                return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, out);
             }
         }
         
         /** Transforms a point from global (stage) coordinates to the local coordinate system.
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
-         *  creating a new object. */
-        public function globalToLocal(globalPoint:Point, resultPoint:Point=null):Point
+         *  If you pass an <code>out</code>-point, the result will be stored in this point instead
+         *  of creating a new object. */
+        public function globalToLocal(globalPoint:Point, out:Point=null):Point
         {
             if (is3D)
             {
                 globalToLocal3D(globalPoint, sHelperPoint3D);
                 stage.getCameraPosition(this, sHelperPointAlt3D);
-                return MathUtil.intersectLineWithXYPlane(sHelperPointAlt3D, sHelperPoint3D, resultPoint);
+                return MathUtil.intersectLineWithXYPlane(sHelperPointAlt3D, sHelperPoint3D, out);
             }
             else
             {
                 getTransformationMatrix(base, sHelperMatrixAlt);
                 sHelperMatrixAlt.invert();
-                return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, resultPoint);
+                return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, out);
             }
         }
         
@@ -398,25 +398,25 @@ package starling.display
 
         /** Creates a matrix that represents the transformation from the local coordinate system
          *  to another. This method supports three dimensional objects created via 'Sprite3D'.
-         *  If you pass a 'resultMatrix', the result will be stored in this matrix
+         *  If you pass an <code>out</code>-matrix, the result will be stored in this matrix
          *  instead of creating a new object. */
         public function getTransformationMatrix3D(targetSpace:DisplayObject,
-                                                  resultMatrix:Matrix3D=null):Matrix3D
+                                                  out:Matrix3D=null):Matrix3D
         {
             var commonParent:DisplayObject;
             var currentObject:DisplayObject;
 
-            if (resultMatrix) resultMatrix.identity();
-            else resultMatrix = new Matrix3D();
+            if (out) out.identity();
+            else out = new Matrix3D();
 
             if (targetSpace == this)
             {
-                return resultMatrix;
+                return out;
             }
             else if (targetSpace == _parent || (targetSpace == null && _parent == null))
             {
-                resultMatrix.copyFrom(transformationMatrix3D);
-                return resultMatrix;
+                out.copyFrom(transformationMatrix3D);
+                return out;
             }
             else if (targetSpace == null || targetSpace == base)
             {
@@ -426,18 +426,18 @@ package starling.display
                 currentObject = this;
                 while (currentObject != targetSpace)
                 {
-                    resultMatrix.append(currentObject.transformationMatrix3D);
+                    out.append(currentObject.transformationMatrix3D);
                     currentObject = currentObject._parent;
                 }
 
-                return resultMatrix;
+                return out;
             }
             else if (targetSpace._parent == this) // optimization
             {
-                targetSpace.getTransformationMatrix3D(this, resultMatrix);
-                resultMatrix.invert();
+                targetSpace.getTransformationMatrix3D(this, out);
+                out.invert();
 
-                return resultMatrix;
+                return out;
             }
 
             // 1. find a common parent of this and the target space
@@ -449,12 +449,12 @@ package starling.display
             currentObject = this;
             while (currentObject != commonParent)
             {
-                resultMatrix.append(currentObject.transformationMatrix3D);
+                out.append(currentObject.transformationMatrix3D);
                 currentObject = currentObject._parent;
             }
 
             if (commonParent == targetSpace)
-                return resultMatrix;
+                return out;
 
             // 3. now move up from target until we reach the common parent
 
@@ -469,31 +469,30 @@ package starling.display
             // 4. now combine the two matrices
 
             sHelperMatrix3D.invert();
-            resultMatrix.append(sHelperMatrix3D);
+            out.append(sHelperMatrix3D);
 
-            return resultMatrix;
+            return out;
         }
 
         /** Transforms a 3D point from the local coordinate system to global (stage) coordinates.
          *  This is achieved by projecting the 3D point onto the (2D) view plane.
          *
-         *  <p>If you pass a 'resultPoint', the result will be stored in this point instead of
-         *  creating a new object.</p> */
-        public function local3DToGlobal(localPoint:Vector3D, resultPoint:Point=null):Point
+         *  <p>If you pass an <code>out</code>-point, the result will be stored in this point
+         *  instead of creating a new object.</p> */
+        public function local3DToGlobal(localPoint:Vector3D, out:Point=null):Point
         {
             var stage:Stage = this.stage;
             if (stage == null) throw new IllegalOperationError("Object not connected to stage");
 
             getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
             MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, localPoint, sHelperPoint3D);
-            return MathUtil.intersectLineWithXYPlane(
-                stage.cameraPosition, sHelperPoint3D, resultPoint);
+            return MathUtil.intersectLineWithXYPlane(stage.cameraPosition, sHelperPoint3D, out);
         }
 
         /** Transforms a point from global (stage) coordinates to the 3D local coordinate system.
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of
-         *  creating a new object. */
-        public function globalToLocal3D(globalPoint:Point, resultPoint:Vector3D=null):Vector3D
+         *  If you pass an <code>out</code>-vector, the result will be stored in this vector
+         *  instead of creating a new object. */
+        public function globalToLocal3D(globalPoint:Point, out:Vector3D=null):Vector3D
         {
             var stage:Stage = this.stage;
             if (stage == null) throw new IllegalOperationError("Object not connected to stage");
@@ -501,7 +500,7 @@ package starling.display
             getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
             sHelperMatrixAlt3D.invert();
             return MatrixUtil.transformCoords3D(
-                sHelperMatrixAlt3D, globalPoint.x, globalPoint.y, 0, resultPoint);
+                sHelperMatrixAlt3D, globalPoint.x, globalPoint.y, 0, out);
         }
 
         // internal methods

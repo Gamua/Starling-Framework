@@ -203,27 +203,27 @@ package starling.utils
         
         /** Returns all textures that start with a certain string, sorted alphabetically
          *  (especially useful for "MovieClip"). */
-        public function getTextures(prefix:String="", result:Vector.<Texture>=null):Vector.<Texture>
+        public function getTextures(prefix:String="", out:Vector.<Texture>=null):Vector.<Texture>
         {
-            if (result == null) result = new <Texture>[];
+            if (out == null) out = new <Texture>[];
             
             for each (var name:String in getTextureNames(prefix, sNames))
-                result[result.length] = getTexture(name); // avoid 'push'
+                out[out.length] = getTexture(name); // avoid 'push'
 
             sNames.length = 0;
-            return result;
+            return out;
         }
         
         /** Returns all texture names that start with a certain string, sorted alphabetically. */
-        public function getTextureNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+        public function getTextureNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            result = getDictionaryKeys(_textures, prefix, result);
+            out = getDictionaryKeys(_textures, prefix, out);
             
             for each (var atlas:TextureAtlas in _atlases)
-                atlas.getNames(prefix, result);
+                atlas.getNames(prefix, out);
             
-            result.sort(Array.CASEINSENSITIVE);
-            return result;
+            out.sort(Array.CASEINSENSITIVE);
+            return out;
         }
         
         /** Returns a texture atlas with a certain name, or null if it's not found. */
@@ -233,10 +233,10 @@ package starling.utils
         }
 
         /** Returns all texture atlas names that start with a certain string, sorted alphabetically.
-         *  If you pass a result vector, the names will be added to that vector. */
-        public function getTextureAtlasNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
+        public function getTextureAtlasNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getDictionaryKeys(_atlases, prefix, result);
+            return getDictionaryKeys(_atlases, prefix, out);
         }
         
         /** Returns a sound with a certain name, or null if it's not found. */
@@ -246,10 +246,10 @@ package starling.utils
         }
         
         /** Returns all sound names that start with a certain string, sorted alphabetically.
-         *  If you pass a result vector, the names will be added to that vector. */
-        public function getSoundNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
+        public function getSoundNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getDictionaryKeys(_sounds, prefix, result);
+            return getDictionaryKeys(_sounds, prefix, out);
         }
         
         /** Generates a new SoundChannel object to play back the sound. This method returns a 
@@ -270,10 +270,10 @@ package starling.utils
         }
         
         /** Returns all XML names that start with a certain string, sorted alphabetically. 
-         *  If you pass a result vector, the names will be added to that vector. */
-        public function getXmlNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
+        public function getXmlNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getDictionaryKeys(_xmls, prefix, result);
+            return getDictionaryKeys(_xmls, prefix, out);
         }
 
         /** Returns an object with a certain name, or null if it's not found. Enqueued JSON
@@ -284,10 +284,10 @@ package starling.utils
         }
         
         /** Returns all object names that start with a certain string, sorted alphabetically. 
-         *  If you pass a result vector, the names will be added to that vector. */
-        public function getObjectNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
+        public function getObjectNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getDictionaryKeys(_objects, prefix, result);
+            return getDictionaryKeys(_objects, prefix, out);
         }
         
         /** Returns a byte array with a certain name, or null if it's not found. */
@@ -297,10 +297,10 @@ package starling.utils
         }
         
         /** Returns all byte array names that start with a certain string, sorted alphabetically. 
-         *  If you pass a result vector, the names will be added to that vector. */
-        public function getByteArrayNames(prefix:String="", result:Vector.<String>=null):Vector.<String>
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
+        public function getByteArrayNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getDictionaryKeys(_byteArrays, prefix, result);
+            return getDictionaryKeys(_byteArrays, prefix, out);
         }
         
         // direct adding
@@ -1178,16 +1178,16 @@ package starling.utils
         }
         
         private function getDictionaryKeys(dictionary:Dictionary, prefix:String="",
-                                           result:Vector.<String>=null):Vector.<String>
+                                           out:Vector.<String>=null):Vector.<String>
         {
-            if (result == null) result = new <String>[];
+            if (out == null) out = new <String>[];
             
             for (var name:String in dictionary)
                 if (name.indexOf(prefix) == 0)
-                    result[result.length] = name; // avoid 'push'
+                    out[out.length] = name; // avoid 'push'
 
-            result.sort(Array.CASEINSENSITIVE);
-            return result;
+            out.sort(Array.CASEINSENSITIVE);
+            return out;
         }
         
         private function getHttpHeader(headers:Array, headerName:String):String
