@@ -83,19 +83,22 @@ package starling.rendering
                 if (subset.numIndices  < 0) subset.numIndices  = mesh.numIndices  - subset.indexID;
             }
 
-            if (_currentBatch == null || !_currentBatch.canAddMesh(mesh, blendMode, subset.numVertices))
+            if (subset.numVertices > 0)
             {
-                finishBatch();
+                if (_currentBatch == null || !_currentBatch.canAddMesh(mesh, blendMode, subset.numVertices))
+                {
+                    finishBatch();
 
-                _currentStyleType = mesh.style.type;
-                _currentBatch = _batchPool.get(_currentStyleType);
-                _cacheToken.setTo(_batches.length);
-                _batches[_batches.length] = _currentBatch;
+                    _currentStyleType = mesh.style.type;
+                    _currentBatch = _batchPool.get(_currentStyleType);
+                    _cacheToken.setTo(_batches.length);
+                    _batches[_batches.length] = _currentBatch;
+                }
+
+                _currentBatch.addMesh(mesh, matrix, alpha, blendMode, subset, ignoreTransformation);
+                _cacheToken.vertexID += subset.numVertices;
+                _cacheToken.indexID  += subset.numIndices;
             }
-
-            _currentBatch.addMesh(mesh, matrix, alpha, blendMode, subset, ignoreTransformation);
-            _cacheToken.vertexID += subset.numVertices;
-            _cacheToken.indexID  += subset.numIndices;
         }
 
         /** Finishes the current batch, i.e. call the 'onComplete' callback on the batch and
@@ -144,41 +147,47 @@ package starling.rendering
             return token;
         }
 
-        /** Adds the meshes from the given BatchProcessor to this instance.
+        /** Adds the meshes from the given BatchProcessor to this instance. The given tokens
+         *  act as both input and output: when passed to the method, they need to describe the
+         *  range of vertices and indices to be copied from the given batch processor; when the
+         *  method returns, they will contain the range of the same meshes in the current
+         *  batch processor.
          *
          *  @param batchProcessor  the object the meshes should be taken from.
-         *  @param startToken      the position of the first vertex to be copied.
-         *  @param endToken        the position of the last vertex to be copied.
+         *  @param startToken      the position of the first vertex / index to be copied.
+         *  @param endToken        the position of the last vertex / index to be copied.
          */
         public function addMeshesFrom(batchProcessor:BatchProcessor,
                                       startToken:BatchToken, endToken:BatchToken):void
         {
             var meshBatch:MeshBatch;
-            var subset:MeshSubset;
+            var subset:MeshSubset = sMeshSubset;
 
             fillToken(sCacheToken);
 
-            for (var i:int = startToken.batchID; i <= endToken.batchID; ++i)
+            if (!startToken.equals(endToken))
             {
-                subset = sMeshSubset;
-                subset.setTo(); // resets subset
-
-                if (i == startToken.batchID)
-                {
-                    subset.vertexID = startToken.vertexID;
-                    subset.indexID  = startToken.indexID;
-                }
-
-                if (i == endToken.batchID)
-                {
-                    subset.numVertices = endToken.vertexID - subset.vertexID;
-                    subset.numIndices  = endToken.indexID  - subset.indexID;
-                }
-
-                if (subset.numVertices != 0)
+                for (var i:int = startToken.batchID; i <= endToken.batchID; ++i)
                 {
                     meshBatch = batchProcessor._batches[i];
-                    addMesh(meshBatch, null, 1.0, null, subset, true);
+                    subset.setTo(); // resets subset
+
+                    if (i == startToken.batchID)
+                    {
+                        subset.vertexID = startToken.vertexID;
+                        subset.indexID  = startToken.indexID;
+                        subset.numVertices = meshBatch.numVertices - subset.vertexID;
+                        subset.numIndices  = meshBatch.numIndices  - subset.indexID;
+                    }
+
+                    if (i == endToken.batchID)
+                    {
+                        subset.numVertices = endToken.vertexID - subset.vertexID;
+                        subset.numIndices  = endToken.indexID  - subset.indexID;
+                    }
+
+                    if (subset.numVertices)
+                        addMesh(meshBatch, null, 1.0, null, subset, true);
                 }
             }
 
