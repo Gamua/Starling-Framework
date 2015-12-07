@@ -367,7 +367,8 @@ package starling.display
                     }
                     else
                     {
-                        var filter:FragmentFilter = child._filter;
+                        // TODO add support for filters
+
                         var mask:DisplayObject = child._mask;
 
                         painter.pushState(child._pushToken);
@@ -375,8 +376,7 @@ package starling.display
 
                         if (mask) painter.drawMask(mask);
 
-                        if (filter) filter.render(child, painter);
-                        else        child.render(painter);
+                        child.render(painter);
 
                         if (mask) painter.eraseMask(mask);
 
