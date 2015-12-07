@@ -1060,7 +1060,11 @@ package starling.display
             if (_mask != value)
             {
                 if (_mask) _mask._isMask = false;
-                if (value) value._isMask = true;
+                if (value)
+                {
+                    value._isMask = true;
+                    value._hasVisibleArea = false;
+                }
 
                 _mask = value;
                 setRequiresRedraw();
