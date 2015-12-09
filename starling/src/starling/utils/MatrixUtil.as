@@ -211,6 +211,63 @@ package starling.utils
                          matrix.tx, matrix.ty);
         }
 
+        /** Converts a Matrix3D instance to a String, which is useful when debugging. Per default,
+         *  the raw data is displayed transposed, so that the columns are displayed vertically. */
+        public static function toString3D(matrix:Matrix3D, transpose:Boolean=true,
+                                          precision:int=1):String
+        {
+            if (transpose) matrix.transpose();
+            matrix.copyRawDataTo(sRawData2);
+            if (transpose) matrix.transpose();
+
+            return "[Matrix3D rawData=\n" + formatRawData(sRawData2, 4, 4, precision) + "\n]";
+        }
+
+        /** Converts a Matrix3D instance to a String, which is useful when debugging. */
+         public static function toString(matrix:Matrix, precision:int=1):String
+        {
+            sRawData2[0] = matrix.a; sRawData2[1] = matrix.c; sRawData2[2] = matrix.tx;
+            sRawData2[3] = matrix.b; sRawData2[4] = matrix.d; sRawData2[5] = matrix.ty;
+
+            return "[Matrix rawData=\n" + formatRawData(sRawData2, 3, 2, precision) + "\n]";
+        }
+
+        private static function formatRawData(data:Vector.<Number>, numCols:int, numRows:int,
+                                              precision:int, indent:String="  "):String
+        {
+            var result:String = indent;
+            var numValues:int = numCols * numRows;
+            var highestValue:Number = 0.0;
+            var valueString:String;
+            var value:Number;
+
+            for (var i:int=0; i<numValues; ++i)
+            {
+                value = Math.abs(data[i]);
+                if (value > highestValue) highestValue = value;
+            }
+
+            var numChars:int = highestValue.toFixed(precision).length + 1;
+
+            for (var y:int=0; y<numRows; ++y)
+            {
+                for (var x:int=0; x<numCols; ++x)
+                {
+                    value = data[numCols * y + x];
+                    valueString = value.toFixed(precision);
+
+                    while (valueString.length < numChars) valueString = " " + valueString;
+
+                    result += valueString;
+                    if (x != numCols - 1) result += ", ";
+                }
+
+                if (y != numRows - 1) result += "\n" + indent;
+            }
+
+            return result;
+        }
+
         /** Creates a perspective projection matrix suitable for 2D and 3D rendering.
          *
          *  <p>The first 4 parameters define which area of the stage you want to view (the camera
