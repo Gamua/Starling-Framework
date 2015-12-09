@@ -107,7 +107,7 @@ package starling.events
         /** Returns a description of the object. */
         public function toString():String
         {
-            return StringUtil.format("Touch {0}: globalX={1}, globalY={2}, phase={3}",
+            return StringUtil.format("[Touch {0}: globalX={1}, globalY={2}, phase={3}]",
                                      _id, _globalX, _globalY, _phase);
         }
         
