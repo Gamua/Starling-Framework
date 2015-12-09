@@ -264,8 +264,10 @@ package starling.geom
         /** Creates a string that contains the values of all included points. */
         public function toString():String
         {
-            var result:String = "[Polygon \n";
+            var result:String = "[Polygon";
             var numPoints:int = this.numVertices;
+
+            if (numPoints > 0) result += "\n";
 
             for (var i:int=0; i<numPoints; ++i)
             {
