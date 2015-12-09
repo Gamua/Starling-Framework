@@ -435,6 +435,7 @@ package starling.core
             var scaleY:Number = _viewPort.height / _stage.stageHeight;
 
             _painter.nextFrame();
+            _painter.pixelSize = 1.0 / contentScaleFactor;
             _painter.state.setProjectionMatrix(
                 _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
                 _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,

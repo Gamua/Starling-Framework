@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
@@ -47,6 +48,8 @@ package starling.display
         /** @private */ internal var _vertexData:VertexData;
         /** @private */ internal var _indexData:IndexData;
 
+        private var _pixelSnapping:Boolean;
+
         /** Creates a new mesh with the given vertices and indices.
          *  If you don't pass a style, an instance of <code>MeshStyle</code> will be created
          *  for you. Note that the format of the vertex data will be matched to the
@@ -58,6 +61,7 @@ package starling.display
 
             _vertexData = vertexData;
             _indexData = indexData;
+            _pixelSnapping = true;
 
             this.style = style ? style : new MeshStyle();
         }
@@ -87,7 +91,44 @@ package starling.display
         /** @inheritDoc */
         override public function render(painter:Painter):void
         {
+            if (_pixelSnapping)
+                snapToPixels(painter.state.modelviewMatrix, painter.pixelSize);
+
             painter.batchMesh(this);
+        }
+
+        private function snapToPixels(matrix:Matrix, pixelSize:Number):void
+        {
+            // Snapping only makes sense if the object is unscaled and rotated only by
+            // multiples of 90 degrees. If that's the case can be found out by looking
+            // at the modelview matrix.
+
+            const E:Number = 0.0001;
+
+            var doSnap:Boolean = false;
+            var aSq:Number, bSq:Number, cSq:Number, dSq:Number;
+
+            if (matrix.b + E > 0 && matrix.b - E < 0 && matrix.c + E > 0 && matrix.c - E < 0)
+            {
+                // what we actually want is 'Math.abs(matrix.a)', but squaring
+                // the value works just as well for our needs & is faster.
+
+                aSq = matrix.a * matrix.a;
+                dSq = matrix.d * matrix.d;
+                doSnap = aSq + E > 1 && aSq - E < 1 && dSq + E > 1 && dSq - E < 1;
+            }
+            else if (matrix.a + E > 0 && matrix.a - E < 0 && matrix.d + E > 0 && matrix.d - E < 0)
+            {
+                bSq = matrix.b * matrix.b;
+                cSq = matrix.c * matrix.c;
+                doSnap = bSq + E > 1 && bSq - E < 1 && cSq + E > 1 && cSq - E < 1;
+            }
+
+            if (doSnap)
+            {
+                matrix.tx = Math.round(matrix.tx / pixelSize) * pixelSize;
+                matrix.ty = Math.round(matrix.ty / pixelSize) * pixelSize;
+            }
         }
 
         /** Sets the style that is used to render the mesh. Styles (which are always subclasses of
@@ -202,6 +243,13 @@ package starling.display
          *  @default bilinear */
         public function get textureSmoothing():String { return _style.textureSmoothing; }
         public function set textureSmoothing(value:String):void { _style.textureSmoothing = value; }
+
+        /** Controls whether or not the mesh object is snapped to the nearest pixel. This
+         *  can prevent the object from looking blurry when it's not exactly aligned with the
+         *  pixels of the screen. For this to work, the object must be unscaled and may only
+         *  be rotated by multiples of 90 degrees. @default true */
+        public function get pixelSnapping():Boolean { return _pixelSnapping; }
+        public function set pixelSnapping(value:Boolean):void { _pixelSnapping = value; }
 
         /** The total number of vertices in the mesh. */
         public function get numVertices():int { return _vertexData.numVertices; }

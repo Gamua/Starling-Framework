@@ -77,6 +77,7 @@ package starling.rendering
         private var _data:Dictionary;
         private var _drawCount:int;
         private var _frameID:uint;
+        private var _pixelSize:Number;
         private var _enableErrorChecking:Boolean;
         private var _stencilReferenceValues:Dictionary;
         private var _batchProcessor:BatchProcessor;
@@ -111,7 +112,7 @@ package starling.rendering
             _shareContext = _context && _context.driverInfo != "Disposed";
             _backBufferWidth  = _context ? _context.backBufferWidth  : 0;
             _backBufferHeight = _context ? _context.backBufferHeight : 0;
-            _backBufferScaleFactor = 1.0;
+            _backBufferScaleFactor = _pixelSize = 1.0;
             _stencilReferenceValues = new Dictionary(true);
             _programs = new Dictionary();
             _data = new Dictionary();
@@ -569,6 +570,10 @@ package starling.rendering
         /** The number of frames that have been rendered with the current Starling instance. */
         public function get frameID():uint { return _frameID; }
         public function set frameID(value:uint):void { _frameID = value; }
+
+        /** The size (in points) that represents one pixel in the back buffer. */
+        public function get pixelSize():Number { return _pixelSize; }
+        public function set pixelSize(value:Number):void { _pixelSize = value; }
 
         /** Indicates if another Starling instance (or another Stage3D framework altogether)
          *  uses the same render context. @default false */

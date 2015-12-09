@@ -182,6 +182,7 @@ package scenes
             {
                 var image:Image = new Image(_objectTexture);
                 image.alignPivot();
+                image.pixelSnapping = false; // slightly faster (and doesn't work here, anyway)
                 return image;
             }
             else
