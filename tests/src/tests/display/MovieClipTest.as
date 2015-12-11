@@ -10,8 +10,6 @@
 
 package tests.display
 {
-    import flash.display3D.Context3DTextureFormat;
-
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
@@ -21,8 +19,9 @@ package tests.display
 
     import starling.display.MovieClip;
     import starling.events.Event;
-    import starling.textures.ConcreteTexture;
     import starling.textures.Texture;
+
+    import tests.utils.MockTexture;
 
     public class MovieClipTest
     {
@@ -33,12 +32,11 @@ package tests.display
         {
             var fps:Number = 4.0;
             var frameDuration:Number = 1.0 / fps;
-            var format:String = Context3DTextureFormat.BGRA;
-            
-            var texture0:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
-            var texture1:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
-            var texture2:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
-            var texture3:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
+
+            var texture0:Texture = new MockTexture();
+            var texture1:Texture = new MockTexture();
+            var texture2:Texture = new MockTexture();
+            var texture3:Texture = new MockTexture();
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
 
@@ -100,12 +98,11 @@ package tests.display
         {
             var fps:Number = 4.0;
             var frameDuration:Number = 1.0 / fps;
-            var format:String = Context3DTextureFormat.BGRA;
 
-            var texture0:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
-            var texture1:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
-            var texture2:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
-            var texture3:Texture = new ConcreteTexture(null, format, 16, 16, false, false);
+            var texture0:Texture = new MockTexture();
+            var texture1:Texture = new MockTexture();
+            var texture2:Texture = new MockTexture();
+            var texture3:Texture = new MockTexture();
             
             var movie:MovieClip = new MovieClip(new <Texture>[texture0], fps);
             movie.addFrame(texture2, null, 0.5);
@@ -496,10 +493,9 @@ package tests.display
         private function createFrames(count:int):Vector.<Texture>
         {
             var frames:Vector.<Texture> = new <Texture>[];
-            var format:String = Context3DTextureFormat.BGRA;
-            
+
             for (var i:int=0; i<count; ++i)
-                frames.push(new ConcreteTexture(null, format, 16, 16, false, false));
+                frames.push(new MockTexture());
             
             return frames;
         }

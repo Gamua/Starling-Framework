@@ -22,10 +22,10 @@ package tests.display
     import starling.rendering.IndexData;
     import starling.rendering.MeshStyle;
     import starling.rendering.VertexData;
-    import starling.textures.ConcreteTexture;
     import starling.textures.Texture;
 
     import tests.Helpers;
+    import tests.utils.MockTexture;
 
     public class MeshTest
     {
@@ -97,7 +97,7 @@ package tests.display
         [Test]
         public function testTexCoords():void
         {
-            var rootTexture:Texture = new ConcreteTexture(null, null, 100, 100, false, true);
+            var rootTexture:Texture = new MockTexture(100, 100);
             var subTexture:Texture = Texture.fromTexture(rootTexture, new Rectangle(50, 50, 50, 50));
 
             var vertexData:VertexData = new VertexData();

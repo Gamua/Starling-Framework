@@ -12,20 +12,17 @@ package tests.textures
 {
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.utils.ByteArray;
-    import flash.utils.Endian;
 
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
 
     import starling.rendering.VertexData;
-
-    import starling.textures.ConcreteTexture;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
 
     import tests.Helpers;
+    import tests.utils.MockTexture;
 
     public class TextureTest
     {
@@ -46,8 +43,7 @@ package tests.textures
             var subSubTexture:SubTexture;
             var texCoords:Point = new Point();
             var expected:Point = new Point();
-            var texture:ConcreteTexture = new ConcreteTexture(
-                    null, null, rootWidth, rootHeight, false, false);
+            var texture:Texture = new MockTexture(rootWidth, rootHeight);
 
             // test sub texture filling the whole base texture
             subTexture = new SubTexture(texture, new Rectangle(0, 0, rootWidth, rootHeight));            
@@ -80,8 +76,7 @@ package tests.textures
             var subSubTexture:SubTexture;
             var texCoords:Point = new Point();
             var expected:Point = new Point();
-            var texture:ConcreteTexture =
-                new ConcreteTexture(null, null, rootWidth, rootHeight, false, false);
+            var texture:Texture = new MockTexture(rootWidth, rootHeight);
 
             // rotate full region once
             subTexture = new SubTexture(texture, null, false, null, true);
@@ -109,8 +104,7 @@ package tests.textures
         {
             var size:Rectangle = new Rectangle(0, 0, 60, 40);
             var frame:Rectangle = new Rectangle(-20, -30, 100, 100);
-            var texture:ConcreteTexture =
-                new ConcreteTexture(null, null, size.width, size.height, false, false);
+            var texture:Texture = new MockTexture(size.width, size.height);
             var subTexture:SubTexture = new SubTexture(texture, null, false, frame);
             var vertexData:VertexData = new VertexData("pos(float2)");
             var expected:Rectangle = new Rectangle();
@@ -136,7 +130,7 @@ package tests.textures
         [Test]
         public function testGetRoot():void
         {
-            var texture:ConcreteTexture = new ConcreteTexture(null, null, 32, 32, false, false);
+            var texture:Texture = new MockTexture(32, 32);
             var subTexture:SubTexture = new SubTexture(texture, new Rectangle(0, 0, 16, 16));
             var subSubTexture:SubTexture = new SubTexture(texture, new Rectangle(0, 0, 8, 8));
             
@@ -149,7 +143,7 @@ package tests.textures
         [Test]
         public function testGetSize():void
         {
-            var texture:ConcreteTexture = new ConcreteTexture(null, null, 32, 16, false, false, false, 2);
+            var texture:Texture = new MockTexture(32, 16, 2);
             var subTexture:SubTexture = new SubTexture(texture, new Rectangle(0, 0, 12, 8));
             
             assertThat(texture.width, closeTo(16, E));

@@ -10,7 +10,6 @@
 
 package tests.textures
 {
-    import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;
 
     import org.flexunit.asserts.assertEquals;
@@ -18,24 +17,24 @@ package tests.textures
     import org.flexunit.asserts.assertNull;
     import org.flexunit.asserts.assertTrue;
 
-    import starling.textures.ConcreteTexture;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
+
+    import tests.utils.MockTexture;
 
     public class TextureAtlasTest
     {		
         [Test]
         public function testXmlParsing():void
         {
-            var format:String = Context3DTextureFormat.BGRA;
-            var xml:XML = 
+            var xml:XML =
                 <TextureAtlas>
                     <SubTexture name='ann' x='0'   y='0'  width='55.5' height='16' />
                     <SubTexture name='bob' x='16'  y='32' width='16'   height='32' />
                 </TextureAtlas>;
             
-            var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
+            var texture:Texture = new MockTexture(64, 64);
             var atlas:TextureAtlas = new TextureAtlas(texture, xml);
             
             var ann:Texture = atlas.getTexture("ann");            
@@ -61,8 +60,7 @@ package tests.textures
         [Test]
         public function testManualCreation():void
         {
-            var format:String = Context3DTextureFormat.BGRA;
-            var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
+            var texture:Texture = new MockTexture(64, 64);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
             atlas.addRegion("ann", new Rectangle(0, 0, 55.5, 16));
@@ -81,8 +79,7 @@ package tests.textures
         [Test]
         public function testGetTextures():void
         {
-            var format:String = Context3DTextureFormat.BGRA;
-            var texture:Texture = new ConcreteTexture(null, format, 64, 64, false, false);
+            var texture:Texture = new MockTexture(64, 64);
             var atlas:TextureAtlas = new TextureAtlas(texture);
             
             assertEquals(texture, atlas.texture);

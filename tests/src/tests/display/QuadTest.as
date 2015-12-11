@@ -20,11 +20,11 @@ package tests.display
 
     import starling.display.Quad;
     import starling.display.Sprite;
-    import starling.textures.ConcreteTexture;
     import starling.textures.Texture;
     import starling.utils.Color;
 
     import tests.Helpers;
+    import tests.utils.MockTexture;
 
     public class QuadTest
     {
@@ -120,7 +120,7 @@ package tests.display
         [Test]
         public function testReadjustSize():void
         {
-            var texture:Texture = new ConcreteTexture(null, null, 100, 50, false, true);
+            var texture:Texture = new MockTexture(100, 50);
             var quad:Quad = new Quad(10, 20);
             quad.texture = texture;
 
