@@ -20,7 +20,6 @@ package starling.textures
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Image;
-    import starling.errors.MissingContextError;
     import starling.filters.FragmentFilter;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
@@ -224,8 +223,7 @@ package starling.textures
         {
             var painter:Painter = Starling.painter;
             var state:RenderState = painter.state;
-            var context:Context3D = Starling.context;
-            if (context == null) throw new MissingContextError();
+
             if (!Starling.current.contextValid) return;
 
             // switch buffers
