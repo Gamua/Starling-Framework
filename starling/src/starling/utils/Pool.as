@@ -37,52 +37,51 @@ package starling.utils
         /** @private */
         public function Pool() { throw new AbstractClassError(); }
 
-        /** Retrieves a Point instance from the pool.
-         *  @param origin   If enabled, the point will be reset to zero coordinates.
-         */
-        public static function getPoint(origin:Boolean=false):Point
+        /** Retrieves a Point instance from the pool. */
+        public static function getPoint(x:Number = 0, y:Number = 0):Point
         {
-            if (sPoints.length == 0) return new Point();
+            if (sPoints.length == 0) return new Point(x, y);
             else
             {
                 var point:Point = sPoints.pop();
-                if (origin) point.setTo(0, 0);
+                point.x = x; point.y = y;
                 return point;
             }
         }
 
-        /** Stores a Point instance in the pool. Don't keep any references to the object
-         *  after moving it to the pool! */
+        /** Stores a Point instance in the pool.
+         *  Don't keep any references to the object after moving it to the pool! */
         public static function putPoint(point:Point):void
         {
             if (point) sPoints[sPoints.length] = point;
         }
 
-        /** Retrieves a Matrix instance from the pool.
-         *  @param identity   If enabled, the matrix will be reset to the identity.
-         */
-        public static function getMatrix(identity:Boolean=false):Matrix
+        /** Retrieves a Matrix instance from the pool. */
+        public static function getMatrix(a:Number = 1, b:Number = 0, c:Number = 0, d:Number = 1,
+                                         tx:Number = 0, ty:Number = 0):Matrix
         {
-            if (sMatrices.length == 0) return new Matrix();
+            if (sMatrices.length == 0) return new Matrix(a, b, c, d, tx, ty);
             else
             {
                 var matrix:Matrix = sMatrices.pop();
-                if (identity) matrix.identity();
+                matrix.setTo(a, b, c, d, tx, ty);
                 return matrix;
             }
         }
 
-        /** Stores a Matrix instance in the pool. Don't keep any references to the object
-         *  after moving it to the pool! */
+        /** Stores a Matrix instance in the pool.
+         *  Don't keep any references to the object after moving it to the pool! */
         public static function putMatrix(matrix:Matrix):void
         {
             if (matrix) sMatrices[sMatrices.length] = matrix;
         }
 
         /** Retrieves a Matrix3D instance from the pool.
+         *
          *  @param identity   If enabled, the matrix will be reset to the identity.
+         *                    Otherwise, its contents is undefined.
          */
-        public static function getMatrix3D(identity:Boolean=false):Matrix3D
+        public static function getMatrix3D(identity:Boolean = true):Matrix3D
         {
             if (sMatrices3D.length == 0) return new Matrix3D();
             else
@@ -93,29 +92,28 @@ package starling.utils
             }
         }
 
-        /** Stores a Matrix3D instance in the pool. Don't keep any references to the object
-         *  after moving it to the pool! */
+        /** Stores a Matrix3D instance in the pool.
+         *  Don't keep any references to the object after moving it to the pool! */
         public static function putMatrix3D(matrix:Matrix3D):void
         {
             if (matrix) sMatrices3D[sMatrices3D.length] = matrix;
         }
 
-        /** Retrieves a Rectangle instance from the pool.
-         *  @param empty   If enabled, the rectangle will be reset to zero values.
-         */
-        public static function getRectangle(empty:Boolean=false):Rectangle
+        /** Retrieves a Rectangle instance from the pool. */
+        public static function getRectangle(x:Number = 0, y:Number = 0,
+                                            width:Number = 0, height:Number = 0):Rectangle
         {
-            if (sRectangles.length == 0) return new Rectangle();
+            if (sRectangles.length == 0) return new Rectangle(x, y, width, height);
             else
             {
                 var rectangle:Rectangle = sRectangles.pop();
-                if (empty) rectangle.setEmpty();
+                rectangle.setTo(x, y, width, height);
                 return rectangle;
             }
         }
 
-        /** Stores a Rectangle instance in the pool. Don't keep any references to the object
-         *  after moving it to the pool! */
+        /** Stores a Rectangle instance in the pool.
+         *  Don't keep any references to the object after moving it to the pool! */
         public static function putRectangle(rectangle:Rectangle):void
         {
             if (rectangle) sRectangles[sRectangles.length] = rectangle;

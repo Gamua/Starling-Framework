@@ -140,7 +140,7 @@ package starling.rendering
         public function transformModelviewMatrix3D(matrix:Matrix3D):void
         {
             if (_modelviewMatrix3D == null)
-                _modelviewMatrix3D = Pool.getMatrix3D(true);
+                _modelviewMatrix3D = Pool.getMatrix3D();
 
             _modelviewMatrix3D.prepend(MatrixUtil.convertTo3D(_modelviewMatrix, sMatrix3D));
             _modelviewMatrix3D.prepend(matrix);
@@ -191,7 +191,7 @@ package starling.rendering
         {
             if (value)
             {
-                if (_modelviewMatrix3D == null) _modelviewMatrix3D = Pool.getMatrix3D();
+                if (_modelviewMatrix3D == null) _modelviewMatrix3D = Pool.getMatrix3D(false);
                 _modelviewMatrix3D.copyFrom(value);
             }
             else if (_modelviewMatrix3D)
