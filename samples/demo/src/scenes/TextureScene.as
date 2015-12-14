@@ -40,7 +40,8 @@ package scenes
                 // if it fails, it's probably not supported
                 var textField:TextField = new TextField(220, 128, 
                     "Update to Flash Player 11.4 or AIR 3.4 (swf-version=17) to see a compressed " +
-                    "ATF texture instead of this boring text.", "Verdana", 14);
+                    "ATF texture instead of this boring text.");
+                textField.format.size = 14;
                 textField.x = Constants.CenterX - textField.width / 2;
                 textField.y = 280;
                 addChild(textField);

@@ -9,6 +9,7 @@ package scenes
     import starling.events.Event;
     import starling.text.BitmapFont;
     import starling.text.TextField;
+    import starling.text.TextFormat;
     import starling.textures.Texture;
     import starling.utils.StringUtil;
 
@@ -43,8 +44,8 @@ package scenes
                                           // thus, it is more efficient to disable them.
             addChildAt(_container, 0);
 
-            _statusText = new TextField(Constants.GameWidth - 40, 30, "",
-                    BitmapFont.MINI, BitmapFont.NATIVE_SIZE * 2);
+            _statusText = new TextField(Constants.GameWidth - 40, 30);
+            _statusText.format = new TextFormat(BitmapFont.MINI, BitmapFont.NATIVE_SIZE * 2)
             _statusText.x = 20;
             _statusText.y = 10;
             addChild(_statusText);
@@ -206,7 +207,7 @@ package scenes
             trace(resultString.replace(/\n/g, " "));
 
             _resultText = new TextField(240, 200, resultString);
-            _resultText.fontSize = 30;
+            _resultText.format.size = 30;
             _resultText.x = Constants.CenterX - _resultText.width / 2;
             _resultText.y = Constants.CenterY - _resultText.height / 2;
             

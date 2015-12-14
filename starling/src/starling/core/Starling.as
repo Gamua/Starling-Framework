@@ -43,9 +43,8 @@ package starling.core
     import starling.events.TouchPhase;
     import starling.events.TouchProcessor;
     import starling.rendering.Painter;
-    import starling.utils.HAlign;
+    import starling.utils.Align;
     import starling.utils.SystemUtil;
-    import starling.utils.VAlign;
 
     /** Dispatched when a new render context is created. The 'data' property references the context. */
     [Event(name="context3DCreate", type="starling.events.Event")]
@@ -809,7 +808,8 @@ package starling.core
         }
         
         /** Displays the statistics box at a certain position. */
-        public function showStatsAt(hAlign:String="left", vAlign:String="top", scale:Number=1):void
+        public function showStatsAt(horizontalAlign:String="left",
+                                    verticalAlign:String="top", scale:Number=1):void
         {
             if (context == null)
             {
@@ -830,18 +830,20 @@ package starling.core
                 _stage.addChild(_statsDisplay);
                 _statsDisplay.scaleX = _statsDisplay.scaleY = scale;
 
-                if (hAlign == HAlign.LEFT) _statsDisplay.x = 0;
-                else if (hAlign == HAlign.RIGHT) _statsDisplay.x = stageWidth - _statsDisplay.width;
-                else _statsDisplay.x = int((stageWidth - _statsDisplay.width) / 2);
+                if (horizontalAlign == Align.LEFT) _statsDisplay.x = 0;
+                else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  stageWidth - _statsDisplay.width;
+                else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (stageWidth - _statsDisplay.width) / 2;
+                else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
                 
-                if (vAlign == VAlign.TOP) _statsDisplay.y = 0;
-                else if (vAlign == VAlign.BOTTOM) _statsDisplay.y = stageHeight - _statsDisplay.height;
-                else _statsDisplay.y = int((stageHeight - _statsDisplay.height) / 2);
+                if (verticalAlign == Align.TOP) _statsDisplay.y = 0;
+                else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  stageHeight - _statsDisplay.height;
+                else if (verticalAlign == Align.CENTER) _statsDisplay.y = (stageHeight - _statsDisplay.height) / 2;
+                else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
             }
             
             function onRootCreated():void
             {
-                showStatsAt(hAlign, vAlign, scale);
+                showStatsAt(horizontalAlign, verticalAlign, scale);
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }

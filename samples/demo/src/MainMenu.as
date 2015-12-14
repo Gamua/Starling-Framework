@@ -1,7 +1,7 @@
 package
 {
     import flash.utils.getQualifiedClassName;
-    
+
     import scenes.AnimationScene;
     import scenes.BenchmarkScene;
     import scenes.BlendModeScene;
@@ -14,7 +14,7 @@ package
     import scenes.TextScene;
     import scenes.TextureScene;
     import scenes.TouchScene;
-    
+
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
@@ -23,7 +23,7 @@ package
     import starling.events.TouchPhase;
     import starling.text.TextField;
     import starling.textures.Texture;
-    import starling.utils.VAlign;
+    import starling.utils.Align;
 
     public class MainMenu extends Sprite
     {
@@ -75,10 +75,11 @@ package
             // show information about rendering method (hardware/software)
             
             var driverInfo:String = Starling.context.driverInfo;
-            var infoText:TextField = new TextField(310, 64, driverInfo, "Verdana", 10);
+            var infoText:TextField = new TextField(310, 64, driverInfo);
+            infoText.format.size = 10;
+            infoText.format.verticalAlign = Align.BOTTOM;
             infoText.x = 5;
             infoText.y = 475 - infoText.height;
-            infoText.vAlign = VAlign.BOTTOM;
             infoText.addEventListener(TouchEvent.TOUCH, onInfoTextTouched);
             addChildAt(infoText, 0);
         }

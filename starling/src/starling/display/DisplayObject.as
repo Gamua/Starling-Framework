@@ -30,10 +30,9 @@ package starling.display
     import starling.filters.FragmentFilter;
     import starling.rendering.BatchToken;
     import starling.rendering.Painter;
-    import starling.utils.HAlign;
+    import starling.utils.Align;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
-    import starling.utils.VAlign;
 
     /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
@@ -378,20 +377,21 @@ package starling.display
         
         /** Moves the pivot point to a certain position within the local coordinate system
          *  of the object. If you pass no arguments, it will be centered. */ 
-        public function alignPivot(hAlign:String="center", vAlign:String="center"):void
+        public function alignPivot(horizontalAlign:String="center",
+                                   verticalAlign:String="center"):void
         {
             var bounds:Rectangle = getBounds(this, sHelperRect);
             setOrientationChanged();
             
-            if (hAlign == HAlign.LEFT)        _pivotX = bounds.x;
-            else if (hAlign == HAlign.CENTER) _pivotX = bounds.x + bounds.width / 2.0;
-            else if (hAlign == HAlign.RIGHT)  _pivotX = bounds.x + bounds.width;
-            else throw new ArgumentError("Invalid horizontal alignment: " + hAlign);
+            if (horizontalAlign == Align.LEFT)        _pivotX = bounds.x;
+            else if (horizontalAlign == Align.CENTER) _pivotX = bounds.x + bounds.width / 2.0;
+            else if (horizontalAlign == Align.RIGHT)  _pivotX = bounds.x + bounds.width;
+            else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
             
-            if (vAlign == VAlign.TOP)         _pivotY = bounds.y;
-            else if (vAlign == VAlign.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
-            else if (vAlign == VAlign.BOTTOM) _pivotY = bounds.y + bounds.height;
-            else throw new ArgumentError("Invalid vertical alignment: " + vAlign);
+            if (verticalAlign == Align.TOP)         _pivotY = bounds.y;
+            else if (verticalAlign == Align.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
+            else if (verticalAlign == Align.BOTTOM) _pivotY = bounds.y + bounds.height;
+            else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
         }
         
         // 3D transformation

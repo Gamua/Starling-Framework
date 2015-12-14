@@ -13,15 +13,14 @@ package starling.display
     import flash.geom.Rectangle;
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
-    
+
     import starling.events.Event;
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
     import starling.text.TextField;
+    import starling.text.TextFormat;
     import starling.textures.Texture;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
@@ -121,9 +120,7 @@ package starling.display
         {
             if (_textField == null)
             {
-                _textField = new TextField(_textBounds.width, _textBounds.height, "");
-                _textField.vAlign = VAlign.CENTER;
-                _textField.hAlign = HAlign.CENTER;
+                _textField = new TextField(_textBounds.width, _textBounds.height);
                 _textField.touchable = false;
                 _textField.autoScale = true;
                 _textField.batchable = true;
@@ -275,40 +272,20 @@ package starling.display
                     _contents.addChild(_textField);
             }
         }
-        
-        /** The name of the font displayed on the button. May be a system font or a registered
-         *  bitmap font. */
-        public function get fontName():String { return _textField ? _textField.fontName : "Verdana"; }
-        public function set fontName(value:String):void
+
+        /** The format of the button's TextField. */
+        public function get textFormat():TextFormat
         {
-            createTextField();
-            _textField.fontName = value;
+            if (_textField == null) createTextField();
+            return _textField.format;
         }
-        
-        /** The size of the font. */
-        public function get fontSize():Number { return _textField ? _textField.fontSize : 12; }
-        public function set fontSize(value:Number):void
+
+        public function set textFormat(value:TextFormat):void
         {
-            createTextField();
-            _textField.fontSize = value;
+            if (_textField == null) createTextField();
+            _textField.format = value;
         }
-        
-        /** The color of the font. */
-        public function get fontColor():uint { return _textField ? _textField.color : 0x0; }
-        public function set fontColor(value:uint):void
-        {
-            createTextField();
-            _textField.color = value;
-        }
-        
-        /** Indicates if the font should be bold. */
-        public function get fontBold():Boolean { return _textField ? _textField.bold : false; }
-        public function set fontBold(value:Boolean):void
-        {
-            createTextField();
-            _textField.bold = value;
-        }
-        
+
         /** The texture that is displayed when the button is not being touched. */
         public function get upState():Texture { return _upState; }
         public function set upState(value:Texture):void
@@ -362,31 +339,7 @@ package starling.display
             }
         }
         
-        /** The vertical alignment of the text on the button. */
-        public function get textVAlign():String
-        {
-            return _textField ? _textField.vAlign : VAlign.CENTER;
-        }
-        
-        public function set textVAlign(value:String):void
-        {
-            createTextField();
-            _textField.vAlign = value;
-        }
-        
-        /** The horizontal alignment of the text on the button. */
-        public function get textHAlign():String
-        {
-            return _textField ? _textField.hAlign : HAlign.CENTER;
-        }
-        
-        public function set textHAlign(value:String):void
-        {
-            createTextField();
-            _textField.hAlign = value;
-        }
-        
-        /** The bounds of the textfield on the button. Allows moving the text to a custom position. */
+        /** The bounds of the TextField on the button. Allows moving the text to a custom position. */
         public function get textBounds():Rectangle { return _textBounds.clone(); }
         public function set textBounds(value:Rectangle):void
         {

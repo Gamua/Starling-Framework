@@ -18,9 +18,8 @@ package starling.text
     import starling.display.Sprite;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
-    import starling.utils.HAlign;
+    import starling.utils.Align;
     import starling.utils.StringUtil;
-    import starling.utils.VAlign;
 
     /** The BitmapFont class parses bitmap font files and arranges the glyphs
      *  in the form of a text.
@@ -206,13 +205,9 @@ package starling.text
 
         /** Creates a sprite that contains a certain text, made up by one image per char. */
         public function createSprite(width:Number, height:Number, text:String,
-                                     fontSize:Number=-1, color:uint=0xffffff, 
-                                     hAlign:String="center", vAlign:String="center",      
-                                     autoScale:Boolean=true, 
-                                     kerning:Boolean=true):Sprite
+                                     format:TextFormat, autoScale:Boolean=true):Sprite
         {
-            var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, fontSize, 
-                                                                   hAlign, vAlign, autoScale, kerning);
+            var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, format, autoScale);
             var numChars:int = charLocations.length;
             var sprite:Sprite = new Sprite();
             
@@ -223,7 +218,7 @@ package starling.text
                 char.x = charLocation.x;
                 char.y = charLocation.y;
                 char.scaleX = char.scaleY = charLocation.scale;
-                char.color = color;
+                char.color = format.color;
                 sprite.addChild(char);
             }
             
@@ -233,15 +228,12 @@ package starling.text
         
         /** Draws text into a QuadBatch. */
         public function fillMeshBatch(meshBatch:MeshBatch, width:Number, height:Number, text:String,
-                                      fontSize:Number=-1, color:uint=0xffffff, 
-                                      hAlign:String="center", vAlign:String="center",      
-                                      autoScale:Boolean=true, 
-                                      kerning:Boolean=true, leading:Number=0):void
+                                      format:TextFormat, autoScale:Boolean=true):void
         {
             var charLocations:Vector.<CharLocation> = arrangeChars(
-                    width, height, text, fontSize, hAlign, vAlign, autoScale, kerning, leading);
+                    width, height, text, format, autoScale);
             var numChars:int = charLocations.length;
-            _helperImage.color = color;
+            _helperImage.color = format.color;
             
             for (var i:int=0; i<numChars; ++i)
             {
@@ -259,20 +251,25 @@ package starling.text
         
         /** Arranges the characters of a text inside a rectangle, adhering to the given settings. 
          *  Returns a Vector of CharLocations. */
-        private function arrangeChars(width:Number, height:Number, text:String, fontSize:Number=-1,
-                                      hAlign:String="center", vAlign:String="center",
-                                      autoScale:Boolean=true, kerning:Boolean=true,
-                                      leading:Number=0):Vector.<CharLocation>
+        private function arrangeChars(width:Number, height:Number, text:String,
+                                      format:TextFormat, autoScale:Boolean=true):Vector.<CharLocation>
         {
             if (text == null || text.length == 0) return CharLocation.vectorFromPool();
-            if (fontSize < 0) fontSize *= -_size;
-            
+
+            var kerning:Boolean = format.kerning;
+            var leading:Number = format.leading;
+            var hAlign:String = format.horizontalAlign;
+            var vAlign:String = format.verticalAlign;
+            var fontSize:Number = format.size;
+
             var finished:Boolean = false;
             var charLocation:CharLocation;
             var numChars:int;
             var containerWidth:Number;
             var containerHeight:Number;
             var scale:Number;
+
+            if (fontSize < 0) fontSize *= -_size;
             
             while (!finished)
             {
@@ -379,8 +376,8 @@ package starling.text
             var bottom:Number = currentY + _lineHeight;
             var yOffset:int = 0;
             
-            if (vAlign == VAlign.BOTTOM)      yOffset =  containerHeight - bottom;
-            else if (vAlign == VAlign.CENTER) yOffset = (containerHeight - bottom) / 2;
+            if (vAlign == Align.BOTTOM)      yOffset =  containerHeight - bottom;
+            else if (vAlign == Align.CENTER) yOffset = (containerHeight - bottom) / 2;
             
             for (var lineID:int=0; lineID<numLines; ++lineID)
             {
@@ -394,8 +391,8 @@ package starling.text
                 var right:Number = lastLocation.x - lastLocation.char.xOffset 
                                                   + lastLocation.char.xAdvance;
                 
-                if (hAlign == HAlign.RIGHT)       xOffset =  containerWidth - right;
-                else if (hAlign == HAlign.CENTER) xOffset = (containerWidth - right) / 2;
+                if (hAlign == Align.RIGHT)       xOffset =  containerWidth - right;
+                else if (hAlign == Align.CENTER) xOffset = (containerWidth - right) / 2;
                 
                 for (var c:int=0; c<numChars; ++c)
                 {

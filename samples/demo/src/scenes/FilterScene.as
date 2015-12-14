@@ -2,7 +2,7 @@ package scenes
 {
     import flash.display.BitmapData;
     import flash.display.BitmapDataChannel;
-    
+
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
@@ -33,7 +33,8 @@ package scenes
             _image.y = 170;
             addChild(_image);
             
-            _infoText = new TextField(300, 32, "", "Verdana", 19);
+            _infoText = new TextField(300, 32);
+            _infoText.format.size = 19;
             _infoText.x = 10;
             _infoText.y = 330;
             addChild(_infoText);

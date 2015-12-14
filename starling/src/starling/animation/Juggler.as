@@ -196,7 +196,7 @@ package starling.animation
         /** Figures out if the juggler contains one or more delayed calls with a certain callback. */
         public function containsDelayedCalls(callback:Function):Boolean
         {
-            if (callback)
+            if (callback != null)
             {
                 for (var i:int=_objects.length-1; i>=0; --i)
                 {

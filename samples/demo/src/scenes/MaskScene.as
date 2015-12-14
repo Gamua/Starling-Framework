@@ -45,7 +45,7 @@ package scenes
                 "Move the mouse (or a finger) over the screen to move the mask.");
             maskText.x = (stageWidth - maskText.width) / 2;
             maskText.y = 260;
-            maskText.fontSize = 20;
+            maskText.format.size = 20;
             _contents.addChild(maskText);
             
             _maskDisplay = createCircle();

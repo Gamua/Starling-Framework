@@ -15,9 +15,8 @@ package tests.utils
     import org.flexunit.asserts.assertNull;
     import org.flexunit.asserts.assertTrue;
 
-    import starling.utils.HAlign;
+    import starling.utils.Align;
     import starling.utils.ScaleMode;
-    import starling.utils.VAlign;
     import starling.utils.deg2rad;
     import starling.utils.execute;
     import starling.utils.rad2deg;
@@ -65,44 +64,42 @@ package tests.utils
         }
         
         [Test]
-        public function testHAlignValidValue():void
+        public function testAlignIsValid():void
         {
-            assertTrue(HAlign.isValid(HAlign.CENTER));
-            assertTrue(HAlign.isValid(HAlign.LEFT));
-            assertTrue(HAlign.isValid(HAlign.RIGHT));
+            assertTrue(Align.isValid(Align.CENTER));
+            assertTrue(Align.isValid(Align.LEFT));
+            assertTrue(Align.isValid(Align.RIGHT));
+            assertTrue(Align.isValid(Align.TOP));
+            assertTrue(Align.isValid(Align.BOTTOM));
+            assertFalse(Align.isValid("invalid value"));
         }
         
         [Test]
-        public function testHAlignInvalidValue():void
+        public function testAlignIsValidVertical():void
         {
-            assertFalse(HAlign.isValid("invalid value"));
+            assertTrue(Align.isValidVertical(Align.BOTTOM));
+            assertTrue(Align.isValidVertical(Align.CENTER));
+            assertTrue(Align.isValidVertical(Align.TOP));
+            assertFalse(Align.isValidVertical(Align.LEFT));
+            assertFalse(Align.isValidVertical(Align.RIGHT));
+        }
+
+        [Test]
+        public function testAlignIsValidHorizontal():void
+        {
+            assertTrue(Align.isValidHorizontal(Align.LEFT));
+            assertTrue(Align.isValidHorizontal(Align.CENTER));
+            assertTrue(Align.isValidHorizontal(Align.RIGHT));
+            assertFalse(Align.isValidHorizontal(Align.TOP));
+            assertFalse(Align.isValidHorizontal(Align.BOTTOM));
         }
         
         [Test]
-        public function testVAlignValidValue():void
-        {
-            assertTrue(VAlign.isValid(VAlign.BOTTOM));
-            assertTrue(VAlign.isValid(VAlign.CENTER));
-            assertTrue(VAlign.isValid(VAlign.TOP));
-        }
-        
-        [Test]
-        public function testVAlignInvalidValue():void
-        {
-            assertFalse(VAlign.isValid("invalid value"));
-        }
-        
-        [Test]
-        public function testScaleModeValidValue():void
+        public function testScaleModeIsValid():void
         {
             assertTrue(ScaleMode.isValid(ScaleMode.NO_BORDER));
             assertTrue(ScaleMode.isValid(ScaleMode.NONE));
             assertTrue(ScaleMode.isValid(ScaleMode.SHOW_ALL));
-        }
-        
-        [Test]
-        public function testScaleModeInvalidValue():void
-        {
             assertFalse(ScaleMode.isValid("invalid value"));
         }
     }

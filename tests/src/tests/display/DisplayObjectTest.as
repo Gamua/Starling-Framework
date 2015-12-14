@@ -23,8 +23,7 @@ package tests.display
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
+    import starling.utils.Align;
     import starling.utils.deg2rad;
 
     import tests.Helpers;
@@ -412,15 +411,15 @@ package tests.display
             assertThat(sprite.pivotX, closeTo(250, E));
             assertThat(sprite.pivotY, closeTo(-75, E));
 
-            sprite.alignPivot(HAlign.LEFT, VAlign.TOP);
+            sprite.alignPivot(Align.LEFT, Align.TOP);
             assertThat(sprite.pivotX, closeTo(200, E));
             assertThat(sprite.pivotY, closeTo(-100, E));
 
-            sprite.alignPivot(HAlign.RIGHT, VAlign.BOTTOM);
+            sprite.alignPivot(Align.RIGHT, Align.BOTTOM);
             assertThat(sprite.pivotX, closeTo(300, E));
             assertThat(sprite.pivotY, closeTo(-50, E));
 
-            sprite.alignPivot(HAlign.LEFT, VAlign.BOTTOM);
+            sprite.alignPivot(Align.LEFT, Align.BOTTOM);
             assertThat(sprite.pivotX, closeTo(200, E));
             assertThat(sprite.pivotY, closeTo(-50, E));
         }

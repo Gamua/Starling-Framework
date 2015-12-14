@@ -2,7 +2,7 @@ package scenes
 {
     import flash.geom.Point;
     import flash.utils.Dictionary;
-    
+
     import starling.display.BlendMode;
     import starling.display.Button;
     import starling.display.Image;
@@ -36,7 +36,7 @@ package scenes
             _brush.blendMode = BlendMode.NORMAL;
             
             var infoText:TextField = new TextField(256, 128, "Touch the screen\nto draw!");
-            infoText.fontSize = 24;
+            infoText.format.size = 24;
             infoText.x = Constants.CenterX - infoText.width / 2;
             infoText.y = Constants.CenterY - infoText.height / 2;
             _renderTexture.draw(infoText);

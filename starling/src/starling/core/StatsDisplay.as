@@ -20,8 +20,8 @@ package starling.core
     import starling.rendering.Painter;
     import starling.text.BitmapFont;
     import starling.text.TextField;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
+    import starling.text.TextFormat;
+    import starling.utils.Align;
 
     /** A small, lightweight box that displays the current framerate, memory consumption and
      *  the number of draw calls per frame. The display is updated automatically once per frame. */
@@ -42,12 +42,13 @@ package starling.core
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
         {
+            var format:TextFormat = new TextFormat(BitmapFont.MINI, BitmapFont.NATIVE_SIZE,
+                    0xffffff, Align.LEFT, Align.TOP);
+
             _background = new Quad(50, 25, 0x0);
-            _textField = new TextField(48, 25, "", BitmapFont.MINI, BitmapFont.NATIVE_SIZE, 0xffffff);
+            _textField = new TextField(48, 25, "", format);
             _textField.x = 2;
-            _textField.hAlign = HAlign.LEFT;
-            _textField.vAlign = VAlign.TOP;
-            
+
             addChild(_background);
             addChild(_textField);
             

@@ -46,7 +46,9 @@ package scenes
             addChild(_egg);
             resetEgg();
             
-            _transitionLabel = new TextField(320, 30, "", "Verdana", 20, 0, true);
+            _transitionLabel = new TextField(320, 30);
+            _transitionLabel.format.size = 20;
+            _transitionLabel.format.bold = true;
             _transitionLabel.y = _delayButton.y + 40;
             _transitionLabel.alpha = 0.0; // invisible, will be shown later
             addChild(_transitionLabel);
