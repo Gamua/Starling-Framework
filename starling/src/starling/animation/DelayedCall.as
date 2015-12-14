@@ -28,22 +28,22 @@ package starling.animation
     {
         private var _currentTime:Number;
         private var _totalTime:Number;
-        private var _call:Function;
+        private var _callback:Function;
         private var _args:Array;
         private var _repeatCount:int;
         
         /** Creates a delayed call. */
-        public function DelayedCall(call:Function, delay:Number, args:Array=null)
+        public function DelayedCall(callback:Function, delay:Number, args:Array=null)
         {
-            reset(call, delay, args);
+            reset(callback, delay, args);
         }
         
         /** Resets the delayed call to its default values, which is useful for pooling. */
-        public function reset(call:Function, delay:Number, args:Array=null):DelayedCall
+        public function reset(callback:Function, delay:Number, args:Array=null):DelayedCall
         {
             _currentTime = 0;
             _totalTime = Math.max(delay, 0.0001);
-            _call = call;
+            _callback = callback;
             _args = args;
             _repeatCount = 1;
             
@@ -63,7 +63,7 @@ package starling.animation
             {                
                 if (_repeatCount == 0 || _repeatCount > 1)
                 {
-                    _call.apply(null, _args);
+                    _callback.apply(null, _args);
                     
                     if (_repeatCount > 0) _repeatCount -= 1;
                     _currentTime = 0;
@@ -72,7 +72,7 @@ package starling.animation
                 else
                 {
                     // save call & args: they might be changed through an event listener
-                    var call:Function = _call;
+                    var call:Function = _callback;
                     var args:Array = _args;
                     
                     // in the callback, people might want to call "reset" and re-add it to the
@@ -107,6 +107,13 @@ package starling.animation
          *  Set to '0' to repeat indefinitely. @default 1 */
         public function get repeatCount():int { return _repeatCount; }
         public function set repeatCount(value:int):void { _repeatCount = value; }
+
+        /** The callback that will be executed when the time is up. */
+        public function get callback():Function { return _callback; }
+
+        /** The arguments that the callback will be executed with.
+         *  Beware: not a copy, but the actual object! */
+        public function get arguments():Array { return _args; }
         
         // delayed call pooling
         
@@ -124,7 +131,7 @@ package starling.animation
         starling_internal static function toPool(delayedCall:DelayedCall):void
         {
             // reset any object-references, to make sure we don't prevent any garbage collection
-            delayedCall._call = null;
+            delayedCall._callback = null;
             delayedCall._args = null;
             delayedCall.removeEventListeners();
             sPool.push(delayedCall);

@@ -366,6 +366,7 @@ package tests.animation
             }
         }
 
+        [Test]
         public function testRemoveNextTweenByID():void
         {
             var juggler:Juggler = new Juggler();
@@ -379,7 +380,8 @@ package tests.animation
             tween.nextTween = tween2;
 
             var id:uint = juggler.add(tween);
-            juggler.advanceTime(1.5);
+            juggler.advanceTime(1.0);
+            juggler.advanceTime(0.5);
             id = juggler.removeByID(id);
             assertFalse(juggler.containsTweens(quad));
             assertTrue(id != 0);
@@ -390,6 +392,30 @@ package tests.animation
             juggler.advanceTime(0.5);
             assertThat(quad.x, closeTo(1.0, E));
             assertThat(quad.y, closeTo(0.5, E));
+        }
+
+        [Test]
+        public function testRemoveDelayedCall():void
+        {
+            var counter:int = 0;
+            var juggler:Juggler = new Juggler();
+
+            juggler.repeatCall(raiseCounter, 1.0, 0);
+            juggler.advanceTime(3.0);
+
+            assertEquals(3, counter);
+            assertTrue(juggler.containsDelayedCalls(raiseCounter));
+
+            juggler.removeDelayedCalls(raiseCounter);
+            juggler.advanceTime(10.0);
+
+            assertFalse(juggler.containsDelayedCalls(raiseCounter));
+            assertEquals(3, counter);
+
+            function raiseCounter():void
+            {
+                counter += 1;
+            }
         }
     }
 }

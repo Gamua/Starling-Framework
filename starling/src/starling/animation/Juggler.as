@@ -95,7 +95,8 @@ package starling.animation
         
         /** Removes an object from the juggler.
          *
-         *  @return The (now meaningless) unique numeric identifier for the animation.
+         *  @return The (now meaningless) unique numeric identifier for the animation, or zero
+         *          if the object was not found.
          */
         public function remove(object:IAnimatable):uint
         {
@@ -159,6 +160,23 @@ package starling.animation
                 }
             }
         }
+
+        /** Removes all delayed and repeated calls with a certain callback. */
+        public function removeDelayedCalls(callback:Function):void
+        {
+            if (callback == null) return;
+
+            for (var i:int=_objects.length-1; i>=0; --i)
+            {
+                var delayedCall:DelayedCall = _objects[i] as DelayedCall;
+                if (delayedCall && delayedCall.callback == callback)
+                {
+                    delayedCall.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+                    _objects[i] = null;
+                    delete _objectIDs[tween];
+                }
+            }
+        }
         
         /** Figures out if the juggler contains one or more tweens with a certain target. */
         public function containsTweens(target:Object):Boolean
@@ -169,6 +187,21 @@ package starling.animation
                 {
                     var tween:Tween = _objects[i] as Tween;
                     if (tween && tween.target == target) return true;
+                }
+            }
+
+            return false;
+        }
+
+        /** Figures out if the juggler contains one or more delayed calls with a certain callback. */
+        public function containsDelayedCalls(callback:Function):Boolean
+        {
+            if (callback)
+            {
+                for (var i:int=_objects.length-1; i>=0; --i)
+                {
+                    var delayedCall:DelayedCall = _objects[i] as DelayedCall;
+                    if (delayedCall && delayedCall.callback == callback) return true;
                 }
             }
 
