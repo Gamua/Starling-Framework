@@ -15,7 +15,7 @@ package starling.utils
     import flash.events.EventDispatcher;
     import flash.system.Capabilities;
     import flash.utils.getDefinitionByName;
-    
+
     import starling.errors.AbstractClassError;
 
     /** A utility class with methods related to the current platform and runtime. */

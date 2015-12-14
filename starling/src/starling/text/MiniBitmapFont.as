@@ -13,9 +13,9 @@ package starling.text
     import flash.display.BitmapData;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
-    
+
     import starling.textures.Texture;
-    
+
     /** @private
      *  This class contains constants for the 'MINI' bitmap font. It's done that way to avoid
      *  a dependency on the 'mx.core' library (which is required for the 'Embed' statement).

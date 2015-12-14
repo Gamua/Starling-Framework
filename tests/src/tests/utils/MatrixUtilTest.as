@@ -15,8 +15,6 @@ package tests.utils
     import flash.geom.Point;
     import flash.geom.Vector3D;
 
-    import flexunit.framework.Assert;
-
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertTrue;

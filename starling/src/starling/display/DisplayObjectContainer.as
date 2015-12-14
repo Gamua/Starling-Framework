@@ -19,7 +19,6 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
-    import starling.filters.FragmentFilter;
     import starling.rendering.Painter;
     import starling.utils.MatrixUtil;
 

@@ -11,10 +11,10 @@
 package starling.events
 {
     import flash.utils.Dictionary;
-    
+
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
-    
+
     use namespace starling_internal;
     
     /** The EventDispatcher class is the base class for all classes that dispatch events. 

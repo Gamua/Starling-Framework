@@ -11,7 +11,6 @@
 package starling.rendering
 {
     import flash.display3D.Context3D;
-    import flash.display3D.Context3DTextureFormat;
 
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;

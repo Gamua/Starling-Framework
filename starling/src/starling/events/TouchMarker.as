@@ -13,12 +13,12 @@ package starling.events
     import flash.display.BitmapData;
     import flash.display.Shape;
     import flash.geom.Point;
-    
+
     import starling.core.Starling;
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.textures.Texture;
-    
+
     /** The TouchMarker is used internally to mark touches created through "simulateMultitouch". */
     internal class TouchMarker extends Sprite
     {

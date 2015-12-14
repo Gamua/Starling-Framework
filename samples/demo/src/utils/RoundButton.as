@@ -2,11 +2,11 @@ package utils
 {
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
+
     import starling.display.Button;
     import starling.display.DisplayObject;
     import starling.textures.Texture;
-    
+
     public class RoundButton extends Button
     {
         public function RoundButton(upState:Texture, text:String="", downState:Texture=null)

@@ -22,7 +22,6 @@ package starling.utils
     import flash.utils.setTimeout;
 
     import starling.core.Starling;
-    import starling.display.BlendMode;
     import starling.errors.AbstractClassError;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;

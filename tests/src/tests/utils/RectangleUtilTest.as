@@ -15,11 +15,11 @@ package tests.utils
     import flash.geom.Vector3D;
 
     import org.flexunit.asserts.assertFalse;
-
     import org.flexunit.asserts.assertTrue;
 
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
+
     import tests.Helpers;
 
     public class RectangleUtilTest

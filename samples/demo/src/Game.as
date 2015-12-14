@@ -3,9 +3,9 @@ package
     import flash.system.System;
     import flash.ui.Keyboard;
     import flash.utils.getDefinitionByName;
-    
+
     import scenes.Scene;
-    
+
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;

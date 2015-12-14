@@ -14,7 +14,7 @@ package starling.utils
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
+
     import starling.errors.AbstractClassError;
 
     /** A utility class containing methods related to the Matrix class. */

@@ -1,7 +1,7 @@
 package scenes
 {
     import flash.media.Sound;
-    
+
     import starling.core.Starling;
     import starling.display.MovieClip;
     import starling.events.Event;

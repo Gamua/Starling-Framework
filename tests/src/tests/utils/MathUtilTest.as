@@ -12,11 +12,11 @@ package tests.utils
 {
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.utils.MathUtil;
 
     public class MathUtilTest

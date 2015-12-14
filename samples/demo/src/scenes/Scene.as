@@ -2,7 +2,7 @@ package scenes
 {
     import starling.display.Button;
     import starling.display.Sprite;
-    
+
     public class Scene extends Sprite
     {
         private var _backButton:Button;

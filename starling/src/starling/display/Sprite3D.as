@@ -16,7 +16,6 @@ package starling.display
     import flash.geom.Vector3D;
 
     import starling.events.EnterFrameEvent;
-
     import starling.events.Event;
     import starling.rendering.Painter;
     import starling.utils.MathUtil;

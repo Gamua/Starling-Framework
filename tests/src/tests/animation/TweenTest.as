@@ -12,8 +12,6 @@ package tests.animation
 {
     import flash.display.Shape;
 
-    import flexunit.framework.Assert;
-
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
