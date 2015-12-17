@@ -51,7 +51,7 @@ package starling.text
      *  <code>name</code> value of the bitmap font. This will make the text field use the bitmap
      *  font.  
      */ 
-    public class BitmapFont
+    public class BitmapFont implements ITextCompositor
     {
         /** Use this constant for the <code>fontSize</code> property of the TextField class to 
          *  render the bitmap font in exactly the size it was created. */ 
@@ -75,8 +75,9 @@ package starling.text
         private var _offsetY:Number;
         private var _helperImage:Image;
 
-        /** Helper objects. */
+        // helper objects
         private static var sLines:Array = [];
+        private static var sDefaultOptions:TextOptions = new TextOptions();
         
         /** Creates a bitmap font by parsing an XML file and uses the specified texture. 
          *  If you don't pass any data, the "mini" font will be created. */
@@ -205,9 +206,9 @@ package starling.text
 
         /** Creates a sprite that contains a certain text, made up by one image per char. */
         public function createSprite(width:Number, height:Number, text:String,
-                                     format:TextFormat, autoScale:Boolean=true):Sprite
+                                     format:TextFormat, options:TextOptions=null):Sprite
         {
-            var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, format, autoScale);
+            var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, format, options);
             var numChars:int = charLocations.length;
             var sprite:Sprite = new Sprite();
             
@@ -217,7 +218,7 @@ package starling.text
                 var char:Image = charLocation.char.createImage();
                 char.x = charLocation.x;
                 char.y = charLocation.y;
-                char.scaleX = char.scaleY = charLocation.scale;
+                char.scale = charLocation.scale;
                 char.color = format.color;
                 sprite.addChild(char);
             }
@@ -228,10 +229,10 @@ package starling.text
         
         /** Draws text into a QuadBatch. */
         public function fillMeshBatch(meshBatch:MeshBatch, width:Number, height:Number, text:String,
-                                      format:TextFormat, autoScale:Boolean=true):void
+                                      format:TextFormat, options:TextOptions=null):void
         {
             var charLocations:Vector.<CharLocation> = arrangeChars(
-                    width, height, text, format, autoScale);
+                    width, height, text, format, options);
             var numChars:int = charLocations.length;
             _helperImage.color = format.color;
             
@@ -242,25 +243,34 @@ package starling.text
                 _helperImage.readjustSize();
                 _helperImage.x = charLocation.x;
                 _helperImage.y = charLocation.y;
-                _helperImage.scaleX = _helperImage.scaleY = charLocation.scale;
+                _helperImage.scale = charLocation.scale;
                 meshBatch.addMesh(_helperImage);
             }
 
             CharLocation.rechargePool();
         }
+
+        /** @inheritDoc */
+        public function clearMeshBatch(meshBatch:MeshBatch):void
+        {
+            meshBatch.clear();
+        }
         
         /** Arranges the characters of a text inside a rectangle, adhering to the given settings. 
          *  Returns a Vector of CharLocations. */
         private function arrangeChars(width:Number, height:Number, text:String,
-                                      format:TextFormat, autoScale:Boolean=true):Vector.<CharLocation>
+                                      format:TextFormat, options:TextOptions):Vector.<CharLocation>
         {
             if (text == null || text.length == 0) return CharLocation.vectorFromPool();
+            if (options == null) options = sDefaultOptions;
 
             var kerning:Boolean = format.kerning;
             var leading:Number = format.leading;
             var hAlign:String = format.horizontalAlign;
             var vAlign:String = format.verticalAlign;
             var fontSize:Number = format.size;
+            var autoScale:Boolean = options.autoScale;
+            var wordWrap:Boolean = options.wordWrap;
 
             var finished:Boolean = false;
             var charLocation:CharLocation;
@@ -268,6 +278,7 @@ package starling.text
             var containerWidth:Number;
             var containerHeight:Number;
             var scale:Number;
+            var i:int, j:int;
 
             if (fontSize < 0) fontSize *= -_size;
             
@@ -287,7 +298,7 @@ package starling.text
                     var currentLine:Vector.<CharLocation> = CharLocation.vectorFromPool();
                     
                     numChars = text.length;
-                    for (var i:int=0; i<numChars; ++i)
+                    for (i=0; i<numChars; ++i)
                     {
                         var lineFull:Boolean = false;
                         var charID:int = text.charCodeAt(i);
@@ -319,20 +330,33 @@ package starling.text
                             
                             if (charLocation.x + char.width > containerWidth)
                             {
-                                // when autoscaling, we must not split a word in half -> restart
-                                if (autoScale && lastWhiteSpace == -1)
-                                    break;
+                                if (wordWrap)
+                                {
+                                    // when autoscaling, we must not split a word in half -> restart
+                                    if (autoScale && lastWhiteSpace == -1)
+                                        break;
 
-                                // remove characters and add them again to next line
-                                var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
+                                    // remove characters and add them again to next line
+                                    var numCharsToRemove:int = lastWhiteSpace == -1 ? 1 : i - lastWhiteSpace;
 
-                                for (var j:int=0; j<numCharsToRemove; ++j) // faster than 'splice'
+                                    for (j=0; j<numCharsToRemove; ++j) // faster than 'splice'
+                                        currentLine.pop();
+
+                                    if (currentLine.length == 0)
+                                        break;
+
+                                    i -= numCharsToRemove;
+                                }
+                                else
+                                {
+                                    if (autoScale) break;
                                     currentLine.pop();
-                                
-                                if (currentLine.length == 0)
-                                    break;
-                                
-                                i -= numCharsToRemove;
+
+                                    // continue with next line, if there is one
+                                    while (i < numChars - 1 && text.charCodeAt(i) != CHAR_NEWLINE)
+                                        ++i;
+                                }
+
                                 lineFull = true;
                             }
                         }

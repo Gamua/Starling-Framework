@@ -52,7 +52,7 @@ package tests.text
             for (var i:int = 0; i < repeat; i++)
                 parts[i] = sample;
 
-            return parts.join();
+            return parts.join("");
         }
 
         /** Retrieves the TextField's internally used 'Texture'. */

@@ -65,6 +65,14 @@ package starling.text
             dispatchEventWith(Event.CHANGE);
         }
 
+        /** Creates a clone of this instance. */
+        public function clone():starling.text.TextFormat
+        {
+            var clone:starling.text.TextFormat = new starling.text.TextFormat();
+            clone.copyFrom(this);
+            return clone;
+        }
+
         /** Converts the Starling TextFormat instance to a Flash TextFormat. */
         public function toNativeFormat(out:flash.text.TextFormat=null):flash.text.TextFormat
         {

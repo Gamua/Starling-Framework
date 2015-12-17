@@ -10,12 +10,10 @@
 
 package starling.text
 {
-    import flash.display.BitmapData;
     import flash.display3D.Context3DTextureFormat;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.text.AntiAliasType;
     import flash.utils.Dictionary;
 
     import starling.core.Starling;
@@ -26,8 +24,6 @@ package starling.text
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.rendering.Painter;
-    import starling.textures.Texture;
-    import starling.utils.Align;
     import starling.utils.RectangleUtil;
 
     /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
@@ -85,40 +81,34 @@ package starling.text
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
 
-        // the texture format that is used for TTF rendering
-        private static var sDefaultTextureFormat:String = Context3DTextureFormat.BGRA_PACKED;
-
         private var _text:String;
+        private var _options:TextOptions;
         private var _format:TextFormat;
-        private var _autoScale:Boolean;
         private var _autoSize:String;
-        private var _requiresRecomposition:Boolean;
-        private var _isHtmlText:Boolean;
         private var _textBounds:Rectangle;
         private var _hitArea:Rectangle;
-        private var _disposeContents:Function;
-
-        private var _meshBatch:MeshBatch;
+        private var _compositor:ITextCompositor;
+        private var _requiresRecomposition:Boolean;
         private var _border:DisplayObjectContainer;
+        private var _meshBatch:MeshBatch;
 
         // helper objects
-        private static var sHelperQuad:Quad = new Quad(100, 100);
-        private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
-        private static var sNativeFormat:flash.text.TextFormat = new flash.text.TextFormat();
-        
+        private static var sMatrix:Matrix = new Matrix();
+        private static var sTrueTypeCompositor:TrueTypeCompositor = new TrueTypeCompositor();
+        private static var sDefaultTextureFormat:String = Context3DTextureFormat.BGRA_PACKED;
+        private var _helperFormat:TextFormat = new TextFormat();
+
         /** Create a new text field with the given properties. */
         public function TextField(width:int, height:int, text:String="", format:TextFormat=null)
         {
             _text = text ? text : "";
-            _border = null;
             _autoSize = TextFieldAutoSize.NONE;
             _hitArea = new Rectangle(0, 0, width, height);
             _requiresRecomposition = true;
-            _disposeContents = disposeComposedContents;
+            _compositor = sTrueTypeCompositor;
+            _options = new TextOptions();
 
-            _format = new TextFormat();
-            if (format) _format.copyFrom(format);
+            _format = format ? format.clone() : new TextFormat();
             _format.addEventListener(Event.CHANGE, onFormatChange);
 
             _meshBatch = new MeshBatch();
@@ -130,7 +120,7 @@ package starling.text
         public override function dispose():void
         {
             _format.removeEventListener(Event.CHANGE, onFormatChange);
-            _disposeContents();
+            _compositor.clearMeshBatch(_meshBatch);
 
             super.dispose();
         }
@@ -142,14 +132,13 @@ package starling.text
             super.render(painter);
         }
 
-        /** Forces the text field to be constructed right away. Normally,
-         *  it will only do so lazily, i.e. before being rendered. */
-        public function recompose():void
+        /** Forces the text contents to be composed right away.
+         *  Normally, it will only do so lazily, i.e. before being rendered. */
+        private function recompose():void
         {
             if (_requiresRecomposition)
             {
-                _meshBatch.clear();
-                _disposeContents();
+                _compositor.clearMeshBatch(_meshBatch);
 
                 var font:String = _format.font;
                 var bitmapFont:BitmapFont = getBitmapFont(font);
@@ -160,10 +149,11 @@ package starling.text
                     registerBitmapFont(bitmapFont);
                 }
 
-                if (bitmapFont) createComposedContents();
-                else            createRenderedContents();
+                _compositor = bitmapFont ? bitmapFont : sTrueTypeCompositor;
 
+                updateText();
                 updateBorder();
+
                 _requiresRecomposition = false;
             }
         }
@@ -172,227 +162,53 @@ package starling.text
         {
             _requiresRecomposition = true;
         }
+
+        // font and border rendering
         
-        // TrueType font rendering
-        
-        private function createRenderedContents():void
+        private function updateText():void
         {
-            if (_textBounds == null)
-                _textBounds = new Rectangle();
-
-            _disposeContents = disposeRenderedContents;
-            
-            var texture:Texture;
-            var scale:Number = Starling.contentScaleFactor;
-            var bitmapData:BitmapData = renderText(scale, _textBounds);
-            var format:String = sDefaultTextureFormat;
-            var maxTextureSize:int = Texture.maxSize;
-            var shrinkHelper:Number = 0;
-            
-            // re-render when size of rendered bitmap overflows 'maxTextureSize'
-            while (bitmapData.width > maxTextureSize || bitmapData.height > maxTextureSize)
-            {
-                scale *= Math.min(
-                    (maxTextureSize - shrinkHelper) / bitmapData.width,
-                    (maxTextureSize - shrinkHelper) / bitmapData.height
-                );
-                bitmapData.dispose();
-                bitmapData = renderText(scale, _textBounds);
-                shrinkHelper += 1;
-            }
-
-            _hitArea.width  = bitmapData.width  / scale;
-            _hitArea.height = bitmapData.height / scale;
-
-            texture = Texture.fromBitmapData(bitmapData, false, false, scale, format);
-            texture.root.onRestore = function():void
-            {
-                if (_textBounds == null)
-                    _textBounds = new Rectangle();
-
-                bitmapData = renderText(scale, _textBounds);
-                texture.root.uploadBitmapData(bitmapData);
-                bitmapData.dispose();
-                bitmapData = null;
-            };
-            
-            bitmapData.dispose();
-            bitmapData = null;
-
-            sHelperQuad.texture = texture;
-            sHelperQuad.readjustSize();
-
-            _meshBatch.addMesh(sHelperQuad);
-
-            sHelperQuad.texture = null;
-        }
-
-        private function disposeRenderedContents():void
-        {
-            _meshBatch.texture.dispose();
-        }
-
-        /** This method is called immediately before the text is rendered. The intent of
-         *  'formatText' is to be overridden in a subclass, so that you can provide custom
-         *  formatting for the TextField. In the overridden method, call 'setFormat' (either
-         *  over a range of characters or the complete TextField) to modify the format to
-         *  your needs.
-         *  
-         *  @param textField  the flash.text.TextField object that you can format.
-         *  @param textFormat the default text format that's currently set on the text field.
-         */
-        protected function formatText(textField:flash.text.TextField,
-                                      textFormat:flash.text.TextFormat):void
-        {}
-
-        private function renderText(scale:Number, out:Rectangle):BitmapData
-        {
-            var width:Number  = _hitArea.width  * scale;
-            var height:Number = _hitArea.height * scale;
-            var hAlign:String = _format.horizontalAlign;
-            var vAlign:String = _format.verticalAlign;
-            
-            if (isHorizontalAutoSize)
-            {
-                width = int.MAX_VALUE;
-                hAlign = Align.LEFT;
-            }
-            if (isVerticalAutoSize)
-            {
-                height = int.MAX_VALUE;
-                vAlign = Align.TOP;
-            }
-
-            _format.toNativeFormat(sNativeFormat);
-
-            sNativeFormat.size = Number(sNativeFormat.size) * scale;
-            sNativeTextField.defaultTextFormat = sNativeFormat;
-            sNativeTextField.width = width;
-            sNativeTextField.height = height;
-            sNativeTextField.antiAliasType = AntiAliasType.ADVANCED;
-            sNativeTextField.selectable = false;            
-            sNativeTextField.multiline = true;            
-            sNativeTextField.wordWrap = true;         
-
-            if (_isHtmlText) sNativeTextField.htmlText = _text;
-            else             sNativeTextField.text     = _text;
-               
-            sNativeTextField.embedFonts = true;
-
-            // we try embedded fonts first, non-embedded fonts are just a fallback
-            if (sNativeTextField.textWidth == 0.0 || sNativeTextField.textHeight == 0.0)
-                sNativeTextField.embedFonts = false;
-            
-            formatText(sNativeTextField, sNativeFormat);
-            
-            if (_autoScale)
-                autoScaleNativeTextField(sNativeTextField);
-            
-            var textWidth:Number  = sNativeTextField.textWidth;
-            var textHeight:Number = sNativeTextField.textHeight;
-
-            if (isHorizontalAutoSize)
-                sNativeTextField.width = width = Math.ceil(textWidth + 5);
-            if (isVerticalAutoSize)
-                sNativeTextField.height = height = Math.ceil(textHeight + 4);
-            
-            // avoid invalid texture size
-            if (width  < 1) width  = 1.0;
-            if (height < 1) height = 1.0;
-            
-            var textOffsetX:Number = 0.0;
-            if (hAlign == Align.LEFT)        textOffsetX = 2; // flash adds a 2 pixel offset
-            else if (hAlign == Align.CENTER) textOffsetX = (width - textWidth) / 2.0;
-            else if (hAlign == Align.RIGHT)  textOffsetX =  width - textWidth - 2;
-
-            var textOffsetY:Number = 0.0;
-            if (vAlign == Align.TOP)         textOffsetY = 2; // flash adds a 2 pixel offset
-            else if (vAlign == Align.CENTER) textOffsetY = (height - textHeight) / 2.0;
-            else if (vAlign == Align.BOTTOM) textOffsetY =  height - textHeight - 2;
-            
-            // finally: draw text field to bitmap data
-            var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
-            sHelperMatrix.setTo(1, 0, 0, 1, 0, int(textOffsetY) - 2);
-            bitmapData.draw(sNativeTextField, sHelperMatrix);
-            
-            sNativeTextField.text = "";
-            
-            // update textBounds rectangle
-            out.setTo(textOffsetX / scale, textOffsetY / scale,
-                      textWidth   / scale, textHeight  / scale);
-            
-            return bitmapData;
-        }
-        
-        private function autoScaleNativeTextField(textField:flash.text.TextField):void
-        {
-            var size:Number   = Number(textField.defaultTextFormat.size);
-            var maxHeight:int = textField.height - 4;
-            var maxWidth:int  = textField.width  - 4;
-            
-            while (textField.textWidth > maxWidth || textField.textHeight > maxHeight)
-            {
-                if (size <= 4) break;
-                
-                var format:flash.text.TextFormat = textField.defaultTextFormat;
-                format.size = size--;
-                textField.defaultTextFormat = format;
-
-                if (_isHtmlText) textField.htmlText = _text;
-                else             textField.text     = _text;
-            }
-        }
-
-        // bitmap font composition
-        
-        private function createComposedContents():void
-        {
-            _disposeContents = disposeComposedContents;
-            
-            var bitmapFont:BitmapFont = getBitmapFont(_format.font);
-            if (bitmapFont == null) throw new Error("Bitmap font not registered: " + _format.font);
-            
             var width:Number  = _hitArea.width;
             var height:Number = _hitArea.height;
-            var hAlign:String = _format.horizontalAlign;
-            var vAlign:String = _format.verticalAlign;
-            
-            if (isHorizontalAutoSize)
-            {
-                width = int.MAX_VALUE;
-                hAlign = Align.LEFT;
-            }
-            if (isVerticalAutoSize)
-            {
-                height = int.MAX_VALUE;
-                vAlign = Align.TOP;
-            }
-            
-            bitmapFont.fillMeshBatch(_meshBatch, width, height, _text, _format);
+            var format:TextFormat = _helperFormat;
+
+            // By working on a copy of the TextFormat, we make sure that modifications done
+            // within the 'fillMeshBatch' method do not cause any side effects.
+            //
+            // (We cannot use a static variable, because that might lead to problems when
+            //  recreating textures after a context loss.)
+
+            format.copyFrom(_format);
+
+            if (isHorizontalAutoSize) width = 100000;
+            if (isVerticalAutoSize)  height = 100000;
+
+            _options.textureScale = Starling.contentScaleFactor;
+            _options.textureFormat = sDefaultTextureFormat;
+            _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
 
             if (_autoSize != TextFieldAutoSize.NONE)
             {
                 _textBounds = _meshBatch.getBounds(_meshBatch, _textBounds);
-                
+
                 if (isHorizontalAutoSize)
-                    _hitArea.width  = _textBounds.x + _textBounds.width;
+                {
+                    _meshBatch.x = _textBounds.x = -_textBounds.x;
+                    _hitArea.width = _textBounds.width;
+                }
+
                 if (isVerticalAutoSize)
-                    _hitArea.height = _textBounds.y + _textBounds.height;
+                {
+                    _meshBatch.y = _textBounds.y = -_textBounds.y;
+                    _hitArea.height = _textBounds.height;
+                }
             }
             else
             {
-                // hit area doesn't change, text bounds can be created on demand
+                // hit area doesn't change, and text bounds can be created on demand
                 _textBounds = null;
             }
         }
 
-        private function disposeComposedContents():void
-        {
-            // nothing to dispose
-        }
-        
-        // helpers
-        
         private function updateBorder():void
         {
             if (_border == null) return;
@@ -427,13 +243,13 @@ package starling.text
             return _autoSize == TextFieldAutoSize.HORIZONTAL ||
                    _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
-        
+
         private function get isVerticalAutoSize():Boolean
         {
             return _autoSize == TextFieldAutoSize.VERTICAL ||
                    _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
-        
+
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
@@ -446,8 +262,8 @@ package starling.text
         public override function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
             if (_requiresRecomposition) recompose();
-            getTransformationMatrix(targetSpace, sHelperMatrix);
-            return RectangleUtil.getBounds(_hitArea, sHelperMatrix, out);
+            getTransformationMatrix(targetSpace, sMatrix);
+            return RectangleUtil.getBounds(_hitArea, sMatrix, out);
         }
         
         /** @inheritDoc */
@@ -530,28 +346,39 @@ package starling.text
             }
         }
         
-        /** Indicates whether the font size is scaled down so that the complete text fits
-         *  into the text field. @default false */
-        public function get autoScale():Boolean { return _autoScale; }
+        /** Indicates whether the font size is automatically reduced if the complete text does
+         *  not fit into the TextField. @default false */
+        public function get autoScale():Boolean { return _options.autoScale; }
         public function set autoScale(value:Boolean):void
         {
-            if (_autoScale != value)
+            if (_options.autoScale != value)
             {
-                _autoScale = value;
+                _options.autoScale = value;
                 setRequiresRecomposition();
             }
         }
         
         /** Specifies the type of auto-sizing the TextField will do.
-         *  Note that any auto-sizing will make auto-scaling useless. Furthermore, it has 
-         *  implications on alignment: horizontally auto-sized text will always be left-, 
-         *  vertically auto-sized text will always be top-aligned. @default "none" */
+         *  Note that any auto-sizing will implicitly deactivate all auto-scaling.
+         *  @default none */
         public function get autoSize():String { return _autoSize; }
         public function set autoSize(value:String):void
         {
             if (_autoSize != value)
             {
                 _autoSize = value;
+                setRequiresRecomposition();
+            }
+        }
+
+        /** Indicates if the text should be wrapped at word boundaries if it does not fit into
+         *  the TextField otherwise. @default true */
+        public function get wordWrap():Boolean { return _options.wordWrap; }
+        public function set wordWrap(value:Boolean):void
+        {
+            if (value != _options.wordWrap)
+            {
+                _options.wordWrap = value;
                 setRequiresRecomposition();
             }
         }
@@ -566,17 +393,16 @@ package starling.text
             _meshBatch.batchable = value;
         }
 
-        /** Indicates if the assigned text should be interpreted as HTML code. For a description
+        /** Indicates if text should be interpreted as HTML code. For a description
          *  of the supported HTML subset, refer to the classic Flash 'TextField' documentation.
-         *  Clickable hyperlinks and external images are not supported.
-         *
-         *  <p>BEWARE: this property is ignored when using bitmap fonts!</p> */
-        public function get isHtmlText():Boolean { return _isHtmlText; }
+         *  Clickable hyperlinks and external images are not supported. Only works for
+         *  TrueType fonts! @default false */
+        public function get isHtmlText():Boolean { return _options.isHtmlText; }
         public function set isHtmlText(value:Boolean):void
         {
-            if (_isHtmlText != value)
+            if (_options.isHtmlText != value)
             {
-                _isHtmlText = value;
+                _options.isHtmlText = value;
                 setRequiresRecomposition();
             }
         }
