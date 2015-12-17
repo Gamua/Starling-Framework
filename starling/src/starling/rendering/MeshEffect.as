@@ -16,7 +16,17 @@ package starling.rendering
     import starling.textures.TextureSmoothing;
     import starling.utils.RenderUtil;
 
-    /** An effect drawing a mesh of colored, textured vertices. */
+    /** An effect drawing a mesh of colored, textured vertices.
+     *  This is the standard effect that will be used per default for all Starling meshes;
+     *  if you want to create your own rendering code, you will have to extend this class.
+     *
+     *  <p>For more information about the usage and creation of effects, please have a look at
+     *  the documentation of the parent class, "Effect".</p>
+     *
+     *  @see Effect
+     *  @see starling.rendering.MeshStyle
+     *
+     */
     public class MeshEffect extends Effect
     {
         /** The vertex format expected by <code>uploadVertexData</code>:

@@ -63,7 +63,7 @@ package starling.rendering
      *  var effect:MeshEffect = new MeshEffect();
      *  
      *  // configure effect
-     *  effect.mvpMatrix = getMvpMatrix();
+     *  effect.mvpMatrix = painter.mvpMatrix;
      *  effect.texture = getHeroTexture();
      *  effect.color = 0xf0f0f0;
      *  
@@ -77,8 +77,9 @@ package starling.rendering
      *  <p>Note that the <code>VertexData</code> being uploaded has to be created with the same
      *  format as the one returned by the effect's <code>vertexFormat</code> property.</p>
      *
-     *  @see starling.utils.RenderUtil
      *  @see MeshEffect
+     *  @see starling.rendering.MeshStyle
+     *  @see starling.utils.RenderUtil
      */
     public class Effect
     {

@@ -38,7 +38,7 @@ package starling.display
      *  to add support for color transformations, normal mapping, etc.</p>
      *
      *  @see MeshBatch
-     *  @see MeshStyle
+     *  @see starling.rendering.MeshStyle
      *  @see starling.rendering.VertexData
      *  @see starling.rendering.IndexData
      */
