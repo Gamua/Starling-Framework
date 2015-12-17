@@ -44,7 +44,8 @@ package starling.display
      */
     public class MeshBatch extends Mesh
     {
-        private static const MAX_NUM_VERTICES:int = 65535;
+        /** The maximum number of vertices that fit into one MeshBatch. */
+        public static const MAX_NUM_VERTICES:int = 65535;
 
         private var _effect:MeshEffect;
         private var _batchable:Boolean;
@@ -107,7 +108,7 @@ package starling.display
             _indexSyncRequired  = true;
         }
 
-        /** Adds a mesh to the batch.
+        /** Adds a mesh to the batch by appending its vertices and indices.
          *
          *  @param mesh      the mesh to add to the batch.
          *  @param matrix    transform all vertex positions with a certain matrix. If this
@@ -133,38 +134,70 @@ package starling.display
             var meshStyle:MeshStyle = mesh._style;
 
             if (targetVertexID == 0)
-            {
-                var meshStyleType:Class = meshStyle.type;
-
-                if (_style.type != meshStyleType)
-                {
-                    if (_effect)
-                    {
-                        _effect.dispose();
-                        _effect = null;
-                    }
-
-                    setStyle(new meshStyleType() as MeshStyle, false);
-                }
-
-                if (_effect == null)
-                {
-                    _effect = _style.createEffect();
-                    _effect.onRestore = setVertexAndIndexDataChanged;
-                }
-
-                _style.copyFrom(meshStyle);
-                this.blendMode = blendMode;
-            }
+                setupFor(mesh, blendMode);
 
             meshStyle.copyVertexDataTo(_vertexData, targetVertexID, matrix, subset.vertexID, subset.numVertices);
             meshStyle.copyIndexDataTo(_indexData, targetIndexID, targetVertexID - subset.vertexID,
                 subset.indexID, subset.numIndices);
 
-            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID);
+            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
             if (_batchable) setRequiresRedraw();
 
             _indexSyncRequired = _vertexSyncRequired = true;
+        }
+
+        /** Adds a mesh to the batch by copying its vertices and indices to the given positions.
+         *  Beware that you need to check for yourself if those positions make sense; for example,
+         *  you need to make sure that they are aligned within the 3-indices groups making up
+         *  the mesh's triangles.
+         *
+         *  <p>It's easiest to only add objects with an identical setup, e.g. only quads.
+         *  For the latter, indices are aligned in groups of 6 (one quad requires six indices),
+         *  and the vertices in groups of 4 (one vertex for every corner).</p>
+         */
+        public function addMeshAt(mesh:Mesh, indexID:int, vertexID:int):void
+        {
+            var numIndices:int = mesh.numIndices;
+            var numVertices:int = mesh.numVertices;
+            var matrix:Matrix = mesh.transformationMatrix;
+            var meshStyle:MeshStyle = mesh._style;
+
+            if (_vertexData.numVertices == 0)
+                setupFor(mesh, mesh.blendMode);
+
+            meshStyle.copyVertexDataTo(_vertexData, vertexID, matrix, 0, numVertices);
+            meshStyle.copyIndexDataTo(_indexData, indexID, vertexID, 0, numIndices);
+
+            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, vertexID, numVertices);
+            if (_batchable) setRequiresRedraw();
+
+            _indexSyncRequired = _vertexSyncRequired = true;
+        }
+
+        private function setupFor(mesh:Mesh, blendMode:String):void
+        {
+            var meshStyle:MeshStyle = mesh._style;
+            var meshStyleType:Class = meshStyle.type;
+
+            if (_style.type != meshStyleType)
+            {
+                if (_effect)
+                {
+                    _effect.dispose();
+                    _effect = null;
+                }
+
+                setStyle(new meshStyleType() as MeshStyle, false);
+            }
+
+            if (_effect == null)
+            {
+                _effect = _style.createEffect();
+                _effect.onRestore = setVertexAndIndexDataChanged;
+            }
+
+            _style.copyFrom(meshStyle);
+            this.blendMode = blendMode;
         }
 
         /** Indicates if the given mesh instance fits to the current state of the batch.
@@ -210,6 +243,24 @@ package starling.display
                 _style.updateEffect(_effect, painter.state);
                 _effect.render(0, _indexData.numTriangles);
             }
+        }
+
+        /** The total number of vertices in the mesh. If you change this to a smaller value,
+         *  the surplus will be deleted. Make sure that no indices reference those deleted
+         *  vertices! */
+        public function set numVertices(value:int):void
+        {
+            _vertexData.numVertices = value;
+            _vertexSyncRequired = true;
+        }
+
+        /** The total number of indices in the mesh. If you change this to a smaller value,
+         *  the surplus will be deleted. Always make sure that the number of indices
+         *  is a multiple of three! */
+        public function set numIndices(value:int):void
+        {
+            _indexData.numIndices = value;
+            _indexSyncRequired = true;
         }
 
         /** Indicates if this object will be added to the painter's batch on rendering,
