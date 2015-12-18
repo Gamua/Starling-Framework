@@ -1,6 +1,67 @@
 Starling: Changelog
 ===================
 
+version 2.0 (preview) - 2015-12-17
+----------------------------------
+
+- added render cache: auto-detects if display tree changes, speeds up rendering of unchanged regions
+- added 'Mesh' class, the new base class of all non-container display objects
+- added 'MeshBatch' class, a more flexible replacement of the old 'QuadBatch'
+- added 'MeshStyle' class, allowing customized rendering of any meshes
+- added 'Painter' class that replaces 'RenderSupport' and contains a stack of 'RenderStates'
+- added 'Effect' + 'MeshEffect', encapsulating low-level stage3D rendering
+- added 'RenderState' class that captures all context settings
+- added 'Program' class, a comfortable wrapper of stage3D programs that survives a context loss
+- added 'VertexDataFormat' and using it in 'VertexData' for flexible vertex data structures
+- added 'IndexData' class, the new partner of 'VertexData'
+- added 'BatchProcessor' class, the master puppeteer of all batch rendering
+- added 'TextFormat' class and using it in TextField and BitmapFont
+- added 'TextOptions', 'ITextCompositor', and 'TrueTypeCompositor' for more flexible Text composition
+- added 'scale' property to DisplayObject, for simple uniform scaling
+- added 'StringUtil' with methods like 'trim' and 'format'
+- added 'Pool' class for simple pooling of basic classes (Point, Rectangle, Matrix)
+- added 'getTextureAtlasNames' method to AssetManager
+- added 'MatrixUtil.isIdentity'
+- added 'pixelSnapping' property to Mesh class (enabled by default)
+- added 'wordWrap' property to TextField class
+- added frame actions to MovieClip, completely rewrote 'advanceTime'
+- added new 'rendering' package and moving some classes over
+- added new Benchmark in Demo
+- added try/catch around 'executeWhenApplicationIsActive' callbacks
+- added second argument to 'EventDispatcher.hasEventListener' to allow checking for a specific listener
+- added 'Event.UPDATE' as a new generic event type
+- added 'Color.multiply'
+- added 'toString' methods to MatrixUtil
+- added missing brackets to 'Touch.toString'
+- added new DelayedCall-related methods to Juggler
+- updated VertexData class to use a ByteArray instead of a Vector
+- updated TextFields to always use the minimal possible texture size for TrueType fonts
+- updated the Juggler's 'add' methods to return a unique ID that can be used to remove the same object
+- updated requirements: now depending on at least AIR / FP 19
+- updated transporter chief for compatibility with latest ios-deploy
+- replaced all 'splice' calls with new 'insertAt' and 'removeAt' methods
+- replaced 'HAlign' and 'VAlign' with one single 'Align' class
+- removed 'ArrayUtil' and 'VectorUtil' classes
+- removed explicit garbage collection from AssetManager
+- removed 'Starling.handleLostContext' (now always enabled)
+- removed 'forTouch' argument in 'hitTest'-method
+- removed 'repeat' properties and method arguments from Texture classes (to be handled in Image class)
+- removed 'nativeFilters' from TextField (hoping that Starling's filters will soon close that gap)
+- changed organization of 'starling.utils' package
+- changed KeyboardEvent to be dispatched instead of broadcasted for better performance
+- changed default profile in Starling constructor to 'auto'
+- changed default for mipMapping throughout framework to 'false'
+- changed 'Texture.fromColor' so that it uses separate color and alpha
+- changed naming convention: parameters that need to be filled and returned are now called 'out'
+- changed all member variables using the m-prefix to underscores ("mData" => "_data")
+- optimized texture classes by splitting up 'ConcreteTexture' into several (internal) subclasses
+- optimized 'removeEventListener'
+- optimized how the TrueType compositor behaves when it reaches the maximum supported texture size
+- fixed that autoSizing in TextField always forced specific text alignments.
+- fixed 'globalToLocal' for 3D objects
+- fixed 'Polygon.toString' for empty polygons
+- fixed possible null reference exception in the Button class
+
 version 1.7 - 2015-07-02
 ------------------------
 
