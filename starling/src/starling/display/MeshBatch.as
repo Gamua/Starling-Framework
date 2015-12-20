@@ -211,9 +211,9 @@ package starling.display
          */
         public function canAddMesh(mesh:Mesh, blendMode:String=null, numVertices:int=-1):Boolean
         {
-            if (numVertices < 0) numVertices = _vertexData.numVertices;
+            if (numVertices  < 0) numVertices = mesh.numVertices;
             if (numVertices == 0) return true;
-            if (numVertices + mesh.numVertices > MAX_NUM_VERTICES) return false;
+            if (numVertices + _vertexData.numVertices > MAX_NUM_VERTICES) return false;
             if (blendMode == null) blendMode = mesh.blendMode;
 
             return _style.canBatchWith(mesh._style) && this.blendMode == blendMode;
