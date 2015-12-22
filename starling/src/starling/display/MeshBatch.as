@@ -58,7 +58,7 @@ package starling.display
         /** Creates a new, empty MeshBatch instance. */
         public function MeshBatch()
         {
-            var vertexData:VertexData = new VertexData(MeshStyle.VERTEX_FORMAT);
+            var vertexData:VertexData = new VertexData();
             var indexData:IndexData = new IndexData();
 
             super(vertexData, indexData);
