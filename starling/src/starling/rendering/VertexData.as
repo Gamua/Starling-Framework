@@ -84,6 +84,9 @@ package starling.rendering
      */
     public class VertexData
     {
+        private static const MIN_ALPHA_PMA:Number = 5.0 / 255.0;
+        private static const MIN_ALPHA:Number = 0.0;
+
         private var _rawData:ByteArray;
         private var _numVertices:int;
         private var _format:VertexDataFormat;
@@ -733,24 +736,35 @@ package starling.rendering
                 numVertices = _numVertices - vertexID;
 
             var i:int;
+            var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
+            var colorPos:int = vertexID * _vertexSize + offset;
+            var alphaPos:int, alpha:Number, rgba:uint;
 
-            if (_premultipliedAlpha)
+            for (i=0; i<numVertices; ++i)
             {
-                for (i = 0; i < numVertices; ++i)
-                    setAlpha(vertexID + i, attrName, getAlpha(vertexID + i) * factor);
-            }
-            else
-            {
-                var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
-                var position:int = vertexID * _vertexSize + offset + 3;
-                var oldAlpha:Number;
+                alphaPos = colorPos + 3;
+                alpha = _rawData[alphaPos] / 255.0 * factor;
 
-                for (i = 0; i < numVertices; ++i)
+                if (alpha  > 1.0) alpha = 1.0;
+                if (alpha == 1.0 || !_premultipliedAlpha)
                 {
-                    oldAlpha = _rawData[position] / 255.0;
-                    _rawData[position] = int(oldAlpha * factor * 255.0);
-                    position += _vertexSize;
+                    if (alpha < MIN_ALPHA) alpha = MIN_ALPHA;
+                    _rawData[alphaPos] = int(alpha * 255.0);
                 }
+                else
+                {
+                    if (alpha < MIN_ALPHA_PMA) alpha = MIN_ALPHA_PMA;
+
+                    _rawData.position = colorPos;
+                    rgba = unmultiplyAlpha(switchEndian(_rawData.readUnsignedInt()));
+                    rgba = (rgba & 0xffffff00) | (int(alpha * 255.0) & 0xff);
+                    rgba = premultiplyAlpha(rgba);
+
+                    _rawData.position = colorPos;
+                    _rawData.writeUnsignedInt(switchEndian(rgba));
+                }
+
+                colorPos += _vertexSize;
             }
         }
 
@@ -764,7 +778,7 @@ package starling.rendering
             var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
             var position:int = vertexID * _vertexSize + offset;
             var endPosition:int = position + (numVertices * _vertexSize);
-            var minAlpha:Number = _premultipliedAlpha ? 5.0 / 255.0 : 0.0;
+            var minAlpha:Number = _premultipliedAlpha ? MIN_ALPHA_PMA : MIN_ALPHA;
 
             if (alpha < minAlpha) alpha = minAlpha;
             else if (alpha > 1.0) alpha = 1.0;
