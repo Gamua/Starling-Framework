@@ -548,7 +548,7 @@ package starling.textures
             return new SubTexture(texture, region, false, frame, rotated);
         }
 
-        /** Sets up a VertexData instance with the correct positions for four vertices so that
+        /** Sets up a VertexData instance with the correct positions for 4 vertices so that
          *  the texture can be mapped onto it unscaled. If the texture has a <code>frame</code>,
          *  the vertices will be offset accordingly.
          *
@@ -590,6 +590,22 @@ package starling.textures
                     vertexData.transformPoints(attrName, sMatrix, vertexID, 4);
                 }
             }
+        }
+
+        /** Sets up a VertexData instance with the correct texture coordinates for
+         *  4 vertices so that the texture is mapped to the complete quad.
+         *
+         *  @param vertexData  the vertex data to which the texture coordinates will be written.
+         *  @param vertexID    the start position within the VertexData instance.
+         *  @param attrName    the attribute name referencing the vertex positions.
+         */
+        public function setupTextureCoordinates(vertexData:VertexData, vertexID:int=0,
+                                                attrName:String="texCoords"):void
+        {
+            setTexCoords(vertexData, vertexID    , attrName, 0.0, 0.0);
+            setTexCoords(vertexData, vertexID + 1, attrName, 1.0, 0.0);
+            setTexCoords(vertexData, vertexID + 2, attrName, 0.0, 1.0);
+            setTexCoords(vertexData, vertexID + 3, attrName, 1.0, 1.0);
         }
 
         /** Transforms the given texture coordinates from the local coordinate system
