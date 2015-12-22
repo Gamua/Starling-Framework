@@ -739,20 +739,30 @@ package starling.rendering
             }
         }
 
-        /** Translate the position of a vertex by a certain offset. */
-        public function translatePoint(vertexID:int, attrName:String, deltaX:Number, deltaY:Number):void
+        /** Translates the 2D positions of subsequent vertices by a certain offset. */
+        public function translatePoints(attrName:String, deltaX:Number, deltaY:Number,
+                                        vertexID:int=0, numVertices:int=1):void
         {
+            if (numVertices < 0 || vertexID + numVertices > _numVertices)
+                numVertices = _numVertices - vertexID;
+
             var x:Number, y:Number;
             var offset:int = attrName == "position" ? _posOffset : getAttribute(attrName).offset;
             var position:int = vertexID * _vertexSize + offset;
+            var endPosition:int = position + (numVertices * _vertexSize);
 
-            _rawData.position = position;
-            x = _rawData.readFloat();
-            y = _rawData.readFloat();
+            while (position < endPosition)
+            {
+                _rawData.position = position;
+                x = _rawData.readFloat();
+                y = _rawData.readFloat();
 
-            _rawData.position = position;
-            _rawData.writeFloat(x + deltaX);
-            _rawData.writeFloat(y + deltaY);
+                _rawData.position = position;
+                _rawData.writeFloat(x + deltaX);
+                _rawData.writeFloat(y + deltaY);
+
+                position += _vertexSize;
+            }
         }
 
         /** Returns the format of a certain vertex attribute, identified by its name.

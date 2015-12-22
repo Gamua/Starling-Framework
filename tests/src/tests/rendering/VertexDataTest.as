@@ -233,10 +233,9 @@ package tests.rendering
             var vd:VertexData = new VertexData("pos(float2)");
             vd.setPoint(0, "pos", 10, 20);
             vd.setPoint(1, "pos", 30, 40);
-            vd.translatePoint(0, "pos", 5, 6);
-            vd.translatePoint(1, "pos", 7, 8);
+            vd.translatePoints("pos", 5, 6, 0, -1);
             Helpers.comparePoints(new Point(15, 26), vd.getPoint(0, "pos"));
-            Helpers.comparePoints(new Point(37, 48), vd.getPoint(1, "pos"));
+            Helpers.comparePoints(new Point(35, 46), vd.getPoint(1, "pos"));
         }
 
         [Test]
