@@ -213,10 +213,7 @@ package tests.rendering
                 var vd:VertexData = new VertexData(STD_FORMAT);
                 vd.numVertices = 3;
                 vd.premultipliedAlpha = pma;
-
-                for (i=0; i<3; ++i)
-                    vd.setColorAndAlpha(i, "color", 0xffffff, 0.9);
-
+                vd.colorize("color", 0xffffff, 0.9);
                 vd.scaleAlphas("color", 0.9);
 
                 for (i=0; i<3; ++i)

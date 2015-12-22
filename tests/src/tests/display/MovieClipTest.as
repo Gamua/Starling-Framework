@@ -282,11 +282,6 @@ package tests.display
             
             function onMovieCompleted():void
             {
-                if (movie.texture == frames[2])
-                    trace("success");
-                else
-                    trace("error");
-
                 assertEquals(frames[2], movie.texture);
             }
         }
