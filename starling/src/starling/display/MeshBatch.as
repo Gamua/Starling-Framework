@@ -180,21 +180,7 @@ package starling.display
             var meshStyleType:Class = meshStyle.type;
 
             if (_style.type != meshStyleType)
-            {
-                if (_effect)
-                {
-                    _effect.dispose();
-                    _effect = null;
-                }
-
                 setStyle(new meshStyleType() as MeshStyle, false);
-            }
-
-            if (_effect == null)
-            {
-                _effect = _style.createEffect();
-                _effect.onRestore = setVertexAndIndexDataChanged;
-            }
 
             _style.copyFrom(meshStyle);
             this.blendMode = blendMode;
@@ -243,6 +229,19 @@ package starling.display
                 _style.updateEffect(_effect, painter.state);
                 _effect.render(0, _indexData.numTriangles);
             }
+        }
+
+        /** @inheritDoc */
+        override public function setStyle(meshStyle:MeshStyle=null,
+                                          mergeWithPredecessor:Boolean=true):void
+        {
+            super.setStyle(meshStyle, mergeWithPredecessor);
+
+            if (_effect)
+                _effect.dispose();
+
+            _effect = style.createEffect();
+            _effect.onRestore = setVertexAndIndexDataChanged;
         }
 
         /** The total number of vertices in the mesh. If you change this to a smaller value,

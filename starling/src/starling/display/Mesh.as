@@ -63,7 +63,7 @@ package starling.display
             _indexData = indexData;
             _pixelSnapping = true;
 
-            this.style = style ? style : new MeshStyle();
+            setStyle(style, false);
         }
 
         /** @inheritDoc */
@@ -139,17 +139,18 @@ package starling.display
          *  Do not use the same style instance on multiple objects! Instead, make use of
          *  <code>style.clone()</code> to assign an identical style to multiple meshes.</p>
          *
-         *  @param meshStyle             the style to assign.
+         *  @param meshStyle             the style to assign. If <code>null</code>, an instance of
+         *                               a standard <code>MeshStyle</code> will be created.
          *  @param mergeWithPredecessor  if enabled, all attributes of the previous style will be
          *                               be copied to the new one, if possible.
          */
-        public function setStyle(meshStyle:MeshStyle, mergeWithPredecessor:Boolean=true):void
+        public function setStyle(meshStyle:MeshStyle=null, mergeWithPredecessor:Boolean=true):void
         {
             if (meshStyle == null)
-                throw new ArgumentError("'meshStyle' must not be null");
+                meshStyle = new MeshStyle();
 
             if (meshStyle.target)
-                throw new ArgumentError("This style is already used on another mesh. " +
+                throw new ArgumentError("This style is already in use on another mesh. " +
                     "Call 'style.clone()' to use an identical style on multiple meshes.");
 
             if (_style)

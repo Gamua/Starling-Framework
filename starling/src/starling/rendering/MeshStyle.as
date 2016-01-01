@@ -83,8 +83,8 @@ package starling.rendering
         private var _target:Mesh;
         private var _texture:Texture;
         private var _textureSmoothing:String;
-        private var _vertexData:VertexData;
-        private var _indexData:IndexData;
+        private var _vertexData:VertexData;   // just a reference to the target's vertex data
+        private var _indexData:IndexData;     // just a reference to the target's index data
 
         // helper objects
         private static var sPoint:Point = new Point();
