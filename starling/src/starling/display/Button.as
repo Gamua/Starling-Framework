@@ -420,6 +420,10 @@ package starling.display
         public function get color():uint { return mBody.color; }
         public function set color(value:uint):void { mBody.color = value; }
 
+        /** The smoothing type used for the button's state image. */
+        public function get smoothing():String { return mBody.smoothing; }
+        public function set smoothing(value:String):void { mBody.smoothing = value; }
+
         /** The overlay sprite is displayed on top of the button contents. It scales with the
          *  button when pressed. Use it to add additional objects to the button (e.g. an icon). */
         public function get overlay():Sprite
