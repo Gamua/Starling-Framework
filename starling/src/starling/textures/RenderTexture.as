@@ -244,7 +244,7 @@ package starling.textures
             sClipRect.setTo(0, 0, _activeTexture.width, _activeTexture.height);
 
             state.clipRect = sClipRect;
-            state.setRenderTarget(_activeTexture, antiAliasing);
+            state.setRenderTarget(_activeTexture, true, antiAliasing);
             painter.prepareToDraw();
             
             if (isDoubleBuffered || !isPersistent || !_bufferReady)

@@ -66,7 +66,7 @@ package starling.rendering
         private var _alpha:Number;
         private var _blendMode:String;
         private var _renderTarget:Texture;
-        private var _renderTargetAntiAlias:int;
+        private var _renderTargetOptions:uint;
         private var _culling:String;
         private var _clipRect:Rectangle;
 
@@ -90,7 +90,7 @@ package starling.rendering
             _alpha = renderState._alpha;
             _blendMode = renderState._blendMode;
             _renderTarget = renderState._renderTarget;
-            _renderTargetAntiAlias = renderState._renderTargetAntiAlias;
+            _renderTargetOptions = renderState._renderTargetOptions;
             _culling = renderState._culling;
             _modelviewMatrix.copyFrom(renderState._modelviewMatrix);
             _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
@@ -109,7 +109,7 @@ package starling.rendering
             _alpha = 1.0;
             _blendMode = BlendMode.NORMAL;
             _renderTarget = null;
-            _renderTargetAntiAlias = 0;
+            _renderTargetOptions = 0;
             _culling = Context3DTriangleFace.NONE;
 
             if (_modelviewMatrix) _modelviewMatrix.identity();
@@ -233,14 +233,19 @@ package starling.rendering
         }
 
         /** Changes the the current render target.
-         *  @param target       Either a texture or <code>null</code> to render into the back buffer.
-         *  @param antiAlias    Only supported for textures, and only on Desktop.
-         *                      Values range from 0 (no anti-aliasing) to 4 (best quality).
+         *
+         *  @param target     Either a texture or <code>null</code> to render into the back buffer.
+         *  @param enableDepthAndStencil  Indicates if depth and stencil testing will be available.
+         *                    This parameter affects only texture targets.
+         *  @param antiAlias  The anti-aliasing quality (<code>0</code> meaning: no anti-aliasing).
+         *                    This parameter affects only texture targets. Note that at the time
+         *                    of this writing, AIR supports anti-aliasing only on Desktop.
          */
-        public function setRenderTarget(target:Texture, antiAlias:int=0):void
+        public function setRenderTarget(target:Texture, enableDepthAndStencil:Boolean=false,
+                                        antiAlias:int=0):void
         {
             _renderTarget = target;
-            _renderTargetAntiAlias = target ? antiAlias : 0; // only supported for textures
+            _renderTargetOptions = uint(enableDepthAndStencil) | antiAlias << 4;
         }
 
         // other properties
@@ -265,7 +270,8 @@ package starling.rendering
         }
 
         /** The texture that is currently being rendered into, or <code>null</code>
-         *  to render into the back buffer. */
+         *  to render into the back buffer. On assignment, calls <code>setRenderTarget</code>
+         *  with its default parameters. */
         public function get renderTarget():Texture { return _renderTarget; }
         public function set renderTarget(value:Texture):void { setRenderTarget(value); }
 
@@ -305,7 +311,17 @@ package starling.rendering
 
         /** The anti-alias setting used when setting the current render target
          *  via <code>setRenderTarget</code>. */
-        public function get renderTargetAntiAlias():int { return _renderTargetAntiAlias; }
+        public function get renderTargetAntiAlias():int
+        {
+            return _renderTargetOptions >> 4;
+        }
+
+        /** Indicates if the render target (set via <code>setRenderTarget</code>)
+         *  has its depth and stencil buffers enabled. */
+        public function get renderTargetSupportsDepthAndStencil():Boolean
+        {
+            return (_renderTargetOptions & 0xf) != 0;
+        }
 
         /** Indicates if there have been any 3D transformations.
          *  Returns <code>true</code> if the 3D modelview matrix contains a value. */

@@ -467,12 +467,15 @@ package starling.rendering
         private function applyRenderTarget():void
         {
             var target:TextureBase = _state.renderTargetBase;
-            var antiAlias:int  = _state.renderTargetAntiAlias;
 
             if (target != _actualRenderTarget)
             {
                 if (target)
-                    _context.setRenderToTexture(target, SystemUtil.supportsDepthAndStencil, antiAlias);
+                {
+                    var antiAlias:int  = _state.renderTargetAntiAlias;
+                    var depthAndStencil:Boolean = _state.renderTargetSupportsDepthAndStencil;
+                    _context.setRenderToTexture(target, depthAndStencil, antiAlias);
+                }
                 else
                     _context.setRenderToBackBuffer();
 
