@@ -32,10 +32,6 @@ package starling.textures
         private var _transformationMatrix:Matrix;
         private var _transformationMatrixToRoot:Matrix;
         
-        /** Helper object. */
-        private static var sTexCoords:Point = new Point();
-        private static var sMatrix:Matrix = new Matrix();
-        
         /** Creates a new SubTexture containing the specified region of a parent texture.
          *
          *  @param parent     The texture you want to create a SubTexture from.
