@@ -40,6 +40,8 @@ package starling.text
         public function fillMeshBatch(meshBatch:MeshBatch, width:Number, height:Number, text:String,
                                       format:TextFormat, options:TextOptions=null):void
         {
+            if (text == null || text == "") return;
+
             var texture:Texture;
             var textureFormat:String = options.textureFormat;
             var bitmapData:BitmapDataEx = renderText(width, height, text, format, options);
