@@ -221,6 +221,10 @@ package tests.rendering
             assertEquals(1, indexData.getIndex(0));
             assertEquals(0, indexData.getIndex(1));
             assertEquals(0, indexData.getIndex(2));
+
+            indexData.numIndices = 0;
+            assertEquals(0, indexData.numIndices);
+            assertTrue(indexData.useQuadLayout);
         }
 
         [Test]

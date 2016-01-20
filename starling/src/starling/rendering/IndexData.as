@@ -476,7 +476,9 @@ package starling.rendering
          *
          *  <p>If this instance contains only standardized, basic quad indices, resizing
          *  will automatically fill up with appropriate quad indices. Otherwise, it will fill
-         *  up with zeroes.</p> */
+         *  up with zeroes.</p>
+         *
+         *  <p>If you set the number of indices to zero, quad layout will be restored.</p> */
         public function get numIndices():int { return _numIndices; }
         public function set numIndices(value:int):void
         {
@@ -484,6 +486,7 @@ package starling.rendering
             {
                 if (_useQuadLayout) ensureQuadDataCapacity(value);
                 else _rawData.length = value * INDEX_SIZE;
+                if (value == 0) _useQuadLayout = true;
 
                 _numIndices = value;
             }
