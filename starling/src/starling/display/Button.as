@@ -21,6 +21,7 @@ package starling.display
     import starling.text.TextField;
     import starling.text.TextFormat;
     import starling.textures.Texture;
+    import starling.utils.RectangleUtil;
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
@@ -106,14 +107,23 @@ package starling.display
         
         /** Readjusts the dimensions of the button according to its current state texture.
          *  Call this method to synchronize button and texture size after assigning a texture
-         *  with a different size. Per default, this method also resets the bounds of the
-         *  button's text. */
-        public function readjustSize(resetTextBounds:Boolean=true):void
+         *  with a different size. */
+        public function readjustSize():void
         {
+            var prevWidth:Number = _body.width;
+            var prevHeight:Number = _body.height;
+
             _body.readjustSize();
 
-            if (resetTextBounds && _textField != null)
-                textBounds = new Rectangle(0, 0, _body.width, _body.height);
+            var scaleX:Number = _body.width  / prevWidth;
+            var scaleY:Number = _body.height / prevHeight;
+
+            _textBounds.x *= scaleX;
+            _textBounds.y *= scaleY;
+            _textBounds.width *= scaleX;
+            _textBounds.height *= scaleY;
+
+            if (_textField) createTextField();
         }
 
         private function createTextField():void
@@ -339,11 +349,13 @@ package starling.display
             }
         }
         
-        /** The bounds of the TextField on the button. Allows moving the text to a custom position. */
-        public function get textBounds():Rectangle { return _textBounds.clone(); }
+        /** The bounds of the button's TextField. Allows moving the text to a custom position.
+         *  CAUTION: not a copy, but the actual object! Text will only update on re-assignment.
+         */
+        public function get textBounds():Rectangle { return _textBounds; }
         public function set textBounds(value:Rectangle):void
         {
-            _textBounds = value.clone();
+            _textBounds.copyFrom(value);
             createTextField();
         }
         
@@ -371,5 +383,38 @@ package starling.display
          *  @default true */
         public override function get useHandCursor():Boolean { return _useHandCursor; }
         public override function set useHandCursor(value:Boolean):void { _useHandCursor = value; }
+
+        /** @private */
+        override public function set width(value:Number):void
+        {
+            var scaleX:Number = value / _body.width;
+
+            _body.width = value;
+            _textBounds.x *= scaleX;
+            _textBounds.width *= scaleX;
+
+            if (_textField) _textField.width = value;
+        }
+
+        override public function set height(value:Number):void
+        {
+            var scaleY:Number = value / _body.height;
+
+            _body.height = value;
+            _textBounds.y *= scaleY;
+            _textBounds.height *= scaleY;
+
+            if (_textField) _textField.height = value;
+        }
+
+        /** The current scaling grid used for the button's state image. Use this property to create
+         *  buttons that resize in a smart way, i.e. with the four corners keeping the same size
+         *  and only stretching the center area.
+         *
+         *  @see Image#scale9Grid
+         *  @default null
+         */
+        public function get scale9Grid():Rectangle { return _body.scale9Grid; }
+        public function set scale9Grid(value:Rectangle):void { _body.scale9Grid = value; }
     }
 }
