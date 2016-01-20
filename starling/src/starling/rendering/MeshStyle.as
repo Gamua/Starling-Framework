@@ -300,13 +300,16 @@ package starling.rendering
         {
             if (value != _texture)
             {
-                var i:int;
-                var numVertices:int = _vertexData ? _vertexData.numVertices : 0;
-
-                for (i = 0; i < numVertices; ++i)
+                if (value)
                 {
-                    getTexCoords(i, sPoint);
-                    if (value) value.setTexCoords(_vertexData, i, "texCoords", sPoint.x, sPoint.y);
+                    var i:int;
+                    var numVertices:int = _vertexData ? _vertexData.numVertices : 0;
+
+                    for (i = 0; i < numVertices; ++i)
+                    {
+                        getTexCoords(i, sPoint);
+                        value.setTexCoords(_vertexData, i, "texCoords", sPoint.x, sPoint.y);
+                    }
                 }
 
                 _texture = value;
