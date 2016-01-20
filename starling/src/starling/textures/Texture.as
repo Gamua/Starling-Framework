@@ -453,7 +453,7 @@ package starling.textures
         {
             var texture:Texture = Texture.empty(width, height, true, false,
                                                 optimizeForRenderToTexture, scale, format);
-            texture.root.clear(color, Color.getAlpha(color) / 255.0);
+            texture.root.clear(color, alpha);
             texture.root.onRestore = function():void
             {
                 texture.root.clear(color, alpha);
