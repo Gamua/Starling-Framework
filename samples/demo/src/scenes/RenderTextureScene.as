@@ -13,6 +13,8 @@ package scenes
     import starling.text.TextField;
     import starling.textures.RenderTexture;
 
+    import utils.MenuButton;
+
     public class RenderTextureScene extends Scene
     {
         private var _renderTexture:RenderTexture;
@@ -41,7 +43,7 @@ package scenes
             infoText.y = Constants.CenterY - infoText.height / 2;
             _renderTexture.draw(infoText);
             
-            _button = new Button(Game.assets.getTexture("button_normal"), "Mode: Draw");
+            _button = new MenuButton("Mode: Draw");
             _button.x = int(Constants.CenterX - _button.width / 2);
             _button.y = 15;
             _button.addEventListener(Event.TRIGGERED, onButtonTriggered);

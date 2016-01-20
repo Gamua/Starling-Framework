@@ -6,6 +6,8 @@ package scenes
     import starling.events.Event;
     import starling.text.TextField;
 
+    import utils.MenuButton;
+
     public class BlendModeScene extends Scene
     {
         private var _button:Button;
@@ -23,7 +25,7 @@ package scenes
         
         public function BlendModeScene()
         {
-            _button = new Button(Game.assets.getTexture("button_normal"), "Switch Mode");
+            _button = new MenuButton("Switch Mode");
             _button.x = int(Constants.CenterX - _button.width / 2);
             _button.y = 15;
             _button.addEventListener(Event.TRIGGERED, onButtonTriggered);

@@ -13,6 +13,8 @@ package scenes
     import starling.textures.Texture;
     import starling.utils.StringUtil;
 
+    import utils.MenuButton;
+
     public class BenchmarkScene extends Scene
     {
         private static const FRAME_TIME_WINDOW_SIZE:int = 10;
@@ -45,12 +47,12 @@ package scenes
             addChildAt(_container, 0);
 
             _statusText = new TextField(Constants.GameWidth - 40, 30);
-            _statusText.format = new TextFormat(BitmapFont.MINI, BitmapFont.NATIVE_SIZE * 2)
+            _statusText.format = new TextFormat(BitmapFont.MINI, BitmapFont.NATIVE_SIZE * 2);
             _statusText.x = 20;
             _statusText.y = 10;
             addChild(_statusText);
 
-            _startButton = new Button(Game.assets.getTexture("button_normal"), "Start benchmark");
+            _startButton = new MenuButton("Start benchmark", 140);
             _startButton.addEventListener(Event.TRIGGERED, onStartButtonTriggered);
             _startButton.x = Constants.CenterX - int(_startButton.width / 2);
             _startButton.y = 20;

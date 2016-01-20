@@ -13,6 +13,8 @@ package scenes
     import starling.text.TextField;
     import starling.textures.Texture;
 
+    import utils.MenuButton;
+
     public class FilterScene extends Scene
     {
         private var _button:Button;
@@ -22,7 +24,7 @@ package scenes
         
         public function FilterScene()
         {
-            _button = new Button(Game.assets.getTexture("button_normal"), "Switch Filter");
+            _button = new MenuButton("Switch Filter");
             _button.x = int(Constants.CenterX - _button.width / 2);
             _button.y = 15;
             _button.addEventListener(Event.TRIGGERED, onButtonTriggered);

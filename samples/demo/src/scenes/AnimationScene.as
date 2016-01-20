@@ -7,9 +7,10 @@ package scenes
     import starling.display.Image;
     import starling.events.Event;
     import starling.text.TextField;
-    import starling.textures.Texture;
     import starling.utils.Color;
     import starling.utils.deg2rad;
+
+    import utils.MenuButton;
 
     public class AnimationScene extends Scene
     {
@@ -25,17 +26,15 @@ package scenes
                             Transitions.EASE_OUT_BACK, Transitions.EASE_OUT_BOUNCE,
                             Transitions.EASE_OUT_ELASTIC];
             
-            var buttonTexture:Texture = Game.assets.getTexture("button_normal");
-            
             // create a button that starts the tween
-            _startButton = new Button(buttonTexture, "Start animation");
+            _startButton = new MenuButton("Start animation");
             _startButton.addEventListener(Event.TRIGGERED, onStartButtonTriggered);
             _startButton.x = Constants.CenterX - int(_startButton.width / 2);
             _startButton.y = 20;
             addChild(_startButton);
             
             // this button will show you how to call a method with a delay
-            _delayButton = new Button(buttonTexture, "Delayed call");
+            _delayButton = new MenuButton("Delayed call");
             _delayButton.addEventListener(Event.TRIGGERED, onDelayButtonTriggered);
             _delayButton.x = _startButton.x;
             _delayButton.y = _startButton.y + 40;
