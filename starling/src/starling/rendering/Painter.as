@@ -239,7 +239,7 @@ package starling.rendering
          *
          *  <p>Note that any call to <code>drawTriangles</code> will use the currently set state.
          *  That means that if you're going to change clipping rectangle, render target or culling,
-         *  you should call <code>finishQuadBatch</code> before pushing the new state, so that
+         *  you should call <code>finishMeshBatch</code> before pushing the new state, so that
          *  all batched objects are drawn with the intended settings.</p>
          *
          *  <p>If you pass a BatchToken, it will be updated to point to the current location within
@@ -273,7 +273,12 @@ package starling.rendering
 
         /** Restores the render state that was last pushed to the stack. If this changes
          *  clipping rectangle, render target or culling, the current batch will be drawn
-         *  right away. */
+         *  right away.
+         *
+         *  <p>If you pass a BatchToken, it will be updated to point to the current location within
+         *  the render cache. That way, you can later reference this location to render a subset of
+         *  the cache.</p>
+         */
         public function popState(token:BatchToken=null):void
         {
             if (_stateStackPos < 0)
