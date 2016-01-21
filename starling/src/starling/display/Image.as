@@ -247,7 +247,7 @@ package starling.display
 
             sVertSizes[0] = (_scale9Grid.y - paddingTop) / texture.height;
             sVertSizes[1] =  _scale9Grid.height / texture.height;
-            sVertSizes[2] = 1.0 - sHorizSizes[0] - sHorizSizes[1];
+            sVertSizes[2] = 1.0 - sVertSizes[0] - sVertSizes[1];
 
             var u:Number, v:Number = 0.0;
             var attrName:String = "texCoords";
