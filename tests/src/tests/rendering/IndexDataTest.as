@@ -372,6 +372,8 @@ package tests.rendering
         public function testSetIsBasicQuadData():void
         {
             var indexData:IndexData = new IndexData();
+
+            indexData.rawData.length = 0; // *hack* to force empty basic quad data array
             indexData.numIndices = 6;
             assertTrue(indexData.useQuadLayout);
             assertEquals(1, indexData.getIndex(3));
@@ -381,6 +383,13 @@ package tests.rendering
 
             indexData.useQuadLayout = true;
             assertEquals(1, indexData.getIndex(3));
+
+            // basic quad data must be sized correctly
+            indexData.useQuadLayout = false;
+            indexData.numIndices = 12;
+            indexData.useQuadLayout = true;
+            indexData.useQuadLayout = false;
+            assertEquals(6, indexData.getIndex(11));
         }
     }
 }

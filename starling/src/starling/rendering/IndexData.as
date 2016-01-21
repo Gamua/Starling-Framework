@@ -527,6 +527,7 @@ package starling.rendering
             {
                 if (value)
                 {
+                    ensureQuadDataCapacity(_numIndices);
                     _rawData.length = 0;
                     _useQuadLayout = true;
                 }
