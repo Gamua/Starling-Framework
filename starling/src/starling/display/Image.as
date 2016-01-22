@@ -124,10 +124,13 @@ package starling.display
         /** @private */
         override public function set texture(value:Texture):void
         {
-            super.texture = value;
+            if (value != texture)
+            {
+                super.texture = value;
 
-            if (_scale9Grid && texture)
-                readjustSize();
+                if (_scale9Grid && value)
+                    readjustSize();
+            }
         }
 
         // scale9 vertex setup

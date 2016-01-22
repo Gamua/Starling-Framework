@@ -202,10 +202,11 @@ package starling.display
          */
         override public function set texture(value:Texture):void
         {
-            if (value == texture) return;
-
-            super.texture = value;
-            setupVertexPositions();
+            if (value != texture)
+            {
+                super.texture = value;
+                setupVertexPositions();
+            }
         }
     }
 }
