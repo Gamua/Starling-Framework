@@ -79,14 +79,15 @@ package starling.rendering
      *  before saving them. You can change this behavior with the <code>premultipliedAlpha</code>
      *  property.</p>
      *
+     *  <p>Beware: with premultiplied alpha, the alpha value always effects the resolution of
+     *  the RGB channels. A small alpha value results in a lower accuracy of the other channels,
+     *  and if the alpha value reaches zero, the color information is lost altogether.</p>
+     *
      *  @see VertexDataFormat
      *  @see IndexData
      */
     public class VertexData
     {
-        private static const MIN_ALPHA_PMA:Number = 5.0 / 255.0;
-        private static const MIN_ALPHA:Number = 0.0;
-
         private var _rawData:ByteArray;
         private var _numVertices:int;
         private var _format:VertexDataFormat;
@@ -745,16 +746,15 @@ package starling.rendering
                 alphaPos = colorPos + 3;
                 alpha = _rawData[alphaPos] / 255.0 * factor;
 
-                if (alpha  > 1.0) alpha = 1.0;
+                if (alpha > 1.0)      alpha = 1.0;
+                else if (alpha < 0.0) alpha = 0.0;
+
                 if (alpha == 1.0 || !_premultipliedAlpha)
                 {
-                    if (alpha < MIN_ALPHA) alpha = MIN_ALPHA;
                     _rawData[alphaPos] = int(alpha * 255.0);
                 }
                 else
                 {
-                    if (alpha < MIN_ALPHA_PMA) alpha = MIN_ALPHA_PMA;
-
                     _rawData.position = colorPos;
                     rgba = unmultiplyAlpha(switchEndian(_rawData.readUnsignedInt()));
                     rgba = (rgba & 0xffffff00) | (int(alpha * 255.0) & 0xff);
@@ -778,10 +778,9 @@ package starling.rendering
             var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
             var position:int = vertexID * _vertexSize + offset;
             var endPosition:int = position + (numVertices * _vertexSize);
-            var minAlpha:Number = _premultipliedAlpha ? MIN_ALPHA_PMA : MIN_ALPHA;
 
-            if (alpha < minAlpha) alpha = minAlpha;
-            else if (alpha > 1.0) alpha = 1.0;
+            if (alpha > 1.0)      alpha = 1.0;
+            else if (alpha < 0.0) alpha = 0.0;
 
             var rgba:uint = ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff);
             if (_premultipliedAlpha && alpha != 1.0) rgba = premultiplyAlpha(rgba);
