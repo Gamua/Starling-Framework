@@ -29,7 +29,6 @@ package starling.rendering
         private var _cacheToken:BatchToken;
 
         // helper objects
-        private static var sCacheToken:BatchToken = new BatchToken();
         private static var sMeshSubset:MeshSubset = new MeshSubset();
 
         /** Creates a new batch processor. */
@@ -147,11 +146,7 @@ package starling.rendering
             return token;
         }
 
-        /** Adds the meshes from the given BatchProcessor to this instance. The given tokens
-         *  act as both input and output: when passed to the method, they need to describe the
-         *  range of vertices and indices to be copied from the given batch processor; when the
-         *  method returns, they will contain the range of the same meshes in the current
-         *  batch processor.
+        /** Adds the meshes from the given BatchProcessor to this instance.
          *
          *  @param batchProcessor  the object the meshes should be taken from.
          *  @param startToken      the position of the first vertex / index to be copied.
@@ -162,8 +157,6 @@ package starling.rendering
         {
             var meshBatch:MeshBatch;
             var subset:MeshSubset = sMeshSubset;
-
-            fillToken(sCacheToken);
 
             if (!startToken.equals(endToken))
             {
@@ -190,9 +183,6 @@ package starling.rendering
                         addMesh(meshBatch, null, 1.0, null, subset, true);
                 }
             }
-
-            fillToken(endToken);
-            startToken.copyFrom(sCacheToken);
         }
 
         /** This callback is executed whenever a batch is finished and replaced by a new one.

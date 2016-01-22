@@ -19,6 +19,7 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
+    import starling.rendering.BatchToken;
     import starling.rendering.Painter;
     import starling.utils.MatrixUtil;
 
@@ -68,11 +69,12 @@ package starling.display
         private var _children:Vector.<DisplayObject>;
         private var _touchGroup:Boolean;
         
-        /** Helper objects. */
+        // helper objects
         private static var sHelperMatrix:Matrix = new Matrix();
         private static var sHelperPoint:Point = new Point();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
+        private static var sCacheToken:BatchToken = new BatchToken();
         
         // construction
         
@@ -362,7 +364,11 @@ package starling.display
                     if (child._lastParentOrSelfChangeFrameID != frameID &&
                         child._lastChildChangeFrameID != frameID)
                     {
+                        painter.pushState(sCacheToken);
                         painter.drawFromCache(child._pushToken, child._popToken);
+                        painter.popState(child._popToken);
+
+                        child._pushToken.copyFrom(sCacheToken);
                     }
                     else
                     {
