@@ -156,6 +156,7 @@ package starling.display
 
         /** @private */ internal var _lastParentOrSelfChangeFrameID:uint;
         /** @private */ internal var _lastChildChangeFrameID:uint;
+        /** @private */ internal var _tokenFrameID:uint;
         /** @private */ internal var _pushToken:BatchToken = new BatchToken();
         /** @private */ internal var _popToken:BatchToken = new BatchToken();
         /** @private */ internal var _hasVisibleArea:Boolean;

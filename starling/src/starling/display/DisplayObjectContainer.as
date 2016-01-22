@@ -362,7 +362,8 @@ package starling.display
                         child._lastParentOrSelfChangeFrameID = frameID;
 
                     if (child._lastParentOrSelfChangeFrameID != frameID &&
-                        child._lastChildChangeFrameID != frameID)
+                        child._lastChildChangeFrameID != frameID &&
+                        child._tokenFrameID == frameID - 1)
                     {
                         painter.pushState(sCacheToken);
                         painter.drawFromCache(child._pushToken, child._popToken);
@@ -387,6 +388,8 @@ package starling.display
 
                         painter.popState(child._popToken);
                     }
+
+                    child._tokenFrameID = frameID;
                 }
             }
         }
