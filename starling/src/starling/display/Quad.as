@@ -71,17 +71,15 @@ package starling.display
             if (width == 0.0 || height == 0.0)
                 throw new ArgumentError("Invalid size: width and height must not be zero");
 
-            setupVertexPositions();
-            setupTextureCoordinates();
-
+            setupVertices();
             this.color = color;
         }
 
-        /** Sets up the vertex positions according to the current area.
-         *  Also changes the number of vertices and indices to the required values. */
-        protected function setupVertexPositions():void
+        /** Sets up vertex- and index-data according to the current settings. */
+        protected function setupVertices():void
         {
-            var attrName:String = "position";
+            var posAttr:String = "position";
+            var texAttr:String = "texCoords";
             var texture:Texture = style.texture;
             var vertexData:VertexData = this.vertexData;
             var indexData:IndexData = this.indexData;
@@ -90,33 +88,22 @@ package starling.display
             indexData.appendQuad(0, 1, 2, 3);
             vertexData.numVertices = 4;
 
-            if (texture) texture.setupVertexPositions(vertexData, 0, "position", _bounds);
-            else
+            if (texture)
             {
-                vertexData.setPoint(0, attrName, _bounds.left,  _bounds.top);
-                vertexData.setPoint(1, attrName, _bounds.right, _bounds.top);
-                vertexData.setPoint(2, attrName, _bounds.left,  _bounds.bottom);
-                vertexData.setPoint(3, attrName, _bounds.right, _bounds.bottom);
+                texture.setupVertexPositions(vertexData, 0, "position", _bounds);
+                texture.setupTextureCoordinates(vertexData, 0, texAttr);
             }
-
-            setRequiresRedraw();
-        }
-
-        /** Sets up the default texture coordinates according to the current texture.
-         *  If there is no texture, assigns the standard 0-1 values. */
-        protected function setupTextureCoordinates():void
-        {
-            var attrName:String = "texCoords";
-            var texture:Texture = style.texture;
-            var vertexData:VertexData = this.vertexData;
-
-            if (texture) texture.setupTextureCoordinates(vertexData);
             else
             {
-                vertexData.setPoint(0, attrName, 0.0, 0.0);
-                vertexData.setPoint(1, attrName, 1.0, 0.0);
-                vertexData.setPoint(2, attrName, 0.0, 1.0);
-                vertexData.setPoint(3, attrName, 1.0, 1.0);
+                vertexData.setPoint(0, posAttr, _bounds.left,  _bounds.top);
+                vertexData.setPoint(1, posAttr, _bounds.right, _bounds.top);
+                vertexData.setPoint(2, posAttr, _bounds.left,  _bounds.bottom);
+                vertexData.setPoint(3, posAttr, _bounds.right, _bounds.bottom);
+
+                vertexData.setPoint(0, texAttr, 0.0, 0.0);
+                vertexData.setPoint(1, texAttr, 1.0, 0.0);
+                vertexData.setPoint(2, texAttr, 0.0, 1.0);
+                vertexData.setPoint(3, texAttr, 1.0, 1.0);
             }
 
             setRequiresRedraw();
@@ -126,7 +113,7 @@ package starling.display
         public override function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
             if (out == null) out = new Rectangle();
-            
+
             if (targetSpace == this) // optimization
             {
                 out.copyFrom(_bounds);
@@ -172,7 +159,7 @@ package starling.display
             if (texture)
             {
                 _bounds.setTo(0, 0, texture.frameWidth, texture.frameHeight);
-                setupVertexPositions();
+                setupVertices();
             }
         }
 
@@ -205,7 +192,7 @@ package starling.display
             if (value != texture)
             {
                 super.texture = value;
-                setupVertexPositions();
+                setupVertices();
             }
         }
     }
