@@ -85,7 +85,7 @@ package starling.display
             var indexData:IndexData = this.indexData;
 
             indexData.numIndices = 0;
-            indexData.appendQuad(0, 1, 2, 3);
+            indexData.addQuad(0, 1, 2, 3);
             vertexData.numVertices = 4;
 
             if (texture)

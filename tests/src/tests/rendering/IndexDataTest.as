@@ -32,7 +32,7 @@ package tests.rendering
         public function testClear():void
         {
             var indexData:IndexData = new IndexData();
-            indexData.appendTriangle(1, 2, 4);
+            indexData.addTriangle(1, 2, 4);
             indexData.clear();
 
             assertEquals(0, indexData.numIndices);
@@ -88,8 +88,8 @@ package tests.rendering
 
             // basic quad data
 
-            indexData.appendTriangle(0, 1, 2);
-            indexData.appendTriangle(1, 3, 2);
+            indexData.addTriangle(0, 1, 2);
+            indexData.addTriangle(1, 3, 2);
 
             assertTrue(indexData.useQuadLayout);
             assertEquals(1, indexData.numQuads);
@@ -109,7 +109,7 @@ package tests.rendering
 
             // arbitrary data
 
-            indexData.appendTriangle(1, 3, 2);
+            indexData.addTriangle(1, 3, 2);
             assertFalse(indexData.useQuadLayout);
             assertEquals(1, indexData.numTriangles);
             assertEquals(3, indexData.numIndices);
@@ -126,8 +126,8 @@ package tests.rendering
 
             // basic quad data
 
-            indexData.appendQuad(0, 1, 2, 3);
-            indexData.appendQuad(4, 5, 6, 7);
+            indexData.addQuad(0, 1, 2, 3);
+            indexData.addQuad(4, 5, 6, 7);
 
             assertTrue(indexData.useQuadLayout);
             assertEquals(2, indexData.numQuads);
@@ -153,7 +153,7 @@ package tests.rendering
 
             // arbitrary data
 
-            indexData.appendQuad(0, 1, 3, 2);
+            indexData.addQuad(0, 1, 3, 2);
             assertFalse(indexData.useQuadLayout);
             assertEquals(1, indexData.numQuads);
             assertEquals(2, indexData.numTriangles);
@@ -176,8 +176,8 @@ package tests.rendering
             // with basic quad data
 
             indexData = new IndexData();
-            indexData.appendTriangle(1, 2, 3);
-            indexData.appendTriangle(4, 5, 6);
+            indexData.addTriangle(1, 2, 3);
+            indexData.addTriangle(4, 5, 6);
 
             clone = indexData.clone();
             assertEquals(2, clone.numTriangles);
@@ -188,8 +188,8 @@ package tests.rendering
             // with arbitrary data
 
             indexData = new IndexData();
-            indexData.appendTriangle(0, 1, 2);
-            indexData.appendTriangle(1, 3, 2);
+            indexData.addTriangle(0, 1, 2);
+            indexData.addTriangle(1, 3, 2);
 
             clone = indexData.clone();
             assertEquals(2, clone.numTriangles);
@@ -233,11 +233,11 @@ package tests.rendering
             // arbitrary data -> arbitrary data
 
             var source:IndexData = new IndexData();
-            source.appendTriangle(1, 2, 3);
-            source.appendTriangle(4, 5, 6);
+            source.addTriangle(1, 2, 3);
+            source.addTriangle(4, 5, 6);
 
             var target:IndexData = new IndexData();
-            target.appendTriangle(7, 8, 9);
+            target.addTriangle(7, 8, 9);
             source.copyTo(target, 0, 0, 3, 3);
 
             assertEquals(3, target.numIndices);
@@ -253,8 +253,8 @@ package tests.rendering
             source.clear();
             target.clear();
 
-            source.appendTriangle(0, 1, 2);
-            target.appendQuad(0, 1, 2, 3);
+            source.addTriangle(0, 1, 2);
+            target.addQuad(0, 1, 2, 3);
             source.copyTo(target, 6, 4);
 
             assertTrue(target.useQuadLayout);
@@ -267,7 +267,7 @@ package tests.rendering
             // quad data -> arbitrary data
 
             target.clear();
-            target.appendQuad(1, 2, 3, 4);
+            target.addQuad(1, 2, 3, 4);
             source.copyTo(target, 6, 4);
 
             assertTrue(source.useQuadLayout);
@@ -281,9 +281,9 @@ package tests.rendering
             // arbitrary data -> quad data
 
             source.clear();
-            source.appendTriangle(1, 2, 3);
+            source.addTriangle(1, 2, 3);
             target.clear();
-            target.appendQuad(0, 1, 2, 3);
+            target.addQuad(0, 1, 2, 3);
             source.copyTo(target, 6, 4);
 
             assertFalse(source.useQuadLayout);
@@ -328,11 +328,11 @@ package tests.rendering
         public function testCopyToWithOffset():void
         {
             var source:IndexData = new IndexData();
-            source.appendTriangle(1, 2, 3);
-            source.appendTriangle(4, 5, 6);
+            source.addTriangle(1, 2, 3);
+            source.addTriangle(4, 5, 6);
 
             var target:IndexData = new IndexData();
-            target.appendTriangle(7, 8, 9);
+            target.addTriangle(7, 8, 9);
             source.copyTo(target, 1, 10, 3, 3);
 
             assertEquals(4, target.numIndices);
@@ -346,8 +346,8 @@ package tests.rendering
         public function testOffsetIndices():void
         {
             var indexData:IndexData = new IndexData();
-            indexData.appendTriangle(1, 2, 3);
-            indexData.appendTriangle(4, 5, 6);
+            indexData.addTriangle(1, 2, 3);
+            indexData.addTriangle(4, 5, 6);
 
             indexData.offsetIndices(10, 1, 3);
             assertEquals( 1, indexData.getIndex(0));
@@ -361,8 +361,8 @@ package tests.rendering
         public function testToVector():void
         {
             var source:IndexData = new IndexData();
-            source.appendTriangle(1, 2, 3);
-            source.appendTriangle(4, 5, 6);
+            source.addTriangle(1, 2, 3);
+            source.addTriangle(4, 5, 6);
 
             var expected:Vector.<uint> = new <uint>[1, 2, 3, 4, 5, 6];
             Helpers.compareVectorsOfUints(source.toVector(), expected);

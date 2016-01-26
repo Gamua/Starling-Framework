@@ -38,7 +38,7 @@ package tests.display
             vertexData.setPoint(2, "position", 10, 20);
 
             var indexData:IndexData = new IndexData();
-            indexData.appendTriangle(0, 1, 2);
+            indexData.addTriangle(0, 1, 2);
 
             var mesh:Mesh = new Mesh(vertexData, indexData);
             var expected:Rectangle = new Rectangle(10, 10, 10, 10);
@@ -57,7 +57,7 @@ package tests.display
             vertexData.numVertices = 3;
 
             var indexData:IndexData = new IndexData();
-            indexData.appendTriangle(0, 1, 2);
+            indexData.addTriangle(0, 1, 2);
 
             var mesh:Mesh = new Mesh(vertexData, indexData);
             mesh.setVertexColor(0, 0xff0000);
@@ -81,7 +81,7 @@ package tests.display
             vertexData.numVertices = 3;
 
             var indexData:IndexData = new IndexData();
-            indexData.appendTriangle(0, 1, 2);
+            indexData.addTriangle(0, 1, 2);
 
             var mesh:Mesh = new Mesh(vertexData, indexData);
             mesh.setVertexAlpha(0, 0.2);
@@ -111,7 +111,7 @@ package tests.display
             vertexData.setPoint(3, "texCoords", 1, 1);
 
             var indexData:IndexData = new IndexData();
-            indexData.appendQuad(0, 1, 2, 3);
+            indexData.addQuad(0, 1, 2, 3);
 
             var mesh:Mesh = new Mesh(vertexData, indexData);
 
@@ -160,8 +160,8 @@ package tests.display
             vertexData.setPoint(4, "position", 1, 2);
 
             var indexData:IndexData = new IndexData(6);
-            indexData.appendTriangle(0, 2, 1);
-            indexData.appendTriangle(2, 3, 4);
+            indexData.addTriangle(0, 2, 1);
+            indexData.addTriangle(2, 3, 4);
 
             var mesh:Mesh = new Mesh(vertexData, indexData);
             assertNull(mesh.hitTest(new Point(0.49, 0.49)));

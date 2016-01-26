@@ -273,7 +273,7 @@ package starling.rendering
 
         /** Appends three indices representing a triangle. Reference the vertices clockwise,
          *  as this defines the front side of the triangle. */
-        public function appendTriangle(a:uint, b:uint, c:uint):void
+        public function addTriangle(a:uint, b:uint, c:uint):void
         {
             if (_useQuadLayout)
             {
@@ -313,7 +313,7 @@ package starling.rendering
          *  <p>To make sure the indices will follow the basic quad layout, make sure each
          *  parameter increments the one before it (e.g. <code>0, 1, 2, 3</code>).</p>
          */
-        public function appendQuad(a:uint, b:uint, c:uint, d:uint):void
+        public function addQuad(a:uint, b:uint, c:uint, d:uint):void
         {
             if (_useQuadLayout)
             {

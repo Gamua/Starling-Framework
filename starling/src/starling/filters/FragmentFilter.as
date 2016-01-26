@@ -140,7 +140,7 @@ package starling.filters
             _vertexData.setPoint(3, "texCoords", 1, 1);
             
             _indexData = new IndexData(6);
-            _indexData.appendQuad(0, 1, 2, 3);
+            _indexData.addQuad(0, 1, 2, 3);
 
             if (Starling.current.contextValid)
                 createPrograms();

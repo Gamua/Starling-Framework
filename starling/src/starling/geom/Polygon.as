@@ -223,7 +223,7 @@ package starling.geom
 
                 if (earFound)
                 {
-                    indexData.appendTriangle(i0 + offset, i1 + offset, i2 + offset);
+                    indexData.addTriangle(i0 + offset, i1 + offset, i2 + offset);
                     sRestIndices.removeAt((restIndexPos + 1) % numRestIndices);
 
                     numRestIndices--;
@@ -241,7 +241,7 @@ package starling.geom
             Pool.putPoint(c);
             Pool.putPoint(p);
 
-            indexData.appendTriangle(sRestIndices[0] + offset,
+            indexData.addTriangle(sRestIndices[0] + offset,
                                      sRestIndices[1] + offset,
                                      sRestIndices[2] + offset);
             return indexData;
@@ -531,7 +531,7 @@ class Ellipse extends ImmutablePolygon
         var to:uint = numVertices - 1;
 
         for (var i:int=from; i<to; ++i)
-            indexData.appendTriangle(offset, offset + i, offset + i + 1);
+            indexData.addTriangle(offset, offset + i, offset + i + 1);
 
         return indexData;
     }
@@ -584,8 +584,8 @@ class Rectangle extends ImmutablePolygon
     {
         if (indexData == null) indexData = new IndexData(6);
 
-        indexData.appendTriangle(offset,     offset + 1, offset + 3);
-        indexData.appendTriangle(offset + 1, offset + 2, offset + 3);
+        indexData.addTriangle(offset,     offset + 1, offset + 3);
+        indexData.addTriangle(offset + 1, offset + 2, offset + 3);
 
         return indexData;
     }

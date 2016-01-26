@@ -277,15 +277,15 @@ package starling.display
 
             // update indices
 
-            indexData.appendQuad(0, 1, 4, 5);
-            indexData.appendQuad(1, 2, 5, 6);
-            indexData.appendQuad(2, 3, 6, 7);
-            indexData.appendQuad(4, 5, 8, 9);
-            indexData.appendQuad(5, 6, 9, 10);
-            indexData.appendQuad(6, 7, 10, 11);
-            indexData.appendQuad(8, 9, 12, 13);
-            indexData.appendQuad(9, 10, 13, 14);
-            indexData.appendQuad(10, 11, 14, 15);
+            indexData.addQuad(0, 1, 4, 5);
+            indexData.addQuad(1, 2, 5, 6);
+            indexData.addQuad(2, 3, 6, 7);
+            indexData.addQuad(4, 5, 8, 9);
+            indexData.addQuad(5, 6, 9, 10);
+            indexData.addQuad(6, 7, 10, 11);
+            indexData.addQuad(8, 9, 12, 13);
+            indexData.addQuad(9, 10, 13, 14);
+            indexData.addQuad(10, 11, 14, 15);
 
             // if we just switched from a normal to a scale9 image, all vertices are colorized
             // just like the first one; we also trim the data instances to optimize memory usage.
@@ -356,7 +356,7 @@ package starling.display
 
                 while (currentX < bounds.width)
                 {
-                    indexData.appendQuad(vertexID, vertexID + 1, vertexID + 2, vertexID + 3);
+                    indexData.addQuad(vertexID, vertexID + 1, vertexID + 2, vertexID + 3);
 
                     posLeft   = currentX < 0 ? 0 : currentX;
                     posTop    = currentY < 0 ? 0 : currentY;
