@@ -12,13 +12,10 @@ package starling.events
 {
     import flash.geom.Point;
 
-    import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.utils.StringUtil;
 
-    use namespace starling_internal;
-
-    /** A Touch object contains information about the presence or movement of a finger 
+    /** A Touch object contains information about the presence or movement of a finger
      *  or the mouse on the screen.
      *  
      *  <p>You receive objects of this type from a TouchEvent. When such an event is triggered,
