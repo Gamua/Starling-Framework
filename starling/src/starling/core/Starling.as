@@ -587,7 +587,8 @@ package starling.core
                                              wantsBestResolution:Boolean=false):void
         {
             enableDepthAndStencil &&= SystemUtil.supportsDepthAndStencil;
-
+			width = (width < 32) ? 32 : width;
+			height = (height < 32) ? 32 : height;
             var configureBackBuffer:Function = mContext.configureBackBuffer;
             var methodArgs:Array = [width, height, antiAlias, enableDepthAndStencil];
             if (configureBackBuffer.length > 4) methodArgs.push(wantsBestResolution);
