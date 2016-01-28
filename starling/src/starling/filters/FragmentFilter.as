@@ -236,10 +236,6 @@ package starling.filters
             painter.pushState();
             state.clipRect = boundsPot;
 
-            if (state.renderTarget && !SystemUtil.supportsRelaxedTargetClearRequirement)
-                throw new IllegalOperationError(
-                    "To nest filters, you need at least Flash Player / AIR version 15.");
-            
             if (intoCache)
                 cacheTexture = Texture.empty(boundsPot.width, boundsPot.height, PMA, false, true,
                                              _resolution * scale);

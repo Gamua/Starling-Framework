@@ -137,14 +137,6 @@ package starling.utils
             return sVersion;
         }
 
-        /** Prior to Flash/AIR 15, there was a restriction that the clear function must be
-         *  called on a render target before drawing. This requirement was removed subsequently,
-         *  and this property indicates if that's the case in the current runtime. */
-        public static function get supportsRelaxedTargetClearRequirement():Boolean
-        {
-            return parseInt(/\d+/.exec(sVersion)[0]) >= 15;
-        }
-
         /** Returns the value of the 'initialWindow.depthAndStencil' node of the application
          *  descriptor, if this in an AIR app; otherwise always <code>true</code>. */
         public static function get supportsDepthAndStencil():Boolean

@@ -70,9 +70,6 @@ package starling.textures
      */
     public class RenderTexture extends SubTexture
     {
-        private static const CONTEXT_POT_SUPPORT_KEY:String = "RenderTexture.supportsNonPotDimensions";
-        private static const PMA:Boolean = true;
-        
         private var _activeTexture:Texture;
         private var _bufferTexture:Texture;
         private var _helperImage:Image;
@@ -80,7 +77,7 @@ package starling.textures
         private var _bufferReady:Boolean;
         private var _isPersistent:Boolean;
 
-        /** helper object */
+        // helper object
         private static var sClipRect:Rectangle = new Rectangle();
         
         /** Indicates if new persistent textures should use a single render buffer instead of
@@ -90,8 +87,6 @@ package starling.textures
          *  <p>You can safely enable this property on all iOS and Desktop systems. On Android,
          *  it's recommended to enable it only on reasonably modern hardware, e.g. only when
          *  at least one of the 'Standard' profiles is supported.</p>
-         *
-         *  <p>Beware: this feature requires at least Flash/AIR version 15.</p>
          *
          *  @default false
          */
@@ -108,36 +103,18 @@ package starling.textures
         public function RenderTexture(width:int, height:int, persistent:Boolean=true,
                                       scale:Number=-1, format:String="bgra")
         {
-            // TODO: when Adobe has fixed this bug on the iPad 1 (see 'supportsNonPotDimensions'),
-            //       we can remove 'legalWidth/Height' and just pass on the original values.
-            //
-            // [Workaround]
-
-            if (scale <= 0) scale = Starling.contentScaleFactor;
-
-            var legalWidth:Number  = width;
-            var legalHeight:Number = height;
-
-            if (!supportsNonPotDimensions)
-            {
-                legalWidth  = MathUtil.getNextPowerOfTwo(width  * scale) / scale;
-                legalHeight = MathUtil.getNextPowerOfTwo(height * scale) / scale;
-            }
-
-            // [/Workaround]
-
             _isPersistent = persistent;
-            _activeTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format);
+            _activeTexture = Texture.empty(width, height, true, false, true, scale, format);
             _activeTexture.root.onRestore = _activeTexture.root.clear;
 
             super(_activeTexture, new Rectangle(0, 0, width, height), true, null, false);
 
-            if (persistent && (!optimizePersistentBuffers || !SystemUtil.supportsRelaxedTargetClearRequirement))
+            if (persistent && !optimizePersistentBuffers)
             {
-                _bufferTexture = Texture.empty(legalWidth, legalHeight, PMA, false, true, scale, format);
+                _bufferTexture = Texture.empty(width, height, true, false, true, scale, format);
                 _bufferTexture.root.onRestore = _bufferTexture.root.clear;
                 _helperImage = new Image(_bufferTexture);
-                // _helperImage.smoothing = TextureSmoothing.NONE; // solves some antialias-issues
+                _helperImage.textureSmoothing = TextureSmoothing.NONE; // solves some aliasing-issues
             }
         }
         
@@ -163,8 +140,8 @@ package starling.textures
          *                      properties for position, scale, and rotation. If it is not null,
          *                      the object will be drawn in the orientation depicted by the matrix.
          *  @param alpha        The object's alpha value will be multiplied with this value.
-         *  @param antiAliasing Only supported beginning with AIR 13, and only on Desktop.
-         *                      Values range from 0 (no antialiasing) to 4 (best quality).
+         *  @param antiAliasing Only supported on Desktop.
+         *                      Values range from 0 (no anti-aliasing) to 4 (best quality).
          */
         public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0,
                              antiAliasing:int=0):void
@@ -270,65 +247,12 @@ package starling.textures
         
         /** Clears the render texture with a certain color and alpha value. Call without any
          *  arguments to restore full transparency. */
-        public function clear(rgb:uint=0, alpha:Number=0.0):void
+        public function clear(color:uint=0, alpha:Number=0.0):void
         {
-            if (!Starling.current.contextValid) return;
-
-            var painter:Painter = Starling.painter;
-            painter.pushState();
-            painter.state.renderTarget = _activeTexture;
-            painter.clear(rgb, alpha);
-            painter.popState();
-
+            _activeTexture.root.clear(color, alpha);
             _bufferReady = true;
         }
         
-        /** On the iPad 1 (and maybe other hardware?) clearing a non-POT RectangleTexture causes
-         *  an error in the next "createVertexBuffer" call. Thus, we're forced to make this
-         *  really ... elegant check here. */
-        private function get supportsNonPotDimensions():Boolean
-        {
-            var painter:Painter = Starling.painter;
-            var context:Context3D = Starling.context;
-            var support:Object = painter.sharedData[CONTEXT_POT_SUPPORT_KEY];
-
-            if (support == null)
-            {
-                if (painter.profile != "baselineConstrained" && "createRectangleTexture" in context)
-                {
-                    var texture:TextureBase;
-                    var buffer:VertexBuffer3D;
-
-                    try
-                    {
-                        texture = context["createRectangleTexture"](2, 3, "bgra", true);
-                        context.setRenderToTexture(texture);
-                        context.clear();
-                        context.setRenderToBackBuffer();
-                        context.createVertexBuffer(1, 1);
-                        support = true;
-                    }
-                    catch (e:Error)
-                    {
-                        support = false;
-                    }
-                    finally
-                    {
-                        if (texture) texture.dispose();
-                        if (buffer) buffer.dispose();
-                    }
-                }
-                else
-                {
-                    support = false;
-                }
-
-                painter.sharedData[CONTEXT_POT_SUPPORT_KEY] = support;
-            }
-
-            return support;
-        }
-
         // properties
 
         /** Indicates if the render texture is using double buffering. This might be necessary for
