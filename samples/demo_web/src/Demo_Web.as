@@ -8,7 +8,6 @@ package
 
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.textures.RenderTexture;
     import starling.utils.AssetManager;
 
     import utils.ProgressBar;
@@ -47,7 +46,6 @@ package
             // viewPort to the optimal size for any display and load the optimal textures.
 
             Starling.multitouchEnabled = true; // for Multitouch Scene
-            RenderTexture.optimizePersistentBuffers = true; // should be safe on Desktop
 
             _starling = new Starling(Game, stage, null, null, "auto", "auto");
             _starling.simulateMultitouch = true;

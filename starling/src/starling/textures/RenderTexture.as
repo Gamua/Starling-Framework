@@ -10,11 +10,11 @@
 
 package starling.textures
 {
-    import flash.display3D.Context3D;
-    import flash.display3D.VertexBuffer3D;
     import flash.display3D.textures.TextureBase;
+    import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
 
     import starling.core.Starling;
     import starling.display.BlendMode;
@@ -23,8 +23,6 @@ package starling.textures
     import starling.filters.FragmentFilter;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
-    import starling.utils.MathUtil;
-    import starling.utils.SystemUtil;
     import starling.utils.execute;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
@@ -60,16 +58,17 @@ package starling.textures
      *
      *  <strong>Persistence</strong>
      *
-     *  <p>Persistent render textures (see the 'persistent' flag in the constructor) are more
-     *  expensive, because they might have to use two render buffers internally. Disable this
-     *  parameter if you don't need that.</p>
-     *
-     *  <p>On modern hardware, you can make use of the static 'optimizePersistentBuffers'
-     *  property to overcome the need for double buffering. Use this feature with care, though!</p>
-     *
+     *  <p>Older devices may require double buffering to support persistent render textures. Thus,
+     *  you should disable the <code>persistent</code> parameter in the constructor if you only
+     *  need to make one draw operation on the texture. The static <code>useDoubleBuffering</code>
+     *  property allows you to customize if new textures will be created with or without double
+     *  buffering.</p>
      */
     public class RenderTexture extends SubTexture
     {
+        private static const USE_DOUBLE_BUFFERING_DATA_NAME:String =
+            "starling.textures.RenderTexture.useDoubleBuffering";
+
         private var _activeTexture:Texture;
         private var _bufferTexture:Texture;
         private var _helperImage:Image;
@@ -80,25 +79,13 @@ package starling.textures
         // helper object
         private static var sClipRect:Rectangle = new Rectangle();
         
-        /** Indicates if new persistent textures should use a single render buffer instead of
-         *  the default double buffering approach. That's faster and requires less memory, but is
-         *  not supported on all hardware.
-         *
-         *  <p>You can safely enable this property on all iOS and Desktop systems. On Android,
-         *  it's recommended to enable it only on reasonably modern hardware, e.g. only when
-         *  at least one of the 'Standard' profiles is supported.</p>
-         *
-         *  @default false
-         */
-        public static var optimizePersistentBuffers:Boolean = false;
-
         /** Creates a new RenderTexture with a certain size (in points). If the texture is
-         *  persistent, the contents of the texture remains intact after each draw call, allowing
-         *  you to use the texture just like a canvas. If it is not, it will be cleared before each
-         *  draw call.
+         *  persistent, its contents remains intact after each draw call, allowing you to use the
+         *  texture just like a canvas. If it is not, it will be cleared before each draw call.
          *
-         *  <p>Beware that persistence requires an additional texture buffer (i.e. the required
-         *  memory is doubled). You can avoid that via 'optimizePersistentBuffers', though.</p>
+         *  <p>Non-persistent textures can be used more efficiently on older devices; on modern
+         *  hardware, it does not make a difference. For more information, have a look at the
+         *  documentation of the <code>useDoubleBuffering</code> property.</p>
          */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true,
                                       scale:Number=-1, format:String="bgra")
@@ -109,7 +96,7 @@ package starling.textures
 
             super(_activeTexture, new Rectangle(0, 0, width, height), true, null, false);
 
-            if (persistent && !optimizePersistentBuffers)
+            if (persistent && useDoubleBuffering)
             {
                 _bufferTexture = Texture.empty(width, height, true, false, true, scale, format);
                 _bufferTexture.root.onRestore = _bufferTexture.root.clear;
@@ -252,7 +239,7 @@ package starling.textures
             _activeTexture.root.clear(color, alpha);
             _bufferReady = true;
         }
-        
+
         // properties
 
         /** Indicates if the render texture is using double buffering. This might be necessary for
@@ -268,5 +255,44 @@ package starling.textures
         
         /** @inheritDoc */
         public override function get root():ConcreteTexture { return _activeTexture.root; }
+
+        /** Indicates if new persistent textures should use double buffering. Single buffering
+         *  is faster and requires less memory, but is not supported on all hardware.
+         *
+         *  <p>By default, applications running with the profile "baseline" or "baselineConstrained"
+         *  will use double buffering; all others use just a single buffer. You can override this
+         *  behavior, though, by assigning a different value at runtime.</p>
+         *
+         *  @default true for "baseline" and "baselineConstrained", false otherwise
+         */
+        public static function get useDoubleBuffering():Boolean
+        {
+            if (Starling.current)
+            {
+                var painter:Painter = Starling.painter;
+                var sharedData:Dictionary = painter.sharedData;
+
+                if (USE_DOUBLE_BUFFERING_DATA_NAME in sharedData)
+                {
+                    return sharedData[USE_DOUBLE_BUFFERING_DATA_NAME];
+                }
+                else
+                {
+                    var profile:String = painter.profile ? painter.profile : "baseline";
+                    var value:Boolean = profile == "baseline" || profile == "baselineConstrained";
+                    sharedData[USE_DOUBLE_BUFFERING_DATA_NAME] = value;
+                    return value;
+                }
+            }
+            else return false;
+        }
+
+        public static function set useDoubleBuffering(value:Boolean):void
+        {
+            if (Starling.current == null)
+                throw new IllegalOperationError("Starling not yet initialized");
+            else
+                Starling.painter.sharedData[USE_DOUBLE_BUFFERING_DATA_NAME] = value;
+        }
     }
 }
