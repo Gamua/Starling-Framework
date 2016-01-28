@@ -109,7 +109,7 @@ package starling.text
             _options = new TextOptions();
 
             _format = format ? format.clone() : new TextFormat();
-            _format.addEventListener(Event.CHANGE, onFormatChange);
+            _format.addEventListener(Event.CHANGE, setRequiresRecomposition);
 
             _meshBatch = new MeshBatch();
             _meshBatch.touchable = false;
@@ -119,7 +119,7 @@ package starling.text
         /** Disposes the underlying texture data. */
         public override function dispose():void
         {
-            _format.removeEventListener(Event.CHANGE, onFormatChange);
+            _format.removeEventListener(Event.CHANGE, setRequiresRecomposition);
             _compositor.clearMeshBatch(_meshBatch);
 
             super.dispose();
@@ -156,11 +156,6 @@ package starling.text
 
                 _requiresRecomposition = false;
             }
-        }
-
-        private function onFormatChange():void
-        {
-            _requiresRecomposition = true;
         }
 
         // font and border rendering
