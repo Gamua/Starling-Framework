@@ -260,7 +260,9 @@ package starling.text
         {
         	mRequiresRedraw = true;
         }
-
+		
+		static private const FLASH_TEXT_OFFSET:int = 2;
+		
         private function renderText(scale:Number, resultTextBounds:Rectangle):BitmapData
         {
             var width:Number  = mHitArea.width  * scale;
@@ -303,39 +305,51 @@ package starling.text
                 sNativeTextField.embedFonts = false;
             
             formatText(sNativeTextField, textFormat);
+			
+			// if 'nativeFilters' are in use, the text field might grow beyond its bounds
+			var filterOffset:Rectangle = calculateFilterOffset(sNativeTextField);
             
             if (mAutoScale)
-                autoScaleNativeTextField(sNativeTextField);
+                autoScaleNativeTextField(sNativeTextField, filterOffset);
             
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
-
+			
             if (isHorizontalAutoSize)
-                sNativeTextField.width = width = Math.ceil(textWidth + 5);
+                sNativeTextField.width = width = Math.ceil(textWidth + filterOffset.width + FLASH_TEXT_OFFSET * 2);
             if (isVerticalAutoSize)
-                sNativeTextField.height = height = Math.ceil(textHeight + 4);
+                sNativeTextField.height = height = Math.ceil(textHeight + filterOffset.height + FLASH_TEXT_OFFSET * 2);
             
             // avoid invalid texture size
             if (width  < 1) width  = 1.0;
             if (height < 1) height = 1.0;
             
-            var textOffsetX:Number = 0.0;
-            if (hAlign == HAlign.LEFT)        textOffsetX = 2; // flash adds a 2 pixel offset
-            else if (hAlign == HAlign.CENTER) textOffsetX = (width - textWidth) / 2.0;
-            else if (hAlign == HAlign.RIGHT)  textOffsetX =  width - textWidth - 2;
-
-            var textOffsetY:Number = 0.0;
-            if (vAlign == VAlign.TOP)         textOffsetY = 2; // flash adds a 2 pixel offset
-            else if (vAlign == VAlign.CENTER) textOffsetY = (height - textHeight) / 2.0;
-            else if (vAlign == VAlign.BOTTOM) textOffsetY =  height - textHeight - 2;
-            
-            // if 'nativeFilters' are in use, the text field might grow beyond its bounds
-            var filterOffset:Point = calculateFilterOffset(sNativeTextField, hAlign, vAlign);
-            
+			var drawOffsetX:Number = 0.0;
+            if (hAlign == HAlign.LEFT)        drawOffsetX = -filterOffset.x;
+            else if (hAlign == HAlign.CENTER) 
+			{
+				// fixed issue when left side of filter is big and right side is small
+				// for example: new DropShadowFilter(20, 180, 0xFF00F0, 1, 1, 1, 1)
+				var paddingX:Number = (width - textWidth - FLASH_TEXT_OFFSET * 2) / 2;
+				if (paddingX < -filterOffset.x)				drawOffsetX = -filterOffset.x - paddingX;
+				else if (paddingX < filterOffset.right) 	drawOffsetX = -(filterOffset.right - paddingX);
+				else drawOffsetX = 0.0;
+			}
+            else if (hAlign == HAlign.RIGHT)  drawOffsetX = -filterOffset.right;
+			
+			var drawOffsetY:Number = 0.0;
+            if (vAlign == VAlign.TOP)         drawOffsetY = - filterOffset.y;
+            else if (vAlign == VAlign.CENTER) 
+			{
+				drawOffsetY = (height - textHeight - FLASH_TEXT_OFFSET * 2) / 2;
+				if (drawOffsetY < -filterOffset.y)				drawOffsetY += ( -filterOffset.y - drawOffsetY);
+				else if (drawOffsetY < filterOffset.bottom) 	drawOffsetY -= (filterOffset.bottom - drawOffsetY);
+			}
+            else if (vAlign == VAlign.BOTTOM) drawOffsetY =  height - textHeight - filterOffset.bottom - FLASH_TEXT_OFFSET * 2;
+			
             // finally: draw text field to bitmap data
             var bitmapData:BitmapData = new BitmapData(width, height, true, 0x0);
-            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1,
-                filterOffset.x, filterOffset.y + int(textOffsetY)-2);
+            var drawMatrix:Matrix = new Matrix(1, 0, 0, 1, drawOffsetX, drawOffsetY);
             var drawWithQualityFunc:Function = 
                 "drawWithQuality" in bitmapData ? bitmapData["drawWithQuality"] : null;
             
@@ -349,20 +363,29 @@ package starling.text
                 bitmapData.draw(sNativeTextField, drawMatrix);
             
             sNativeTextField.text = "";
+			
+			var textOffsetX:Number = 0.0;
+            if (hAlign == HAlign.LEFT)        textOffsetX = -filterOffset.x + FLASH_TEXT_OFFSET;
+            else if (hAlign == HAlign.CENTER) textOffsetX = drawOffsetX + (width - textWidth) / 2 + FLASH_TEXT_OFFSET;
+            else if (hAlign == HAlign.RIGHT)  textOffsetX = width - textWidth - filterOffset.right - FLASH_TEXT_OFFSET;
+            
+			var textOffsetY:Number = 0.0;
+            if (vAlign == VAlign.TOP)         textOffsetY = -filterOffset.y + FLASH_TEXT_OFFSET;
+            else if (vAlign == VAlign.CENTER) textOffsetY = drawOffsetY + (height - textHeight) / 2 + FLASH_TEXT_OFFSET;
+            else if (vAlign == VAlign.BOTTOM) textOffsetY =  height - textHeight - filterOffset.bottom - FLASH_TEXT_OFFSET;
             
             // update textBounds rectangle
-            resultTextBounds.setTo((textOffsetX + filterOffset.x) / scale,
-                                   (textOffsetY + filterOffset.y) / scale,
-                                   textWidth / scale, textHeight / scale);
+			resultTextBounds.setTo(textOffsetX / scale, textOffsetY / scale,
+									textWidth / scale, textHeight / scale);
             
             return bitmapData;
         }
         
-        private function autoScaleNativeTextField(textField:flash.text.TextField):void
+       private function autoScaleNativeTextField(textField:flash.text.TextField, filterOffset:Rectangle):void
         {
-            var size:Number   = Number(textField.defaultTextFormat.size);
-            var maxHeight:int = textField.height - 4;
-            var maxWidth:int  = textField.width  - 4;
+            var size:Number = Number(textField.defaultTextFormat.size);
+            var maxWidth:int  = textField.width  - FLASH_TEXT_OFFSET * 2 - filterOffset.width;
+            var maxHeight:int = textField.height - FLASH_TEXT_OFFSET * 2 - filterOffset.height;
             
             while (textField.textWidth > maxWidth || textField.textHeight > maxHeight)
             {
@@ -376,45 +399,30 @@ package starling.text
                 else             textField.text     = mText;
             }
         }
+		
+		static private const sBD:BitmapData = new BitmapData(1, 1, false);
         
-        private function calculateFilterOffset(textField:flash.text.TextField,
-                                               hAlign:String, vAlign:String):Point
+        private function calculateFilterOffset(textField:flash.text.TextField):Rectangle
         {
-            var resultOffset:Point = new Point();
+            var resultOffset:Rectangle = new Rectangle();
             var filters:Array = textField.filters;
             
             if (filters != null && filters.length > 0)
             {
                 var textWidth:Number  = textField.textWidth;
                 var textHeight:Number = textField.textHeight;
-                var bounds:Rectangle  = new Rectangle();
-                
-                for each (var filter:BitmapFilter in filters)
-                {
-                    var blurX:Number    = "blurX"    in filter ? filter["blurX"]    : 0;
-                    var blurY:Number    = "blurY"    in filter ? filter["blurY"]    : 0;
-                    var angleDeg:Number = "angle"    in filter ? filter["angle"]    : 0;
-                    var distance:Number = "distance" in filter ? filter["distance"] : 0;
-                    var angle:Number = deg2rad(angleDeg);
-                    var marginX:Number = blurX * 1.33; // that's an empirical value
-                    var marginY:Number = blurY * 1.33;
-                    var offsetX:Number  = Math.cos(angle) * distance - marginX / 2.0;
-                    var offsetY:Number  = Math.sin(angle) * distance - marginY / 2.0;
-                    var filterBounds:Rectangle = new Rectangle(
-                        offsetX, offsetY, textWidth + marginX, textHeight + marginY);
-                    
-                    bounds = bounds.union(filterBounds);
-                }
-                
-                if (hAlign == HAlign.LEFT && bounds.x < 0)
-                    resultOffset.x = -bounds.x;
-                else if (hAlign == HAlign.RIGHT && bounds.y > 0)
-                    resultOffset.x = -(bounds.right - textWidth);
-                
-                if (vAlign == VAlign.TOP && bounds.y < 0)
-                    resultOffset.y = -bounds.y;
-                else if (vAlign == VAlign.BOTTOM && bounds.y > 0)
-                    resultOffset.y = -(bounds.bottom - textHeight);
+				
+				for each (var filter:BitmapFilter in filters) {
+					var filterBounds:Rectangle = sBD.generateFilterRect( sBD.rect, filter );
+					resultOffset = resultOffset.union(filterBounds);
+				}
+				resultOffset.width -= 1;
+				resultOffset.height -= 1;
+				
+				if (resultOffset.x > 0) resultOffset.x = 0;
+				if (resultOffset.y > 0) resultOffset.y = 0;
+				if (resultOffset.right < 0) resultOffset.right = 0;
+				if (resultOffset.bottom < 0) resultOffset.bottom = 0;
             }
             
             return resultOffset;
