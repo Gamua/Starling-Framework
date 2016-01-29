@@ -152,13 +152,18 @@ package starling.display
             else return null;
         }
 
-        /** Readjusts the dimensions of the quad according to its current texture. Call this method
-         *  to synchronize quad and texture size after assigning a texture with a different size. */
-        public function readjustSize():void
+        /** Readjusts the dimensions of the quad. Use this method without any arguments to
+         *  synchronize quad and texture size after assigning a texture with a different size.
+         *  You can also force a certain width and height by passing positive, non-zero
+         *  values for width and height. */
+        public function readjustSize(width:Number=-1, height:Number=-1):void
         {
-            if (texture)
+            if (width  <= 0) width  = texture ? texture.frameWidth  : _bounds.width;
+            if (height <= 0) height = texture ? texture.frameHeight : _bounds.height;
+
+            if (width != _bounds.width || height != _bounds.height)
             {
-                _bounds.setTo(0, 0, texture.frameWidth, texture.frameHeight);
+                _bounds.setTo(0, 0, width, height);
                 setupVertices();
             }
         }

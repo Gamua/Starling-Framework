@@ -132,6 +132,20 @@ package tests.display
 
             assertThat(quad.width, closeTo(texture.frameWidth, E));
             assertThat(quad.height, closeTo(texture.frameHeight, E));
+
+            var newWidth:Number  = 64;
+            var newHeight:Number = 32;
+
+            quad.readjustSize(newWidth, newHeight);
+
+            assertThat(quad.width, closeTo(newWidth, E));
+            assertThat(quad.height, closeTo(newHeight, E));
+
+            quad.texture = null;
+            quad.readjustSize(); // shouldn't change anything
+
+            assertThat(quad.width, closeTo(newWidth, E));
+            assertThat(quad.height, closeTo(newHeight, E));
         }
     }
 }
