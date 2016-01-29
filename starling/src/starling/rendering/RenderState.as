@@ -31,7 +31,9 @@ package starling.rendering
      *  That makes it easy to write rendering code that doesn't have any side effects.</p>
      *
      *  <p>Beware that any context-related settings are not applied on the context
-     *  right away, but only after calling <code>painter.prepareToDraw()</code>.</p>
+     *  right away, but only after calling <code>painter.prepareToDraw()</code>.
+     *  However, the Painter recognizes changes to those settings and will finish the current
+     *  batch right away if necessary.</p>
      *
      *  <strong>Matrix Magic</strong>
      *
@@ -69,6 +71,7 @@ package starling.rendering
         private var _renderTargetOptions:uint;
         private var _culling:String;
         private var _clipRect:Rectangle;
+        private var _onDrawRequired:Function;
 
         private var _modelviewMatrix:Matrix;
         private var _modelviewMatrix3D:Matrix3D;
@@ -87,6 +90,20 @@ package starling.rendering
         /** Duplicates all properties of another instance on the current instance. */
         public function copyFrom(renderState:RenderState):void
         {
+            if (_onDrawRequired != null)
+            {
+                var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
+                var nextTarget:TextureBase = renderState._renderTarget ? renderState._renderTarget.base : null;
+                var clipRectChanges:Boolean = _clipRect || renderState._clipRect ?
+                    !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
+
+                if (_blendMode != renderState._blendMode || _culling != renderState._culling ||
+                    currentTarget != nextTarget || clipRectChanges)
+                {
+                    _onDrawRequired();
+                }
+            }
+
             _alpha = renderState._alpha;
             _blendMode = renderState._blendMode;
             _renderTarget = renderState._renderTarget;
@@ -102,15 +119,16 @@ package starling.rendering
                 this.clipRect = renderState._clipRect;
         }
 
-        /** Resets the RenderState to the default settings. (Check each property documentation
-         *  for its default value.) */
+        /** Resets the RenderState to the default settings.
+         *  (Check each property documentation for its default value.) */
         public function reset():void
         {
-            _alpha = 1.0;
-            _blendMode = BlendMode.NORMAL;
-            _renderTarget = null;
-            _renderTargetOptions = 0;
-            _culling = Context3DTriangleFace.NONE;
+            this.alpha = 1.0;
+            this.blendMode = BlendMode.NORMAL;
+            this.culling = Context3DTriangleFace.NONE;
+            this.modelviewMatrix3D = null;
+            this.renderTarget = null;
+            this.clipRect = null;
 
             if (_modelviewMatrix) _modelviewMatrix.identity();
             else _modelviewMatrix = new Matrix();
@@ -119,10 +137,6 @@ package starling.rendering
             else _projectionMatrix3D = new Matrix3D();
 
             if (_mvpMatrix3D == null) _mvpMatrix3D = new Matrix3D();
-
-            this.modelviewMatrix3D = null;
-            this.renderTarget = null;
-            this.clipRect = null;
         }
 
         // matrix methods / properties
@@ -220,18 +234,6 @@ package starling.rendering
 
         // other methods
 
-        /** Indicates if switching from this state to another one would require a draw operation.
-         *  This is the case if render target, culling or clipping rectangle are different. */
-        public function switchRequiresDraw(nextState:RenderState):Boolean
-        {
-            var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
-            var nextTarget:TextureBase = nextState._renderTarget ? nextState._renderTarget.base : null;
-            var clipRectChanges:Boolean = _clipRect || nextState._clipRect ?
-                     !RectangleUtil.compare(_clipRect, nextState._clipRect) : false;
-
-            return currentTarget != nextTarget || _culling != nextState._culling || clipRectChanges;
-        }
-
         /** Changes the the current render target.
          *
          *  @param target     Either a texture or <code>null</code> to render into the back buffer.
@@ -244,8 +246,17 @@ package starling.rendering
         public function setRenderTarget(target:Texture, enableDepthAndStencil:Boolean=false,
                                         antiAlias:int=0):void
         {
-            _renderTarget = target;
-            _renderTargetOptions = uint(enableDepthAndStencil) | antiAlias << 4;
+            var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
+            var newTarget:TextureBase = target ? target.base : null;
+            var newOptions:uint = uint(enableDepthAndStencil) | antiAlias << 4;
+
+            if (currentTarget != newTarget || _renderTargetOptions != newOptions)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+
+                _renderTarget = target;
+                _renderTargetOptions = newOptions;
+            }
         }
 
         // other properties
@@ -266,7 +277,11 @@ package starling.rendering
         public function get blendMode():String { return _blendMode; }
         public function set blendMode(value:String):void
         {
-            if (value != BlendMode.AUTO) _blendMode = value;
+            if (value != BlendMode.AUTO && _blendMode != value)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+                _blendMode = value;
+            }
         }
 
         /** The texture that is currently being rendered into, or <code>null</code>
@@ -286,10 +301,17 @@ package starling.rendering
          *  @default Context3DTriangleFace.NONE
          */
         public function get culling():String { return _culling; }
-        public function set culling(value:String):void { _culling = value; }
+        public function set culling(value:String):void
+        {
+            if (_culling != value)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+                _culling = value;
+            }
+        }
 
         /** The clipping rectangle can be used to limit rendering in the current render target to
-         *  a certain area. This method expects the rectangle in stage coordinates. To avoid
+         *  a certain area. This method expects the rectangle in stage coordinates. To prevent
          *  any clipping, assign <code>null</code>.
          *
          *  @default null
@@ -297,15 +319,19 @@ package starling.rendering
         public function get clipRect():Rectangle { return _clipRect; }
         public function set clipRect(value:Rectangle):void
         {
-            if (value)
+            if (!RectangleUtil.compare(_clipRect, value))
             {
-                if (_clipRect == null) _clipRect = Pool.getRectangle();
-                _clipRect.copyFrom(value);
-            }
-            else if (_clipRect)
-            {
-                Pool.putRectangle(_clipRect);
-                _clipRect = null;
+                if (_onDrawRequired != null) _onDrawRequired();
+                if (value)
+                {
+                    if (_clipRect == null) _clipRect = Pool.getRectangle();
+                    _clipRect.copyFrom(value);
+                }
+                else if (_clipRect)
+                {
+                    Pool.putRectangle(_clipRect);
+                    _clipRect = null;
+                }
             }
         }
 
@@ -326,5 +352,13 @@ package starling.rendering
         /** Indicates if there have been any 3D transformations.
          *  Returns <code>true</code> if the 3D modelview matrix contains a value. */
         public function get is3D():Boolean { return _modelviewMatrix3D != null; }
+
+        /** @private
+         *
+         *  This callback is executed whenever a state change requires a draw operation.
+         *  This is the case if blend mode, render target, culling or clipping rectangle
+         *  are changing. */
+        internal function get onDrawRequired():Function { return _onDrawRequired; }
+        internal function set onDrawRequired(value:Function):void { _onDrawRequired = value; }
     }
 }

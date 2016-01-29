@@ -96,7 +96,6 @@ package scenes
             // the front quads: we're activating backface culling, i.e. we hide triangles at which
             // we look from behind. 
 
-            painter.finishMeshBatch();
             painter.pushState();
             painter.state.culling = Context3DTriangleFace.BACK;
             super.render(painter);
