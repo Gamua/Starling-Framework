@@ -11,6 +11,7 @@
 package starling.rendering
 {
     import flash.display3D.Context3D;
+    import flash.display3D.Context3DProgramType;
 
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
@@ -18,7 +19,7 @@ package starling.rendering
 
     /** An effect drawing a mesh of colored, textured vertices.
      *  This is the standard effect that will be used per default for all Starling meshes;
-     *  if you want to create your own rendering code, you will have to extend this class.
+     *  if you want to create your own mesh styles, you will have to extend this class.
      *
      *  <p>For more information about the usage and creation of effects, please have a look at
      *  the documentation of the parent class, "Effect".</p>
@@ -34,12 +35,17 @@ package starling.rendering
         public static const VERTEX_FORMAT:VertexDataFormat =
                 VertexDataFormat.fromString("position(float2), color(bytes4), texCoords(float2)");
 
+        private var _alpha:Number;
         private var _texture:Texture;
         private var _textureSmoothing:String;
+
+        // helper objects
+        private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
 
         /** Creates a new MeshEffect instance. */
         public function MeshEffect()
         {
+            _alpha = 1.0;
             _textureSmoothing = TextureSmoothing.BILINEAR;
         }
 
@@ -100,6 +106,8 @@ package starling.rendering
         {
             super.beforeDraw(context);
 
+            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
             vertexFormat.setVertexBufferAttribute(vertexBuffer, 1, "color");
 
             if (_texture)
@@ -128,6 +136,11 @@ package starling.rendering
         /** The data format that this effect requires from the VertexData that it renders:
          *  <code>"position(float2), color(bytes4), texCoords(float2)"</code> */
         override public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
+
+        /** The alpha value of the object rendered by the effect. Must be taken into account
+         *  by all subclasses. */
+        public function get alpha():Number { return _alpha; }
+        public function set alpha(value:Number):void { _alpha = value; }
 
         /** The texture to be mapped onto the vertices. */
         public function get texture():Texture { return _texture; }

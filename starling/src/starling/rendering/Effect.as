@@ -29,10 +29,10 @@ package starling.rendering
      *
      *  <p><strong>Extending the Effect class</strong></p>
      *
-     *  <p>This class provides the basic mechanisms of low-level rendering. The implementation
-     *  of the base class can only render white triangles with a constant alpha value; most of the
-     *  time, you'll want to use an existing subclass, or create your own. For the latter, it is
-     *  recommended to override the following methods:</p>
+     *  <p>This class provides the basic mechanisms of low-level rendering. The base class
+     *  can only render white triangles, which is not much use in itself. However, it is
+     *  designed to be extended; subclasses can easily implement any kinds of shaders.
+     *  To do that, they should override the following methods:</p>
      *
      *  <ul>
      *    <li><code>createProgram():Program</code> — must create the actual program containing 
@@ -93,21 +93,18 @@ package starling.rendering
         private var _vertexBuffer:VertexBuffer3D;
         private var _vertexBufferSize:int; // in blocks of 32 bits
 
-        private var _alpha:Number;
         private var _mvpMatrix:Matrix3D;
         private var _onRestore:Function;
         private var _programBaseName:String;
 
         // helper objects
-        private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
         private static var sProgramNameCache:Dictionary = new Dictionary();
 
         /** Creates a new effect. */
         public function Effect()
         {
-            _alpha = 1.0;
             _mvpMatrix = new Matrix3D();
-            _programBaseName = getQualifiedClassName(this).split("::").pop();
+            _programBaseName = getQualifiedClassName(this);
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
@@ -203,18 +200,14 @@ package starling.rendering
          *
          *  <ul>
          *    <li><code>vc0-vc3</code> — MVP matrix</li>
-         *    <li><code>vc4</code> — alpha value (same value for all components)</li>
          *    <li><code>va0</code> — vertex position (xy)</li>
          *  </ul>
          */
         protected function beforeDraw(context:Context3D):void
         {
-            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
-
             program.activate(context);
             vertexFormat.setVertexBufferAttribute(vertexBuffer, 0, "position");
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);
-            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha, 1);
         }
 
         /** This method is called by <code>render</code>, directly after
@@ -231,15 +224,18 @@ package starling.rendering
          *  the effect with the current settings. Override this method in a subclass to create
          *  your shaders. This method will only be called once; the program is automatically stored
          *  in the <code>Painter</code> and re-used by all instances of this effect.
+         *
+         *  <p>The basic implementation always outputs pure white.</p>
          */
         protected function createProgram():Program
         {
-            var vertexShader:String =
-                "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clipspace
-                "mov v0, vc4      \n";  // pass alpha to fragment program
+            var vertexShader:String = [
+                "m44 op, va0, vc0", // 4x4 matrix transform to output clipspace
+                "seq v0, va0, va0"  // this is a hack that always produces "1"
+            ].join("\n");
 
             var fragmentShader:String =
-                "mov oc, v0       \n";  // output color
+                "mov oc, v0";       // output color: white
 
             return Program.fromSource(vertexShader, fragmentShader);
         }
@@ -256,7 +252,7 @@ package starling.rendering
         }
 
         /** Returns the base name for the program.
-         *  @default the class name
+         *  @default the fully qualified class name
          */
         protected function get programBaseName():String { return _programBaseName; }
         protected function set programBaseName(value:String):void { _programBaseName = value; }
@@ -294,7 +290,8 @@ package starling.rendering
         }
 
         /** Returns the current program, either by creating a new one (via
-         *  <code>createProgram</code>) or by getting it from the <code>Painter</code>. */
+         *  <code>createProgram</code>) or by getting it from the <code>Painter</code>.
+         *  Do not override this method! Instead, implement <code>createProgram</code>. */
         protected function get program():Program
         {
             var name:String = this.programName;
@@ -321,11 +318,6 @@ package starling.rendering
         /** The data format that this effect requires from the VertexData that it renders:
          *  <code>"position(float2)"</code> */
         public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
-
-        /** The alpha value of the object rendered by the effect. Must be taken into account
-         *  by all subclasses. */
-        public function get alpha():Number { return _alpha; }
-        public function set alpha(value:Number):void { _alpha = value; }
 
         /** The MVP (modelview-projection) matrix transforms vertices into clipspace. */
         public function get mvpMatrix():Matrix3D { return _mvpMatrix; }
