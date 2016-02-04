@@ -364,7 +364,7 @@ package starling.core
             {
                 _root = new _rootClass() as DisplayObject;
                 if (_root == null) throw new Error("Invalid root class: " + _rootClass);
-                _stage.addChildAt(_root, 0);
+                _stage.insertChildBeforeAll(_root);
 
                 dispatchEventWith(starling.events.Event.ROOT_CREATED, false, _root);
             }

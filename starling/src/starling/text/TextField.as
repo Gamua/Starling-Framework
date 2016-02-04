@@ -211,10 +211,10 @@ package starling.text
             var width:Number  = _hitArea.width;
             var height:Number = _hitArea.height;
             
-            var topLine:Quad    = _border.getChildAt(0) as Quad;
-            var rightLine:Quad  = _border.getChildAt(1) as Quad;
-            var bottomLine:Quad = _border.getChildAt(2) as Quad;
-            var leftLine:Quad   = _border.getChildAt(3) as Quad;
+            var topLine:Quad    = _border.childFirst as Quad;
+            var rightLine:Quad  = topLine.next as Quad;
+            var bottomLine:Quad = rightLine.next as Quad;
+            var leftLine:Quad   = bottomLine.next as Quad;
             
             topLine.width    = width; topLine.height    = 1;
             bottomLine.width = width; bottomLine.height = 1;

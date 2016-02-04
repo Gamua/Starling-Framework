@@ -20,7 +20,7 @@ package starling.display
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
     import flash.utils.getQualifiedClassName;
-
+    
     import starling.core.Starling;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
@@ -129,6 +129,8 @@ package starling.display
     public class DisplayObject extends EventDispatcher
     {
         // private members
+		public var prev:DisplayObject;
+		public var next:DisplayObject;
         
         private var _x:Number;
         private var _y:Number;
@@ -509,16 +511,7 @@ package starling.display
         /** @private */
         internal function setParent(value:DisplayObjectContainer):void 
         {
-            // check for a recursion
-            var ancestor:DisplayObject = value;
-            while (ancestor != this && ancestor != null)
-                ancestor = ancestor._parent;
-            
-            if (ancestor == this)
-                throw new ArgumentError("An object cannot be added as a child to itself or one " +
-                                        "of its children (or children's children, etc.)");
-            else
-                _parent = value;
+            _parent = value;
         }
         
         /** @private */

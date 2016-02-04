@@ -15,7 +15,7 @@ package starling.display
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.utils.getQualifiedClassName;
-
+    
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
@@ -66,7 +66,10 @@ package starling.display
     {
         // members
 
-        private var _children:Vector.<DisplayObject>;
+		public var childFirst:DisplayObject;
+		public var childLast:DisplayObject;
+        private var _numChildren:int = 0;
+		
         private var _touchGroup:Boolean;
         
         // helper objects
@@ -86,15 +89,17 @@ package starling.display
             {
                 throw new AbstractClassError();
             }
-            
-            _children = new <DisplayObject>[];
         }
         
         /** Disposes the resources of all children. */
         public override function dispose():void
         {
-            for (var i:int=_children.length-1; i>=0; --i)
-                _children[i].dispose();
+			var child:DisplayObject = this.childFirst;
+			var next:DisplayObject = child;
+           	while(next) {
+				next = child.next;
+				child.dispose();
+			}
             
             super.dispose();
         }
@@ -104,167 +109,185 @@ package starling.display
         /** Adds a child to the container. It will be at the frontmost position. */
         public function addChild(child:DisplayObject):DisplayObject
         {
-            return addChildAt(child, _children.length);
+			if(child.parent) {
+				child.parent.removeChild(child);
+			}
+			
+			setRequiresRedraw();
+			
+			child.setParent(this);
+			
+			if(childLast) {
+				child.prev = childLast;
+				childLast.next = child;
+				childLast = child;
+			} else {
+				childFirst = child;
+				childLast = child;
+			}
+			
+			if (stage)
+			{
+				var container:DisplayObjectContainer = child as DisplayObjectContainer;
+				if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
+				else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
+			}
+			
+			_numChildren++;
+			return child;
         }
-        
-        /** Adds a child to the container at a certain index. */
-        public function addChildAt(child:DisplayObject, index:int):DisplayObject
-        {
-            var numChildren:int = _children.length;
-
-            if (index >= 0 && index <= numChildren)
-            {
-                setRequiresRedraw();
-
-                if (child.parent == this)
-                {
-                    setChildIndex(child, index); // avoids dispatching events
-                }
-                else
-                {
-                    _children.insertAt(index, child);
-
-                    child.removeFromParent();
-                    child.setParent(this);
-                    child.dispatchEventWith(Event.ADDED, true);
-                    
-                    if (stage)
-                    {
-                        var container:DisplayObjectContainer = child as DisplayObjectContainer;
-                        if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
-                        else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
-                    }
-                }
-                
-                return child;
-            }
-            else
-            {
-                throw new RangeError("Invalid child index");
-            }
-        }
+		
+		public function insertChildBeforeAll(child:DisplayObject):void {
+			if(childFirst) insertChildBefore(child, childFirst);
+			else addChild(child);
+		}
+		
+		public function insertChildBefore(child1:DisplayObject, child2:DisplayObject):void {
+			if(child2.parent != this) {
+				return;
+			}
+			
+			if(child1.parent != this) {
+				addChild(child1);
+			} else {
+				setRequiresRedraw();
+			}
+			
+			unlinkChild(child1);
+			
+			if(child2.prev) {
+				child2.prev.next = child1;
+			} else {
+				childFirst = child1;
+			}
+			
+			child1.prev = child2.prev;
+			child1.next = child2;
+			child2.prev = child1;
+		}
+		
+		public function insertChildAfter(child1:DisplayObject, child2:DisplayObject):void {
+			if(child2.parent != this) {
+				return;
+			}
+			
+			if(child1.parent != this) {
+				addChild(child1);
+			} else {
+				setRequiresRedraw();
+			}
+			
+			unlinkChild(child1);
+			
+			if(child2.next) {
+				child2.next.prev = child1;
+			} else {
+				childLast = child1;
+			}
+			
+			child1.prev = child2;
+			child1.next = child2.next;
+			child2.next = child1;
+		}
+		
+		protected function unlinkChild(child:DisplayObject):void {
+			if(child.prev) {
+				child.prev.next = child.next;
+			} else {
+				childFirst = child.next;
+			}
+			
+			if(child.next) {
+				child.next.prev = child.prev;
+			} else {
+				childLast = child.prev;
+			}
+			
+			child.prev = null;
+			child.next = null;
+		}
+		
+		public function swapChildren(child1:DisplayObject, child2:DisplayObject):void {
+			if(child1.parent != this || child2.parent != this) {
+				return;
+			}
+			
+			if(child1.prev) {
+				child1.prev.next = child2;
+			} else {
+				childFirst = child2;
+			}
+			
+			if(child2.prev) {
+				child2.prev.next = child1;
+			} else {
+				childFirst = child1;
+			}
+			
+			if(child1.next) {
+				child1.next.prev = child2;
+			} else {
+				childLast = child2;
+			}
+			
+			if(child2.next) {
+				child2.next.prev = child1;
+			} else {
+				childLast = child1;
+			}
+			
+			var swap:DisplayObject;
+			
+			swap = child1.prev;
+			child1.prev = child2.prev;
+			child2.prev = swap;
+			
+			swap = child1.next;
+			child1.next = child2.next;
+			child2.next = swap;
+			
+			setRequiresRedraw();
+		}
         
         /** Removes a child from the container. If the object is not a child, nothing happens. 
          *  If requested, the child will be disposed right away. */
         public function removeChild(child:DisplayObject, dispose:Boolean=false):DisplayObject
         {
-            var childIndex:int = getChildIndex(child);
-            if (childIndex != -1) removeChildAt(childIndex, dispose);
+            if(child.parent == this) {
+				setRequiresRedraw();
+				
+				child.dispatchEventWith(Event.REMOVED, true);
+				if (stage)
+				{
+					var container:DisplayObjectContainer = child as DisplayObjectContainer;
+					if (container) container.broadcastEventWith(Event.REMOVED_FROM_STAGE);
+					else           child.dispatchEventWith(Event.REMOVED_FROM_STAGE);
+				}
+				
+				unlinkChild(child);
+				child.setParent(null);
+				_numChildren--;
+				
+				if (dispose) child.dispose();
+			}
             return child;
-        }
-        
-        /** Removes a child at a certain index. The index positions of any display objects above
-         *  the child are decreased by 1. If requested, the child will be disposed right away. */
-        public function removeChildAt(index:int, dispose:Boolean=false):DisplayObject
-        {
-            if (index >= 0 && index < _children.length)
-            {
-                setRequiresRedraw();
-
-                var child:DisplayObject = _children[index];
-                child.dispatchEventWith(Event.REMOVED, true);
-                
-                if (stage)
-                {
-                    var container:DisplayObjectContainer = child as DisplayObjectContainer;
-                    if (container) container.broadcastEventWith(Event.REMOVED_FROM_STAGE);
-                    else           child.dispatchEventWith(Event.REMOVED_FROM_STAGE);
-                }
-                
-                child.setParent(null);
-                index = _children.indexOf(child); // index might have changed by event handler
-                if (index >= 0) _children.removeAt(index);
-                if (dispose) child.dispose();
-                
-                return child;
-            }
-            else
-            {
-                throw new RangeError("Invalid child index");
-            }
         }
         
         /** Removes a range of children from the container (endIndex included). 
          *  If no arguments are given, all children will be removed. */
-        public function removeChildren(beginIndex:int=0, endIndex:int=-1, dispose:Boolean=false):void
+        public function removeChildren(dispose:Boolean=false):void
         {
-            if (endIndex < 0 || endIndex >= numChildren) 
-                endIndex = numChildren - 1;
-            
-            for (var i:int=beginIndex; i<=endIndex; ++i)
-                removeChildAt(beginIndex, dispose);
+            while(childFirst) {
+				removeChild(childFirst);
+			}
         }
-
-        /** Returns a child object at a certain index. If you pass a negative index,
-         *  '-1' will return the last child, '-2' the second to last child, etc. */
-        public function getChildAt(index:int):DisplayObject
-        {
-            var numChildren:int = _children.length;
-
-            if (index < 0)
-                index = numChildren + index;
-
-            if (index >= 0 && index < numChildren)
-                return _children[index];
-            else
-                throw new RangeError("Invalid child index");
-        }
-        
-        /** Returns a child object with a certain name (non-recursively). */
-        public function getChildByName(name:String):DisplayObject
-        {
-            var numChildren:int = _children.length;
-            for (var i:int=0; i<numChildren; ++i)
-                if (_children[i].name == name) return _children[i];
-
-            return null;
-        }
-        
-        /** Returns the index of a child within the container, or "-1" if it is not found. */
-        public function getChildIndex(child:DisplayObject):int
-        {
-            return _children.indexOf(child);
-        }
-        
-        /** Moves a child to a certain index. Children at and after the replaced position move up.*/
-        public function setChildIndex(child:DisplayObject, index:int):void
-        {
-            var oldIndex:int = getChildIndex(child);
-            if (oldIndex == index) return;
-            if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
-
-            _children.removeAt(oldIndex);
-            _children.insertAt(index, child);
-            setRequiresRedraw();
-        }
-        
-        /** Swaps the indexes of two children. */
-        public function swapChildren(child1:DisplayObject, child2:DisplayObject):void
-        {
-            var index1:int = getChildIndex(child1);
-            var index2:int = getChildIndex(child2);
-            if (index1 == -1 || index2 == -1) throw new ArgumentError("Not a child of this container");
-            swapChildrenAt(index1, index2);
-        }
-        
-        /** Swaps the indexes of two children. */
-        public function swapChildrenAt(index1:int, index2:int):void
-        {
-            var child1:DisplayObject = getChildAt(index1);
-            var child2:DisplayObject = getChildAt(index2);
-            _children[index1] = child2;
-            _children[index2] = child1;
-            setRequiresRedraw();
-        }
+		
         
         /** Sorts the children according to a given function (that works just like the sort function
          *  of the Vector class). */
         public function sortChildren(compareFunction:Function):void
         {
-            sSortBuffer.length = _children.length;
-            mergeSort(_children, compareFunction, 0, _children.length, sSortBuffer);
-            sSortBuffer.length = 0;
-            setRequiresRedraw();
+            throw new Error("not implemented");
         }
         
         /** Determines if a certain object is a child of the container (recursively). */
@@ -285,31 +308,32 @@ package starling.display
         {
             if (out == null) out = new Rectangle();
             
-            var numChildren:int = _children.length;
-            
-            if (numChildren == 0)
+            if (_numChildren == 0)
             {
                 getTransformationMatrix(targetSpace, sHelperMatrix);
                 MatrixUtil.transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
                 out.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
             }
-            else if (numChildren == 1)
+            else if (_numChildren == 1)
             {
-                _children[0].getBounds(targetSpace, out);
+                childFirst.getBounds(targetSpace, out);
             }
             else
             {
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
 
-                for (var i:int=0; i<numChildren; ++i)
+				var child:DisplayObject = childFirst;
+                while(child)
                 {
-                    _children[i].getBounds(targetSpace, out);
+                    child.getBounds(targetSpace, out);
 
                     if (minX > out.x)      minX = out.x;
                     if (maxX < out.right)  maxX = out.right;
                     if (minY > out.y)      minY = out.y;
                     if (maxY < out.bottom) maxY = out.bottom;
+					
+					child = child.next;
                 }
 
                 out.setTo(minX, minY, maxX - minX, maxY - minY);
@@ -326,11 +350,13 @@ package starling.display
             var target:DisplayObject = null;
             var localX:Number = localPoint.x;
             var localY:Number = localPoint.y;
-            var numChildren:int = _children.length;
 
-            for (var i:int = numChildren - 1; i >= 0; --i) // front to back!
+			var child:DisplayObject = childFirst;
+			var prev:DisplayObject = child;
+            while(prev) // front to back!
             {
-                var child:DisplayObject = _children[i];
+				child = prev;
+				prev = child.prev;
                 if (child.isMask) continue;
 
                 sHelperMatrix.copyFrom(child.transformationMatrix);
@@ -348,14 +374,12 @@ package starling.display
         /** @inheritDoc */
         public override function render(painter:Painter):void
         {
-            var numChildren:int = _children.length;
             var frameID:uint = painter.frameID;
             var selfOrParentChanged:Boolean = _lastParentOrSelfChangeFrameID == frameID;
 
-            for (var i:int=0; i<numChildren; ++i)
+			var child:DisplayObject = childFirst;
+            while(child)
             {
-                var child:DisplayObject = _children[i];
-
                 if (child._hasVisibleArea)
                 {
                     if (selfOrParentChanged)
@@ -391,6 +415,8 @@ package starling.display
 
                     child._tokenFrameID = frameID;
                 }
+				
+				child = child.next;
             }
         }
 
@@ -425,7 +451,7 @@ package starling.display
         }
         
         /** The number of children of this container. */
-        public function get numChildren():int { return _children.length; }
+        public function get numChildren():int { return _numChildren; }
         
         /** If a container is a 'touchGroup', it will act as a single touchable object.
          *  Touch events will have the container as target, not the touched child.
@@ -492,11 +518,11 @@ package starling.display
             
             if (container)
             {
-                var children:Vector.<DisplayObject> = container._children;
-                var numChildren:int = children.length;
-                
-                for (var i:int=0; i<numChildren; ++i)
-                    getChildEventListeners(children[i], eventType, listeners);
+				var child:DisplayObject = container.childFirst;
+				while(child) {
+                    getChildEventListeners(child, eventType, listeners);
+					child = child.next;
+				}
             }
         }
     }

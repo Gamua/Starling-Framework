@@ -92,8 +92,8 @@ package starling.events
             return Texture.fromBitmapData(bmpData, false, false, scale);
         }
         
-        private function get realMarker():Image { return getChildAt(0) as Image; }
-        private function get mockMarker():Image { return getChildAt(1) as Image; }
+        private function get realMarker():Image { return childFirst as Image; }
+        private function get mockMarker():Image { return childFirst.next as Image; }
         
         public function get realX():Number { return realMarker.x; }
         public function get realY():Number { return realMarker.y; }
