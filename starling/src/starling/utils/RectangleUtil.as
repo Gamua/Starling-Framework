@@ -139,6 +139,16 @@ package starling.utils
             }
         }
 
+        /** Extends the bounds of the rectangle in all four directions. */
+        public static function extend(rect:Rectangle, left:Number=0, right:Number=0,
+                                      top:Number=0, bottom:Number=0):void
+        {
+            rect.x -= left;
+            rect.y -= top;
+            rect.width  += left + right;
+            rect.height += top  + bottom;
+        }
+
         /** Calculates the bounds of a rectangle after transforming it by a matrix.
          *  If you pass an <code>out</code>-rectangle, the result will be stored in this rectangle
          *  instead of creating a new object. */
