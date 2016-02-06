@@ -19,6 +19,7 @@ package starling.display
     import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.events.Event;
+    import starling.filters.FragmentFilter;
     import starling.rendering.BatchToken;
     import starling.rendering.Painter;
     import starling.utils.MatrixUtil;
@@ -373,16 +374,16 @@ package starling.display
                     }
                     else
                     {
-                        // TODO add support for filters
-
                         var mask:DisplayObject = child._mask;
+                        var filter:FragmentFilter = child._filter;
 
                         painter.pushState(child._pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
                         if (mask) painter.drawMask(mask);
 
-                        child.render(painter);
+                        if (filter) filter.render(painter);
+                        else        child.render(painter);
 
                         if (mask) painter.eraseMask(mask);
 

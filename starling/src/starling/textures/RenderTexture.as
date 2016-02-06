@@ -173,7 +173,7 @@ package starling.textures
 
             if (mask)   painter.drawMask(mask);
 
-            if (filter) filter.render(object, painter);
+            if (filter) filter.render(painter);
             else        object.render(painter);
 
             if (mask)   painter.eraseMask(mask);

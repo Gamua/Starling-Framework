@@ -10,6 +10,9 @@ package scenes
     import starling.filters.BlurFilter;
     import starling.filters.ColorMatrixFilter;
     import starling.filters.DisplacementMapFilter;
+    import starling.filters.DropShadowFilter;
+    import starling.filters.FragmentFilter;
+    import starling.filters.GlowFilter;
     import starling.text.TextField;
     import starling.textures.Texture;
 
@@ -34,13 +37,13 @@ package scenes
             _image.x = int(Constants.CenterX - _image.width / 2);
             _image.y = 170;
             addChild(_image);
-            
+
             _infoText = new TextField(300, 32);
             _infoText.format.size = 19;
             _infoText.x = 10;
             _infoText.y = 330;
             addChild(_infoText);
-            
+
             initFilters();
             onButtonTriggered();
         }
@@ -57,29 +60,29 @@ package scenes
         private function initFilters():void
         {
             _filterInfos = [
-                ["Identity", new ColorMatrixFilter()],
+                ["Identity", new FragmentFilter()],
                 ["Blur", new BlurFilter()],
-                ["Drop Shadow", BlurFilter.createDropShadow()],
-                ["Glow", BlurFilter.createGlow()]
+                ["Drop Shadow", new DropShadowFilter()],
+                ["Glow", new GlowFilter()]
             ];
-            
+
             var displacementFilter:DisplacementMapFilter = new DisplacementMapFilter(
                 createDisplacementMap(_image.width, _image.height), null,
                 BitmapDataChannel.RED, BitmapDataChannel.GREEN, 25, 25);
             _filterInfos.push(["Displacement Map", displacementFilter]);
-            
+
             var invertFilter:ColorMatrixFilter = new ColorMatrixFilter();
             invertFilter.invert();
             _filterInfos.push(["Invert", invertFilter]);
-            
+
             var grayscaleFilter:ColorMatrixFilter = new ColorMatrixFilter();
             grayscaleFilter.adjustSaturation(-1);
             _filterInfos.push(["Grayscale", grayscaleFilter]);
-            
+
             var saturationFilter:ColorMatrixFilter = new ColorMatrixFilter();
             saturationFilter.adjustSaturation(1);
             _filterInfos.push(["Saturation", saturationFilter]);
-            
+
             var contrastFilter:ColorMatrixFilter = new ColorMatrixFilter();
             contrastFilter.adjustContrast(0.75);
             _filterInfos.push(["Contrast", contrastFilter]);

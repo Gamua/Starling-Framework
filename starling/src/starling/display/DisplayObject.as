@@ -22,6 +22,7 @@ package starling.display
     import flash.utils.getQualifiedClassName;
 
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
     import starling.events.Event;
@@ -33,6 +34,8 @@ package starling.display
     import starling.utils.Align;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
+
+    use namespace starling_internal;
 
     /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
@@ -1030,6 +1033,9 @@ package starling.display
         {
             if (value != _filter)
             {
+                if (_filter) _filter.setTarget(null);
+                if (value) value.setTarget(this);
+
                 _filter = value;
                 setRequiresRedraw();
             }
