@@ -16,6 +16,9 @@ package starling.text
     import starling.events.EventDispatcher;
     import starling.utils.Align;
 
+    /** Dispatched when any property of the instance changes. */
+    [Event(name="change", type="starling.events.Event")]
+
     /** The TextFormat class represents character formatting information. It is used by the
      *  TextField and BitmapFont classes to characterize the way the glyphs will be rendered.
      *
