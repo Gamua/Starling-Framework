@@ -48,7 +48,6 @@ package
             var scaleFactor:int = viewPort.width < 480 ? 1 : 2; // midway between 320 and 640
 
             Starling.multitouchEnabled = true; // useful on mobile devices
-            RenderTexture.optimizePersistentBuffers = iOS; // safe on iOS, dangerous on Android
 
             _starling = new Starling(Root, stage, viewPort, null, "auto", "auto");
             _starling.stage.stageWidth    = StageWidth;  // <- same size on all devices!
