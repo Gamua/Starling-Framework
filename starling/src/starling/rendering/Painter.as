@@ -136,6 +136,7 @@ package starling.rendering
         public function dispose():void
         {
             _batchProcessor.dispose();
+            _batchCache.dispose();
 
             if (!_shareContext)
                 _context.dispose(false);
@@ -440,6 +441,11 @@ package starling.rendering
 
                 popState();
             }
+        }
+
+        public function rewindCacheTo(token:BatchToken):void
+        {
+            _batchProcessor.rewindTo(token);
         }
 
         private function drawBatch(meshBatch:MeshBatch):void

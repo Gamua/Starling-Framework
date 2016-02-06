@@ -143,6 +143,25 @@ package starling.rendering
             _batchPool.purge();
         }
 
+        public function rewindTo(token:BatchToken):void
+        {
+            if (token.batchID  > _cacheToken.batchID ||
+                token.indexID  > _cacheToken.indexID ||
+                token.vertexID > _cacheToken.vertexID)
+            {
+                throw new RangeError("Token outside available range");
+            }
+
+            for (var i:int = _cacheToken.batchID; i > token.batchID; --i)
+                _batchPool.put(_batches.pop());
+
+            _currentBatch = _batches[token.batchID];
+            _currentBatch.numIndices = token.indexID;
+            _currentBatch.numVertices = token.vertexID;
+
+            _cacheToken.copyFrom(token);
+        }
+
         /** Sets all properties of the given token so that it describes the current position
          *  within this instance. */
         public function fillToken(token:BatchToken):BatchToken
