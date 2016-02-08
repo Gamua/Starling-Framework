@@ -188,21 +188,6 @@ package starling.textures
             setDataUploaded();
         }
 
-//        /** Changes the base texture of this instance to the given object.
-//         *
-//         *  @param value         the new base texture.
-//         *  @param dataUploaded  indicates if the base texture contains texture data already, i.e.
-//         *                       it can be used right away.
-//         */
-//        protected function setBase(value:TextureBase, dataUploaded:Boolean=false):void
-//        {
-//            if (value != _base)
-//            {
-//                _base = value;
-//                _dataUploaded = dataUploaded;
-//            }
-//        }
-
         /** Notifies the instance that the base texture may now be used for rendering. */
         protected function setDataUploaded():void
         {
