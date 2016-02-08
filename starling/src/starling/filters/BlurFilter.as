@@ -126,8 +126,8 @@ import flash.display3D.Context3DProgramType;
 import starling.rendering.FilterEffect;
 import starling.rendering.Program;
 import starling.textures.Texture;
+import starling.utils.MathUtil;
 import starling.utils.RenderUtil;
-import starling.utils.clamp;
 
 class BlurEffect extends FilterEffect
 {
@@ -295,6 +295,6 @@ class BlurEffect extends FilterEffect
     public function get strength():Number { return _strength; }
     public function set strength(value:Number):void
     {
-        _strength = clamp(value, 0, 1);
+        _strength = MathUtil.clamp(value, 0, 1);
     }
 }
