@@ -169,6 +169,7 @@ package starling.filters
 
             painter.state.renderTarget = output;
             painter.prepareToDraw();
+            painter.drawCount += 1;
 
             input0.setupVertexPositions(vertexData);
             input0.setupTextureCoordinates(vertexData);
