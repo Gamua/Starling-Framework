@@ -56,10 +56,22 @@ package starling.filters
         /** Updates the size of the returned textures. Small size changes may allow the
          *  existing textures to be reused; big size changes will automatically dispose
          *  them. */
-        public function setSize(width:Number, height:Number, scale:Number):void
+        public function setSize(width:Number, height:Number, scale:Number=-1):void
         {
+            if (scale <= 0) scale = Starling.contentScaleFactor;
+
+            var factor:Number;
+            var maxNativeSize:int   = Texture.maxSize;
             var newNativeWidth:int  = getNativeSize(width,  scale);
             var newNativeHeight:int = getNativeSize(height, scale);
+
+            if (newNativeWidth > maxNativeSize || newNativeHeight > maxNativeSize)
+            {
+                factor = maxNativeSize / Math.max(newNativeWidth, newNativeHeight);
+                newNativeWidth  *= factor;
+                newNativeHeight *= factor;
+                scale *= factor;
+            }
 
             if (_nativeWidth != newNativeWidth || _nativeHeight != newNativeHeight)
             {

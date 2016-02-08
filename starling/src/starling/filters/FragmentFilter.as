@@ -14,7 +14,6 @@ package starling.filters
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
 
-    import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.display.Quad;
@@ -109,8 +108,7 @@ package starling.filters
                 RectangleUtil.extend(sBounds,
                     _padding.left, _padding.right, _padding.top, _padding.bottom);
 
-            var textureScale:Number = Starling.contentScaleFactor;
-            _pool.setSize(sBounds.width, sBounds.height, textureScale);
+            _pool.setSize(sBounds.width, sBounds.height);
 
             var input:Texture = _pool.getTexture();
 
