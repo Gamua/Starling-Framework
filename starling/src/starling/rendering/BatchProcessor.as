@@ -146,8 +146,8 @@ package starling.rendering
         public function rewindTo(token:BatchToken):void
         {
             if (token.batchID  > _cacheToken.batchID ||
-                token.indexID  > _cacheToken.indexID ||
-                token.vertexID > _cacheToken.vertexID)
+                token.indexID  > _batches[token.batchID].numIndices ||
+                token.vertexID > _batches[token.batchID].numVertices)
             {
                 throw new RangeError("Token outside available range");
             }
@@ -158,7 +158,6 @@ package starling.rendering
             _currentBatch = _batches[token.batchID];
             _currentBatch.numIndices = token.indexID;
             _currentBatch.numVertices = token.vertexID;
-
             _cacheToken.copyFrom(token);
         }
 

@@ -24,6 +24,7 @@ package scenes
         private var _image:Image;
         private var _infoText:TextField;
         private var _filterInfos:Array;
+        private var _displacementMap:Texture;
         
         public function FilterScene()
         {
@@ -47,7 +48,13 @@ package scenes
             initFilters();
             onButtonTriggered();
         }
-        
+
+        override public function dispose():void
+        {
+            _displacementMap.dispose();
+            super.dispose();
+        }
+
         private function onButtonTriggered():void
         {
             var filterInfo:Array = _filterInfos.shift() as Array;
@@ -66,9 +73,10 @@ package scenes
                 ["Glow", new GlowFilter()]
             ];
 
+            _displacementMap = createDisplacementMap(_image.width, _image.height);
+
             var displacementFilter:DisplacementMapFilter = new DisplacementMapFilter(
-                createDisplacementMap(_image.width, _image.height), null,
-                BitmapDataChannel.RED, BitmapDataChannel.GREEN, 25, 25);
+                _displacementMap, null, BitmapDataChannel.RED, BitmapDataChannel.GREEN, 25, 25);
             _filterInfos.push(["Displacement Map", displacementFilter]);
 
             var invertFilter:ColorMatrixFilter = new ColorMatrixFilter();

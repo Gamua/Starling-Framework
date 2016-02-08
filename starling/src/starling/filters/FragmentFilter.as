@@ -14,6 +14,7 @@ package starling.filters
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
 
+    import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.display.Quad;
@@ -60,14 +61,14 @@ package starling.filters
      */
     public class FragmentFilter
     {
-        private var _target:DisplayObject;
-        private var _pool:TexturePool;
         private var _quad:Quad;
+        private var _target:DisplayObject;
         private var _effect:FilterEffect;
         private var _vertexData:VertexData;
         private var _indexData:IndexData;
         private var _token:BatchToken;
         private var _padding:Padding;
+        private var _pool:TexturePool;
 
         // helper objects
         private static var sBounds:Rectangle = new Rectangle();
@@ -83,7 +84,10 @@ package starling.filters
         {
             if (_pool)   _pool.dispose();
             if (_effect) _effect.dispose();
-            if (_quad && _quad.texture) _quad.texture.dispose();
+            if (_quad) { _quad.texture.dispose(); _quad.dispose(); }
+
+            _effect = null;
+            _quad = null;
         }
 
         /** Renders the filtered target object. Most users will never have to call this manually;
@@ -105,8 +109,8 @@ package starling.filters
                 RectangleUtil.extend(sBounds,
                     _padding.left, _padding.right, _padding.top, _padding.bottom);
 
-            _pool.textureWidth  = sBounds.width;
-            _pool.textureHeight = sBounds.height;
+            var textureScale:Number = Starling.contentScaleFactor;
+            _pool.setSize(sBounds.width, sBounds.height, textureScale);
 
             var input:Texture = _pool.getTexture();
 
@@ -127,7 +131,7 @@ package starling.filters
             painter.popState();
             painter.rewindCacheTo(_token); // -> render cache 'forgets' all that happened above :)
 
-            if (_padding)
+            if (sBounds.x != 0 || sBounds.y != 0)
             {
                 sMatrix.identity();
                 sMatrix.translate(sBounds.x, sBounds.y);
@@ -258,58 +262,15 @@ package starling.filters
                 var prevTarget:DisplayObject = _target;
                 _target = target;
 
-                if (target == null) _pool.purge();
+                if (target == null)
+                {
+                    _pool.putTexture(_quad.texture);
+                    _pool.purge();
+                    _quad.texture = null;
+                }
+
                 if (prevTarget) prevTarget.filter = null;
             }
         }
     }
-}
-
-import starling.filters.ITexturePool;
-import starling.textures.Texture;
-
-class TexturePool implements ITexturePool
-{
-    private var _textureWidth:Number;
-    private var _textureHeight:Number;
-    private var _textureScale:Number;
-
-    // TODO this class is just a stub right now - add real pooling functionality
-
-    public function TexturePool(textureWidth:Number=32, textureHeight:Number=32,
-                                textureScale:Number=-1)
-    {
-        _textureWidth  = textureWidth;
-        _textureHeight = textureHeight;
-        _textureScale  = textureScale;
-    }
-
-    public function getTexture():Texture
-    {
-        return Texture.fromColor(_textureWidth, _textureHeight, 0x0, 0.0, true, _textureScale);
-    }
-
-    public function putTexture(texture:Texture):void
-    {
-        if (texture) texture.dispose();
-    }
-
-    public function purge():void
-    {
-
-    }
-
-    public function dispose():void
-    {
-        purge();
-    }
-
-    public function get textureWidth():Number { return _textureWidth; }
-    public function set textureWidth(value:Number):void { _textureWidth = value; }
-
-    public function get textureHeight():Number { return _textureHeight; }
-    public function set textureHeight(value:Number):void { _textureHeight = value; }
-
-    public function get textureScale():Number { return _textureScale; }
-    public function set textureScale(value:Number):void { _textureScale = value; }
 }
