@@ -16,13 +16,15 @@ package starling.rendering
     import starling.textures.TextureSmoothing;
     import starling.utils.RenderUtil;
 
-    /** The standard effect for fragment filters.
-     *  Any fragment filters will extend this class to supply their custom shaders.
+    /** An effect drawing a mesh of textured vertices.
+     *  This is the standard effect that is the base for all fragment filters;
+     *  if you want to create your own fragment filters, you will have to extend this class.
      *
      *  <p>For more information about the usage and creation of effects, please have a look at
      *  the documentation of the parent class, "Effect".</p>
      *
      *  @see Effect
+     *  @see MeshEffect
      *  @see starling.filters.FragmentFilter
      */
     public class FilterEffect extends Effect
@@ -84,8 +86,8 @@ package starling.rendering
          *  <ul>
          *    <li><code>vc0-vc3</code> — MVP matrix</li>
          *    <li><code>va0</code> — vertex position (xy)</li>
-         *    <li><code>va1</code> — input texture coordinates</li>
-         *    <li><code>fs0</code> — input texture</li>
+         *    <li><code>va1</code> — texture coordinates (uv)</li>
+         *    <li><code>fs0</code> — texture</li>
          *  </ul>
          */
         override protected function beforeDraw(context:Context3D):void

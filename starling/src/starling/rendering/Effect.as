@@ -25,20 +25,23 @@ package starling.rendering
 
     /** An effect encapsulates all steps of a Stage3D draw operation. It configures the
      *  render context and sets up shader programs as well as index- and vertex-buffers.
-     *  Extend this class when you need custom rendering code for your display objects.
      *
      *  <p><strong>Extending the Effect class</strong></p>
      *
      *  <p>This class provides the basic mechanisms of low-level rendering. The base class
      *  can only render white triangles, which is not much use in itself. However, it is
-     *  designed to be extended; subclasses can easily implement any kinds of shaders.
-     *  To do that, they should override the following methods:</p>
+     *  designed to be extended; subclasses can easily implement any kinds of shaders.</p>
+     *
+     *  <p>Normally, you won't extend this class directly, but either <code>FilterEffect</code>
+     *  or <code>MeshEffect</code>, depending on your needs (i.e. if you want to create a new
+     *  fragment filter or a new mesh style). Whichever base class you're extending, you should
+     *  override the following methods:</p>
      *
      *  <ul>
      *    <li><code>createProgram():Program</code> — must create the actual program containing 
      *        vertex- and fragment-shaders. A program will be created only once for each render
      *        context; this is taken care of by the base class.</li>
-     *    <li><code>get programVariantName():uint</code> (optional) — implement this if your
+     *    <li><code>get programVariantName():uint</code> (optional) — override this if your
      *        effect requires different programs, depending on its settings. The recommended
      *        way to do this is via a bit-mask that uniquely encodes the current settings.</li>
      *    <li><code>get vertexFormat():String</code> — must return the <code>VertexData</code>
@@ -50,9 +53,9 @@ package starling.rendering
      *  </ul>
      *
      *  <p>Furthermore, you should add properties that manage the data you need during rendering,
-     *  e.g. the texture(s) that should be used, program constants, etc. I recommend to look
-     *  at the implementation of Starling's <code>MeshEffect</code> for a simple blueprint
-     *  of a custom effect.</p>
+     *  e.g. the texture(s) that should be used, program constants, etc. I recommend looking at
+     *  the implementations of Starling's <code>FilterEffect</code> and <code>MeshEffect</code>
+     *  classes to see how to approach sub-classing.</p>
      *
      *  <strong>Using the Effect class</strong>
      *
@@ -77,6 +80,7 @@ package starling.rendering
      *  <p>Note that the <code>VertexData</code> being uploaded has to be created with the same
      *  format as the one returned by the effect's <code>vertexFormat</code> property.</p>
      *
+     *  @see FilterEffect
      *  @see MeshEffect
      *  @see starling.rendering.MeshStyle
      *  @see starling.utils.RenderUtil

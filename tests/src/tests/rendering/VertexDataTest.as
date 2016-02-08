@@ -32,37 +32,7 @@ package tests.rendering
     public class VertexDataTest
     {
         private static const E:Number = 0.001;
-        private static const STD_FORMAT:String = "position(float2), color(bytes4), texCoords(float2)";
-
-        [Test]
-        public function testFormatParsing():void
-        {
-            var vd:VertexData = new VertexData(STD_FORMAT);
-
-            assertEquals(2, vd.getSizeIn32Bits("position"));
-            assertEquals(8, vd.getSizeInBytes("position"));
-            assertEquals(1, vd.getSizeIn32Bits("color"));
-            assertEquals(4, vd.getSizeInBytes("color"));
-            assertEquals(2, vd.getSizeIn32Bits("texCoords"));
-            assertEquals(8, vd.getSizeInBytes("texCoords"));
-
-            assertEquals(0, vd.numVertices);
-            assertEquals(5, vd.vertexSizeIn32Bits);
-            assertEquals(20, vd.vertexSizeInBytes);
-
-            assertEquals("float2", vd.getFormat("position"));
-            assertEquals("bytes4", vd.getFormat("color"));
-            assertEquals("float2", vd.getFormat("texCoords"));
-
-            assertEquals(0, vd.getOffsetIn32Bits("position"));
-            assertEquals(0, vd.getOffsetInBytes("position"));
-            assertEquals(2, vd.getOffsetIn32Bits("color"));
-            assertEquals(8, vd.getOffsetInBytes("color"));
-            assertEquals(3, vd.getOffsetIn32Bits("texCoords"));
-            assertEquals(12, vd.getOffsetInBytes("texCoords"));
-
-            assertEquals(STD_FORMAT, vd.formatString);
-        }
+        private static const STD_FORMAT:String = "position(float2), texCoords(float2), color(bytes4)";
 
         [Test]
         public function testNumVertices():void

@@ -65,7 +65,7 @@ package starling.rendering
          *  Describes the attributes of each vertex, consisting of a comma-separated
          *  list of attribute names and their format, e.g.:
          *
-         *  <pre>"position(float2), color(bytes4), texCoords(float2)"</pre>
+         *  <pre>"position(float2), texCoords(float2), color(bytes4)"</pre>
          *
          *  <p>This set of attributes will be allocated for each vertex, and they will be
          *  stored in exactly the given order.</p>
@@ -79,7 +79,7 @@ package starling.rendering
          *    <li>Always use <code>bytes4</code> for color data that you want to access with the
          *        respective methods.</li>
          *    <li>Furthermore, the attribute names of colors should include the string "color"
-         *        (or the camelcase variant). If that's the case, the "alpha" value of the color
+         *        (or the uppercase variant). If that's the case, the "alpha" channel of the color
          *        will automatically be initialized with "1.0" when the VertexData object is
          *        created or resized.</li>
          *  </ul>
