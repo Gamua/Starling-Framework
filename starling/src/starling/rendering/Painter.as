@@ -164,6 +164,8 @@ package starling.rendering
         {
             _context = _stage3D.context3D;
             _context.enableErrorChecking = _enableErrorChecking;
+            _actualBlendMode = null;
+            _actualCulling = null;
         }
 
         /** Sets the viewport dimensions and other attributes of the rendering buffer.
