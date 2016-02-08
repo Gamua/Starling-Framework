@@ -836,12 +836,10 @@ package starling.utils
                             }
 
                             _numRestoredTextures++;
+                            Starling.current.stage.setRequiresRedraw();
                             
                             if (_numLostTextures == _numRestoredTextures)
-                            {
                                 dispatchEventWith(Event.TEXTURES_RESTORED);
-                                Starling.current.stage.setRequiresRedraw();
-                            }
                         });
                     };
 
@@ -870,7 +868,7 @@ package starling.utils
                                 try
                                 {
                                     if (asset == null) throw new Error("Reload failed");
-                                    texture.root.uploadAtfData(asset as ByteArray, 0, true);
+                                    texture.root.uploadAtfData(asset as ByteArray, 0, false);
                                     asset.clear();
                                 }
                                 catch (e:Error)
@@ -879,6 +877,7 @@ package starling.utils
                                 }
                                 
                                 _numRestoredTextures++;
+                                Starling.current.stage.setRequiresRedraw();
                                 
                                 if (_numLostTextures == _numRestoredTextures)
                                     dispatchEventWith(Event.TEXTURES_RESTORED);
