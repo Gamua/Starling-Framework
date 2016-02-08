@@ -14,6 +14,8 @@ package starling.filters
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
 
+    import starling.core.Starling;
+
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.display.Quad;
@@ -76,17 +78,28 @@ package starling.filters
         /** Creates a new instance. The base class' implementation just draws the unmodified
          *  input texture. */
         public function FragmentFilter()
-        { }
+        {
+            // Handle lost context (using conventional Flash event for weak listener support)
+            Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
+                onContextCreated, false, 0, true);
+        }
 
         /** Disposes all resources that have been created by the filter. */
         public function dispose():void
         {
+            Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+
             if (_pool)   _pool.dispose();
             if (_effect) _effect.dispose();
             if (_quad) { _quad.texture.dispose(); _quad.dispose(); }
 
             _effect = null;
             _quad = null;
+        }
+
+        private function onContextCreated(event:Object):void
+        {
+            setRequiresRedraw();
         }
 
         /** Renders the filtered target object. Most users will never have to call this manually;

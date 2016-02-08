@@ -838,7 +838,10 @@ package starling.utils
                             _numRestoredTextures++;
                             
                             if (_numLostTextures == _numRestoredTextures)
+                            {
                                 dispatchEventWith(Event.TEXTURES_RESTORED);
+                                Starling.current.stage.setRequiresRedraw();
+                            }
                         });
                     };
 
