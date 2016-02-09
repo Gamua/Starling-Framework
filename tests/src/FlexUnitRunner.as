@@ -17,6 +17,7 @@ package
     import tests.display.QuadTest;
     import tests.display.Sprite3DTest;
     import tests.events.EventTest;
+    import tests.filters.FilterChainTest;
     import tests.geom.PolygonTest;
     import tests.rendering.IndexDataTest;
     import tests.rendering.VertexDataFormatTest;
@@ -76,6 +77,7 @@ package
             testsToRun.push(IndexDataTest);
             testsToRun.push(VertexDataTest);
             testsToRun.push(VertexDataFormatTest);
+            testsToRun.push(FilterChainTest);
             return testsToRun;
         }
     }

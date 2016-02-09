@@ -11,6 +11,7 @@ package scenes
     import starling.filters.ColorMatrixFilter;
     import starling.filters.DisplacementMapFilter;
     import starling.filters.DropShadowFilter;
+    import starling.filters.FilterChain;
     import starling.filters.FragmentFilter;
     import starling.filters.GlowFilter;
     import starling.text.TextField;
@@ -102,6 +103,9 @@ package scenes
             var hueFilter:ColorMatrixFilter = new ColorMatrixFilter();
             hueFilter.adjustHue(1);
             _filterInfos.push(["Hue", hueFilter]);
+
+            var chain:FilterChain = new FilterChain(hueFilter, new DropShadowFilter());
+            _filterInfos.push(["Hue + Shadow", chain]);
         }
         
         private function createDisplacementMap(width:Number, height:Number):Texture
