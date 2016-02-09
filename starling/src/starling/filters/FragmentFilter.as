@@ -20,6 +20,7 @@ package starling.filters
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.events.Event;
+    import starling.events.EventDispatcher;
     import starling.rendering.BatchToken;
     import starling.rendering.FilterEffect;
     import starling.rendering.IndexData;
@@ -28,6 +29,9 @@ package starling.filters
     import starling.textures.Texture;
     import starling.utils.Padding;
     import starling.utils.RectangleUtil;
+
+    /** Dispatched when the settings change in a way that requires a redraw. */
+    [Event(name="change", type="starling.events.Event")]
 
     /** The FragmentFilter class is the base class for all filter effects in Starling.
      *  All filters must extend this class. You can attach them to any display object through the
@@ -60,7 +64,7 @@ package starling.filters
      *
      *  @see starling.rendering.FilterEffect
      */
-    public class FragmentFilter
+    public class FragmentFilter extends EventDispatcher
     {
         private var _quad:Quad;
         private var _target:DisplayObject;
@@ -243,6 +247,7 @@ package starling.filters
          *  This will make sure the filter is redrawn in the next frame. */
         protected function setRequiresRedraw():void
         {
+            dispatchEventWith(Event.CHANGE);
             if (target) target.setRequiresRedraw();
         }
 
@@ -276,9 +281,9 @@ package starling.filters
 
                 if (target == null)
                 {
-                    _pool.putTexture(_quad.texture);
-                    _pool.purge();
-                    _quad.texture = null;
+                    if (_pool)   _pool.purge();
+                    if (_effect) _effect.purgeBuffers();
+                    if (_quad) { _quad.texture.dispose(); _quad.texture = null; }
                 }
 
                 if (prevTarget) prevTarget.filter = null;
