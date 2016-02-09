@@ -211,6 +211,7 @@ package starling.core
         private var mStarted:Boolean;
         private var mRendering:Boolean;
         private var mSupportHighResolutions:Boolean;
+        private var mBroadcastKeyboardEvents:Boolean;
         
         private var mViewPort:Rectangle;
         private var mPreviousViewPort:Rectangle;
@@ -278,6 +279,7 @@ package starling.core
             mSimulateMultitouch = false;
             mEnableErrorChecking = false;
             mSupportHighResolutions = false;
+            mBroadcastKeyboardEvents = true;
             mLastFrameTimestamp = getTimer() / 1000.0;
             mSupport  = new RenderSupport();
             
@@ -715,7 +717,9 @@ package starling.core
                 event.ctrlKey, event.altKey, event.shiftKey);
             
             makeCurrent();
-            mStage.broadcastEvent(keyEvent);
+
+            if (mBroadcastKeyboardEvents) mStage.broadcastEvent(keyEvent);
+            else mStage.dispatchEvent(keyEvent);
             
             if (keyEvent.isDefaultPrevented())
                 event.preventDefault();
@@ -1085,6 +1089,15 @@ package starling.core
                 mSupportHighResolutions = value;
                 if (contextValid) updateViewPort(true);
             }
+        }
+
+        /** Indicates if keyboard events are broadcast to all display objects, or dispatched
+         *  to the stage only. In some situations, it makes sense to deactivate this setting
+         *  for performance reasons. @default true */
+        public function get broadcastKeyboardEvents():Boolean { return mBroadcastKeyboardEvents; }
+        public function set broadcastKeyboardEvents(value:Boolean):void
+        {
+            mBroadcastKeyboardEvents = value;
         }
         
         /** The TouchProcessor is passed all mouse and touch input and is responsible for
