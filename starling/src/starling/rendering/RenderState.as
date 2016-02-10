@@ -243,7 +243,7 @@ package starling.rendering
          *                    This parameter affects only texture targets. Note that at the time
          *                    of this writing, AIR supports anti-aliasing only on Desktop.
          */
-        public function setRenderTarget(target:Texture, enableDepthAndStencil:Boolean=false,
+        public function setRenderTarget(target:Texture, enableDepthAndStencil:Boolean=true,
                                         antiAlias:int=0):void
         {
             var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
