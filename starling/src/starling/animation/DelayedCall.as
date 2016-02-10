@@ -108,6 +108,9 @@ package starling.animation
         public function get repeatCount():int { return mRepeatCount; }
         public function set repeatCount(value:int):void { mRepeatCount = value; }
         
+		/** the actual function call **/
+		public function get call():Function { return mCall; };
+		
         // delayed call pooling
         
         private static var sPool:Vector.<DelayedCall> = new <DelayedCall>[];
