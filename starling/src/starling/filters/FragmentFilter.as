@@ -15,7 +15,6 @@ package starling.filters
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
-
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.display.Quad;
@@ -128,7 +127,14 @@ package starling.filters
             _pool.setSize(sBounds.width, sBounds.height);
 
             var input:Texture = _pool.getTexture();
+            var frameID:int = painter.frameID;
 
+            // By temporarily setting the frameID to zero, the render cache is effectively
+            // disabled while we draw the target object. That is necessary because we rewind the
+            // cache later; if we didn't deactivate the cache, redrawing one of the target objects
+            // later might reference data that does not exist any longer.
+
+            painter.frameID = 0;
             painter.pushState(_token);
             painter.state.renderTarget = input;
             painter.state.setModelviewMatricesToIdentity();
@@ -144,6 +150,7 @@ package starling.filters
             _pool.putTexture(input);
 
             painter.popState();
+            painter.frameID = frameID;
             painter.rewindCacheTo(_token); // -> render cache 'forgets' all that happened above :)
 
             if (sBounds.x != 0 || sBounds.y != 0)
