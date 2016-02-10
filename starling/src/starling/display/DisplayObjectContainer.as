@@ -209,12 +209,24 @@ package starling.display
                 throw new RangeError("Invalid child index");
         }
         
-        /** Returns a child object with a certain name (non-recursively). */
-        public function getChildByName(name:String):DisplayObject
+        /** Returns a child object with a certain name. There is option to search
+         * recursively. */
+        public function getChildByName(name:String, searchInChildren:Boolean=false):DisplayObject
         {
-            var numChildren:int = mChildren.length;
-            for (var i:int=0; i<numChildren; ++i)
-                if (mChildren[i].name == name) return mChildren[i];
+            if (searchInChildren)
+            {
+                var childPath:Array = name.split(".");
+                var target:DisplayObjectContainer = this;
+                for each (var childName:String in childPath)
+                {
+                    target = target.getChildByName(childName) as DisplayObjectContainer;
+                }
+                return target;
+            } else {
+                var numChildren:int = mChildren.length;
+                for (var i:int=0; i<numChildren; ++i)
+                    if (mChildren[i].name == name) return mChildren[i];
+            }
 
             return null;
         }

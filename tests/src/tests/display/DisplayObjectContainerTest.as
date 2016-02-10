@@ -159,7 +159,41 @@ package tests.display
             child2.name = "child3";
             Assert.assertEquals(child2, parent.getChildByName("child3"));
         }
-        
+
+        [Test]
+        public function testGetChildByNameRecursively():void
+        {
+            var parent:Sprite = new Sprite();
+            var child1:Sprite = new Sprite();
+            child1.name = "child1";
+
+            var child2:Sprite = new Sprite();
+            child2.name = "child2";
+
+            var child3:Sprite = new Sprite();
+            child3.name = "child3";
+
+            parent.addChild(child1);
+            child1.addChild(child2);
+            child2.addChild(child3);
+
+            Assert.assertEquals(child1, parent.getChildByName("child1", true));
+            Assert.assertEquals(child2, parent.getChildByName("child1.child2", true));
+            Assert.assertEquals(child3, parent.getChildByName("child1.child2.child3", true));
+            Assert.assertNull(parent.getChildByName("child1.child2"));
+        }
+
+        [Test(expects="TypeError")]
+        public function testGetChildByNameRecursivelyWithError():void
+        {
+            var parent:Sprite = new Sprite();
+            var child1:Sprite = new Sprite();
+            child1.name = "child1";
+
+            parent.addChild(child1);
+            parent.getChildByName("child1.child2.child3", true);
+        }
+
         [Test]
         public function testSetChildIndex():void
         {
