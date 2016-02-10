@@ -13,8 +13,10 @@ package starling.display
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
     import flash.errors.IllegalOperationError;
+    import flash.geom.Matrix;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.geom.Vector3D;
 
     import starling.core.Starling;
@@ -25,6 +27,7 @@ package starling.display
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
     import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
 
     use namespace starling_internal;
     
@@ -67,9 +70,10 @@ package starling.display
         private var _cameraPosition:Vector3D;
         private var _enterFrameEvent:EnterFrameEvent;
         private var _enterFrameListeners:Vector.<DisplayObject>;
-        
-        /** Helper objects. */
-        private static var sHelperMatrix:Matrix3D = new Matrix3D();
+
+        // helper objects
+        private static var sMatrix:Matrix = new Matrix();
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
 
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
@@ -150,7 +154,19 @@ package starling.display
             painter.popState();
             return destination;
         }
-        
+
+        /** Returns the stage bounds (i.e. not the bounds of its contents, but the rectangle
+         *  spawned up by 'stageWidth' and 'stageHeight') in another coordinate system. */
+        public function getStageBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
+        {
+            if (out == null) out = new Rectangle();
+
+            out.setTo(0, 0, _width, _height);
+            getTransformationMatrix(targetSpace, sMatrix);
+
+            return RectangleUtil.getBounds(out, sMatrix, out);
+        }
+
         // camera positioning
 
         /** Returns the position of the camera within the local coordinate system of a certain
@@ -160,9 +176,9 @@ package starling.display
          */
         public function getCameraPosition(space:DisplayObject=null, out:Vector3D=null):Vector3D
         {
-            getTransformationMatrix3D(space, sHelperMatrix);
+            getTransformationMatrix3D(space, sMatrix3D);
 
-            return MatrixUtil.transformCoords3D(sHelperMatrix,
+            return MatrixUtil.transformCoords3D(sMatrix3D,
                 _width / 2 + _projectionOffset.x, _height / 2 + _projectionOffset.y,
                 -focalLength, out);
         }
