@@ -27,6 +27,7 @@ package starling.filters
     import starling.rendering.VertexData;
     import starling.textures.Texture;
     import starling.utils.Padding;
+    import starling.utils.Pool;
     import starling.utils.RectangleUtil;
 
     /** Dispatched when the settings change in a way that requires a redraw. */
@@ -75,7 +76,6 @@ package starling.filters
         private var _pool:TexturePool;
 
         // helper objects
-        private static var sBounds:Rectangle = new Rectangle();
         private static var sMatrix:Matrix = new Matrix();
 
         /** Creates a new instance. The base class' implementation just draws the unmodified
@@ -118,13 +118,17 @@ package starling.filters
             if (_quad  == null) _quad  = new Quad(32, 32);
             else { _pool.putTexture(_quad.texture); _quad.texture = null; }
 
-            _target.getBounds(_target, sBounds);
+            var root:DisplayObject = _target.root;
+            var bounds:Rectangle = Pool.getRectangle();
+
+            if (_target == root) root.stage.getStageBounds(_target, bounds);
+            else _target.getBounds(_target, bounds);
 
             if (_padding)
-                RectangleUtil.extend(sBounds,
+                RectangleUtil.extend(bounds,
                     _padding.left, _padding.right, _padding.top, _padding.bottom);
 
-            _pool.setSize(sBounds.width, sBounds.height);
+            _pool.setSize(bounds.width, bounds.height);
 
             var input:Texture = _pool.getTexture();
             var frameID:int = painter.frameID;
@@ -138,7 +142,7 @@ package starling.filters
             painter.pushState(_token);
             painter.state.renderTarget = input;
             painter.state.setModelviewMatricesToIdentity();
-            painter.state.setProjectionMatrix(sBounds.x, sBounds.y,
+            painter.state.setProjectionMatrix(bounds.x, bounds.y,
                 input.root.width, input.root.height);
 
             _target.render(painter);
@@ -153,12 +157,14 @@ package starling.filters
             painter.frameID = frameID;
             painter.rewindCacheTo(_token); // -> render cache 'forgets' all that happened above :)
 
-            if (sBounds.x != 0 || sBounds.y != 0)
+            if (bounds.x != 0 || bounds.y != 0)
             {
                 sMatrix.identity();
-                sMatrix.translate(sBounds.x, sBounds.y);
+                sMatrix.translate(bounds.x, bounds.y);
                 painter.state.transformModelviewMatrix(sMatrix);
             }
+
+            Pool.putRectangle(bounds);
 
             _quad.readjustSize();
             _quad.render(painter);
