@@ -752,8 +752,12 @@ package starling.core
             _touchProcessor.simulateMultitouch = value;
         }
         
-        /** Indicates if Stage3D render methods will report errors. Activate only when needed,
-         *  as this has a negative impact on performance. @default false */
+        /** Indicates if Stage3D render methods will report errors. It's recommended to activate
+         *  this when writing custom rendering code (shaders, etc.), since you'll get more detailed
+         *  error messages. However, it has a very negative impact on performance, and it prevents
+         *  ATF textures from being restored on a context loss. Never activate for release builds!
+         *
+         *  @default false */
         public function get enableErrorChecking():Boolean { return _painter.enableErrorChecking; }
         public function set enableErrorChecking(value:Boolean):void
         {
