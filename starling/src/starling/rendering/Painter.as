@@ -445,6 +445,9 @@ package starling.rendering
             }
         }
 
+        /** Removes all parts of the render cache past the given token. Beware that some display
+         *  objects might still reference those parts of the cache! Only call it if you know
+         *  exactly what you're doing. */
         public function rewindCacheTo(token:BatchToken):void
         {
             _batchProcessor.rewindTo(token);
