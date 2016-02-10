@@ -185,7 +185,7 @@ package starling.display
         }
 
         /** Indicates if the given mesh instance fits to the current state of the batch.
-         *  Will always return <code>true</code> for the first added object; later calls
+         *  Will always return <code>true</code> for the first added mesh; later calls
          *  will check if the style matches and if the maximum number of vertices is not
          *  exceeded.
          *
@@ -194,9 +194,12 @@ package starling.display
          */
         public function canAddMesh(mesh:Mesh, numVertices:int=-1):Boolean
         {
+            var currentNumVertices:int = _vertexData.numVertices;
+
+            if (currentNumVertices == 0) return true;
             if (numVertices  < 0) numVertices = mesh.numVertices;
             if (numVertices == 0) return true;
-            if (numVertices + _vertexData.numVertices > MAX_NUM_VERTICES) return false;
+            if (numVertices + currentNumVertices > MAX_NUM_VERTICES) return false;
 
             return _style.canBatchWith(mesh._style);
         }
