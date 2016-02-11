@@ -804,7 +804,7 @@ package starling.display
          *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix3D():Matrix3D
         {
-            // this method needs to be overriden in 3D-supporting subclasses (like Sprite3D).
+            // this method needs to be overridden in 3D-supporting subclasses (like Sprite3D).
 
             if (_transformationMatrix3D == null)
                 _transformationMatrix3D = new Matrix3D();
