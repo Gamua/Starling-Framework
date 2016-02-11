@@ -18,6 +18,7 @@ package starling.filters
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
     import starling.display.Quad;
+    import starling.display.Stage;
     import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.rendering.BatchToken;
@@ -115,11 +116,12 @@ package starling.filters
 
             if (_token == null) _token = new BatchToken();
             if (_pool  == null) _pool  = new TexturePool();
-            if (_quad  == null) _quad  = new Quad(32, 32);
+            if (_quad  == null) { _quad  = new Quad(32, 32); _quad.pixelSnapping = false; }
             else { _pool.putTexture(_quad.texture); _quad.texture = null; }
 
-            var root:DisplayObject = _target.root;
             var bounds:Rectangle = Pool.getRectangle();
+            var root:DisplayObject = _target.root;
+            var stage:Stage = root.stage;
 
             if (_target == root) root.stage.getStageBounds(_target, bounds);
             else _target.getBounds(_target, bounds);
@@ -142,8 +144,8 @@ package starling.filters
             painter.pushState(_token);
             painter.state.renderTarget = input;
             painter.state.setModelviewMatricesToIdentity();
-            painter.state.setProjectionMatrix(bounds.x, bounds.y,
-                input.root.width, input.root.height);
+            painter.state.setProjectionMatrix(bounds.x, bounds.y, input.root.width,
+                input.root.height, stage.stageWidth, stage.stageHeight, stage.cameraPosition);
 
             _target.render(painter);
 
