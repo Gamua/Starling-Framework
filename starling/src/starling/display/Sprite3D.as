@@ -90,11 +90,11 @@ package starling.display
             _rotationX = _rotationY = _pivotZ = _z = 0.0;
             _transformationMatrix = new Matrix();
             _transformationMatrix3D = new Matrix3D();
-            setIs3D(true);
+            _is2D = true;  // meaning: this 3D object contains only 2D content
+            setIs3D(true); // meaning: this display object supports 3D transformations
 
             addEventListener(Event.ADDED, onAddedChild);
             addEventListener(Event.REMOVED, onRemovedChild);
-            addEventListener(Event.ENTER_FRAME, onEnterFrame);
         }
 
         /** @inheritDoc */
@@ -155,11 +155,6 @@ package starling.display
         }
 
         // helpers
-
-        private function onEnterFrame(event:EnterFrameEvent):void
-        {
-            if (!_is2D) setRequiresRedraw();
-        }
 
         private function onAddedChild(event:Event):void
         {
