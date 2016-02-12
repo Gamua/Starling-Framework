@@ -93,9 +93,10 @@ package starling.filters
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 
-            if (_pool)   _pool.dispose();
+            if (_pool) _pool.dispose();
             if (_effect) _effect.dispose();
-            if (_quad) { _quad.texture.dispose(); _quad.dispose(); }
+            if (_quad && _quad.texture) _quad.texture.dispose();
+            if (_quad) _quad.dispose();
 
             _effect = null;
             _quad = null;
@@ -116,19 +117,33 @@ package starling.filters
 
             if (_token == null) _token = new BatchToken();
             if (_pool  == null) _pool  = new TexturePool();
-            if (_quad  == null) { _quad  = new Quad(32, 32); _quad.pixelSnapping = false; }
+            if (_quad  == null) { _quad = new Quad(32, 32); _quad.pixelSnapping = false; }
             else { _pool.putTexture(_quad.texture); _quad.texture = null; }
 
             var bounds:Rectangle = Pool.getRectangle();
             var root:DisplayObject = _target.root;
             var stage:Stage = root.stage;
+            var stageBounds:Rectangle;
 
-            if (_target == root) root.stage.getStageBounds(_target, bounds);
-            else _target.getBounds(_target, bounds);
+            if (_target == root) stage.getStageBounds(_target, bounds);
+            else
+            {
+                _target.getBounds(stage, bounds);
 
-            if (_padding)
-                RectangleUtil.extend(bounds,
-                    _padding.left, _padding.right, _padding.top, _padding.bottom);
+                // intersect with stage (no need to render anything outside the stage)
+                stageBounds = stage.getStageBounds(null, Pool.getRectangle());
+                RectangleUtil.intersect(bounds, stageBounds, bounds);
+                Pool.putRectangle(stageBounds);
+            }
+
+            if (bounds.isEmpty())
+            {
+                Pool.putRectangle(bounds);
+                return;
+            }
+
+            if (_padding) RectangleUtil.extend(bounds,
+                _padding.left, _padding.right, _padding.top, _padding.bottom);
 
             _pool.setSize(bounds.width, bounds.height);
 
@@ -143,33 +158,36 @@ package starling.filters
             painter.frameID = 0;
             painter.pushState(_token);
             painter.state.renderTarget = input;
-            painter.state.setModelviewMatricesToIdentity();
             painter.state.setProjectionMatrix(bounds.x, bounds.y, input.root.width,
                 input.root.height, stage.stageWidth, stage.stageHeight, stage.cameraPosition);
 
-            _target.render(painter);
+            _target.render(painter); // -> draw target object into 'input'
 
             painter.finishMeshBatch();
             painter.state.setProjectionMatrix(0, 0, input.root.width, input.root.height);
+            painter.state.setModelviewMatricesToIdentity();
 
-            _quad.texture = process(painter, _pool, input);
+            _quad.texture = process(painter, _pool, input); // -> feed 'input' to actual filter code
             _pool.putTexture(input);
 
             painter.popState();
             painter.frameID = frameID;
-            painter.rewindCacheTo(_token); // -> render cache 'forgets' all that happened above :)
+            painter.rewindCacheTo(_token); // -> render cache forgets all that happened above :)
 
-            if (bounds.x != 0 || bounds.y != 0)
-            {
-                sMatrix.identity();
-                sMatrix.translate(bounds.x, bounds.y);
-                painter.state.transformModelviewMatrix(sMatrix);
-            }
+            painter.pushState();
+            painter.state.setModelviewMatricesToIdentity();
 
+            sMatrix.identity();
+            sMatrix.translate(bounds.x, bounds.y);
             Pool.putRectangle(bounds);
+
+            painter.state.transformModelviewMatrix(sMatrix);
 
             _quad.readjustSize();
             _quad.render(painter);
+
+            painter.finishMeshBatch();
+            painter.popState();
         }
 
         /** Does the actual filter processing. This method will be called with up to four input
@@ -194,7 +212,6 @@ package starling.filters
                                 input2:Texture=null, input3:Texture=null):Texture
         {
             var output:Texture = pool.getTexture();
-            var vertexData:VertexData = this.vertexData;
             var effect:FilterEffect = this.effect;
 
             painter.state.renderTarget = output;
