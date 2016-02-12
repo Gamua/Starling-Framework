@@ -14,6 +14,7 @@ package starling.utils
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
 
     import starling.errors.AbstractClassError;
 
@@ -30,6 +31,7 @@ package starling.utils
     public class Pool
     {
         private static var sPoints:Vector.<Point> = new <Point>[];
+        private static var sPoints3D:Vector.<Vector3D> = new <Vector3D>[];
         private static var sMatrices:Vector.<Matrix> = new <Matrix>[];
         private static var sMatrices3D:Vector.<Matrix3D> = new <Matrix3D>[];
         private static var sRectangles:Vector.<Rectangle> = new <Rectangle>[];
@@ -54,6 +56,25 @@ package starling.utils
         public static function putPoint(point:Point):void
         {
             if (point) sPoints[sPoints.length] = point;
+        }
+
+        /** Retrieves a Vector3D instance from the pool. */
+        public static function getPoint3D(x:Number = 0, y:Number = 0, z:Number = 0):Vector3D
+        {
+            if (sPoints.length == 0) return new Vector3D(x, y, z);
+            else
+            {
+                var point:Vector3D = sPoints3D.pop();
+                point.x = x; point.y = y; point.z = z;
+                return point;
+            }
+        }
+
+        /** Stores a Vector3D instance in the pool.
+         *  Don't keep any references to the object after moving it to the pool! */
+        public static function putPoint3D(point:Vector3D):void
+        {
+            if (point) sPoints3D[sPoints3D.length] = point;
         }
 
         /** Retrieves a Matrix instance from the pool. */
