@@ -66,15 +66,11 @@ package starling.text
      *  <strong>Batching of TextFields</strong>
      *  
      *  <p>Normally, TextFields will require exactly one draw call. For TrueType fonts, you cannot
-     *  avoid that; bitmap fonts, however, may be batched if you enable the "batchable" property.
-     *  This makes sense if you have several TextFields with short texts that are rendered one
-     *  after the other (e.g. subsequent children of the same sprite), or if your bitmap font
-     *  texture is in your main texture atlas.</p>
-     *  
-     *  <p>The recommendation is to activate "batchable" if it reduces your draw calls (use the
-     *  StatsDisplay to check this) AND if the TextFields contain no more than about 10-15
-     *  characters (per TextField). For longer texts, the batching would take up more CPU time
-     *  than what is saved by avoiding the draw calls.</p>
+     *  avoid that; bitmap fonts, however, may be batched as long as the <code>batchable</code>
+     *  property is enabled. Since only batchable meshes can make use of Starling's render cache,
+     *  it makes sense to keep that property enabled in most circumstances. Only TextFields that
+     *  are constantly changing (their position relative to the stage, their color, text, etc.)
+     *  and contain are large number of bitmap glyphs should disable batching.</p>
      */
     public class TextField extends DisplayObjectContainer
     {
@@ -378,10 +374,15 @@ package starling.text
             }
         }
         
-        /** Indicates if TextField should be batched on rendering. This works only with bitmap
-         *  fonts, and it makes sense only for TextFields with no more than 10-15 characters.
-         *  Otherwise, the CPU costs will exceed any gains you get from avoiding the additional
-         *  draw call. @default false */
+        /** Indicates if TextField should be batched on rendering.
+         *
+         *  <p>Only batchable meshes can profit from the render cache; but batching large meshes
+         *  may take up a lot of CPU time. Thus, for large bitmap font text fields (i.e. many
+         *  glyphs) that are constantly changing (i.e. can't use the render cache anyway), it
+         *  makes sense to deactivate batching.</p>
+         *
+         *  @default true
+         */
         public function get batchable():Boolean { return _meshBatch.batchable; }
         public function set batchable(value:Boolean):void
         {

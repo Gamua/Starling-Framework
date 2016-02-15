@@ -63,8 +63,7 @@ package starling.display
 
             super(vertexData, indexData);
 
-            // per default, 'batchable' is false -> no render cache
-            updateSupportsRenderCache();
+            _batchable = true;
         }
 
         // display object overrides
@@ -262,7 +261,15 @@ package starling.display
         }
 
         /** Indicates if this object will be added to the painter's batch on rendering,
-         *  or if it will draw itself right away. */
+         *  or if it will draw itself right away.
+         *
+         *  <p>Only batchable meshes can profit from the render cache; but batching large meshes
+         *  may take up a lot of CPU time. Thus, for meshes that contain a large number of vertices
+         *  or are constantly changing (i.e. can't use the render cache anyway), it makes
+         *  sense to deactivate batching.</p>
+         *
+         *  @default true
+         */
         public function get batchable():Boolean { return _batchable; }
         public function set batchable(value:Boolean):void
         {
