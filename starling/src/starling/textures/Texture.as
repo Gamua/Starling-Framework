@@ -31,7 +31,6 @@ package starling.textures
     import starling.errors.MissingContextError;
     import starling.errors.NotSupportedError;
     import starling.rendering.VertexData;
-    import starling.utils.Color;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.SystemUtil;
