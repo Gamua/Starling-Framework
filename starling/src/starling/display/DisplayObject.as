@@ -605,13 +605,8 @@ package starling.display
             setRequiresRedraw();
         }
         
-        private final function isEquivalent(a:Number, b:Number, epsilon:Number=0.0001):Boolean
-        {
-            return (a - epsilon < b) && (a + epsilon > b);
-        }
-        
-        private final function findCommonParent(object1:DisplayObject,
-                                                object2:DisplayObject):DisplayObject
+        private static function findCommonParent(object1:DisplayObject,
+                                                 object2:DisplayObject):DisplayObject
         {
             var currentObject:DisplayObject = object1;
 
@@ -785,7 +780,7 @@ package starling.display
             _scaleX = (_skewY > -PI_Q && _skewY < PI_Q) ?  matrix.a / Math.cos(_skewY)
                                                         :  matrix.b / Math.sin(_skewY);
 
-            if (isEquivalent(_skewX, _skewY))
+            if (MathUtil.isEquivalent(_skewX, _skewY))
             {
                 _rotation = _skewX;
                 _skewX = _skewY = 0;

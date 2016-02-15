@@ -95,6 +95,12 @@ package starling.utils
             }
         }
 
+        /** Indicates if two float (Number) values are equal, give or take <code>epsilon</code>. */
+        public static function isEquivalent(a:Number, b:Number, epsilon:Number=0.0001):Boolean
+        {
+            return (a - epsilon < b) && (a + epsilon > b);
+        }
+
         /** Returns the larger of the two values. Different to the native <code>Math.max</code>,
          *  this doesn't create any temporary objects when using the AOT compiler. */
         public static function max(a:Number, b:Number):Number
