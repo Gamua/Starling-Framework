@@ -18,6 +18,7 @@ package
     import tests.display.Sprite3DTest;
     import tests.events.EventTest;
     import tests.filters.FilterChainTest;
+    import tests.filters.FragmentFilterTest;
     import tests.geom.PolygonTest;
     import tests.rendering.IndexDataTest;
     import tests.rendering.VertexDataFormatTest;
@@ -78,6 +79,7 @@ package
             testsToRun.push(VertexDataTest);
             testsToRun.push(VertexDataFormatTest);
             testsToRun.push(FilterChainTest);
+            testsToRun.push(FragmentFilterTest);
             return testsToRun;
         }
     }

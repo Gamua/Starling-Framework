@@ -19,6 +19,7 @@ package starling.filters
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Stage;
+    import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.rendering.BatchToken;
@@ -33,6 +34,9 @@ package starling.filters
 
     /** Dispatched when the settings change in a way that requires a redraw. */
     [Event(name="change", type="starling.events.Event")]
+
+    /** Dispatched every frame on filters assigned to display objects connected to the stage. */
+    [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
 
     /** The FragmentFilter class is the base class for all filter effects in Starling.
      *  All filters must extend this class. You can attach them to any display object through the
@@ -62,6 +66,15 @@ package starling.filters
      *  </p>
      *
      *  <p>Beware that a filter instance may only be used on one object at a time!</p>
+     *
+     *  <p><strong>Animated filters</strong></p>
+     *
+     *  <p>The <code>process</code> method of a filter is only called when it's necessary, i.e.
+     *  when the filter properties or the target display object changes. This means that you cannot
+     *  rely on the method to be called on a regular basis, as needed when creating an animated
+     *  filter class. Instead, you can do so by listening for an <code>EnterFrameEvent</code>.
+     *  It is dispatched on the filter once every frame, as long as the filter is assigned to
+     *  a display object that is connected to the stage.</p>
      *
      *  @see starling.rendering.FilterEffect
      */
@@ -239,6 +252,29 @@ package starling.filters
             return new FilterEffect();
         }
 
+        // enter frame event
+
+        override public function addEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && _target)
+                _target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+            super.addEventListener(type, listener);
+        }
+
+        override public function removeEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && _target)
+                _target.removeEventListener(type, onEnterFrame);
+
+            super.removeEventListener(type, listener);
+        }
+
+        private function onEnterFrame(event:EnterFrameEvent):void
+        {
+            dispatchEvent(event);
+        }
+
         // properties
 
         /** The target display object the filter is assigned to. */
@@ -318,7 +354,14 @@ package starling.filters
                     if (_quad) { _quad.texture.dispose(); _quad.texture = null; }
                 }
 
-                if (prevTarget) prevTarget.filter = null;
+                if (prevTarget)
+                {
+                    prevTarget.filter = null;
+                    prevTarget.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+                }
+
+                if (target && hasEventListener(Event.ENTER_FRAME))
+                    target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
             }
         }
     }
