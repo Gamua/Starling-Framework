@@ -27,10 +27,13 @@ package starling.rendering
     import starling.display.DisplayObject;
     import starling.display.Mesh;
     import starling.display.MeshBatch;
+    import starling.display.Quad;
     import starling.events.Event;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.MeshSubset;
+    import starling.utils.Pool;
     import starling.utils.RectangleUtil;
     import starling.utils.RenderUtil;
     import starling.utils.SystemUtil;
@@ -80,6 +83,7 @@ package starling.rendering
         private var _pixelSize:Number;
         private var _enableErrorChecking:Boolean;
         private var _stencilReferenceValues:Dictionary;
+        private var _clipRectStack:Vector.<Rectangle>;
         private var _batchProcessor:BatchProcessor;
         private var _batchCache:BatchProcessor;
 
@@ -96,6 +100,7 @@ package starling.rendering
         private var _stateStackPos:int;
 
         // helper objects
+        private static var sMatrix:Matrix = new Matrix();
         private static var sPoint3D:Vector3D = new Vector3D();
         private static var sClipRect:Rectangle = new Rectangle();
         private static var sBufferRect:Rectangle = new Rectangle();
@@ -116,6 +121,7 @@ package starling.rendering
             _backBufferHeight = _context ? _context.backBufferHeight : 0;
             _backBufferScaleFactor = _pixelSize = 1.0;
             _stencilReferenceValues = new Dictionary(true);
+            _clipRectStack = new <Rectangle>[];
             _programs = new Dictionary();
             _data = new Dictionary();
 
@@ -291,7 +297,7 @@ package starling.rendering
             if (token) _batchProcessor.fillToken(token);
         }
 
-        // stencil masks
+        // masks
 
         /** Draws a display object into the stencil buffer, incrementing the buffer on each
          *  used pixel. The stencil reference value is incremented as well; thus, any subsequent
@@ -299,6 +305,11 @@ package starling.rendering
          *
          *  <p>If 'mask' is part of the display list, it will be drawn at its conventional stage
          *  coordinates. Otherwise, it will be drawn with the current modelview matrix.</p>
+         *
+         *  <p>As an optimization, this method might update the clipping rectangle of the render
+         *  state instead of utilizing the stencil buffer. This is possible when the mask object
+         *  is of type <code>starling.display.Quad</code> and is aligned parallel to the stage
+         *  axes.</p>
          */
         public function drawMask(mask:DisplayObject):void
         {
@@ -306,19 +317,30 @@ package starling.rendering
 
             finishMeshBatch();
 
-            _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+            if (isRectangularMask(mask))
+            {
+                pushClipRect(mask.getBounds(null, sClipRect));
+            }
+            else
+            {
+                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.INCREMENT_SATURATE);
 
-            renderMask(mask);
-            stencilReferenceValue++;
+                renderMask(mask);
+                stencilReferenceValue++;
 
-            _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
+            }
         }
 
         /** Draws a display object into the stencil buffer, decrementing the
          *  buffer on each used pixel. This effectively erases the object from the stencil buffer,
          *  restoring the previous state. The stencil reference value will be decremented.
+         *
+         *  <p>Note: if the mask object meets the requirements of using the clipping rectangle,
+         *  it will be assumed that this erase operation undoes the clipping rectangle change
+         *  caused by the corresponding <code>drawMask()</code> call.</p>
          */
         public function eraseMask(mask:DisplayObject):void
         {
@@ -326,14 +348,21 @@ package starling.rendering
 
             finishMeshBatch();
 
-            _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+            if (isRectangularMask(mask))
+            {
+                popClipRect();
+            }
+            else
+            {
+                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.DECREMENT_SATURATE);
 
-            renderMask(mask);
-            stencilReferenceValue--;
+                renderMask(mask);
+                stencilReferenceValue--;
 
-            _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
+            }
         }
 
         private function renderMask(mask:DisplayObject):void
@@ -350,6 +379,51 @@ package starling.rendering
             finishMeshBatch();
 
             popState();
+        }
+
+        private function pushClipRect(clipRect:Rectangle):void
+        {
+            var stack:Vector.<Rectangle> = _clipRectStack;
+            var stackLength:uint = stack.length;
+            var intersection:Rectangle = Pool.getRectangle();
+
+            if (stackLength)
+                RectangleUtil.intersect(stack[stackLength - 1], clipRect, intersection);
+            else
+                intersection.copyFrom(clipRect);
+
+            stack[stackLength] = intersection;
+            _state.clipRect = intersection;
+        }
+
+        private function popClipRect():void
+        {
+            var stack:Vector.<Rectangle> = _clipRectStack;
+            var stackLength:uint = stack.length;
+
+            if (stackLength == 0)
+                throw new Error("Trying to pop from empty clip rectangle stack");
+
+            stackLength--;
+            Pool.putRectangle(stack.pop());
+            _state.clipRect = stackLength ? stack[stackLength - 1] : null;
+        }
+
+        private function isRectangularMask(mask:DisplayObject):Boolean
+        {
+            if (mask is Quad && !mask.is3D)
+            {
+                sMatrix.copyFrom(mask.transformationMatrix);
+                if (mask.stage) sMatrix.concat(_state.modelviewMatrix);
+
+                if ((MathUtil.isEquivalent(sMatrix.a, 0) && MathUtil.isEquivalent(sMatrix.d, 0)) ||
+                    (MathUtil.isEquivalent(sMatrix.b, 0) && MathUtil.isEquivalent(sMatrix.c, 0)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // mesh rendering
@@ -391,11 +465,12 @@ package starling.rendering
             _batchCache = tmp;
         }
 
-        /** Resets the current state, the state stack, mesh batch index, stencil reference value,
-         *  and draw count. Furthermore, depth testing is disabled. */
+        /** Resets the current state, state stack, batch processor, stencil reference value,
+         *  clipping rectangle, and draw count. Furthermore, depth testing is disabled. */
         public function nextFrame():void
         {
             stencilReferenceValue = 0;
+            _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
             _batchProcessor.clear();

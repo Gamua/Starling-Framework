@@ -179,6 +179,7 @@ package starling.filters
             painter.finishMeshBatch();
             painter.state.setProjectionMatrix(0, 0, input.root.width, input.root.height);
             painter.state.setModelviewMatricesToIdentity();
+            painter.state.clipRect = null;
 
             _quad.texture = process(painter, _pool, input); // -> feed 'input' to actual filter code
             _pool.putTexture(input);
