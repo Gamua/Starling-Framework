@@ -21,6 +21,7 @@ package
     import tests.filters.FragmentFilterTest;
     import tests.geom.PolygonTest;
     import tests.rendering.IndexDataTest;
+    import tests.rendering.MeshStyleTest;
     import tests.rendering.VertexDataFormatTest;
     import tests.rendering.VertexDataTest;
     import tests.text.TextFieldTest;
@@ -80,6 +81,7 @@ package
             testsToRun.push(VertexDataFormatTest);
             testsToRun.push(FilterChainTest);
             testsToRun.push(FragmentFilterTest);
+            testsToRun.push(MeshStyleTest);
             return testsToRun;
         }
     }

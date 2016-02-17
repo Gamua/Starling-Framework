@@ -15,8 +15,13 @@ package starling.rendering
 
     import starling.core.starling_internal;
     import starling.display.Mesh;
+    import starling.events.Event;
+    import starling.events.EventDispatcher;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
+
+    /** Dispatched every frame on styles assigned to display objects connected to the stage. */
+    [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
 
     /** MeshStyles provide a means to completely modify the way a mesh is rendered.
      *  The base class provides Starling's standard mesh rendering functionality: colored and
@@ -27,11 +32,11 @@ package starling.rendering
      *
      *  <p>First, create an instance of the desired style. Configure the style by updating its
      *  properties, then assign it to the mesh. Here is an example that uses a fictitious
-     *  <code>ColorizedMeshStyle</code>:</p>
+     *  <code>ColoredMeshStyle</code>:</p>
      *
      *  <listing>
      *  var image:Image = new Image(heroTexture);
-     *  var colorStyle:ColorizedMeshStyle = new ColorizedMeshStyle();
+     *  var colorStyle:ColoredMeshStyle = new ColoredMeshStyle();
      *  colorStyle.redOffset = 0.5;
      *  colorStyle.redMultiplier = 2.0;
      *  image.style = colorStyle;</listing>
@@ -46,9 +51,9 @@ package starling.rendering
      *  the actual AGAL rendering code, the style provides the API that developers will
      *  interact with when using a style.</p>
      *
-     *  <p>Subclasses will, of course, add specific properties that configure the style's usage,
-     *  like the <code>redOffset</code> and <code>redMultiplier</code> properties in the sample
-     *  above. Furthermore, they have to follow some rules:</p>
+     *  <p>Subclasses of <code>MeshStyle</code> will add specific properties that configure the
+     *  style's outcome, like the <code>redOffset</code> and <code>redMultiplier</code> properties
+     *  in the sample above. Furthermore, they have to follow some rules:</p>
      *
      *  <ul>
      *    <li>They must provide a constructor that can be called without any arguments.</li>
@@ -74,7 +79,7 @@ package starling.rendering
      *  @see VertexDataFormat
      *  @see starling.display.Mesh
      */
-    public class MeshStyle
+    public class MeshStyle extends EventDispatcher
     {
         /** The vertex format expected by this style (the same as found in the MeshEffect-class). */
         public static const VERTEX_FORMAT:VertexDataFormat = MeshEffect.VERTEX_FORMAT;
@@ -185,33 +190,59 @@ package starling.rendering
          *  The call is simply forwarded to the mesh. */
         protected function setRequiresRedraw():void
         {
-            if (_target)
-                _target.setRequiresRedraw();
+            if (_target) _target.setRequiresRedraw();
         }
 
-        /** Called when assigning the target mesh. Override to plug in class-specific logic. */
+        /** Called when assigning a target mesh. Override to plug in class-specific logic. */
         protected function onTargetAssigned(target:Mesh):void
         { }
+
+        // enter frame event
+
+        override public function addEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && _target)
+                _target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+            super.addEventListener(type, listener);
+        }
+
+        override public function removeEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && _target)
+                _target.removeEventListener(type, onEnterFrame);
+
+            super.removeEventListener(type, listener);
+        }
+
+        private function onEnterFrame(event:Event):void
+        {
+            dispatchEvent(event);
+        }
 
         // internal methods
 
         /** @private */
-        starling_internal function setTarget(target:Mesh, vertexData:VertexData, indexData:IndexData):void
+        starling_internal function setTarget(target:Mesh=null, vertexData:VertexData=null,
+                                             indexData:IndexData=null):void
         {
-            _target = target;
-            _vertexData = vertexData;
-            _vertexData.format = vertexFormat;
-            _indexData = indexData;
+            if (_target != target)
+            {
+                if (_target) _target.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+                if (vertexData) vertexData.format = vertexFormat;
 
-            onTargetAssigned(target);
-        }
+                _target = target;
+                _vertexData = vertexData;
+                _indexData = indexData;
 
-        /** @private */
-        starling_internal function clearTarget():void
-        {
-            _target = null;
-            _vertexData = null;
-            _indexData = null;
+                if (target)
+                {
+                    if (hasEventListener(Event.ENTER_FRAME))
+                        target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+                    onTargetAssigned(target);
+                }
+            }
         }
 
         // vertex manipulation

@@ -146,17 +146,14 @@ package starling.display
          */
         public function setStyle(meshStyle:MeshStyle=null, mergeWithPredecessor:Boolean=true):void
         {
-            if (meshStyle == null)
-                meshStyle = new MeshStyle();
-
-            if (meshStyle.target)
-                throw new ArgumentError("This style is already in use on another mesh. " +
-                    "Call 'style.clone()' to use an identical style on multiple meshes.");
+            if (meshStyle == null) meshStyle = new MeshStyle();
+            else if (meshStyle == _style) return;
+            else if (meshStyle.target) meshStyle.target.setStyle();
 
             if (_style)
             {
                 if (mergeWithPredecessor) meshStyle.copyFrom(_style);
-                _style.clearTarget();
+                _style.setTarget(null);
             }
 
             _style = meshStyle;
@@ -215,13 +212,7 @@ package starling.display
          *  <code>MeshStyle</code>) provide a means to completely modify the way a mesh is rendered.
          *  For example, they may add support for color transformations or normal mapping.
          *
-         *  <ul>
-         *    <li>When assigning a new style, the vertex format will be changed to fit it.</li>
-         *    <li>Do not use the same style instance on multiple objects! Instead, make use of
-         *  <code>style.clone()</code> to assign an identical style to multiple meshes.</li>
-         *    <li>Note that all attributes of the previous style will be copied to the new one
-         *       (if possible). To prevent that, call the <code>setStyle</code> method instead.</li>
-         *  </ul>
+         *  <p>The setter will simply forward the assignee to <code>setStyle(value)</code>.</p>
          *
          *  @default MeshStyle
          */
