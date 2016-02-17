@@ -214,7 +214,7 @@ package starling.utils
         /** Converts a Matrix3D instance to a String, which is useful when debugging. Per default,
          *  the raw data is displayed transposed, so that the columns are displayed vertically. */
         public static function toString3D(matrix:Matrix3D, transpose:Boolean=true,
-                                          precision:int=1):String
+                                          precision:int=3):String
         {
             if (transpose) matrix.transpose();
             matrix.copyRawDataTo(sRawData2);
@@ -223,8 +223,8 @@ package starling.utils
             return "[Matrix3D rawData=\n" + formatRawData(sRawData2, 4, 4, precision) + "\n]";
         }
 
-        /** Converts a Matrix3D instance to a String, which is useful when debugging. */
-         public static function toString(matrix:Matrix, precision:int=1):String
+        /** Converts a Matrix instance to a String, which is useful when debugging. */
+        public static function toString(matrix:Matrix, precision:int=3):String
         {
             sRawData2[0] = matrix.a; sRawData2[1] = matrix.c; sRawData2[2] = matrix.tx;
             sRawData2[3] = matrix.b; sRawData2[4] = matrix.d; sRawData2[5] = matrix.ty;
