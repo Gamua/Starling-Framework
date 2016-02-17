@@ -19,7 +19,6 @@ package starling.filters
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Stage;
-    import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.rendering.BatchToken;
@@ -271,7 +270,7 @@ package starling.filters
             super.removeEventListener(type, listener);
         }
 
-        private function onEnterFrame(event:EnterFrameEvent):void
+        private function onEnterFrame(event:Event):void
         {
             dispatchEvent(event);
         }
@@ -317,8 +316,13 @@ package starling.filters
         protected function setRequiresRedraw():void
         {
             dispatchEventWith(Event.CHANGE);
-            if (target) target.setRequiresRedraw();
+            if (_target) _target.setRequiresRedraw();
         }
+
+        /** Called when assigning a target display object.
+         *  Override to plug in class-specific logic. */
+        protected function onTargetAssigned(target:DisplayObject):void
+        { }
 
         /** Padding can extend the size of the filter texture in all directions.
          *  That's useful when the filter "grows" the bounds of the object in any direction. */
@@ -361,8 +365,13 @@ package starling.filters
                     prevTarget.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
                 }
 
-                if (target && hasEventListener(Event.ENTER_FRAME))
-                    target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+                if (target)
+                {
+                    if (hasEventListener(Event.ENTER_FRAME))
+                        target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+                    onTargetAssigned(target);
+                }
             }
         }
     }
