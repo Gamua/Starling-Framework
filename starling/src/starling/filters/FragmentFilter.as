@@ -71,7 +71,7 @@ package starling.filters
      *  <p>The <code>process</code> method of a filter is only called when it's necessary, i.e.
      *  when the filter properties or the target display object changes. This means that you cannot
      *  rely on the method to be called on a regular basis, as needed when creating an animated
-     *  filter class. Instead, you can do so by listening for an <code>EnterFrameEvent</code>.
+     *  filter class. Instead, you can do so by listening for an <code>ENTER_FRAME</code>-event.
      *  It is dispatched on the filter once every frame, as long as the filter is assigned to
      *  a display object that is connected to the stage.</p>
      *

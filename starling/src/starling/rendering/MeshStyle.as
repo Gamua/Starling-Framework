@@ -28,39 +28,48 @@ package starling.rendering
      *  (optionally) textured meshes. Subclasses may add support for additional features like
      *  color transformations, normal mapping, etc.
      *
-     *  <p><strong>Using 'MeshStyle'</strong></p>
+     *  <p><strong>Using styles</strong></p>
      *
      *  <p>First, create an instance of the desired style. Configure the style by updating its
      *  properties, then assign it to the mesh. Here is an example that uses a fictitious
-     *  <code>ColoredMeshStyle</code>:</p>
+     *  <code>ColorStyle</code>:</p>
      *
      *  <listing>
      *  var image:Image = new Image(heroTexture);
-     *  var colorStyle:ColoredMeshStyle = new ColoredMeshStyle();
+     *  var colorStyle:ColorStyle = new ColorStyle();
      *  colorStyle.redOffset = 0.5;
      *  colorStyle.redMultiplier = 2.0;
      *  image.style = colorStyle;</listing>
      *
-     *  <p>Note that a style might require the use of a specific vertex format; when the style
-     *  is assigned, the mesh is converted to that format.</p>
+     *  <p>Beware:</p>
      *
-     *  <p><strong>Extending 'MeshStyle'</strong></p>
+     *  <ul>
+     *    <li>A style instance may only be used on one object at a time.</li>
+     *    <li>A style might require the use of a specific vertex format;
+     *        when the style is assigned, the mesh is converted to that format.</li>
+     *  </ul>
+     *
+     *  <p><strong>Creating your own styles</strong></p>
      *
      *  <p>To create custom rendering code in Starling, you need to extend two classes:
      *  <code>MeshStyle</code> and <code>MeshEffect</code>. While the effect class contains
-     *  the actual AGAL rendering code, the style provides the API that developers will
-     *  interact with when using a style.</p>
+     *  the actual AGAL rendering code, the style provides the API that other developers will
+     *  interact with.</p>
      *
      *  <p>Subclasses of <code>MeshStyle</code> will add specific properties that configure the
      *  style's outcome, like the <code>redOffset</code> and <code>redMultiplier</code> properties
-     *  in the sample above. Furthermore, they have to follow some rules:</p>
+     *  in the sample above. Here's how to properly create such a class:</p>
      *
      *  <ul>
-     *    <li>They must provide a constructor that can be called without any arguments.</li>
-     *    <li>They must override <code>copyFrom</code>.</li>
-     *    <li>They must override <code>createEffect</code>.</li>
-     *    <li>They must override <code>updateEffect</code>.</li>
-     *    <li>They must override <code>canBatchWith</code>.</li>
+     *    <li>Always provide a constructor that can be called without any arguments.</li>
+     *    <li>Override <code>copyFrom</code> — that's necessary for batching.</li>
+     *    <li>Override <code>createEffect</code> — this method must return the
+     *        <code>MeshEffect</code> that will do the actual Stage3D rendering.</li>
+     *    <li>Override <code>updateEffect</code> — this configures the effect created above
+     *        right before rendering.</li>
+     *    <li>Override <code>canBatchWith</code> if necessary — this method figures out if one
+     *        instance of the style can be batched with another. If they all can, you can leave
+     *        this out.</li>
      *  </ul>
      *
      *  <p>If the style requires a custom vertex format, you must also:</p>
@@ -144,7 +153,9 @@ package starling.rendering
         }
 
         /** Indicates if the current instance can be batched with the given style.
-         *  Must be overridden by all subclasses!
+         *  To be overridden by subclasses if default behavior is not sufficient.
+         *  The base implementation just checks if the styles are of the same type
+         *  and if the textures are compatible.
          */
         public function canBatchWith(meshStyle:MeshStyle):Boolean
         {

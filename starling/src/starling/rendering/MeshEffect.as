@@ -20,7 +20,7 @@ package starling.rendering
      *  if you want to create your own mesh styles, you will have to extend this class.
      *
      *  <p>For more information about the usage and creation of effects, please have a look at
-     *  the documentation of the parent class, "Effect".</p>
+     *  the documentation of the root class, "Effect".</p>
      *
      *  @see Effect
      *  @see FilterEffect
