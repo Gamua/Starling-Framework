@@ -49,6 +49,7 @@ package starling.display
         /** @private */ internal var _indexData:IndexData;
 
         private var _pixelSnapping:Boolean;
+        private static var sDefaultStyle:Class = MeshStyle;
 
         /** Creates a new mesh with the given vertices and indices.
          *  If you don't pass a style, an instance of <code>MeshStyle</code> will be created
@@ -146,7 +147,7 @@ package starling.display
          */
         public function setStyle(meshStyle:MeshStyle=null, mergeWithPredecessor:Boolean=true):void
         {
-            if (meshStyle == null) meshStyle = new MeshStyle();
+            if (meshStyle == null) meshStyle = new sDefaultStyle() as MeshStyle;
             else if (meshStyle == _style) return;
             else if (meshStyle.target) meshStyle.target.setStyle();
 
@@ -255,5 +256,16 @@ package starling.display
 
         /** The format used to store the vertices. */
         public function get vertexFormat():VertexDataFormat { return _style.vertexFormat; }
+
+        // static properties
+
+        /** The default style used for meshes if no specific style is provided. The default is
+         *  <code>starling.rendering.MeshStyle</code>, and any assigned class must be a subclass
+         *  of the same. */
+        public static function get defaultStyle():Class { return sDefaultStyle; }
+        public static function set defaultStyle(value:Class):void
+        {
+            sDefaultStyle = value;
+        }
     }
 }
