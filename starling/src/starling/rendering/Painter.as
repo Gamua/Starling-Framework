@@ -411,7 +411,9 @@ package starling.rendering
 
         private function isRectangularMask(mask:DisplayObject):Boolean
         {
-            if (mask is Quad && !mask.is3D)
+            var quad:Quad = mask as Quad;
+
+            if (quad && !quad.is3D && quad.style.type == MeshStyle)
             {
                 sMatrix.copyFrom(mask.transformationMatrix);
                 if (mask.stage) sMatrix.concat(_state.modelviewMatrix);
