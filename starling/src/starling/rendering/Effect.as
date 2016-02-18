@@ -43,7 +43,7 @@ package starling.rendering
      *  var effect:MeshEffect = new MeshEffect();
      *  
      *  // configure effect
-     *  effect.mvpMatrix = painter.mvpMatrix;
+     *  effect.mvpMatrix3D = painter.state.mvpMatrix3D;
      *  effect.texture = getHeroTexture();
      *  effect.color = 0xf0f0f0;
      *  
@@ -107,7 +107,7 @@ package starling.rendering
         private var _vertexBuffer:VertexBuffer3D;
         private var _vertexBufferSize:int; // in blocks of 32 bits
 
-        private var _mvpMatrix:Matrix3D;
+        private var _mvpMatrix3D:Matrix3D;
         private var _onRestore:Function;
         private var _programBaseName:String;
 
@@ -117,7 +117,7 @@ package starling.rendering
         /** Creates a new effect. */
         public function Effect()
         {
-            _mvpMatrix = new Matrix3D();
+            _mvpMatrix3D = new Matrix3D();
             _programBaseName = getQualifiedClassName(this);
 
             // Handle lost context (using conventional Flash event for weak listener support)
@@ -221,7 +221,7 @@ package starling.rendering
         {
             program.activate(context);
             vertexFormat.setVertexBufferAttribute(vertexBuffer, 0, "position");
-            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix3D, true);
         }
 
         /** This method is called by <code>render</code>, directly after
@@ -334,8 +334,8 @@ package starling.rendering
         public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
 
         /** The MVP (modelview-projection) matrix transforms vertices into clipspace. */
-        public function get mvpMatrix():Matrix3D { return _mvpMatrix; }
-        public function set mvpMatrix(value:Matrix3D):void { _mvpMatrix.copyFrom(value); }
+        public function get mvpMatrix3D():Matrix3D { return _mvpMatrix3D; }
+        public function set mvpMatrix3D(value:Matrix3D):void { _mvpMatrix3D.copyFrom(value); }
 
         /** The internally used index buffer used on rendering. */
         protected function get indexBuffer():IndexBuffer3D { return _indexBuffer; }

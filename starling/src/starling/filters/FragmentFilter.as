@@ -235,7 +235,7 @@ package starling.filters
             input0.setupTextureCoordinates(vertexData);
 
             effect.texture = input0;
-            effect.mvpMatrix = painter.state.mvpMatrix3D; // TODO -> 'mvpMatrix' vs 'mvpMatrix3D'
+            effect.mvpMatrix3D = painter.state.mvpMatrix3D;
             effect.uploadVertexData(vertexData);
             effect.uploadIndexData(indexData);
             effect.render(0, indexData.numTriangles);

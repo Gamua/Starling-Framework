@@ -148,7 +148,7 @@ package starling.rendering
         {
             effect.texture = _texture;
             effect.textureSmoothing = _textureSmoothing;
-            effect.mvpMatrix = state.mvpMatrix3D;
+            effect.mvpMatrix3D = state.mvpMatrix3D;
             effect.alpha = state.alpha;
         }
 
