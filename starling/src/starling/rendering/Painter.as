@@ -319,7 +319,12 @@ package starling.rendering
 
             if (isRectangularMask(mask))
             {
-                pushClipRect(mask.getBounds(null, sClipRect));
+                mask.getBounds(null, sClipRect);
+
+                if (mask.parent == null)
+                    RectangleUtil.getBounds(sClipRect, _state.modelviewMatrix, sClipRect);
+
+                pushClipRect(sClipRect);
             }
             else
             {
