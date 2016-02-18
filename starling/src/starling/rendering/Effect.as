@@ -98,9 +98,9 @@ package starling.rendering
     public class Effect
     {
         /** The vertex format expected by <code>uploadVertexData</code>:
-         *  <code>"position(float2)"</code> */
+         *  <code>"position:float2"</code> */
         public static const VERTEX_FORMAT:VertexDataFormat =
-            VertexDataFormat.fromString("position(float2)");
+            VertexDataFormat.fromString("position:float2");
 
         private var _indexBuffer:IndexBuffer3D;
         private var _indexBufferSize:int;  // in number of indices
@@ -330,7 +330,7 @@ package starling.rendering
         public function set onRestore(value:Function):void { _onRestore = value; }
 
         /** The data format that this effect requires from the VertexData that it renders:
-         *  <code>"position(float2)"</code> */
+         *  <code>"position:float2"</code> */
         public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
 
         /** The MVP (modelview-projection) matrix transforms vertices into clipspace. */

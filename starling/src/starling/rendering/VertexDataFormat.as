@@ -21,10 +21,10 @@ package starling.rendering
      *  <p>The format is set up via a simple String. Here is an example:</p>
      *
      *  <listing>
-     *  format = VertexDataFormat.fromString("position(float2), color(bytes4)");</listing>
+     *  format = VertexDataFormat.fromString("position:float2, color:bytes4");</listing>
      *
-     *  <p>This String describes two attributes: "position" and "color". The keywords
-     *  in parentheses depict the format and size of the data that each attribute uses; in this
+     *  <p>This String describes two attributes: "position" and "color". The keywords after
+     *  the colons depict the format and size of the data that each attribute uses; in this
      *  case, we store two floats for the position (taking up the x- and y-coordinates) and four
      *  bytes for the color. (The available formats are the same as those defined in the
      *  <code>Context3DVertexBufferFormat</code> class:
@@ -65,7 +65,7 @@ package starling.rendering
          *  Describes the attributes of each vertex, consisting of a comma-separated
          *  list of attribute names and their format, e.g.:
          *
-         *  <pre>"position(float2), texCoords(float2), color(bytes4)"</pre>
+         *  <pre>"position:float2, texCoords:float2, color:bytes4"</pre>
          *
          *  <p>This set of attributes will be allocated for each vertex, and they will be
          *  stored in exactly the given order.</p>
@@ -180,14 +180,13 @@ package starling.rendering
                 for (var i:int=0; i<numParts; ++i)
                 {
                     var attrDesc:String = parts[i];
-                    var openBracketPos:int  = attrDesc.indexOf("(");
-                    var closeBracketPos:int = attrDesc.indexOf(")");
+                    var attrParts:Array = attrDesc.split(":");
 
-                    if (openBracketPos == -1 || closeBracketPos == -1)
-                        throw new ArgumentError(("Missing parentheses: " + attrDesc));
+                    if (attrParts.length != 2)
+                        throw new ArgumentError("Missing colon: " + attrDesc);
 
-                    var attrName:String = StringUtil.trim(attrDesc.substring(0, openBracketPos));
-                    var attrFormat:String = StringUtil.trim(attrDesc.substring(openBracketPos + 1, closeBracketPos));
+                    var attrName:String = StringUtil.trim(attrParts[0]);
+                    var attrFormat:String = StringUtil.trim(attrParts[1]);
 
                     if (attrName.length == 0 || attrFormat.length == 0)
                         throw new ArgumentError(("Invalid format string: " + attrDesc));
@@ -197,7 +196,7 @@ package starling.rendering
 
                     offset += attribute.size;
 
-                    _format += (i == 0 ? "" : ", ") + attribute.name + "(" + attribute.format + ")";
+                    _format += (i == 0 ? "" : ", ") + attribute.name + ":" + attribute.format;
                     _attributes[_attributes.length] = attribute; // avoid 'push'
                 }
 

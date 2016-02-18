@@ -106,7 +106,7 @@ package tests.textures
             var frame:Rectangle = new Rectangle(-20, -30, 100, 100);
             var texture:Texture = new MockTexture(size.width, size.height);
             var subTexture:SubTexture = new SubTexture(texture, null, false, frame);
-            var vertexData:VertexData = new VertexData("pos(float2)");
+            var vertexData:VertexData = new VertexData("pos:float2");
             var expected:Rectangle = new Rectangle();
             var result:Rectangle, bounds:Rectangle;
 

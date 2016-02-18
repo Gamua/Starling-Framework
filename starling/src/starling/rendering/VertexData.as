@@ -49,12 +49,12 @@ package starling.rendering
      *  of the VertexDataFormat class. Here is an example:</p>
      *
      *  <listing>
-     *  vertexData = new VertexData("position(float2), color(bytes4)");
+     *  vertexData = new VertexData("position:float2, color:bytes4");
      *  vertexData.setPoint(0, "position", 320, 480);
      *  vertexData.setColor(0, "color", 0xff00ff);</listing>
      *
      *  <p>This instance is set up with two attributes: "position" and "color". The keywords
-     *  in parentheses depict the format and size of the data that each property uses; in this
+     *  after the colons depict the format and size of the data that each property uses; in this
      *  case, we store two floats for the position (for the x- and y-coordinates) and four
      *  bytes for the color. Please refer to the VertexDataFormat documentation for details.</p>
      *

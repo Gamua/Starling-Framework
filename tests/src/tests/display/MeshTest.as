@@ -32,7 +32,7 @@ package tests.display
         [Test]
         public function testGetBounds():void
         {
-            var vertexData:VertexData = new VertexData("position(float2)");
+            var vertexData:VertexData = new VertexData("position:float2");
             vertexData.setPoint(0, "position", 10, 10);
             vertexData.setPoint(1, "position", 20, 10);
             vertexData.setPoint(2, "position", 10, 20);

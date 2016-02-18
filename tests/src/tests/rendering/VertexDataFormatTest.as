@@ -17,7 +17,7 @@ package tests.rendering
 
     public class VertexDataFormatTest
     {
-        private static const STD_FORMAT:String = "position(float2), texCoords(float2), color(bytes4)";
+        private static const STD_FORMAT:String = "position:float2, texCoords:float2, color:bytes4";
 
         [Test]
         public function testFormatParsing():void
@@ -58,8 +58,8 @@ package tests.rendering
         [Test]
         public function testCaching():void
         {
-            var formatA:String = "  position (float2  ),color(  bytes4)   ";
-            var formatB:String = "position(float2),color(bytes4)";
+            var formatA:String = "  position :float2  ,color:  bytes4   ";
+            var formatB:String = "position:float2,color:bytes4";
 
             var vdfA:VertexDataFormat = VertexDataFormat.fromString(formatA);
             var vdfB:VertexDataFormat = VertexDataFormat.fromString(formatB);
@@ -70,8 +70,8 @@ package tests.rendering
         [Test]
         public function testNormalization():void
         {
-            var format:String = "   position (float2  ),color(  bytes4)   ";
-            var normalizedFormat:String = "position(float2), color(bytes4)";
+            var format:String = "   position :float2  ,color:  bytes4   ";
+            var normalizedFormat:String = "position:float2, color:bytes4";
             var vdf:VertexDataFormat = VertexDataFormat.fromString(format);
             assertEquals(normalizedFormat, vdf.formatString);
         }
@@ -79,7 +79,7 @@ package tests.rendering
         [Test(expects="Error")]
         public function testInvalidFormatString():void
         {
-            VertexDataFormat.fromString("color(double2)");
+            VertexDataFormat.fromString("color:double2");
         }
 
         [Test(expects="Error")]

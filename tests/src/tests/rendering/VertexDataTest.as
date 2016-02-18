@@ -32,7 +32,7 @@ package tests.rendering
     public class VertexDataTest
     {
         private static const E:Number = 0.001;
-        private static const STD_FORMAT:String = "position(float2), texCoords(float2), color(bytes4)";
+        private static const STD_FORMAT:String = "position:float2, texCoords:float2, color:bytes4";
 
         [Test]
         public function testNumVertices():void
@@ -79,7 +79,7 @@ package tests.rendering
         [Test]
         public function testWriteAndReadSimpleAttributes():void
         {
-            var vd:VertexData = new VertexData("pos1D(float1), pos2D(float2), pos3D(float3), pos4D(float4)");
+            var vd:VertexData = new VertexData("pos1D:float1, pos2D:float2, pos3D:float3, pos4D:float4");
             vd.numVertices = 3;
 
             vd.setFloat(1, "pos1D", 0.5);
@@ -197,7 +197,7 @@ package tests.rendering
         [Test]
         public function testTranslatePoint():void
         {
-            var vd:VertexData = new VertexData("pos(float2)");
+            var vd:VertexData = new VertexData("pos:float2");
             vd.setPoint(0, "pos", 10, 20);
             vd.setPoint(1, "pos", 30, 40);
             vd.translatePoints("pos", 5, 6, 0, -1);
@@ -208,7 +208,7 @@ package tests.rendering
         [Test]
         public function testGetBounds():void
         {
-            var vd:VertexData = new VertexData("position(float2)");
+            var vd:VertexData = new VertexData("position:float2");
             var bounds:Rectangle = vd.getBounds();
             var expectedBounds:Rectangle = new Rectangle();
 
@@ -235,7 +235,7 @@ package tests.rendering
         public function testGetBoundsProjected():void
         {
             var camPos:Vector3D = new Vector3D(0, 0, 10);
-            var vd:VertexData = new VertexData("pos(float2)");
+            var vd:VertexData = new VertexData("pos:float2");
             var bounds:Rectangle = vd.getBoundsProjected("pos", null, camPos);
             var expectedBounds:Rectangle = new Rectangle();
 
@@ -309,7 +309,7 @@ package tests.rendering
             vd1.setColor(1, "color", 0x334455);
             vd1.setPoint(1, "texCoords", 0.3, 0.4);
 
-            var vd2:VertexData = new VertexData("texCoords(float2)");
+            var vd2:VertexData = new VertexData("texCoords:float2");
             vd1.copyTo(vd2);
 
             assertEquals(2, vd2.numVertices);
@@ -334,7 +334,7 @@ package tests.rendering
         [Test]
         public function testCopyToTransformedWithIdenticalFormats():void
         {
-            var format:String = "pos(float2), color(bytes4)";
+            var format:String = "pos:float2, color:bytes4";
             var vd1:VertexData = new VertexData(format);
             vd1.setPoint(0, "pos", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
@@ -360,7 +360,7 @@ package tests.rendering
         [Test]
         public function testCopyToTransformedWithDifferentFormats():void
         {
-            var format:String = "color(bytes4), position(float2)";
+            var format:String = "color:bytes4, position:float2";
             var vd1:VertexData = new VertexData(format);
             vd1.setPoint(0, "position", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
@@ -370,7 +370,7 @@ package tests.rendering
             var matrix:Matrix = new Matrix();
             matrix.translate(5, 6);
 
-            var vd2:VertexData = new VertexData("position(float2), flavor(float1)");
+            var vd2:VertexData = new VertexData("position:float2, flavor:float1");
             vd1.copyTo(vd2, 0, matrix);
 
             assertEquals(0.0, vd2.getFloat(0, "flavor"));
@@ -419,7 +419,7 @@ package tests.rendering
             vd.setPoint(1, "position", p1.x, p1.y);
 
             vd.format = VertexDataFormat.fromString(
-                    "newCoords(float2), position(float2), newColor(bytes4)");
+                    "newCoords:float2, position:float2, newColor:bytes4");
 
             Helpers.comparePoints(p0, vd.getPoint(0, "position"));
             Helpers.comparePoints(p1, vd.getPoint(1, "position"));
