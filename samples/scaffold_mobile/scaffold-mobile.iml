@@ -24,7 +24,7 @@
             <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="." />
             <FilePathAndPathInPackage file-path="$MODULE_DIR$/system" path-in-package="." />
           </files-to-package>
-          <AirSigningOptions keystore-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/daniel_developer_certificate.p12" provisioning-profile-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/iOSTeam_Provisioning_Profile_.mobileprovision" />
+          <AirSigningOptions keystore-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/daniel_developer_certificate.p12" provisioning-profile-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/iOS_Team_Provisioning_Profile_.mobileprovision" />
         </packaging-ios>
       </configuration>
     </configurations>
