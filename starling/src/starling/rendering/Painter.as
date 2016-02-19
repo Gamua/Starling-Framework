@@ -317,13 +317,10 @@ package starling.rendering
 
             finishMeshBatch();
 
-            if (isRectangularMask(mask))
+            if (isRectangularMask(mask, sMatrix))
             {
-                mask.getBounds(null, sClipRect);
-
-                if (mask.parent == null)
-                    RectangleUtil.getBounds(sClipRect, _state.modelviewMatrix, sClipRect);
-
+                mask.getBounds(mask, sClipRect);
+                RectangleUtil.getBounds(sClipRect, sMatrix, sClipRect);
                 pushClipRect(sClipRect);
             }
             else
@@ -353,7 +350,7 @@ package starling.rendering
 
             finishMeshBatch();
 
-            if (isRectangularMask(mask))
+            if (isRectangularMask(mask, sMatrix))
             {
                 popClipRect();
             }
@@ -414,22 +411,25 @@ package starling.rendering
             _state.clipRect = stackLength ? stack[stackLength - 1] : null;
         }
 
-        private function isRectangularMask(mask:DisplayObject):Boolean
+        /** Figures out if the mask can be represented by a scissor rectangle; this is possible
+         *  if it's just a simple quad that is parallel to the stage axes. The 'out' parameter
+         *  will be filled with the transformation matrix required to move the mask into stage
+         *  coordinates. */
+        private function isRectangularMask(mask:DisplayObject, out:Matrix):Boolean
         {
             var quad:Quad = mask as Quad;
-
             if (quad && !quad.is3D && quad.style.type == MeshStyle)
             {
-                sMatrix.copyFrom(mask.transformationMatrix);
-                if (mask.stage) sMatrix.concat(_state.modelviewMatrix);
-
-                if ((MathUtil.isEquivalent(sMatrix.a, 0) && MathUtil.isEquivalent(sMatrix.d, 0)) ||
-                    (MathUtil.isEquivalent(sMatrix.b, 0) && MathUtil.isEquivalent(sMatrix.c, 0)))
+                if (mask.stage) mask.getTransformationMatrix(null, out);
+                else
                 {
-                    return true;
+                    out.copyFrom(mask.transformationMatrix);
+                    out.concat(_state.modelviewMatrix);
                 }
-            }
 
+                return (MathUtil.isEquivalent(out.a, 0) && MathUtil.isEquivalent(out.d, 0)) ||
+                       (MathUtil.isEquivalent(out.b, 0) && MathUtil.isEquivalent(out.c, 0));
+            }
             return false;
         }
 
