@@ -105,9 +105,8 @@ package starling.rendering
 
         /** Creates a new MeshStyle instance.
          *  Subclasses must provide a constructor that can be called without any arguments. */
-        public function MeshStyle(texture:Texture=null)
+        public function MeshStyle()
         {
-            _texture = texture;
             _textureSmoothing = TextureSmoothing.BILINEAR;
             _type = Object(this).constructor as Class;
         }
