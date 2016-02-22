@@ -76,6 +76,19 @@ package starling.text
             return clone;
         }
 
+        /** Sets the most common properties at once. */
+        public function setTo(font:String="Verdana", size:Number=12, color:uint=0x0,
+                              horizontalAlign:String="center", verticalAlign:String="center"):void
+        {
+            _font = font;
+            _size = size;
+            _color = color;
+            _horizontalAlign = horizontalAlign;
+            _verticalAlign = verticalAlign;
+
+            dispatchEventWith(Event.CHANGE);
+        }
+
         /** Converts the Starling TextFormat instance to a Flash TextFormat. */
         public function toNativeFormat(out:flash.text.TextFormat=null):flash.text.TextFormat
         {
