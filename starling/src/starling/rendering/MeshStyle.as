@@ -302,10 +302,14 @@ package starling.rendering
 
         // properties
 
-        /** References the vertex data from the assigned target. */
+        /** Returns a reference to the vertex data of the assigned target (or <code>null</code>
+         *  if there is no target). Beware: the style itself does not own any vertices;
+         *  it is limited to manipulating those of the target mesh. */
         protected function get vertexData():VertexData { return _vertexData; }
 
-        /** References the index data from the assigned target. */
+        /** Returns a reference to the index data of the assigned target (or <code>null</code>
+         *  if there is no target). Beware: the style itself does not own any indices;
+         *  it is limited to manipulating those of the target mesh. */
         protected function get indexData():IndexData { return _indexData; }
 
         /** The actual class of this style. */
