@@ -156,9 +156,11 @@ package starling.rendering
 
         // context methods
 
-        /** Specifies the attribute to use at a certain register (identified by its index)
-         *  in the vertex shader. */
-        public function setVertexBufferAttribute(buffer:VertexBuffer3D, index:int, attrName:String):void
+        /** Specifies which vertex data attribute corresponds to a single vertex shader
+         *  program input. This wraps the <code>Context3D</code>-method with the same name,
+         *  automatically replacing <code>attrName</code> with the corresponding values for
+         *  <code>bufferOffset</code> and <code>format</code>. */
+        public function setVertexBufferAt(index:int, buffer:VertexBuffer3D, attrName:String):void
         {
             var attribute:VertexDataAttribute = getAttribute(attrName);
             Starling.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);

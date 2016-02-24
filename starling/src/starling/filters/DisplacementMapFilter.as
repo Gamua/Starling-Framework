@@ -258,7 +258,7 @@ class DisplacementMapEffect extends FilterEffect
 
             getMapMatrix(sMatrix);
 
-            vertexFormat.setVertexBufferAttribute(vertexBuffer, 2, "mapTexCoords");
+            vertexFormat.setVertexBufferAt(2, vertexBuffer, "mapTexCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOneHalf);
             context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 1, sMatrix, true);
             RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, _mapRepeat);

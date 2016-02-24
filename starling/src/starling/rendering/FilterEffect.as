@@ -98,7 +98,7 @@ package starling.rendering
             {
                 RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, _textureRepeat);
                 context.setTextureAt(0, _texture.base);
-                vertexFormat.setVertexBufferAttribute(vertexBuffer, 1, "texCoords");
+                vertexFormat.setVertexBufferAt(1, vertexBuffer, "texCoords");
             }
         }
 

@@ -220,7 +220,7 @@ package starling.rendering
         protected function beforeDraw(context:Context3D):void
         {
             program.activate(context);
-            vertexFormat.setVertexBufferAttribute(vertexBuffer, 0, "position");
+            vertexFormat.setVertexBufferAt(0, vertexBuffer, "position");
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix3D, true);
         }
 

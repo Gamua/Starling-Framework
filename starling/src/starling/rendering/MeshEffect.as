@@ -92,7 +92,7 @@ package starling.rendering
 
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha);
-            vertexFormat.setVertexBufferAttribute(vertexBuffer, 2, "color");
+            vertexFormat.setVertexBufferAt(2, vertexBuffer, "color");
         }
 
         /** This method is called by <code>render</code>, directly after

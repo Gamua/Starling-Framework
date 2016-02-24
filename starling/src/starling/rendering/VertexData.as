@@ -853,14 +853,6 @@ package starling.rendering
             return buffer;
         }
 
-        /** Specifies the attribute to use at a certain register (identified by its index)
-         *  in the vertex shader. */
-        public function setVertexBufferAttribute(buffer:VertexBuffer3D, index:int, attrName:String):void
-        {
-            var attribute:VertexDataAttribute = getAttribute(attrName);
-            Starling.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
-        }
-
         /** Uploads the complete data (or a section of it) to the given vertex buffer. */
         public function uploadToVertexBuffer(buffer:VertexBuffer3D, vertexID:int=0, numVertices:int=-1):void
         {
