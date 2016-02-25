@@ -134,8 +134,8 @@ package starling.display
             if (targetVertexID == 0)
                 setupFor(mesh);
 
-            meshStyle.copyVertexDataTo(_vertexData, targetVertexID, matrix, subset.vertexID, subset.numVertices);
-            meshStyle.copyIndexDataTo(_indexData, targetIndexID, targetVertexID - subset.vertexID,
+            meshStyle.batchVertexData(_style, targetVertexID, matrix, subset.vertexID, subset.numVertices);
+            meshStyle.batchIndexData(_style, targetIndexID, targetVertexID - subset.vertexID,
                 subset.indexID, subset.numIndices);
 
             if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
@@ -163,8 +163,8 @@ package starling.display
             if (_vertexData.numVertices == 0)
                 setupFor(mesh);
 
-            meshStyle.copyVertexDataTo(_vertexData, vertexID, matrix, 0, numVertices);
-            meshStyle.copyIndexDataTo(_indexData, indexID, vertexID, 0, numIndices);
+            meshStyle.batchVertexData(_style, vertexID, matrix, 0, numVertices);
+            meshStyle.batchIndexData(_style, indexID, vertexID, 0, numIndices);
 
             if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, vertexID, numVertices);
             if (_batchable) setRequiresRedraw();
