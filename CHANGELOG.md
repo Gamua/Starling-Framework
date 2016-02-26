@@ -1,25 +1,30 @@
 Starling: Changelog
 ===================
 
-version 2.0 (preview) - 2015-12-17
-----------------------------------
+version 2.0 (beta) - 2016-02-29
+-------------------------------
 
 - added render cache: auto-detects if display tree changes, speeds up rendering of unchanged regions
 - added 'Mesh' class, the new base class of all non-container display objects
 - added 'MeshBatch' class, a more flexible replacement of the old 'QuadBatch'
 - added 'MeshStyle' class, allowing customized rendering of any meshes
 - added 'Painter' class that replaces 'RenderSupport' and contains a stack of 'RenderStates'
-- added 'Effect' + 'MeshEffect', encapsulating low-level stage3D rendering
-- added 'RenderState' class that captures all context settings
+- added 'Effect', 'FilterEffect' & 'MeshEffect', encapsulating low-level stage3D rendering
+- added a completely rewritten 'FragmentFilter' API
+- added 'FilterChain' class, allowing to combine several filters into one
+- added 'DropShadowFilter' and 'GlowFilter'
+- added 'RenderState' class, capturing context and other render settings
 - added 'Program' class, a comfortable wrapper of stage3D programs that survives a context loss
 - added 'VertexDataFormat' and using it in 'VertexData' for flexible vertex data structures
 - added 'IndexData' class, the new partner of 'VertexData'
 - added 'BatchProcessor' class, the master puppeteer of all batch rendering
 - added 'TextFormat' class and using it in TextField and BitmapFont
 - added 'TextOptions', 'ITextCompositor', and 'TrueTypeCompositor' for more flexible Text composition
+- added 'scale9Grid' property to 'Image' and 'Button'
+- added 'tileGrid' property to 'Image'
 - added 'scale' property to DisplayObject, for simple uniform scaling
 - added 'StringUtil' with methods like 'trim' and 'format'
-- added 'Pool' class for simple pooling of basic classes (Point, Rectangle, Matrix)
+- added 'Pool' class for simple pooling of basic classes (Point, Vector3D, Rectangle, Matrix)
 - added 'getTextureAtlasNames' method to AssetManager
 - added 'MatrixUtil.isIdentity'
 - added 'pixelSnapping' property to Mesh class (enabled by default)
@@ -31,9 +36,15 @@ version 2.0 (preview) - 2015-12-17
 - added second argument to 'EventDispatcher.hasEventListener' to allow checking for a specific listener
 - added 'Event.UPDATE' as a new generic event type
 - added 'Color.multiply'
-- added 'toString' methods to MatrixUtil
+- added 'toString' methods to 'MatrixUtil'
 - added missing brackets to 'Touch.toString'
 - added new DelayedCall-related methods to Juggler
+- added 'Button.textureSmoothing' property
+- added optional 'width' and 'height' arguments to 'Quad.readjustSize'
+- added 'RectangleUtil.extend'
+- added 'MathUtil.min', 'MathUtil.max', 'MathUtil.clamp', 'MathUtil.isEquivalent'
+- added 'Stage.getStageBounds'
+- added 'Mesh.defaultStyle' property, allowing to specify the default style for all meshes
 - updated VertexData class to use a ByteArray instead of a Vector
 - updated TextFields to always use the minimal possible texture size for TrueType fonts
 - updated the Juggler's 'add' methods to return a unique ID that can be used to remove the same object
@@ -46,7 +57,8 @@ version 2.0 (preview) - 2015-12-17
 - removed 'Starling.handleLostContext' (now always enabled)
 - removed 'forTouch' argument in 'hitTest'-method
 - removed 'repeat' properties and method arguments from Texture classes (to be handled in Image class)
-- removed 'nativeFilters' from TextField (hoping that Starling's filters will soon close that gap)
+- removed 'nativeFilters' from TextField (hoping that Starling's filters now close that gap)
+- removed 'Sprite.clipRect'; instead, 'DisplayObject.mask' was optimized for rectangular masks
 - changed organization of 'starling.utils' package
 - changed KeyboardEvent to be dispatched instead of broadcasted for better performance
 - changed default profile in Starling constructor to 'auto'
@@ -57,10 +69,33 @@ version 2.0 (preview) - 2015-12-17
 - optimized texture classes by splitting up 'ConcreteTexture' into several (internal) subclasses
 - optimized 'removeEventListener'
 - optimized how the TrueType compositor behaves when it reaches the maximum supported texture size
+- optimized rendering of empty TrueType text fields (by not rendering them, at all)
+- optimized 'RenderTexture' by disabling double-buffering in 'baselineExtended' and higher profiles
 - fixed that autoSizing in TextField always forced specific text alignments.
 - fixed 'globalToLocal' for 3D objects
 - fixed 'Polygon.toString' for empty polygons
 - fixed possible null reference exception in the Button class
+
+version 1.8 - 2016-02-29
+------------------------
+
+- added 'DisplayObject.scale' property for simple uniform scaling
+- added 'AssetManager.getTextureAtlasNames'
+- added try/catch around 'executeWhenApplicationIsActive' callbacks
+- added 'Button.smoothing' property
+- added property 'Starling.broadcastKeyboardEvents'
+- removed explicit Garbage collection from 'AssetManager' (thus avoiding hiccups)
+- optimized 'DisplayObject.alignPivot'
+- optimized 'BitmapFont.arrangeChars' (by avoiding 'splice')
+- optimized 'EventDispatcher.removeEventListener'
+- fixed 'QuadBatch.isStateChange' (ignored numQuads before)
+- fixed rare problem with 'DisplayObject.hitTestMask'
+- fixed that 'alphaWhen...' and 'scaleWhen...' properties of 'Button' class did not always work
+- fixed null reference exception in Button class
+- fixed that 'showStatsDisplay' did not always reveal the stats display
+- fixed invalid texture when unflattening a sprite with a cached filter
+- fixed transporter chief compatibility with latest version of 'ios-deploy'
+- fixed 'globalToLocal' for 3D objects
 
 version 1.7 - 2015-07-02
 ------------------------
