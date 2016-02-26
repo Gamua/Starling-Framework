@@ -1,6 +1,27 @@
 Starling: Changelog
 ===================
 
+version 1.8 - 2016-02-29
+------------------------
+
+- added 'DisplayObject.scale' property for simple uniform scaling
+- added 'AssetManager.getTextureAtlasNames'
+- added try/catch around 'executeWhenApplicationIsActive' callbacks
+- added 'Button.smoothing' property
+- added property 'Starling.broadcastKeyboardEvents'
+- removed explicit Garbage collection from 'AssetManager' (thus avoiding hiccups)
+- optimized 'DisplayObject.alignPivot'
+- optimized 'BitmapFont.arrangeChars' (by avoiding 'splice')
+- optimized 'EventDispatcher.removeEventListener'
+- fixed 'QuadBatch.isStateChange' (ignored numQuads before)
+- fixed rare problem with 'DisplayObject.hitTestMask'
+- fixed that 'alphaWhen...' and 'scaleWhen...' properties of 'Button' class did not always work
+- fixed null reference exception in Button class
+- fixed that 'showStatsDisplay' did not always reveal the stats display
+- fixed invalid texture when unflattening a sprite with a cached filter
+- fixed transporter chief compatibility with latest version of 'ios-deploy'
+- fixed 'globalToLocal' for 3D objects
+
 version 1.7 - 2015-07-02
 ------------------------
 
