@@ -2,7 +2,7 @@
 <!--
   ~
   ~ Starling Framework
-  ~ Copyright 2011-2014 Gamua. All Rights Reserved.
+  ~ Copyright Gamua GmbH. All Rights Reserved.
   ~
   ~ This program is free software. You can redistribute and/or modify it
   ~ in accordance with the terms of the accompanying license agreement.
@@ -30,7 +30,7 @@
   <property name="FLEX_HOME" location="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" />
   <echo message="Using SDK: ${FLEX_HOME}"/>
   <!-- versioning -->
-  <property name="version" value="1.7.1" />
+  <property name="version" value="1.8" />
   <!-- directories -->
   <property name="deploy.dir" location="bin" />
   <property name="src.dir" location="src" />
