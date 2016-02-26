@@ -1,26 +1,34 @@
-Starling Framework: The Cross Platform Game Engine [![Build Status](https://travis-ci.org/Gamua/Starling-Framework.svg)](https://travis-ci.org/Gamua/Starling-Framework)
-==================================================
+# Starling Framework [![Build Status](https://travis-ci.org/Gamua/Starling-Framework.svg)](https://travis-ci.org/Gamua/Starling-Framework)
 
-What is Starling?
------------------
+The Cross Platform Game Engine
+------------------------------
 
-Starling is an ActionScript 3 library that mimics the conventional Flash display tree architecture. In contrast to conventional display objects, however, Starling "lives" entirely inside the Stage3D environment. That means that all objects are rendered directly by the GPU, which leads to a massive performance boost. Thanks to Adobe AIR, Starling-based applications can be deployed to mobile devices (iOS, Android), the desktop (Windows, OS X), and to the browser (via the Flash plugin).
+The Starling Framework allows you to create hardware accelerated apps in ActionScript 3. The main target is the creation of 2D games, but Starling may be used for any graphical application. Thanks to Adobe AIR, Starling-based applications can be deployed to mobile devices (iOS, Android), the desktop (Windows, OS X), and to the browser (via the Flash plugin).
 
-Starling's API is not a direct 1:1 port of the Flash API. The classes were streamlined and optimized for working well with the GPU; common tasks in game development were simplified. Starling hides the Stage3D internals from developers, but makes it easy to access them for those who need to create custom display objects.
+While Starling mimics the classic display tree architecture of Adobe AIR/Flash, it provides a much better performance: all objects are rendered directly by the GPU (using the Stage3D API). The complete architecture was designed for working well with the GPU; common game development tasks were built right into its core. Starling hides Stage3D internals from developers, but makes it easy to access them for those who need full performance and flexibility.
 
-Just like its iOS sibling, the [Sparrow Framework][1], Starling aims to be as lightweight and easy to use as possible. As an Open Source project, much care was taken to make the source code easy to read, understand and extend.
+Starling aims to be as lightweight and easy to use as possible. As an Open Source project, much care was taken to make the source code easy to read, understand and extend. With under 15k lines of code, experienced developers can easily grasp it in its entirety, or modify it to their needs.
 
-Where do I find more information about Starling?
-------------------------------------------------
-
-Here are a few starting points:
+Quick Links
+-----------
 
 * [Official Homepage](http://www.starling-framework.org)
 * [API Reference](http://doc.starling-framework.org)
 * [Support Forum](http://forum.starling-framework.org)
 * [Starling Wiki](http://wiki.starling-framework.org)
+  * [Manual](http://wiki.starling-framework.org/manual/start)
   * [Showcase](http://wiki.starling-framework.org/games/start)
-  * [Books, Courses, Tutorials](http://wiki.starling-framework.org/tutorials/start)
   * [Extensions](http://wiki.starling-framework.org/extensions/start)
 
-[1]: http://www.sparrow-framework.org
+News and Updates
+----------------
+
+* [Twitter](https://twitter.com/gamua)
+* [Facebook](https://facebook.com/gamua.co)
+* [Google+](https://www.google.com/+gamua)
+* [LinkedIn](https://www.linkedin.com/company/gamua)
+
+Minimum Requirements
+--------------------
+
+* Adobe AIR or Flash Player 19.0
