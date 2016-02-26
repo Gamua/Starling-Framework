@@ -12,7 +12,7 @@ then
 fi
 
 version=$1
-ASDOC="/Users/redge/Dropbox/Development/library/flash/air/air-4.0/bin/asdoc"
+ASDOC="/Users/redge/Dropbox/Development/library/flash/air/air-19/bin/asdoc"
 
 "${ASDOC}" \
   -doc-sources ../src \
