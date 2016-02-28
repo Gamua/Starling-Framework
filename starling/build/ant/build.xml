@@ -13,9 +13,16 @@
 
   <!-- Properties -->
 
+  <property environment="env" />
+  <condition property="airsdk.root" value="${env.AIR_HOME}">
+    <isset property="env.AIR_HOME"/> <!-- check for Adobe AIR SDK env. variable -->
+  </condition>
+
   <dirname property="here" file="${ant.file}" />
   <property file="${here}/build.local.properties"/> <!-- optional file for local settings -->
   <property file="${here}/build.properties"/>
+
+  <echo message="Using SDK: ${airsdk.root}"/>
 
   <!-- Targets -->
 
