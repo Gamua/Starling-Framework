@@ -48,7 +48,7 @@
     </java>
   </target>
 
-  <target name="build-doc" description="Create API reference (HTML)">
+  <target name="build-doc" description="Create API reference from Starling source.">
     <echo message="Creating API Reference"/>
     <java jar="${asdoc}" dir="${basedir}" fork="true" failonerror="true">
       <arg value="+flexlib=${airsdk.framework}"/>
@@ -91,7 +91,30 @@
     </zip>
   </target>
 
-  <target name="build" depends="prepare, update-swc, cleanup"
-    description="Build SWC file, including ASDoc code hints" />
+  <target name="package-all" depends="update-swc, build-doc">
+    <echo message="Creating release package"/>
+    <property name="root.dir" value="${basedir}/.."/>
+    <tempfile property="filelist"/>
+    <touch file="${filelist}"/>
+    <exec executable="git" dir="${root.dir}" output="${filelist}">
+      <arg value="ls-files"/>
+    </exec>
+    <zip destfile="${deploy.dir}/${ant.project.name}-${version}.zip">
+      <zipfileset dir="${root.dir}">
+        <includesfile name="${filelist}"/>
+        <include name="starling/bin/starling.swc"/>
+        <include name="starling/doc/html/**"/>
+        <exclude name=".travis.yml"/>
+        <exclude name="starling/bin/README.md"/>
+      </zipfileset>
+    </zip>
+    <delete file="${filelist}"/>
+  </target>
+
+  <target name="build" depends="update-swc, cleanup"
+    description="Build SWC file, including ASDoc code hints." />
+
+  <target name="package" depends="package-all, cleanup"
+    description="Create zip-file with complete project, SWC and help files." />
 
 </project>

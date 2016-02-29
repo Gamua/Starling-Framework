@@ -42,3 +42,6 @@ target/
 # FlashBuilder auto generated test runners
 FlexUnitApplication.as
 FlexUnitCompilerApplication.as
+
+# Release package
+starling/bin/starling-*.zip
