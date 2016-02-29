@@ -14,7 +14,7 @@ package
     {
         public static const GAME_OVER:String = "gameOver";
         
-        private var mBird:Image;
+        private var _bird:Image;
         
         public function Game()
         {
@@ -23,13 +23,13 @@ package
         
         private function init():void
         {
-            mBird = new Image(Root.assets.getTexture("starling_rocket"));
-            mBird.pivotX = mBird.width / 2;
-            mBird.pivotY = mBird.height / 2;
-            mBird.x = Constants.STAGE_WIDTH / 2;
-            mBird.y = Constants.STAGE_HEIGHT / 2;
-            mBird.addEventListener(TouchEvent.TOUCH, onBirdTouched);
-            addChild(mBird);
+            _bird = new Image(Root.assets.getTexture("starling_rocket"));
+            _bird.pivotX = _bird.width / 2;
+            _bird.pivotY = _bird.height / 2;
+            _bird.x = Constants.STAGE_WIDTH / 2;
+            _bird.y = Constants.STAGE_HEIGHT / 2;
+            _bird.addEventListener(TouchEvent.TOUCH, onBirdTouched);
+            addChild(_bird);
             
             moveBird();
         }
@@ -38,7 +38,7 @@ package
         {
             var scale:Number = Math.random() * 0.8 + 0.2;
             
-            Starling.juggler.tween(mBird, Math.random() * 0.5 + 0.5, {
+            Starling.juggler.tween(_bird, Math.random() * 0.5 + 0.5, {
                 x: Math.random() * Constants.STAGE_WIDTH,
                 y: Math.random() * Constants.STAGE_HEIGHT,
                 scaleX: scale,
@@ -51,10 +51,10 @@ package
         
         private function onBirdTouched(event:TouchEvent):void
         {
-            if (event.getTouch(mBird, TouchPhase.BEGAN))
+            if (event.getTouch(_bird, TouchPhase.BEGAN))
             {
                 Root.assets.playSound("click");
-                Starling.juggler.removeTweens(mBird);
+                Starling.juggler.removeTweens(_bird);
                 dispatchEventWith(GAME_OVER, true, 100);
             }
         }

@@ -1,14 +1,15 @@
 package tests.text
 {
-    import flexunit.framework.Assert;
-
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.assertThat;
     import org.hamcrest.number.greaterThan;
     import org.hamcrest.number.lessThanOrEqualTo;
 
-    import starling.display.Image;
+    import starling.display.MeshBatch;
     import starling.text.TextField;
     import starling.text.TextFieldAutoSize;
+    import starling.text.TextFormat;
     import starling.textures.Texture;
 
     import tests.StarlingTestCase;
@@ -20,8 +21,8 @@ package tests.text
         [Test]
         public function testTextField():void
         {
-            var textField:TextField = new TextField(240, 50, "test text", "_sans", 16);
-            Assert.assertEquals("test text", textField.text);
+            var textField:TextField = new TextField(240, 50, "test text");
+            assertEquals("test text", textField.text);
         }
 
         [Test]
@@ -29,13 +30,14 @@ package tests.text
         {
             var maxTextureSize:int = Texture.maxSize;
             var sampleText:String = getSampleText(SUPER_LARGE_TEXT_LENGTH * (maxTextureSize / 2048));
-            var textField:TextField = new TextField(500, 50, sampleText, "_sans", 32);
+            var textField:TextField = new TextField(500, 50, sampleText);
+            textField.format = new TextFormat("_sans", 32);
             textField.autoSize = TextFieldAutoSize.VERTICAL;
 
             assertThat(textField.height, greaterThan(maxTextureSize));
 
             var textureSize:Texture = mainTextureFromTextField(textField);
-            Assert.assertTrue(textureSize);
+            assertTrue(textureSize);
             assertThat(textureSize ? textureSize.height * textureSize.scale : 0,
                     lessThanOrEqualTo(maxTextureSize));
         }
@@ -50,7 +52,7 @@ package tests.text
             for (var i:int = 0; i < repeat; i++)
                 parts[i] = sample;
 
-            return parts.join();
+            return parts.join("");
         }
 
         /** Retrieves the TextField's internally used 'Texture'. */
@@ -58,8 +60,8 @@ package tests.text
         {
             for (var i:int = 0; i < textField.numChildren; i++)
             {
-                var image:Image = textField.getChildAt(i) as Image;
-                if (image) return image.texture;
+                var meshBatch:MeshBatch = textField.getChildAt(i) as MeshBatch;
+                if (meshBatch) return meshBatch.texture;
             }
             return null;
         }

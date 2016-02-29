@@ -1,7 +1,7 @@
 package
 {
     import flash.utils.getQualifiedClassName;
-    
+
     import scenes.AnimationScene;
     import scenes.BenchmarkScene;
     import scenes.BlendModeScene;
@@ -14,7 +14,7 @@ package
     import scenes.TextScene;
     import scenes.TextureScene;
     import scenes.TouchScene;
-    
+
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
@@ -22,8 +22,9 @@ package
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
     import starling.text.TextField;
-    import starling.textures.Texture;
-    import starling.utils.VAlign;
+    import starling.utils.Align;
+
+    import utils.MenuButton;
 
     public class MainMenu extends Sprite
     {
@@ -52,7 +53,6 @@ package
                 ["Sprite 3D", Sprite3DScene]
             ];
             
-            var buttonTexture:Texture = Game.assets.getTexture("button_medium");
             var count:int = 0;
             
             for each (var sceneToCreate:Array in scenesToCreate)
@@ -60,7 +60,9 @@ package
                 var sceneTitle:String = sceneToCreate[0];
                 var sceneClass:Class  = sceneToCreate[1];
                 
-                var button:Button = new Button(buttonTexture, sceneTitle);
+                var button:Button = new MenuButton(sceneTitle);
+                button.height = 42;
+                button.readjustSize();
                 button.x = count % 2 == 0 ? 28 : 167;
                 button.y = 155 + int(count / 2) * 46;
                 button.name = getQualifiedClassName(sceneClass);
@@ -75,10 +77,11 @@ package
             // show information about rendering method (hardware/software)
             
             var driverInfo:String = Starling.context.driverInfo;
-            var infoText:TextField = new TextField(310, 64, driverInfo, "Verdana", 10);
+            var infoText:TextField = new TextField(310, 64, driverInfo);
+            infoText.format.size = 10;
+            infoText.format.verticalAlign = Align.BOTTOM;
             infoText.x = 5;
             infoText.y = 475 - infoText.height;
-            infoText.vAlign = VAlign.BOTTOM;
             infoText.addEventListener(TouchEvent.TOUCH, onInfoTextTouched);
             addChildAt(infoText, 0);
         }

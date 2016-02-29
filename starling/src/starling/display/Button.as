@@ -13,15 +13,15 @@ package starling.display
     import flash.geom.Rectangle;
     import flash.ui.Mouse;
     import flash.ui.MouseCursor;
-    
+
     import starling.events.Event;
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
     import starling.text.TextField;
+    import starling.text.TextFormat;
     import starling.textures.Texture;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
+    import starling.utils.RectangleUtil;
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
@@ -43,25 +43,25 @@ package starling.display
     {
         private static const MAX_DRAG_DIST:Number = 50;
         
-        private var mUpState:Texture;
-        private var mDownState:Texture;
-        private var mOverState:Texture;
-        private var mDisabledState:Texture;
+        private var _upState:Texture;
+        private var _downState:Texture;
+        private var _overState:Texture;
+        private var _disabledState:Texture;
         
-        private var mContents:Sprite;
-        private var mBody:Image;
-        private var mTextField:TextField;
-        private var mTextBounds:Rectangle;
-        private var mOverlay:Sprite;
+        private var _contents:Sprite;
+        private var _body:Image;
+        private var _textField:TextField;
+        private var _textBounds:Rectangle;
+        private var _overlay:Sprite;
         
-        private var mScaleWhenDown:Number;
-        private var mScaleWhenOver:Number;
-        private var mAlphaWhenDown:Number;
-        private var mAlphaWhenDisabled:Number;
-        private var mUseHandCursor:Boolean;
-        private var mEnabled:Boolean;
-        private var mState:String;
-        private var mTriggerBounds:Rectangle;
+        private var _scaleWhenDown:Number;
+        private var _scaleWhenOver:Number;
+        private var _alphaWhenDown:Number;
+        private var _alphaWhenDisabled:Number;
+        private var _useHandCursor:Boolean;
+        private var _enabled:Boolean;
+        private var _state:String;
+        private var _triggerBounds:Rectangle;
 
         /** Creates a button with a set of state-textures and (optionally) some text.
          *  Any state that is left 'null' will display the up-state texture. Beware that all
@@ -71,24 +71,24 @@ package starling.display
         {
             if (upState == null) throw new ArgumentError("Texture 'upState' cannot be null");
             
-            mUpState = upState;
-            mDownState = downState;
-            mOverState = overState;
-            mDisabledState = disabledState;
+            _upState = upState;
+            _downState = downState;
+            _overState = overState;
+            _disabledState = disabledState;
 
-            mState = ButtonState.UP;
-            mBody = new Image(upState);
-            mScaleWhenDown = downState ? 1.0 : 0.9;
-            mScaleWhenOver = mAlphaWhenDown = 1.0;
-            mAlphaWhenDisabled = disabledState ? 1.0: 0.5;
-            mEnabled = true;
-            mUseHandCursor = true;
-            mTextBounds = new Rectangle(0, 0, mBody.width, mBody.height);
-            mTriggerBounds = new Rectangle();
+            _state = ButtonState.UP;
+            _body = new Image(upState);
+            _scaleWhenDown = downState ? 1.0 : 0.9;
+            _scaleWhenOver = _alphaWhenDown = 1.0;
+            _alphaWhenDisabled = disabledState ? 1.0: 0.5;
+            _enabled = true;
+            _useHandCursor = true;
+            _textBounds = new Rectangle(0, 0, _body.width, _body.height);
+            _triggerBounds = new Rectangle();
             
-            mContents = new Sprite();
-            mContents.addChild(mBody);
-            addChild(mContents);
+            _contents = new Sprite();
+            _contents.addChild(_body);
+            addChild(_contents);
             addEventListener(TouchEvent.TOUCH, onTouch);
             
             this.touchGroup = true;
@@ -99,51 +99,58 @@ package starling.display
         public override function dispose():void
         {
             // text field might be disconnected from parent, so we have to dispose it manually
-            if (mTextField)
-                mTextField.dispose();
+            if (_textField)
+                _textField.dispose();
             
             super.dispose();
         }
         
         /** Readjusts the dimensions of the button according to its current state texture.
          *  Call this method to synchronize button and texture size after assigning a texture
-         *  with a different size. Per default, this method also resets the bounds of the
-         *  button's text. */
-        public function readjustSize(resetTextBounds:Boolean=true):void
+         *  with a different size. */
+        public function readjustSize():void
         {
-            mBody.readjustSize();
+            var prevWidth:Number = _body.width;
+            var prevHeight:Number = _body.height;
 
-            if (resetTextBounds && mTextField != null)
-                textBounds = new Rectangle(0, 0, mBody.width, mBody.height);
+            _body.readjustSize();
+
+            var scaleX:Number = _body.width  / prevWidth;
+            var scaleY:Number = _body.height / prevHeight;
+
+            _textBounds.x *= scaleX;
+            _textBounds.y *= scaleY;
+            _textBounds.width *= scaleX;
+            _textBounds.height *= scaleY;
+
+            if (_textField) createTextField();
         }
 
         private function createTextField():void
         {
-            if (mTextField == null)
+            if (_textField == null)
             {
-                mTextField = new TextField(mTextBounds.width, mTextBounds.height, "");
-                mTextField.vAlign = VAlign.CENTER;
-                mTextField.hAlign = HAlign.CENTER;
-                mTextField.touchable = false;
-                mTextField.autoScale = true;
-                mTextField.batchable = true;
+                _textField = new TextField(_textBounds.width, _textBounds.height);
+                _textField.touchable = false;
+                _textField.autoScale = true;
+                _textField.batchable = true;
             }
             
-            mTextField.width  = mTextBounds.width;
-            mTextField.height = mTextBounds.height;
-            mTextField.x = mTextBounds.x;
-            mTextField.y = mTextBounds.y;
+            _textField.width  = _textBounds.width;
+            _textField.height = _textBounds.height;
+            _textField.x = _textBounds.x;
+            _textField.y = _textBounds.y;
         }
         
         private function onTouch(event:TouchEvent):void
         {
-            Mouse.cursor = (mUseHandCursor && mEnabled && event.interactsWith(this)) ?
+            Mouse.cursor = (_useHandCursor && _enabled && event.interactsWith(this)) ?
                 MouseCursor.BUTTON : MouseCursor.AUTO;
             
             var touch:Touch = event.getTouch(this);
             var isWithinBounds:Boolean;
 
-            if (!mEnabled)
+            if (!_enabled)
             {
                 return;
             }
@@ -155,29 +162,29 @@ package starling.display
             {
                 state = ButtonState.OVER;
             }
-            else if (touch.phase == TouchPhase.BEGAN && mState != ButtonState.DOWN)
+            else if (touch.phase == TouchPhase.BEGAN && _state != ButtonState.DOWN)
             {
-                mTriggerBounds = getBounds(stage, mTriggerBounds);
-                mTriggerBounds.inflate(MAX_DRAG_DIST, MAX_DRAG_DIST);
+                _triggerBounds = getBounds(stage, _triggerBounds);
+                _triggerBounds.inflate(MAX_DRAG_DIST, MAX_DRAG_DIST);
 
                 state = ButtonState.DOWN;
             }
             else if (touch.phase == TouchPhase.MOVED)
             {
-                isWithinBounds = mTriggerBounds.contains(touch.globalX, touch.globalY);
+                isWithinBounds = _triggerBounds.contains(touch.globalX, touch.globalY);
 
-                if (mState == ButtonState.DOWN && !isWithinBounds)
+                if (_state == ButtonState.DOWN && !isWithinBounds)
                 {
                     // reset button when finger is moved too far away ...
                     state = ButtonState.UP;
                 }
-                else if (mState == ButtonState.UP && isWithinBounds)
+                else if (_state == ButtonState.UP && isWithinBounds)
                 {
                     // ... and reactivate when the finger moves back into the bounds.
                     state = ButtonState.DOWN;
                 }
             }
-            else if (touch.phase == TouchPhase.ENDED && mState == ButtonState.DOWN)
+            else if (touch.phase == TouchPhase.ENDED && _state == ButtonState.DOWN)
             {
                 state = ButtonState.UP;
                 if (!touch.cancelled) dispatchEventWith(Event.TRIGGERED, true);
@@ -186,164 +193,123 @@ package starling.display
         
         /** The current state of the button. The corresponding strings are found
          *  in the ButtonState class. */
-        public function get state():String { return mState; }
+        public function get state():String { return _state; }
         public function set state(value:String):void
         {
-            mState = value;
-            refreshState();
-        }
+            _state = value;
+            _contents.x = _contents.y = 0;
+            _contents.scaleX = _contents.scaleY = _contents.alpha = 1.0;
 
-        private function refreshState():void
-        {
-            mContents.x = mContents.y = 0;
-            mContents.scaleX = mContents.scaleY = mContents.alpha = 1.0;
-
-            switch (mState)
+            switch (_state)
             {
                 case ButtonState.DOWN:
-                    setStateTexture(mDownState);
-                    mContents.alpha = mAlphaWhenDown;
-                    mContents.scaleX = mContents.scaleY = mScaleWhenDown;
-                    mContents.x = (1.0 - mScaleWhenDown) / 2.0 * mBody.width;
-                    mContents.y = (1.0 - mScaleWhenDown) / 2.0 * mBody.height;
+                    setStateTexture(_downState);
+                    _contents.alpha = _alphaWhenDown;
+                    _contents.scaleX = _contents.scaleY = _scaleWhenDown;
+                    _contents.x = (1.0 - _scaleWhenDown) / 2.0 * _body.width;
+                    _contents.y = (1.0 - _scaleWhenDown) / 2.0 * _body.height;
                     break;
                 case ButtonState.UP:
-                    setStateTexture(mUpState);
+                    setStateTexture(_upState);
                     break;
                 case ButtonState.OVER:
-                    setStateTexture(mOverState);
-                    mContents.scaleX = mContents.scaleY = mScaleWhenOver;
-                    mContents.x = (1.0 - mScaleWhenOver) / 2.0 * mBody.width;
-                    mContents.y = (1.0 - mScaleWhenOver) / 2.0 * mBody.height;
+                    setStateTexture(_overState);
+                    _contents.scaleX = _contents.scaleY = _scaleWhenOver;
+                    _contents.x = (1.0 - _scaleWhenOver) / 2.0 * _body.width;
+                    _contents.y = (1.0 - _scaleWhenOver) / 2.0 * _body.height;
                     break;
                 case ButtonState.DISABLED:
-                    setStateTexture(mDisabledState);
-                    mContents.alpha = mAlphaWhenDisabled;
+                    setStateTexture(_disabledState);
+                    _contents.alpha = _alphaWhenDisabled;
                     break;
                 default:
-                    throw new ArgumentError("Invalid button state: " + mState);
+                    throw new ArgumentError("Invalid button state: " + _state);
             }
         }
 
         private function setStateTexture(texture:Texture):void
         {
-            mBody.texture = texture ? texture : mUpState;
+            _body.texture = texture ? texture : _upState;
         }
 
         /** The scale factor of the button on touch. Per default, a button without a down state
          *  texture will be made slightly smaller, while a button with a down state texture
          *  remains unscaled. */
-        public function get scaleWhenDown():Number { return mScaleWhenDown; }
-        public function set scaleWhenDown(value:Number):void
-        {
-            mScaleWhenDown = value;
-            if (mState == ButtonState.DOWN) refreshState();
-        }
+        public function get scaleWhenDown():Number { return _scaleWhenDown; }
+        public function set scaleWhenDown(value:Number):void { _scaleWhenDown = value; }
 
         /** The scale factor of the button while the mouse cursor hovers over it. @default 1.0 */
-        public function get scaleWhenOver():Number { return mScaleWhenOver; }
-        public function set scaleWhenOver(value:Number):void
-        {
-            mScaleWhenOver = value;
-            if (mState == ButtonState.OVER) refreshState();
-        }
+        public function get scaleWhenOver():Number { return _scaleWhenOver; }
+        public function set scaleWhenOver(value:Number):void { _scaleWhenOver = value; }
 
         /** The alpha value of the button on touch. @default 1.0 */
-        public function get alphaWhenDown():Number { return mAlphaWhenDown; }
-        public function set alphaWhenDown(value:Number):void
-        {
-            mAlphaWhenDown = value;
-            if (mState == ButtonState.DOWN) refreshState();
-        }
+        public function get alphaWhenDown():Number { return _alphaWhenDown; }
+        public function set alphaWhenDown(value:Number):void { _alphaWhenDown = value; }
 
         /** The alpha value of the button when it is disabled. @default 0.5 */
-        public function get alphaWhenDisabled():Number { return mAlphaWhenDisabled; }
-        public function set alphaWhenDisabled(value:Number):void
-        {
-            mAlphaWhenDisabled = value;
-            if (mState == ButtonState.DISABLED) refreshState();
-        }
+        public function get alphaWhenDisabled():Number { return _alphaWhenDisabled; }
+        public function set alphaWhenDisabled(value:Number):void { _alphaWhenDisabled = value; }
         
         /** Indicates if the button can be triggered. */
-        public function get enabled():Boolean { return mEnabled; }
+        public function get enabled():Boolean { return _enabled; }
         public function set enabled(value:Boolean):void
         {
-            if (mEnabled != value)
+            if (_enabled != value)
             {
-                mEnabled = value;
+                _enabled = value;
                 state = value ? ButtonState.UP : ButtonState.DISABLED;
             }
         }
         
         /** The text that is displayed on the button. */
-        public function get text():String { return mTextField ? mTextField.text : ""; }
+        public function get text():String { return _textField ? _textField.text : ""; }
         public function set text(value:String):void
         {
             if (value.length == 0)
             {
-                if (mTextField)
+                if (_textField)
                 {
-                    mTextField.text = value;
-                    mTextField.removeFromParent();
+                    _textField.text = value;
+                    _textField.removeFromParent();
                 }
             }
             else
             {
                 createTextField();
-                mTextField.text = value;
+                _textField.text = value;
                 
-                if (mTextField.parent == null)
-                    mContents.addChild(mTextField);
+                if (_textField.parent == null)
+                    _contents.addChild(_textField);
             }
         }
-        
-        /** The name of the font displayed on the button. May be a system font or a registered
-         *  bitmap font. */
-        public function get fontName():String { return mTextField ? mTextField.fontName : "Verdana"; }
-        public function set fontName(value:String):void
+
+        /** The format of the button's TextField. */
+        public function get textFormat():TextFormat
         {
-            createTextField();
-            mTextField.fontName = value;
+            if (_textField == null) createTextField();
+            return _textField.format;
         }
-        
-        /** The size of the font. */
-        public function get fontSize():Number { return mTextField ? mTextField.fontSize : 12; }
-        public function set fontSize(value:Number):void
+
+        public function set textFormat(value:TextFormat):void
         {
-            createTextField();
-            mTextField.fontSize = value;
+            if (_textField == null) createTextField();
+            _textField.format = value;
         }
-        
-        /** The color of the font. */
-        public function get fontColor():uint { return mTextField ? mTextField.color : 0x0; }
-        public function set fontColor(value:uint):void
-        {
-            createTextField();
-            mTextField.color = value;
-        }
-        
-        /** Indicates if the font should be bold. */
-        public function get fontBold():Boolean { return mTextField ? mTextField.bold : false; }
-        public function set fontBold(value:Boolean):void
-        {
-            createTextField();
-            mTextField.bold = value;
-        }
-        
+
         /** The texture that is displayed when the button is not being touched. */
-        public function get upState():Texture { return mUpState; }
+        public function get upState():Texture { return _upState; }
         public function set upState(value:Texture):void
         {
             if (value == null)
                 throw new ArgumentError("Texture 'upState' cannot be null");
 
-            if (mUpState != value)
+            if (_upState != value)
             {
-                mUpState = value;
-                if ( mState == ButtonState.UP ||
-                    (mState == ButtonState.DISABLED && mDisabledState == null) ||
-                    (mState == ButtonState.DOWN && mDownState == null) ||
-                    (mState == ButtonState.OVER && mOverState == null))
+                _upState = value;
+                if ( _state == ButtonState.UP ||
+                    (_state == ButtonState.DISABLED && _disabledState == null) ||
+                    (_state == ButtonState.DOWN && _downState == null) ||
+                    (_state == ButtonState.OVER && _overState == null))
                 {
                     setStateTexture(value);
                 }
@@ -351,93 +317,104 @@ package starling.display
         }
         
         /** The texture that is displayed while the button is touched. */
-        public function get downState():Texture { return mDownState; }
+        public function get downState():Texture { return _downState; }
         public function set downState(value:Texture):void
         {
-            if (mDownState != value)
+            if (_downState != value)
             {
-                mDownState = value;
-                if (mState == ButtonState.DOWN) setStateTexture(value);
+                _downState = value;
+                if (_state == ButtonState.DOWN) setStateTexture(value);
             }
         }
 
         /** The texture that is displayed while mouse hovers over the button. */
-        public function get overState():Texture { return mOverState; }
+        public function get overState():Texture { return _overState; }
         public function set overState(value:Texture):void
         {
-            if (mOverState != value)
+            if (_overState != value)
             {
-                mOverState = value;
-                if (mState == ButtonState.OVER) setStateTexture(value);
+                _overState = value;
+                if (_state == ButtonState.OVER) setStateTexture(value);
             }
         }
 
         /** The texture that is displayed when the button is disabled. */
-        public function get disabledState():Texture { return mDisabledState; }
+        public function get disabledState():Texture { return _disabledState; }
         public function set disabledState(value:Texture):void
         {
-            if (mDisabledState != value)
+            if (_disabledState != value)
             {
-                mDisabledState = value;
-                if (mState == ButtonState.DISABLED) setStateTexture(value);
+                _disabledState = value;
+                if (_state == ButtonState.DISABLED) setStateTexture(value);
             }
         }
         
-        /** The vertical alignment of the text on the button. */
-        public function get textVAlign():String
-        {
-            return mTextField ? mTextField.vAlign : VAlign.CENTER;
-        }
-        
-        public function set textVAlign(value:String):void
-        {
-            createTextField();
-            mTextField.vAlign = value;
-        }
-        
-        /** The horizontal alignment of the text on the button. */
-        public function get textHAlign():String
-        {
-            return mTextField ? mTextField.hAlign : HAlign.CENTER;
-        }
-        
-        public function set textHAlign(value:String):void
-        {
-            createTextField();
-            mTextField.hAlign = value;
-        }
-        
-        /** The bounds of the textfield on the button. Allows moving the text to a custom position. */
-        public function get textBounds():Rectangle { return mTextBounds.clone(); }
+        /** The bounds of the button's TextField. Allows moving the text to a custom position.
+         *  CAUTION: not a copy, but the actual object! Text will only update on re-assignment.
+         */
+        public function get textBounds():Rectangle { return _textBounds; }
         public function set textBounds(value:Rectangle):void
         {
-            mTextBounds = value.clone();
+            _textBounds.copyFrom(value);
             createTextField();
         }
         
         /** The color of the button's state image. Just like every image object, each pixel's
          *  color is multiplied with this value. @default white */
-        public function get color():uint { return mBody.color; }
-        public function set color(value:uint):void { mBody.color = value; }
+        public function get color():uint { return _body.color; }
+        public function set color(value:uint):void { _body.color = value; }
 
         /** The smoothing type used for the button's state image. */
-        public function get smoothing():String { return mBody.smoothing; }
-        public function set smoothing(value:String):void { mBody.smoothing = value; }
+        public function get textureSmoothing():String { return _body.textureSmoothing; }
+        public function set textureSmoothing(value:String):void { _body.textureSmoothing = value; }
 
         /** The overlay sprite is displayed on top of the button contents. It scales with the
          *  button when pressed. Use it to add additional objects to the button (e.g. an icon). */
         public function get overlay():Sprite
         {
-            if (mOverlay == null)
-                mOverlay = new Sprite();
+            if (_overlay == null)
+                _overlay = new Sprite();
 
-            mContents.addChild(mOverlay); // make sure it's always on top
-            return mOverlay;
+            _contents.addChild(_overlay); // make sure it's always on top
+            return _overlay;
         }
 
         /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
          *  @default true */
-        public override function get useHandCursor():Boolean { return mUseHandCursor; }
-        public override function set useHandCursor(value:Boolean):void { mUseHandCursor = value; }
+        public override function get useHandCursor():Boolean { return _useHandCursor; }
+        public override function set useHandCursor(value:Boolean):void { _useHandCursor = value; }
+
+        /** @private */
+        override public function set width(value:Number):void
+        {
+            var scaleX:Number = value / _body.width;
+
+            _body.width = value;
+            _textBounds.x *= scaleX;
+            _textBounds.width *= scaleX;
+
+            if (_textField) _textField.width = value;
+        }
+
+        override public function set height(value:Number):void
+        {
+            var scaleY:Number = value / _body.height;
+
+            _body.height = value;
+            _textBounds.y *= scaleY;
+            _textBounds.height *= scaleY;
+
+            if (_textField) _textField.height = value;
+        }
+
+        /** The current scaling grid used for the button's state image. Use this property to create
+         *  buttons that resize in a smart way, i.e. with the four corners keeping the same size
+         *  and only stretching the center area.
+         *
+         *  @see Image#scale9Grid
+         *  @default null
+         */
+        public function get scale9Grid():Rectangle { return _body.scale9Grid; }
+        public function set scale9Grid(value:Rectangle):void { _body.scale9Grid = value; }
     }
 }

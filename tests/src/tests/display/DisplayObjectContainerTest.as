@@ -11,35 +11,39 @@
 package tests.display
 {
     import flash.geom.Rectangle;
-    
-    import flexunit.framework.Assert;
-    
+
     import org.flexunit.assertThat;
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertNotNull;
+    import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
     import starling.events.Event;
+
     import tests.Helpers;
-    
+
     public class DisplayObjectContainerTest
     {
         private static const E:Number = 0.0001;
         
-        private var mAdded:int;
-        private var mAddedToStage:int;
-        private var mAddedChild:int;
-        private var mRemoved:int;
-        private var mRemovedFromStage:int;
-        private var mRemovedChild:int;
+        private var _added:int;
+        private var _addedToStage:int;
+        private var _addedChild:int;
+        private var _removed:int;
+        private var _removedFromStage:int;
+        private var _removedChild:int;
         
         [Before]
         public function setUp():void 
         {
-            mAdded = mAddedToStage = mAddedChild = 
-            mRemoved = mRemovedFromStage = mRemovedChild = 0;
+            _added = _addedToStage = _addedChild =
+            _removed = _removedFromStage = _removedChild = 0;
         }
         
         [After]
@@ -53,44 +57,44 @@ package tests.display
             var child2:Sprite = new Sprite();
             var returnValue:DisplayObject;
             
-            Assert.assertEquals(0, parent.numChildren);
-            Assert.assertNull(child1.parent);
+            assertEquals(0, parent.numChildren);
+            assertNull(child1.parent);
             
             returnValue = parent.addChild(child1);
-            Assert.assertEquals(child1, returnValue);
-            Assert.assertEquals(1, parent.numChildren);
-            Assert.assertEquals(parent, child1.parent);
+            assertEquals(child1, returnValue);
+            assertEquals(1, parent.numChildren);
+            assertEquals(parent, child1.parent);
             
             returnValue = parent.addChild(child2);
-            Assert.assertEquals(child2, returnValue);
-            Assert.assertEquals(2, parent.numChildren);
-            Assert.assertEquals(parent, child2.parent);
-            Assert.assertEquals(child1, parent.getChildAt(0));
-            Assert.assertEquals(child2, parent.getChildAt(1));
+            assertEquals(child2, returnValue);
+            assertEquals(2, parent.numChildren);
+            assertEquals(parent, child2.parent);
+            assertEquals(child1, parent.getChildAt(0));
+            assertEquals(child2, parent.getChildAt(1));
             
             returnValue = parent.removeChild(child1);
-            Assert.assertEquals(child1, returnValue);
-            Assert.assertNull(child1.parent);
-            Assert.assertEquals(child2, parent.getChildAt(0));
+            assertEquals(child1, returnValue);
+            assertNull(child1.parent);
+            assertEquals(child2, parent.getChildAt(0));
             child1.removeFromParent(); // should *not* throw an exception
             
             returnValue = child2.addChild(child1);
-            Assert.assertEquals(child1, returnValue);
-            Assert.assertTrue(parent.contains(child1));
-            Assert.assertTrue(parent.contains(child2));
-            Assert.assertEquals(child2, child1.parent);
+            assertEquals(child1, returnValue);
+            assertTrue(parent.contains(child1));
+            assertTrue(parent.contains(child2));
+            assertEquals(child2, child1.parent);
             
             returnValue = parent.addChildAt(child1, 0);
-            Assert.assertEquals(child1, returnValue);
-            Assert.assertEquals(parent, child1.parent);
-            Assert.assertFalse(child2.contains(child1));
-            Assert.assertEquals(child1, parent.getChildAt(0));
-            Assert.assertEquals(child2, parent.getChildAt(1));
+            assertEquals(child1, returnValue);
+            assertEquals(parent, child1.parent);
+            assertFalse(child2.contains(child1));
+            assertEquals(child1, parent.getChildAt(0));
+            assertEquals(child2, parent.getChildAt(1));
             
             returnValue = parent.removeChildAt(0);
-            Assert.assertEquals(child1, returnValue);
-            Assert.assertEquals(child2, parent.getChildAt(0));
-            Assert.assertEquals(1, parent.numChildren);
+            assertEquals(child1, returnValue);
+            assertEquals(child2, parent.getChildAt(0));
+            assertEquals(1, parent.numChildren);
         }
         
         [Test]
@@ -102,25 +106,25 @@ package tests.display
             // removing all children
             
             parent = createSprite(numChildren);
-            Assert.assertEquals(10, parent.numChildren);
+            assertEquals(10, parent.numChildren);
             
             parent.removeChildren();
-            Assert.assertEquals(0, parent.numChildren);
+            assertEquals(0, parent.numChildren);
             
             // removing a subset
             
             parent = createSprite(numChildren);
             parent.removeChildren(3, 5);
-            Assert.assertEquals(7, parent.numChildren);
-            Assert.assertEquals("2", parent.getChildAt(2).name);
-            Assert.assertEquals("6", parent.getChildAt(3).name);
+            assertEquals(7, parent.numChildren);
+            assertEquals("2", parent.getChildAt(2).name);
+            assertEquals("6", parent.getChildAt(3).name);
             
             // remove beginning from an id
             
             parent = createSprite(numChildren);
             parent.removeChildren(5);
-            Assert.assertEquals(5, parent.numChildren);
-            Assert.assertEquals("4", parent.getChildAt(4).name);
+            assertEquals(5, parent.numChildren);
+            assertEquals("4", parent.getChildAt(4).name);
             
             function createSprite(numChildren:int):Sprite
             {
@@ -151,13 +155,13 @@ package tests.display
             child2.name = "child2";
             child3.name = "child3";
             
-            Assert.assertEquals(child1, parent.getChildByName("child1"));
-            Assert.assertEquals(child2, parent.getChildByName("child2"));
-            Assert.assertEquals(child3, parent.getChildByName("child3"));
-            Assert.assertNull(parent.getChildByName("non-existing"));
+            assertEquals(child1, parent.getChildByName("child1"));
+            assertEquals(child2, parent.getChildByName("child2"));
+            assertEquals(child3, parent.getChildByName("child3"));
+            assertNull(parent.getChildByName("non-existing"));
             
             child2.name = "child3";
-            Assert.assertEquals(child2, parent.getChildByName("child3"));
+            assertEquals(child2, parent.getChildByName("child3"));
         }
         
         [Test]
@@ -173,21 +177,21 @@ package tests.display
             parent.addChild(childC);
             
             parent.setChildIndex(childB, 0);
-            Assert.assertEquals(parent.getChildAt(0), childB);
-            Assert.assertEquals(parent.getChildAt(1), childA);
-            Assert.assertEquals(parent.getChildAt(2), childC);
+            assertEquals(parent.getChildAt(0), childB);
+            assertEquals(parent.getChildAt(1), childA);
+            assertEquals(parent.getChildAt(2), childC);
             
             parent.setChildIndex(childB, 1);
-            Assert.assertEquals(parent.getChildAt(0), childA);
-            Assert.assertEquals(parent.getChildAt(1), childB);
-            Assert.assertEquals(parent.getChildAt(2), childC);
+            assertEquals(parent.getChildAt(0), childA);
+            assertEquals(parent.getChildAt(1), childB);
+            assertEquals(parent.getChildAt(2), childC);
             
             parent.setChildIndex(childB, 2);
-            Assert.assertEquals(parent.getChildAt(0), childA);
-            Assert.assertEquals(parent.getChildAt(1), childC);
-            Assert.assertEquals(parent.getChildAt(2), childB);
+            assertEquals(parent.getChildAt(0), childA);
+            assertEquals(parent.getChildAt(1), childC);
+            assertEquals(parent.getChildAt(2), childB);
             
-            Assert.assertEquals(3, parent.numChildren);
+            assertEquals(3, parent.numChildren);
         }
 
         [Test]
@@ -202,9 +206,9 @@ package tests.display
             parent.addChild(childB);
             parent.addChild(childC);
 
-            Assert.assertEquals(parent.getChildAt(-3), childA);
-            Assert.assertEquals(parent.getChildAt(-2), childB);
-            Assert.assertEquals(parent.getChildAt(-1), childC);
+            assertEquals(parent.getChildAt(-3), childA);
+            assertEquals(parent.getChildAt(-2), childB);
+            assertEquals(parent.getChildAt(-1), childC);
         }
         
         [Test]
@@ -220,16 +224,16 @@ package tests.display
             parent.addChild(childC);
             
             parent.swapChildren(childA, childC);            
-            Assert.assertEquals(parent.getChildAt(0), childC);
-            Assert.assertEquals(parent.getChildAt(1), childB);
-            Assert.assertEquals(parent.getChildAt(2), childA);
+            assertEquals(parent.getChildAt(0), childC);
+            assertEquals(parent.getChildAt(1), childB);
+            assertEquals(parent.getChildAt(2), childA);
             
             parent.swapChildren(childB, childB); // should change nothing
-            Assert.assertEquals(parent.getChildAt(0), childC);
-            Assert.assertEquals(parent.getChildAt(1), childB);
-            Assert.assertEquals(parent.getChildAt(2), childA);
+            assertEquals(parent.getChildAt(0), childC);
+            assertEquals(parent.getChildAt(1), childB);
+            assertEquals(parent.getChildAt(2), childA);
             
-            Assert.assertEquals(3, parent.numChildren);
+            assertEquals(3, parent.numChildren);
         }
         
         [Test]
@@ -396,10 +400,10 @@ package tests.display
             parent.addChild(s3);
             parent.addChild(s4);
             
-            Assert.assertEquals(s1, parent.getChildAt(0));
-            Assert.assertEquals(s2, parent.getChildAt(1));
-            Assert.assertEquals(s3, parent.getChildAt(2));
-            Assert.assertEquals(s4, parent.getChildAt(3));
+            assertEquals(s1, parent.getChildAt(0));
+            assertEquals(s2, parent.getChildAt(1));
+            assertEquals(s3, parent.getChildAt(2));
+            assertEquals(s4, parent.getChildAt(3));
             
             parent.sortChildren(function(child1:DisplayObject, child2:DisplayObject):int
             {
@@ -408,10 +412,10 @@ package tests.display
                 else return 0;
             });
             
-            Assert.assertEquals(s4, parent.getChildAt(0));
-            Assert.assertEquals(s2, parent.getChildAt(1));
-            Assert.assertEquals(s3, parent.getChildAt(2));
-            Assert.assertEquals(s1, parent.getChildAt(3));
+            assertEquals(s4, parent.getChildAt(0));
+            assertEquals(s2, parent.getChildAt(1));
+            assertEquals(s3, parent.getChildAt(2));
+            assertEquals(s1, parent.getChildAt(3));
         }
         
         [Test]
@@ -427,21 +431,21 @@ package tests.display
             
             stage.addChild(sprite);
             sprite.addChild(quad);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(1, mAddedToStage);
+            assertEquals(1, _added);
+            assertEquals(1, _addedToStage);
             
             // add same child again
             sprite.addChild(quad);
             
             // nothing should change, actually.
-            Assert.assertEquals(1, sprite.numChildren);
-            Assert.assertEquals(0, sprite.getChildIndex(quad));
+            assertEquals(1, sprite.numChildren);
+            assertEquals(0, sprite.getChildIndex(quad));
             
             // since the parent does not change, no events should be dispatched 
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(0, mRemovedFromStage);
+            assertEquals(1, _added);
+            assertEquals(1, _addedToStage);
+            assertEquals(0, _removed);
+            assertEquals(0, _removedFromStage);
         }
         
         [Test]
@@ -469,10 +473,10 @@ package tests.display
                 parent.removeChildAt(2);
             });
             
-            Assert.assertNull(child2.parent);
-            Assert.assertNull(child0.parent);
-            Assert.assertEquals(child1, parent.getChildAt(0));
-            Assert.assertEquals(1, parent.numChildren);
+            assertNull(child2.parent);
+            assertNull(child0.parent);
+            assertEquals(child1, parent.getChildAt(0));
+            assertEquals(1, parent.numChildren);
         }
         
         [Test(expects="ArgumentError")]
@@ -512,36 +516,36 @@ package tests.display
             stage.addEventListener(Event.REMOVED, onRemovedChild);
             
             sprite.addChild(quad);            
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(0, mAddedToStage);
-            Assert.assertEquals(0, mRemovedFromStage);
-            Assert.assertEquals(0, mAddedChild);
-            Assert.assertEquals(0, mRemovedChild);
+            assertEquals(1, _added);
+            assertEquals(0, _removed);
+            assertEquals(0, _addedToStage);
+            assertEquals(0, _removedFromStage);
+            assertEquals(0, _addedChild);
+            assertEquals(0, _removedChild);
             
             stage.addChild(sprite);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(0, mRemovedFromStage);
-            Assert.assertEquals(1, mAddedChild);
-            Assert.assertEquals(0, mRemovedChild);
+            assertEquals(1, _added);
+            assertEquals(0, _removed);
+            assertEquals(1, _addedToStage);
+            assertEquals(0, _removedFromStage);
+            assertEquals(1, _addedChild);
+            assertEquals(0, _removedChild);
             
             stage.removeChild(sprite);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(0, mRemoved);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(1, mRemovedFromStage);
-            Assert.assertEquals(1, mAddedChild);
-            Assert.assertEquals(1, mRemovedChild);
+            assertEquals(1, _added);
+            assertEquals(0, _removed);
+            assertEquals(1, _addedToStage);
+            assertEquals(1, _removedFromStage);
+            assertEquals(1, _addedChild);
+            assertEquals(1, _removedChild);
             
             sprite.removeChild(quad);
-            Assert.assertEquals(1, mAdded);
-            Assert.assertEquals(1, mRemoved);
-            Assert.assertEquals(1, mAddedToStage);
-            Assert.assertEquals(1, mRemovedFromStage);
-            Assert.assertEquals(1, mAddedChild);
-            Assert.assertEquals(1, mRemovedChild);
+            assertEquals(1, _added);
+            assertEquals(1, _removed);
+            assertEquals(1, _addedToStage);
+            assertEquals(1, _removedFromStage);
+            assertEquals(1, _addedChild);
+            assertEquals(1, _removedChild);
         }
         
         [Test]
@@ -552,13 +556,13 @@ package tests.display
             stage.addChild(sprite);
             sprite.addEventListener(Event.REMOVED_FROM_STAGE, onSpriteRemovedFromStage);
             sprite.removeFromParent();
-            Assert.assertEquals(1, mRemovedFromStage);
+            assertEquals(1, _removedFromStage);
             
             function onSpriteRemovedFromStage(e:Event):void
             {
                 // stage should still be accessible in event listener
-                Assert.assertNotNull(sprite.stage);
-                mRemovedFromStage++;
+                assertNotNull(sprite.stage);
+                _removedFromStage++;
             }
         }
         
@@ -591,19 +595,19 @@ package tests.display
             
             function onChildRemovedFromStage():void
             {
-                Assert.assertNotNull(child.stage);
-                Assert.assertEquals(0, childRemovedCount);
+                assertNotNull(child.stage);
+                assertEquals(0, childRemovedCount);
                 
                 childRemovedCount++;
             }
         }
         
-        private function onAdded(event:Event):void { mAdded++; }
-        private function onAddedToStage(event:Event):void { mAddedToStage++; }
-        private function onAddedChild(event:Event):void { mAddedChild++; }
+        private function onAdded(event:Event):void { _added++; }
+        private function onAddedToStage(event:Event):void { _addedToStage++; }
+        private function onAddedChild(event:Event):void { _addedChild++; }
         
-        private function onRemoved(event:Event):void { mRemoved++; }
-        private function onRemovedFromStage(event:Event):void { mRemovedFromStage++; }
-        private function onRemovedChild(event:Event):void { mRemovedChild++; }
+        private function onRemoved(event:Event):void { _removed++; }
+        private function onRemovedFromStage(event:Event):void { _removedFromStage++; }
+        private function onRemovedChild(event:Event):void { _removedChild++; }
     }
 }

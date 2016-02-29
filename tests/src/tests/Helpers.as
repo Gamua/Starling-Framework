@@ -15,10 +15,10 @@ package tests
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
-    
-    import org.flexunit.Assert;
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.fail;
     import org.hamcrest.number.closeTo;
 
     public class Helpers
@@ -73,11 +73,22 @@ package tests
         
         public static function compareByteArrays(b1:ByteArray, b2:ByteArray):void
         {
+            assertEquals(b1.endian, b2.endian);
             assertEquals(b1.length, b2.length);
             b1.position = b2.position = 0;
-            
+
             while (b1.bytesAvailable)
                 assertEquals(b1.readByte(), b2.readByte());
+        }
+
+        public static function compareByteArraysOfFloats(b1:ByteArray, b2:ByteArray, e:Number=0.0001):void
+        {
+            assertEquals(b1.endian, b2.endian);
+            assertEquals(b1.length, b2.length);
+            b1.position = b2.position = 0;
+
+            while (b1.bytesAvailable)
+                assertThat(b1.readFloat(), closeTo(b2.readFloat(), e));
         }
         
         public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void
@@ -98,7 +109,7 @@ package tests
             }
             catch (e:Error)
             {
-                Assert.fail("Error thrown: " + e.message);
+                fail("Error thrown: " + e.message);
             }
         }
     }

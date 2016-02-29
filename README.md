@@ -31,4 +31,4 @@ News and Updates
 Minimum Requirements
 --------------------
 
-* Adobe AIR 3.4 or Flash Player 11.4
+* Adobe AIR or Flash Player 19.0

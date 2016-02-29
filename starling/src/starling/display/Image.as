@@ -10,178 +10,391 @@
 
 package starling.display
 {
-    import flash.display.Bitmap;
-    import flash.geom.Matrix;
-    import flash.geom.Point;
     import flash.geom.Rectangle;
-    
-    import starling.core.RenderSupport;
+
+    import starling.rendering.IndexData;
+    import starling.rendering.VertexData;
     import starling.textures.Texture;
-    import starling.textures.TextureSmoothing;
-    import starling.utils.VertexData;
-    
+
     /** An Image is a quad with a texture mapped onto it.
-     *  
-     *  <p>The Image class is the Starling equivalent of Flash's Bitmap class. Instead of 
-     *  BitmapData, Starling uses textures to represent the pixels of an image. To display a 
+     *
+     *  <p>Typically, the Image class will act as an equivalent of Flash's Bitmap class. Instead
+     *  of BitmapData, Starling uses textures to represent the pixels of an image. To display a
      *  texture, you have to map it onto a quad - and that's what the Image class is for.</p>
-     *  
-     *  <p>As "Image" inherits from "Quad", you can give it a color. For each pixel, the resulting  
-     *  color will be the result of the multiplication of the color of the texture with the color of 
-     *  the quad. That way, you can easily tint textures with a certain color. Furthermore, images 
-     *  allow the manipulation of texture coordinates. That way, you can move a texture inside an 
-     *  image without changing any vertex coordinates of the quad. You can also use this feature
-     *  as a very efficient way to create a rectangular mask.</p> 
-     *  
+     *
+     *  <p>While the base class <code>Quad</code> already supports textures, the <code>Image</code>
+     *  class adds some additional functionality.</p>
+     *
+     *  <p>First of all, it provides a convenient constructor that will automatically synchronize
+     *  the size of the image with the displayed texture.</p>
+     *
+     *  <p>Furthermore, it adds support for a "Scale9" grid. This splits up the image into
+     *  nine regions, the corners of which will always maintain their original aspect ratio.
+     *  The center region stretches in both directions to fill the remaining space; the side
+     *  regions will stretch accordingly in either horizontal or vertical direction.</p>
+     *
+     *  <p>Finally, you can repeat a texture horizontally and vertically within the image's region,
+     *  just like the tiles of a wallpaper. Use the <code>tileGrid</code> property to do that.</p>
+     *
      *  @see starling.textures.Texture
      *  @see Quad
      */ 
     public class Image extends Quad
     {
-        private var mTexture:Texture;
-        private var mSmoothing:String;
-        
-        private var mVertexDataCache:VertexData;
-        private var mVertexDataCacheInvalid:Boolean;
-        
-        /** Creates a quad with a texture mapped onto it. */
+        private var _scale9Grid:Rectangle;
+        private var _tileGrid:Rectangle;
+
+        // helper objects
+        private static var s9Grid:Rectangle = new Rectangle();
+        private static var sBounds:Rectangle = new Rectangle();
+        private static var sHorizSizes:Vector.<Number> = new Vector.<Number>(3, true);
+        private static var sVertSizes:Vector.<Number> = new Vector.<Number>(3, true);
+
+        /** Creates an image with a texture mapped onto it. */
         public function Image(texture:Texture)
         {
-            if (texture)
+            super(100, 100);
+            this.texture = texture;
+            readjustSize();
+        }
+
+        /** The current scaling grid that is in effect. If set to null, the image is scaled just
+         *  like any other display object; assigning a rectangle will divide the image into a grid
+         *  of nine regions, based on the center rectangle. The four corners of this grid will
+         *  always maintain their original aspect ratio; the other regions will stretch accordingly
+         *  (horizontally, vertically, or both) to fill the complete area.
+         *
+         *  <p>Notes:</p>
+         *
+         *  <ul>
+         *  <li>Assigning a Scale9 rectangle will change the number of vertices to sixteen,
+         *  and all vertices will be colored like vertex 0 (the top left vertex).</li>
+         *  <li>An image can have either a <code>scale9Grid</code> or a <code>tileGrid</code>, but
+         *  not both. Assigning one will delete the other.</li>
+         *  <li>Changes will only be applied on assignment. To force an update, simply call
+         *  <code>image.scale9Grid = image.scale9Grid</code>.</li>
+         *  <li>Furthermore, with a Scale9 rectangle assigned, any change of the texture will
+         *  implicitly call <code>readjustSize</code>.</li>
+         *  </ul>
+         *
+         *  @default null
+         */
+        public function get scale9Grid():Rectangle { return _scale9Grid; }
+        public function set scale9Grid(value:Rectangle):void
+        {
+            if (value)
             {
-                var frame:Rectangle = texture.frame;
-                var width:Number  = frame ? frame.width  : texture.width;
-                var height:Number = frame ? frame.height : texture.height;
-                var pma:Boolean = texture.premultipliedAlpha;
-                
-                super(width, height, 0xffffff, pma);
-                
-                mVertexData.setTexCoords(0, 0.0, 0.0);
-                mVertexData.setTexCoords(1, 1.0, 0.0);
-                mVertexData.setTexCoords(2, 0.0, 1.0);
-                mVertexData.setTexCoords(3, 1.0, 1.0);
-                
-                mTexture = texture;
-                mSmoothing = TextureSmoothing.BILINEAR;
-                mVertexDataCache = new VertexData(4, pma);
-                mVertexDataCacheInvalid = true;
+                if (_scale9Grid == null) _scale9Grid = value.clone();
+                else _scale9Grid.copyFrom(value);
+
+                _tileGrid = null;
             }
-            else
+            else _scale9Grid = null;
+
+            setupVertices();
+        }
+
+        /** The current tiling grid that is in effect. If set to null, the image is scaled just
+         *  like any other display object; assigning a rectangle will divide the image into a grid
+         *  displaying the current texture in each and every cell. The assigned rectangle points
+         *  to the bounds of one cell; all other elements will be calculated accordingly. A zero
+         *  or negative value for the rectangle's width or height will be replaced with the actual
+         *  texture size. Thus, you can make a 2x2 grid simply like this:
+         *
+         *  <listing>
+         *  var image:Image = new Image(texture);
+         *  image.tileGrid = new Rectangle();
+         *  image.scale = 2;</listing>
+         *
+         *  <p>Notes:</p>
+         *
+         *  <ul>
+         *  <li>Assigning a tile rectangle will change the number of vertices to whatever is
+         *  required by the grid. New vertices will be colored just like vertex 0 (the top left
+         *  vertex).</li>
+         *  <li>An image can have either a <code>scale9Grid</code> or a <code>tileGrid</code>, but
+         *  not both. Assigning one will delete the other.</li>
+         *  <li>Changes will only be applied on assignment. To force an update, simply call
+         *  <code>image.tileGrid = image.tileGrid</code>.</li>
+         *  </ul>
+         *
+         *  @default null
+         */
+        public function get tileGrid():Rectangle { return _tileGrid; }
+        public function set tileGrid(value:Rectangle):void
+        {
+            if (value)
             {
-                throw new ArgumentError("Texture cannot be null");
+                if (_tileGrid == null) _tileGrid = value.clone();
+                else _tileGrid.copyFrom(value);
+
+                _scale9Grid = null;
+            }
+            else _tileGrid = null;
+
+            setupVertices();
+        }
+
+        /** @private */
+        override protected function setupVertices():void
+        {
+            if (texture && _scale9Grid) setupScale9Grid();
+            else if (texture && _tileGrid) setupTileGrid();
+            else super.setupVertices();
+        }
+
+        /** @private */
+        override public function set scaleX(value:Number):void
+        {
+            super.scaleX = value;
+            if (texture && (_scale9Grid || _tileGrid)) setupVertices();
+        }
+
+        /** @private */
+        override public function set scaleY(value:Number):void
+        {
+            super.scaleY = value;
+            if (texture && (_scale9Grid || _tileGrid)) setupVertices();
+        }
+
+        /** @private */
+        override public function set texture(value:Texture):void
+        {
+            if (value != texture)
+            {
+                super.texture = value;
+                if (_scale9Grid && value) readjustSize();
             }
         }
-        
-        /** Creates an Image with a texture that is created from a bitmap object. */
-        public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true, 
-                                          scale:Number=1):Image
+
+        // vertex setup
+
+        private function setupScale9Grid():void
         {
-            return new Image(Texture.fromBitmap(bitmap, generateMipMaps, false, scale));
-        }
-        
-        /** @inheritDoc */
-        protected override function onVertexDataChanged():void
-        {
-            mVertexDataCacheInvalid = true;
-        }
-        
-        /** Readjusts the dimensions of the image according to its current texture. Call this method 
-         *  to synchronize image and texture size after assigning a texture with a different size.*/
-        public function readjustSize():void
-        {
+            s9Grid.copyFrom(_scale9Grid);
+
+            var texture:Texture = this.texture;
             var frame:Rectangle = texture.frame;
-            var width:Number  = frame ? frame.width  : texture.width;
-            var height:Number = frame ? frame.height : texture.height;
-            
-            mVertexData.setPosition(0, 0.0, 0.0);
-            mVertexData.setPosition(1, width, 0.0);
-            mVertexData.setPosition(2, 0.0, height);
-            mVertexData.setPosition(3, width, height); 
-            
-            onVertexDataChanged();
-        }
-        
-        /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
-        public function setTexCoords(vertexID:int, coords:Point):void
-        {
-            mVertexData.setTexCoords(vertexID, coords.x, coords.y);
-            onVertexDataChanged();
-        }
-        
-        /** Sets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. */
-        public function setTexCoordsTo(vertexID:int, u:Number, v:Number):void
-        {
-            mVertexData.setTexCoords(vertexID, u, v);
-            onVertexDataChanged();
-        }
-        
-        /** Gets the texture coordinates of a vertex. Coordinates are in the range [0, 1]. 
-         *  If you pass a 'resultPoint', the result will be stored in this point instead of 
-         *  creating a new object.*/
-        public function getTexCoords(vertexID:int, resultPoint:Point=null):Point
-        {
-            if (resultPoint == null) resultPoint = new Point();
-            mVertexData.getTexCoords(vertexID, resultPoint);
-            return resultPoint;
-        }
-        
-        /** Copies the raw vertex data to a VertexData instance.
-         *  The texture coordinates are already in the format required for rendering. */ 
-        public override function copyVertexDataTo(targetData:VertexData, targetVertexID:int=0):void
-        {
-            copyVertexDataTransformedTo(targetData, targetVertexID, null);
-        }
-        
-        /** Transforms the vertex positions of the raw vertex data by a certain matrix
-         *  and copies the result to another VertexData instance.
-         *  The texture coordinates are already in the format required for rendering. */
-        public override function copyVertexDataTransformedTo(targetData:VertexData,
-                                                             targetVertexID:int=0,
-                                                             matrix:Matrix=null):void
-        {
-            if (mVertexDataCacheInvalid)
+            var absScaleX:Number = scaleX > 0 ? scaleX : -scaleX;
+            var absScaleY:Number = scaleY > 0 ? scaleY : -scaleY;
+            var invScaleX:Number = 1.0 / absScaleX;
+            var invScaleY:Number = 1.0 / absScaleY;
+            var vertexData:VertexData = this.vertexData;
+            var indexData:IndexData = this.indexData;
+            var prevNumVertices:int = vertexData.numVertices;
+            var startX:Number = 0.0, startY:Number = 0.0;
+            var col:Number, row:Number;
+            var correction:Number;
+
+            indexData.numIndices = 0;
+            vertexData.numVertices = 16;
+
+            // calculate 3x3 grid according to texture and scale9 properties,
+            // taking special care about the texture frame (headache included)
+
+            if (frame)
             {
-                mVertexDataCacheInvalid = false;
-                mVertexData.copyTo(mVertexDataCache);
-                mTexture.adjustVertexData(mVertexDataCache, 0, 4);
+                s9Grid.x += frame.x;
+                s9Grid.y += frame.y;
+                startX = invScaleX * -frame.x;
+                startY = invScaleY * -frame.y;
             }
-            
-            mVertexDataCache.copyTransformedTo(targetData, targetVertexID, matrix, 0, 4);
-        }
-        
-        /** The texture that is displayed on the quad. */
-        public function get texture():Texture { return mTexture; }
-        public function set texture(value:Texture):void 
-        { 
-            if (value == null)
+
+            sHorizSizes[0] = s9Grid.x * invScaleX;
+            sHorizSizes[1] = texture.frameWidth - (texture.frameWidth - s9Grid.width) * invScaleX;
+            sHorizSizes[2] = (texture.width  - s9Grid.right) * invScaleX;
+
+            sVertSizes[0] = s9Grid.y * invScaleY;
+            sVertSizes[1] = texture.frameHeight - (texture.frameHeight - s9Grid.height) * invScaleY;
+            sVertSizes[2] = (texture.height - s9Grid.bottom) * invScaleY;
+
+            // if the total width / height becomes smaller than the outer columns / rows,
+            // we hide the center column / row and scale the rest normally.
+
+            if (sHorizSizes[1] < 0)
             {
-                throw new ArgumentError("Texture cannot be null");
+                correction = texture.frameWidth / (texture.frameWidth - s9Grid.width) * absScaleX;
+                startX *= correction;
+                sHorizSizes[0] *= correction;
+                sHorizSizes[1]  = 0;
+                sHorizSizes[2] *= correction;
             }
-            else if (value != mTexture)
+
+            if (sVertSizes[1] < 0)
             {
-                mTexture = value;
-                mVertexData.setPremultipliedAlpha(mTexture.premultipliedAlpha);
-                mVertexDataCache.setPremultipliedAlpha(mTexture.premultipliedAlpha, false);
-                onVertexDataChanged();
+                correction = texture.frameHeight / (texture.frameHeight - s9Grid.height) * absScaleY;
+                startY *= correction;
+                sVertSizes[0] *= correction;
+                sVertSizes[1]  = 0;
+                sVertSizes[2] *= correction;
             }
+
+            // set the vertex positions according to the values calculated above
+
+            var posX:Number, posY:Number = startY;
+            var vertexID:int = 0;
+
+            for (row=0; row<4; ++row)
+            {
+                posX = startX;
+
+                for (col=0; col<4; ++col)
+                {
+                    vertexData.setPoint(vertexID++, "position", posX, posY);
+                    if (col != 3) posX += sHorizSizes[col];
+                }
+
+                if (row != 3) posY += sVertSizes[row];
+            }
+
+            // now set the texture coordinates
+
+            var paddingLeft:Number = frame ? -frame.x : 0;
+            var paddingTop:Number  = frame ? -frame.y : 0;
+
+            sHorizSizes[0] = (_scale9Grid.x - paddingLeft) / texture.width;
+            sHorizSizes[1] =  _scale9Grid.width / texture.width;
+            sHorizSizes[2] = 1.0 - sHorizSizes[0] - sHorizSizes[1];
+
+            sVertSizes[0] = (_scale9Grid.y - paddingTop) / texture.height;
+            sVertSizes[1] =  _scale9Grid.height / texture.height;
+            sVertSizes[2] = 1.0 - sVertSizes[0] - sVertSizes[1];
+
+            posX = posY = vertexID = 0;
+
+            for (row=0; row<4; ++row)
+            {
+                posX = 0.0;
+
+                for (col=0; col<4; ++col)
+                {
+                    texture.setTexCoords(vertexData, vertexID++, "texCoords", posX, posY);
+                    if (col != 3) posX += sHorizSizes[col];
+                }
+
+                if (row != 3) posY += sVertSizes[row];
+            }
+
+            // update indices
+
+            indexData.addQuad(0, 1, 4, 5);
+            indexData.addQuad(1, 2, 5, 6);
+            indexData.addQuad(2, 3, 6, 7);
+            indexData.addQuad(4, 5, 8, 9);
+            indexData.addQuad(5, 6, 9, 10);
+            indexData.addQuad(6, 7, 10, 11);
+            indexData.addQuad(8, 9, 12, 13);
+            indexData.addQuad(9, 10, 13, 14);
+            indexData.addQuad(10, 11, 14, 15);
+
+            // if we just switched from a normal to a scale9 image, all vertices are colorized
+            // just like the first one; we also trim the data instances to optimize memory usage.
+
+            if (prevNumVertices != vertexData.numVertices)
+            {
+                var color:uint   = prevNumVertices ? vertexData.getColor(0) : 0xffffff;
+                var alpha:Number = prevNumVertices ? vertexData.getAlpha(0) : 1.0;
+
+                vertexData.colorize("color", color, alpha);
+                vertexData.trim();
+                indexData.trim();
+            }
+
+            setRequiresRedraw();
         }
-        
-        /** The smoothing filter that is used for the texture. 
-        *   @default bilinear
-        *   @see starling.textures.TextureSmoothing */ 
-        public function get smoothing():String { return mSmoothing; }
-        public function set smoothing(value:String):void 
+
+        private function setupTileGrid():void
         {
-            if (TextureSmoothing.isValid(value))
-                mSmoothing = value;
-            else
-                throw new ArgumentError("Invalid smoothing mode: " + value);
-        }
-        
-        /** @inheritDoc */
-        public override function render(support:RenderSupport, parentAlpha:Number):void
-        {
-            support.batchQuad(this, parentAlpha, mTexture, mSmoothing);
+            // calculate the grid of vertices simulating a repeating / tiled texture.
+            // again, texture frames make this somewhat more complicated than one would think.
+
+            var texture:Texture = this.texture;
+            var frame:Rectangle = texture.frame;
+            var vertexData:VertexData = this.vertexData;
+            var indexData:IndexData   = this.indexData;
+            var bounds:Rectangle = getBounds(this, sBounds);
+            var prevNumVertices:int = vertexData.numVertices;
+            var color:uint   = prevNumVertices ? vertexData.getColor(0) : 0xffffff;
+            var alpha:Number = prevNumVertices ? vertexData.getAlpha(0) : 1.0;
+            var invScaleX:Number = scaleX > 0 ? 1.0 / scaleX : -1.0 / scaleX;
+            var invScaleY:Number = scaleY > 0 ? 1.0 / scaleY : -1.0 / scaleY;
+            var frameWidth:Number  = _tileGrid.width  > 0 ? _tileGrid.width  : texture.frameWidth;
+            var frameHeight:Number = _tileGrid.height > 0 ? _tileGrid.height : texture.frameHeight;
+
+            frameWidth  *= invScaleX;
+            frameHeight *= invScaleY;
+
+            var tileX:Number = frame ? -frame.x * (frameWidth  / frame.width)  : 0;
+            var tileY:Number = frame ? -frame.y * (frameHeight / frame.height) : 0;
+            var tileWidth:Number  = texture.width  * (frameWidth  / texture.frameWidth);
+            var tileHeight:Number = texture.height * (frameHeight / texture.frameHeight);
+            var modX:Number = (_tileGrid.x * invScaleX) % frameWidth;
+            var modY:Number = (_tileGrid.y * invScaleY) % frameHeight;
+
+            if (modX < 0) modX += frameWidth;
+            if (modY < 0) modY += frameHeight;
+
+            var startX:Number = modX + tileX;
+            var startY:Number = modY + tileY;
+
+            if (startX > (frameWidth  - tileWidth))  startX -= frameWidth;
+            if (startY > (frameHeight - tileHeight)) startY -= frameHeight;
+
+            var posLeft:Number, posRight:Number, posTop:Number, posBottom:Number;
+            var texLeft:Number, texRight:Number, texTop:Number, texBottom:Number;
+            var posAttrName:String = "position";
+            var texAttrName:String = "texCoords";
+            var currentX:Number;
+            var currentY:Number = startY;
+            var vertexID:int = 0;
+
+            indexData.numIndices = 0;
+
+            while (currentY < bounds.height)
+            {
+                currentX = startX;
+
+                while (currentX < bounds.width)
+                {
+                    indexData.addQuad(vertexID, vertexID + 1, vertexID + 2, vertexID + 3);
+
+                    posLeft   = currentX < 0 ? 0 : currentX;
+                    posTop    = currentY < 0 ? 0 : currentY;
+                    posRight  = currentX + tileWidth  > bounds.width  ? bounds.width  : currentX + tileWidth;
+                    posBottom = currentY + tileHeight > bounds.height ? bounds.height : currentY + tileHeight;
+
+                    vertexData.setPoint(vertexID,     posAttrName, posLeft,  posTop);
+                    vertexData.setPoint(vertexID + 1, posAttrName, posRight, posTop);
+                    vertexData.setPoint(vertexID + 2, posAttrName, posLeft,  posBottom);
+                    vertexData.setPoint(vertexID + 3, posAttrName, posRight, posBottom);
+
+                    texLeft   = (posLeft   - currentX) / tileWidth;
+                    texTop    = (posTop    - currentY) / tileHeight;
+                    texRight  = (posRight  - currentX) / tileWidth;
+                    texBottom = (posBottom - currentY) / tileHeight;
+
+                    texture.setTexCoords(vertexData, vertexID,     texAttrName, texLeft,  texTop);
+                    texture.setTexCoords(vertexData, vertexID + 1, texAttrName, texRight, texTop);
+                    texture.setTexCoords(vertexData, vertexID + 2, texAttrName, texLeft,  texBottom);
+                    texture.setTexCoords(vertexData, vertexID + 3, texAttrName, texRight, texBottom);
+
+                    currentX += frameWidth;
+                    vertexID += 4;
+                }
+
+                currentY += frameHeight;
+            }
+
+            // trim to actual size
+            vertexData.numVertices = vertexID;
+
+            for (var i:int = prevNumVertices; i < vertexID; ++i)
+            {
+                vertexData.setColor(i, "color", color);
+                vertexData.setAlpha(i, "color", alpha);
+            }
+
+            setRequiresRedraw();
         }
     }
 }

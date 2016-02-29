@@ -11,44 +11,46 @@
 package starling.core
 {
     import flash.system.System;
-    
+
     import starling.display.BlendMode;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
+    import starling.rendering.Painter;
     import starling.text.BitmapFont;
     import starling.text.TextField;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
-    
+    import starling.text.TextFormat;
+    import starling.utils.Align;
+
     /** A small, lightweight box that displays the current framerate, memory consumption and
      *  the number of draw calls per frame. The display is updated automatically once per frame. */
     internal class StatsDisplay extends Sprite
     {
         private const UPDATE_INTERVAL:Number = 0.5;
         
-        private var mBackground:Quad;
-        private var mTextField:TextField;
+        private var _background:Quad;
+        private var _textField:TextField;
         
-        private var mFrameCount:int = 0;
-        private var mTotalTime:Number = 0;
+        private var _frameCount:int = 0;
+        private var _totalTime:Number = 0;
         
-        private var mFps:Number = 0;
-        private var mMemory:Number = 0;
-        private var mDrawCount:int = 0;
+        private var _fps:Number = 0;
+        private var _memory:Number = 0;
+        private var _drawCount:int = 0;
         
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
         {
-            mBackground = new Quad(50, 25, 0x0);
-            mTextField = new TextField(48, 25, "", BitmapFont.MINI, BitmapFont.NATIVE_SIZE, 0xffffff);
-            mTextField.x = 2;
-            mTextField.hAlign = HAlign.LEFT;
-            mTextField.vAlign = VAlign.TOP;
-            
-            addChild(mBackground);
-            addChild(mTextField);
+            var format:TextFormat = new TextFormat(BitmapFont.MINI, BitmapFont.NATIVE_SIZE,
+                    0xffffff, Align.LEFT, Align.TOP);
+
+            _background = new Quad(50, 25, 0x0);
+            _textField = new TextField(48, 25, "", format);
+            _textField.x = 2;
+
+            addChild(_background);
+            addChild(_textField);
             
             blendMode = BlendMode.NONE;
             
@@ -59,7 +61,7 @@ package starling.core
         private function onAddedToStage():void
         {
             addEventListener(Event.ENTER_FRAME, onEnterFrame);
-            mTotalTime = mFrameCount = 0;
+            _totalTime = _frameCount = 0;
             update();
         }
         
@@ -70,47 +72,47 @@ package starling.core
         
         private function onEnterFrame(event:EnterFrameEvent):void
         {
-            mTotalTime += event.passedTime;
-            mFrameCount++;
+            _totalTime += event.passedTime;
+            _frameCount++;
             
-            if (mTotalTime > UPDATE_INTERVAL)
+            if (_totalTime > UPDATE_INTERVAL)
             {
                 update();
-                mFrameCount = mTotalTime = 0;
+                _frameCount = _totalTime = 0;
             }
         }
         
         /** Updates the displayed values. */
         public function update():void
         {
-            mFps = mTotalTime > 0 ? mFrameCount / mTotalTime : 0;
-            mMemory = System.totalMemory * 0.000000954; // 1.0 / (1024*1024) to convert to MB
+            _fps = _totalTime > 0 ? _frameCount / _totalTime : 0;
+            _memory = System.totalMemory * 0.000000954; // 1.0 / (1024*1024) to convert to MB
             
-            mTextField.text = "FPS: " + mFps.toFixed(mFps < 100 ? 1 : 0) + 
-                            "\nMEM: " + mMemory.toFixed(mMemory < 100 ? 1 : 0) +
-                            "\nDRW: " + (mTotalTime > 0 ? mDrawCount-2 : mDrawCount); // ignore self 
+            _textField.text = "FPS: " + _fps.toFixed(_fps < 100 ? 1 : 0) +
+                            "\nMEM: " + _memory.toFixed(_memory < 100 ? 1 : 0) +
+                            "\nDRW: " + (_totalTime > 0 ? _drawCount-2 : _drawCount); // ignore self
         }
         
-        public override function render(support:RenderSupport, parentAlpha:Number):void
+        public override function render(painter:Painter):void
         {
-            // The display should always be rendered with two draw calls, so that we can
-            // always reduce the draw count by that number to get the number produced by the 
-            // actual content.
-            
-            support.finishQuadBatch();
-            super.render(support, parentAlpha);
+            // By calling "finishQuadBatch" here, we can make sure that the stats display is
+            // always rendered with exactly two draw calls. That is taken into account when showing
+            // the drawCount value (see 'ignore self' comment above)
+
+            painter.finishMeshBatch();
+            super.render(painter);
         }
         
         /** The number of Stage3D draw calls per second. */
-        public function get drawCount():int { return mDrawCount; }
-        public function set drawCount(value:int):void { mDrawCount = value; }
+        public function get drawCount():int { return _drawCount; }
+        public function set drawCount(value:int):void { _drawCount = value; }
         
         /** The current frames per second (updated twice per second). */
-        public function get fps():Number { return mFps; }
-        public function set fps(value:Number):void { mFps = value; }
+        public function get fps():Number { return _fps; }
+        public function set fps(value:Number):void { _fps = value; }
         
         /** The currently required system memory in MB. */
-        public function get memory():Number { return mMemory; }
-        public function set memory(value:Number):void { mMemory = value; }
+        public function get memory():Number { return _memory; }
+        public function set memory(value:Number):void { _memory = value; }
     }
 }

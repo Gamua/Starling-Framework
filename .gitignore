@@ -12,6 +12,7 @@
 bin-debug/
 bin-release/
 starling/doc/html/
+starling/bin/starling.swc
 tests/libs/
 out/
 

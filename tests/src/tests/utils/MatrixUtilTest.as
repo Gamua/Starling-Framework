@@ -14,9 +14,11 @@ package tests.utils
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
-    import flexunit.framework.Assert;
-    
+
+    import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertTrue;
+
     import starling.utils.MatrixUtil;
 
     public class MatrixUtilTest
@@ -29,18 +31,18 @@ package tests.utils
             var matrix3D:Matrix3D = MatrixUtil.convertTo3D(matrix);
             var rawData:Vector.<Number> = matrix3D.rawData;
 
-            Assert.assertEquals(1, rawData[0]);
-            Assert.assertEquals(2, rawData[1]);
-            Assert.assertEquals(3, rawData[4]);
-            Assert.assertEquals(4, rawData[5]);
-            Assert.assertEquals(5, rawData[12]);
-            Assert.assertEquals(6, rawData[13]);
+            assertEquals(1, rawData[0]);
+            assertEquals(2, rawData[1]);
+            assertEquals(3, rawData[4]);
+            assertEquals(4, rawData[5]);
+            assertEquals(5, rawData[12]);
+            assertEquals(6, rawData[13]);
 
             for each (i in [2, 3, 6, 7, 8, 9, 11, 14])
-                Assert.assertEquals(0, rawData[i]);
+                assertEquals(0, rawData[i]);
 
             for each (i in [10, 15])
-                Assert.assertEquals(1, rawData[i]);
+                assertEquals(1, rawData[i]);
         }
 
         [Test]
@@ -59,12 +61,12 @@ package tests.utils
             matrix3D.copyRawDataFrom(rawData);
 
             matrix = MatrixUtil.convertTo2D(matrix3D);
-            Assert.assertEquals(1, matrix.a);
-            Assert.assertEquals(2, matrix.b);
-            Assert.assertEquals(3, matrix.c);
-            Assert.assertEquals(4, matrix.d);
-            Assert.assertEquals(5, matrix.tx);
-            Assert.assertEquals(6, matrix.ty);
+            assertEquals(1, matrix.a);
+            assertEquals(2, matrix.b);
+            assertEquals(3, matrix.c);
+            assertEquals(4, matrix.d);
+            assertEquals(5, matrix.tx);
+            assertEquals(6, matrix.ty);
         }
 
         [Test]
@@ -74,7 +76,7 @@ package tests.utils
             var matrix:Matrix = new Matrix(1, 2, 3, 4, 5, 6);
             var result1:Point = matrix.transformPoint(point);
             var result2:Point = MatrixUtil.transformPoint(matrix, point);
-            Assert.assertTrue(result1.equals(result2));
+            assertTrue(result1.equals(result2));
         }
 
         [Test]
@@ -90,7 +92,35 @@ package tests.utils
             matrix3D.copyRawDataFrom(rawData);
             var result1:Vector3D = matrix3D.transformVector(point);
             var result2:Vector3D = MatrixUtil.transformPoint3D(matrix3D, point);
-            Assert.assertTrue(result1.equals(result2));
+            assertTrue(result1.equals(result2));
+        }
+
+        [Test]
+        public function testIsIdentity():void
+        {
+            var matrix:Matrix = new Matrix();
+            assertTrue(MatrixUtil.isIdentity(matrix));
+
+            matrix.translate(10, 20);
+            matrix.rotate(0.5);
+            assertFalse(MatrixUtil.isIdentity(matrix));
+
+            matrix.identity();
+            assertTrue(MatrixUtil.isIdentity(matrix));
+        }
+
+        [Test]
+        public function testIsIdentity3D():void
+        {
+            var matrix:Matrix3D = new Matrix3D();
+            assertTrue(MatrixUtil.isIdentity3D(matrix));
+
+            matrix.appendTranslation(10, 20, 30);
+            matrix.appendRotation(0.5, Vector3D.X_AXIS);
+            assertFalse(MatrixUtil.isIdentity3D(matrix));
+
+            matrix.identity();
+            assertTrue(MatrixUtil.isIdentity3D(matrix));
         }
     }
 }

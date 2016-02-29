@@ -15,7 +15,7 @@ package starling.utils
     import flash.events.EventDispatcher;
     import flash.system.Capabilities;
     import flash.utils.getDefinitionByName;
-    
+
     import starling.errors.AbstractClassError;
 
     /** A utility class with methods related to the current platform and runtime. */
@@ -135,14 +135,6 @@ package starling.utils
         {
             initialize();
             return sVersion;
-        }
-
-        /** Prior to Flash/AIR 15, there was a restriction that the clear function must be
-         *  called on a render target before drawing. This requirement was removed subsequently,
-         *  and this property indicates if that's the case in the current runtime. */
-        public static function get supportsRelaxedTargetClearRequirement():Boolean
-        {
-            return parseInt(/\d+/.exec(sVersion)[0]) >= 15;
         }
 
         /** Returns the value of the 'initialWindow.depthAndStencil' node of the application

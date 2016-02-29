@@ -1,29 +1,27 @@
 package tests
 {
-    
     import flash.events.Event;
     import flash.events.EventDispatcher;
-    
+
     import org.flexunit.async.Async;
-    
+
     /**
      * @author http://www.betriebsraum.de/blog/2010/07/20/asynchronous-callback-functions-in-flexunit/
      */
     public class AsyncUtil extends EventDispatcher
     {
-        
         public static const ASYNC_EVENT:String = "asyncEvent";
         
-        private var testCase:Object;
-        private var callback:Function;
-        private var passThroughArgs:Array;
-        private var callbackArgs:Array;
+        private var _testCase:Object;
+        private var _callback:Function;
+        private var _passThroughArgs:Array;
+        private var _callbackArgs:Array;
         
         public function AsyncUtil(testCase:Object, callback:Function, passThroughArgs:Array = null)
         {
-            this.testCase = testCase;
-            this.callback = callback;
-            this.passThroughArgs = passThroughArgs;
+            this._testCase = testCase;
+            this._callback = callback;
+            this._passThroughArgs = passThroughArgs;
         }
         
         public static function asyncHandler(testCase:Object, callback:Function = null, passThroughArgs:Array = null, timeout:Number = 1500):Function
@@ -36,18 +34,18 @@ package tests
         
         public function asyncEventHandler(event:Event, flexUnitPassThroughArgs:Object = null):void
         {
-            if (passThroughArgs) {
-                callbackArgs = callbackArgs.concat(passThroughArgs);
+            if (_passThroughArgs) {
+                _callbackArgs = _callbackArgs.concat(_passThroughArgs);
             }
             
-            if (callback is Function) {
-                callback.apply(null, callbackArgs);
+            if (_callback is Function) {
+                _callback.apply(null, _callbackArgs);
             }
         }
         
         public function asyncCallbackHandler(...args:Array):void
         {
-            callbackArgs = args;
+            _callbackArgs = args;
             dispatchEvent(new Event(ASYNC_EVENT));
         }
         

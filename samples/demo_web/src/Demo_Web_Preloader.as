@@ -19,8 +19,8 @@ package
 	{
         private const STARTUP_CLASS:String = "Demo_Web";
         
-        private var mProgressIndicator:Shape;
-        private var mFrameCount:int = 0;
+        private var _progressIndicator:Shape;
+        private var _frameCount:int = 0;
         
 		public function Demo_Web_Preloader()
 		{
@@ -49,17 +49,17 @@ package
             }
             else
             {
-                if (mProgressIndicator == null)
+                if (_progressIndicator == null)
                 {
-                    mProgressIndicator = createProgressIndicator();
-                    mProgressIndicator.x = stage.stageWidth  / 2;
-                    mProgressIndicator.y = stage.stageHeight / 2;
-                    addChild(mProgressIndicator);
+                    _progressIndicator = createProgressIndicator();
+                    _progressIndicator.x = stage.stageWidth  / 2;
+                    _progressIndicator.y = stage.stageHeight / 2;
+                    addChild(_progressIndicator);
                 }
                 else
                 {
-                    if (mFrameCount++ % 5 == 0)
-                        mProgressIndicator.rotation -= 45;
+                    if (_frameCount++ % 5 == 0)
+                        _progressIndicator.rotation -= 45;
                 }
             }
 		}
@@ -90,10 +90,10 @@ package
         {
             removeEventListener(Event.ENTER_FRAME, onEnterFrame);
 			
-            if (mProgressIndicator)
-                removeChild(mProgressIndicator);
+            if (_progressIndicator)
+                removeChild(_progressIndicator);
             
-			mProgressIndicator = null;
+			_progressIndicator = null;
 		}
         
 		private function run():void 

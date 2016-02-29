@@ -14,25 +14,28 @@ package starling.utils
     import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Vector3D;
-    
+
     import starling.errors.AbstractClassError;
 
     /** A utility class containing methods related to the Matrix class. */
     public class MatrixUtil
     {
-        /** Helper objects. */
+        // helper objects
         private static var sRawData:Vector.<Number> =
             new <Number>[1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1];
         private static var sRawData2:Vector.<Number> = new Vector.<Number>(16, true);
+        private static var sPoint3D:Vector3D = new Vector3D();
+        private static var sMatrixData:Vector.<Number> =
+                new <Number>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         /** @private */
         public function MatrixUtil() { throw new AbstractClassError(); }
 
-        /** Converts a 2D matrix to a 3D matrix. If you pass a 'resultMatrix',
+        /** Converts a 2D matrix to a 3D matrix. If you pass an <code>out</code>-matrix,
          *  the result will be stored in this matrix instead of creating a new object. */
-        public static function convertTo3D(matrix:Matrix, resultMatrix:Matrix3D=null):Matrix3D
+        public static function convertTo3D(matrix:Matrix, out:Matrix3D=null):Matrix3D
         {
-            if (resultMatrix == null) resultMatrix = new Matrix3D();
+            if (out == null) out = new Matrix3D();
 
             sRawData[ 0] = matrix.a;
             sRawData[ 1] = matrix.b;
@@ -41,68 +44,89 @@ package starling.utils
             sRawData[12] = matrix.tx;
             sRawData[13] = matrix.ty;
 
-            resultMatrix.copyRawDataFrom(sRawData);
-            return resultMatrix;
+            out.copyRawDataFrom(sRawData);
+            return out;
         }
 
         /** Converts a 3D matrix to a 2D matrix. Beware that this will work only for a 3D matrix
          *  describing a pure 2D transformation. */
-        public static function convertTo2D(matrix3D:Matrix3D, resultMatrix:Matrix=null):Matrix
+        public static function convertTo2D(matrix3D:Matrix3D, out:Matrix=null):Matrix
         {
-            if (resultMatrix == null) resultMatrix = new Matrix();
+            if (out == null) out = new Matrix();
 
             matrix3D.copyRawDataTo(sRawData2);
-            resultMatrix.a  = sRawData2[ 0];
-            resultMatrix.b  = sRawData2[ 1];
-            resultMatrix.c  = sRawData2[ 4];
-            resultMatrix.d  = sRawData2[ 5];
-            resultMatrix.tx = sRawData2[12];
-            resultMatrix.ty = sRawData2[13];
+            out.a  = sRawData2[ 0];
+            out.b  = sRawData2[ 1];
+            out.c  = sRawData2[ 4];
+            out.d  = sRawData2[ 5];
+            out.tx = sRawData2[12];
+            out.ty = sRawData2[13];
 
-            return resultMatrix;
+            return out;
         }
 
+        /** Determines if the matrix is an identity matrix. */
+        public static function isIdentity(matrix:Matrix):Boolean
+        {
+            return matrix.a  == 1.0 && matrix.b  == 0.0 && matrix.c == 0.0 && matrix.d == 1.0 &&
+                   matrix.tx == 0.0 && matrix.ty == 0.0;
+        }
+
+        /** Determines if the 3D matrix is an identity matrix. */
+        public static function isIdentity3D(matrix:Matrix3D):Boolean
+        {
+            var data:Vector.<Number> = sRawData2;
+            matrix.copyRawDataTo(data);
+
+            return data[ 0] == 1.0 && data[ 1] == 0.0 && data[ 2] == 0.0 && data[ 3] == 0.0 &&
+                   data[ 4] == 0.0 && data[ 5] == 1.0 && data[ 6] == 0.0 && data[ 7] == 0.0 &&
+                   data[ 8] == 0.0 && data[ 9] == 0.0 && data[10] == 1.0 && data[11] == 0.0 &&
+                   data[12] == 0.0 && data[13] == 0.0 && data[14] == 0.0 && data[15] == 1.0;
+        }
+
+        /** Transform a point with the given matrix. */
         public static function transformPoint(matrix:Matrix, point:Point,
-                                              resultPoint:Point=null):Point
+                                              out:Point=null):Point
         {
-            return transformCoords(matrix, point.x, point.y, resultPoint);
+            return transformCoords(matrix, point.x, point.y, out);
         }
 
+        /** Transforms a 3D point with the given matrix. */
         public static function transformPoint3D(matrix:Matrix3D, point:Vector3D,
-                                                resultPoint:Vector3D=null):Vector3D
+                                                out:Vector3D=null):Vector3D
         {
-            return transformCoords3D(matrix, point.x, point.y, point.z, resultPoint);
+            return transformCoords3D(matrix, point.x, point.y, point.z, out);
         }
 
-        /** Uses a matrix to transform 2D coordinates into a different space. If you pass a
-         *  'resultPoint', the result will be stored in this point instead of creating a
-         *  new object. */
+        /** Uses a matrix to transform 2D coordinates into a different space. If you pass an
+         *  <code>out</code>-point, the result will be stored in this point instead of creating
+         *  a new object. */
         public static function transformCoords(matrix:Matrix, x:Number, y:Number,
-                                               resultPoint:Point=null):Point
+                                               out:Point=null):Point
         {
-            if (resultPoint == null) resultPoint = new Point();
+            if (out == null) out = new Point();
 
-            resultPoint.x = matrix.a * x + matrix.c * y + matrix.tx;
-            resultPoint.y = matrix.d * y + matrix.b * x + matrix.ty;
+            out.x = matrix.a * x + matrix.c * y + matrix.tx;
+            out.y = matrix.d * y + matrix.b * x + matrix.ty;
 
-            return resultPoint;
+            return out;
         }
 
         /** Uses a matrix to transform 3D coordinates into a different space. If you pass a
          *  'resultVector', the result will be stored in this vector3D instead of creating a
          *  new object. */
         public static function transformCoords3D(matrix:Matrix3D, x:Number, y:Number, z:Number,
-                                                 resultPoint:Vector3D=null):Vector3D
+                                                 out:Vector3D=null):Vector3D
         {
-            if (resultPoint == null) resultPoint = new Vector3D();
+            if (out == null) out = new Vector3D();
 
             matrix.copyRawDataTo(sRawData2);
-            resultPoint.x = x * sRawData2[0] + y * sRawData2[4] + z * sRawData2[ 8] + sRawData2[12];
-            resultPoint.y = x * sRawData2[1] + y * sRawData2[5] + z * sRawData2[ 9] + sRawData2[13];
-            resultPoint.z = x * sRawData2[2] + y * sRawData2[6] + z * sRawData2[10] + sRawData2[14];
-            resultPoint.w = x * sRawData2[3] + y * sRawData2[7] + z * sRawData2[11] + sRawData2[15];
+            out.x = x * sRawData2[0] + y * sRawData2[4] + z * sRawData2[ 8] + sRawData2[12];
+            out.y = x * sRawData2[1] + y * sRawData2[5] + z * sRawData2[ 9] + sRawData2[13];
+            out.z = x * sRawData2[2] + y * sRawData2[6] + z * sRawData2[10] + sRawData2[14];
+            out.w = x * sRawData2[3] + y * sRawData2[7] + z * sRawData2[11] + sRawData2[15];
 
-            return resultPoint;
+            return out;
         }
 
         /** Appends a skew transformation to a matrix (angles in radians). The skew matrix
@@ -185,6 +209,134 @@ package starling.utils
                          matrix.c * cosX - matrix.a * sinX,
                          matrix.d * cosX - matrix.b * sinX,
                          matrix.tx, matrix.ty);
+        }
+
+        /** Converts a Matrix3D instance to a String, which is useful when debugging. Per default,
+         *  the raw data is displayed transposed, so that the columns are displayed vertically. */
+        public static function toString3D(matrix:Matrix3D, transpose:Boolean=true,
+                                          precision:int=3):String
+        {
+            if (transpose) matrix.transpose();
+            matrix.copyRawDataTo(sRawData2);
+            if (transpose) matrix.transpose();
+
+            return "[Matrix3D rawData=\n" + formatRawData(sRawData2, 4, 4, precision) + "\n]";
+        }
+
+        /** Converts a Matrix instance to a String, which is useful when debugging. */
+        public static function toString(matrix:Matrix, precision:int=3):String
+        {
+            sRawData2[0] = matrix.a; sRawData2[1] = matrix.c; sRawData2[2] = matrix.tx;
+            sRawData2[3] = matrix.b; sRawData2[4] = matrix.d; sRawData2[5] = matrix.ty;
+
+            return "[Matrix rawData=\n" + formatRawData(sRawData2, 3, 2, precision) + "\n]";
+        }
+
+        private static function formatRawData(data:Vector.<Number>, numCols:int, numRows:int,
+                                              precision:int, indent:String="  "):String
+        {
+            var result:String = indent;
+            var numValues:int = numCols * numRows;
+            var highestValue:Number = 0.0;
+            var valueString:String;
+            var value:Number;
+
+            for (var i:int=0; i<numValues; ++i)
+            {
+                value = Math.abs(data[i]);
+                if (value > highestValue) highestValue = value;
+            }
+
+            var numChars:int = highestValue.toFixed(precision).length + 1;
+
+            for (var y:int=0; y<numRows; ++y)
+            {
+                for (var x:int=0; x<numCols; ++x)
+                {
+                    value = data[numCols * y + x];
+                    valueString = value.toFixed(precision);
+
+                    while (valueString.length < numChars) valueString = " " + valueString;
+
+                    result += valueString;
+                    if (x != numCols - 1) result += ", ";
+                }
+
+                if (y != numRows - 1) result += "\n" + indent;
+            }
+
+            return result;
+        }
+
+        /** Creates a perspective projection matrix suitable for 2D and 3D rendering.
+         *
+         *  <p>The first 4 parameters define which area of the stage you want to view (the camera
+         *  will 'zoom' to exactly this region). The final 3 parameters determine the perspective
+         *  in which you're looking at the stage.</p>
+         *
+         *  <p>The stage is always on the rectangle that is spawned up between x- and y-axis (with
+         *  the given size). All objects that are exactly on that rectangle (z equals zero) will be
+         *  rendered in their true size, without any distortion.</p>
+         *
+         *  <p>If you pass only the first 4 parameters, the camera will be set up above the center
+         *  of the stage, with a field of view of 1.0 rad.</p>
+         */
+        public static function createPerspectiveProjectionMatrix(
+                x:Number, y:Number, width:Number, height:Number,
+                stageWidth:Number=0, stageHeight:Number=0, cameraPos:Vector3D=null,
+                out:Matrix3D=null):Matrix3D
+        {
+            if (out == null) out = new Matrix3D();
+            if (stageWidth  <= 0) stageWidth = width;
+            if (stageHeight <= 0) stageHeight = height;
+            if (cameraPos == null)
+            {
+                cameraPos = sPoint3D;
+                cameraPos.setTo(
+                        stageWidth / 2, stageHeight / 2,   // -> center of stage
+                        stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
+            }
+
+            const focalLength:Number = Math.abs(cameraPos.z);
+            const offsetX:Number = cameraPos.x - stageWidth  / 2;
+            const offsetY:Number = cameraPos.y - stageHeight / 2;
+            const far:Number    = focalLength * 20;
+            const near:Number   = 1;
+            const scaleX:Number = stageWidth  / width;
+            const scaleY:Number = stageHeight / height;
+
+            // set up general perspective
+            sMatrixData[ 0] =  2 * focalLength / stageWidth;  // 0,0
+            sMatrixData[ 5] = -2 * focalLength / stageHeight; // 1,1  [negative to invert y-axis]
+            sMatrixData[10] =  far / (far - near);            // 2,2
+            sMatrixData[14] = -far * near / (far - near);     // 2,3
+            sMatrixData[11] =  1;                             // 3,2
+
+            // now zoom in to visible area
+            sMatrixData[0] *=  scaleX;
+            sMatrixData[5] *=  scaleY;
+            sMatrixData[8]  =  scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
+            sMatrixData[9]  = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
+
+            out.copyRawDataFrom(sMatrixData);
+            out.prependTranslation(
+                    -stageWidth /2.0 - offsetX,
+                    -stageHeight/2.0 - offsetY,
+                    focalLength);
+
+            return out;
+        }
+
+        /** Creates a orthographic projection matrix suitable for 2D rendering. */
+        public static function createOrthographicProjectionMatrix(
+                x:Number, y:Number, width:Number, height:Number, out:Matrix=null):Matrix
+        {
+            if (out == null) out = new Matrix();
+
+            out.setTo(2.0/width, 0, 0, -2.0/height,
+                    -(2*x + width) / width, (2*y + height) / height);
+
+            return out;
         }
     }
 }

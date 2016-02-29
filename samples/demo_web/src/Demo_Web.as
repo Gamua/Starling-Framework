@@ -8,7 +8,6 @@ package
 
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.textures.RenderTexture;
     import starling.utils.AssetManager;
 
     import utils.ProgressBar;
@@ -24,9 +23,9 @@ package
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
     public class Demo_Web extends Sprite
     {
-        private var mStarling:Starling;
-        private var mBackground:Bitmap;
-        private var mProgressBar:ProgressBar;
+        private var _starling:Starling;
+        private var _background:Bitmap;
+        private var _progressBar:ProgressBar;
 
         public function Demo_Web()
         {
@@ -47,18 +46,16 @@ package
             // viewPort to the optimal size for any display and load the optimal textures.
 
             Starling.multitouchEnabled = true; // for Multitouch Scene
-            Starling.handleLostContext = true; // recommended everywhere when using AssetManager
-            RenderTexture.optimizePersistentBuffers = true; // should be safe on Desktop
 
-            mStarling = new Starling(Game, stage, null, null, "auto", "auto");
-            mStarling.simulateMultitouch = true;
-            mStarling.enableErrorChecking = Capabilities.isDebugger;
-            mStarling.addEventListener(Event.ROOT_CREATED, function():void
+            _starling = new Starling(Game, stage, null, null, "auto", "auto");
+            _starling.simulateMultitouch = true;
+            _starling.enableErrorChecking = Capabilities.isDebugger;
+            _starling.addEventListener(Event.ROOT_CREATED, function():void
             {
                 loadAssets(startGame);
             });
 
-            mStarling.start();
+            _starling.start();
             initElements();
         }
 
@@ -78,7 +75,7 @@ package
 
             assets.loadQueue(function(ratio:Number):void
             {
-                mProgressBar.ratio = ratio;
+                _progressBar.ratio = ratio;
                 if (ratio == 1)
                 {
                     // now would be a good time for a clean-up
@@ -92,7 +89,7 @@ package
 
         private function startGame(assets:AssetManager):void
         {
-            var game:Game = mStarling.root as Game;
+            var game:Game = _starling.root as Game;
             game.start(assets);
             setTimeout(removeElements, 150); // delay to make 100% sure there's no flickering.
         }
@@ -101,30 +98,30 @@ package
         {
             // Add background image.
 
-            mBackground = new EmbeddedAssets.background();
-            mBackground.smoothing = true;
-            addChild(mBackground);
+            _background = new EmbeddedAssets.background();
+            _background.smoothing = true;
+            addChild(_background);
 
             // While the assets are loaded, we will display a progress bar.
 
-            mProgressBar = new ProgressBar(175, 20);
-            mProgressBar.x = (mBackground.width - mProgressBar.width) / 2;
-            mProgressBar.y =  mBackground.height * 0.7;
-            addChild(mProgressBar);
+            _progressBar = new ProgressBar(175, 20);
+            _progressBar.x = (_background.width - _progressBar.width) / 2;
+            _progressBar.y =  _background.height * 0.7;
+            addChild(_progressBar);
         }
 
         private function removeElements():void
         {
-            if (mBackground)
+            if (_background)
             {
-                removeChild(mBackground);
-                mBackground = null;
+                removeChild(_background);
+                _background = null;
             }
 
-            if (mProgressBar)
+            if (_progressBar)
             {
-                removeChild(mProgressBar);
-                mProgressBar = null;
+                removeChild(_progressBar);
+                _progressBar = null;
             }
         }
     }

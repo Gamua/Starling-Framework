@@ -14,7 +14,7 @@ package
     {
         private static var sAssets:AssetManager;
         
-        private var mActiveScene:Sprite;
+        private var _activeScene:Sprite;
         
         public function Root()
         {
@@ -48,9 +48,9 @@ package
         
         private function showScene(screen:Class):void
         {
-            if (mActiveScene) mActiveScene.removeFromParent(true);
-            mActiveScene = new screen();
-            addChild(mActiveScene);
+            if (_activeScene) _activeScene.removeFromParent(true);
+            _activeScene = new screen();
+            addChild(_activeScene);
         }
         
         public static function get assets():AssetManager { return sAssets; }

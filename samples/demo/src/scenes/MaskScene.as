@@ -15,14 +15,14 @@ package scenes
 
     public class MaskScene extends Scene
     {
-        private var mContents:Sprite;
-        private var mMask:Canvas;
-        private var mMaskDisplay:Canvas;
+        private var _contents:Sprite;
+        private var _mask:Canvas;
+        private var _maskDisplay:Canvas;
         
         public function MaskScene()
         {
-            mContents = new Sprite();
-            addChild(mContents);
+            _contents = new Sprite();
+            addChild(_contents);
             
             var stageWidth:Number  = Starling.current.stage.stageWidth;
             var stageHeight:Number = Starling.current.stage.stageHeight;
@@ -34,7 +34,7 @@ package scenes
             var image:Image = new Image(Game.assets.getTexture("flight_00"));
             image.x = (stageWidth - image.width) / 2;
             image.y = 80;
-            mContents.addChild(image);
+            _contents.addChild(image);
 
             // just to prove it works, use a filter on the image.
             var cm:ColorMatrixFilter = new ColorMatrixFilter();
@@ -45,16 +45,16 @@ package scenes
                 "Move the mouse (or a finger) over the screen to move the mask.");
             maskText.x = (stageWidth - maskText.width) / 2;
             maskText.y = 260;
-            maskText.fontSize = 20;
-            mContents.addChild(maskText);
+            maskText.format.size = 20;
+            _contents.addChild(maskText);
             
-            mMaskDisplay = createCircle();
-            mMaskDisplay.alpha = 0.1;
-            mMaskDisplay.touchable = false;
-            addChild(mMaskDisplay);
+            _maskDisplay = createCircle();
+            _maskDisplay.alpha = 0.1;
+            _maskDisplay.touchable = false;
+            addChild(_maskDisplay);
 
-            mMask = createCircle();
-            mContents.mask = mMask;
+            _mask = createCircle();
+            _contents.mask = _mask;
             
             addEventListener(TouchEvent.TOUCH, onTouch);
         }
@@ -68,8 +68,8 @@ package scenes
             if (touch)
             {
                 var localPos:Point = touch.getLocation(this);
-                mMask.x = mMaskDisplay.x = localPos.x;
-                mMask.y = mMaskDisplay.y = localPos.y;
+                _mask.x = _maskDisplay.x = localPos.x;
+                _mask.y = _maskDisplay.y = localPos.y;
             }
         }
 

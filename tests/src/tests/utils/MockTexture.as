@@ -8,17 +8,15 @@
 //
 // =================================================================================================
 
-package starling.utils
+package tests.utils
 {
-    // TODO: add number formatting options
-    
-    /** Formats a String in .Net-style, with curly braces ("{0}"). Does not support any 
-     *  number formatting options yet. */
-    public function formatString(format:String, ...args):String
+    import starling.textures.ConcreteTexture;
+
+    public class MockTexture extends ConcreteTexture
     {
-        for (var i:int=0; i<args.length; ++i)
-            format = format.replace(new RegExp("\\{"+i+"\\}", "g"), args[i]);
-        
-        return format;
+        public function MockTexture(width:Number=16, height:Number=16, scale:Number=1)
+        {
+            super(null, "bgra", width, height, false, true, false, scale);
+        }
     }
 }

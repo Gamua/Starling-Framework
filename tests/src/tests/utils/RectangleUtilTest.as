@@ -10,10 +10,16 @@
 
 package tests.utils
 {
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
-    
+    import flash.geom.Vector3D;
+
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertTrue;
+
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
+
     import tests.Helpers;
 
     public class RectangleUtilTest
@@ -105,6 +111,35 @@ package tests.utils
             RectangleUtil.normalize(rect);
             
             Helpers.compareRectangles(rect, new Rectangle(1, 2, 3, 4));
+        }
+
+        [Test]
+        public function testCompare():void
+        {
+            var rect:Rectangle = new Rectangle(1, 2, 3, 4);
+            var rect2:Rectangle = new Rectangle(2, 3, 4, 5);
+
+            assertTrue(RectangleUtil.compare(rect, rect));
+            assertTrue(RectangleUtil.compare(null, null));
+            assertFalse(RectangleUtil.compare(rect, null));
+            assertFalse(RectangleUtil.compare(null, rect));
+            assertFalse(RectangleUtil.compare(rect, rect2));
+        }
+
+        [Test]
+        public function testGetBoundsProjected():void
+        {
+            var camPos:Vector3D = new Vector3D(0, 0, 10);
+            var bounds:Rectangle, expected:Rectangle;
+
+            var matrix3D:Matrix3D = new Matrix3D();
+            matrix3D.appendTranslation(0, 0, 5);
+
+            var rectangle:Rectangle = new Rectangle(0, 0, 5, 5);
+            bounds = RectangleUtil.getBoundsProjected(rectangle, matrix3D, camPos);
+            expected = new Rectangle(0, 0, 10, 10);
+
+            Helpers.compareRectangles(expected, bounds);
         }
     }
 }

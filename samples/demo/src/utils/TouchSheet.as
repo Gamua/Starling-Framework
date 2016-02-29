@@ -1,7 +1,7 @@
 package utils
 {
     import flash.geom.Point;
-    
+
     import starling.display.DisplayObject;
     import starling.display.Sprite;
     import starling.events.Touch;

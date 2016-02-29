@@ -13,19 +13,19 @@ package tests.display
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
-    import flexunit.framework.Assert;
-    
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertNotNull;
+    import org.flexunit.asserts.assertNull;
     import org.hamcrest.number.closeTo;
-    
+
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
-    import starling.utils.HAlign;
-    import starling.utils.VAlign;
+    import starling.utils.Align;
     import starling.utils.deg2rad;
+
     import tests.Helpers;
 
     public class DisplayObjectTest
@@ -42,12 +42,12 @@ package tests.display
             object1.addChild(object2);
             object2.addChild(object3);
             
-            Assert.assertEquals(object1, object1.base);
-            Assert.assertEquals(object1, object2.base);
-            Assert.assertEquals(object1, object3.base);
+           assertEquals(object1, object1.base);
+           assertEquals(object1, object2.base);
+           assertEquals(object1, object3.base);
             
             var quad:Quad = new Quad(100, 100);
-            Assert.assertEquals(quad, quad.base);
+            assertEquals(quad, quad.base);
         }
         
         [Test]
@@ -60,22 +60,22 @@ package tests.display
             object1.addChild(object2);
             object2.addChild(object3);
             
-            Assert.assertEquals(null, object1.root);
-            Assert.assertEquals(null, object2.root);
-            Assert.assertEquals(null, object3.root);
-            Assert.assertEquals(null, object1.stage);
-            Assert.assertEquals(null, object2.stage);
-            Assert.assertEquals(null, object3.stage);
+            assertEquals(null, object1.root);
+            assertEquals(null, object2.root);
+            assertEquals(null, object3.root);
+            assertEquals(null, object1.stage);
+            assertEquals(null, object2.stage);
+            assertEquals(null, object3.stage);
             
             var stage:Stage = new Stage(100, 100);
             stage.addChild(object1);
             
-            Assert.assertEquals(object1, object1.root);
-            Assert.assertEquals(object1, object2.root);
-            Assert.assertEquals(object1, object3.root);
-            Assert.assertEquals(stage, object1.stage);
-            Assert.assertEquals(stage, object2.stage);
-            Assert.assertEquals(stage, object3.stage);
+            assertEquals(object1, object1.root);
+            assertEquals(object1, object2.root);
+            assertEquals(object1, object3.root);
+            assertEquals(stage, object1.stage);
+            assertEquals(stage, object2.stage);
+            assertEquals(stage, object3.stage);
         }
         
         [Test]
@@ -279,24 +279,24 @@ package tests.display
         public function testHitTestPoint():void
         {
             var quad:Quad = new Quad(25, 10);            
-            Assert.assertNotNull(quad.hitTest(new Point(15, 5), true));
-            Assert.assertNotNull(quad.hitTest(new Point(0, 0), true));
-            Assert.assertNotNull(quad.hitTest(new Point(24.99, 0), true));
-            Assert.assertNotNull(quad.hitTest(new Point(24.99, 9.99), true));
-            Assert.assertNotNull(quad.hitTest(new Point(0, 9.99), true));
-            Assert.assertNull(quad.hitTest(new Point(-1, -1), true));
-            Assert.assertNull(quad.hitTest(new Point(25.01, 10.01), true));
+            assertNotNull(quad.hitTest(new Point(15, 5)));
+            assertNotNull(quad.hitTest(new Point(0, 0)));
+            assertNotNull(quad.hitTest(new Point(24.99, 0)));
+            assertNotNull(quad.hitTest(new Point(24.99, 9.99)));
+            assertNotNull(quad.hitTest(new Point(0, 9.99)));
+            assertNull(quad.hitTest(new Point(-1, -1)));
+            assertNull(quad.hitTest(new Point(25.01, 10.01)));
             
             quad.visible = false;
-            Assert.assertNull(quad.hitTest(new Point(15, 5), true));
+            assertNull(quad.hitTest(new Point(15, 5)));
             
             quad.visible = true;
             quad.touchable = false;
-            Assert.assertNull(quad.hitTest(new Point(10, 5), true));
+            assertNull(quad.hitTest(new Point(10, 5)));
             
             quad.visible = false;
             quad.touchable = false;
-            Assert.assertNull(quad.hitTest(new Point(10, 5), true));
+            assertNull(quad.hitTest(new Point(10, 5)));
         }
         
         [Test]
@@ -411,15 +411,15 @@ package tests.display
             assertThat(sprite.pivotX, closeTo(250, E));
             assertThat(sprite.pivotY, closeTo(-75, E));
 
-            sprite.alignPivot(HAlign.LEFT, VAlign.TOP);
+            sprite.alignPivot(Align.LEFT, Align.TOP);
             assertThat(sprite.pivotX, closeTo(200, E));
             assertThat(sprite.pivotY, closeTo(-100, E));
 
-            sprite.alignPivot(HAlign.RIGHT, VAlign.BOTTOM);
+            sprite.alignPivot(Align.RIGHT, Align.BOTTOM);
             assertThat(sprite.pivotX, closeTo(300, E));
             assertThat(sprite.pivotY, closeTo(-50, E));
 
-            sprite.alignPivot(HAlign.LEFT, VAlign.BOTTOM);
+            sprite.alignPivot(Align.LEFT, Align.BOTTOM);
             assertThat(sprite.pivotX, closeTo(200, E));
             assertThat(sprite.pivotY, closeTo(-50, E));
         }
@@ -428,10 +428,10 @@ package tests.display
         public function testName():void
         {
             var sprite:Sprite = new Sprite();
-            Assert.assertNull(sprite.name);
+            assertNull(sprite.name);
             
             sprite.name = "hugo";
-            Assert.assertEquals("hugo", sprite.name);
+            assertEquals("hugo", sprite.name);
         }
 
         [Test]

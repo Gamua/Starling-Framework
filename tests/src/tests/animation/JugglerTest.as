@@ -10,15 +10,12 @@
 
 package tests.animation
 {
-    import flexunit.framework.Assert;
-    
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
-    
-    import starling.animation.IAnimatable;
+
     import starling.animation.Juggler;
     import starling.animation.Tween;
     import starling.display.Quad;
@@ -52,7 +49,7 @@ package tests.animation
             juggler.advanceTime(0.4); // -> 1.2 (complete)
             juggler.advanceTime(0.4); // -> 1.6 (start of new tween)
             
-            Assert.assertTrue(startReached);
+            assertTrue(startReached);
         }
         
         [Test]
@@ -62,9 +59,9 @@ package tests.animation
             var quad:Quad = new Quad(100, 100);
             var tween:Tween = new Tween(quad, 1.0);
             
-            Assert.assertFalse(juggler.contains(tween));
+            assertFalse(juggler.contains(tween));
             juggler.add(tween);
-            Assert.assertTrue(juggler.contains(tween));
+            assertTrue(juggler.contains(tween));
         }
         
         [Test]
@@ -82,18 +79,18 @@ package tests.animation
             tween1.animate("x", 100);
             tween2.animate("y", 100);
             
-            Assert.assertTrue(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
-            Assert.assertTrue(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertTrue(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertTrue(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
             
             juggler.purge();
             
-            Assert.assertFalse(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
-            Assert.assertFalse(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertFalse(tween1.hasEventListener(Event.REMOVE_FROM_JUGGLER));
+            assertFalse(tween2.hasEventListener(Event.REMOVE_FROM_JUGGLER));
             
             juggler.advanceTime(10);
             
-            Assert.assertEquals(0, quad.x);
-            Assert.assertEquals(0, quad.y);
+            assertEquals(0, quad.x);
+            assertEquals(0, quad.y);
         }
         
         [Test]
@@ -313,17 +310,108 @@ package tests.animation
             var juggler:Juggler = new Juggler();
             var counter:int = 0;
             
-            var id:IAnimatable = juggler.repeatCall(raiseCounter, 1.0);
+            var id:uint = juggler.repeatCall(raiseCounter, 1.0);
             assertEquals(0, counter);
             
             juggler.advanceTime(50);
             assertEquals(50, counter);
             
-            juggler.remove(id);
+            juggler.removeByID(id);
             
             juggler.advanceTime(50);
             assertEquals(50, counter);
             
+            function raiseCounter():void
+            {
+                counter += 1;
+            }
+        }
+
+        [Test]
+        public function testRemoveByID():void
+        {
+            var juggler:Juggler = new Juggler();
+            var counter:int = 0;
+            var id:uint = juggler.delayCall(raiseCounter, 1.0);
+            assertTrue(id > 0);
+
+            juggler.advanceTime(0.5);
+            var outID:uint = juggler.removeByID(id);
+            juggler.advanceTime(1.0);
+
+            assertEquals(outID, id);
+            assertEquals(0, counter);
+
+            var quad:Quad = new Quad(100, 100);
+
+            id = juggler.tween(quad, 1.0, { x: 100 });
+            assertTrue(id > 0);
+
+            juggler.advanceTime(0.5);
+            assertThat(quad.x, closeTo(50, E));
+
+            outID = juggler.removeByID(id);
+            assertFalse(juggler.containsTweens(quad));
+            assertEquals(id, outID);
+
+            juggler.advanceTime(0.5);
+            assertThat(quad.x, closeTo(50, E));
+
+            id = juggler.removeByID(id);
+            assertEquals(0, id);
+
+            function raiseCounter():void
+            {
+                counter += 1;
+            }
+        }
+
+        [Test]
+        public function testRemoveNextTweenByID():void
+        {
+            var juggler:Juggler = new Juggler();
+            var quad:Quad = new Quad(100, 100);
+
+            var tween:Tween = new Tween(quad, 1.0);
+            tween.moveTo(1.0, 0.0);
+
+            var tween2:Tween = new Tween(quad, 1.0);
+            tween2.moveTo(1.0, 1.0);
+            tween.nextTween = tween2;
+
+            var id:uint = juggler.add(tween);
+            juggler.advanceTime(1.0);
+            juggler.advanceTime(0.5);
+            id = juggler.removeByID(id);
+            assertFalse(juggler.containsTweens(quad));
+            assertTrue(id != 0);
+
+            id = juggler.removeByID(id);
+            assertEquals(0, id);
+
+            juggler.advanceTime(0.5);
+            assertThat(quad.x, closeTo(1.0, E));
+            assertThat(quad.y, closeTo(0.5, E));
+        }
+
+        [Test]
+        public function testRemoveDelayedCall():void
+        {
+            var counter:int = 0;
+            var juggler:Juggler = new Juggler();
+
+            juggler.repeatCall(raiseCounter, 1.0, 0);
+            juggler.advanceTime(3.0);
+
+            assertEquals(3, counter);
+            assertTrue(juggler.containsDelayedCalls(raiseCounter));
+
+            juggler.removeDelayedCalls(raiseCounter);
+            juggler.advanceTime(10.0);
+
+            assertFalse(juggler.containsDelayedCalls(raiseCounter));
+            assertEquals(3, counter);
+
             function raiseCounter():void
             {
                 counter += 1;

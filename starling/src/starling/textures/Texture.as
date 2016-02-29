@@ -14,7 +14,11 @@ package starling.textures
     import flash.display.BitmapData;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DTextureFormat;
+    import flash.display3D.textures.RectangleTexture;
     import flash.display3D.textures.TextureBase;
+    import flash.display3D.textures.VideoTexture;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.media.Camera;
     import flash.net.NetStream;
@@ -26,15 +30,20 @@ package starling.textures
     import starling.errors.AbstractClassError;
     import starling.errors.MissingContextError;
     import starling.errors.NotSupportedError;
-    import starling.utils.Color;
+    import starling.rendering.VertexData;
+    import starling.utils.MathUtil;
+    import starling.utils.MatrixUtil;
     import starling.utils.SystemUtil;
-    import starling.utils.VertexData;
-    import starling.utils.execute;
-    import starling.utils.getNextPowerOfTwo;
 
     /** <p>A texture stores the information that represents an image. It cannot be added to the
      *  display list directly; instead it has to be mapped onto a display object. In Starling,
-     *  that display object is the class "Image".</p>
+     *  the most probably candidate for this job is the <code>Image</code> class.</p>
+     *
+     *  <strong>Creating a texture</strong>
+     *
+     *  <p>The <code>Texture</code> class is abstract, i.e. you cannot create instance of this
+     *  class through its constructor. Instead, it offers a variety of factory methods, like
+     *  <code>fromBitmapData</code> or <code>fromEmbeddedAsset</code>.</p>
      *
      *  <strong>Texture Formats</strong>
      *
@@ -48,7 +57,7 @@ package starling.textures
      *  the Flash documentation for more information about this format.</p>
      *
      *  <p>Beginning with AIR 17, you can use Starling textures to show video content (if the
-     *  current platform supports that, see "SystemUtil.supportsVideoTexture").
+     *  current platform supports it; see "SystemUtil.supportsVideoTexture").
      *  The two factory methods "fromCamera" and "fromNetStream" allow you to make use of
      *  this feature.</p>
      *
@@ -57,13 +66,13 @@ package starling.textures
      *  <p>MipMaps are scaled down versions of a texture. When an image is displayed smaller than
      *  its natural size, the GPU may display the mip maps instead of the original texture. This
      *  reduces aliasing and accelerates rendering. It does, however, also need additional memory;
-     *  for that reason, you can choose if you want to create them or not.</p>
+     *  for that reason, mipmapping is disabled by default.</p>
      *
      *  <strong>Texture Frame</strong>
      *
-     *  <p>The frame property of a texture allows you let a texture appear inside the bounds of an
-     *  image, leaving a transparent space around the texture. The frame rectangle is specified in
-     *  the coordinate system of the texture (not the image):</p>
+     *  <p>The frame property of a texture allows you to let a texture appear inside the bounds of
+     *  an image, leaving a transparent border around the texture. The frame rectangle is specified
+     *  in the coordinate system of the texture (not the image):</p>
      *
      *  <listing>
      *  var frame:Rectangle = new Rectangle(-10, -10, 30, 30);
@@ -84,16 +93,17 @@ package starling.textures
      *  <p>If, on the other hand, you want to show only a part of the texture in an image
      *  (i.e. to crop the the texture), you can either create a subtexture (with the method
      *  'Texture.fromTexture()' and specifying a rectangle for the region), or you can manipulate
-     *  the texture coordinates of the image object. The method 'image.setTexCoords' allows you
-     *  to do that.</p>
+     *  the texture coordinates of the image object. The method <code>image.setTexCoords</code>
+     *  allows you to do that.</p>
      *
      *  <strong>Context Loss</strong>
      *
-     *  <p>When the current rendering context is lost (which can happen e.g. on Android and
-     *  Windows), all texture data is lost. If you have activated "Starling.handleLostContext",
-     *  however, Starling will try to restore the textures. To do that, it will keep the bitmap
-     *  and ATF data in memory - at the price of increased RAM consumption. To save memory,
-     *  however, you can restore a texture directly from its source (e.g. an embedded asset):</p>
+     *  <p>When the current rendering context is lost (which can happen on all platforms, but is
+     *  especially common on Android and Windows), all texture data is destroyed. However,
+     *  Starling will try to restore the textures. To do that, it will keep the bitmap
+     *  and ATF data in memory - at the price of increased RAM consumption. You can optimize
+     *  this behavior, though, by restoring the texture directly from its source, like in this
+     *  example:</p>
      *
      *  <listing>
      *  var texture:Texture = Texture.fromBitmap(new EmbeddedBitmap());
@@ -102,9 +112,9 @@ package starling.textures
      *      texture.root.uploadFromBitmap(new EmbeddedBitmap());
      *  };</listing>
      *
-     *  <p>The "onRestore"-method will be called when the context was lost and the texture has
-     *  been recreated (but is still empty). If you use the "AssetManager" class to manage
-     *  your textures, this will be done automatically.</p>
+     *  <p>The <code>onRestore</code>-method will be called when the context was lost and the
+     *  texture has been recreated (but is still empty). If you use the "AssetManager" class to
+     *  manage your textures, this will be done automatically.</p>
      *
      *  @see starling.display.Image
      *  @see starling.utils.AssetManager
@@ -113,6 +123,12 @@ package starling.textures
      */
     public class Texture
     {
+        // helper objects
+        private static var sDefaultOptions:TextureOptions = new TextureOptions();
+        private static var sRectangle:Rectangle = new Rectangle();
+        private static var sMatrix:Matrix = new Matrix();
+        private static var sPoint:Point = new Point();
+
         /** @private */
         public function Texture()
         {
@@ -132,41 +148,72 @@ package starling.textures
             // override in subclasses
         }
 
-        /** Creates a texture object from any of the supported data types, using the specified
-         *  options.
+        /** Creates a texture from any of the supported data types, using the specified options.
          *
          *  @param data     Either an embedded asset class, a Bitmap, BitmapData, or a ByteArray
          *                  with ATF data.
-         *  @param options  Specifies options about the texture settings, e.g. scale factor.
+         *  @param options  Specifies options about the texture settings, e.g. the scale factor.
+         *                  If left empty, the default options will be used.
          */
         public static function fromData(data:Object, options:TextureOptions=null):Texture
         {
-            var texture:Texture = null;
-
             if (data is Bitmap)  data = (data as Bitmap).bitmapData;
-            if (options == null) options = new TextureOptions();
+            if (options == null) options = sDefaultOptions;
 
             if (data is Class)
             {
-                texture = fromEmbeddedAsset(data as Class,
-                    options.mipMapping, options.optimizeForRenderToTexture, options.scale,
-                    options.format, options.repeat);
+                return fromEmbeddedAsset(data as Class,
+                    options.mipMapping, options.optimizeForRenderToTexture,
+                    options.scale, options.format);
             }
             else if (data is BitmapData)
             {
-                texture = fromBitmapData(data as BitmapData,
-                    options.mipMapping, options.optimizeForRenderToTexture, options.scale,
-                    options.format, options.repeat);
+                return fromBitmapData(data as BitmapData,
+                    options.mipMapping, options.optimizeForRenderToTexture,
+                    options.scale, options.format);
             }
             else if (data is ByteArray)
             {
-                texture = fromAtfData(data as ByteArray,
-                    options.scale, options.mipMapping, options.onReady, options.repeat);
+                return fromAtfData(data as ByteArray,
+                    options.scale, options.mipMapping, options.onReady);
             }
             else
                 throw new ArgumentError("Unsupported 'data' type: " + getQualifiedClassName(data));
+        }
 
-            return texture;
+        /** Creates a texture from a <code>TextureBase</code> object.
+         *
+         *  @param base     a Stage3D texture object created through the current context.
+         *  @param width    the width of the texture in pixels (not points!).
+         *  @param height   the height of the texture in pixels (not points!).
+         *  @param options  specifies options about the texture settings, e.g. the scale factor.
+         *                  If left empty, the default options will be used. Note that not all
+         *                  options are supported by all texture types.
+         */
+        public static function fromTextureBase(base:TextureBase, width:int, height:int,
+                                               options:TextureOptions=null):ConcreteTexture
+        {
+            if (options == null) options = sDefaultOptions;
+
+            if (base is flash.display3D.textures.Texture)
+            {
+                return new ConcretePotTexture(base as flash.display3D.textures.Texture,
+                        options.format, width, height, options.mipMapping,
+                        options.premultipliedAlpha, options.optimizeForRenderToTexture,
+                        options.scale);
+            }
+            else if (base is RectangleTexture)
+            {
+                return new ConcreteRectangleTexture(base as RectangleTexture,
+                        options.format, width, height, options.premultipliedAlpha,
+                        options.optimizeForRenderToTexture, options.scale);
+            }
+            else if (base is VideoTexture)
+            {
+                return new ConcreteVideoTexture(base as VideoTexture, options.scale);
+            }
+            else
+                throw new ArgumentError("Unsupported 'base' type: " + getQualifiedClassName(base));
         }
 
         /** Creates a texture object from an embedded asset class. Textures created with this
@@ -180,12 +227,10 @@ package starling.textures
          *                     render target
          *  @param scale    the scale factor of the created texture.
          *  @param format   the context3D texture format to use. Ignored for ATF data.
-         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
-        public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=true,
+        public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=false,
                                                  optimizeForRenderToTexture:Boolean=false,
-                                                 scale:Number=1, format:String="bgra",
-                                                 repeat:Boolean=false):Texture
+                                                 scale:Number=1, format:String="bgra"):Texture
         {
             var texture:Texture;
             var asset:Object = new assetClass();
@@ -193,7 +238,7 @@ package starling.textures
             if (asset is Bitmap)
             {
                 texture = Texture.fromBitmap(asset as Bitmap, mipMapping,
-                                             optimizeForRenderToTexture, scale, format, repeat);
+                                             optimizeForRenderToTexture, scale, format);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -201,7 +246,7 @@ package starling.textures
             }
             else if (asset is ByteArray)
             {
-                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null, repeat);
+                texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadAtfData(new assetClass());
@@ -229,15 +274,13 @@ package starling.textures
          *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
-         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
-        public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=true,
+        public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=false,
                                           optimizeForRenderToTexture:Boolean=false,
-                                          scale:Number=1, format:String="bgra",
-                                          repeat:Boolean=false):Texture
+                                          scale:Number=1, format:String="bgra"):Texture
         {
             return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture,
-                                  scale, format, repeat);
+                                  scale, format);
         }
 
         /** Creates a texture object from bitmap data.
@@ -253,16 +296,14 @@ package starling.textures
          *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
-         *  @param repeat   the repeat value of the texture. Only useful for power-of-two textures.
          */
-        public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=true,
+        public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=false,
                                               optimizeForRenderToTexture:Boolean=false,
-                                              scale:Number=1, format:String="bgra",
-                                              repeat:Boolean=false):Texture
+                                              scale:Number=1, format:String="bgra"):Texture
         {
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true,
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
-                                                format, repeat);
+                                                format);
 
             texture.root.uploadBitmapData(data);
             texture.root.onRestore = function():void
@@ -273,16 +314,23 @@ package starling.textures
             return texture;
         }
 
-        /** Creates a texture from the compressed ATF format. If you don't want to use any embedded
-         *  mipmaps, you can disable them by setting "useMipMaps" to <code>false</code>.
+        /** Creates a texture from ATF data (Adobe Texture Compression).
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          *
-         *  <p>If the 'async' parameter contains a callback function, the texture is decoded
-         *  asynchronously. It can only be used when the callback has been executed. This is the
-         *  expected function definition: <code>function(texture:Texture):void;</code></p> */
+         *  @param data       the raw data from an ATF file.
+         *  @param scale      the scale factor of the created texture. This affects the reported
+         *                    width and height of the texture object.
+         *  @param useMipMaps If the ATF data contains mipmaps, this parameter controls if they
+         *                    are used; if it does not, this parameter has no effect.
+         *  @param async      If you pass a callback function, the texture will be decoded
+         *                    asynchronously, which allows a smooth framerate even during the
+         *                    loading process. However, don't use the texture before the callback
+         *                    has been executed. This is the expected function definition:
+         *                    <code>function(texture:Texture):void;</code>
+         */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true,
-                                           async:Function=null, repeat:Boolean=false):Texture
+                                           async:Function=null):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -290,9 +338,9 @@ package starling.textures
             var atfData:AtfData = new AtfData(data);
             var nativeTexture:flash.display3D.textures.Texture = context.createTexture(
                 atfData.width, atfData.height, atfData.format, false);
-            var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, atfData.format,
-                atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1,
-                false, false, scale, repeat);
+            var concreteTexture:ConcreteTexture = new ConcretePotTexture(nativeTexture,
+                atfData.format, atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1,
+                false, false, scale);
 
             concreteTexture.uploadAtfData(data, 0, async);
             concreteTexture.onRestore = function():void
@@ -369,23 +417,15 @@ package starling.textures
         private static function fromVideoAttachment(type:String, attachment:Object,
                                                     scale:Number, onComplete:Function):Texture
         {
-            const TEXTURE_READY:String = "textureReady"; // for backwards compatibility
-
             if (!SystemUtil.supportsVideoTexture)
                 throw new NotSupportedError("Video Textures are not supported on this platform");
 
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
 
-            var base:TextureBase = context["createVideoTexture"]();
-            base["attach" + type](attachment);
-            base.addEventListener(TEXTURE_READY, function (event:Object):void
-            {
-                base.removeEventListener(TEXTURE_READY, arguments.callee);
-                execute(onComplete, texture);
-            });
-
-            var texture:ConcreteVideoTexture = new ConcreteVideoTexture(base, scale);
+            var base:VideoTexture = context.createVideoTexture();
+            var texture:ConcreteTexture = new ConcreteVideoTexture(base, scale);
+            texture.attachVideo(type, attachment, onComplete);
             texture.onRestore = function():void
             {
                 texture.root.attachVideo(type, attachment);
@@ -398,22 +438,24 @@ package starling.textures
          *
          *  @param width   in points; number of pixels depends on scale parameter
          *  @param height  in points; number of pixels depends on scale parameter
-         *  @param color   expected in ARGB format (include alpha!)
+         *  @param color   the RGB color the texture will be filled up
+         *  @param alpha   the alpha value that will be used for every pixel
          *  @param optimizeForRenderToTexture  indicates if this texture will be used as render target
          *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory.
          */
-        public static function fromColor(width:Number, height:Number, color:uint=0xffffffff,
+        public static function fromColor(width:Number, height:Number,
+                                         color:uint=0xffffff, alpha:Number=1.0,
                                          optimizeForRenderToTexture:Boolean=false,
                                          scale:Number=-1, format:String="bgra"):Texture
         {
             var texture:Texture = Texture.empty(width, height, true, false,
                                                 optimizeForRenderToTexture, scale, format);
-            texture.root.clear(color, Color.getAlpha(color) / 255.0);
+            texture.root.clear(color, alpha);
             texture.root.onRestore = function():void
             {
-                texture.root.clear(color, Color.getAlpha(color) / 255.0);
+                texture.root.clear(color, alpha);
             };
 
             return texture;
@@ -434,48 +476,51 @@ package starling.textures
          *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory (at the price of reduced image quality).
-         *  @param repeat  the repeat mode of the texture. Only useful for power-of-two textures.
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
-                                     mipMapping:Boolean=true, optimizeForRenderToTexture:Boolean=false,
-                                     scale:Number=-1, format:String="bgra", repeat:Boolean=false):Texture
+                                     mipMapping:Boolean=false, optimizeForRenderToTexture:Boolean=false,
+                                     scale:Number=-1, format:String="bgra"):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
 
             var actualWidth:int, actualHeight:int;
             var nativeTexture:TextureBase;
+            var concreteTexture:ConcreteTexture;
             var context:Context3D = Starling.context;
 
             if (context == null) throw new MissingContextError();
 
             var origWidth:Number  = width  * scale;
             var origHeight:Number = height * scale;
-            var useRectTexture:Boolean = !mipMapping && !repeat &&
+            var useRectTexture:Boolean = !mipMapping &&
                 Starling.current.profile != "baselineConstrained" &&
-                "createRectangleTexture" in context && format.indexOf("compressed") == -1;
+                format.indexOf("compressed") == -1;
 
             if (useRectTexture)
             {
                 actualWidth  = Math.ceil(origWidth  - 0.000000001); // avoid floating point errors
                 actualHeight = Math.ceil(origHeight - 0.000000001);
 
-                // Rectangle Textures are supported beginning with AIR 3.8. By calling the new
-                // methods only through those lookups, we stay compatible with older SDKs.
-                nativeTexture = context["createRectangleTexture"](
-                    actualWidth, actualHeight, format, optimizeForRenderToTexture);
+                nativeTexture = context.createRectangleTexture(
+                        actualWidth, actualHeight, format, optimizeForRenderToTexture);
+
+                concreteTexture = new ConcreteRectangleTexture(
+                        nativeTexture as RectangleTexture, format, actualWidth, actualHeight,
+                        premultipliedAlpha, optimizeForRenderToTexture, scale);
             }
             else
             {
-                actualWidth  = getNextPowerOfTwo(origWidth);
-                actualHeight = getNextPowerOfTwo(origHeight);
+                actualWidth  = MathUtil.getNextPowerOfTwo(origWidth);
+                actualHeight = MathUtil.getNextPowerOfTwo(origHeight);
 
-                nativeTexture = context.createTexture(actualWidth, actualHeight, format,
-                                                      optimizeForRenderToTexture);
+                nativeTexture = context.createTexture(
+                        actualWidth, actualHeight, format, optimizeForRenderToTexture);
+
+                concreteTexture = new ConcretePotTexture(
+                        nativeTexture as flash.display3D.textures.Texture, format,
+                        actualWidth, actualHeight, mipMapping, premultipliedAlpha,
+                        optimizeForRenderToTexture, scale);
             }
-
-            var concreteTexture:ConcreteTexture = new ConcreteTexture(nativeTexture, format,
-                actualWidth, actualHeight, mipMapping, premultipliedAlpha,
-                optimizeForRenderToTexture, scale, repeat);
 
             concreteTexture.onRestore = concreteTexture.clear;
 
@@ -502,47 +547,126 @@ package starling.textures
             return new SubTexture(texture, region, false, frame, rotated);
         }
 
-        /** Converts texture coordinates and vertex positions of raw vertex data into the format
-         *  required for rendering. While the texture coordinates of an image always use the
-         *  range <code>[0, 1]</code>, the actual coordinates could be different: you
-         *  might be working with a SubTexture or a texture frame. This method
-         *  adjusts the texture and vertex coordinates accordingly.
+        /** Sets up a VertexData instance with the correct positions for 4 vertices so that
+         *  the texture can be mapped onto it unscaled. If the texture has a <code>frame</code>,
+         *  the vertices will be offset accordingly.
+         *
+         *  @param vertexData  the VertexData instance to which the positions will be written.
+         *  @param vertexID    the start position within the VertexData instance.
+         *  @param attrName    the attribute name referencing the vertex positions.
+         *  @param bounds      useful only for textures with a frame. This will position the
+         *                     vertices at the correct position within the given bounds,
+         *                     distorted appropriately.
          */
-        public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
+        public function setupVertexPositions(vertexData:VertexData, vertexID:int=0,
+                                             attrName:String="position",
+                                             bounds:Rectangle=null):void
         {
-            // override in subclass
+            var frame:Rectangle = this.frame;
+            var width:Number    = this.width;
+            var height:Number   = this.height;
+
+            if (frame)
+                sRectangle.setTo(-frame.x, -frame.y, width, height);
+            else
+                sRectangle.setTo(0, 0, width, height);
+
+            vertexData.setPoint(vertexID,     attrName, sRectangle.left,  sRectangle.top);
+            vertexData.setPoint(vertexID + 1, attrName, sRectangle.right, sRectangle.top);
+            vertexData.setPoint(vertexID + 2, attrName, sRectangle.left,  sRectangle.bottom);
+            vertexData.setPoint(vertexID + 3, attrName, sRectangle.right, sRectangle.bottom);
+
+            if (bounds)
+            {
+                var scaleX:Number = bounds.width  / frameWidth;
+                var scaleY:Number = bounds.height / frameHeight;
+
+                if (scaleX != 1.0 || scaleY != 1.0)
+                {
+                    sMatrix.identity();
+                    sMatrix.scale(scaleX, scaleY);
+                    sMatrix.translate(bounds.x, bounds.y);
+                    vertexData.transformPoints(attrName, sMatrix, vertexID, 4);
+                }
+            }
         }
 
-        /** Converts texture coordinates into the format required for rendering. While the texture
-         *  coordinates of an image always use the range <code>[0, 1]</code>, the actual
-         *  coordinates could be different: you might be working with a SubTexture. This method
-         *  adjusts the coordinates accordingly.
+        /** Sets up a VertexData instance with the correct texture coordinates for
+         *  4 vertices so that the texture is mapped to the complete quad.
          *
-         *  @param texCoords  a vector containing UV coordinates (optionally, among other data).
-         *                    U and V coordinates always have to come in pairs. The vector is
-         *                    modified in place.
-         *  @param startIndex the index of the first U coordinate in the vector.
-         *  @param stride     the distance (in vector elements) of consecutive UV pairs.
-         *  @param count      the number of UV pairs that should be adjusted, or "-1" for all of them.
+         *  @param vertexData  the vertex data to which the texture coordinates will be written.
+         *  @param vertexID    the start position within the VertexData instance.
+         *  @param attrName    the attribute name referencing the vertex positions.
          */
-        public function adjustTexCoords(texCoords:Vector.<Number>,
-                                        startIndex:int=0, stride:int=0, count:int=-1):void
+        public function setupTextureCoordinates(vertexData:VertexData, vertexID:int=0,
+                                                attrName:String="texCoords"):void
         {
-            // override in subclasses
+            setTexCoords(vertexData, vertexID    , attrName, 0.0, 0.0);
+            setTexCoords(vertexData, vertexID + 1, attrName, 1.0, 0.0);
+            setTexCoords(vertexData, vertexID + 2, attrName, 0.0, 1.0);
+            setTexCoords(vertexData, vertexID + 3, attrName, 1.0, 1.0);
+        }
+
+        /** Transforms the given texture coordinates from the local coordinate system
+         *  into the root texture's coordinate system. */
+        public function localToGlobal(u:Number, v:Number, out:Point=null):Point
+        {
+            if (out == null) out = new Point();
+            if (this == root) out.setTo(u, v);
+            else MatrixUtil.transformCoords(transformationMatrixToRoot, u, v, out);
+            return out;
+        }
+
+        /** Transforms the given texture coordinates from the root texture's coordinate system
+         *  to the local coordinate system. */
+        public function globalToLocal(u:Number, v:Number, out:Point=null):Point
+        {
+            if (out == null) out = new Point();
+            if (this == root) out.setTo(u, v);
+            else
+            {
+                sMatrix.identity();
+                sMatrix.copyFrom(transformationMatrixToRoot);
+                sMatrix.invert();
+                MatrixUtil.transformCoords(sMatrix, u, v, out);
+            }
+            return out;
+        }
+
+        /** Writes the given texture coordinates to a VertexData instance after transforming
+         *  them into the root texture's coordinate system. That way, the texture coordinates
+         *  can be used directly to sample the texture in the fragment shader. */
+        public function setTexCoords(vertexData:VertexData, vertexID:int, attrName:String,
+                                     u:Number, v:Number):void
+        {
+            localToGlobal(u, v, sPoint);
+            vertexData.setPoint(vertexID, attrName, sPoint.x, sPoint.y);
+        }
+
+        /** Reads a pair of texture coordinates from the given VertexData instance and transforms
+         *  them into the current texture's coordinate system. (Remember, the VertexData instance
+         *  will always contain the coordinates in the root texture's coordinate system!) */
+        public function getTexCoords(vertexData:VertexData, vertexID:int,
+                                     attrName:String="texCoords", out:Point=null):Point
+        {
+            if (out == null) out = new Point();
+            vertexData.getPoint(vertexID, attrName, out);
+            return globalToLocal(out.x, out.y, out);
         }
 
         // properties
 
         /** The texture frame if it has one (see class description), otherwise <code>null</code>.
-         *  Only SubTextures can have a frame.
-         *
          *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
         public function get frame():Rectangle { return null; }
 
-        /** Indicates if the texture should repeat like a wallpaper or stretch the outermost pixels.
-         *  Note: this only works in textures with sidelengths that are powers of two and
-         *  that are not loaded from a texture atlas (i.e. no subtextures). @default false */
-        public function get repeat():Boolean { return false; }
+        /** The height of the texture in points, taking into account the frame rectangle
+         *  (if there is one). */
+        public function get frameWidth():Number { return frame ? frame.width : width; }
+
+        /** The width of the texture in points, taking into account the frame rectangle
+         *  (if there is one). */
+        public function get frameHeight():Number { return frame ? frame.height : height; }
 
         /** The width of the texture in points. */
         public function get width():Number { return 0; }
@@ -573,6 +697,18 @@ package starling.textures
 
         /** Indicates if the alpha values are premultiplied into the RGB values. */
         public function get premultipliedAlpha():Boolean { return false; }
+
+        /** The matrix that is used to transform the texture coordinates into the coordinate
+         *  space of the parent texture, if there is one. @default null
+         *
+         *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
+        public function get transformationMatrix():Matrix { return null; }
+
+        /** The matrix that is used to transform the texture coordinates into the coordinate
+         *  space of the root texture, if this instance is not the root. @default null
+         *
+         *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
+        public function get transformationMatrixToRoot():Matrix { return null; }
 
         /** Returns the maximum size constraint (for both width and height) for textures in the
          *  current Context3D profile. */

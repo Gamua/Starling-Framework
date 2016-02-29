@@ -1,36 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with TexturePacker http://www.codeandweb.com/texturepacker-->
-<!-- $TexturePacker:SmartUpdate:b716c984b1605f3fb7986f09a1122166:80a791fa7206b45fad2c86fd88772866:628d44f20a20d4ab7a3617802fac7201$ -->
-<TextureAtlas imagePath="atlas.png">
-    <SubTexture name="benchmark_object" x="770" y="173" width="32" height="32"/>
-    <SubTexture name="benchmark_object_small" x="1009" y="1" width="8" height="8"/>
-    <SubTexture name="brush" x="515" y="144" width="62" height="62" frameX="0" frameY="-1" frameWidth="64" frameHeight="64"/>
-    <SubTexture name="button_back" x="167" y="530" width="88" height="41"/>
-    <SubTexture name="button_big" x="167" y="145" width="127" height="42"/>
-    <SubTexture name="button_medium" x="167" y="188" width="127" height="38"/>
-    <SubTexture name="button_normal" x="167" y="227" width="127" height="32"/>
-    <SubTexture name="button_normal_disabled" x="167" y="260" width="127" height="32"/>
-    <SubTexture name="button_normal_down" x="167" y="293" width="127" height="32"/>
-    <SubTexture name="button_normal_over" x="167" y="326" width="127" height="32"/>
-    <SubTexture name="button_square" x="515" y="207" width="42" height="42"/>
-    <SubTexture name="flight_00" x="1" y="145" width="165" height="163" frameX="-42" frameY="-21" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_01" x="1" y="309" width="165" height="160" frameX="-42" frameY="-23" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_02" x="295" y="337" width="165" height="149" frameX="-42" frameY="-33" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_03" x="578" y="173" width="191" height="142" frameX="-16" frameY="-37" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_04" x="808" y="1" width="200" height="108" frameX="-8" frameY="-68" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_05" x="851" y="353" width="165" height="138" frameX="-42" frameY="-67" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_06" x="1" y="470" width="165" height="143" frameX="-42" frameY="-66" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_07" x="685" y="353" width="165" height="140" frameX="-42" frameY="-66" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_08" x="851" y="492" width="165" height="129" frameX="-42" frameY="-67" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_09" x="461" y="483" width="165" height="129" frameX="-42" frameY="-69" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_10" x="292" y="487" width="165" height="128" frameX="-42" frameY="-72" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_11" x="627" y="494" width="165" height="126" frameX="-42" frameY="-74" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_12" x="770" y="244" width="188" height="108" frameX="-19" frameY="-75" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="flight_13" x="808" y="110" width="199" height="133" frameX="-8" frameY="-50" frameWidth="220" frameHeight="220"/>
-    <SubTexture name="gamua-logo" x="322" y="144" width="192" height="192"/>
+<!-- $TexturePacker:SmartUpdate:538fbefcc0f16e1650d929a002c66263:4f715245e0566aa66ce3289b0cb2a6f3:628d44f20a20d4ab7a3617802fac7201$ -->
+<TextureAtlas imagePath="atlas.png" width="788" height="788">
+    <SubTexture name="benchmark_object" x="337" y="754" width="32" height="32"/>
+    <SubTexture name="brush" x="1" y="704" width="63" height="64" frameX="0" frameY="0" frameWidth="64" frameHeight="64"/>
+    <SubTexture name="button" x="314" y="514" width="44" height="44" frameX="0" frameY="-1" frameWidth="45" frameHeight="45"/>
+    <SubTexture name="flight_00" x="194" y="348" width="167" height="165" frameX="-41" frameY="-20" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_01" x="146" y="514" width="167" height="162" frameX="-41" frameY="-22" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_02" x="362" y="312" rotated="true" width="151" height="167" frameX="-41" frameY="-32" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_03" x="1" y="510" rotated="true" width="144" height="193" frameX="-15" frameY="-36" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_04" x="230" y="145" rotated="true" width="110" height="202" frameX="-7" frameY="-67" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_05" x="511" y="144" rotated="true" width="140" height="167" frameX="-41" frameY="-66" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_06" x="514" y="312" rotated="true" width="145" height="167" frameX="-41" frameY="-65" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_07" x="362" y="480" width="167" height="142" frameX="-41" frameY="-65" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_08" x="652" y="137" rotated="true" width="131" height="167" frameX="-41" frameY="-66" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_09" x="530" y="480" rotated="true" width="131" height="167" frameX="-41" frameY="-68" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_10" x="337" y="623" width="167" height="130" frameX="-41" frameY="-71" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_11" x="505" y="648" width="167" height="128" frameX="-41" frameY="-73" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_12" x="146" y="677" width="190" height="110" frameX="-18" frameY="-74" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="flight_13" x="579" y="1" width="201" height="135" frameX="-7" frameY="-49" frameWidth="220" frameHeight="220"/>
+    <SubTexture name="gamua-logo" x="1" y="317" width="192" height="192"/>
     <SubTexture name="logo" x="1" y="1" width="320" height="143"/>
-    <SubTexture name="starling_front" x="167" y="359" width="124" height="170"/>
+    <SubTexture name="starling_front" x="660" y="305" width="124" height="170"/>
     <SubTexture name="starling_rocket" x="322" y="1" width="256" height="142"/>
-    <SubTexture name="starling_round" x="515" y="316" width="169" height="166" frameX="0" frameY="0" frameWidth="169" frameHeight="167"/>
-    <SubTexture name="starling_sheet" x="579" y="1" width="228" height="171"/>
+    <SubTexture name="starling_round" x="341" y="144" width="169" height="167"/>
+    <SubTexture name="starling_sheet" x="1" y="145" width="228" height="171"/>
 </TextureAtlas>

@@ -3,9 +3,9 @@ package
     import flash.system.System;
     import flash.ui.Keyboard;
     import flash.utils.getDefinitionByName;
-    
+
     import scenes.Scene;
-    
+
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
@@ -20,8 +20,8 @@ package
         [Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
         private static const UbuntuRegular:Class;
         
-        private var mMainMenu:MainMenu;
-        private var mCurrentScene:Scene;
+        private var _mainMenu:MainMenu;
+        private var _currentScene:Scene;
         
         private static var sAssets:AssetManager;
         
@@ -46,10 +46,10 @@ package
             System.pauseForGCIfCollectionImminent(0);
             System.gc();
             
-            if (mMainMenu == null)
-                mMainMenu = new MainMenu();
+            if (_mainMenu == null)
+                _mainMenu = new MainMenu();
             
-            addChild(mMainMenu);
+            addChild(_mainMenu);
         }
         
         private function onKey(event:KeyboardEvent):void
@@ -72,19 +72,19 @@ package
         
         private function closeScene():void
         {
-            mCurrentScene.removeFromParent(true);
-            mCurrentScene = null;
+            _currentScene.removeFromParent(true);
+            _currentScene = null;
             showMainMenu();
         }
         
         private function showScene(name:String):void
         {
-            if (mCurrentScene) return;
+            if (_currentScene) return;
             
             var sceneClass:Class = getDefinitionByName(name) as Class;
-            mCurrentScene = new sceneClass() as Scene;
-            mMainMenu.removeFromParent();
-            addChild(mCurrentScene);
+            _currentScene = new sceneClass() as Scene;
+            _mainMenu.removeFromParent();
+            addChild(_currentScene);
         }
         
         public static function get assets():AssetManager { return sAssets; }
