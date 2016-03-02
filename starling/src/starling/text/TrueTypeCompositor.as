@@ -109,8 +109,7 @@ package starling.text
                 sNativeTextField.embedFonts = false;
 
             if (options.autoScale)
-                autoScaleNativeTextField(sNativeTextField, sNativeFormat,
-                    scaledWidth, scaledHeight, text, options.isHtmlText);
+                autoScaleNativeTextField(sNativeTextField, text, options.isHtmlText);
 
             var textWidth:Number  = sNativeTextField.textWidth;
             var textHeight:Number = sNativeTextField.textHeight;
@@ -118,6 +117,10 @@ package starling.text
             var bitmapHeight:int  = Math.ceil(textHeight) + 4;
             var maxTextureSize:int = Texture.maxSize;
             var minTextureSize:int = 1;
+            var offsetX:Number = 0.0;
+
+            // HTML text may have its own alignment -> use the complete width
+            if (options.isHtmlText) textWidth = bitmapWidth = scaledWidth;
 
             // check for invalid texture sizes
             if (bitmapWidth  < minTextureSize) bitmapWidth  = 1;
@@ -129,10 +132,11 @@ package starling.text
             }
             else
             {
-                var offsetX:Number = 0.0;
-
-                if      (hAlign == Align.RIGHT)  offsetX =  scaledWidth - textWidth - 4;
-                else if (hAlign == Align.CENTER) offsetX = (scaledWidth - textWidth - 4) / 2.0;
+                if (!options.isHtmlText)
+                {
+                    if      (hAlign == Align.RIGHT)  offsetX =  scaledWidth - textWidth - 4;
+                    else if (hAlign == Align.CENTER) offsetX = (scaledWidth - textWidth - 4) / 2.0;
+                }
 
                 // finally: draw TextField to bitmap data
                 var bitmapData:BitmapDataEx = new BitmapDataEx(bitmapWidth, bitmapHeight);
@@ -145,10 +149,11 @@ package starling.text
         }
 
         private function autoScaleNativeTextField(textField:flash.text.TextField,
-                                                  textFormat:flash.text.TextFormat,
-                                                  maxTextWidth:int, maxTextHeight:int,
                                                   text:String, isHtmlText:Boolean):void
         {
+            var textFormat:flash.text.TextFormat = textField.defaultTextFormat;
+            var maxTextWidth:int  = textField.width  - 4;
+            var maxTextHeight:int = textField.height - 4;
             var size:Number = Number(textFormat.size);
 
             while (textField.textWidth > maxTextWidth || textField.textHeight > maxTextHeight)

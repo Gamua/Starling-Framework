@@ -170,8 +170,11 @@ package starling.text
 
             format.copyFrom(_format);
 
-            if (isHorizontalAutoSize) width = 100000;
-            if (isVerticalAutoSize)  height = 100000;
+            // Horizontal autoSize does not work for HTML text, since it supports custom alignment.
+            // What should we do if one line is aligned to the left, another to the right?
+
+            if (isHorizontalAutoSize && !_options.isHtmlText) width = 100000;
+            if (isVerticalAutoSize) height = 100000;
 
             _options.textureScale = Starling.contentScaleFactor;
             _options.textureFormat = sDefaultTextureFormat;
