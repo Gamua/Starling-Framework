@@ -15,6 +15,7 @@ package starling.filters
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
 
     /** The CompositeFilter class allows to combine several layers of textures into one texture.
      *  It's mainly used as a building block for more complex filters; e.g. the DropShadowFilter
@@ -91,7 +92,7 @@ package starling.filters
         /** Adjusts the alpha value with which the layer is drawn. */
         public function setAlphaAt(layerID:int, alpha:Number):void
         {
-            compositeEffect.getLayerAt(layerID).alpha = alpha;
+            compositeEffect.getLayerAt(layerID).alpha = MathUtil.clamp(alpha, 0, 1);
         }
 
         private function get compositeEffect():CompositeEffect
