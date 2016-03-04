@@ -356,7 +356,7 @@ package starling.filters
                 {
                     if (_pool)   _pool.purge();
                     if (_effect) _effect.purgeBuffers();
-                    if (_quad) { _quad.texture.dispose(); _quad.texture = null; }
+                    if (_quad && _quad.texture) { _quad.texture.dispose(); _quad.texture = null; }
                 }
 
                 if (prevTarget)
