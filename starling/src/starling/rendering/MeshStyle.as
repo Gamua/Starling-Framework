@@ -10,6 +10,7 @@
 
 package starling.rendering
 {
+    import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Point;
 
@@ -96,6 +97,7 @@ package starling.rendering
         private var _type:Class;
         private var _target:Mesh;
         private var _texture:Texture;
+        private var _textureBase:TextureBase;
         private var _textureSmoothing:String;
         private var _vertexData:VertexData;   // just a reference to the target's vertex data
         private var _indexData:IndexData;     // just a reference to the target's index data
@@ -117,6 +119,7 @@ package starling.rendering
         public function copyFrom(meshStyle:MeshStyle):void
         {
             _texture = meshStyle._texture;
+            _textureBase = meshStyle._textureBase;
             _textureSmoothing = meshStyle._textureSmoothing;
         }
 
@@ -164,7 +167,7 @@ package starling.rendering
 
                 if (_texture == null && newTexture == null) return true;
                 else if (_texture && newTexture)
-                    return _texture.base == newTexture.base &&
+                    return _textureBase == meshStyle._textureBase &&
                            _textureSmoothing == meshStyle._textureSmoothing;
                 else return false;
             }
@@ -361,6 +364,7 @@ package starling.rendering
                 }
 
                 _texture = value;
+                _textureBase = value ? value.base : null;
                 setRequiresRedraw();
             }
         }
