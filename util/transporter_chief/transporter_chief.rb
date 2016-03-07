@@ -94,7 +94,7 @@ if options.update_ios_deploy || !File.exist?($ios_deploy_executable)
   Dir.chdir($temp_path) do
     log "Fetching latest ios-deploy"
     quiet = options.verbose ? "" : "-q"
-    execute("git clone #{quiet} git://github.com/phonegap/ios-deploy.git", options.verbose)
+    execute("git clone #{quiet} https://github.com/phonegap/ios-deploy.git", options.verbose)
     Dir.chdir("ios-deploy/") do
       log "Compiling ios-deploy"
       execute("xcodebuild", options.verbose)
