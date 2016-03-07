@@ -32,7 +32,7 @@ package starling.rendering
         /** The vertex format expected by <code>uploadVertexData</code>:
          *  <code>"position:float2, texCoords:float2"</code> */
         public static const VERTEX_FORMAT:VertexDataFormat =
-            VertexDataFormat.fromString("position:float2, texCoords:float2");
+            Effect.VERTEX_FORMAT.extend("texCoords:float2");
 
         /** The AGAL code for the standard vertex shader that most filters will use.
          *  It simply transforms the vertex coordinates to clip-space and passes the texture

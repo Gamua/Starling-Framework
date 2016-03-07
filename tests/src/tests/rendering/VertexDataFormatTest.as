@@ -69,6 +69,18 @@ package tests.rendering
             assertEquals(normalizedFormat, vdf.formatString);
         }
 
+        [Test]
+        public function testExtend():void
+        {
+            var formatString:String = "position:float2";
+            var baseFormat:VertexDataFormat = VertexDataFormat.fromString(formatString);
+            var exFormat:VertexDataFormat = baseFormat.extend("color:float4");
+            assertEquals("position:float2, color:float4", exFormat.formatString);
+            assertEquals(2, exFormat.numAttributes);
+            assertEquals("float2", exFormat.getFormat("position"));
+            assertEquals("float4", exFormat.getFormat("color"));
+        }
+
         [Test(expects="Error")]
         public function testInvalidFormatString():void
         {

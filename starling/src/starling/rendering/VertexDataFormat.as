@@ -101,6 +101,13 @@ package starling.rendering
             }
         }
 
+        /** Creates a new VertexDataFormat instance by appending the given format string
+         *  to the current instance's format. */
+        public function extend(format:String):VertexDataFormat
+        {
+            return fromString(_format + ", " + format);
+        }
+
         // query methods
 
         /** Returns the size of a certain vertex attribute. */

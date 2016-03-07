@@ -31,7 +31,7 @@ package starling.rendering
         /** The vertex format expected by <code>uploadVertexData</code>:
          *  <code>"position:float2, texCoords:float2, color:float4"</code> */
         public static const VERTEX_FORMAT:VertexDataFormat =
-                VertexDataFormat.fromString("position:float2, texCoords:float2, color:float4");
+            FilterEffect.VERTEX_FORMAT.extend("color:float4");
 
         private var _alpha:Number;
 

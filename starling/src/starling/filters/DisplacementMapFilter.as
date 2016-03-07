@@ -187,7 +187,7 @@ import starling.utils.RenderUtil;
 class DisplacementMapEffect extends FilterEffect
 {
     public static const VERTEX_FORMAT:VertexDataFormat =
-        VertexDataFormat.fromString("position:float2, texCoords:float2, mapTexCoords:float2");
+        FilterEffect.VERTEX_FORMAT.extend("mapTexCoords:float2");
 
     private var _mapTexture:Texture;
     private var _mapPoint:Point;
