@@ -21,14 +21,12 @@ package starling.rendering
      *  <p>The format is set up via a simple String. Here is an example:</p>
      *
      *  <listing>
-     *  format = VertexDataFormat.fromString("position:float2, color:bytes4");</listing>
+     *  format = VertexDataFormat.fromString("position:float2, color:float4");</listing>
      *
-     *  <p>This String describes two attributes: "position" and "color". The keywords after
-     *  the colons depict the format and size of the data that each attribute uses; in this
-     *  case, we store two floats for the position (taking up the x- and y-coordinates) and four
-     *  bytes for the color. (The available formats are the same as those defined in the
-     *  <code>Context3DVertexBufferFormat</code> class:
-     *  <code>float1, float2, float3, float4, bytes4</code>.)</p>
+     *  <p>This String describes two attributes: "position" and "color". The keywords after the
+     *  colons depict the format and size of the data that each attribute uses; in this case, we
+     *  store two floats for the position (taking up the x- and y-coordinates) and four floats
+     *  for the color. The currently supported formats are <code>float1 - float4</code>.</p>
      *
      *  <p>You cannot create a VertexData instance with its constructor; instead, you must use the
      *  static <code>fromString</code>-method. The reason for this behavior: the class maintains
@@ -41,7 +39,7 @@ package starling.rendering
      *
      *  @see VertexData
      */
-     public class VertexDataFormat
+    public class VertexDataFormat
     {
         private var _format:String;
         private var _vertexSize:int;
@@ -65,7 +63,7 @@ package starling.rendering
          *  Describes the attributes of each vertex, consisting of a comma-separated
          *  list of attribute names and their format, e.g.:
          *
-         *  <pre>"position:float2, texCoords:float2, color:bytes4"</pre>
+         *  <pre>"position:float2, texCoords:float2, color:float4"</pre>
          *
          *  <p>This set of attributes will be allocated for each vertex, and they will be
          *  stored in exactly the given order.</p>
@@ -73,10 +71,9 @@ package starling.rendering
          *  <ul>
          *    <li>Names are used to access the specific attributes of a vertex. They are
          *        completely arbitrary.</li>
-         *    <li>The available formats can be found in the <code>Context3DVertexBufferFormat</code>
-         *        class in the <code>flash.display3D</code> package.</li>
+         *    <li>The currently supported formats are <code>float1 - float4</code>.</li>
          *    <li>Both names and format strings are case-sensitive.</li>
-         *    <li>Always use <code>bytes4</code> for color data that you want to access with the
+         *    <li>Always use <code>float4</code> for color data that you want to access with the
          *        respective methods.</li>
          *    <li>Furthermore, the attribute names of colors should include the string "color"
          *        (or the uppercase variant). If that's the case, the "alpha" channel of the color
@@ -106,32 +103,20 @@ package starling.rendering
 
         // query methods
 
-        /** Returns the size of a certain vertex attribute in bytes. */
-        public function getSizeInBytes(attrName:String):int
+        /** Returns the size of a certain vertex attribute. */
+        public function getSize(attrName:String):int
         {
             return getAttribute(attrName).size;
         }
 
-        /** Returns the size of a certain vertex attribute in 32 bit units. */
-        public function getSizeIn32Bits(attrName:String):int
-        {
-            return getAttribute(attrName).size / 4;
-        }
-
-        /** Returns the offset (in bytes) of an attribute within a vertex. */
-        public function getOffsetInBytes(attrName:String):int
+        /** Returns the offset of an attribute within a vertex. */
+        public function getOffset(attrName:String):int
         {
             return getAttribute(attrName).offset;
         }
 
-        /** Returns the offset (in 32 bit units) of an attribute within a vertex. */
-        public function getOffsetIn32Bits(attrName:String):int
-        {
-            return getAttribute(attrName).offset / 4;
-        }
-
         /** Returns the format of a certain vertex attribute, identified by its name.
-         *  Typical values: <code>float1, float2, float3, float4, bytes4</code>. */
+         *  Possible values: <code>float1, float2, float3, float4</code>. */
         public function getFormat(attrName:String):String
         {
             return getAttribute(attrName).format;
@@ -163,7 +148,7 @@ package starling.rendering
         public function setVertexBufferAt(index:int, buffer:VertexBuffer3D, attrName:String):void
         {
             var attribute:VertexDataAttribute = getAttribute(attrName);
-            Starling.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
+            Starling.context.setVertexBufferAt(index, buffer, attribute.offset, attribute.format);
         }
 
         // parsing
@@ -247,16 +232,10 @@ package starling.rendering
             return _format;
         }
 
-        /** The size (in bytes) of each vertex. */
-        public function get vertexSizeInBytes():int
+        /** The size (in 32 bit units) of each vertex. */
+        public function get vertexSize():int
         {
             return _vertexSize;
-        }
-
-        /** The size (in 32 bit units) of each vertex. */
-        public function get vertexSizeIn32Bits():int
-        {
-            return _vertexSize / 4;
         }
 
         /** The number of attributes per vertex. */

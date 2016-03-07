@@ -15,7 +15,6 @@ package tests.rendering
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
-    import flash.utils.ByteArray;
 
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
@@ -32,7 +31,7 @@ package tests.rendering
     public class VertexDataTest
     {
         private static const E:Number = 0.001;
-        private static const STD_FORMAT:String = "position:float2, texCoords:float2, color:bytes4";
+        private static const STD_FORMAT:String = "position:float2, texCoords:float2, color:float4";
 
         [Test]
         public function testNumVertices():void
@@ -41,9 +40,11 @@ package tests.rendering
             assertEquals(0, vd.numVertices);
 
             vd.setPoint(0, "position", 1, 2);
+            vd.setPoint(0, "texCoords", 0.1, 0.2)
             assertEquals(1, vd.numVertices);
             assertEquals(1.0, vd.getAlpha(0));
             Helpers.comparePoints(new Point(1, 2), vd.getPoint(0, "position"));
+            Helpers.comparePoints(new Point(0.1, 0.2), vd.getPoint(0, "texCoords"));
 
             vd.setAlpha(2, "color", 0.5);
             assertEquals(3, vd.numVertices);
@@ -57,7 +58,12 @@ package tests.rendering
             assertEquals(10, vd.numVertices);
 
             for (var i:int=0; i<10; ++i)
+            {
                 assertEquals(1.0, vd.getAlpha(i));
+                assertEquals(0x0, vd.getColor(i));
+                Helpers.comparePoints(vd.getPoint(i, "position"), new Point());
+                Helpers.comparePoints(vd.getPoint(i, "texCoords"), new Point());
+            }
         }
 
         [Test(expects="Error")]
@@ -71,7 +77,7 @@ package tests.rendering
         [Test(expects="Error")]
         public function testBoundsHigh():void
         {
-            var vd:VertexData = new VertexData(STD_FORMAT);
+            var vd:VertexData = new VertexData(STD_FORMAT, 0);
             vd.numVertices = 3;
             vd.getColor(3, "color");
         }
@@ -134,10 +140,10 @@ package tests.rendering
             // check premultiplied alpha
 
             var alpha:Number = 0.8;
-            var red:int   = 80;
-            var green:int = 60;
-            var blue:int  = 40;
-            var rgb:uint = Color.rgb(red, green, blue);
+            var red:Number   = 80 / 255.0;
+            var green:Number = 60 / 255.0;
+            var blue:Number  = 40 / 255.0;
+            var rgb:uint = Color.rgb(red * 255, green * 255, blue * 255);
 
             vd.setColor(2, "color", rgb);
             vd.setAlpha(2, "color", alpha);
@@ -145,12 +151,12 @@ package tests.rendering
             assertEquals(1.0, vd.getAlpha(1, "color"));
             assertEquals(alpha, vd.getAlpha(2, "color"));
 
-            var data:ByteArray = vd.rawData;
-            var offset:int = (vd.vertexSizeInBytes * 2 + vd.getOffsetInBytes("color"));
+            var data:Vector.<Number> = vd.rawData;
+            var offset:int = vd.vertexSize * 2 + vd.getOffset("color");
 
-            assertEquals(data[offset  ], int(red   * alpha));
-            assertEquals(data[offset+1], int(green * alpha));
-            assertEquals(data[offset+2], int(blue  * alpha));
+            assertThat(data[offset  ], closeTo(red   * alpha, E));
+            assertThat(data[offset+1], closeTo(green * alpha, E));
+            assertThat(data[offset+2], closeTo(blue  * alpha, E));
 
             // changing the pma setting should update contents
 
@@ -166,9 +172,9 @@ package tests.rendering
             assertEquals(rgb, vd.getColor(2, "color"));
             assertEquals(alpha, vd.getAlpha(2, "color"));
 
-            assertEquals(data[offset  ], red);
-            assertEquals(data[offset+1], green);
-            assertEquals(data[offset+2], blue);
+            assertThat(data[offset  ], closeTo(red, E));
+            assertThat(data[offset+1], closeTo(green, E));
+            assertThat(data[offset+2], closeTo(blue, E));
         }
 
         [Test]
@@ -257,7 +263,7 @@ package tests.rendering
         [Test]
         public function testClone():void
         {
-            var vd1:VertexData = new VertexData(STD_FORMAT, 2);
+            var vd1:VertexData = new VertexData(STD_FORMAT);
             vd1.setPoint(0, "position", 1, 2);
             vd1.setColor(0, "color", 0xaabbcc);
             vd1.setPoint(0, "texCoords", 0.1, 0.2);
@@ -267,13 +273,13 @@ package tests.rendering
 
             var clone:VertexData = vd1.clone();
             assertEquals(vd1.numVertices, clone.numVertices);
-            Helpers.compareByteArrays(vd1.rawData, clone.rawData);
+            Helpers.compareVectorsOfNumbers(vd1.rawData, clone.rawData);
         }
 
         [Test]
         public function testCopyToWithIdenticalFormats():void
         {
-            var vd1:VertexData = new VertexData(STD_FORMAT, 2);
+            var vd1:VertexData = new VertexData(STD_FORMAT);
             vd1.setPoint(0, "position", 1, 2);
             vd1.setColor(0, "color", 0xaabbcc);
             vd1.setPoint(0, "texCoords", 0.1, 0.2);
@@ -281,21 +287,21 @@ package tests.rendering
             vd1.setColor(1, "color", 0x334455);
             vd1.setPoint(1, "texCoords", 0.3, 0.4);
 
-            var vd2:VertexData = new VertexData(STD_FORMAT, 2);
+            var vd2:VertexData = new VertexData(STD_FORMAT);
             vd1.copyTo(vd2);
 
-            Helpers.compareByteArrays(vd1.rawData, vd2.rawData);
+            Helpers.compareVectorsOfNumbers(vd1.rawData, vd2.rawData);
             assertEquals(vd1.numVertices, vd2.numVertices);
 
             vd1.copyTo(vd2, 2);
             assertEquals(4, vd2.numVertices);
 
-            vd1.rawData.position = 0;
-            vd2.rawData.position = vd2.vertexSizeInBytes * 2;
+            var pos1:int = 0;
+            var pos2:int = vd2.vertexSize * 2;
 
             for (var i:int=0; i<2; ++i)
-                for (var j:int=0; j<vd2.vertexSizeIn32Bits; ++j)
-                    assertEquals(vd1.rawData.readUnsignedInt(), vd2.rawData.readUnsignedInt());
+                for (var j:int=0; j<vd2.vertexSize; ++j)
+                    assertThat(vd1.rawData[pos1++], closeTo(vd2.rawData[pos2++], E));
         }
 
         [Test]
@@ -334,7 +340,7 @@ package tests.rendering
         [Test]
         public function testCopyToTransformedWithIdenticalFormats():void
         {
-            var format:String = "pos:float2, color:bytes4";
+            var format:String = "pos:float2, color:float4";
             var vd1:VertexData = new VertexData(format);
             vd1.setPoint(0, "pos", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
@@ -360,7 +366,7 @@ package tests.rendering
         [Test]
         public function testCopyToTransformedWithDifferentFormats():void
         {
-            var format:String = "color:bytes4, position:float2";
+            var format:String = "color:float4, position:float2";
             var vd1:VertexData = new VertexData(format);
             vd1.setPoint(0, "position", 10, 20);
             vd1.setColor(0, "color", 0xaabbcc);
@@ -419,7 +425,7 @@ package tests.rendering
             vd.setPoint(1, "position", p1.x, p1.y);
 
             vd.format = VertexDataFormat.fromString(
-                    "newCoords:float2, position:float2, newColor:bytes4");
+                    "newCoords:float2, position:float2, newColor:float4");
 
             Helpers.comparePoints(p0, vd.getPoint(0, "position"));
             Helpers.comparePoints(p1, vd.getPoint(1, "position"));

@@ -178,7 +178,7 @@ package starling.rendering
         {
             if (_vertexBuffer)
             {
-                if (vertexData.sizeIn32Bits <= _vertexBufferSize)
+                if (vertexData.size <= _vertexBufferSize)
                     vertexData.uploadToVertexBuffer(_vertexBuffer);
                 else
                     purgeBuffers(false, true);
@@ -186,7 +186,7 @@ package starling.rendering
             if (_vertexBuffer == null)
             {
                 _vertexBuffer = vertexData.createVertexBuffer(true);
-                _vertexBufferSize = vertexData.sizeIn32Bits;
+                _vertexBufferSize = vertexData.size;
             }
         }
 

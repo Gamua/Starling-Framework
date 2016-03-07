@@ -287,17 +287,14 @@ package starling.display
             indexData.addQuad(9, 10, 13, 14);
             indexData.addQuad(10, 11, 14, 15);
 
-            // if we just switched from a normal to a scale9 image, all vertices are colorized
-            // just like the first one; we also trim the data instances to optimize memory usage.
+            // if we just switched from a normal to a scale9 image,
+            // we need to colorize all vertices just like the first one.
 
             if (prevNumVertices != vertexData.numVertices)
             {
                 var color:uint   = prevNumVertices ? vertexData.getColor(0) : 0xffffff;
                 var alpha:Number = prevNumVertices ? vertexData.getAlpha(0) : 1.0;
-
                 vertexData.colorize("color", color, alpha);
-                vertexData.trim();
-                indexData.trim();
             }
 
             setRequiresRedraw();
