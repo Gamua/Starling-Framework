@@ -323,12 +323,14 @@ package starling.rendering
          *  you passed to the constructor, call this method to avoid the 4k memory problem. */
         public function trim():void
         {
-            sBytes.length = _rawData.length;
+            var numBytes:int = _numVertices * _vertexSize;
+
+            sBytes.length = numBytes;
             sBytes.position = 0;
-            sBytes.writeBytes(_rawData);
+            sBytes.writeBytes(_rawData, 0, numBytes);
 
             _rawData.clear();
-            _rawData.length = sBytes.length;
+            _rawData.length = numBytes;
             _rawData.writeBytes(sBytes);
 
             sBytes.clear();
@@ -929,19 +931,20 @@ package starling.rendering
         public function get numVertices():int { return _numVertices; }
         public function set numVertices(value:int):void
         {
-            if (_numVertices == value) return;
-
-            _rawData.length = value * _vertexSize;
-
-            for (var i:int=0; i<_numAttributes; ++i)
+            if (value > _numVertices)
             {
-                var attribute:VertexDataAttribute = _attributes[i];
-                if (attribute.isColor)
+                _rawData.length = value * _vertexSize;
+
+                for (var i:int=0; i<_numAttributes; ++i)
                 {
-                    // alpha values of all color-properties must be initialized with "1.0"
-                    var offset:int = attribute.offset + 3;
-                    for (var j:int=_numVertices; j<value; ++j)
-                        _rawData[j * _vertexSize + offset] = 0xff;
+                    var attribute:VertexDataAttribute = _attributes[i];
+                    if (attribute.isColor)
+                    {
+                        // alpha values of all color-properties must be initialized with "1.0"
+                        var offset:int = attribute.offset + 3;
+                        for (var j:int=_numVertices; j<value; ++j)
+                            _rawData[j * _vertexSize + offset] = 0xff;
+                    }
                 }
             }
 
