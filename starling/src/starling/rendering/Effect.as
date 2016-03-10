@@ -102,10 +102,11 @@ package starling.rendering
         public static const VERTEX_FORMAT:VertexDataFormat =
             VertexDataFormat.fromString("position:float2");
 
-        private var _indexBuffer:IndexBuffer3D;
-        private var _indexBufferSize:int;  // in number of indices
         private var _vertexBuffer:VertexBuffer3D;
         private var _vertexBufferSize:int; // in blocks of 32 bits
+        private var _indexBuffer:IndexBuffer3D;
+        private var _indexBufferSize:int;  // in number of indices
+        private var _indexBufferUsesQuadLayout:Boolean;
 
         private var _mvpMatrix3D:Matrix3D;
         private var _onRestore:Function;
@@ -138,19 +139,19 @@ package starling.rendering
             execute(_onRestore, this);
         }
 
-        /** Purges one or both of the index- and vertex-buffers. */
-        public function purgeBuffers(indexBuffer:Boolean=true, vertexBuffer:Boolean=true):void
+        /** Purges one or both of the vertex- and index-buffers. */
+        public function purgeBuffers(vertexBuffer:Boolean=true, indexBuffer:Boolean=true):void
         {
-            if (_indexBuffer && indexBuffer)
-            {
-                _indexBuffer.dispose();
-                _indexBuffer = null;
-            }
-
             if (_vertexBuffer && vertexBuffer)
             {
                 _vertexBuffer.dispose();
                 _vertexBuffer = null;
+            }
+
+            if (_indexBuffer && indexBuffer)
+            {
+                _indexBuffer.dispose();
+                _indexBuffer = null;
             }
         }
 
@@ -158,17 +159,28 @@ package starling.rendering
          *  small, a new one is created automatically. */
         public function uploadIndexData(indexData:IndexData):void
         {
+            var numIndices:int = indexData.numIndices;
+            var isQuadLayout:Boolean = indexData.useQuadLayout;
+            var wasQuadLayout:Boolean = _indexBufferUsesQuadLayout;
+
             if (_indexBuffer)
             {
-                if (indexData.numIndices <= _indexBufferSize)
-                    indexData.uploadToIndexBuffer(_indexBuffer);
+                if (numIndices <= _indexBufferSize)
+                {
+                    if (!isQuadLayout || !wasQuadLayout)
+                    {
+                        indexData.uploadToIndexBuffer(_indexBuffer);
+                        _indexBufferUsesQuadLayout = isQuadLayout && numIndices == _indexBufferSize;
+                    }
+                }
                 else
-                    purgeBuffers(true, false);
+                    purgeBuffers(false, true);
             }
             if (_indexBuffer == null)
             {
                 _indexBuffer = indexData.createIndexBuffer(true);
-                _indexBufferSize = indexData.numIndices;
+                _indexBufferSize = numIndices;
+                _indexBufferUsesQuadLayout = isQuadLayout;
             }
         }
 
@@ -181,7 +193,7 @@ package starling.rendering
                 if (vertexData.size <= _vertexBufferSize)
                     vertexData.uploadToVertexBuffer(_vertexBuffer);
                 else
-                    purgeBuffers(false, true);
+                    purgeBuffers(true, false);
             }
             if (_vertexBuffer == null)
             {
@@ -197,7 +209,7 @@ package starling.rendering
          *  <code>afterDraw</code>, in this order. */
         public function render(firstIndex:int=0, numTriangles:int=-1):void
         {
-            if (numTriangles < 0) numTriangles = indexBufferSize / 3;
+            if (numTriangles < 0) numTriangles = _indexBufferSize / 3;
             if (numTriangles == 0) return;
 
             var context:Context3D = Starling.context;
@@ -339,7 +351,7 @@ package starling.rendering
 
         /** The internally used index buffer used on rendering. */
         protected function get indexBuffer():IndexBuffer3D { return _indexBuffer; }
-        
+
         /** The current size of the index buffer (in number of indices). */
         protected function get indexBufferSize():int { return _indexBufferSize; }
 
