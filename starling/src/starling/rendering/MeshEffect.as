@@ -29,9 +29,9 @@ package starling.rendering
     public class MeshEffect extends FilterEffect
     {
         /** The vertex format expected by <code>uploadVertexData</code>:
-         *  <code>"position:float2, texCoords:float2, color:float4"</code> */
+         *  <code>"position:float2, texCoords:float2, color:bytes4"</code> */
         public static const VERTEX_FORMAT:VertexDataFormat =
-            FilterEffect.VERTEX_FORMAT.extend("color:float4");
+            FilterEffect.VERTEX_FORMAT.extend("color:bytes4");
 
         private var _alpha:Number;
 
@@ -105,7 +105,7 @@ package starling.rendering
         }
 
         /** The data format that this effect requires from the VertexData that it renders:
-         *  <code>"position:float2, texCoords:float2, color:float4"</code> */
+         *  <code>"position:float2, texCoords:float2, color:bytes4"</code> */
         override public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
 
         /** The alpha value of the object rendered by the effect. Must be taken into account

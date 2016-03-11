@@ -103,7 +103,7 @@ package starling.rendering
             VertexDataFormat.fromString("position:float2");
 
         private var _vertexBuffer:VertexBuffer3D;
-        private var _vertexBufferSize:int; // in blocks of 32 bits
+        private var _vertexBufferSize:int; // in bytes
         private var _indexBuffer:IndexBuffer3D;
         private var _indexBufferSize:int;  // in number of indices
         private var _indexBufferUsesQuadLayout:Boolean;

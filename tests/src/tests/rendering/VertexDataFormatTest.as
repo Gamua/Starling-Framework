@@ -17,25 +17,32 @@ package tests.rendering
 
     public class VertexDataFormatTest
     {
-        private static const STD_FORMAT:String = "position:float2, texCoords:float2, color:float4";
+        private static const STD_FORMAT:String = "position:float2, texCoords:float2, color:bytes4";
 
         [Test]
         public function testFormatParsing():void
         {
             var vdf:VertexDataFormat = VertexDataFormat.fromString(STD_FORMAT);
 
-            assertEquals( 2, vdf.getSize("position"));
-            assertEquals( 2, vdf.getSize("texCoords"));
+            assertEquals( 2, vdf.getSizeIn32Bits("position"));
+            assertEquals( 8, vdf.getSize("position"));
+            assertEquals( 2, vdf.getSizeIn32Bits("texCoords"));
+            assertEquals( 8, vdf.getSize("texCoords"));
+            assertEquals( 1, vdf.getSizeIn32Bits("color"));
             assertEquals( 4, vdf.getSize("color"));
-            assertEquals( 8, vdf.vertexSize);
+            assertEquals( 5, vdf.vertexSizeIn32Bits);
+            assertEquals(20, vdf.vertexSize);
 
             assertEquals("float2", vdf.getFormat("position"));
             assertEquals("float2", vdf.getFormat("texCoords"));
-            assertEquals("float4", vdf.getFormat("color"));
+            assertEquals("bytes4", vdf.getFormat("color"));
 
+            assertEquals( 0, vdf.getOffsetIn32Bits("position"));
             assertEquals( 0, vdf.getOffset("position"));
-            assertEquals( 2, vdf.getOffset("texCoords"));
-            assertEquals( 4, vdf.getOffset("color"));
+            assertEquals( 2, vdf.getOffsetIn32Bits("texCoords"));
+            assertEquals( 8, vdf.getOffset("texCoords"));
+            assertEquals( 4, vdf.getOffsetIn32Bits("color"));
+            assertEquals(16, vdf.getOffset("color"));
 
             assertEquals(STD_FORMAT, vdf.formatString);
         }
@@ -51,8 +58,8 @@ package tests.rendering
         [Test]
         public function testCaching():void
         {
-            var formatA:String = "  position :float2  ,color:  float4   ";
-            var formatB:String = "position:float2,color:float4";
+            var formatA:String = "  position :float2  ,color:  bytes4   ";
+            var formatB:String = "position:float2,color:bytes4";
 
             var vdfA:VertexDataFormat = VertexDataFormat.fromString(formatA);
             var vdfB:VertexDataFormat = VertexDataFormat.fromString(formatB);
@@ -63,8 +70,8 @@ package tests.rendering
         [Test]
         public function testNormalization():void
         {
-            var format:String = "   position :float2  ,color:  float4   ";
-            var normalizedFormat:String = "position:float2, color:float4";
+            var format:String = "   position :float2  ,color:  bytes4   ";
+            var normalizedFormat:String = "position:float2, color:bytes4";
             var vdf:VertexDataFormat = VertexDataFormat.fromString(format);
             assertEquals(normalizedFormat, vdf.formatString);
         }
