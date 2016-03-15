@@ -152,6 +152,7 @@ package starling.rendering
             effect.textureSmoothing = _textureSmoothing;
             effect.mvpMatrix3D = state.mvpMatrix3D;
             effect.alpha = state.alpha;
+            effect.tinted = _vertexData.tinted;
         }
 
         /** Indicates if the current instance can be batched with the given style.
@@ -335,6 +336,9 @@ package starling.rendering
 
             for (i=0; i<numVertices; ++i)
                 _vertexData.setColor(i, "color", value);
+
+            if (value == 0xffffff && _vertexData.tinted)
+                _vertexData.updateTinted();
 
             setRequiresRedraw();
         }

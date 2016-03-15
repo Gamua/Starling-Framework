@@ -12,6 +12,7 @@ package starling.rendering
 {
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
+    import flash.utils.getQualifiedClassName;
 
     import starling.utils.RenderUtil;
 
@@ -34,6 +35,8 @@ package starling.rendering
             FilterEffect.VERTEX_FORMAT.extend("color:bytes4");
 
         private var _alpha:Number;
+        private var _tinted:Boolean;
+        private var _optimizeIfNotTinted:Boolean;
 
         // helper objects
         private static var sRenderAlpha:Vector.<Number> = new Vector.<Number>(4, true);
@@ -41,7 +44,21 @@ package starling.rendering
         /** Creates a new MeshEffect instance. */
         public function MeshEffect()
         {
+            // Non-tinted meshes may be rendered with a simpler fragment shader, which brings
+            // a huge performance benefit on some low-end hardware. However, I don't want
+            // subclasses to become any more complicated because of this optimization (they
+            // probably use much long shaders, anyway), so I only apply this optimization if
+            // this is actually the "MeshEffect" class.
+
             _alpha = 1.0;
+            _optimizeIfNotTinted = getQualifiedClassName(this) == "starling.rendering::MeshEffect";
+        }
+
+        /** @private */
+        override protected function get programVariantName():uint
+        {
+            var optimizeTinting:uint = uint(!_tinted && _optimizeIfNotTinted);
+            return super.programVariantName | (optimizeTinting << 3);
         }
 
         /** @private */
@@ -51,6 +68,8 @@ package starling.rendering
 
             if (texture)
             {
+                if (!_tinted && _optimizeIfNotTinted) return super.createProgram();
+
                 vertexShader =
                     "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clip-space
                     "mov v0, va1      \n" + // pass texture coordinates to fragment program
@@ -92,7 +111,9 @@ package starling.rendering
 
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha);
-            vertexFormat.setVertexBufferAt(2, vertexBuffer, "color");
+
+            if (_tinted || !_optimizeIfNotTinted || texture == null)
+                vertexFormat.setVertexBufferAt(2, vertexBuffer, "color");
         }
 
         /** This method is called by <code>render</code>, directly after
@@ -112,5 +133,12 @@ package starling.rendering
          *  by all subclasses. */
         public function get alpha():Number { return _alpha; }
         public function set alpha(value:Number):void { _alpha = value; }
+
+        /** Indicates if the rendered vertices are tinted in any way, i.e. if there are vertices
+         *  that have a different color than fully opaque white. The base <code>MeshEffect</code>
+         *  class uses this information to simplify the fragment shader if possible. May be
+         *  ignored by subclasses. */
+        public function get tinted():Boolean { return _tinted; }
+        public function set tinted(value:Boolean):void { _tinted = value; }
     }
 }
