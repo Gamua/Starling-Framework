@@ -268,6 +268,46 @@ package starling.utils
             return result;
         }
 
+        /** Updates the given matrix so that it points exactly to pixel boundaries. This works
+         *  only if the object is unscaled and rotated by a multiple of 90 degrees.
+         *
+         *  @param matrix    The matrix to manipulate in place (normally the modelview matrix).
+         *  @param pixelSize The size (in points) that represents one pixel in the back buffer.
+         */
+        public static function snapToPixels(matrix:Matrix, pixelSize:Number):void
+        {
+            // Snapping only makes sense if the object is unscaled and rotated only by
+            // multiples of 90 degrees. If that's the case can be found out by looking
+            // at the modelview matrix.
+
+            const E:Number = 0.0001;
+
+            var doSnap:Boolean = false;
+            var aSq:Number, bSq:Number, cSq:Number, dSq:Number;
+
+            if (matrix.b + E > 0 && matrix.b - E < 0 && matrix.c + E > 0 && matrix.c - E < 0)
+            {
+                // what we actually want is 'Math.abs(matrix.a)', but squaring
+                // the value works just as well for our needs & is faster.
+
+                aSq = matrix.a * matrix.a;
+                dSq = matrix.d * matrix.d;
+                doSnap = aSq + E > 1 && aSq - E < 1 && dSq + E > 1 && dSq - E < 1;
+            }
+            else if (matrix.a + E > 0 && matrix.a - E < 0 && matrix.d + E > 0 && matrix.d - E < 0)
+            {
+                bSq = matrix.b * matrix.b;
+                cSq = matrix.c * matrix.c;
+                doSnap = bSq + E > 1 && bSq - E < 1 && cSq + E > 1 && cSq - E < 1;
+            }
+
+            if (doSnap)
+            {
+                matrix.tx = Math.round(matrix.tx / pixelSize) * pixelSize;
+                matrix.ty = Math.round(matrix.ty / pixelSize) * pixelSize;
+            }
+        }
+
         /** Creates a perspective projection matrix suitable for 2D and 3D rendering.
          *
          *  <p>The first 4 parameters define which area of the stage you want to view (the camera

@@ -17,6 +17,7 @@ package starling.display
     import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
+    import starling.utils.MatrixUtil;
     import starling.utils.MeshSubset;
 
     /** Combines a number of meshes to one display object and renders them efficiently.
@@ -207,11 +208,11 @@ package starling.display
          *  to the painter's current batch. Otherwise, this will actually do the drawing. */
         override public function render(painter:Painter):void
         {
-            if (_vertexData.numVertices == 0)
-            {
-                // nothing to do =)
-            }
-            else if (_batchable)
+            if (_vertexData.numVertices == 0) return;
+            if (_pixelSnapping) MatrixUtil.snapToPixels(
+                painter.state.modelviewMatrix, painter.pixelSize);
+
+            if (_batchable)
             {
                 painter.batchMesh(this);
             }

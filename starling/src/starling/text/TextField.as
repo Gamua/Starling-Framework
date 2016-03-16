@@ -109,6 +109,7 @@ package starling.text
 
             _meshBatch = new MeshBatch();
             _meshBatch.touchable = false;
+            _meshBatch.pixelSnapping = true;
             addChild(_meshBatch);
         }
         
@@ -405,6 +406,12 @@ package starling.text
                 setRequiresRecomposition();
             }
         }
+
+        /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
+         *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
+         *  @default true */
+        public function get pixelSnapping():Boolean { return _meshBatch.pixelSnapping; }
+        public function set pixelSnapping(value:Boolean):void { _meshBatch.pixelSnapping = value }
 
         /** The Context3D texture format that is used for rendering of all TrueType texts.
          *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good

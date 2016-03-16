@@ -21,7 +21,6 @@ package starling.display
     import starling.text.TextField;
     import starling.text.TextFormat;
     import starling.textures.Texture;
-    import starling.utils.RectangleUtil;
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
@@ -78,6 +77,7 @@ package starling.display
 
             _state = ButtonState.UP;
             _body = new Image(upState);
+            _body.pixelSnapping = true;
             _scaleWhenDown = downState ? 1.0 : 0.9;
             _scaleWhenOver = _alphaWhenDown = 1.0;
             _alphaWhenDisabled = disabledState ? 1.0: 0.5;
@@ -131,6 +131,7 @@ package starling.display
             if (_textField == null)
             {
                 _textField = new TextField(_textBounds.width, _textBounds.height);
+                _textField.pixelSnapping = _body.pixelSnapping;
                 _textField.touchable = false;
                 _textField.autoScale = true;
                 _textField.batchable = true;
@@ -383,6 +384,16 @@ package starling.display
          *  @default true */
         public override function get useHandCursor():Boolean { return _useHandCursor; }
         public override function set useHandCursor(value:Boolean):void { _useHandCursor = value; }
+
+        /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
+         *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
+         *  @default true */
+        public function get pixelSnapping():Boolean { return _body.pixelSnapping; }
+        public function set pixelSnapping(value:Boolean):void
+        {
+            _body.pixelSnapping = value;
+            if (_textField) _textField.pixelSnapping = value;
+        }
 
         /** @private */
         override public function set width(value:Number):void
