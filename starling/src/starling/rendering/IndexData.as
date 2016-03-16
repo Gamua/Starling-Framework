@@ -143,7 +143,9 @@ package starling.rendering
             if (target._numIndices < newNumIndices)
             {
                 target._numIndices = newNumIndices;
-                ensureQuadDataCapacity(newNumIndices);
+
+                if (sQuadData.length < newNumIndices * INDEX_SIZE)
+                    ensureQuadDataCapacity(newNumIndices);
             }
 
             if (_useQuadLayout)
