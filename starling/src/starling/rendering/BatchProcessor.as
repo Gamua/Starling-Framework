@@ -93,8 +93,8 @@ package starling.rendering
                     _batches[_batches.length] = _currentBatch;
                 }
 
-                var matrix:Matrix = state ? state.modelviewMatrix : null;
-                var alpha:Number  = state ? state.alpha : 1.0;
+                var matrix:Matrix = state ? state._modelviewMatrix : null;
+                var alpha:Number  = state ? state._alpha : 1.0;
 
                 _currentBatch.addMesh(mesh, matrix, alpha, subset, ignoreTransformations);
                 _cacheToken.vertexID += subset.numVertices;

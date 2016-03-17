@@ -273,8 +273,8 @@ package starling.rendering
         public function setStateTo(transformationMatrix:Matrix, alphaFactor:Number=1.0,
                                    blendMode:String="auto"):void
         {
-            if (transformationMatrix) _state.transformModelviewMatrix(transformationMatrix);
-            if (alphaFactor != 1.0) _state.alpha *= alphaFactor;
+            if (transformationMatrix) MatrixUtil.prependMatrix(state._modelviewMatrix, transformationMatrix);
+            if (alphaFactor != 1.0) _state._alpha *= alphaFactor;
             if (blendMode != BlendMode.AUTO) _state.blendMode = blendMode;
         }
 
