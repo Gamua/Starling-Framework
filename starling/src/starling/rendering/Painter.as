@@ -518,7 +518,8 @@ package starling.rendering
 
                     if (subset.numVertices)
                     {
-                        setStateTo(null, 1.0, meshBatch.blendMode);
+                        _state.alpha = 1.0;
+                        _state.blendMode = meshBatch.blendMode;
                         _batchProcessor.addMesh(meshBatch, _state, subset, true);
                     }
                 }
