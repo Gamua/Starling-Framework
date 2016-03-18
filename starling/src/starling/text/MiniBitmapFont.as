@@ -11,6 +11,7 @@
 package starling.text
 {
     import flash.display.BitmapData;
+    import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
 
@@ -276,7 +277,8 @@ package starling.text
         public static function get texture():Texture
         {
             var bitmapData:BitmapData = getBitmapData();
-            var texture:Texture = Texture.fromBitmapData(bitmapData, false);
+            var format:String = Context3DTextureFormat.BGRA_PACKED;
+            var texture:Texture = Texture.fromBitmapData(bitmapData, false, false, 1, format);
             bitmapData.dispose();
             bitmapData = null;
 
