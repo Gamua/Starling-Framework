@@ -74,14 +74,15 @@ package starling.display
          *  <p>Notes:</p>
          *
          *  <ul>
-         *  <li>Assigning a Scale9 rectangle will change the number of vertices to sixteen,
-         *  and all vertices will be colored like vertex 0 (the top left vertex).</li>
+         *  <li>Assigning a Scale9 rectangle will change the number of vertices to a maximum of 16
+         *  (less if possible) and all vertices will be colored like vertex 0 (the top left vertex).
+         *  </li>
          *  <li>An image can have either a <code>scale9Grid</code> or a <code>tileGrid</code>, but
          *  not both. Assigning one will delete the other.</li>
          *  <li>Changes will only be applied on assignment. To force an update, simply call
          *  <code>image.scale9Grid = image.scale9Grid</code>.</li>
-         *  <li>Furthermore, with a Scale9 rectangle assigned, any change of the texture will
-         *  implicitly call <code>readjustSize</code>.</li>
+         *  <li>Assignment causes an implicit call to <code>readjustSize()</code>,
+         *  and the same will happen when the texture is changed afterwards.</li>
          *  </ul>
          *
          *  @default null
@@ -94,6 +95,7 @@ package starling.display
                 if (_scale9Grid == null) _scale9Grid = value.clone();
                 else _scale9Grid.copyFrom(value);
 
+                readjustSize();
                 _tileGrid = null;
             }
             else _scale9Grid = null;
