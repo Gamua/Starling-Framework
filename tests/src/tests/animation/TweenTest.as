@@ -168,7 +168,7 @@ package tests.animation
             
             juggler.add(tween);
             
-            juggler.advanceTime(1.0);
+            juggler.advanceTime(1.1);
             assertThat(quad.x, closeTo(100, E));
             assertThat(tween.currentTime, closeTo(0, E));
             

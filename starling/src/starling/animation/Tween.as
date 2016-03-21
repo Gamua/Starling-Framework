@@ -231,6 +231,7 @@ package starling.animation
                     // executing 'onComplete'.
                     dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
                     if (onComplete != null) onComplete.apply(this, onCompleteArgs);
+                    if (mCurrentTime == 0) carryOverTime = 0; // tween was reset
                 }
             }
             
