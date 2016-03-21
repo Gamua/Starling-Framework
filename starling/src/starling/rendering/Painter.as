@@ -412,13 +412,13 @@ package starling.rendering
         }
 
         /** Figures out if the mask can be represented by a scissor rectangle; this is possible
-         *  if it's just a simple quad that is parallel to the stage axes. The 'out' parameter
-         *  will be filled with the transformation matrix required to move the mask into stage
-         *  coordinates. */
+         *  if it's just a simple (untextured) quad that is parallel to the stage axes. The 'out'
+         *  parameter will be filled with the transformation matrix required to move the mask into
+         *  stage coordinates. */
         private function isRectangularMask(mask:DisplayObject, out:Matrix):Boolean
         {
             var quad:Quad = mask as Quad;
-            if (quad && !quad.is3D && quad.style.type == MeshStyle)
+            if (quad && !quad.is3D && quad.texture == null)
             {
                 if (mask.stage) mask.getTransformationMatrix(null, out);
                 else
