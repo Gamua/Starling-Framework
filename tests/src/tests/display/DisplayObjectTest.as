@@ -222,7 +222,19 @@ package tests.display
             quad.scaleX = 1.0;
             quad.scaleY = 1.0;
             assertThat(quad.width, closeTo(100, E));
-            assertThat(quad.height, closeTo(200, E));            
+            assertThat(quad.height, closeTo(200, E));
+
+            // the same should work with width & height
+            quad = new Quad(100, 200);
+            quad.width = 0;
+            quad.height = 0;
+            assertThat(quad.width, closeTo(0, E));
+            assertThat(quad.height, closeTo(0, E));
+
+            quad.width = 50;
+            quad.height = 100;
+            assertThat(quad.scaleX, closeTo(0.5, E));
+            assertThat(quad.scaleY, closeTo(0.5, E));
         }
         
         [Test]

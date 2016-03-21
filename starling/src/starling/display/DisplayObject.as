@@ -843,10 +843,13 @@ package starling.display
         {
             // this method calls 'this.scaleX' instead of changing _scaleX directly.
             // that way, subclasses reacting on size changes need to override only the scaleX method.
-            
-            scaleX = 1.0;
-            var actualWidth:Number = width;
-            if (actualWidth != 0.0) scaleX = value / actualWidth;
+
+            var actualWidth:Number;
+
+            if (_scaleX == 0.0) { scaleX = 1.0; actualWidth = width; }
+            else actualWidth = width / _scaleX;
+
+            if (actualWidth) scaleX = value / actualWidth;
         }
         
         /** The height of the object in pixels.
@@ -855,9 +858,12 @@ package starling.display
         public function get height():Number { return getBounds(_parent, sHelperRect).height; }
         public function set height(value:Number):void
         {
-            scaleY = 1.0;
-            var actualHeight:Number = height;
-            if (actualHeight != 0.0) scaleY = value / actualHeight;
+            var actualHeight:Number;
+
+            if (_scaleY == 0.0) { scaleY = 1.0; actualHeight = height; }
+            else actualHeight = height / _scaleY;
+
+            if (actualHeight) scaleY = value / actualHeight;
         }
         
         /** The x coordinate of the object relative to the local coordinates of the parent. */

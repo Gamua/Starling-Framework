@@ -169,18 +169,6 @@ package starling.display
             }
         }
 
-        /** @private */
-        override public function set width(value:Number):void
-        {
-            if (_bounds.width) scaleX = value / _bounds.width;
-        }
-
-        /** @private */
-        override public function set height(value:Number):void
-        {
-            if (_bounds.height) scaleY = value / _bounds.height;
-        }
-
         /** Creates a quad from the given texture.
          *  The quad will have the same size as the texture. */
         public static function fromTexture(texture:Texture):Quad
