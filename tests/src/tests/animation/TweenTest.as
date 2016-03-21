@@ -165,7 +165,7 @@ package tests.animation
             
             juggler.add(tween);
             
-            juggler.advanceTime(1.0);
+            juggler.advanceTime(1.1);
             assertThat(quad.x, closeTo(100, E));
             assertThat(tween.currentTime, closeTo(0, E));
             
@@ -378,7 +378,7 @@ package tests.animation
             tween.advanceTime(0.5);
             assertThat(shape.rotation, closeTo(170, E));
         }
-        
+
         private function executeTween(time:Number, advanceTime:Number):void
         {
             var quad:Quad = new Quad(100, 100);
