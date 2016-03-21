@@ -279,11 +279,8 @@ package starling.display
                 sPosRows[2] *= correction;
             }
 
-            numVertices = setupScale9GridAttributes(sPadding.left, sPadding.top, sPosCols, sPosRows,
-                function(vertexID:int, x:Number, y:Number):void
-                {
-                    vertexData.setPoint(vertexID, "position", x, y);
-                });
+            numVertices = setupScale9GridAttributes(
+                sPadding.left, sPadding.top, sPosCols, sPosRows, setupScale9GridVertexPosition);
 
             // now set the texture coordinates
 
@@ -295,11 +292,7 @@ package starling.display
             sTexRows[2] = sBasRows[2] / pixelBounds.height;
             sTexRows[1] = 1.0 - sTexRows[0] - sTexRows[2];
 
-            setupScale9GridAttributes(0, 0, sTexCols, sTexRows,
-                function(vertexID:int, x:Number, y:Number):void
-                {
-                    texture.setTexCoords(vertexData, vertexID, "texCoords", x, y);
-                });
+            setupScale9GridAttributes(0, 0, sTexCols, sTexRows, setupScale9GridVertexTexCoords);
 
             // update indices
 
@@ -328,12 +321,26 @@ package starling.display
             setRequiresRedraw();
         }
 
+        private function setupScale9GridVertexPosition(vertexData:VertexData, texture:Texture,
+                                                       vertexID:int, x:Number, y:Number):void
+        {
+            vertexData.setPoint(vertexID, "position", x, y);
+        }
+
+        private function setupScale9GridVertexTexCoords(vertexData:VertexData, texture:Texture,
+                                                        vertexID:int, x:Number, y:Number):void
+        {
+            texture.setTexCoords(vertexData, vertexID, "texCoords", x, y);
+        }
+
         private function setupScale9GridAttributes(startX:Number, startY:Number,
                                                    colWidths:Vector.<Number>,
                                                    rowHeights:Vector.<Number>,
                                                    callback:Function):int
         {
             var row:int, col:int, colWidth:Number, rowHeight:Number;
+            var vertexData:VertexData = this.vertexData;
+            var texture:Texture = this.texture;
             var currentX:Number = startX;
             var currentY:Number = startY;
             var vertexID:int = 0;
@@ -348,10 +355,10 @@ package starling.display
                         colWidth = colWidths[col];
                         if (colWidth > 0)
                         {
-                            callback(vertexID++, currentX, currentY);
-                            callback(vertexID++, currentX + colWidth, currentY);
-                            callback(vertexID++, currentX, currentY + rowHeight);
-                            callback(vertexID++, currentX + colWidth, currentY + rowHeight);
+                            callback(vertexData, texture, vertexID++, currentX, currentY);
+                            callback(vertexData, texture, vertexID++, currentX + colWidth, currentY);
+                            callback(vertexData, texture, vertexID++, currentX, currentY + rowHeight);
+                            callback(vertexData, texture, vertexID++, currentX + colWidth, currentY + rowHeight);
                             currentX += colWidth;
                         }
                     }
