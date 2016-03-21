@@ -18,6 +18,7 @@ package starling.display
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
+    import starling.rendering.MeshStyle;
     import starling.text.TextField;
     import starling.text.TextFormat;
     import starling.textures.Texture;
@@ -296,6 +297,23 @@ package starling.display
             if (_textField == null) createTextField();
             _textField.format = value;
         }
+
+        /** The style that is used to render the button's TextField. */
+        public function get textStyle():MeshStyle
+        {
+            if (_textField == null) createTextField();
+            return _textField.style;
+        }
+
+        public function set textStyle(value:MeshStyle):void
+        {
+            if (_textField == null) createTextField();
+            _textField.style = value;
+        }
+
+        /** The style that is used to render the Button. */
+        public function get style():MeshStyle { return _body.style; }
+        public function set style(value:MeshStyle):void { _body.style = value; }
 
         /** The texture that is displayed when the button is not being touched. */
         public function get upState():Texture { return _upState; }

@@ -23,6 +23,7 @@ package starling.text
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.events.Event;
+    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.utils.RectangleUtil;
 
@@ -412,6 +413,10 @@ package starling.text
          *  @default true */
         public function get pixelSnapping():Boolean { return _meshBatch.pixelSnapping; }
         public function set pixelSnapping(value:Boolean):void { _meshBatch.pixelSnapping = value }
+
+        /** The style that is used to render the text's mesh. */
+        public function get style():MeshStyle { return _meshBatch.style; }
+        public function set style(value:MeshStyle):void { _meshBatch.style = value; }
 
         /** The Context3D texture format that is used for rendering of all TrueType texts.
          *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good
