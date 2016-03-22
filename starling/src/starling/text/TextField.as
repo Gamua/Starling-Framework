@@ -226,7 +226,8 @@ package starling.text
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = _format.color;
         }
 
-        private function setRequiresRecomposition():void
+        /** Forces the text to be recomposed before rendering it in the upcoming frame. */
+        protected function setRequiresRecomposition():void
         {
             _requiresRecomposition = true;
             setRequiresRedraw();
