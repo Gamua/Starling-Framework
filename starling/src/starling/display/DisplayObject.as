@@ -564,6 +564,17 @@ package starling.display
             }
         }
 
+        /** Indicates if the object needs to be redrawn in the upcoming frame, i.e. if it has
+         *  changed its location relative to the stage or some other aspect of its appearance
+         *  since it was last rendered. */
+        public function get requiresRedraw():Boolean
+        {
+            var frameID:uint = Starling.frameID;
+
+            return _lastParentOrSelfChangeFrameID == frameID ||
+                   _lastChildChangeFrameID == frameID;
+        }
+
         /** Indicates if this class supports the render cache.
          *  Subclasses that need to circumvent the cache have to override this method and call
          *  <code>updateSupportsRenderCache</code> whenever that boolean changes. Don't forget
