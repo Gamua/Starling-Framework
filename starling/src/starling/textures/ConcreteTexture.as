@@ -103,6 +103,13 @@ package starling.textures
          *  cropped or filled up with transparent pixels */
         public function uploadBitmapData(data:BitmapData):void
         {
+            if (!Starling.current.isRendering)
+            {
+                trace("[Starling] Warning: uploading bitmap data while Starling is not rendering " +
+                      "may cause a crash on some platforms. Ignoring request.");
+                return;
+            }
+
             var potData:BitmapData;
             
             if (data.width != mWidth || data.height != mHeight)

@@ -893,6 +893,12 @@ package starling.core
         
         /** Indicates if this Starling instance is started. */
         public function get isStarted():Boolean { return mStarted; }
+
+        /** Indicates if this instance is currently rendering its display list each frame.
+         *  Even when Starling was stopped, it might continue rendering; that's because the
+         *  classic display list is only updated when stage3D is. (If Starling stopped rendering,
+         *  conventional Flash contents would freeze, as well.) */
+        public function get isRendering():Boolean { return mRendering; }
         
         /** The default juggler of this instance. Will be advanced once per frame. */
         public function get juggler():Juggler { return mJuggler; }
