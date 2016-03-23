@@ -126,9 +126,19 @@ package starling.display
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             destroyBuffers();
-            
-            mVertexData.numVertices = 0;
-            mIndexData.length = 0;
+
+            if (mVertexData)
+            {
+                mVertexData.numVertices = 0;
+                mVertexData = null;
+            }
+
+            if (mIndexData)
+            {
+                mIndexData.length = 0;
+                mIndexData = null;
+            }
+
             mNumQuads = 0;
 
             if (mTexture && mOwnsTexture)
