@@ -203,6 +203,7 @@ package starling.text
             else
             {
                 // hit area doesn't change, and text bounds can be created on demand
+                _meshBatch.x = _meshBatch.y = 0;
                 _textBounds = null;
             }
         }
