@@ -98,6 +98,7 @@ package starling.rendering
         private var _state:RenderState;
         private var _stateStack:Vector.<RenderState>;
         private var _stateStackPos:int;
+        private var _stateStackLength:int;
 
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
@@ -135,6 +136,7 @@ package starling.rendering
             _state.onDrawRequired = finishMeshBatch;
             _stateStack = new <RenderState>[];
             _stateStackPos = -1;
+            _stateStackLength = 0;
         }
         
         /** Disposes all quad batches, programs, and - if it is not being shared -
@@ -257,7 +259,7 @@ package starling.rendering
         {
             _stateStackPos++;
 
-            if (_stateStack.length < _stateStackPos + 1) _stateStack[_stateStackPos] = new RenderState();
+            if (_stateStackLength < _stateStackPos + 1) _stateStack[_stateStackLength++] = new RenderState();
             if (token) _batchProcessor.fillToken(token);
 
             _stateStack[_stateStackPos].copyFrom(_state);
@@ -273,7 +275,7 @@ package starling.rendering
         public function setStateTo(transformationMatrix:Matrix, alphaFactor:Number=1.0,
                                    blendMode:String="auto"):void
         {
-            if (transformationMatrix) MatrixUtil.prependMatrix(state._modelviewMatrix, transformationMatrix);
+            if (transformationMatrix) MatrixUtil.prependMatrix(_state._modelviewMatrix, transformationMatrix);
             if (alphaFactor != 1.0) _state._alpha *= alphaFactor;
             if (blendMode != BlendMode.AUTO) _state.blendMode = blendMode;
         }
