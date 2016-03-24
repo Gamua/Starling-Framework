@@ -128,6 +128,25 @@ package starling.display
 
         // vertex manipulation
 
+        /** The position of the vertex at the specified index, in the mesh's local coordinate
+         *  system.
+         *
+         *  <p>Only modify the position of a vertex if you know exactly what you're doing, as
+         *  some classes might not work correctly when their vertices are moved. E.g. the
+         *  <code>Quad</code> class expects its vertices to spawn up a perfectly rectangular
+         *  area; some of its optimized methods won't work correctly if that premise is no longer
+         *  fulfilled or the original bounds change.</p>
+         */
+        public function getVertexPosition(vertexID:int, out:Point=null):Point
+        {
+            return _style.getVertexPosition(vertexID, out);
+        }
+
+        public function setVertexPosition(vertexID:int, x:Number, y:Number):void
+        {
+            _style.setVertexPosition(vertexID, x, y);
+        }
+
         /** Returns the alpha value of the vertex at the specified index. */
         public function getVertexAlpha(vertexID:int):Number
         {

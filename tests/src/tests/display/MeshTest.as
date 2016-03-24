@@ -142,6 +142,24 @@ package tests.display
         }
 
         [Test]
+        public function testVertexPosition():void
+        {
+            var vertexData:VertexData = new VertexData();
+            vertexData.numVertices = 3;
+
+            var indexData:IndexData = new IndexData();
+            indexData.addTriangle(0, 1, 2);
+
+            var mesh:Mesh = new Mesh(vertexData, indexData);
+            mesh.setVertexPosition(1, 1, 0);
+            mesh.setVertexPosition(2, 1, 1);
+
+            Helpers.comparePoints(mesh.getVertexPosition(0), new Point());
+            Helpers.comparePoints(mesh.getVertexPosition(1), new Point(1, 0));
+            Helpers.comparePoints(mesh.getVertexPosition(2), new Point(1, 1));
+        }
+
+        [Test]
         public function testHitTest():void
         {
             // +  0
