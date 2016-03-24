@@ -88,6 +88,28 @@ package starling.utils
 
             return argb(alpha, red, green, blue);
         }
+
+        /** Calculates a smooth transition between one color to the next.
+         *  <code>ratio</code> is expected between 0 and 1. */
+        public static function interpolate(startColor:uint, endColor:uint, ratio:Number):uint
+        {
+            var startA:uint = (startColor >> 24) & 0xff;
+            var startR:uint = (startColor >> 16) & 0xff;
+            var startG:uint = (startColor >>  8) & 0xff;
+            var startB:uint = (startColor      ) & 0xff;
+
+            var endA:uint = (endColor >> 24) & 0xff;
+            var endR:uint = (endColor >> 16) & 0xff;
+            var endG:uint = (endColor >>  8) & 0xff;
+            var endB:uint = (endColor      ) & 0xff;
+
+            var newA:uint = startA + (endA - startA) * ratio;
+            var newR:uint = startR + (endR - startR) * ratio;
+            var newG:uint = startG + (endG - startG) * ratio;
+            var newB:uint = startB + (endB - startB) * ratio;
+
+            return (newA << 24) | (newR << 16) | (newG << 8) | newB;
+        }
         
         /** @private */
         public function Color() { throw new AbstractClassError(); }
