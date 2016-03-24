@@ -68,10 +68,13 @@ package starling.rendering
         private var _initialCapacity:int;
         private var _useQuadLayout:Boolean;
 
+        // basic quad layout
+        private static var sQuadData:ByteArray = new ByteArray();
+        private static var sQuadDataNumIndices:uint = 0;
+
         // helper objects
         private static var sVector:Vector.<uint> = new <uint>[];
         private static var sTrimData:ByteArray = new ByteArray();
-        private static var sQuadData:ByteArray = new ByteArray();
 
         /** Creates an empty IndexData instance with the given capacity (in indices).
          *
@@ -144,7 +147,7 @@ package starling.rendering
             {
                 target._numIndices = newNumIndices;
 
-                if (sQuadData.length < newNumIndices * INDEX_SIZE)
+                if (sQuadDataNumIndices  < newNumIndices)
                     ensureQuadDataCapacity(newNumIndices);
             }
 
@@ -392,14 +395,15 @@ package starling.rendering
          *  made smaller. */
         private function ensureQuadDataCapacity(numIndices:int):void
         {
-            if (sQuadData.length >= numIndices * INDEX_SIZE) return;
+            if (sQuadDataNumIndices >= numIndices) return;
 
             var i:int;
-            var oldNumQuads:int = sQuadData.length / 12;
+            var oldNumQuads:int = sQuadDataNumIndices / 6;
             var newNumQuads:int = Math.ceil(numIndices / 6);
 
             sQuadData.endian = Endian.LITTLE_ENDIAN;
             sQuadData.position = sQuadData.length;
+            sQuadDataNumIndices = newNumQuads * 6;
 
             for (i = oldNumQuads; i < newNumQuads; ++i)
             {
