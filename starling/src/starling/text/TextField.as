@@ -88,6 +88,7 @@ package starling.text
         private var _requiresRecomposition:Boolean;
         private var _border:DisplayObjectContainer;
         private var _meshBatch:MeshBatch;
+        private var _style:MeshStyle;
 
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
@@ -182,6 +183,7 @@ package starling.text
             _options.textureFormat = sDefaultTextureFormat;
             _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
 
+            if (_style) _meshBatch.style = _style;
             if (_autoSize != TextFieldAutoSize.NONE)
             {
                 _textBounds = _meshBatch.getBounds(_meshBatch, _textBounds);
@@ -417,7 +419,11 @@ package starling.text
 
         /** The style that is used to render the text's mesh. */
         public function get style():MeshStyle { return _meshBatch.style; }
-        public function set style(value:MeshStyle):void { _meshBatch.style = value; }
+        public function set style(value:MeshStyle):void
+        {
+            _style = value;
+            setRequiresRecomposition();
+        }
 
         /** The Context3D texture format that is used for rendering of all TrueType texts.
          *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good
