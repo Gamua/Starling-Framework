@@ -179,6 +179,7 @@ package starling.text
             if (isHorizontalAutoSize && !_options.isHtmlText) width = 100000;
             if (isVerticalAutoSize) height = 100000;
 
+            _meshBatch.x = _meshBatch.y = 0;
             _options.textureScale = Starling.contentScaleFactor;
             _options.textureFormat = sDefaultTextureFormat;
             _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
@@ -203,7 +204,6 @@ package starling.text
             else
             {
                 // hit area doesn't change, and text bounds can be created on demand
-                _meshBatch.x = _meshBatch.y = 0;
                 _textBounds = null;
             }
         }
