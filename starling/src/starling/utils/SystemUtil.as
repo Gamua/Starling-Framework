@@ -25,6 +25,7 @@ package starling.utils
         private static var sApplicationActive:Boolean = true;
         private static var sWaitingCalls:Array = [];
         private static var sPlatform:String;
+        private static var sDesktop:Boolean;
         private static var sVersion:String;
         private static var sAIR:Boolean;
         private static var sSupportsDepthAndStencil:Boolean = true;
@@ -41,7 +42,8 @@ package starling.utils
             sInitialized = true;
             sPlatform = Capabilities.version.substr(0, 3);
             sVersion = Capabilities.version.substr(4);
-            
+            sDesktop = /(WIN|MAC|LNX)/.exec(sPlatform) != null;
+
             try
             {
                 var nativeAppClass:Object = getDefinitionByName("flash.desktop::NativeApplication");
@@ -117,7 +119,7 @@ package starling.utils
         public static function get isDesktop():Boolean
         {
             initialize();
-            return /(WIN|MAC|LNX)/.exec(sPlatform) != null;
+            return sDesktop;
         }
         
         /** Returns the three-letter platform string of the current system. These are
