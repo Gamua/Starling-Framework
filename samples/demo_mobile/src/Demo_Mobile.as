@@ -16,7 +16,6 @@ package
 
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.textures.RenderTexture;
     import starling.utils.AssetManager;
     import starling.utils.RectangleUtil;
     import starling.utils.ScaleMode;
@@ -54,10 +53,11 @@ package
 
             Starling.multitouchEnabled = true; // useful on mobile devices
 
-            _starling = new Starling(Game, stage, viewPort, null, "auto", "auto");
+            _starling = new Starling(Game, stage, viewPort);
             _starling.stage.stageWidth    = StageWidth;  // <- same size on all devices!
             _starling.stage.stageHeight   = StageHeight; // <- same size on all devices!
             _starling.enableErrorChecking = Capabilities.isDebugger;
+            _starling.skipUnchangedFrames = true;
             _starling.simulateMultitouch  = false;
             _starling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
             {

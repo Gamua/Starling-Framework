@@ -10,12 +10,14 @@
 
 package starling.core
 {
+    import flash.display.DisplayObjectContainer;
     import flash.display.Shape;
     import flash.display.Sprite;
     import flash.display.Stage3D;
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.display3D.Context3D;
+    import flash.display3D.Context3DProfile;
     import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
     import flash.events.Event;
@@ -205,12 +207,14 @@ package starling.core
         private var _started:Boolean;
         private var _rendering:Boolean;
         private var _supportHighResolutions:Boolean;
+        private var _skipUnchangedFrames:Boolean;
         
         private var _viewPort:Rectangle;
         private var _previousViewPort:Rectangle;
         private var _clippedViewPort:Rectangle;
 
         private var _nativeStage:flash.display.Stage;
+        private var _nativeStageEmpty:Boolean;
         private var _nativeOverlay:Sprite;
 
         private static var sCurrent:Starling;
@@ -413,7 +417,7 @@ package starling.core
             _stage.advanceTime(passedTime);
             _juggler.advanceTime(passedTime);
         }
-        
+
         /** Renders the complete display list. Before rendering, the context is cleared; afterwards,
          *  it is presented (to avoid this, enable <code>shareContext</code>).
          *
@@ -427,33 +431,37 @@ package starling.core
             
             makeCurrent();
             updateViewPort();
-            dispatchEventWith(starling.events.Event.RENDER);
 
-            var shareContext:Boolean = _painter.shareContext;
-            var scaleX:Number = _viewPort.width  / _stage.stageWidth;
-            var scaleY:Number = _viewPort.height / _stage.stageHeight;
+            if (_stage.requiresRedraw || mustAlwaysRender)
+            {
+                dispatchEventWith(starling.events.Event.RENDER);
 
-            _painter.nextFrame();
-            _painter.pixelSize = 1.0 / contentScaleFactor;
-            _painter.state.setProjectionMatrix(
-                _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
-                _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,
-                _clippedViewPort.width  / scaleX,
-                _clippedViewPort.height / scaleY,
-                _stage.stageWidth, _stage.stageHeight, _stage.cameraPosition);
-            
-            if (!shareContext)
-                _painter.clear(_stage.color, 1.0);
-            
-            _stage.render(_painter);
-            _painter.finishFrame();
-            _painter.frameID = ++_frameID;
+                var shareContext:Boolean = _painter.shareContext;
+                var scaleX:Number = _viewPort.width  / _stage.stageWidth;
+                var scaleY:Number = _viewPort.height / _stage.stageHeight;
 
-            if (_statsDisplay)
-                _statsDisplay.drawCount = _painter.drawCount;
-            
-            if (!shareContext)
-                _painter.present();
+                _painter.nextFrame();
+                _painter.pixelSize = 1.0 / contentScaleFactor;
+                _painter.state.setProjectionMatrix(
+                    _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
+                    _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,
+                    _clippedViewPort.width  / scaleX,
+                    _clippedViewPort.height / scaleY,
+                    _stage.stageWidth, _stage.stageHeight, _stage.cameraPosition);
+
+                if (!shareContext)
+                    _painter.clear(_stage.color, 1.0);
+
+                _stage.render(_painter);
+                _painter.finishFrame();
+                _painter.frameID = ++_frameID;
+
+                if (_statsDisplay)
+                    _statsDisplay.drawCount = _painter.drawCount;
+
+                if (!shareContext)
+                    _painter.present();
+            }
         }
         
         private function updateViewPort(forceUpdate:Boolean=false):void
@@ -641,11 +649,11 @@ package starling.core
         {
             _touchProcessor.enqueueMouseLeftStage();
         }
-        
+
         private function onTouch(event:Event):void
         {
             if (!_started) return;
-            
+
             var globalX:Number;
             var globalY:Number;
             var touchID:int;
@@ -653,7 +661,7 @@ package starling.core
             var pressure:Number = 1.0;
             var width:Number = 1.0;
             var height:Number = 1.0;
-            
+
             // figure out general touch properties
             if (event is MouseEvent)
             {
@@ -661,7 +669,7 @@ package starling.core
                 globalX = mouseEvent.stageX;
                 globalY = mouseEvent.stageY;
                 touchID = 0;
-                
+
                 // MouseEvent.buttonDown returns true for both left and right button (AIR supports
                 // the right mouse button). We only want to react on the left button for now,
                 // so we have to save the state for the left button manually.
@@ -671,11 +679,11 @@ package starling.core
             else
             {
                 var touchEvent:TouchEvent = event as TouchEvent;
-            
+
                 // On a system that supports both mouse and touch input, the primary touch point
                 // is dispatched as mouse event as well. Since we don't want to listen to that
                 // event twice, we ignore the primary touch in that case.
-                
+
                 if (Mouse.supportsCursor && touchEvent.isPrimaryTouchPoint) return;
                 else
                 {
@@ -687,7 +695,7 @@ package starling.core
                     height   = touchEvent.sizeY;
                 }
             }
-            
+
             // figure out touch phase
             switch (event.type)
             {
@@ -696,35 +704,70 @@ package starling.core
                 case TouchEvent.TOUCH_END:   phase = TouchPhase.ENDED; break;
                 case MouseEvent.MOUSE_DOWN:  phase = TouchPhase.BEGAN; break;
                 case MouseEvent.MOUSE_UP:    phase = TouchPhase.ENDED; break;
-                case MouseEvent.MOUSE_MOVE: 
+                case MouseEvent.MOUSE_MOVE:
                     phase = (_leftMouseDown ? TouchPhase.MOVED : TouchPhase.HOVER); break;
             }
-            
+
             // move position into viewport bounds
             globalX = _stage.stageWidth  * (globalX - _viewPort.x) / _viewPort.width;
             globalY = _stage.stageHeight * (globalY - _viewPort.y) / _viewPort.height;
-            
+
             // enqueue touch in touch processor
             _touchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
-            
+
             // allow objects that depend on mouse-over state to be updated immediately
             if (event.type == MouseEvent.MOUSE_UP && Mouse.supportsCursor)
                 _touchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
-        
+
         private function get touchEventTypes():Array
         {
             var types:Array = [];
-            
+
             if (multitouchEnabled)
                 types.push(TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END);
-            
+
             if (!multitouchEnabled || Mouse.supportsCursor)
                 types.push(MouseEvent.MOUSE_DOWN,  MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP);
-                
+
             return types;
         }
-        
+
+        private function get mustAlwaysRender():Boolean
+        {
+            // On mobile, and in some browsers with the "baselineConstrained" profile, the
+            // standard display list is only rendered after calling "context.present()".
+            // In such a case, we cannot omit frames if there is any content on the stage.
+
+            if (!_skipUnchangedFrames || _painter.shareContext)
+                return true;
+            else if (SystemUtil.isDesktop && profile != Context3DProfile.BASELINE_CONSTRAINED)
+                return false;
+            else
+            {
+                var numStageChildren:int = _nativeStage.numChildren;
+                var nativeStageEmpty:Boolean = true;
+                var child:DisplayObjectContainer;
+                var mustAlwaysRender:Boolean;
+
+                for (var i:int=0; i<numStageChildren; ++i)
+                {
+                    child = _nativeStage.getChildAt(i) as DisplayObjectContainer;
+                    if (child == null || child.numChildren)
+                    {
+                        nativeStageEmpty = false;
+                        break;
+                    }
+                }
+
+                // to be able to skip rendering, the stage must be empty in the previous frame, too
+                mustAlwaysRender = !nativeStageEmpty || !_nativeStageEmpty;
+                _nativeStageEmpty = nativeStageEmpty;
+
+                return mustAlwaysRender;
+            }
+        }
+
         // properties
         
         /** Indicates if this Starling instance is started. */
@@ -910,6 +953,24 @@ package starling.core
                 _supportHighResolutions = value;
                 if (contextValid) updateViewPort(true);
             }
+        }
+
+        /** When enabled, Starling will skip rendering the stage if it hasn't changed since the last
+         *  frame. This is great for apps that sometimes remain static, since it will greatly reduce
+         *  power consumption. If you use Render- or VideoTextures, though, you either have to
+         *  disable this property while they are active, or call <code>setRequiresRedraw()</code>
+         *  on the respective display objects whenever those textures are changing.
+         *
+         *  <p>Note that masks currently prevent any frame skipping.
+         *  This will probably be fixed in a future release.</p>
+         *
+         *  @default false
+         */
+        public function get skipUnchangedFrames():Boolean { return _skipUnchangedFrames; }
+        public function set skipUnchangedFrames(value:Boolean):void
+        {
+            _skipUnchangedFrames = value;
+            _nativeStageEmpty = false; // required by 'mustAlwaysRender'
         }
         
         /** The TouchProcessor is passed all mouse and touch input and is responsible for

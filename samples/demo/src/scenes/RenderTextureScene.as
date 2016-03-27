@@ -75,6 +75,9 @@ package scenes
                     _brush.rotation = Math.random() * Math.PI * 2.0;
                     
                     _renderTexture.draw(_brush);
+
+                    // necessary because 'Starling.skipUnchangedFrames == true'
+                    setRequiresRedraw();
                 }
             });
         }

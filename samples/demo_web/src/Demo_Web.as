@@ -47,8 +47,9 @@ package
 
             Starling.multitouchEnabled = true; // for Multitouch Scene
 
-            _starling = new Starling(Game, stage, null, null, "auto", "auto");
+            _starling = new Starling(Game, stage);
             _starling.simulateMultitouch = true;
+            _starling.skipUnchangedFrames = true;
             _starling.enableErrorChecking = Capabilities.isDebugger;
             _starling.addEventListener(Event.ROOT_CREATED, function():void
             {
