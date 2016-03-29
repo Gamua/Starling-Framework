@@ -143,7 +143,7 @@ package starling.rendering
          *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
          *  usage of your VertexData instances.</p>
          */
-        public function VertexData(format:*=null, initialCapacity:int=4)
+        public function VertexData(format:*=null, initialCapacity:int=32)
         {
             if (format == null) _format = MeshStyle.VERTEX_FORMAT;
             else if (format is VertexDataFormat) _format = format;
