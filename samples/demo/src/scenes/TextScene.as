@@ -19,17 +19,17 @@ package scenes
             
             var offset:int = 10;
             var ttFont:String = "Ubuntu";
-            var ttFontSize:int = 19; 
-            
+            var ttFontSize:int = 19;
+
             var colorTF:TextField = new TextField(300, 80, 
                 "TextFields can have a border and a color. They can be aligned in different ways, ...");
-            colorTF.format = new TextFormat(ttFont, ttFontSize, 0x33399);
+            colorTF.format.setTo(ttFont, ttFontSize, 0x33399);
             colorTF.x = colorTF.y = offset;
             colorTF.border = true;
             addChild(colorTF);
             
             var leftTF:TextField = new TextField(145, 80, "... e.g.\ntop-left ...");
-            leftTF.format = new TextFormat(ttFont, ttFontSize, 0x993333);
+            leftTF.format.setTo(ttFont, ttFontSize, 0x993333);
             leftTF.format.horizontalAlign = Align.LEFT;
             leftTF.format.verticalAlign = Align.TOP;
             leftTF.x = offset;
@@ -38,7 +38,7 @@ package scenes
             addChild(leftTF);
             
             var rightTF:TextField = new TextField(145, 80, "... or\nbottom right ...");
-            rightTF.format = new TextFormat(ttFont, ttFontSize, 0x208020);
+            rightTF.format.setTo(ttFont, ttFontSize, 0x208020);
             rightTF.format.horizontalAlign = Align.RIGHT;
             rightTF.format.verticalAlign = Align.BOTTOM;
             rightTF.border = true;
@@ -52,10 +52,9 @@ package scenes
                 "<font color='#993333'>basic</font> " +
                 "<font color='#333399'>HTML</font> " +
                 "<font color='#208020'>formatting</font>.");
-            fontTF.format = new TextFormat(ttFont, ttFontSize);
+            fontTF.format.setTo(ttFont, ttFontSize);
             fontTF.x = offset;
             fontTF.y = leftTF.y + leftTF.height + offset;
-            fontTF.format.bold = true;
             fontTF.border = true;
             fontTF.isHtmlText = true;
             addChild(fontTF);
