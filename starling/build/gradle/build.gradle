@@ -141,7 +141,7 @@ task compile(type: JavaExec) {
     def airConfig = "${AIR_HOME}" + '/frameworks/air-config.xml'
     def loadAirConfig = '-load-config+='+"${airConfig}";
     argsList.push(loadAirConfig)
-    argsList.push('-target-player=19.0')
+    argsList.push('-target-player=21.0')
     argsList.push('-swf-version=31')
     args = argsList
 }
@@ -158,7 +158,7 @@ task compileTest(type: JavaExec) {
     argsList.push("-output=${buildDir}/tests.swf")
     argsList.push("-library-path+=${binDir}");
     argsList.push("-library-path+=${FLEX_HOME}/frameworks/libs");
-    argsList.push('-target-player=19.0')
+    argsList.push('-target-player=21.0')
     argsList.push('-swf-version=31')
     argsList.push('-static-link-runtime-shared-libraries=true')
     args = argsList
