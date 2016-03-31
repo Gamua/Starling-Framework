@@ -37,10 +37,7 @@ package starling.text
 
         /** Creates a new TrueTypeCompositor instance. */
         public function TrueTypeCompositor()
-        {
-            if (sEmbeddedFonts == null)
-                sEmbeddedFonts = Font.enumerateFonts(false);
-        }
+        { }
 
         /** @inheritDoc */
         public function fillMeshBatch(meshBatch:MeshBatch, width:Number, height:Number, text:String,
@@ -97,6 +94,7 @@ package starling.text
             format.toNativeFormat(sNativeFormat);
 
             sNativeFormat.size = Number(sNativeFormat.size) * options.textureScale;
+            sNativeTextField.embedFonts = isEmbeddedFont(format);
             sNativeTextField.defaultTextFormat = sNativeFormat;
             sNativeTextField.width  = scaledWidth;
             sNativeTextField.height = scaledHeight;
@@ -107,8 +105,6 @@ package starling.text
 
             if (options.isHtmlText) sNativeTextField.htmlText = text;
             else                    sNativeTextField.text     = text;
-
-            sNativeTextField.embedFonts = isEmbeddedFont(format);
 
             if (options.autoScale)
                 autoScaleNativeTextField(sNativeTextField, text, options.isHtmlText);
@@ -170,8 +166,17 @@ package starling.text
             }
         }
 
+        /** Updates the list of embedded fonts. To be called when a font is loaded at runtime. */
+        public static function updateEmbeddedFonts():void
+        {
+            sEmbeddedFonts = null; // will be updated in 'isEmbeddedFont()'
+        }
+
         private static function isEmbeddedFont(format:TextFormat):Boolean
         {
+            if (sEmbeddedFonts == null)
+                sEmbeddedFonts = Font.enumerateFonts(false);
+
             for each (var font:Font in sEmbeddedFonts)
             {
                 var style:String = font.fontStyle;

@@ -436,6 +436,13 @@ package starling.text
             sDefaultTextureFormat = value;
         }
 
+        /** Updates the list of embedded fonts. Call this method when you loaded a TrueType font
+         *  at runtime so that Starling can recognize it as such. */
+        public static function updateEmbeddedFonts():void
+        {
+            TrueTypeCompositor.updateEmbeddedFonts();
+        }
+
         /** Makes a bitmap font available at any TextField in the current stage3D context.
          *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you

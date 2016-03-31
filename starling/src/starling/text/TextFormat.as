@@ -108,7 +108,10 @@ package starling.text
         }
 
         /** The name of the font. TrueType fonts will be looked up from embedded fonts and
-         *  system fonts; bitmap fonts must be registered at the TextField class first. */
+         *  system fonts; bitmap fonts must be registered at the TextField class first.
+         *  Beware: If you loaded an embedded font at runtime, you must call
+         *  <code>TextField.updateEmbeddedFonts()</code> for Starling to recognize it.
+         */
         public function get font():String { return _font; }
         public function set font(value:String):void
         {
