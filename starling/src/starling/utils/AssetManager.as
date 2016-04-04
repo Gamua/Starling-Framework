@@ -1264,6 +1264,12 @@ package starling.utils
          *  <code>Context3DTextureFormat</code> assigned to this property. @default "bgra" */
         public function get textureFormat():String { return _defaultTextureOptions.format; }
         public function set textureFormat(value:String):void { _defaultTextureOptions.format = value; }
+
+        /** Indicates if the underlying Stage3D textures should be created as the power-of-two based
+         *  <code>Texture</code> class instead of the more memory efficient <code>RectangleTexture</code>.
+         *  @default false */
+        public function get forcePotTextures():Boolean { return _defaultTextureOptions.forcePotTexture; }
+        public function set forcePotTextures(value:Boolean):void { _defaultTextureOptions.forcePotTexture = value; }
         
         /** Specifies whether a check should be made for the existence of a URL policy file before
          *  loading an object from a remote server. More information about this topic can be found 
