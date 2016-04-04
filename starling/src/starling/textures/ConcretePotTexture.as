@@ -108,6 +108,9 @@ package starling.textures
         }
 
         /** @inheritDoc */
+        override public function get isPotTexture():Boolean { return true; }
+
+        /** @inheritDoc */
         override public function uploadAtfData(data:ByteArray, offset:int = 0, async:* = null):void
         {
             var isAsync:Boolean = async is Function || async === true;

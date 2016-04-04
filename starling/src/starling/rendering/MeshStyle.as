@@ -99,6 +99,7 @@ package starling.rendering
         private var _texture:Texture;
         private var _textureBase:TextureBase;
         private var _textureSmoothing:String;
+        private var _textureRepeat:Boolean;
         private var _vertexData:VertexData;   // just a reference to the target's vertex data
         private var _indexData:IndexData;     // just a reference to the target's index data
 
@@ -120,6 +121,7 @@ package starling.rendering
         {
             _texture = meshStyle._texture;
             _textureBase = meshStyle._textureBase;
+            _textureRepeat = meshStyle._textureRepeat;
             _textureSmoothing = meshStyle._textureSmoothing;
         }
 
@@ -149,6 +151,7 @@ package starling.rendering
         public function updateEffect(effect:MeshEffect, state:RenderState):void
         {
             effect.texture = _texture;
+            effect.textureRepeat = _textureRepeat;
             effect.textureSmoothing = _textureSmoothing;
             effect.mvpMatrix3D = state.mvpMatrix3D;
             effect.alpha = state.alpha;
@@ -169,7 +172,8 @@ package starling.rendering
                 if (_texture == null && newTexture == null) return true;
                 else if (_texture && newTexture)
                     return _textureBase == meshStyle._textureBase &&
-                           _textureSmoothing == meshStyle._textureSmoothing;
+                           _textureSmoothing == meshStyle._textureSmoothing &&
+                           _textureRepeat == meshStyle._textureRepeat;
                 else return false;
             }
             else return false;
@@ -403,6 +407,11 @@ package starling.rendering
                 setRequiresRedraw();
             }
         }
+
+        /** Indicates if pixels at the edges will be repeated or clamped.
+         *  Only works for power-of-two textures. @default false */
+        public function get textureRepeat():Boolean { return _textureRepeat; }
+        public function set textureRepeat(value:Boolean):void { _textureRepeat = value; }
 
         /** The target the style is currently assigned to. */
         public function get target():Mesh { return _target; }

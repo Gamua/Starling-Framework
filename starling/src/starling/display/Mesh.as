@@ -221,6 +221,12 @@ package starling.display
         public function get textureSmoothing():String { return _style.textureSmoothing; }
         public function set textureSmoothing(value:String):void { _style.textureSmoothing = value; }
 
+        /** Indicates if pixels at the edges will be repeated or clamped. Only works for
+         *  power-of-two textures; for a solution that works with all kinds of textures,
+         *  see <code>Image.tileGrid</code>. @default false */
+        public function get textureRepeat():Boolean { return _style.textureRepeat; }
+        public function set textureRepeat(value:Boolean):void { _style.textureRepeat = value; }
+
         /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
          *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
          *  @default false */

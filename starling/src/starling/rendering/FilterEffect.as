@@ -96,7 +96,8 @@ package starling.rendering
 
             if (_texture)
             {
-                RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, _textureRepeat);
+                var repeat:Boolean = _textureRepeat && _texture.root.isPotTexture;
+                RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, repeat);
                 context.setTextureAt(0, _texture.base);
                 vertexFormat.setVertexBufferAt(1, vertexBuffer, "texCoords");
             }
@@ -127,10 +128,8 @@ package starling.rendering
         public function get textureSmoothing():String { return _textureSmoothing; }
         public function set textureSmoothing(value:String):void { _textureSmoothing = value; }
 
-        /** Indicates how the pixels of the texture will be wrapped at the edge.
-         *  If enabled, the texture will produce a repeating pattern; otherwise, the outermost
-         *  pixels will repeat. Unfortunately, this only works for power-of-two textures.
-         *  @default false */
+        /** Indicates if pixels at the edges will be repeated or clamped.
+         *  Only works for power-of-two textures. @default false */
         public function get textureRepeat():Boolean { return _textureRepeat; }
         public function set textureRepeat(value:Boolean):void { _textureRepeat = value; }
     }
