@@ -21,15 +21,18 @@ package starling.textures
         private var _mipMapping:Boolean;
         private var _optimizeForRenderToTexture:Boolean = false;
         private var _premultipliedAlpha:Boolean;
+        private var _forcePotTexture:Boolean;
         private var _onReady:Function = null;
 
         /** Creates a new instance with the given options. */
         public function TextureOptions(scale:Number=1.0, mipMapping:Boolean=false, 
-                                       format:String="bgra", premultipliedAlpha:Boolean=true)
+                                       format:String="bgra", premultipliedAlpha:Boolean=true,
+                                       forcePotTexture:Boolean=false)
         {
             _scale = scale;
             _format = format;
             _mipMapping = mipMapping;
+            _forcePotTexture = forcePotTexture;
             _premultipliedAlpha = premultipliedAlpha;
         }
         
@@ -63,7 +66,14 @@ package starling.textures
         /** Indicates if the texture will be used as render target. */
         public function get optimizeForRenderToTexture():Boolean { return _optimizeForRenderToTexture; }
         public function set optimizeForRenderToTexture(value:Boolean):void { _optimizeForRenderToTexture = value; }
-     
+
+        /** Indicates if the underlying Stage3D texture should be created as the power-of-two based
+         *  <code>Texture</code> class instead of the more memory efficient <code>RectangleTexture</code>.
+         *  That might be useful when you need render the texture with wrap mode <code>repeat</code>.
+         *  @default false */
+        public function get forcePotTexture():Boolean { return _forcePotTexture; }
+        public function set forcePotTexture(value:Boolean):void { _forcePotTexture = value; }
+
         /** A callback that is used only for ATF textures; if it is set, the ATF data will be
          *  decoded asynchronously. The texture can only be used when the callback has been
          *  executed. This property is ignored for all other texture types (they are ready

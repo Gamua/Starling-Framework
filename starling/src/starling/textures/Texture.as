@@ -164,13 +164,13 @@ package starling.textures
             {
                 return fromEmbeddedAsset(data as Class,
                     options.mipMapping, options.optimizeForRenderToTexture,
-                    options.scale, options.format);
+                    options.scale, options.format, options.forcePotTexture);
             }
             else if (data is BitmapData)
             {
                 return fromBitmapData(data as BitmapData,
                     options.mipMapping, options.optimizeForRenderToTexture,
-                    options.scale, options.format);
+                    options.scale, options.format, options.forcePotTexture);
             }
             else if (data is ByteArray)
             {
@@ -224,13 +224,18 @@ package starling.textures
          *  @param mipMapping  for Bitmaps, indicates if mipMaps will be created;
          *                     for ATF data, indicates if the contained mipMaps will be used.
          *  @param optimizeForRenderToTexture  indicates if this texture will be used as
-         *                     render target
-         *  @param scale    the scale factor of the created texture.
-         *  @param format   the context3D texture format to use. Ignored for ATF data.
+         *                     render target.
+         *  @param scale       the scale factor of the created texture.
+         *  @param format      the context3D texture format to use. Ignored for ATF data.
+         *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
+         *                     as the power-of-two based "Texture" class instead of the more memory
+         *                     efficient "RectangleTexture". (Only applicable to bitmaps; ATF
+         *                     textures are always POT-textures, anyway.)
          */
         public static function fromEmbeddedAsset(assetClass:Class, mipMapping:Boolean=false,
                                                  optimizeForRenderToTexture:Boolean=false,
-                                                 scale:Number=1, format:String="bgra"):Texture
+                                                 scale:Number=1, format:String="bgra",
+                                                 forcePotTexture:Boolean=false):Texture
         {
             var texture:Texture;
             var asset:Object = new assetClass();
@@ -238,7 +243,7 @@ package starling.textures
             if (asset is Bitmap)
             {
                 texture = Texture.fromBitmap(asset as Bitmap, mipMapping,
-                                             optimizeForRenderToTexture, scale, format);
+                                    optimizeForRenderToTexture, scale, format, forcePotTexture);
                 texture.root.onRestore = function():void
                 {
                     texture.root.uploadBitmap(new assetClass());
@@ -274,20 +279,24 @@ package starling.textures
          *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
+         *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
+         *                  as the power-of-two based "Texture" class instead of the more memory
+         *                  efficient "RectangleTexture".
          */
         public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=false,
                                           optimizeForRenderToTexture:Boolean=false,
-                                          scale:Number=1, format:String="bgra"):Texture
+                                          scale:Number=1, format:String="bgra",
+                                          forcePotTexture:Boolean=false):Texture
         {
             return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture,
-                                  scale, format);
+                                  scale, format, forcePotTexture);
         }
 
         /** Creates a texture object from bitmap data.
          *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
          *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
          *
-         *  @param data   the texture will be created with the bitmap data of this object.
+         *  @param data     the bitmap data to upload to the texture.
          *  @param generateMipMaps  indicates if mipMaps will be created.
          *  @param optimizeForRenderToTexture  indicates if this texture will be used as
          *                  render target
@@ -296,14 +305,18 @@ package starling.textures
          *  @param format   the context3D texture format to use. Pass one of the packed or
          *                  compressed formats to save memory (at the price of reduced image
          *                  quality).
+         *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
+         *                  as the power-of-two based "Texture" class instead of the more memory
+         *                  efficient "RectangleTexture".
          */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=false,
                                               optimizeForRenderToTexture:Boolean=false,
-                                              scale:Number=1, format:String="bgra"):Texture
+                                              scale:Number=1, format:String="bgra",
+                                              forcePotTexture:Boolean=false):Texture
         {
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true,
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
-                                                format);
+                                                format, forcePotTexture);
 
             texture.root.uploadBitmapData(data);
             texture.root.onRestore = function():void
@@ -444,14 +457,18 @@ package starling.textures
          *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory.
+         *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
+         *                 as the power-of-two based "Texture" class instead of the more memory
+         *                 efficient "RectangleTexture".
          */
         public static function fromColor(width:Number, height:Number,
                                          color:uint=0xffffff, alpha:Number=1.0,
                                          optimizeForRenderToTexture:Boolean=false,
-                                         scale:Number=-1, format:String="bgra"):Texture
+                                         scale:Number=-1, format:String="bgra",
+                                         forcePotTexture:Boolean=false):Texture
         {
             var texture:Texture = Texture.empty(width, height, true, false,
-                                                optimizeForRenderToTexture, scale, format);
+                                        optimizeForRenderToTexture, scale, format, forcePotTexture);
             texture.root.clear(color, alpha);
             texture.root.onRestore = function():void
             {
@@ -476,10 +493,14 @@ package starling.textures
          *  @param scale   if you omit this parameter, 'Starling.contentScaleFactor' will be used.
          *  @param format  the context3D texture format to use. Pass one of the packed or
          *                 compressed formats to save memory (at the price of reduced image quality).
+         *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
+         *                 as the power-of-two based "Texture" class instead of the more memory
+         *                 efficient "RectangleTexture".
          */
         public static function empty(width:Number, height:Number, premultipliedAlpha:Boolean=true,
                                      mipMapping:Boolean=false, optimizeForRenderToTexture:Boolean=false,
-                                     scale:Number=-1, format:String="bgra"):Texture
+                                     scale:Number=-1, format:String="bgra",
+                                     forcePotTexture:Boolean=false):Texture
         {
             if (scale <= 0) scale = Starling.contentScaleFactor;
 
@@ -492,7 +513,7 @@ package starling.textures
 
             var origWidth:Number  = width  * scale;
             var origHeight:Number = height * scale;
-            var useRectTexture:Boolean = !mipMapping &&
+            var useRectTexture:Boolean = !forcePotTexture && !mipMapping &&
                 Starling.current.profile != "baselineConstrained" &&
                 format.indexOf("compressed") == -1;
 
