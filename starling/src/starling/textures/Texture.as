@@ -341,9 +341,12 @@ package starling.textures
          *                    loading process. However, don't use the texture before the callback
          *                    has been executed. This is the expected function definition:
          *                    <code>function(texture:Texture):void;</code>
+         *  @param premultipliedAlpha  Indicates if the ATF data contains pixels in PMA format.
+         *                    This is "false" for most ATF files, but can be customized in some
+         *                    tools.
          */
         public static function fromAtfData(data:ByteArray, scale:Number=1, useMipMaps:Boolean=true,
-                                           async:Function=null):Texture
+                                           async:Function=null, premultipliedAlpha:Boolean=false):Texture
         {
             var context:Context3D = Starling.context;
             if (context == null) throw new MissingContextError();
@@ -353,7 +356,7 @@ package starling.textures
                 atfData.width, atfData.height, atfData.format, false);
             var concreteTexture:ConcreteTexture = new ConcretePotTexture(nativeTexture,
                 atfData.format, atfData.width, atfData.height, useMipMaps && atfData.numTextures > 1,
-                false, false, scale);
+                premultipliedAlpha, false, scale);
 
             concreteTexture.uploadAtfData(data, 0, async);
             concreteTexture.onRestore = function():void
