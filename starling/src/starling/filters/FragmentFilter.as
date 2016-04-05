@@ -11,13 +11,11 @@
 package starling.filters
 {
     import flash.errors.IllegalOperationError;
-    import flash.geom.Matrix;
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
-    import starling.display.Quad;
     import starling.display.Stage;
     import starling.events.Event;
     import starling.events.EventDispatcher;
@@ -79,7 +77,7 @@ package starling.filters
      */
     public class FragmentFilter extends EventDispatcher
     {
-        private var _quad:Quad;
+        private var _quad:FilterQuad;
         private var _target:DisplayObject;
         private var _effect:FilterEffect;
         private var _vertexData:VertexData;
@@ -87,9 +85,8 @@ package starling.filters
         private var _token:BatchToken;
         private var _padding:Padding;
         private var _pool:TexturePool;
-
-        // helper objects
-        private static var sMatrix:Matrix = new Matrix();
+        private var _cacheRequested:Boolean;
+        private var _cached:Boolean;
 
         /** Creates a new instance. The base class' implementation just draws the unmodified
          *  input texture. */
@@ -105,10 +102,9 @@ package starling.filters
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 
-            if (_pool) _pool.dispose();
+            if (_pool)   _pool.dispose();
             if (_effect) _effect.dispose();
-            if (_quad && _quad.texture) _quad.texture.dispose();
-            if (_quad) _quad.dispose();
+            if (_quad)   _quad.dispose();
 
             _effect = null;
             _quad = null;
@@ -127,12 +123,28 @@ package starling.filters
             if (_target == null)
                 throw new IllegalOperationError("Cannot render filter without target");
 
+            if (_target.is3D)
+                _cached = _cacheRequested = false;
+
+            if (!_cached || _cacheRequested)
+            {
+                renderPasses(painter, !_cacheRequested);
+                _cacheRequested = false;
+            }
+            else if (_quad.visible)
+            {
+                _quad.render(painter);
+            }
+        }
+
+        private function renderPasses(painter:Painter, intersectWithStage:Boolean):void
+        {
             if (_token == null) _token = new BatchToken();
             if (_pool  == null) _pool  = new TexturePool();
-            if (_quad  == null) { _quad = new Quad(32, 32); _quad.pixelSnapping = false; }
+            if (_quad  == null) _quad  = new FilterQuad();
             else { _pool.putTexture(_quad.texture); _quad.texture = null; }
 
-            var bounds:Rectangle = Pool.getRectangle();
+            var bounds:Rectangle = Pool.getRectangle(); // might be recursive -> no static var
             var root:DisplayObject = _target.root;
             var stage:Stage = root.stage;
             var stageBounds:Rectangle;
@@ -142,22 +154,22 @@ package starling.filters
             {
                 _target.getBounds(stage, bounds);
 
-                // intersect with stage (no need to render anything outside the stage)
-                stageBounds = stage.getStageBounds(null, Pool.getRectangle());
-                RectangleUtil.intersect(bounds, stageBounds, bounds);
-                Pool.putRectangle(stageBounds);
+                if (intersectWithStage) // normally, we don't need anything outside
+                {
+                    stageBounds = stage.getStageBounds(null, Pool.getRectangle());
+                    RectangleUtil.intersect(bounds, stageBounds, bounds);
+                    Pool.putRectangle(stageBounds);
+                }
             }
 
-            if (bounds.isEmpty())
-            {
-                Pool.putRectangle(bounds);
-                return;
-            }
+            _quad.visible = !bounds.isEmpty();
+            if (!_quad.visible) { Pool.putRectangle(bounds); return; }
 
             if (_padding) RectangleUtil.extend(bounds,
                 _padding.left, _padding.right, _padding.top, _padding.bottom);
 
             _pool.setSize(bounds.width, bounds.height);
+            _quad.setBounds(bounds);
 
             var input:Texture = _pool.getTexture();
             var frameID:int = painter.frameID;
@@ -186,21 +198,17 @@ package starling.filters
             painter.popState();
             painter.frameID = frameID;
             painter.rewindCacheTo(_token); // -> render cache forgets all that happened above :)
-
             painter.pushState();
-            painter.state.setModelviewMatricesToIdentity();
 
-            sMatrix.identity();
-            sMatrix.translate(bounds.x, bounds.y);
-            Pool.putRectangle(bounds);
+            if (_target.is3D) painter.state.setModelviewMatricesToIdentity(); // -> stage coords
+            else              _quad.moveVertices(root, _target);              // -> local coords
 
-            painter.state.transformModelviewMatrix(sMatrix);
-
-            _quad.readjustSize();
             _quad.render(painter);
 
             painter.finishMeshBatch();
             painter.popState();
+
+            Pool.putRectangle(bounds);
         }
 
         /** Does the actual filter processing. This method will be called with up to four input
@@ -252,6 +260,31 @@ package starling.filters
             return new FilterEffect();
         }
 
+        /** Caches the filter output into a texture.
+         *
+         *  <p>An uncached filter is rendered every frame (except if it can be rendered from the
+         *  global render cache, which happens if the target object does not change its appearance
+         *  or location relative to the stage). A cached filter is only rendered once; the output
+         *  stays unchanged until you call <code>cache</code> again or change the filter settings.
+         *  </p>
+         *
+         *  <p>Beware: you cannot cache filters on 3D objects; if the object the filter is attached
+         *  to is a Sprite3D or has a Sprite3D as (grand-) parent, the request will be silently
+         *  ignored. However, you <em>can</em> cache a 2D object that has 3D children!</p>
+         */
+        public function cache():void
+        {
+            _cached = _cacheRequested = true;
+        }
+
+        /** Clears the cached output of the filter. After calling this method, the filter will be
+         *  processed once per frame again. */
+        public function clearCache():void
+        {
+            _cached = _cacheRequested = false;
+            setRequiresRedraw();
+        }
+
         // enter frame event
 
         override public function addEventListener(type:String, listener:Function):void
@@ -290,7 +323,7 @@ package starling.filters
             return _effect;
         }
 
-        /** The VertexData used to render the effect. Per default, uses the format provided
+        /** The VertexData used to process the effect. Per default, uses the format provided
          *  by the effect, and contains four vertices enclosing the target object. */
         protected function get vertexData():VertexData
         {
@@ -298,7 +331,7 @@ package starling.filters
             return _vertexData;
         }
 
-        /** The IndexData used to render the effect. Per default, references a quad (two triangles)
+        /** The IndexData used to process the effect. Per default, references a quad (two triangles)
          *  of four vertices. */
         protected function get indexData():IndexData
         {
@@ -317,6 +350,7 @@ package starling.filters
         {
             dispatchEventWith(Event.CHANGE);
             if (_target) _target.setRequiresRedraw();
+            if (_cached) _cacheRequested = true;
         }
 
         /** Called when assigning a target display object.
@@ -342,6 +376,9 @@ package starling.filters
             padding.copyFrom(value);
         }
 
+        /** Indicates if the filter is cached (via the <code>cache</code> method). */
+        public function get isCached():Boolean { return _cached; }
+
         // internal methods
 
         /** @private */
@@ -356,7 +393,7 @@ package starling.filters
                 {
                     if (_pool)   _pool.purge();
                     if (_effect) _effect.purgeBuffers();
-                    if (_quad && _quad.texture) { _quad.texture.dispose(); _quad.texture = null; }
+                    if (_quad)   _quad.disposeTexture();
                 }
 
                 if (prevTarget)
@@ -374,5 +411,77 @@ package starling.filters
                 }
             }
         }
+    }
+}
+
+import flash.geom.Matrix;
+import flash.geom.Rectangle;
+
+import starling.display.DisplayObject;
+import starling.display.Mesh;
+import starling.rendering.IndexData;
+import starling.rendering.VertexData;
+import starling.textures.Texture;
+
+class FilterQuad extends Mesh
+{
+    private static var sMatrix:Matrix = new Matrix();
+
+    public function FilterQuad()
+    {
+        var vertexData:VertexData = new VertexData(null, 4);
+        vertexData.numVertices = 4;
+
+        var indexData:IndexData = new IndexData(6);
+        indexData.addQuad(0, 1, 2, 3);
+
+        super(vertexData, indexData);
+
+        pixelSnapping = false;
+    }
+
+    override public function dispose():void
+    {
+        disposeTexture();
+        super.dispose();
+    }
+
+    public function disposeTexture():void
+    {
+        if (texture)
+        {
+            texture.dispose();
+            texture = null;
+        }
+    }
+
+    public function moveVertices(sourceSpace:DisplayObject, targetSpace:DisplayObject):void
+    {
+        var vertexData:VertexData = this.vertexData;
+
+        if (targetSpace.is3D)
+            throw new Error("cannot move vertices into 3D space");
+        else
+        {
+            sourceSpace.getTransformationMatrix(targetSpace, sMatrix);
+            vertexData.transformPoints("position", sMatrix);
+        }
+    }
+
+    public function setBounds(bounds:Rectangle):void
+    {
+        var vertexData:VertexData = this.vertexData;
+        var attrName:String = "position";
+
+        vertexData.setPoint(0, attrName, bounds.x, bounds.y);
+        vertexData.setPoint(1, attrName, bounds.right, bounds.y);
+        vertexData.setPoint(2, attrName, bounds.x, bounds.bottom);
+        vertexData.setPoint(3, attrName, bounds.right, bounds.bottom);
+    }
+
+    override public function set texture(value:Texture):void
+    {
+        super.texture = value;
+        if (value) value.setupTextureCoordinates(vertexData);
     }
 }
