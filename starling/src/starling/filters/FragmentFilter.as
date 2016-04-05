@@ -73,6 +73,15 @@ package starling.filters
      *  It is dispatched on the filter once every frame, as long as the filter is assigned to
      *  a display object that is connected to the stage.</p>
      *
+     *  <p><strong>Caching</strong></p>
+     *
+     *  <p>Per default, whenever the target display object is changed in any way (i.e. the render
+     *  cache fails), the filter is reprocessed. However, you can manually cache the filter output
+     *  via the method of the same name: this will let the filter redraw the current output texture,
+     *  even if the target object changes later on. That's especially useful if you add a filter
+     *  to an object that changes only rarely, e.g. a TextField or an Image. Keep in mind, though,
+     *  that you have to call <code>cache()</code> again in order for any changes to show up.</p>
+     *
      *  @see starling.rendering.FilterEffect
      */
     public class FragmentFilter extends EventDispatcher
