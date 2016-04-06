@@ -564,11 +564,14 @@ package starling.textures
          *                  the trimmed area.
          *  @param rotated  If true, the SubTexture will show the parent region rotated by
          *                  90 degrees (CCW).
+         *  @param scaleModifier  The scale factor of the new texture will be calculated by
+         *                  multiplying the parent texture's scale factor with this value.
          */
         public static function fromTexture(texture:Texture, region:Rectangle=null,
-                                           frame:Rectangle=null, rotated:Boolean=false):Texture
+                                           frame:Rectangle=null, rotated:Boolean=false,
+                                           scaleModifier:Number=1.0):Texture
         {
-            return new SubTexture(texture, region, false, frame, rotated);
+            return new SubTexture(texture, region, false, frame, rotated, scaleModifier);
         }
 
         /** Sets up a VertexData instance with the correct positions for 4 vertices so that
