@@ -11,6 +11,7 @@
 package starling.filters
 {
     import flash.display3D.Context3DProfile;
+    import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
@@ -25,13 +26,15 @@ package starling.filters
      */
     internal class TexturePool implements ITexturePool
     {
-        private var _scale:Number;
         private var _width:Number;
         private var _height:Number;
         private var _nativeWidth:int;
         private var _nativeHeight:int;
         private var _pool:Vector.<Texture>;
         private var _usePotTextures:Boolean;
+        private var _textureFormat:String;
+        private var _preferredScale:Number;
+        private var _scale:Number;
         private var _sizeStep:int;
 
         // helpers
@@ -41,10 +44,12 @@ package starling.filters
         public function TexturePool()
         {
             _usePotTextures = Starling.current.profile == Context3DProfile.BASELINE_CONSTRAINED;
+            _preferredScale = Starling.contentScaleFactor;
+            _textureFormat = Context3DTextureFormat.BGRA;
             _sizeStep = 64; // must be POT!
             _pool = new <Texture>[];
 
-            setSize(_sizeStep, _sizeStep, 1);
+            setSize(_sizeStep, _sizeStep);
         }
 
         /** Purges the pool. */
@@ -56,21 +61,21 @@ package starling.filters
         /** Updates the size of the returned textures. Small size changes may allow the
          *  existing textures to be reused; big size changes will automatically dispose
          *  them. */
-        public function setSize(width:Number, height:Number, scale:Number=-1):void
+        public function setSize(width:Number, height:Number):void
         {
-            if (scale <= 0) scale = Starling.contentScaleFactor;
+            _scale = _preferredScale;
 
             var factor:Number;
             var maxNativeSize:int   = Texture.maxSize;
-            var newNativeWidth:int  = getNativeSize(width,  scale);
-            var newNativeHeight:int = getNativeSize(height, scale);
+            var newNativeWidth:int  = getNativeSize(width,  _scale);
+            var newNativeHeight:int = getNativeSize(height, _scale);
 
             if (newNativeWidth > maxNativeSize || newNativeHeight > maxNativeSize)
             {
                 factor = maxNativeSize / Math.max(newNativeWidth, newNativeHeight);
                 newNativeWidth  *= factor;
                 newNativeHeight *= factor;
-                scale *= factor;
+                _scale *= factor;
             }
 
             if (_nativeWidth != newNativeWidth || _nativeHeight != newNativeHeight)
@@ -83,11 +88,10 @@ package starling.filters
 
             _width  = width;
             _height = height;
-            _scale  = scale;
         }
 
         /** @inheritDoc */
-        public function getTexture():Texture
+        public function getTexture(resolution:Number=1.0):Texture
         {
             var texture:Texture;
 
@@ -95,12 +99,14 @@ package starling.filters
                 texture = _pool.pop();
             else
                 texture = Texture.empty(_nativeWidth / _scale, _nativeHeight / _scale,
-                    true, false, true, _scale);
+                    true, false, true, _scale, _textureFormat);
 
-            if (texture.width != _width || texture.height != _height)
+            if (!MathUtil.isEquivalent(texture.width, _width) ||
+                !MathUtil.isEquivalent(texture.height, _height) ||
+                !MathUtil.isEquivalent(texture.scale, _scale * resolution))
             {
-                sRegion.setTo(0, 0, _width, _height);
-                texture = new SubTexture(texture.root, sRegion, true);
+                sRegion.setTo(0, 0, _width * resolution, _height * resolution);
+                texture = new SubTexture(texture.root, sRegion, true, null, false, resolution);
             }
 
             texture.root.clear();
@@ -145,6 +151,14 @@ package starling.filters
         public function get textureHeight():Number { return _height; }
 
         /** The scale factor of the returned textures. */
-        public function get textureScale():Number { return _scale; }
+        public function get textureScale():Number { return _preferredScale; }
+        public function set textureScale(value:Number):void
+        {
+            _preferredScale = value > 0 ? value : Starling.contentScaleFactor;
+        }
+
+        /** The texture format of the returned textures. @default BGRA */
+        public function get textureFormat():String { return _textureFormat; }
+        public function set textureFormat(value:String):void { _textureFormat = value; }
     }
 }

@@ -22,10 +22,11 @@ package starling.filters
         private var _compositeFilter:CompositeFilter;
 
         /** Initializes a new GlowFilter instance with the specified parameters. */
-        public function GlowFilter(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0)
+        public function GlowFilter(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0,
+                                   resolution:Number=0.5)
         {
             _compositeFilter = new CompositeFilter();
-            _blurFilter = new BlurFilter(blur, blur);
+            _blurFilter = new BlurFilter(blur, blur, resolution);
 
             this.color = color;
             this.alpha = alpha;
@@ -89,6 +90,17 @@ package starling.filters
             if (blur != value)
             {
                 _blurFilter.blurX = _blurFilter.blurY = value;
+                updatePadding();
+            }
+        }
+
+        /** @private */
+        override public function get resolution():Number { return _blurFilter.resolution; }
+        override public function set resolution(value:Number):void
+        {
+            if (resolution != value)
+            {
+                _blurFilter.resolution = value;
                 updatePadding();
             }
         }

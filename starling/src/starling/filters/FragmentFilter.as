@@ -94,6 +94,7 @@ package starling.filters
         private var _token:BatchToken;
         private var _padding:Padding;
         private var _pool:TexturePool;
+        private var _resolution:Number;
         private var _cacheRequested:Boolean;
         private var _cached:Boolean;
 
@@ -101,6 +102,8 @@ package starling.filters
          *  input texture. */
         public function FragmentFilter()
         {
+            _resolution = 1.0;
+
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
                 onContextCreated, false, 0, true);
@@ -180,7 +183,7 @@ package starling.filters
             _pool.setSize(bounds.width, bounds.height);
             _quad.setBounds(bounds);
 
-            var input:Texture = _pool.getTexture();
+            var input:Texture = _pool.getTexture(_resolution);
             var frameID:int = painter.frameID;
 
             // By temporarily setting the frameID to zero, the render cache is effectively
@@ -191,13 +194,13 @@ package starling.filters
             painter.frameID = 0;
             painter.pushState(_token);
             painter.state.renderTarget = input;
-            painter.state.setProjectionMatrix(bounds.x, bounds.y, input.root.width,
-                input.root.height, stage.stageWidth, stage.stageHeight, stage.cameraPosition);
+            painter.state.setProjectionMatrix(bounds.x, bounds.y,
+                input.root.width / _resolution, input.root.height / _resolution,
+                stage.stageWidth, stage.stageHeight, stage.cameraPosition);
 
             _target.render(painter); // -> draw target object into 'input'
 
             painter.finishMeshBatch();
-            painter.state.setProjectionMatrix(0, 0, input.root.width, input.root.height);
             painter.state.setModelviewMatricesToIdentity();
             painter.state.clipRect = null;
 
@@ -241,10 +244,13 @@ package starling.filters
                                 input0:Texture=null, input1:Texture=null,
                                 input2:Texture=null, input3:Texture=null):Texture
         {
-            var output:Texture = pool.getTexture();
             var effect:FilterEffect = this.effect;
+            var output:Texture = pool.getTexture(_resolution);
+            var renderTargetRootWidth:Number  = output.root.width  / _resolution;
+            var renderTargetRootHeight:Number = output.root.height / _resolution;
 
             painter.state.renderTarget = output;
+            painter.state.setProjectionMatrix(0, 0, renderTargetRootWidth, renderTargetRootHeight);
             painter.prepareToDraw();
             painter.drawCount += 1;
 
@@ -387,6 +393,46 @@ package starling.filters
 
         /** Indicates if the filter is cached (via the <code>cache</code> method). */
         public function get isCached():Boolean { return _cached; }
+
+        /** The resolution of the filter texture. "1" means stage resolution, "0.5" half the stage
+         *  resolution. A lower resolution saves memory and execution time, but results in a lower
+         *  output quality. Values greater than 1 are allowed; such values might make sense for a
+         *  cached filter when it is scaled up. @default 1
+         */
+        public function get resolution():Number { return _resolution; }
+        public function set resolution(value:Number):void
+        {
+            if (value > 0) _resolution = value;
+            else throw new ArgumentError("resolution must be > 0");
+
+            setRequiresRedraw();
+        }
+
+        /** The smoothing mode of the filter texture. @default bilinear */
+        public function get textureSmoothing():String
+        {
+            if (_quad == null) _quad = new FilterQuad();
+            return _quad.textureSmoothing;
+        }
+
+        public function set textureSmoothing(value:String):void
+        {
+            if (_quad == null) _quad = new FilterQuad();
+            _quad.textureSmoothing = value;
+        }
+
+        /** The format of the filter texture. @default BGRA */
+        public function get textureFormat():String
+        {
+            if (_pool  == null) _pool = new TexturePool();
+            return _pool.textureFormat;
+        }
+
+        public function set textureFormat(value:String):void
+        {
+            if (_pool  == null) _pool = new TexturePool();
+            _pool.textureFormat = value;
+        }
 
         // internal methods
 

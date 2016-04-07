@@ -31,12 +31,11 @@ package starling.filters
          *      <li>etc.</li>
          *  </ul>
          */
-        public function BlurFilter(blurX:Number=1.0, blurY:Number=1.0)
+        public function BlurFilter(blurX:Number=1.0, blurY:Number=1.0, resolution:Number=1.0)
         {
             _blurX = blurX;
             _blurY = blurY;
-
-            updatePadding();
+            this.resolution = resolution;
         }
 
         /** @private */
@@ -92,10 +91,17 @@ package starling.filters
             return new BlurEffect();
         }
 
+        /** @private */
+        override public function set resolution(value:Number):void
+        {
+            super.resolution = value;
+            updatePadding();
+        }
+
         private function updatePadding():void
         {
-            var paddingX:Number = _blurX ? Math.ceil(Math.abs(_blurX)) + 3 : 1;
-            var paddingY:Number = _blurY ? Math.ceil(Math.abs(_blurY)) + 3 : 1;
+            var paddingX:Number = (_blurX ? Math.ceil(Math.abs(_blurX)) + 3 : 1) / resolution;
+            var paddingY:Number = (_blurY ? Math.ceil(Math.abs(_blurY)) + 3 : 1) / resolution;
 
             padding.setTo(paddingX, paddingX, paddingY, paddingY);
         }

@@ -26,10 +26,11 @@ package starling.filters
 
         /** Creates a new DropShadowFilter instance with the specified parameters. */
         public function DropShadowFilter(distance:Number=4.0, angle:Number=0.785,
-                                         color:uint=0x0, alpha:Number=0.5, blur:Number=1.0)
+                                         color:uint=0x0, alpha:Number=0.5, blur:Number=1.0,
+                                         resolution:Number=0.5)
         {
             _compositeFilter = new CompositeFilter();
-            _blurFilter = new BlurFilter(blur, blur);
+            _blurFilter = new BlurFilter(blur, blur, resolution);
             _distance = distance;
             _angle = angle;
 
@@ -131,6 +132,17 @@ package starling.filters
             if (blur != value)
             {
                 _blurFilter.blurX = _blurFilter.blurY = value;
+                updatePadding();
+            }
+        }
+
+        /** @private */
+        override public function get resolution():Number { return _blurFilter.resolution; }
+        override public function set resolution(value:Number):void
+        {
+            if (resolution != value)
+            {
+                _blurFilter.resolution = value;
                 updatePadding();
             }
         }
