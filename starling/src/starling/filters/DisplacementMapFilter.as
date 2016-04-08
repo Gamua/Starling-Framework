@@ -10,8 +10,6 @@
 
 package starling.filters
 {
-    import flash.geom.Point;
-
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
@@ -31,13 +29,17 @@ package starling.filters
      */
     public class DisplacementMapFilter extends FragmentFilter
     {
+        private var _mapX:Number;
+        private var _mapY:Number;
+        
         /** Creates a new displacement map filter that uses the provided map texture. */
-        public function DisplacementMapFilter(mapTexture:Texture, mapPoint:Point=null,
+        public function DisplacementMapFilter(mapTexture:Texture,
                                               componentX:uint=0, componentY:uint=0,
                                               scaleX:Number=0.0, scaleY:Number=0.0)
         {
+            _mapX = _mapY = 0;
+            
             this.mapTexture = mapTexture;
-            this.mapPoint = mapPoint;
             this.componentX = componentX;
             this.componentY = componentY;
             this.scaleX = scaleX;
@@ -64,8 +66,8 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
 
-            var mapX:Number = (dispEffect.mapPoint.x + padding.left) / mapTexture.width;
-            var mapY:Number = (dispEffect.mapPoint.y + padding.top)  / mapTexture.height;
+            var mapX:Number = (_mapX + padding.left) / mapTexture.width;
+            var mapY:Number = (_mapY + padding.top)  / mapTexture.height;
             var maxU:Number = inputTexture.width  / mapTexture.width;
             var maxV:Number = inputTexture.height / mapTexture.height;
 
@@ -131,6 +133,14 @@ package starling.filters
             }
         }
 
+        /** The horizontal offset of the map texture relative to the origin. @default 0 */
+        public function get mapX():Number { return _mapX; }
+        public function set mapX(value:Number):void { _mapX = value; setRequiresRedraw(); }
+
+        /** The vertical offset of the map texture relative to the origin. @default 0 */
+        public function get mapY():Number { return _mapY; }
+        public function set mapY(value:Number):void { _mapY = value; setRequiresRedraw(); }
+
         /** The texture that will be used to calculate displacement. */
         public function get mapTexture():Texture { return dispEffect.mapTexture; }
         public function set mapTexture(value:Texture):void
@@ -140,15 +150,6 @@ package starling.filters
                 dispEffect.mapTexture = value;
                 setRequiresRedraw();
             }
-        }
-
-        /** A value that contains the offset of the upper-left corner of the target display
-         *  object from the upper-left corner of the map image. */
-        public function get mapPoint():Point { return dispEffect.mapPoint; }
-        public function set mapPoint(value:Point):void
-        {
-            dispEffect.mapPoint = value;
-            setRequiresRedraw();
         }
 
         /** Indicates how the pixels of the map texture will be wrapped at the edge. */
@@ -173,7 +174,6 @@ import flash.display.BitmapDataChannel;
 import flash.display3D.Context3D;
 import flash.display3D.Context3DProgramType;
 import flash.geom.Matrix3D;
-import flash.geom.Point;
 
 import starling.core.Starling;
 import starling.rendering.FilterEffect;
@@ -188,7 +188,6 @@ class DisplacementMapEffect extends FilterEffect
         FilterEffect.VERTEX_FORMAT.extend("mapTexCoords:float2");
 
     private var _mapTexture:Texture;
-    private var _mapPoint:Point;
     private var _mapRepeat:Boolean;
     private var _componentX:uint;
     private var _componentY:uint;
@@ -203,7 +202,6 @@ class DisplacementMapEffect extends FilterEffect
 
     public function DisplacementMapEffect()
     {
-        _mapPoint = new Point();
         _componentX = _componentY = 0;
         _scaleX = _scaleY = 0;
     }
@@ -335,13 +333,6 @@ class DisplacementMapEffect extends FilterEffect
 
     public function get mapTexture():Texture { return _mapTexture; }
     public function set mapTexture(value:Texture):void { _mapTexture = value; }
-
-    public function get mapPoint():Point { return _mapPoint; }
-    public function set mapPoint(value:Point):void
-    {
-        if (value) _mapPoint.setTo(value.x, value.y);
-        else _mapPoint.setTo(0, 0);
-    }
 
     public function get mapRepeat():Boolean { return _mapRepeat; }
     public function set mapRepeat(value:Boolean):void { _mapRepeat = value; }
