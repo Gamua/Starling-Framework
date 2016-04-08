@@ -11,7 +11,6 @@
 package starling.filters
 {
     import flash.display3D.Context3DProfile;
-    import flash.display3D.Context3DTextureFormat;
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
@@ -41,11 +40,11 @@ package starling.filters
         private var sRegion:Rectangle = new Rectangle();
 
         /** Creates a new, empty instance. */
-        public function TexturePool()
+        public function TexturePool(textureFormat:String="bgra")
         {
             _usePotTextures = Starling.current.profile == Context3DProfile.BASELINE_CONSTRAINED;
             _preferredScale = Starling.contentScaleFactor;
-            _textureFormat = Context3DTextureFormat.BGRA;
+            _textureFormat = textureFormat;
             _sizeStep = 64; // must be POT!
             _pool = new <Texture>[];
 

@@ -10,6 +10,7 @@
 
 package starling.filters
 {
+    import flash.display3D.Context3DTextureFormat;
     import flash.errors.IllegalOperationError;
     import flash.geom.Rectangle;
 
@@ -25,6 +26,7 @@ package starling.filters
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
+    import starling.textures.TextureSmoothing;
     import starling.utils.Padding;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
@@ -95,6 +97,8 @@ package starling.filters
         private var _padding:Padding;
         private var _pool:TexturePool;
         private var _resolution:Number;
+        private var _textureFormat:String;
+        private var _textureSmoothing:String;
         private var _cacheRequested:Boolean;
         private var _cached:Boolean;
 
@@ -103,6 +107,8 @@ package starling.filters
         public function FragmentFilter()
         {
             _resolution = 1.0;
+            _textureFormat = Context3DTextureFormat.BGRA;
+            _textureSmoothing = TextureSmoothing.BILINEAR;
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
@@ -152,11 +158,12 @@ package starling.filters
         private function renderPasses(painter:Painter, intersectWithStage:Boolean):void
         {
             if (_token == null) _token = new BatchToken();
-            if (_pool  == null) _pool  = new TexturePool();
-            if (_quad  == null) _quad  = new FilterQuad();
+            if (_pool  == null) _pool  = new TexturePool(_textureFormat);
+            if (_quad  == null) _quad  = new FilterQuad(_textureSmoothing);
             else { _pool.putTexture(_quad.texture); _quad.texture = null; }
 
             var bounds:Rectangle = Pool.getRectangle(); // might be recursive -> no static var
+            var origResolution:Number = _resolution;
             var root:DisplayObject = _target.root;
             var stage:Stage = root.stage;
             var stageBounds:Rectangle;
@@ -180,10 +187,13 @@ package starling.filters
             if (_padding) RectangleUtil.extend(bounds,
                 _padding.left, _padding.right, _padding.top, _padding.bottom);
 
+            _pool.textureScale = Starling.contentScaleFactor * _resolution;
             _pool.setSize(bounds.width, bounds.height);
             _quad.setBounds(bounds);
+            _resolution = 1.0; // applied via '_pool.textureScale' already;
+                               // only 'child'-filters use resolution directly (in 'process')
 
-            var input:Texture = _pool.getTexture(_resolution);
+            var input:Texture = _pool.getTexture();
             var frameID:int = painter.frameID;
 
             // By temporarily setting the frameID to zero, the render cache is effectively
@@ -195,7 +205,7 @@ package starling.filters
             painter.pushState(_token);
             painter.state.renderTarget = input;
             painter.state.setProjectionMatrix(bounds.x, bounds.y,
-                input.root.width / _resolution, input.root.height / _resolution,
+                input.root.width, input.root.height,
                 stage.stageWidth, stage.stageHeight, stage.cameraPosition);
 
             _target.render(painter); // -> draw target object into 'input'
@@ -220,6 +230,7 @@ package starling.filters
             painter.finishMeshBatch();
             painter.popState();
 
+            _resolution = origResolution;
             Pool.putRectangle(bounds);
         }
 
@@ -402,36 +413,36 @@ package starling.filters
         public function get resolution():Number { return _resolution; }
         public function set resolution(value:Number):void
         {
-            if (value > 0) _resolution = value;
-            else throw new ArgumentError("resolution must be > 0");
-
-            setRequiresRedraw();
+            if (value != _resolution)
+            {
+                if (value > 0) _resolution = value;
+                else throw new ArgumentError("resolution must be > 0");
+                setRequiresRedraw();
+            }
         }
 
         /** The smoothing mode of the filter texture. @default bilinear */
-        public function get textureSmoothing():String
-        {
-            if (_quad == null) _quad = new FilterQuad();
-            return _quad.textureSmoothing;
-        }
-
+        public function get textureSmoothing():String { return _textureSmoothing; }
         public function set textureSmoothing(value:String):void
         {
-            if (_quad == null) _quad = new FilterQuad();
-            _quad.textureSmoothing = value;
+            if (value != _textureSmoothing)
+            {
+                _textureSmoothing = value;
+                if (_quad) _quad.textureSmoothing = value;
+                setRequiresRedraw();
+            }
         }
 
         /** The format of the filter texture. @default BGRA */
-        public function get textureFormat():String
-        {
-            if (_pool  == null) _pool = new TexturePool();
-            return _pool.textureFormat;
-        }
-
+        public function get textureFormat():String { return _textureFormat; }
         public function set textureFormat(value:String):void
         {
-            if (_pool  == null) _pool = new TexturePool();
-            _pool.textureFormat = value;
+            if (value != _textureFormat)
+            {
+                _textureFormat = value;
+                if (_pool) _pool.textureFormat = value;
+                setRequiresRedraw();
+            }
         }
 
         // internal methods
@@ -482,7 +493,7 @@ class FilterQuad extends Mesh
 {
     private static var sMatrix:Matrix = new Matrix();
 
-    public function FilterQuad()
+    public function FilterQuad(smoothing:String)
     {
         var vertexData:VertexData = new VertexData(null, 4);
         vertexData.numVertices = 4;
@@ -492,6 +503,7 @@ class FilterQuad extends Mesh
 
         super(vertexData, indexData);
 
+        textureSmoothing = smoothing;
         pixelSnapping = false;
     }
 
