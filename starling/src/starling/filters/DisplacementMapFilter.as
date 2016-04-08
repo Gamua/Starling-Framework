@@ -12,7 +12,6 @@ package starling.filters
 {
     import flash.geom.Point;
 
-    import starling.core.Starling;
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
@@ -65,11 +64,10 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
 
-            var scale:Number = Starling.contentScaleFactor;
             var mapX:Number = (dispEffect.mapPoint.x + padding.left) / mapTexture.width;
             var mapY:Number = (dispEffect.mapPoint.y + padding.top)  / mapTexture.height;
-            var maxU:Number = inputTexture.root.nativeWidth  / (mapTexture.width  * scale);
-            var maxV:Number = inputTexture.root.nativeHeight / (mapTexture.height * scale);
+            var maxU:Number = inputTexture.width  / mapTexture.width;
+            var maxV:Number = inputTexture.height / mapTexture.height;
 
             mapTexture.setTexCoords(vertexData, 0, "mapTexCoords", -mapX, -mapY);
             mapTexture.setTexCoords(vertexData, 1, "mapTexCoords", -mapX + maxU, -mapY);
@@ -198,7 +196,7 @@ class DisplacementMapEffect extends FilterEffect
     private var _scaleY:Number;
 
     // helper objects
-    private static var sOneHalf:Vector.<Number> = new <Number>[0.5, 0.5, 0.5, 0.5];
+    private static var sOffset:Vector.<Number> = new <Number>[0.5, 0.5, 0.0, 0.0];
     private static var sMatrix:Matrix3D = new Matrix3D();
     private static var sMatrixData:Vector.<Number> =
         new <Number>[0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0];
@@ -227,14 +225,15 @@ class DisplacementMapEffect extends FilterEffect
 
             // v0:    input texCoords
             // v1:    map texCoords
-            // fc0:   OneHalf
+            // fc0:   offset (0.5, 0.5)
             // fc1-4: matrix
 
             var fragmentShader:String = [
                 tex("ft0", "v1", 1, _mapTexture, false), // read map texture
-                "sub ft1, ft0, fc0", // subtract 0.5 -> range [-0.5, 0.5]
-                "m44 ft2, ft1, fc1", // multiply matrix with displacement values
-                "add ft3,  v0, ft2", // add displacement values to texture coords
+                "sub ft1, ft0, fc0",          // subtract 0.5 -> range [-0.5, 0.5]
+                "mul ft1.xy, ft1.xy, ft0.ww", // zero displacement when alpha == 0
+                "m44 ft2, ft1, fc1",          // multiply matrix with displacement values
+                "add ft3,  v0, ft2",          // add displacement values to texture coords
                 tex("oc", "ft3", 0, texture)  // read input texture at displaced coords
             ].join("\n");
 
@@ -259,7 +258,7 @@ class DisplacementMapEffect extends FilterEffect
             getMapMatrix(sMatrix);
 
             vertexFormat.setVertexBufferAt(2, vertexBuffer, "mapTexCoords");
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOneHalf);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOffset);
             context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 1, sMatrix, true);
             RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, _mapRepeat);
             context.setTextureAt(1, _mapTexture.base);
