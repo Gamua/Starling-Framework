@@ -68,9 +68,7 @@ package starling.rendering
             if (_texture)
             {
                 var vertexShader:String = STD_VERTEX_SHADER;
-                var fragmentShader:String =
-                    RenderUtil.createAGALTexOperation("oc", "v0", 0, _texture);
-
+                var fragmentShader:String = tex("oc", "v0", 0, _texture);
                 return Program.fromSource(vertexShader, fragmentShader);
             }
             else
@@ -114,6 +112,19 @@ package starling.rendering
             }
 
             super.afterDraw(context);
+        }
+
+        /** Creates an AGAL source string with a <code>tex</code> operation, including an options
+         *  list with the appropriate format flag. This is just a convenience method forwarding
+         *  to the respective RenderUtil method.
+         *
+         *  @see starling.utils.RenderUtil#createAGALTexOperation()
+         */
+        protected static function tex(resultReg:String, uvReg:String, sampler:int, texture:Texture,
+                                      convertToPmaIfRequired:Boolean=true):String
+        {
+            return RenderUtil.createAGALTexOperation(resultReg, uvReg, sampler, texture,
+                convertToPmaIfRequired);
         }
 
         /** The data format that this effect requires from the VertexData that it renders:

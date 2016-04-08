@@ -31,14 +31,14 @@ package starling.filters
     {
         private var _mapX:Number;
         private var _mapY:Number;
-        
+
         /** Creates a new displacement map filter that uses the provided map texture. */
         public function DisplacementMapFilter(mapTexture:Texture,
                                               componentX:uint=0, componentY:uint=0,
                                               scaleX:Number=0.0, scaleY:Number=0.0)
         {
             _mapX = _mapY = 0;
-            
+
             this.mapTexture = mapTexture;
             this.componentX = componentX;
             this.componentY = componentY;
@@ -308,13 +308,6 @@ class DisplacementMapEffect extends FilterEffect
         out.copyRawDataFrom(sMatrixData);
 
         return out;
-    }
-
-    private static function tex(resultReg:String, uvReg:String, sampler:int, texture:Texture,
-                                convertToPmaIfRequired:Boolean=true):String
-    {
-        return RenderUtil.createAGALTexOperation(resultReg, uvReg, sampler, texture,
-            convertToPmaIfRequired);
     }
 
     // properties

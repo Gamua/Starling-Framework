@@ -131,9 +131,7 @@ import flash.display3D.Context3DProgramType;
 
 import starling.rendering.FilterEffect;
 import starling.rendering.Program;
-import starling.textures.Texture;
 import starling.utils.MathUtil;
-import starling.utils.RenderUtil;
 
 class BlurEffect extends FilterEffect
 {
@@ -288,11 +286,6 @@ class BlurEffect extends FilterEffect
             _offsets[2] = 0;
             _offsets[3] = offset2;
         }
-    }
-
-    private static function tex(resultReg:String, uvReg:String, sampler:int, texture:Texture):String
-    {
-        return RenderUtil.createAGALTexOperation(resultReg, uvReg, sampler, texture);
     }
 
     public function get direction():String { return _direction; }

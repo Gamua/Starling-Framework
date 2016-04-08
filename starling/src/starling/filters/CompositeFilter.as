@@ -297,11 +297,6 @@ class CompositeEffect extends FilterEffect
         return VERTEX_FORMAT;
     }
 
-    private static function tex(resultReg:String, uvReg:String, sampler:int, texture:Texture):String
-    {
-        return RenderUtil.createAGALTexOperation(resultReg, uvReg, sampler, texture);
-    }
-
     // properties
 
     public function get numLayers():int { return _layers.length; }
