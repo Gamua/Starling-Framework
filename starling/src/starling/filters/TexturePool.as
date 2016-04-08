@@ -14,9 +14,12 @@ package starling.filters
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.utils.MathUtil;
+
+    use namespace starling_internal;
 
     /** @private
      *
@@ -93,6 +96,7 @@ package starling.filters
         public function getTexture(resolution:Number=1.0):Texture
         {
             var texture:Texture;
+            var subTexture:SubTexture;
 
             if (_pool.length)
                 texture = _pool.pop();
@@ -100,12 +104,17 @@ package starling.filters
                 texture = Texture.empty(_nativeWidth / _scale, _nativeHeight / _scale,
                     true, false, true, _scale, _textureFormat);
 
-            if (!MathUtil.isEquivalent(texture.width, _width) ||
-                !MathUtil.isEquivalent(texture.height, _height) ||
-                !MathUtil.isEquivalent(texture.scale, _scale * resolution))
+            if (!MathUtil.isEquivalent(texture.width,  _width,  0.1) ||
+                !MathUtil.isEquivalent(texture.height, _height, 0.1) ||
+                !MathUtil.isEquivalent(texture.scale,  _scale * resolution))
             {
                 sRegion.setTo(0, 0, _width * resolution, _height * resolution);
-                texture = new SubTexture(texture.root, sRegion, true, null, false, resolution);
+                subTexture = texture as SubTexture;
+
+                if (subTexture)
+                    subTexture.setTo(texture.root, sRegion, true, null, false, resolution);
+                else
+                    texture = new SubTexture(texture.root, sRegion, true, null, false, resolution);
             }
 
             texture.root.clear();
