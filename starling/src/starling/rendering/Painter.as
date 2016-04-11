@@ -23,6 +23,7 @@ package starling.rendering
     import flash.geom.Vector3D;
     import flash.utils.Dictionary;
 
+    import starling.core.starling_internal;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.Mesh;
@@ -37,6 +38,8 @@ package starling.rendering
     import starling.utils.RectangleUtil;
     import starling.utils.RenderUtil;
     import starling.utils.SystemUtil;
+
+    use namespace starling_internal;
 
     /** A class that orchestrates rendering of all Starling display objects.
      *
@@ -86,6 +89,7 @@ package starling.rendering
         private var _clipRectStack:Vector.<Rectangle>;
         private var _batchProcessor:BatchProcessor;
         private var _batchCache:BatchProcessor;
+        private var _batchCacheExclusions:Vector.<DisplayObject>;
 
         private var _actualRenderTarget:TextureBase;
         private var _actualCulling:String;
@@ -131,6 +135,7 @@ package starling.rendering
 
             _batchCache = new BatchProcessor();
             _batchCache.onBatchComplete = drawBatch;
+            _batchCacheExclusions = new Vector.<DisplayObject>();
 
             _state = new RenderState();
             _state.onDrawRequired = finishMeshBatch;
@@ -312,8 +317,12 @@ package starling.rendering
          *  state instead of utilizing the stencil buffer. This is possible when the mask object
          *  is of type <code>starling.display.Quad</code> and is aligned parallel to the stage
          *  axes.</p>
+         *
+         *  <p>Note that masking breaks the render cache; the masked object must be redrawn anew
+         *  in the next frame. If you pass <code>maskee</code>, the method will automatically
+         *  call <p>excludeFromCache(maskee)</code> for you.</p>
          */
-        public function drawMask(mask:DisplayObject):void
+        public function drawMask(mask:DisplayObject, maskee:DisplayObject=null):void
         {
             if (_context == null) return;
 
@@ -336,6 +345,8 @@ package starling.rendering
                 _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
             }
+
+            excludeFromCache(maskee);
         }
 
         /** Draws a display object into the stencil buffer, decrementing the
@@ -465,6 +476,7 @@ package starling.rendering
             _batchProcessor.finishBatch();
             swapBatchProcessors();
             _batchProcessor.clear();
+            processCacheExclusions();
         }
 
         private function swapBatchProcessors():void
@@ -472,6 +484,13 @@ package starling.rendering
             var tmp:BatchProcessor = _batchProcessor;
             _batchProcessor = _batchCache;
             _batchCache = tmp;
+        }
+
+        private function processCacheExclusions():void
+        {
+            var i:int, length:int = _batchCacheExclusions.length;
+            for (i=0; i<length; ++i) _batchCacheExclusions[i].excludeFromCache();
+            _batchCacheExclusions.length = 0;
         }
 
         /** Resets the current state, state stack, batch processor, stencil reference value,
@@ -536,6 +555,14 @@ package starling.rendering
         public function rewindCacheTo(token:BatchToken):void
         {
             _batchProcessor.rewindTo(token);
+        }
+
+        /** Prevents the object from being drawn from the render cache in the next frame.
+         *  Different to <code>setRequiresRedraw()</code>, this does not indicate that the object
+         *  has changed in any way, but just that it doesn't support being drawn from cache. */
+        public function excludeFromCache(object:DisplayObject):void
+        {
+            if (object) _batchCacheExclusions[_batchCacheExclusions.length] = object;
         }
 
         private function drawBatch(meshBatch:MeshBatch):void

@@ -76,12 +76,6 @@ package starling.display
             super.dispose();
         }
 
-        /** @inheritDoc */
-        override protected function get supportsRenderCache():Boolean
-        {
-            return _batchable && super.supportsRenderCache;
-        }
-
         private function setVertexAndIndexDataChanged():void
         {
             _vertexSyncRequired = _indexSyncRequired = true;
@@ -221,6 +215,7 @@ package starling.display
                 painter.finishMeshBatch();
                 painter.drawCount += 1;
                 painter.prepareToDraw();
+                painter.excludeFromCache(this);
 
                 if (_vertexSyncRequired) syncVertexBuffer();
                 if (_indexSyncRequired)  syncIndexBuffer();
@@ -274,10 +269,10 @@ package starling.display
         public function get batchable():Boolean { return _batchable; }
         public function set batchable(value:Boolean):void
         {
-            if (value != _batchable) // self-rendering must disrupt the render cache
+            if (value != _batchable)
             {
                 _batchable = value;
-                updateSupportsRenderCache();
+                setRequiresRedraw();
             }
         }
     }

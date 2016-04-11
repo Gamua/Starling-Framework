@@ -545,9 +545,9 @@ package starling.display
          *  custom mesh styles or any other custom rendering code, call this method if the object
          *  needs to be redrawn.</p>
          *
-         *  <p>If a class does not support the render cache (like <code>Sprite3D</code>),
-         *  it may override <code>supportsRenderCache</code>. That way, the object will be
-         *  redrawn automatically each frame.</p>
+         *  <p>If the object needs to be redrawn just because it does not support the render cache,
+         *  call <code>painter.excludeFromCache()</code> in the object's render method instead.
+         *  That way, Starling's <code>skipUnchangedFrames</code> policy won't be disrupted.</p>
          */
         public function setRequiresRedraw():void
         {
@@ -575,37 +575,19 @@ package starling.display
                    _lastChildChangeFrameID == frameID;
         }
 
-        /** Indicates if this class supports the render cache.
-         *  Subclasses that need to circumvent the cache have to override this method and call
-         *  <code>updateSupportsRenderCache</code> whenever that boolean changes. Don't forget
-         *  to combine the result with <code>super.supportsRenderCache</code> when overriding
-         *  the method!
-         *
-         *  <p>Note that when a container does not support the render cache, its children will
-         *  still be cached! This just means that batching is interrupted at this object when
-         *  the display tree is traversed.</p>
-         */
-        protected function get supportsRenderCache():Boolean
+        /** @private Makes sure the object is not drawn from cache in the next frame.
+         *  This method is meant to be called only from <code>Painter.finishFrame()</code>,
+         *  since it requires rendering to be concluded. */
+        starling_internal function excludeFromCache():void
         {
-            return _mask == null;
-        }
+            var object:DisplayObject = this;
+            var max:uint = 0xffffffff;
 
-        /** Must be called when support for the render cache changes. The actual value is read
-         *  from the <code>supportsRenderCache</code> property. */
-        protected function updateSupportsRenderCache():void
-        {
-            if (supportsRenderCache)
-                removeEventListener(Event.ENTER_FRAME, onEnterFrameWithoutRenderCache);
-            else
-                addEventListener(Event.ENTER_FRAME, onEnterFrameWithoutRenderCache);
-        }
-
-        private function onEnterFrameWithoutRenderCache():void
-        {
-            // by wrapping 'setRequiresRedraw' in a private method, we can make sure that no
-            // subclasses are messing with this event handler.
-
-            setRequiresRedraw();
+            while (object && object._tokenFrameID != max)
+            {
+                object._tokenFrameID = max;
+                object = object._parent;
+            }
         }
 
         // helpers
@@ -1091,7 +1073,6 @@ package starling.display
 
                 _mask = value;
                 setRequiresRedraw();
-                updateSupportsRenderCache();
             }
         }
 

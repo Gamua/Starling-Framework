@@ -380,7 +380,7 @@ package starling.display
                         painter.pushState(child._pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
-                        if (mask) painter.drawMask(mask);
+                        if (mask) painter.drawMask(mask, child);
 
                         if (filter) filter.render(painter);
                         else        child.render(painter);

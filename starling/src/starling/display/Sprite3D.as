@@ -109,6 +109,7 @@ package starling.display
                 super.render(painter);
 
                 painter.finishMeshBatch();
+                painter.excludeFromCache(this);
                 painter.popState();
             }
         }
@@ -144,13 +145,7 @@ package starling.display
                     _rotationY > -E && _rotationY < E &&
                     _pivotZ > -E && _pivotZ < E;
 
-            if (_is2D != was2D) updateSupportsRenderCache();
             super.setRequiresRedraw();
-        }
-
-        protected override function get supportsRenderCache():Boolean
-        {
-            return _is2D && super.supportsRenderCache;
         }
 
         // helpers
