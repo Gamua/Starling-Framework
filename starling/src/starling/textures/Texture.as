@@ -608,7 +608,7 @@ package starling.textures
                 var scaleX:Number = bounds.width  / frameWidth;
                 var scaleY:Number = bounds.height / frameHeight;
 
-                if (scaleX != 1.0 || scaleY != 1.0)
+                if (scaleX != 1.0 || scaleY != 1.0 || bounds.x != 0 || bounds.y != 0)
                 {
                     sMatrix.identity();
                     sMatrix.scale(scaleX, scaleY);
