@@ -559,7 +559,12 @@ package starling.rendering
 
         /** Prevents the object from being drawn from the render cache in the next frame.
          *  Different to <code>setRequiresRedraw()</code>, this does not indicate that the object
-         *  has changed in any way, but just that it doesn't support being drawn from cache. */
+         *  has changed in any way, but just that it doesn't support being drawn from cache.
+         *
+         *  <p>Note that when a container is excluded from the render cache, its children will
+         *  still be cached! This just means that batching is interrupted at this object when
+         *  the display tree is traversed.</p>
+         */
         public function excludeFromCache(object:DisplayObject):void
         {
             if (object) _batchCacheExclusions[_batchCacheExclusions.length] = object;

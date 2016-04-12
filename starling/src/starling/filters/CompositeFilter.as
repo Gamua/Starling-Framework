@@ -29,7 +29,7 @@ package starling.filters
 
         /** Combines up to four input textures into one new texture,
          *  adhering to the properties of each layer. */
-        override public function process(painter:Painter, pool:ITexturePool,
+        override public function process(painter:Painter, helper:IFilterHelper,
                                          input0:Texture = null, input1:Texture = null,
                                          input2:Texture = null, input3:Texture = null):Texture
         {
@@ -42,7 +42,7 @@ package starling.filters
             if (input2) input2.setupTextureCoordinates(vertexData, 0, "texCoords2");
             if (input3) input3.setupTextureCoordinates(vertexData, 0, "texCoords3");
 
-            return super.process(painter, pool, input0, input1, input2, input3);
+            return super.process(painter, helper, input0, input1, input2, input3);
         }
 
         /** @private */

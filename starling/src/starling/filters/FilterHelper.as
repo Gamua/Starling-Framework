@@ -11,10 +11,12 @@
 package starling.filters
 {
     import flash.display3D.Context3DProfile;
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
     import starling.core.starling_internal;
+    import starling.display.DisplayObject;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.utils.MathUtil;
@@ -26,7 +28,7 @@ package starling.filters
      *  This class manages texture creation, pooling and disposal of all textures
      *  during filter processing.
      */
-    internal class TexturePool implements ITexturePool
+    internal class FilterHelper implements IFilterHelper
     {
         private var _width:Number;
         private var _height:Number;
@@ -38,18 +40,25 @@ package starling.filters
         private var _preferredScale:Number;
         private var _scale:Number;
         private var _sizeStep:int;
+        private var _numPasses:int;
+        private var _projectionMatrix:Matrix3D;
+        private var _renderTarget:Texture;
+        private var _targetBounds:Rectangle;
+        private var _target:DisplayObject;
 
         // helpers
         private var sRegion:Rectangle = new Rectangle();
 
         /** Creates a new, empty instance. */
-        public function TexturePool(textureFormat:String="bgra")
+        public function FilterHelper(textureFormat:String="bgra")
         {
             _usePotTextures = Starling.current.profile == Context3DProfile.BASELINE_CONSTRAINED;
             _preferredScale = Starling.contentScaleFactor;
             _textureFormat = textureFormat;
             _sizeStep = 64; // must be POT!
             _pool = new <Texture>[];
+            _projectionMatrix = new Matrix3D();
+            _targetBounds = new Rectangle();
 
             setSize(_sizeStep, _sizeStep);
         }
@@ -60,36 +69,14 @@ package starling.filters
             purge();
         }
 
-        /** Updates the size of the returned textures. Small size changes may allow the
-         *  existing textures to be reused; big size changes will automatically dispose
-         *  them. */
-        public function setSize(width:Number, height:Number):void
+        /** Starts a new round of rendering. If <code>numPasses</code> is greater than zero, each
+         *  <code>getTexture()</code> call will be counted as one pass; the final pass will then
+         *  return <code>null</code> instead of a texture, to indicate that this pass should be
+         *  rendered to the back buffer.
+         */
+        public function start(numPasses:int, drawLastPassToBackBuffer:Boolean):void
         {
-            _scale = _preferredScale;
-
-            var factor:Number;
-            var maxNativeSize:int   = Texture.maxSize;
-            var newNativeWidth:int  = getNativeSize(width,  _scale);
-            var newNativeHeight:int = getNativeSize(height, _scale);
-
-            if (newNativeWidth > maxNativeSize || newNativeHeight > maxNativeSize)
-            {
-                factor = maxNativeSize / Math.max(newNativeWidth, newNativeHeight);
-                newNativeWidth  *= factor;
-                newNativeHeight *= factor;
-                _scale *= factor;
-            }
-
-            if (_nativeWidth != newNativeWidth || _nativeHeight != newNativeHeight)
-            {
-                purge();
-
-                _nativeWidth  = newNativeWidth;
-                _nativeHeight = newNativeHeight;
-            }
-
-            _width  = width;
-            _height = height;
+            _numPasses = drawLastPassToBackBuffer ? numPasses : -1;
         }
 
         /** @inheritDoc */
@@ -97,6 +84,9 @@ package starling.filters
         {
             var texture:Texture;
             var subTexture:SubTexture;
+
+            if (_numPasses >= 0)
+                if (_numPasses-- == 0) return null;
 
             if (_pool.length)
                 texture = _pool.pop();
@@ -142,6 +132,38 @@ package starling.filters
             _pool.length = 0;
         }
 
+        /** Updates the size of the returned textures. Small size changes may allow the
+         *  existing textures to be reused; big size changes will automatically dispose
+         *  them. */
+        private function setSize(width:Number, height:Number):void
+        {
+            _scale = _preferredScale;
+
+            var factor:Number;
+            var maxNativeSize:int   = Texture.maxSize;
+            var newNativeWidth:int  = getNativeSize(width,  _scale);
+            var newNativeHeight:int = getNativeSize(height, _scale);
+
+            if (newNativeWidth > maxNativeSize || newNativeHeight > maxNativeSize)
+            {
+                factor = maxNativeSize / Math.max(newNativeWidth, newNativeHeight);
+                newNativeWidth  *= factor;
+                newNativeHeight *= factor;
+                _scale *= factor;
+            }
+
+            if (_nativeWidth != newNativeWidth || _nativeHeight != newNativeHeight)
+            {
+                purge();
+
+                _nativeWidth  = newNativeWidth;
+                _nativeHeight = newNativeHeight;
+            }
+
+            _width  = width;
+            _height = height;
+        }
+
         private function getNativeSize(size:Number, textureScale:Number):int
         {
             var nativeSize:Number = size * textureScale;
@@ -152,11 +174,31 @@ package starling.filters
                 return Math.ceil(nativeSize / _sizeStep) * _sizeStep;
         }
 
-        /** The width of the returned textures (in points). */
-        public function get textureWidth():Number { return _width; }
+        /** The projection matrix that was active when the filter started processing. */
+        public function get projectionMatrix3D():Matrix3D { return _projectionMatrix; }
+        public function set projectionMatrix3D(value:Matrix3D):void
+        {
+            _projectionMatrix.copyFrom(value);
+        }
 
-        /** The height of the returned textures (in points). */
-        public function get textureHeight():Number { return _height; }
+        /** The render target that was active when the filter started processing. */
+        public function get renderTarget():Texture { return _renderTarget; }
+        public function set renderTarget(value:Texture):void
+        {
+            _renderTarget = value;
+        }
+
+        /** @inheritDoc */
+        public function get targetBounds():Rectangle { return _targetBounds; }
+        public function set targetBounds(value:Rectangle):void
+        {
+            _targetBounds.copyFrom(value);
+            setSize(value.width, value.height);
+        }
+
+        /** @inheritDoc */
+        public function get target():DisplayObject { return _target; }
+        public function set target(value:DisplayObject):void { _target = value; }
 
         /** The scale factor of the returned textures. */
         public function get textureScale():Number { return _preferredScale; }

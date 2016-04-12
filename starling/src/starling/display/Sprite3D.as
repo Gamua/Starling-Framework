@@ -97,7 +97,7 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function render(painter:Painter):void
+        override public function render(painter:Painter):void
         {
             if (_is2D) super.render(painter);
             else
@@ -115,7 +115,7 @@ package starling.display
         }
 
         /** @inheritDoc */
-        public override function hitTest(localPoint:Point):DisplayObject
+        override public function hitTest(localPoint:Point):DisplayObject
         {
             if (_is2D) return super.hitTest(localPoint);
             else
@@ -136,10 +136,9 @@ package starling.display
             }
         }
 
-        public override function setRequiresRedraw():void
+        /** @private */
+        override public function setRequiresRedraw():void
         {
-            var was2D:Boolean = _is2D;
-
             _is2D = _z > -E && _z < E &&
                     _rotationX > -E && _rotationX < E &&
                     _rotationY > -E && _rotationY < E &&

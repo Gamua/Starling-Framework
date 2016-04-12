@@ -50,14 +50,20 @@ package starling.filters
         }
 
         /** @private */
-        override public function process(painter:Painter, pool:ITexturePool,
+        override public function process(painter:Painter, helper:IFilterHelper,
                                          input0:Texture = null, input1:Texture = null,
                                          input2:Texture = null, input3:Texture = null):Texture
         {
-            var shadow:Texture = _blurFilter.process(painter, pool, input0);
-            var result:Texture = _compositeFilter.process(painter, pool, shadow, input0);
-            pool.putTexture(shadow);
+            var shadow:Texture = _blurFilter.process(painter, helper, input0);
+            var result:Texture = _compositeFilter.process(painter, helper, shadow, input0);
+            helper.putTexture(shadow);
             return result;
+        }
+
+        /** @private */
+        override public function get numPasses():int
+        {
+            return _blurFilter.numPasses + _compositeFilter.numPasses;
         }
 
         private function updatePadding():void

@@ -39,7 +39,7 @@ package starling.filters
         }
 
         /** @private */
-        override public function process(painter:Painter, pool:ITexturePool,
+        override public function process(painter:Painter, helper:IFilterHelper,
                                          input0:Texture = null, input1:Texture = null,
                                          input2:Texture = null, input3:Texture = null):Texture
         {
@@ -48,7 +48,7 @@ package starling.filters
             if (_blurX == 0 && _blurY == 0)
             {
                 effect.strength = 0;
-                return super.process(painter, pool, input0);
+                return super.process(painter, helper, input0);
             }
 
             var blurX:Number = Math.abs(_blurX);
@@ -64,9 +64,9 @@ package starling.filters
 
                 blurX -= effect.strength;
                 inTexture = outTexture;
-                outTexture = super.process(painter, pool, inTexture);
+                outTexture = super.process(painter, helper, inTexture);
 
-                if (inTexture != input0) pool.putTexture(inTexture);
+                if (inTexture != input0) helper.putTexture(inTexture);
             }
 
             effect.direction = BlurEffect.VERTICAL;
@@ -77,9 +77,9 @@ package starling.filters
 
                 blurY -= effect.strength;
                 inTexture = outTexture;
-                outTexture = super.process(painter, pool, inTexture);
+                outTexture = super.process(painter, helper, inTexture);
 
-                if (inTexture != input0) pool.putTexture(inTexture);
+                if (inTexture != input0) helper.putTexture(inTexture);
             }
 
             return outTexture;
@@ -96,6 +96,12 @@ package starling.filters
         {
             super.resolution = value;
             updatePadding();
+        }
+
+        /** @private */
+        override public function get numPasses():int
+        {
+            return (Math.ceil(_blurX) + Math.ceil(_blurY)) || 1;
         }
 
         private function updatePadding():void

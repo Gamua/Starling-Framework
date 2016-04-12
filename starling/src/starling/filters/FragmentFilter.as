@@ -12,6 +12,7 @@ package starling.filters
 {
     import flash.display3D.Context3DTextureFormat;
     import flash.errors.IllegalOperationError;
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
@@ -27,6 +28,7 @@ package starling.filters
     import starling.rendering.VertexData;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
+    import starling.utils.MatrixUtil;
     import starling.utils.Padding;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
@@ -52,16 +54,22 @@ package starling.filters
      *        effect several times, or even make use of other filters in the process.</li>
      *    <li>In the end, a quad with the output texture is added to the batch renderer.
      *        In the next frame, if the object hasn't changed, the filter is drawn directly
-     *        from the cache.</li>
+     *        from the render cache.</li>
+     *    <li>Alternatively, the last pass may be drawn directly to the back buffer. That saves
+     *        one draw call, but means that the object may not be drawn from the render cache in
+     *        the next frame. Starling makes an educated guess if that makes sense, but you can
+     *        also force it to do so via the <code>alwaysDrawToBackBuffer</code> property.</li>
      *  </ol>
      *
      *  <p>All of this is set up by the basic FragmentFilter class. Concrete subclasses
      *  just need to override the protected method <code>createEffect</code> and (optionally)
-     *  <code>process</code>. Typically, any properties on the filter are just forwarded to
-     *  the effect instance, which is then used automatically by <code>process</code> to
-     *  render the filter pass. For a simple example on how to write a single-pass filter,
-     *  look at the implementation of the <code>ColorMatrixFilter</code>; for a composite
-     *  filter (i.e. a filter that combines several others), look at the <code>GlowFilter</code>.
+     *  <code>process</code>. Multi-pass filters must also override <code>numPasses</code>.</p>
+     *
+     *  <p>Typically, any properties on the filter are just forwarded to an effect instance,
+     *  which is then used automatically by <code>process</code> to render the filter pass.
+     *  For a simple example on how to write a single-pass filter, look at the implementation of
+     *  the <code>ColorMatrixFilter</code>; for a composite filter (i.e. a filter that combines
+     *  several others), look at the <code>GlowFilter</code>.
      *  </p>
      *
      *  <p>Beware that a filter instance may only be used on one object at a time!</p>
@@ -95,12 +103,16 @@ package starling.filters
         private var _indexData:IndexData;
         private var _token:BatchToken;
         private var _padding:Padding;
-        private var _pool:TexturePool;
+        private var _helper:FilterHelper;
         private var _resolution:Number;
         private var _textureFormat:String;
         private var _textureSmoothing:String;
+        private var _alwaysDrawToBackBuffer:Boolean;
         private var _cacheRequested:Boolean;
         private var _cached:Boolean;
+
+        // helpers
+        private static var sMatrix3D:Matrix3D;
 
         /** Creates a new instance. The base class' implementation just draws the unmodified
          *  input texture. */
@@ -120,7 +132,7 @@ package starling.filters
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
 
-            if (_pool)   _pool.dispose();
+            if (_helper) _helper.dispose();
             if (_effect) _effect.dispose();
             if (_quad)   _quad.dispose();
 
@@ -146,7 +158,7 @@ package starling.filters
 
             if (!_cached || _cacheRequested)
             {
-                renderPasses(painter, !_cacheRequested);
+                renderPasses(painter, _cacheRequested);
                 _cacheRequested = false;
             }
             else if (_quad.visible)
@@ -155,25 +167,35 @@ package starling.filters
             }
         }
 
-        private function renderPasses(painter:Painter, intersectWithStage:Boolean):void
+        private function renderPasses(painter:Painter, forCache:Boolean):void
         {
             if (_token == null) _token = new BatchToken();
-            if (_pool  == null) _pool  = new TexturePool(_textureFormat);
+            if (_helper  == null) _helper = new FilterHelper(_textureFormat);
             if (_quad  == null) _quad  = new FilterQuad(_textureSmoothing);
-            else { _pool.putTexture(_quad.texture); _quad.texture = null; }
+            else { _helper.putTexture(_quad.texture); _quad.texture = null; }
 
             var bounds:Rectangle = Pool.getRectangle(); // might be recursive -> no static var
+            var drawLastPassToBackBuffer:Boolean = false;
             var origResolution:Number = _resolution;
             var root:DisplayObject = _target.root;
             var stage:Stage = root.stage;
             var stageBounds:Rectangle;
+
+            if (!forCache && (_alwaysDrawToBackBuffer || _target.requiresRedraw))
+            {
+                // if 'requiresRedraw' is true, the object is non-static, and we guess that this
+                // will be the same in the next frame. So we render directly to the back buffer.
+
+                drawLastPassToBackBuffer = true;
+                painter.excludeFromCache(_target);
+            }
 
             if (_target == root) stage.getStageBounds(_target, bounds);
             else
             {
                 _target.getBounds(stage, bounds);
 
-                if (intersectWithStage) // normally, we don't need anything outside
+                if (!forCache) // normally, we don't need anything outside
                 {
                     stageBounds = stage.getStageBounds(null, Pool.getRectangle());
                     RectangleUtil.intersect(bounds, stageBounds, bounds);
@@ -187,14 +209,20 @@ package starling.filters
             if (_padding) RectangleUtil.extend(bounds,
                 _padding.left, _padding.right, _padding.top, _padding.bottom);
 
-            _pool.textureScale = Starling.contentScaleFactor * _resolution;
-            _pool.setSize(bounds.width, bounds.height);
+            _helper.textureScale = Starling.contentScaleFactor * _resolution;
+            _helper.projectionMatrix3D = painter.state.projectionMatrix3D;
+            _helper.renderTarget = painter.state.renderTarget;
+            _helper.targetBounds = bounds;
+            _helper.target = _target;
+            _helper.start(numPasses, drawLastPassToBackBuffer);
+
             _quad.setBounds(bounds);
-            _resolution = 1.0; // applied via '_pool.textureScale' already;
+            _resolution = 1.0; // applied via '_helper.textureScale' already;
                                // only 'child'-filters use resolution directly (in 'process')
 
-            var input:Texture = _pool.getTexture();
+            var input:Texture = _helper.getTexture();
             var frameID:int = painter.frameID;
+            var output:Texture;
 
             // By temporarily setting the frameID to zero, the render cache is effectively
             // disabled while we draw the target object. That is necessary because we rewind the
@@ -214,28 +242,34 @@ package starling.filters
             painter.state.setModelviewMatricesToIdentity();
             painter.state.clipRect = null;
 
-            _quad.texture = process(painter, _pool, input); // -> feed 'input' to actual filter code
-            _pool.putTexture(input);
+            output = process(painter, _helper, input); // -> feed 'input' to actual filter code
 
             painter.popState();
             painter.frameID = frameID;
             painter.rewindCacheTo(_token); // -> render cache forgets all that happened above :)
-            painter.pushState();
 
-            if (_target.is3D) painter.state.setModelviewMatricesToIdentity(); // -> stage coords
-            else              _quad.moveVertices(root, _target);              // -> local coords
+            if (output) // indirect rendering
+            {
+                painter.pushState();
 
-            _quad.render(painter);
+                if (_target.is3D) painter.state.setModelviewMatricesToIdentity(); // -> stage coords
+                else              _quad.moveVertices(root, _target);              // -> local coords
 
-            painter.finishMeshBatch();
-            painter.popState();
+                _quad.texture = output;
+                _quad.render(painter);
 
+                painter.finishMeshBatch();
+                painter.popState();
+            }
+
+            _helper.target = null;
+            _helper.putTexture(input);
             _resolution = origResolution;
             Pool.putRectangle(bounds);
         }
 
         /** Does the actual filter processing. This method will be called with up to four input
-         *  textures and must return a new texture (acquired from the <code>pool</code>) that
+         *  textures and must return a new texture (acquired from the <code>helper</code>) that
          *  contains the filtered output. To to do this, it configures the FilterEffect
          *  (provided via <code>createEffect</code>) and calls its <code>render</code> method.
          *
@@ -247,29 +281,44 @@ package starling.filters
          *  into a CompositeFilter.</p>
          *
          *  <p>Never create or dispose any textures manually within this method; instead, get
-         *  new textures from the provided pool object, and pass them to the pool when you do
+         *  new textures from the provided helper object, and pass them to the helper when you do
          *  not need them any longer. Ownership of both input textures and returned texture
-         *  lies at the caller; only temporary textures should be put into the pool.</p>
+         *  lies at the caller; only temporary textures should be put into the helper.</p>
          */
-        public function process(painter:Painter, pool:ITexturePool,
+        public function process(painter:Painter, helper:IFilterHelper,
                                 input0:Texture=null, input1:Texture=null,
                                 input2:Texture=null, input3:Texture=null):Texture
         {
             var effect:FilterEffect = this.effect;
-            var output:Texture = pool.getTexture(_resolution);
-            var renderTargetRootWidth:Number  = output.root.width  / _resolution;
-            var renderTargetRootHeight:Number = output.root.height / _resolution;
+            var output:Texture = helper.getTexture(_resolution);
+            var projectionMatrix:Matrix3D;
+            var bounds:Rectangle = null;
+            var renderTarget:Texture;
 
-            painter.state.renderTarget = output;
-            painter.state.setProjectionMatrix(0, 0, renderTargetRootWidth, renderTargetRootHeight);
+            if (output)
+            {
+                renderTarget = output;
+                projectionMatrix = MatrixUtil.createPerspectiveProjectionMatrix(0, 0,
+                    output.root.width / _resolution, output.root.height / _resolution,
+                    0, 0, null, sMatrix3D);
+            }
+            else
+            {
+                bounds = helper.targetBounds;
+                renderTarget = (helper as FilterHelper).renderTarget;
+                projectionMatrix = (helper as FilterHelper).projectionMatrix3D;
+                effect.textureSmoothing = _textureSmoothing;
+            }
+
+            painter.state.renderTarget = renderTarget;
             painter.prepareToDraw();
             painter.drawCount += 1;
 
-            input0.setupVertexPositions(vertexData);
+            input0.setupVertexPositions(vertexData, 0, "position", bounds);
             input0.setupTextureCoordinates(vertexData);
 
             effect.texture = input0;
-            effect.mvpMatrix3D = painter.state.mvpMatrix3D;
+            effect.mvpMatrix3D = projectionMatrix;
             effect.uploadVertexData(vertexData);
             effect.uploadIndexData(indexData);
             effect.render(0, indexData.numTriangles);
@@ -313,6 +362,7 @@ package starling.filters
 
         // enter frame event
 
+        /** @private */
         override public function addEventListener(type:String, listener:Function):void
         {
             if (type == Event.ENTER_FRAME && _target)
@@ -321,6 +371,7 @@ package starling.filters
             super.addEventListener(type, listener);
         }
 
+        /** @private */
         override public function removeEventListener(type:String, listener:Function):void
         {
             if (type == Event.ENTER_FRAME && _target)
@@ -335,12 +386,6 @@ package starling.filters
         }
 
         // properties
-
-        /** The target display object the filter is assigned to. */
-        protected function get target():DisplayObject
-        {
-            return _target;
-        }
 
         /** The effect instance returning the FilterEffect created via <code>createEffect</code>. */
         protected function get effect():FilterEffect
@@ -377,6 +422,13 @@ package starling.filters
             dispatchEventWith(Event.CHANGE);
             if (_target) _target.setRequiresRedraw();
             if (_cached) _cacheRequested = true;
+        }
+
+        /** Indicates the number of rendering passes required for this filter.
+         *  Subclasses must override this method if the number of passes is not <code>1</code>. */
+        public function get numPasses():int
+        {
+            return 1;
         }
 
         /** Called when assigning a target display object.
@@ -440,9 +492,28 @@ package starling.filters
             if (value != _textureFormat)
             {
                 _textureFormat = value;
-                if (_pool) _pool.textureFormat = value;
+                if (_helper) _helper.textureFormat = value;
                 setRequiresRedraw();
             }
+        }
+
+        /** Indicates if the last filter pass is always drawn directly to the back buffer.
+         *
+         *  <p>Per default, the filter tries to automatically render in a smart way: objects that
+         *  are currently moving are rendered to the back buffer, objects that are static are
+         *  rendered into a texture first, which allows the filter to be drawn directly from the
+         *  render cache in the next frame (in case the object remains static).</p>
+         *
+         *  <p>However, this fails when filters are added to an object that does not support the
+         *  render cache, or to a container with such a child (e.g. a Sprite3D object or a masked
+         *  display object). In such a case, enable this property for maximum performance.</p>
+         *
+         *  @default false
+         */
+        public function get alwaysDrawToBackBuffer():Boolean { return _alwaysDrawToBackBuffer; }
+        public function set alwaysDrawToBackBuffer(value:Boolean):void
+        {
+            _alwaysDrawToBackBuffer = value;
         }
 
         // internal methods
@@ -457,7 +528,7 @@ package starling.filters
 
                 if (target == null)
                 {
-                    if (_pool)   _pool.purge();
+                    if (_helper) _helper.purge();
                     if (_effect) _effect.purgeBuffers();
                     if (_quad)   _quad.disposeTexture();
                 }
