@@ -112,6 +112,7 @@ package starling.text
             _meshBatch = new MeshBatch();
             _meshBatch.touchable = false;
             _meshBatch.pixelSnapping = true;
+            _meshBatch.batchable = true;
             addChild(_meshBatch);
         }
         

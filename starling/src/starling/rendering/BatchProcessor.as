@@ -218,12 +218,7 @@ class BatchPool
         }
 
         if (batchList.length > 0) return batchList.pop();
-        else
-        {
-            var batch:MeshBatch = new MeshBatch();
-            batch.batchable = false;
-            return batch;
-        }
+        else return new MeshBatch();
     }
 
     public function put(meshBatch:MeshBatch):void
