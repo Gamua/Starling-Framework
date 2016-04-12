@@ -14,9 +14,9 @@ package starling.display
 
     import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
     import starling.utils.MatrixUtil;
     import starling.utils.MeshSubset;
 

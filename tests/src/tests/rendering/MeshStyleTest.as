@@ -17,7 +17,7 @@ package tests.rendering
     import starling.display.Quad;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
-    import starling.rendering.MeshStyle;
+    import starling.styles.MeshStyle;
 
     import tests.StarlingTestCase;
 

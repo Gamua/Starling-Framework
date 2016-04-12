@@ -18,7 +18,7 @@ package starling.display
     import starling.events.Touch;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
-    import starling.rendering.MeshStyle;
+    import starling.styles.MeshStyle;
     import starling.text.TextField;
     import starling.text.TextFormat;
     import starling.textures.Texture;

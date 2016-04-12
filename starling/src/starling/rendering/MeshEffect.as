@@ -25,7 +25,7 @@ package starling.rendering
      *
      *  @see Effect
      *  @see FilterEffect
-     *  @see starling.rendering.MeshStyle
+     *  @see starling.styles.MeshStyle
      */
     public class MeshEffect extends FilterEffect
     {

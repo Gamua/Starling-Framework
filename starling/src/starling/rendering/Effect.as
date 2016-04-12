@@ -91,7 +91,7 @@ package starling.rendering
      *
      *  @see FilterEffect
      *  @see MeshEffect
-     *  @see starling.rendering.MeshStyle
+     *  @see starling.styles.MeshStyle
      *  @see starling.filters.FragmentFilter
      *  @see starling.utils.RenderUtil
      */

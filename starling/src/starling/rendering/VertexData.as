@@ -23,6 +23,7 @@ package starling.rendering
 
     import starling.core.Starling;
     import starling.errors.MissingContextError;
+    import starling.styles.MeshStyle;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.StringUtil;

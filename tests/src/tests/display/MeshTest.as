@@ -20,8 +20,8 @@ package tests.display
 
     import starling.display.Mesh;
     import starling.rendering.IndexData;
-    import starling.rendering.MeshStyle;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
 
     import tests.Helpers;

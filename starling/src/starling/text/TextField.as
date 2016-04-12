@@ -23,8 +23,8 @@ package starling.text
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.events.Event;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
+    import starling.styles.MeshStyle;
     import starling.utils.RectangleUtil;
 
     /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.

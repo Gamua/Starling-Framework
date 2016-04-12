@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package starling.rendering
+package starling.styles
 {
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
@@ -18,6 +18,7 @@ package starling.rendering
     import starling.display.Mesh;
     import starling.events.Event;
     import starling.events.EventDispatcher;
+    import starling.rendering.*;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
 

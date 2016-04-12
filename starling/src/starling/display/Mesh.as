@@ -15,10 +15,10 @@ package starling.display
 
     import starling.core.starling_internal;
     import starling.rendering.IndexData;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.rendering.VertexDataFormat;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
     import starling.utils.MeshUtil;
@@ -38,7 +38,7 @@ package starling.display
      *  to add support for color transformations, normal mapping, etc.</p>
      *
      *  @see MeshBatch
-     *  @see starling.rendering.MeshStyle
+     *  @see starling.styles.MeshStyle
      *  @see starling.rendering.VertexData
      *  @see starling.rendering.IndexData
      */
