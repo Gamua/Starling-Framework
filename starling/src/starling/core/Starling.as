@@ -955,14 +955,14 @@ package starling.core
             }
         }
 
-        /** When enabled, Starling will skip rendering the stage if it hasn't changed since the last
-         *  frame. This is great for apps that sometimes remain static, since it will greatly reduce
-         *  power consumption. If you use Render- or VideoTextures, though, you either have to
-         *  disable this property while they are active, or call <code>setRequiresRedraw()</code>
-         *  on the respective display objects whenever those textures are changing.
+        /** When enabled, Starling will skip rendering the stage if it hasn't changed since the
+         *  last frame. This is great for apps that remain static from time to time, since it will
+         *  greatly reduce power consumption. You should activate this whenever possible!
          *
-         *  <p>Note that masks currently prevent any frame skipping.
-         *  This will probably be fixed in a future release.</p>
+         *  <p>The reason why it's disable by default is just that it causes problems with Render-
+         *  and VideoTextures. When you use those, you either have to disable this property
+         *  temporarily, or call <code>setRequiresRedraw()</code> (ideally on the stage) whenever
+         *  those textures are changing. Otherwise, the changes won't show up.</p>
          *
          *  @default false
          */
