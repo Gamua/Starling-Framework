@@ -959,7 +959,7 @@ package starling.core
          *  last frame. This is great for apps that remain static from time to time, since it will
          *  greatly reduce power consumption. You should activate this whenever possible!
          *
-         *  <p>The reason why it's disable by default is just that it causes problems with Render-
+         *  <p>The reason why it's disabled by default is just that it causes problems with Render-
          *  and VideoTextures. When you use those, you either have to disable this property
          *  temporarily, or call <code>setRequiresRedraw()</code> (ideally on the stage) whenever
          *  those textures are changing. Otherwise, the changes won't show up.</p>

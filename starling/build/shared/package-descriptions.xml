@@ -30,6 +30,9 @@
 		<package name="starling.filters">
 			<shortDescription><![CDATA[Post processing filters for special effects.]]></shortDescription>
 		</package>
+		<package name="starling.styles">
+			<shortDescription><![CDATA[Styles completely modify the way a mesh is rendered and batched.]]></shortDescription>
+		</package>
 		<package name="starling.rendering">
 			<shortDescription><![CDATA[All things related to Stage3D rendering.]]></shortDescription>
 		</package>

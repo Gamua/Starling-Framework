@@ -320,7 +320,7 @@ package starling.rendering
          *
          *  <p>Note that masking breaks the render cache; the masked object must be redrawn anew
          *  in the next frame. If you pass <code>maskee</code>, the method will automatically
-         *  call <p>excludeFromCache(maskee)</code> for you.</p>
+         *  call <code>excludeFromCache(maskee)</code> for you.</p>
          */
         public function drawMask(mask:DisplayObject, maskee:DisplayObject=null):void
         {
