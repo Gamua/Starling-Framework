@@ -188,7 +188,8 @@ package starling.display
         /** @private */
         internal function addEnterFrameListener(listener:DisplayObject):void
         {
-            _enterFrameListeners.push(listener);
+            var index:int = _enterFrameListeners.indexOf(listener);
+            if (index < 0)  _enterFrameListeners[_enterFrameListeners.length] = listener;
         }
         
         /** @private */
