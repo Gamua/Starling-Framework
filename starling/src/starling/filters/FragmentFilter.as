@@ -178,12 +178,14 @@ package starling.filters
             var drawLastPassToBackBuffer:Boolean = false;
             var origResolution:Number = _resolution;
             var root:DisplayObject = _target.root;
-            var stage:Stage = root.stage;
+            var renderSpace:DisplayObject = root || _target.parent;
+            var isOnStage:Boolean = root != null;
+            var stage:Stage = Starling.current.stage;
             var stageBounds:Rectangle;
 
             if (!forCache && (_alwaysDrawToBackBuffer || _target.requiresRedraw))
             {
-                // if 'requiresRedraw' is true, the object is non-static, and we guess that this
+                // If 'requiresRedraw' is true, the object is non-static, and we guess that this
                 // will be the same in the next frame. So we render directly to the back buffer.
 
                 drawLastPassToBackBuffer = true;
@@ -193,9 +195,14 @@ package starling.filters
             if (_target == root) stage.getStageBounds(_target, bounds);
             else
             {
-                _target.getBounds(stage, bounds);
+                // Unfortunately, the following bounds calculation yields the wrong result when
+                // drawing a filter to a RenderTexture using a custom matrix. The 'modelviewMatrix'
+                // should be used for the bounds calculation, but the API doesn't support this.
+                // A future version should change this to: "getBounds(modelviewMatrix, bounds)"
 
-                if (!forCache) // normally, we don't need anything outside
+                _target.getBounds(renderSpace, bounds);
+
+                if (!forCache && isOnStage) // normally, we don't need anything outside
                 {
                     stageBounds = stage.getStageBounds(null, Pool.getRectangle());
                     RectangleUtil.intersect(bounds, stageBounds, bounds);
@@ -253,7 +260,7 @@ package starling.filters
                 painter.pushState();
 
                 if (_target.is3D) painter.state.setModelviewMatricesToIdentity(); // -> stage coords
-                else              _quad.moveVertices(root, _target);              // -> local coords
+                else              _quad.moveVertices(renderSpace, _target);       // -> local coords
 
                 _quad.texture = output;
                 _quad.render(painter);
@@ -295,14 +302,14 @@ package starling.filters
             var bounds:Rectangle = null;
             var renderTarget:Texture;
 
-            if (output)
+            if (output) // render to texture
             {
                 renderTarget = output;
                 projectionMatrix = MatrixUtil.createPerspectiveProjectionMatrix(0, 0,
                     output.root.width / _resolution, output.root.height / _resolution,
                     0, 0, null, sMatrix3D);
             }
-            else
+            else // render to back buffer
             {
                 bounds = helper.targetBounds;
                 renderTarget = (helper as FilterHelper).renderTarget;
@@ -595,13 +602,11 @@ class FilterQuad extends Mesh
 
     public function moveVertices(sourceSpace:DisplayObject, targetSpace:DisplayObject):void
     {
-        var vertexData:VertexData = this.vertexData;
-
         if (targetSpace.is3D)
             throw new Error("cannot move vertices into 3D space");
-        else
+        else if (sourceSpace != targetSpace)
         {
-            sourceSpace.getTransformationMatrix(targetSpace, sMatrix);
+            targetSpace.getTransformationMatrix(sourceSpace, sMatrix).invert(); // ss could be null!
             vertexData.transformPoints("position", sMatrix);
         }
     }
