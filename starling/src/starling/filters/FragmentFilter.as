@@ -357,6 +357,7 @@ package starling.filters
         public function cache():void
         {
             _cached = _cacheRequested = true;
+            setRequiresRedraw();
         }
 
         /** Clears the cached output of the filter. After calling this method, the filter will be
