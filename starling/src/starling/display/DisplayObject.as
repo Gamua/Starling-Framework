@@ -510,7 +510,7 @@ package starling.display
         // internal methods
         
         /** @private */
-        internal function setParent(value:DisplayObjectContainer):void 
+        starling_internal function setParent(value:DisplayObjectContainer):void
         {
             // check for a recursion
             var ancestor:DisplayObject = value;
