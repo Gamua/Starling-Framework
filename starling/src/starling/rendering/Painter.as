@@ -206,6 +206,15 @@ package starling.rendering
             if (_context.profile == "baselineConstrained")
                 _context.configureBackBuffer(32, 32, antiAlias, enableDepthAndStencil);
 
+            // If supporting HiDPI mode would exceed the maximum buffer size
+            // (can happen e.g in software mode), we stick to the low resolution.
+
+            if (viewPort.width  * contentScaleFactor > _context.maxBackBufferWidth ||
+                viewPort.height * contentScaleFactor > _context.maxBackBufferHeight)
+            {
+                contentScaleFactor = 1.0;
+            }
+
             _stage3D.x = viewPort.x;
             _stage3D.y = viewPort.y;
 
