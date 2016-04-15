@@ -432,7 +432,8 @@ package starling.core
             makeCurrent();
             updateViewPort();
 
-            if (_stage.requiresRedraw || mustAlwaysRender)
+            var doRedraw:Boolean = _stage.requiresRedraw || mustAlwaysRender;
+            if (doRedraw)
             {
                 dispatchEventWith(starling.events.Event.RENDER);
 
@@ -456,11 +457,14 @@ package starling.core
                 _painter.finishFrame();
                 _painter.frameID = ++_frameID;
 
-                if (_statsDisplay)
-                    _statsDisplay.drawCount = _painter.drawCount;
-
                 if (!shareContext)
                     _painter.present();
+            }
+
+            if (_statsDisplay)
+            {
+                _statsDisplay.drawCount = _painter.drawCount;
+                if (!doRedraw) _statsDisplay.markFrameAsSkipped();
             }
         }
         
@@ -835,6 +839,10 @@ package starling.core
         
         /** Indicates if a small statistics box (with FPS, memory usage and draw count) is
          *  displayed.
+         *
+         *  <p>When the box turns dark green, more than 50% of the frames since the box' last
+         *  update could skip rendering altogether. This will only happen if the property
+         *  <code>skipUnchangedFrames</code> is enabled.</p>
          *
          *  <p>Beware that the memory usage should be taken with a grain of salt. The value is
          *  determined via <code>System.totalMemory</code> and does not take texture memory

@@ -12,12 +12,12 @@ package starling.core
 {
     import flash.system.System;
 
-    import starling.display.BlendMode;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.rendering.Painter;
+    import starling.styles.MeshStyle;
     import starling.text.BitmapFont;
     import starling.text.TextField;
     import starling.text.TextFormat;
@@ -38,6 +38,7 @@ package starling.core
         private var _fps:Number = 0;
         private var _memory:Number = 0;
         private var _drawCount:int = 0;
+        private var _skipCount:int = 0;
         
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
@@ -49,10 +50,12 @@ package starling.core
             _textField = new TextField(48, 25, "", format);
             _textField.x = 2;
 
+            // make sure that rendering takes 2 draw calls
+            if (_background.style.type != MeshStyle) _background.style = new MeshStyle();
+            if ( _textField.style.type != MeshStyle) _textField.style  = new MeshStyle();
+
             addChild(_background);
             addChild(_textField);
-            
-            blendMode = BlendMode.NONE;
             
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
@@ -61,7 +64,7 @@ package starling.core
         private function onAddedToStage():void
         {
             addEventListener(Event.ENTER_FRAME, onEnterFrame);
-            _totalTime = _frameCount = 0;
+            _totalTime = _frameCount = _skipCount = 0;
             update();
         }
         
@@ -78,7 +81,7 @@ package starling.core
             if (_totalTime > UPDATE_INTERVAL)
             {
                 update();
-                _frameCount = _totalTime = 0;
+                _frameCount = _skipCount = _totalTime = 0;
             }
         }
         
@@ -87,18 +90,25 @@ package starling.core
         {
             _fps = _totalTime > 0 ? _frameCount / _totalTime : 0;
             _memory = System.totalMemory * 0.000000954; // 1.0 / (1024*1024) to convert to MB
-            
+            _background.color = _skipCount > _frameCount / 2 ? 0x003F00 : 0x0;
             _textField.text = "FPS: " + _fps.toFixed(_fps < 100 ? 1 : 0) +
                             "\nMEM: " + _memory.toFixed(_memory < 100 ? 1 : 0) +
                             "\nDRW: " + (_totalTime > 0 ? _drawCount-2 : _drawCount); // ignore self
         }
+
+        /** Call this once in every frame that can skip rendering because nothing changed. */
+        public function markFrameAsSkipped():void
+        {
+            _skipCount += 1;
+        }
         
         public override function render(painter:Painter):void
         {
-            // By calling "finishQuadBatch" here, we can make sure that the stats display is
-            // always rendered with exactly two draw calls. That is taken into account when showing
-            // the drawCount value (see 'ignore self' comment above)
+            // By calling 'finishQuadBatch' and 'excludeFromCache', we can make sure that the stats
+            // display is always rendered with exactly two draw calls. That is taken into account
+            // when showing the drawCount value (see 'ignore self' comment above)
 
+            painter.excludeFromCache(this);
             painter.finishMeshBatch();
             super.render(painter);
         }
