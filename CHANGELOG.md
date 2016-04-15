@@ -27,7 +27,7 @@ version 2.0 (RC) - 2016-04-15
 - changed 'mapPoint' property of DisplacementMapFilter into 'mapX' + 'mapY' properties
 - changed how to handle objects that do not support the render cache (via 'excludeFromCache')
 - changed package of 'MeshStyle' to 'starling.styles'
-- changed default of 'MeshBatch.batchable' to 'false'
+- changed default of 'MeshBatch.batchable' and 'TextField.batchable' to 'false'
 - changed that 'DisplayObjectContainer.removeChild' now returns null if child is not found
 - optimized index buffer uploading for basic quad data
 - optimized fragment filter passes: last pass can now be rendered directly to back buffer
