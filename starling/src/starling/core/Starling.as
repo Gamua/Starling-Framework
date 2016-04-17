@@ -568,7 +568,19 @@ package starling.core
             _started = false;
             _rendering = !suspendRendering;
         }
-        
+
+        /** Makes sure that the next frame is actually rendered.
+         *
+         *  <p>When <code>skipUnchangedFrames</code> is enabled, some situations require that you
+         *  manually force a redraw, e.g. when a RenderTexture is changed. This method is the
+         *  easiest way to do so; it's just a shortcut to <code>stage.setRequiresRedraw()</code>.
+         *  </p>
+         */
+        public function setRequiresRedraw():void
+        {
+            _stage.setRequiresRedraw();
+        }
+
         // event handlers
         
         private function onStage3DError(event:ErrorEvent):void

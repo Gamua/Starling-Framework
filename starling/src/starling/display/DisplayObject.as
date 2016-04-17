@@ -562,6 +562,9 @@ package starling.display
                 parent._lastChildChangeFrameID = frameID;
                 parent = parent._parent;
             }
+
+            // make sure mask changes show up when 'skipUnchangedFrames' is enabled
+            if (_isMask) Starling.current.setRequiresRedraw();
         }
 
         /** Indicates if the object needs to be redrawn in the upcoming frame, i.e. if it has
