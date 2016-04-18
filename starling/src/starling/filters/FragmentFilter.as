@@ -178,7 +178,7 @@ package starling.filters
             var drawLastPassToBackBuffer:Boolean = false;
             var origResolution:Number = _resolution;
             var root:DisplayObject = _target.root;
-            var renderSpace:DisplayObject = root || _target.parent;
+            var renderSpace:DisplayObject = _target.stage || _target.parent;
             var isOnStage:Boolean = root != null;
             var stage:Stage = Starling.current.stage;
             var stageBounds:Rectangle;
