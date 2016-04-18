@@ -39,6 +39,7 @@ package starling.filters
             }
 
             updatePadding();
+            addEventListener(Event.ENTER_FRAME, onEnterFrame);
         }
 
         /** Disposes the filter chain itself as well as all contained filters. */
@@ -153,6 +154,12 @@ package starling.filters
             }
 
             this.padding.copyFrom(sPadding);
+        }
+
+        private function onEnterFrame(event:Event):void
+        {
+            var i:int, numFilters:int = _filters.length;
+            for (i=0; i<numFilters; ++i) _filters[i].dispatchEvent(event);
         }
 
         /** Indicates the current chain length. */
