@@ -177,9 +177,8 @@ package starling.filters
             var bounds:Rectangle = Pool.getRectangle(); // might be recursive -> no static var
             var drawLastPassToBackBuffer:Boolean = false;
             var origResolution:Number = _resolution;
-            var root:DisplayObject = _target.root;
             var renderSpace:DisplayObject = _target.stage || _target.parent;
-            var isOnStage:Boolean = root != null;
+            var isOnStage:Boolean = renderSpace is Stage;
             var stage:Stage = Starling.current.stage;
             var stageBounds:Rectangle;
 
@@ -192,7 +191,11 @@ package starling.filters
                 painter.excludeFromCache(_target);
             }
 
-            if (_target == root) stage.getStageBounds(_target, bounds);
+            if (_target == Starling.current.root)
+            {
+                // full-screen filters use exactly the stage bounds
+                stage.getStageBounds(_target, bounds);
+            }
             else
             {
                 // Unfortunately, the following bounds calculation yields the wrong result when
