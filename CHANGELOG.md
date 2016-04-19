@@ -1,8 +1,8 @@
 Starling: Changelog
 ===================
 
-version 2.0 (RC) - 2016-04-15
------------------------------
+version 2.0 - 2016-04-19
+------------------------
 
 - added 'Starling.skipUnchangedFrames' property
 - added 'cache' + 'uncache' + 'isCached' methods to FragmentFilter
