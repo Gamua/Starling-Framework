@@ -47,7 +47,7 @@ package starling.rendering
             // Non-tinted meshes may be rendered with a simpler fragment shader, which brings
             // a huge performance benefit on some low-end hardware. However, I don't want
             // subclasses to become any more complicated because of this optimization (they
-            // probably use much long shaders, anyway), so I only apply this optimization if
+            // probably use much longer shaders, anyway), so I only apply this optimization if
             // this is actually the "MeshEffect" class.
 
             _alpha = 1.0;
@@ -57,8 +57,8 @@ package starling.rendering
         /** @private */
         override protected function get programVariantName():uint
         {
-            var optimizeTinting:uint = uint(!_tinted && _optimizeIfNotTinted);
-            return super.programVariantName | (optimizeTinting << 3);
+            var noTinting:uint = uint(_optimizeIfNotTinted && !_tinted && _alpha == 1.0);
+            return super.programVariantName | (noTinting << 3);
         }
 
         /** @private */
@@ -68,7 +68,8 @@ package starling.rendering
 
             if (texture)
             {
-                if (!_tinted && _optimizeIfNotTinted) return super.createProgram();
+                if (_optimizeIfNotTinted && !_tinted && _alpha == 1.0)
+                    return super.createProgram();
 
                 vertexShader =
                     "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output clip-space
@@ -112,7 +113,7 @@ package starling.rendering
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = _alpha;
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, sRenderAlpha);
 
-            if (_tinted || !_optimizeIfNotTinted || texture == null)
+            if (_tinted || _alpha != 1.0 || !_optimizeIfNotTinted || texture == null)
                 vertexFormat.setVertexBufferAt(2, vertexBuffer, "color");
         }
 
