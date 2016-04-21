@@ -3,7 +3,7 @@
   <component name="FlexBuildConfigurationManager" active="demo-web">
     <configurations>
       <configuration name="demo-web" pure-as="true" main-class="Demo_Web_Preloader" output-file="demo_web.swf" output-folder="$MODULE_DIR$/out">
-        <dependencies target-player="19.0">
+        <dependencies target-player="21.0">
           <entries>
             <entry module-name="demo-shared" build-configuration-name="demo-shared">
               <dependency linkage="Merged" />
@@ -12,9 +12,12 @@
               <dependency linkage="Merged" />
             </entry>
           </entries>
-          <sdk name="air-19" />
+          <sdk name="air-21" />
         </dependencies>
         <compiler-options>
+          <map>
+            <entry key="compiler.debug.swf" value="true" />
+          </map>
           <option name="additionalOptions" value="-frame StartupFrame Demo_Web" />
         </compiler-options>
         <packaging-air-desktop />
@@ -31,7 +34,7 @@
       <excludeFolder url="file://$MODULE_DIR$/bin-debug" />
       <excludeFolder url="file://$MODULE_DIR$/bin-release" />
     </content>
-    <orderEntry type="jdk" jdkName="air-19" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="jdk" jdkName="air-21" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="starling" exported="" />
     <orderEntry type="module" module-name="demo-shared" exported="" />
