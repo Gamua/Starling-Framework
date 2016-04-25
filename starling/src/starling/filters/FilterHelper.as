@@ -137,25 +137,26 @@ package starling.filters
          *  them. */
         private function setSize(width:Number, height:Number):void
         {
-            _scale = _preferredScale;
-
             var factor:Number;
+            var newScale:Number = _preferredScale;
             var maxNativeSize:int   = Texture.maxSize;
-            var newNativeWidth:int  = getNativeSize(width,  _scale);
-            var newNativeHeight:int = getNativeSize(height, _scale);
+            var newNativeWidth:int  = getNativeSize(width,  newScale);
+            var newNativeHeight:int = getNativeSize(height, newScale);
 
             if (newNativeWidth > maxNativeSize || newNativeHeight > maxNativeSize)
             {
                 factor = maxNativeSize / Math.max(newNativeWidth, newNativeHeight);
                 newNativeWidth  *= factor;
                 newNativeHeight *= factor;
-                _scale *= factor;
+                newScale *= factor;
             }
 
-            if (_nativeWidth != newNativeWidth || _nativeHeight != newNativeHeight)
+            if (_nativeWidth != newNativeWidth || _nativeHeight != newNativeHeight ||
+                _scale != newScale)
             {
                 purge();
 
+                _scale = newScale;
                 _nativeWidth  = newNativeWidth;
                 _nativeHeight = newNativeHeight;
             }
