@@ -10,6 +10,7 @@ package
     import tests.animation.JugglerTest;
     import tests.animation.TweenTest;
     import tests.display.BlendModeTest;
+    import tests.display.ButtonTest;
     import tests.display.DisplayObjectContainerTest;
     import tests.display.DisplayObjectTest;
     import tests.display.MeshTest;
@@ -82,6 +83,7 @@ package
             testsToRun.push(FilterChainTest);
             testsToRun.push(FragmentFilterTest);
             testsToRun.push(MeshStyleTest);
+            testsToRun.push(ButtonTest);
             return testsToRun;
         }
     }

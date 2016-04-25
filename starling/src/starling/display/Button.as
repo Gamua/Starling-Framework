@@ -416,24 +416,30 @@ package starling.display
         /** @private */
         override public function set width(value:Number):void
         {
-            var scaleX:Number = value / _body.width;
+            // The Button might use a Scale9Grid ->
+            // we must update the body width/height manually for the grid to scale properly.
 
-            _body.width = value;
-            _textBounds.x *= scaleX;
-            _textBounds.width *= scaleX;
+            var newWidth:Number = value / (this.scaleX || 1.0);
+            var scale:Number = newWidth / (_body.width || 1.0);
 
-            if (_textField) _textField.width = value;
+            _body.width = newWidth;
+            _textBounds.x *= scale;
+            _textBounds.width *= scale;
+
+            if (_textField) _textField.width = newWidth;
         }
 
+        /** @private */
         override public function set height(value:Number):void
         {
-            var scaleY:Number = value / _body.height;
+            var newHeight:Number = value /  (this.scaleY || 1.0);
+            var scale:Number = newHeight / (_body.height || 1.0);
 
-            _body.height = value;
-            _textBounds.y *= scaleY;
-            _textBounds.height *= scaleY;
+            _body.height = newHeight;
+            _textBounds.y *= scale;
+            _textBounds.height *= scale;
 
-            if (_textField) _textField.height = value;
+            if (_textField) _textField.height = newHeight;
         }
 
         /** The current scaling grid used for the button's state image. Use this property to create
