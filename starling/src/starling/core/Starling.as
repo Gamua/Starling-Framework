@@ -10,7 +10,6 @@
 
 package starling.core
 {
-    import flash.display.DisplayObjectContainer;
     import flash.display.Shape;
     import flash.display.Sprite;
     import flash.display.Stage3D;
@@ -764,23 +763,9 @@ package starling.core
                 return false;
             else
             {
-                var numStageChildren:int = _nativeStage.numChildren;
-                var nativeStageEmpty:Boolean = true;
-                var child:DisplayObjectContainer;
-                var mustAlwaysRender:Boolean;
-
-                for (var i:int=0; i<numStageChildren; ++i)
-                {
-                    child = _nativeStage.getChildAt(i) as DisplayObjectContainer;
-                    if (child == null || child.numChildren)
-                    {
-                        nativeStageEmpty = false;
-                        break;
-                    }
-                }
-
-                // to be able to skip rendering, the stage must be empty in the previous frame, too
-                mustAlwaysRender = !nativeStageEmpty || !_nativeStageEmpty;
+                // Rendering can be skipped when both this and previous frame are empty.
+                var nativeStageEmpty:Boolean = isNativeDisplayObjectEmpty(_nativeStage);
+                var mustAlwaysRender:Boolean = !nativeStageEmpty || !_nativeStageEmpty;
                 _nativeStageEmpty = nativeStageEmpty;
 
                 return mustAlwaysRender;
@@ -1060,4 +1045,26 @@ package starling.core
             return sCurrent ? sCurrent._frameID : 0;
         }
     }
+}
+
+import flash.display.DisplayObject;
+import flash.display.DisplayObjectContainer;
+
+// put here to avoid naming conflicts
+function isNativeDisplayObjectEmpty(object:DisplayObject):Boolean
+{
+    if (object is DisplayObjectContainer)
+    {
+        var container:DisplayObjectContainer = object as DisplayObjectContainer;
+        var numChildren:int = container.numChildren;
+
+        for (var i:int=0; i<numChildren; ++i)
+        {
+            if (!isNativeDisplayObjectEmpty(container.getChildAt(i)))
+                return false;
+        }
+
+        return true;
+    }
+    else return !object.visible;
 }
