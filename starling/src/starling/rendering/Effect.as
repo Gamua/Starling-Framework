@@ -156,8 +156,15 @@ package starling.rendering
         }
 
         /** Uploads the given index data to the internal index buffer. If the buffer is too
-         *  small, a new one is created automatically. */
-        public function uploadIndexData(indexData:IndexData):void
+         *  small, a new one is created automatically.
+         *
+         *  @param indexData   The IndexData instance to upload.
+         *  @param bufferUsage The expected buffer usage. Use one of the constants defined in
+         *                     <code>Context3DBufferUsage</code>. Only used when the method call
+         *                     causes the creation of a new index buffer.
+         */
+        public function uploadIndexData(indexData:IndexData,
+                                        bufferUsage:String="staticDraw"):void
         {
             var numIndices:int = indexData.numIndices;
             var isQuadLayout:Boolean = indexData.useQuadLayout;
@@ -178,15 +185,22 @@ package starling.rendering
             }
             if (_indexBuffer == null)
             {
-                _indexBuffer = indexData.createIndexBuffer(true);
+                _indexBuffer = indexData.createIndexBuffer(true, bufferUsage);
                 _indexBufferSize = numIndices;
                 _indexBufferUsesQuadLayout = isQuadLayout;
             }
         }
 
         /** Uploads the given vertex data to the internal vertex buffer. If the buffer is too
-         *  small, a new one is created automatically. */
-        public function uploadVertexData(vertexData:VertexData):void
+         *  small, a new one is created automatically.
+         *
+         *  @param vertexData  The VertexData instance to upload.
+         *  @param bufferUsage The expected buffer usage. Use one of the constants defined in
+         *                     <code>Context3DBufferUsage</code>. Only used when the method call
+         *                     causes the creation of a new vertex buffer.
+         */
+        public function uploadVertexData(vertexData:VertexData,
+                                         bufferUsage:String="staticDraw"):void
         {
             if (_vertexBuffer)
             {
@@ -197,7 +211,7 @@ package starling.rendering
             }
             if (_vertexBuffer == null)
             {
-                _vertexBuffer = vertexData.createVertexBuffer(true);
+                _vertexBuffer = vertexData.createVertexBuffer(true, bufferUsage);
                 _vertexBufferSize = vertexData.size;
             }
         }
