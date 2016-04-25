@@ -207,6 +207,7 @@ package starling.core
         private var _rendering:Boolean;
         private var _supportHighResolutions:Boolean;
         private var _skipUnchangedFrames:Boolean;
+        private var _showStats:Boolean;
         
         private var _viewPort:Rectangle;
         private var _previousViewPort:Rectangle;
@@ -849,23 +850,28 @@ package starling.core
          *  into account. It is recommended to use Adobe Scout for reliable and comprehensive
          *  memory analysis.</p>
          */
-        public function get showStats():Boolean { return _statsDisplay && _statsDisplay.parent; }
+        public function get showStats():Boolean { return _showStats; }
         public function set showStats(value:Boolean):void
         {
-            if (value == showStats) return;
-            
+            _showStats = value;
+
             if (value)
             {
                 if (_statsDisplay) _stage.addChild(_statsDisplay);
                 else               showStatsAt();
             }
-            else _statsDisplay.removeFromParent();
+            else if (_statsDisplay)
+            {
+                _statsDisplay.removeFromParent();
+            }
         }
         
         /** Displays the statistics box at a certain position. */
         public function showStatsAt(horizontalAlign:String="left",
                                     verticalAlign:String="top", scale:Number=1):void
         {
+            _showStats = true;
+
             if (context == null)
             {
                 // Starling is not yet ready - we postpone this until it's initialized.
@@ -898,7 +904,7 @@ package starling.core
             
             function onRootCreated():void
             {
-                showStatsAt(horizontalAlign, verticalAlign, scale);
+                if (_showStats) showStatsAt(horizontalAlign, verticalAlign, scale);
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
