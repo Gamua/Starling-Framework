@@ -355,8 +355,8 @@ package starling.core
             makeCurrent();
             updateViewPort(true);
 
-            if (!shareContext) // ideal time: after viewPort setup, before root creation
-                dispatchEventWith(Event.CONTEXT3D_CREATE, false, context);
+            // ideal time: after viewPort setup, before root creation
+            dispatchEventWith(Event.CONTEXT3D_CREATE, false, context);
 
             initializeRoot();
             _frameTimestamp = getTimer() / 1000.0;
