@@ -107,7 +107,7 @@ package starling.core
      *  </ul>
      *  
      *  <p>The recommendation is to deploy your app with the profile "auto" (which makes Starling
-     *  pick the best available of those), but test it in all available profiles.</p>
+     *  pick the best available of those), but to test it in all available profiles.</p>
      *  
      *  <strong>Accessing the Starling object</strong>
      * 
@@ -131,8 +131,7 @@ package starling.core
      *  
      *  <p>Beware, though, that conventional Flash content on top of 3D content can lead to
      *  performance penalties on some (mobile) platforms. For that reason, always remove all child
-     *  objects from the overlay when you don't need them any longer. Starling will remove the 
-     *  overlay from the display list when it's empty.</p>
+     *  objects from the overlay when you don't need them any longer.</p>
      *  
      *  <strong>Multitouch</strong>
      *  
@@ -140,22 +139,32 @@ package starling.core
      *  where most of us are working with a conventional mouse and keyboard, Starling can simulate 
      *  multitouch events with the help of the "Shift" and "Ctrl" (Mac: "Cmd") keys. Activate
      *  this feature by enabling the <code>simulateMultitouch</code> property.</p>
+     *
+     *  <strong>Skipping Unchanged Frames</strong>
+     *
+     *  <p>It happens surprisingly often in an app or game that a scene stays completely static for
+     *  several frames. So why redraw the stage at all in those situations? That's exactly the
+     *  point of the <code>skipUnchangedFrames</code>-property. If enabled, static scenes are
+     *  recognized as such and the back buffer is simply left as it is. On a mobile device, the
+     *  impact of this feature can't be overestimated! There's simply no better way to enhance
+     *  battery life. Make it a habit to always activate it; look at the documentation of the
+     *  corresponding property for details.</p>
      *  
      *  <strong>Handling a lost render context</strong>
      *  
      *  <p>On some operating systems and under certain conditions (e.g. returning from system
      *  sleep), Starling's stage3D render context may be lost. Starling will try to recover
-     *  from a lost context automatically. To be able to do this, Starling will cache textures
-     *  in RAM to be able to restore them after the context was lost. This will take up quite
-     *  a bit of extra memory, though, which might be problematic especially on mobile platforms.
-     *  To avoid the higher memory footprint, it's recommend to load your textures with
-     *  Starling's "AssetManager"; it is smart enough to recreate a texture directly from its
-     *  origin.</p>
+     *  from a lost context automatically; to be able to do this, it will cache textures in
+     *  RAM. This will take up quite a bit of extra memory, though, which might be problematic
+     *  especially on mobile platforms. To avoid the higher memory footprint, it's recommended
+     *  to load your textures with Starling's "AssetManager"; it is smart enough to recreate a
+     *  texture directly from its origin.</p>
      *
-     *  <p>In case you want to react to a context loss, Starling dispatches an event with
-     *  the type "Event.CONTEXT3D_CREATE" when the context is restored. You can recreate any 
-     *  invalid resources in a corresponding event listener.</p>
-     * 
+     *  <p>In case you want to react to a context loss manually, Starling dispatches an event with
+     *  the type "Event.CONTEXT3D_CREATE" when the context is restored, and textures will execute
+     *  their <code>root.onRestore</code> callback, to which you can attach your own logic.
+     *  Refer to the "Texture" class for more information.</p>
+     *
      *  <strong>Sharing a 3D Context</strong>
      * 
      *  <p>Per default, Starling handles the Stage3D context itself. If you want to combine
@@ -180,6 +189,7 @@ package starling.core
      *  information about this topic.</p>
      *
      *  @see starling.utils.AssetManager
+     *  @see starling.textures.Texture
      *
      */ 
     public class Starling extends EventDispatcher
