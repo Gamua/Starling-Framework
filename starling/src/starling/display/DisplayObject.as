@@ -844,7 +844,7 @@ package starling.display
             var actualWidth:Number;
 
             if (_scaleX == 0.0) { scaleX = 1.0; actualWidth = width; }
-            else actualWidth = width / _scaleX;
+            else actualWidth = Math.abs(width / _scaleX);
 
             if (actualWidth) scaleX = value / actualWidth;
         }
@@ -858,7 +858,7 @@ package starling.display
             var actualHeight:Number;
 
             if (_scaleY == 0.0) { scaleY = 1.0; actualHeight = height; }
-            else actualHeight = height / _scaleY;
+            else actualHeight = Math.abs(height / _scaleY);
 
             if (actualHeight) scaleY = value / actualHeight;
         }

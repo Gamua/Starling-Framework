@@ -462,5 +462,25 @@ package tests.display
             assertThat(sprite.scaleX, closeTo(0.75, E));
             assertThat(sprite.scaleY, closeTo(0.75, E));
         }
+
+        [Test]
+        public function testSetWidthNegativeAndBack():void
+        {
+            // -> https://github.com/Gamua/Starling-Framework/issues/850
+
+            var quad:Quad = new Quad(100, 100);
+
+            quad.width = -10;
+            quad.height = -10;
+
+            assertThat(quad.scaleX, closeTo(-0.1, E));
+            assertThat(quad.scaleY, closeTo(-0.1, E));
+
+            quad.width = 100;
+            quad.height = 100;
+
+            assertThat(quad.scaleX, closeTo(1.0, E));
+            assertThat(quad.scaleY, closeTo(1.0, E));
+        }
     }
 }
