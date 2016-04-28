@@ -41,6 +41,8 @@ package starling.textures
         {
             var clone:TextureOptions = new TextureOptions(_scale, _mipMapping, _format);
             clone._optimizeForRenderToTexture = _optimizeForRenderToTexture;
+            clone._premultipliedAlpha = _premultipliedAlpha;
+            clone._forcePotTexture = _forcePotTexture;
             clone._onReady = _onReady;
             return clone;
         }
