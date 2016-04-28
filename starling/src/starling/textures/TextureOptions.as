@@ -71,7 +71,7 @@ package starling.textures
 
         /** Indicates if the underlying Stage3D texture should be created as the power-of-two based
          *  <code>Texture</code> class instead of the more memory efficient <code>RectangleTexture</code>.
-         *  That might be useful when you need render the texture with wrap mode <code>repeat</code>.
+         *  That might be useful when you need to render the texture with wrap mode <code>repeat</code>.
          *  @default false */
         public function get forcePotTexture():Boolean { return _forcePotTexture; }
         public function set forcePotTexture(value:Boolean):void { _forcePotTexture = value; }
