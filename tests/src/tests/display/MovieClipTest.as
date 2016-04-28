@@ -484,6 +484,26 @@ package tests.display
                 completeCount++;
             }
         }
+
+        [Test]
+        public function testFloatingPointIssue():void
+        {
+            // -> https://github.com/Gamua/Starling-Framework/issues/851
+
+            var numFrames:int = 30;
+            var completeCount:int = 0;
+            var frames:Vector.<Texture> = createFrames(numFrames);
+            var movie:MovieClip = new MovieClip(frames, numFrames);
+
+            movie.loop = false;
+            movie.addEventListener(Event.COMPLETE, onComplete);
+            movie.currentTime = 0.9649999999999999;
+            movie.advanceTime(0.03500000000000014);
+
+            assertEquals(1, completeCount);
+
+            function onComplete():void { completeCount++; }
+        }
         
         private function createFrames(count:int):Vector.<Texture>
         {
