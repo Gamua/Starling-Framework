@@ -20,6 +20,7 @@ package starling.filters
     {
         private var _blurX:Number;
         private var _blurY:Number;
+        private var _strength:Number = 1;
 
         /** Create a new BlurFilter. For each blur direction, the number of required passes is
          *  <code>Math.ceil(blur)</code>.
@@ -31,10 +32,11 @@ package starling.filters
          *      <li>etc.</li>
          *  </ul>
          */
-        public function BlurFilter(blurX:Number=1.0, blurY:Number=1.0, resolution:Number=1.0)
+        public function BlurFilter(blurX:Number=1.0, blurY:Number=1.0, strength:Number = 1.0, resolution:Number=1.0)
         {
             _blurX = blurX;
             _blurY = blurY;
+            _strength = strength;
             this.resolution = resolution;
         }
 
@@ -51,6 +53,7 @@ package starling.filters
                 return super.process(painter, helper, input0);
             }
 
+            effect.saturation = _strength;
             var blurX:Number = Math.abs(_blurX);
             var blurY:Number = Math.abs(_blurY);
             var outTexture:Texture = input0;
@@ -129,6 +132,17 @@ package starling.filters
             _blurY = value;
             updatePadding();
         }
+
+		public function get strength():Number
+        {
+            return _strength;
+        }
+
+        public function set strength(value:Number):void
+        {
+            _strength=value;
+            updatePadding();
+        }
     }
 }
 
@@ -149,6 +163,7 @@ class BlurEffect extends FilterEffect
     private var _strength:Number;
     private var _direction:String;
 
+    private var _saturations:Vector.<Number> = new <Number>[1.0, 0, 0, 0];
     private var _offsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
     private var _weights:Vector.<Number> = new <Number>[0, 0, 0, 0];
 
@@ -203,7 +218,9 @@ class BlurEffect extends FilterEffect
 
             tex("ft4", "v4", 0, texture),    // read pixel +2
             "mul ft4, ft4, fc0.zzzz       ", // multiply with weight
-            "add  oc, ft5, ft4            "  // add to output color
+            "add  ft5, ft5, ft4 ",
+            "mul oc, ft5, fc1.xxxx"
+
         ].join("\n");
 
         return Program.fromSource(vertexShader, fragmentShader);
@@ -219,6 +236,7 @@ class BlurEffect extends FilterEffect
 
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, _offsets);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, _weights);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, _saturations);
         }
     }
 
@@ -292,6 +310,8 @@ class BlurEffect extends FilterEffect
             _offsets[2] = 0;
             _offsets[3] = offset2;
         }
+
+
     }
 
     public function get direction():String { return _direction; }
@@ -302,4 +322,9 @@ class BlurEffect extends FilterEffect
     {
         _strength = MathUtil.clamp(value, 0, 1);
     }
+
+    public function get saturation():Number { return _saturations[0]; }
+    public function set saturation(value:Number):void { _saturations[0] = value; }
+
+
 }
