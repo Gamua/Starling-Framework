@@ -1,6 +1,22 @@
 Starling: Changelog
 ===================
 
+version 2.0.1 - 2016-04-28
+--------------------------
+
+- added 'bufferUsage' parameters to 'Effect.uploadIndexData/uploadVertexData'
+- fixed that alpha value was ignored by non-tinted TextFields
+- fixed black screen caused by 'skipUnchangedFrames' when app moved into foreground
+- fixed wrong 'textBounds' when using 'TextField.autoSize'
+- fixed that TextField & Button returned wrong width & height when scale was not '1'
+- fixed that filter textures had the wrong size after changing the filter resolution
+- fixed that frame skipping did not work with invisible objects on the native stage
+- fixed that 'statsDisplay' getter was unreliable before Starling was initialized
+- fixed that initial CONTEXT3D_CREATE was not dispatched in shared context situations
+- fixed that setting object dimensions to negative value and back caused wrong scale
+- fixed floating point issue in MovieClip that prevented 'Event.COMPLETE' dispatching
+- fixed that not all properties were duplicated in 'TextureOptions.clone'
+
 version 2.0 - 2016-04-19
 ------------------------
 
