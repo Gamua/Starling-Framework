@@ -197,9 +197,6 @@ package starling.core
         /** The version of the Starling framework. */
         public static const VERSION:String = "2.0.2";
         
-        /** The key for the shader programs stored in 'contextData' */
-        private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
-        
         // members
         
         private var _stage:Stage; // starling.display.stage!
