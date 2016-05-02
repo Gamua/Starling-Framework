@@ -975,6 +975,12 @@ package starling.display
                 setOrientationChanged();
             }
         }
+
+        /** @private Indicates if the object is rotated or skewed in any way. */
+        internal function get isRotated():Boolean
+        {
+            return _rotation != 0.0 || _skewX != 0.0 || _skewY != 0.0;
+        }
         
         /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
         public function get alpha():Number { return _alpha; }

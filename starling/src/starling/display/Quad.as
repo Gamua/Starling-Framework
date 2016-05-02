@@ -119,7 +119,7 @@ package starling.display
             {
                 out.copyFrom(_bounds);
             }
-            else if (targetSpace == parent && rotation == 0.0) // optimization
+            else if (targetSpace == parent && !isRotated) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;
