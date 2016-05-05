@@ -61,8 +61,9 @@ package starling.display
 
             registerPrograms();
 
-            // handle lost context
-            Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
+            // Handle lost context (using conventional Flash event for weak listener support)
+            Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
+                onContextCreated, false, 0, true);
         }
 
         private function onContextCreated(event:Object):void
@@ -74,6 +75,7 @@ package starling.display
         /** @inheritDoc */
         public override function dispose():void
         {
+            Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
             destroyBuffers();
             super.dispose();
         }
