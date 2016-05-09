@@ -173,7 +173,7 @@ package starling.core
      *  
      *  <ol>
      *    <li>Manually create and configure a context3D object that both frameworks can work with
-     *        (through <code>stage3D.requestContext3D</code> and
+     *        (ideally through <code>RenderUtil.requestContext3D</code> and
      *        <code>context.configureBackBuffer</code>).</li>
      *    <li>Initialize Starling with the stage3D instance that contains that configured context.
      *        This will automatically enable <code>shareContext</code>.</li>
