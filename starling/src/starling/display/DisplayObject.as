@@ -828,8 +828,9 @@ package starling.display
             // that way, subclasses reacting on size changes need to override only the scaleX method.
 
             var actualWidth:Number;
+            var scaleIsNaN:Boolean = _scaleX != _scaleX; // avoid 'isNaN' call
 
-            if (_scaleX == 0.0) { scaleX = 1.0; actualWidth = width; }
+            if (_scaleX == 0.0 || scaleIsNaN) { scaleX = 1.0; actualWidth = width; }
             else actualWidth = Math.abs(width / _scaleX);
 
             if (actualWidth) scaleX = value / actualWidth;
@@ -842,8 +843,9 @@ package starling.display
         public function set height(value:Number):void
         {
             var actualHeight:Number;
+            var scaleIsNaN:Boolean = _scaleY != _scaleY; // avoid 'isNaN' call
 
-            if (_scaleY == 0.0) { scaleY = 1.0; actualHeight = height; }
+            if (_scaleY == 0.0 || scaleIsNaN) { scaleY = 1.0; actualHeight = height; }
             else actualHeight = Math.abs(height / _scaleY);
 
             if (actualHeight) scaleY = value / actualHeight;
