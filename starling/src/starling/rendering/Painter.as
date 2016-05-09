@@ -74,13 +74,14 @@ package starling.rendering
      */
     public class Painter
     {
+        // the key for the programs stored in 'sharedData'
+        private static const PROGRAM_DATA_NAME:String = "starling.rendering.Painter.Programs";
+
         // members
 
         private var _stage3D:Stage3D;
         private var _context:Context3D;
         private var _shareContext:Boolean;
-        private var _programs:Dictionary;
-        private var _data:Dictionary;
         private var _drawCount:int;
         private var _frameID:uint;
         private var _pixelSize:Number;
@@ -103,6 +104,9 @@ package starling.rendering
         private var _stateStack:Vector.<RenderState>;
         private var _stateStackPos:int;
         private var _stateStackLength:int;
+
+        // shared data
+        private static var sSharedData:Dictionary = new Dictionary();
 
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
@@ -127,8 +131,6 @@ package starling.rendering
             _backBufferScaleFactor = _pixelSize = 1.0;
             _stencilReferenceValues = new Dictionary(true);
             _clipRectStack = new <Rectangle>[];
-            _programs = new Dictionary();
-            _data = new Dictionary();
 
             _batchProcessor = new BatchProcessor();
             _batchProcessor.onBatchComplete = drawBatch;
@@ -144,7 +146,7 @@ package starling.rendering
             _stateStackLength = 0;
         }
         
-        /** Disposes all quad batches, programs, and - if it is not being shared -
+        /** Disposes all mesh batches, programs, and - if it is not being shared -
          *  the render context. */
         public function dispose():void
         {
@@ -152,10 +154,10 @@ package starling.rendering
             _batchCache.dispose();
 
             if (!_shareContext)
+            {
                 _context.dispose(false);
-
-            for each (var program:Program in _programs)
-                program.dispose();
+                sSharedData = new Dictionary();
+            }
         }
 
         // context handling
@@ -233,7 +235,7 @@ package starling.rendering
         public function registerProgram(name:String, program:Program):void
         {
             deleteProgram(name);
-            _programs[name] = program;
+            programs[name] = program;
         }
 
         /** Deletes the program of a certain name. */
@@ -243,7 +245,7 @@ package starling.rendering
             if (program)
             {
                 program.dispose();
-                delete _programs[name];
+                delete programs[name];
             }
         }
 
@@ -251,14 +253,13 @@ package starling.rendering
          *  this name has been registered. */
         public function getProgram(name:String):Program
         {
-            if (name in _programs) return _programs[name];
-            else return null;
+            return programs[name] as Program;
         }
 
         /** Indicates if a program is registered under a certain name. */
         public function hasProgram(name:String):Boolean
         {
-            return name in _programs;
+            return name in programs;
         }
 
         // state stack
@@ -506,12 +507,17 @@ package starling.rendering
          *  clipping rectangle, and draw count. Furthermore, depth testing is disabled. */
         public function nextFrame():void
         {
+            // enforce reset of basic context settings
+            _actualBlendMode = null;
+            _actualCulling = null;
+            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+
+            // reset everything else
             stencilReferenceValue = 0;
             _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
             _batchProcessor.clear();
-            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
             _state.reset();
         }
 
@@ -817,10 +823,29 @@ package starling.rendering
         }
 
         /** A dictionary that can be used to save custom data related to the render context.
-         *  If you need to share data that is bound to the render context (e.g. textures),
-         *  use this dictionary instead of creating a static class variable.
-         *  That way, the data will be available for all Starling instances that use this
-         *  painter / stage3D / context. */
-        public function get sharedData():Dictionary { return _data; }
+         *  If you need to share data that is bound to the render context (e.g. textures), use
+         *  this dictionary instead of creating a static class variable. That way, the data will
+         *  be available for all Starling instances that use this stage3D / context. */
+        public function get sharedData():Dictionary
+        {
+            var data:Dictionary = sSharedData[stage3D] as Dictionary;
+            if (data == null)
+            {
+                data = new Dictionary();
+                sSharedData[stage3D] = data;
+            }
+            return data;
+        }
+
+        private function get programs():Dictionary
+        {
+            var programs:Dictionary = sharedData[PROGRAM_DATA_NAME] as Dictionary;
+            if (programs == null)
+            {
+                programs = new Dictionary();
+                sharedData[PROGRAM_DATA_NAME] = programs;
+            }
+            return programs;
+        }
     }
 }
