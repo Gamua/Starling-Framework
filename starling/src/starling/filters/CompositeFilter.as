@@ -96,7 +96,7 @@ package starling.filters
         /** Adjusts the alpha value with which the layer is drawn. */
         public function setAlphaAt(layerID:int, alpha:Number):void
         {
-            compositeEffect.getLayerAt(layerID).alpha = MathUtil.clamp(alpha, 0, 1);
+            compositeEffect.getLayerAt(layerID).alpha = alpha;
         }
 
         private function get compositeEffect():CompositeEffect
