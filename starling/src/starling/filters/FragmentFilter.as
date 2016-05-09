@@ -219,6 +219,10 @@ package starling.filters
             if (_padding) RectangleUtil.extend(bounds,
                 _padding.left, _padding.right, _padding.top, _padding.bottom);
 
+            // integer bounds for maximum sharpness + to avoid jiggling
+            bounds.setTo(Math.floor(bounds.x),    Math.floor(bounds.y),
+                         Math.ceil(bounds.width), Math.ceil(bounds.height));
+
             _helper.textureScale = Starling.contentScaleFactor * _resolution;
             _helper.projectionMatrix3D = painter.state.projectionMatrix3D;
             _helper.renderTarget = painter.state.renderTarget;
