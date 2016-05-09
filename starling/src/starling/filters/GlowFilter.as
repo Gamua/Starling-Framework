@@ -96,6 +96,7 @@ package starling.filters
             if (blur != value)
             {
                 _blurFilter.blurX = _blurFilter.blurY = value;
+                setRequiresRedraw();
                 updatePadding();
             }
         }
@@ -107,6 +108,7 @@ package starling.filters
             if (resolution != value)
             {
                 _blurFilter.resolution = value;
+                setRequiresRedraw();
                 updatePadding();
             }
         }
