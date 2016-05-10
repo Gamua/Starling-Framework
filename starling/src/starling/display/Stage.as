@@ -288,6 +288,18 @@ package starling.display
         public function get stageHeight():int { return _height; }
         public function set stageHeight(value:int):void { _height = value; }
 
+        /** The Starling instance this stage belongs to. */
+        public function get starling():Starling
+        {
+            var instances:Vector.<Starling> = Starling.all;
+            var numInstances:int = instances.length;
+
+            for (var i:int=0; i<numInstances; ++i)
+                if (instances[i].stage == this) return instances[i];
+
+            return null;
+        }
+
         /** The distance between the stage and the camera. Changing this value will update the
          *  field of view accordingly. */
         public function get focalLength():Number
