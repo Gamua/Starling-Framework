@@ -99,35 +99,21 @@ package starling.display
      *  create a matrix that represents the transformation of a point in one coordinate system to 
      *  another.</p> 
      *  
-     *  <strong>Subclassing</strong>
+     *  <strong>Customization</strong>
      *  
-     *  <p>Since DisplayObject is an abstract class, you cannot instantiate it directly, but have 
-     *  to use one of its subclasses instead. There are already a lot of them available, and most 
-     *  of the time they will suffice.</p> 
-     *  
-     *  <p>However, you can create custom subclasses as well. That way, you can create an object
-     *  with a custom render function. You will need to implement the following methods when you 
-     *  subclass DisplayObject:</p>
-     *  
-     *  <ul>
-     *    <li><code>function render(support:RenderSupport):void</code></li>
-     *    <li><code>function getBounds(targetSpace:DisplayObject, 
-     *                                 out:Rectangle=null):Rectangle</code></li>
-     *  </ul>
-     *  
-     *  <p>Have a look at the Quad class for a sample implementation of the 'getBounds' method.
-     *  For a sample on how to write a custom render function, you can have a look at this
-     *  <a href="http://wiki.starling-framework.org/manual/custom_display_objects">article</a>
-     *  in the Starling Wiki.</p> 
-     * 
-     *  <p>When you override the render method, it is important that you call the method
-     *  'finishQuadBatch' of the support object. This forces Starling to render all quads that 
-     *  were accumulated before by different render methods (for performance reasons). Otherwise, 
-     *  the z-ordering will be incorrect.</p> 
-     * 
+     *  <p>DisplayObject is an abstract class, which means you cannot instantiate it directly,
+     *  but have to use one of its many subclasses instead. For leaf nodes, this is typically
+     *  'Mesh' or its subclasses 'Quad' and 'Image'. To customize rendering of these objects,
+     *  you can use fragment filters (via the <code>filter</code>-property on 'DisplayObject')
+     *  or mesh styles (via the <code>style</code>-property on 'Mesh'). Look at the respective
+     *  class documentation for more information.</p>
+     *
      *  @see DisplayObjectContainer
      *  @see Sprite
-     *  @see Stage 
+     *  @see Stage
+     *  @see Mesh
+     *  @see starling.filters.FragmentFilter
+     *  @see starling.styles.MeshStyle
      */
     public class DisplayObject extends EventDispatcher
     {
@@ -397,7 +383,7 @@ package starling.display
             else if (verticalAlign == Align.BOTTOM) _pivotY = bounds.y + bounds.height;
             else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
         }
-        
+
         // 3D transformation
 
         /** Creates a matrix that represents the transformation from the local coordinate system
@@ -842,8 +828,9 @@ package starling.display
             // that way, subclasses reacting on size changes need to override only the scaleX method.
 
             var actualWidth:Number;
+            var scaleIsNaN:Boolean = _scaleX != _scaleX; // avoid 'isNaN' call
 
-            if (_scaleX == 0.0) { scaleX = 1.0; actualWidth = width; }
+            if (_scaleX == 0.0 || scaleIsNaN) { scaleX = 1.0; actualWidth = width; }
             else actualWidth = Math.abs(width / _scaleX);
 
             if (actualWidth) scaleX = value / actualWidth;
@@ -856,8 +843,9 @@ package starling.display
         public function set height(value:Number):void
         {
             var actualHeight:Number;
+            var scaleIsNaN:Boolean = _scaleY != _scaleY; // avoid 'isNaN' call
 
-            if (_scaleY == 0.0) { scaleY = 1.0; actualHeight = height; }
+            if (_scaleY == 0.0 || scaleIsNaN) { scaleY = 1.0; actualHeight = height; }
             else actualHeight = Math.abs(height / _scaleY);
 
             if (actualHeight) scaleY = value / actualHeight;
@@ -975,6 +963,12 @@ package starling.display
                 setOrientationChanged();
             }
         }
+
+        /** @private Indicates if the object is rotated or skewed in any way. */
+        internal function get isRotated():Boolean
+        {
+            return _rotation != 0.0 || _skewX != 0.0 || _skewY != 0.0;
+        }
         
         /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
         public function get alpha():Number { return _alpha; }
@@ -1020,12 +1014,19 @@ package starling.display
         public function get name():String { return _name; }
         public function set name(value:String):void { _name = value; }
         
-        /** The filter that is attached to the display object. The starling.filters
-         *  package contains several classes that define specific filters you can use. 
-         *  Beware that a filter should NOT be attached to different objects simultaneously (for
-         *  performance reasons). Furthermore, when you set this property to 'null' or
-         *  assign a different filter, the previous filter is NOT disposed automatically
-         *  (since you might want to reuse it). */
+        /** The filter that is attached to the display object. The <code>starling.filters</code>
+         *  package contains several classes that define specific filters you can use. To combine
+         *  several filters, assign an instance of the <code>FilterChain</code> class; to remove
+         *  all filters, assign <code>null</code>.
+         *
+         *  <p>Beware that a filter instance may only be used on one object at a time! Furthermore,
+         *  when you remove or replace a filter, it is NOT disposed automatically (since you might
+         *  want to reuse it on a different object).</p>
+         *
+         *  @default null
+         *  @see starling.filters.FragmentFilter
+         *  @see starling.filters.FilterChain
+         */
         public function get filter():FragmentFilter { return _filter; }
         public function set filter(value:FragmentFilter):void
         {

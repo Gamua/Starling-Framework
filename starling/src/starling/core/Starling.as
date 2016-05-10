@@ -32,7 +32,6 @@ package starling.core
     import flash.ui.Mouse;
     import flash.ui.Multitouch;
     import flash.ui.MultitouchInputMode;
-    import flash.utils.Dictionary;
     import flash.utils.getTimer;
     import flash.utils.setTimeout;
 
@@ -173,7 +172,7 @@ package starling.core
      *  
      *  <ol>
      *    <li>Manually create and configure a context3D object that both frameworks can work with
-     *        (through <code>stage3D.requestContext3D</code> and
+     *        (ideally through <code>RenderUtil.requestContext3D</code> and
      *        <code>context.configureBackBuffer</code>).</li>
      *    <li>Initialize Starling with the stage3D instance that contains that configured context.
      *        This will automatically enable <code>shareContext</code>.</li>
@@ -195,10 +194,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "2.0.1";
-        
-        /** The key for the shader programs stored in 'contextData' */
-        private static const PROGRAM_DATA_NAME:String = "Starling.programs"; 
+        public static const VERSION:String = "2.0.2";
         
         // members
         
@@ -228,7 +224,6 @@ package starling.core
         private var _nativeOverlay:Sprite;
 
         private static var sCurrent:Starling;
-        private static var sPainters:Dictionary = new Dictionary(true);
         private static var sAll:Vector.<Starling> = new <Starling>[];
         
         // construction
@@ -283,7 +278,7 @@ package starling.core
             _antiAliasing = 0;
             _supportHighResolutions = false;
             _frameTimestamp = getTimer() / 1000.0;
-            _painter = createPainter(stage3D);
+            _painter = new Painter(stage3D);
             
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -341,18 +336,6 @@ package starling.core
             var index:int =  sAll.indexOf(this);
             if (index != -1) sAll.removeAt(index);
 
-            var numInstancesSharingThisPainter:int =
-                sAll.filter(function(s:Starling, ...rest):Boolean
-                {
-                    return s.stage3D == stage3D;
-                }).length;
-
-            if (numInstancesSharingThisPainter == 0)
-            {
-                delete sPainters[stage3D];
-                _painter.dispose();
-            }
-
             if (_touchProcessor) _touchProcessor.dispose();
             if (_stage) _stage.dispose();
             if (sCurrent == this) sCurrent = null;
@@ -384,18 +367,6 @@ package starling.core
             }
         }
 
-        private function createPainter(stage3D:Stage3D):Painter
-        {
-            if (stage3D in sPainters)
-                return sPainters[stage3D];
-            else
-            {
-                var painter:Painter = new Painter(stage3D);
-                sPainters[stage3D] = painter;
-                return painter;
-            }
-        }
-        
         /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
          *  and <code>render()</code>. */
         public function nextFrame():void
@@ -792,11 +763,7 @@ package starling.core
         public function get juggler():Juggler { return _juggler; }
 
         /** The painter, which is used for all rendering. The same instance is passed to all
-         *  <code>render</code>methods each frame.
-         *
-         *  <p>Note that the painter is shared among all Starling instances that use the same
-         *  Stage3D object for rendering. That way, the instances can share context-related data,
-         *  e.g. textures, programs or the current context settings.</p> */
+         *  <code>render</code>methods each frame. */
         public function get painter():Painter { return _painter; }
         
         /** The render context of this instance. */

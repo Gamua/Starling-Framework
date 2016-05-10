@@ -18,6 +18,7 @@ package tests.display
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertNotNull;
     import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
 
     import starling.display.Quad;
@@ -481,6 +482,24 @@ package tests.display
 
             assertThat(quad.scaleX, closeTo(1.0, E));
             assertThat(quad.scaleY, closeTo(1.0, E));
+        }
+
+        [Test]
+        public function testSetWidthAndHeightToNaNAndBack():void
+        {
+            var quad:Quad = new Quad(100, 200);
+
+            quad.width  = NaN;
+            quad.height = NaN;
+
+            assertTrue(isNaN(quad.width));
+            assertTrue(isNaN(quad.height));
+
+            quad.width = 100;
+            quad.height = 200;
+
+            assertThat(quad.width, closeTo(100, E));
+            assertThat(quad.height, closeTo(200, E));
         }
     }
 }
