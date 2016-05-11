@@ -186,6 +186,10 @@ package starling.rendering
         /** Sets the viewport dimensions and other attributes of the rendering buffer.
          *  Starling will call this method internally, so most apps won't need to mess with this.
          *
+         *  <p>Beware: if <code>shareContext</code> is enabled, the method will only update the
+         *  painter's context-related information (like the size of the back buffer), but won't
+         *  make any actual changes to the context.</p>
+         *
          * @param viewPort                the position and size of the area that should be rendered
          *                                into, in pixels.
          * @param contentScaleFactor      only relevant for Desktop (!) HiDPI screens. If you want
@@ -200,28 +204,31 @@ package starling.rendering
         public function configureBackBuffer(viewPort:Rectangle, contentScaleFactor:Number,
                                             antiAlias:int, enableDepthAndStencil:Boolean):void
         {
-            enableDepthAndStencil &&= SystemUtil.supportsDepthAndStencil;
-
-            // Changing the stage3D position might move the back buffer to invalid bounds
-            // temporarily. To avoid problems, we set it to the smallest possible size first.
-
-            if (_context.profile == "baselineConstrained")
-                _context.configureBackBuffer(32, 32, antiAlias, enableDepthAndStencil);
-
-            // If supporting HiDPI mode would exceed the maximum buffer size
-            // (can happen e.g in software mode), we stick to the low resolution.
-
-            if (viewPort.width  * contentScaleFactor > _context.maxBackBufferWidth ||
-                viewPort.height * contentScaleFactor > _context.maxBackBufferHeight)
+            if (!_shareContext)
             {
-                contentScaleFactor = 1.0;
-            }
+                enableDepthAndStencil &&= SystemUtil.supportsDepthAndStencil;
 
-            _stage3D.x = viewPort.x;
-            _stage3D.y = viewPort.y;
+                // Changing the stage3D position might move the back buffer to invalid bounds
+                // temporarily. To avoid problems, we set it to the smallest possible size first.
 
-            _context.configureBackBuffer(viewPort.width, viewPort.height,
+                if (_context.profile == "baselineConstrained")
+                    _context.configureBackBuffer(32, 32, antiAlias, enableDepthAndStencil);
+
+                // If supporting HiDPI mode would exceed the maximum buffer size
+                // (can happen e.g in software mode), we stick to the low resolution.
+
+                if (viewPort.width  * contentScaleFactor > _context.maxBackBufferWidth ||
+                    viewPort.height * contentScaleFactor > _context.maxBackBufferHeight)
+                {
+                    contentScaleFactor = 1.0;
+                }
+
+                _stage3D.x = viewPort.x;
+                _stage3D.y = viewPort.y;
+
+                _context.configureBackBuffer(viewPort.width, viewPort.height,
                     antiAlias, enableDepthAndStencil, contentScaleFactor != 1.0);
+            }
 
             _backBufferWidth  = viewPort.width;
             _backBufferHeight = viewPort.height;

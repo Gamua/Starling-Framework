@@ -44,6 +44,7 @@ package starling.core
     import starling.events.TouchProcessor;
     import starling.rendering.Painter;
     import starling.utils.Align;
+    import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
 
     /** Dispatched when a new render context is created. The 'data' property references the context. */
@@ -454,29 +455,22 @@ package starling.core
             // the last set viewport is stored in a variable; that way, people can modify the
             // viewPort directly (without a copy) and we still know if it has changed.
             
-            if (forceUpdate ||
-                _previousViewPort.width  != _viewPort.width  ||
-                _previousViewPort.height != _viewPort.height ||
-                _previousViewPort.x != _viewPort.x ||
-                _previousViewPort.y != _viewPort.y)
+            if (forceUpdate || !RectangleUtil.compare(_viewPort, _previousViewPort))
             {
                 _previousViewPort.setTo(_viewPort.x, _viewPort.y, _viewPort.width, _viewPort.height);
-                
+
                 // Constrained mode requires that the viewport is within the native stage bounds;
                 // thus, we use a clipped viewport when configuring the back buffer. (In baseline
                 // mode, that's not necessary, but it does not hurt either.)
-                
+
                 _clippedViewPort = _viewPort.intersection(
                     new Rectangle(0, 0, _nativeStage.stageWidth, _nativeStage.stageHeight));
-                
-                if (!shareContext)
-                {
-                    var contentScaleFactor:Number =
-                            _supportHighResolutions ? _nativeStage.contentsScaleFactor : 1.0;
 
-                    _painter.configureBackBuffer(_clippedViewPort, contentScaleFactor,
-                        _antiAliasing, true);
-                }
+                var contentScaleFactor:Number =
+                        _supportHighResolutions ? _nativeStage.contentsScaleFactor : 1.0;
+
+                _painter.configureBackBuffer(_clippedViewPort, contentScaleFactor,
+                    _antiAliasing, true);
             }
         }
         
