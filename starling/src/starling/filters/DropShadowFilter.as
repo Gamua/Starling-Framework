@@ -26,11 +26,11 @@ package starling.filters
 
         /** Creates a new DropShadowFilter instance with the specified parameters. */
         public function DropShadowFilter(distance:Number=4.0, angle:Number=0.785,
-                                         color:uint=0x0, alpha:Number=0.5, blur:Number=1.0,
+                                         color:uint=0x0, alpha:Number=0.5, blur:Number=1.0, strength:Number = 1.0,
                                          resolution:Number=0.5)
         {
             _compositeFilter = new CompositeFilter();
-            _blurFilter = new BlurFilter(blur, blur, resolution);
+            _blurFilter = new BlurFilter(blur, blur, strength, resolution);
             _distance = distance;
             _angle = angle;
 
