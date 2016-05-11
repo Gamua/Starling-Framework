@@ -29,6 +29,7 @@ package starling.textures
     import starling.errors.NotSupportedError;
     import starling.events.Event;
     import starling.utils.Color;
+    import starling.utils.SystemUtil;
     import starling.utils.execute;
 
     use namespace starling_internal;
@@ -103,7 +104,7 @@ package starling.textures
          *  cropped or filled up with transparent pixels */
         public function uploadBitmapData(data:BitmapData):void
         {
-            if (!Starling.current.isRendering)
+            if (!Starling.current.isRendering && !SystemUtil.isDesktop)
             {
                 trace("[Starling] Warning: uploading bitmap data while Starling is not rendering " +
                       "may cause a crash on some platforms. Ignoring request.");
