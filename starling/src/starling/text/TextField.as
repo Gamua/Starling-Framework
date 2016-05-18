@@ -79,6 +79,8 @@ package starling.text
      */
     public class TextField extends DisplayObjectContainer
     {
+	    public static var scaleFactor:int = 0;
+		
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
 
@@ -184,7 +186,7 @@ package starling.text
             if (isVerticalAutoSize) height = 100000;
 
             _meshBatch.x = _meshBatch.y = 0;
-            _options.textureScale = Starling.contentScaleFactor;
+            _options.textureScale = scaleFactor == 0 ? Starling.contentScaleFactor;
             _options.textureFormat = sDefaultTextureFormat;
             _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
 
