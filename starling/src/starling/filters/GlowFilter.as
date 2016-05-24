@@ -25,11 +25,10 @@ package starling.filters
         public function GlowFilter(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0,
                                    resolution:Number=0.5)
         {
-            _compositeFilter = new CompositeFilter();
             _blurFilter = new BlurFilter(blur, blur, resolution);
-
-            this.color = color;
-            this.alpha = alpha;
+            _compositeFilter = new CompositeFilter();
+            _compositeFilter.setColorAt(0, color, true);
+            _compositeFilter.setAlphaAt(0, alpha);
 
             updatePadding();
         }
