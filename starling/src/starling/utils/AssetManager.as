@@ -138,6 +138,7 @@ package starling.utils
         private var _xmls:Dictionary;
         private var _objects:Dictionary;
         private var _byteArrays:Dictionary;
+        private var _textureProcessors:Dictionary;
         
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
@@ -156,6 +157,7 @@ package starling.utils
             _xmls = new Dictionary();
             _objects = new Dictionary();
             _byteArrays = new Dictionary();
+            _textureProcessors = new Dictionary();
             _numConnections = 3;
             _verbose = true;
             _queue = [];
@@ -180,6 +182,8 @@ package starling.utils
             
             for each (var byteArray:ByteArray in _byteArrays)
                 byteArray.clear();
+            
+            _textureProcessors = null;
         }
         
         // retrieving
@@ -199,6 +203,10 @@ package starling.utils
                 }
                 return null;
             }
+        }
+        public function addTextureProcessor(extension:String, decodeFunction:Function):void
+        {
+            _textureProcessors[extension] = decodeFunction;
         }
         
         /** Returns all textures that start with a certain string, sorted alphabetically
@@ -773,7 +781,7 @@ package starling.utils
             var canceled:Boolean = false;
             
             addEventListener(Event.CANCEL, cancel);
-            loadRawAsset(rawAsset, progress, process);
+            var extension:String = loadRawAsset(rawAsset, progress, process);
             
             function process(asset:Object):void
             {
@@ -914,8 +922,24 @@ package starling.utils
                     }
                     else
                     {
-                        addByteArray(name, bytes);
-                        onComplete();
+                        if (extension){
+                            
+                            var processor:Function = _textureProcessors[extension];
+                            
+                            if (processor != null){
+                                var bmp:Bitmap = new Bitmap(processor(bytes));
+                                process(bmp);
+                                bytes.clear();
+                            }else{
+                                addByteArray(name, bytes);
+                                onComplete();
+                            }
+                            
+                            
+                        }else{
+                            addByteArray(name, bytes);
+                            onComplete();
+                        }
                     }
                 }
                 else
@@ -957,7 +981,7 @@ package starling.utils
          *  <p>When overriding this method, you can call 'onProgress' with a number between 0 and 1
          *  to update the total queue loading progress.</p>
          */
-        protected function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):void
+        protected function loadRawAsset(rawAsset:Object, onProgress:Function, onComplete:Function):String
         {
             var extension:String = null;
             var loaderInfo:LoaderInfo = null;
@@ -1091,6 +1115,7 @@ package starling.utils
                 else
                     SystemUtil.executeWhenApplicationIsActive(onComplete, asset);
             }
+            return extension;
         }
         
         // helpers
