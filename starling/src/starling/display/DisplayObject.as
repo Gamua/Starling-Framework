@@ -134,7 +134,6 @@ package starling.display
         private var _blendMode:String;
         private var _name:String;
         private var _useHandCursor:Boolean;
-        private var _parent:DisplayObjectContainer;
         private var _transformationMatrix:Matrix;
         private var _transformationMatrix3D:Matrix3D;
         private var _orientationChanged:Boolean;
@@ -143,6 +142,7 @@ package starling.display
 
         // internal members (for fast access on rendering)
 
+        /** @private */ internal var _parent:DisplayObjectContainer;
         /** @private */ internal var _lastParentOrSelfChangeFrameID:uint;
         /** @private */ internal var _lastChildChangeFrameID:uint;
         /** @private */ internal var _tokenFrameID:uint;

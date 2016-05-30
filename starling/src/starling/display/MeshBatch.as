@@ -94,6 +94,8 @@ package starling.display
         /** Removes all geometry. */
         public function clear():void
         {
+            if (_parent) setRequiresRedraw();
+
             _vertexData.numVertices = 0;
             _indexData.numIndices   = 0;
             _vertexSyncRequired = true;
@@ -132,7 +134,7 @@ package starling.display
                 subset.indexID, subset.numIndices);
 
             if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
-            if (_batchable) setRequiresRedraw();
+            if (_parent) setRequiresRedraw();
 
             _indexSyncRequired = _vertexSyncRequired = true;
         }
@@ -160,7 +162,7 @@ package starling.display
             meshStyle.batchIndexData(_style, indexID, vertexID, 0, numIndices);
 
             if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, vertexID, numVertices);
-            if (_batchable) setRequiresRedraw();
+            if (_parent) setRequiresRedraw();
 
             _indexSyncRequired = _vertexSyncRequired = true;
         }
@@ -241,8 +243,12 @@ package starling.display
          *  vertices! */
         public function set numVertices(value:int):void
         {
-            _vertexData.numVertices = value;
-            _vertexSyncRequired = true;
+            if (_vertexData.numVertices != value)
+            {
+                _vertexData.numVertices = value;
+                _vertexSyncRequired = true;
+                setRequiresRedraw();
+            }
         }
 
         /** The total number of indices in the mesh. If you change this to a smaller value,
@@ -250,8 +256,12 @@ package starling.display
          *  is a multiple of three! */
         public function set numIndices(value:int):void
         {
-            _indexData.numIndices = value;
-            _indexSyncRequired = true;
+            if (_indexData.numIndices != value)
+            {
+                _indexData.numIndices = value;
+                _indexSyncRequired = true;
+                setRequiresRedraw();
+            }
         }
 
         /** Indicates if this object will be added to the painter's batch on rendering,
@@ -266,8 +276,11 @@ package starling.display
         public function get batchable():Boolean { return _batchable; }
         public function set batchable(value:Boolean):void
         {
-            _batchable = value;
-            setRequiresRedraw();
+            if (_batchable != value)
+            {
+                _batchable = value;
+                setRequiresRedraw();
+            }
         }
     }
 }
