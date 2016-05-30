@@ -356,11 +356,16 @@ package starling.display
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = _children[i];
+                var filter:FragmentFilter = child._filter;
+                var mask:DisplayObject = child._mask;
 
                 if (child._hasVisibleArea)
                 {
                     if (selfOrParentChanged)
+                    {
                         child._lastParentOrSelfChangeFrameID = frameID;
+                        if (mask) mask._lastParentOrSelfChangeFrameID = frameID;
+                    }
 
                     if (child._lastParentOrSelfChangeFrameID != frameID &&
                         child._lastChildChangeFrameID != frameID &&
@@ -374,9 +379,6 @@ package starling.display
                     }
                     else
                     {
-                        var mask:DisplayObject = child._mask;
-                        var filter:FragmentFilter = child._filter;
-
                         painter.pushState(child._pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
