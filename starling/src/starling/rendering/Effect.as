@@ -142,15 +142,18 @@ package starling.rendering
         /** Purges one or both of the vertex- and index-buffers. */
         public function purgeBuffers(vertexBuffer:Boolean=true, indexBuffer:Boolean=true):void
         {
+            // We wrap the dispose calls in a try/catch block to work around a stage3D problem.
+            // Since they are not re-used later, that shouldn't have any evil side effects.
+
             if (_vertexBuffer && vertexBuffer)
             {
-                _vertexBuffer.dispose();
+                try { _vertexBuffer.dispose(); } catch (e:Error) {}
                 _vertexBuffer = null;
             }
 
             if (_indexBuffer && indexBuffer)
             {
-                _indexBuffer.dispose();
+                try { _indexBuffer.dispose(); } catch (e:Error) {}
                 _indexBuffer = null;
             }
         }
