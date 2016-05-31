@@ -191,6 +191,7 @@ class CompositeEffect extends FilterEffect
                 if (layer.replaceColor)
                     fragmentShader.push(
                         "mul " + fti + ".w,   " + fti + ".w,   " + fci + ".w",
+                        "sat " + fti + ".w,   " + fti + ".w    ", // make sure alpha <= 1.0
                         "mul " + fti + ".xyz, " + fci + ".xyz, " + fti + ".www"
                     );
                 else

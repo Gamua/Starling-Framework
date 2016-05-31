@@ -21,7 +21,16 @@ package starling.filters
         private var _blurFilter:BlurFilter;
         private var _compositeFilter:CompositeFilter;
 
-        /** Initializes a new GlowFilter instance with the specified parameters. */
+        /** Initializes a new GlowFilter instance with the specified parameters.
+         *
+         * @param color      the color of the glow
+         * @param alpha      the alpha value of the glow. Values between 0 and 1 modify the
+         *                   opacity; values > 1 will make it stronger, i.e. produce a harder edge.
+         * @param blur       the amount of blur used to create the glow. Note that high
+         *                   values will cause the number of render passes to grow.
+         * @param resolution the resolution of the filter texture. '1' means full resolution,
+         *                   '0.5' half resolution, etc.
+         */
         public function GlowFilter(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0,
                                    resolution:Number=0.5)
         {
@@ -75,7 +84,8 @@ package starling.filters
             }
         }
 
-        /** The alpha transparency value for the color. @default 1.0 */
+        /** The alpha value of the glow. Values between 0 and 1 modify the opacity;
+         *  values > 1 will make it stronger, i.e. produce a harder edge. @default 1.0 */
         public function get alpha():Number { return _compositeFilter.getAlphaAt(0); }
         public function set alpha(value:Number):void
         {
