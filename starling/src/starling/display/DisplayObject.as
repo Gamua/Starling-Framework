@@ -657,7 +657,7 @@ package starling.display
         /** @inheritDoc */
         public override function removeEventListeners(type:String=null):void
         {
-            if ((type == null || type == Event.ENTER_FRAME) && hasEventListener(Event.ENTER_FRAME))
+            if ((type == null || type == Event.ENTER_FRAME) && hasEventListener(Event.ENTER_FRAME))
             {
                 removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
                 removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);

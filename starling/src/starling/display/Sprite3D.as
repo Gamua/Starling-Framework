@@ -189,7 +189,7 @@ package starling.display
             _transformationMatrix3D.identity();
 
             if (scaleX != 1.0 || scaleY != 1.0 || _scaleZ != 1.0)
-                _transformationMatrix3D.appendScale(scaleX || E , scaleY || E, _scaleZ || E);
+                _transformationMatrix3D.appendScale(scaleX || E , scaleY || E, _scaleZ || E);
             if (_rotationX != 0.0)
                 _transformationMatrix3D.appendRotation(rad2deg(_rotationX), Vector3D.X_AXIS);
             if (_rotationY != 0.0)
