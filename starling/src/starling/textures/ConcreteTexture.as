@@ -18,8 +18,9 @@ package starling.textures
     import flash.system.Capabilities;
     import flash.utils.ByteArray;
     import flash.utils.getQualifiedClassName;
-
+    
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
     import starling.errors.NotSupportedError;
@@ -163,6 +164,12 @@ package starling.textures
         {
             throw new AbstractMethodError();
         }
+		
+		/** Create TextureBase object. This function uses only for manual restoring of textures. */		
+		starling_internal function initBase():void
+		{
+			_base = createBase(); 
+		}
         
         /** Clears the texture with a certain color and alpha value. The previous contents of the
          *  texture is wiped out. */
