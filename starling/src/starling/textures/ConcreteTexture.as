@@ -20,6 +20,7 @@ package starling.textures
     import flash.utils.getQualifiedClassName;
 
     import starling.core.Starling;
+    import starling.core.starling_internal;
     import starling.errors.AbstractClassError;
     import starling.errors.AbstractMethodError;
     import starling.errors.NotSupportedError;
@@ -162,6 +163,13 @@ package starling.textures
         protected function createBase():TextureBase
         {
             throw new AbstractMethodError();
+        }
+
+        /** Recreates the underlying Stage3D texture. May be used to manually restore a texture.
+         *  Beware that new data needs to be uploaded to the texture before it can be used. */
+        starling_internal function recreateBase():void
+        {
+            _base = createBase();
         }
         
         /** Clears the texture with a certain color and alpha value. The previous contents of the
