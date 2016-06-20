@@ -22,6 +22,7 @@ package starling.display
     import starling.textures.Texture;
     import starling.utils.MatrixUtil;
     import starling.utils.MeshUtil;
+    import starling.utils.execute;
 
     use namespace starling_internal;
 
@@ -50,6 +51,7 @@ package starling.display
         /** @private */ internal var _pixelSnapping:Boolean;
 
         private static var sDefaultStyle:Class = MeshStyle;
+        private static var sDefaultStyleFactory:Function = null;
 
         /** Creates a new mesh with the given vertices and indices.
          *  If you don't pass a style, an instance of <code>MeshStyle</code> will be created
@@ -105,14 +107,16 @@ package starling.display
          *  Do not use the same style instance on multiple objects! Instead, make use of
          *  <code>style.clone()</code> to assign an identical style to multiple meshes.</p>
          *
-         *  @param meshStyle             the style to assign. If <code>null</code>, an instance of
-         *                               a standard <code>MeshStyle</code> will be created.
+         *  @param meshStyle             the style to assign. If <code>null</code>, the default
+         *                               style will be created.
          *  @param mergeWithPredecessor  if enabled, all attributes of the previous style will be
          *                               be copied to the new one, if possible.
+         *  @see #defaultStyle
+         *  @see #defaultStyleFactory
          */
         public function setStyle(meshStyle:MeshStyle=null, mergeWithPredecessor:Boolean=true):void
         {
-            if (meshStyle == null) meshStyle = new sDefaultStyle() as MeshStyle;
+            if (meshStyle == null) meshStyle = createDefaultMeshStyle();
             else if (meshStyle == _style) return;
             else if (meshStyle.target) meshStyle.target.setStyle();
 
@@ -124,6 +128,22 @@ package starling.display
 
             _style = meshStyle;
             _style.setTarget(this, _vertexData, _indexData);
+        }
+
+        private function createDefaultMeshStyle():MeshStyle
+        {
+            var meshStyle:MeshStyle;
+
+            if (sDefaultStyleFactory != null)
+            {
+                if (sDefaultStyleFactory.length == 0) meshStyle = sDefaultStyleFactory();
+                else meshStyle = sDefaultStyleFactory(this);
+            }
+
+            if (meshStyle == null)
+                meshStyle = new sDefaultStyle() as MeshStyle;
+
+            return meshStyle;
         }
 
         // vertex manipulation
@@ -255,6 +275,26 @@ package starling.display
         public static function set defaultStyle(value:Class):void
         {
             sDefaultStyle = value;
+        }
+
+        /** A factory method that is used to create the 'MeshStyle' for a mesh if no specific
+         *  style is provided. That's useful if you are creating a hierarchy of objects, all
+         *  of which need to have a certain style. Different to the <code>defaultStyle</code>
+         *  property, this method allows plugging in custom logic and passing arguments to the
+         *  constructor. Return <code>null</code> to fall back to the default behavior (i.e.
+         *  to instantiate <code>defaultStyle</code>). The <code>mesh</code>-parameter is optional
+         *  and may be omitted.
+         *
+         *  <listing>
+         *  Mesh.defaultStyleFactory = function(mesh:Mesh):MeshStyle
+         *  {
+         *      return new ColorizeMeshStyle(Math.random() * 0xffffff);
+         *  }</listing>
+         */
+        public static function get defaultStyleFactory():Function { return sDefaultStyleFactory; }
+        public static function set defaultStyleFactory(value:Function):void
+        {
+            sDefaultStyleFactory = value;
         }
     }
 }
