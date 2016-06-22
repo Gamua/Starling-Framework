@@ -127,8 +127,9 @@ package starling.textures
          *                      properties for position, scale, and rotation. If it is not null,
          *                      the object will be drawn in the orientation depicted by the matrix.
          *  @param alpha        The object's alpha value will be multiplied with this value.
-         *  @param antiAliasing Only supported on Desktop.
-         *                      Values range from 0 (no anti-aliasing) to 4 (best quality).
+         *  @param antiAliasing Values range from 0 (no antialiasing) to 4 (best quality).
+         *                      Beginning with AIR 22, this feature is supported on all platforms
+         *                      (except for software rendering mode).
          */
         public function draw(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0,
                              antiAliasing:int=0):void
@@ -147,8 +148,10 @@ package starling.textures
          *  individual 'draw' calls.
          *  
          *  @param drawingBlock  a callback with the form: <pre>function():void;</pre>
-         *  @param antiAliasing  Only supported beginning with AIR 13, and only on Desktop.
-         *                       Values range from 0 (no antialiasing) to 4 (best quality). */
+         *  @param antiAliasing  Values range from 0 (no antialiasing) to 4 (best quality).
+         *                       Beginning with AIR 22, this feature is supported on all platforms
+         *                       (except for software rendering mode).
+         */
         public function drawBundled(drawingBlock:Function, antiAliasing:int=0):void
         {
             renderBundled(drawingBlock, null, null, 1.0, antiAliasing);
