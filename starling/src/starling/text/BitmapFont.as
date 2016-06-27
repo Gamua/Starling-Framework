@@ -210,6 +210,7 @@ package starling.text
         {
             var charLocations:Vector.<CharLocation> = arrangeChars(width, height, text, format, options);
             var numChars:int = charLocations.length;
+            var smoothing:String = this.smoothing;
             var sprite:Sprite = new Sprite();
             
             for (var i:int=0; i<numChars; ++i)
@@ -220,6 +221,7 @@ package starling.text
                 char.y = charLocation.y;
                 char.scale = charLocation.scale;
                 char.color = format.color;
+                char.textureSmoothing = smoothing;
                 sprite.addChild(char);
             }
             
