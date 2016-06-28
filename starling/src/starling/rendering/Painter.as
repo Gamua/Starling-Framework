@@ -111,6 +111,7 @@ package starling.rendering
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
         private static var sPoint3D:Vector3D = new Vector3D();
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
         private static var sClipRect:Rectangle = new Rectangle();
         private static var sBufferRect:Rectangle = new Rectangle();
         private static var sScissorRect:Rectangle = new Rectangle();
@@ -345,7 +346,7 @@ package starling.rendering
 
             finishMeshBatch();
 
-            if (isRectangularMask(mask, sMatrix))
+            if (isRectangularMask(mask, maskee, sMatrix))
             {
                 mask.getBounds(mask, sClipRect);
                 RectangleUtil.getBounds(sClipRect, sMatrix, sClipRect);
@@ -374,13 +375,13 @@ package starling.rendering
          *  it will be assumed that this erase operation undoes the clipping rectangle change
          *  caused by the corresponding <code>drawMask()</code> call.</p>
          */
-        public function eraseMask(mask:DisplayObject):void
+        public function eraseMask(mask:DisplayObject, maskee:DisplayObject=null):void
         {
             if (_context == null) return;
 
             finishMeshBatch();
 
-            if (isRectangularMask(mask, sMatrix))
+            if (isRectangularMask(mask, maskee, sMatrix))
             {
                 popClipRect();
             }
@@ -402,10 +403,24 @@ package starling.rendering
             pushState();
             _state.alpha = 0.0;
 
+            var matrix:Matrix = null;
+            var matrix3D:Matrix3D = null;
+
             if (mask.stage)
-                mask.getTransformationMatrix(null, _state.modelviewMatrix);
+            {
+                _state.setModelviewMatricesToIdentity();
+
+                if (mask.is3D) matrix3D = mask.getTransformationMatrix3D(null, sMatrix3D);
+                else           matrix   = mask.getTransformationMatrix(null, sMatrix);
+            }
             else
-                _state.transformModelviewMatrix(mask.transformationMatrix);
+            {
+                if (mask.is3D) matrix3D = mask.transformationMatrix3D;
+                else           matrix   = mask.transformationMatrix;
+            }
+
+            if (matrix3D) _state.transformModelviewMatrix3D(matrix3D);
+            else          _state.transformModelviewMatrix(matrix);
 
             mask.render(this);
             finishMeshBatch();
@@ -445,10 +460,12 @@ package starling.rendering
          *  if it's just a simple (untextured) quad that is parallel to the stage axes. The 'out'
          *  parameter will be filled with the transformation matrix required to move the mask into
          *  stage coordinates. */
-        private function isRectangularMask(mask:DisplayObject, out:Matrix):Boolean
+        private function isRectangularMask(mask:DisplayObject, maskee:DisplayObject, out:Matrix):Boolean
         {
             var quad:Quad = mask as Quad;
-            if (quad && !quad.is3D && quad.texture == null)
+            var is3D:Boolean = mask.is3D || (maskee && maskee.is3D && mask.stage == null);
+
+            if (quad && !is3D && quad.texture == null)
             {
                 if (mask.stage) mask.getTransformationMatrix(null, out);
                 else

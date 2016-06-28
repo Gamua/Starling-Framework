@@ -387,7 +387,7 @@ package starling.display
                         if (filter) filter.render(painter);
                         else        child.render(painter);
 
-                        if (mask) painter.eraseMask(mask);
+                        if (mask) painter.eraseMask(mask, child);
 
                         painter.popState(child._popToken);
                     }
