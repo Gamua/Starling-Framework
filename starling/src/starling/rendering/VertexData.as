@@ -369,6 +369,23 @@ package starling.rendering
 
         // read / write attributes
 
+        /** Reads an unsigned integer value from the specified vertex and attribute. */
+        public function getUnsignedInt(vertexID:int, attrName:String):uint
+        {
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
+            return _rawData.readUnsignedInt();
+        }
+
+        /** Writes an unsigned integer value to the specified vertex and attribute. */
+        public function setUnsignedInt(vertexID:int, attrName:String, value:uint):void
+        {
+            if (_numVertices < vertexID + 1)
+                numVertices = vertexID + 1;
+
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
+            _rawData.writeUnsignedInt(value);
+        }
+
         /** Reads a float value from the specified vertex and attribute. */
         public function getFloat(vertexID:int, attrName:String):Number
         {
