@@ -313,6 +313,12 @@ package starling.display
         }
 
         /** @private */
+        override public function set scale(value:Number):void
+        {
+            scaleX = scaleY = scaleZ = value;
+        }
+
+        /** @private */
         public override function set skewX(value:Number):void
         {
             throw new Error("3D objects do not support skewing");
