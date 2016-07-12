@@ -94,7 +94,7 @@ package starling.text
             format.toNativeFormat(sNativeFormat);
 
             sNativeFormat.size = Number(sNativeFormat.size) * options.textureScale;
-            sNativeTextField.embedFonts = isEmbeddedFont(format);
+            sNativeTextField.embedFonts = isEmbeddedFont(format.font, format.bold, format.italic);
             sNativeTextField.defaultTextFormat = sNativeFormat;
             sNativeTextField.width  = scaledWidth;
             sNativeTextField.height = scaledHeight;
@@ -172,7 +172,17 @@ package starling.text
             sEmbeddedFonts = null; // will be updated in 'isEmbeddedFont()'
         }
 
-        private static function isEmbeddedFont(format:TextFormat):Boolean
+        /** Figures out if an embedded font with the specified style is available.
+         *  The fonts are enumerated only once; if you load a font at runtime, be sure to call
+         *  'updateEmbeddedFonts' before calling this method.
+         *
+         * @param fontName  the name of the font
+         * @param bold      indicates if the font has a bold style
+         * @param italic    indicates if the font has an italic style
+         * @param fontType  the type of the font (one of the constants defined in the FontType class)
+         */
+        public static function isEmbeddedFont(fontName:String, bold:Boolean, italic:Boolean,
+                                              fontType:String="embedded"):Boolean
         {
             if (sEmbeddedFonts == null)
                 sEmbeddedFonts = Font.enumerateFonts(false);
@@ -183,8 +193,11 @@ package starling.text
                 var isBold:Boolean = style == FontStyle.BOLD || style == FontStyle.BOLD_ITALIC;
                 var isItalic:Boolean = style == FontStyle.ITALIC || style == FontStyle.BOLD_ITALIC;
 
-                if (format.font == font.fontName && format.italic == isItalic && format.bold == isBold)
+                if (fontName == font.fontName && bold == isBold && italic == isItalic &&
+                    fontType == font.fontType)
+                {
                     return true;
+                }
             }
 
             return false;
