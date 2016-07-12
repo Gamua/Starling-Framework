@@ -86,8 +86,12 @@ package starling.display
 
             indexData.numIndices = 0;
             indexData.addQuad(0, 1, 2, 3);
-            vertexData.numVertices = 4;
-            vertexData.trim();
+
+            if (vertexData.numVertices != 4)
+            {
+                vertexData.numVertices = 4;
+                vertexData.trim();
+            }
 
             if (texture)
             {
