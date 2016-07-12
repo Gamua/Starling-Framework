@@ -26,6 +26,7 @@ package starling.text
     import starling.rendering.Painter;
     import starling.styles.MeshStyle;
     import starling.utils.RectangleUtil;
+    import starling.utils.SystemUtil;
 
     /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
      *  
@@ -445,7 +446,7 @@ package starling.text
          *  at runtime so that Starling can recognize it as such. */
         public static function updateEmbeddedFonts():void
         {
-            TrueTypeCompositor.updateEmbeddedFonts();
+            SystemUtil.updateEmbeddedFonts();
         }
 
         /** Makes a bitmap font available at any TextField in the current stage3D context.

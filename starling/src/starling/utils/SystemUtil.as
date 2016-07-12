@@ -14,6 +14,8 @@ package starling.utils
     import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.system.Capabilities;
+    import flash.text.Font;
+    import flash.text.FontStyle;
     import flash.utils.getDefinitionByName;
 
     import starling.errors.AbstractClassError;
@@ -28,6 +30,7 @@ package starling.utils
         private static var sDesktop:Boolean;
         private static var sVersion:String;
         private static var sAIR:Boolean;
+        private static var sEmbeddedFonts:Array = null;
         private static var sSupportsDepthAndStencil:Boolean = true;
         
         /** @private */
@@ -152,6 +155,43 @@ package starling.utils
         public static function get supportsVideoTexture():Boolean
         {
             return Context3D["supportsVideoTexture"];
+        }
+
+        /** Updates the list of embedded fonts. To be called when a font is loaded at runtime. */
+        public static function updateEmbeddedFonts():void
+        {
+            sEmbeddedFonts = null; // will be updated in 'isEmbeddedFont()'
+        }
+
+        /** Figures out if an embedded font with the specified style is available.
+         *  The fonts are enumerated only once; if you load a font at runtime, be sure to call
+         *  'updateEmbeddedFonts' before calling this method.
+         *
+         *  @param fontName  the name of the font
+         *  @param bold      indicates if the font has a bold style
+         *  @param italic    indicates if the font has an italic style
+         *  @param fontType  the type of the font (one of the constants defined in the FontType class)
+         */
+        public static function isEmbeddedFont(fontName:String, bold:Boolean, italic:Boolean,
+                                              fontType:String="embedded"):Boolean
+        {
+            if (sEmbeddedFonts == null)
+                sEmbeddedFonts = Font.enumerateFonts(false);
+
+            for each (var font:Font in sEmbeddedFonts)
+            {
+                var style:String = font.fontStyle;
+                var isBold:Boolean = style == FontStyle.BOLD || style == FontStyle.BOLD_ITALIC;
+                var isItalic:Boolean = style == FontStyle.ITALIC || style == FontStyle.BOLD_ITALIC;
+
+                if (fontName == font.fontName && bold == isBold && italic == isItalic &&
+                    fontType == font.fontType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
