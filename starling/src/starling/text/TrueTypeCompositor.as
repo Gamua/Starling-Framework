@@ -21,12 +21,13 @@ package starling.text
     import starling.textures.Texture;
     import starling.utils.Align;
 
-    /** @private
+    /** This text compositor uses a Flash TextField to render system- or embedded fonts into
+     *  a texture.
      *
-     *  <p>This text compositor uses a Flash TextField to render system- or embedded fonts into
-     *  a texture.</p>
+     *  <p>You typically don't have to instantiate this class. It will be used internally by
+     *  Starling's text fields.</p>
      */
-    internal class TrueTypeCompositor implements ITextCompositor
+    public class TrueTypeCompositor implements ITextCompositor
     {
         // helpers
         private static var sHelperMatrix:Matrix = new Matrix();
