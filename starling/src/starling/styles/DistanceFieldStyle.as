@@ -17,7 +17,6 @@ package starling.styles
     import starling.rendering.RenderState;
     import starling.rendering.VertexData;
     import starling.rendering.VertexDataFormat;
-    import starling.styles.MeshStyle;
     import starling.utils.Color;
     import starling.utils.MathUtil;
 
@@ -281,7 +280,7 @@ package starling.styles
         /** Sets up glow rendering mode. The 'blur' determines the threshold where the
          *  blur ends; 'blur + threshold' must not exceed '1.0'.
          */
-        public function setupGlow(blur:Number=0.5, color:uint=0xffff00, alpha:Number=1.0):void
+        public function setupGlow(blur:Number=0.2, color:uint=0xffff00, alpha:Number=0.5):void
         {
             _mode = MODE_GLOW;
             _outerThreshold = MathUtil.clamp(_threshold - blur, 0, _threshold);
@@ -573,9 +572,7 @@ class DistanceFieldEffect extends MeshEffect
                 fragmentShader.push(
                     // outer area
                     "mov ft2, ft0",                 // ft2 = texture color
-                    _mode == DistanceFieldStyle.MODE_OUTLINE ?
-                        step("ft2.w", "v6.z", "v6.w") : // make soft outer mask
-                        "sge ft2.w, ft2.w, v6.w",       // make hard outer mask (that's sufficient)
+                    step("ft2.w", "v6.z", "v6.w"),  // make soft outer mask
                     "sub ft2.w, ft2.w, ft3.w",      // subtract inner area
                     "sat ft2.w, ft2.w",             // but stay within 0-1
 
