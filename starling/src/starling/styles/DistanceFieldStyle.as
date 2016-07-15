@@ -41,7 +41,7 @@ package starling.styles
      *  <ul>
      *    <li><a href="http://kvazars.com/littera/">Littera</a> - a free online bitmap font
      *        generator.</li>
-     *    <li><a href="https://github.com/libgdx/libgdx/wiki/Hiero">Hiero</a> - a cross platform
+     *    <li><a href="http://github.com/libgdx/libgdx/wiki/Hiero">Hiero</a> - a cross platform
      *        tool.</li>
      *    <li><a href="http://www.angelcode.com/products/bmfont/">BMFont</a> - Windows-only, from
      *        AngelCode.</li>
