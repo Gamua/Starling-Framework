@@ -10,6 +10,9 @@
 
 package starling.filters
 {
+    import flash.geom.Rectangle;
+
+    import starling.display.Stage;
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
@@ -32,6 +35,9 @@ package starling.filters
         private var _mapX:Number;
         private var _mapY:Number;
 
+        // helpers
+        private static var sBounds:Rectangle = new Rectangle();
+
         /** Creates a new displacement map filter that uses the provided map texture. */
         public function DisplacementMapFilter(mapTexture:Texture,
                                               componentX:uint=0, componentY:uint=0,
@@ -51,7 +57,23 @@ package starling.filters
                                          input0:Texture = null, input1:Texture = null,
                                          input2:Texture = null, input3:Texture = null):Texture
         {
-            updateVertexData(input0, mapTexture);
+            var offsetX:Number = 0.0, offsetY:Number = 0.0;
+            var targetBounds:Rectangle = pool.targetBounds;
+            var stage:Stage = pool.target.stage;
+
+            if (stage && (targetBounds.x < 0 || targetBounds.y < 0))
+            {
+                // 'targetBounds' is actually already intersected with the stage bounds.
+                // If the target is partially outside the stage at the left or top, we need
+                // to adjust the map coordinates accordingly. That's what 'offsetX/Y' is for.
+
+                pool.target.getBounds(stage, sBounds);
+                sBounds.inflate(padding.left, padding.top);
+                offsetX = sBounds.x - pool.targetBounds.x;
+                offsetY = sBounds.y - pool.targetBounds.y;
+            }
+
+            updateVertexData(input0, mapTexture, offsetX, offsetY);
             return super.process(painter, pool, input0);
         }
 
@@ -61,13 +83,14 @@ package starling.filters
             return new DisplacementMapEffect();
         }
 
-        private function updateVertexData(inputTexture:Texture, mapTexture:Texture):void
+        private function updateVertexData(inputTexture:Texture, mapTexture:Texture,
+                                          mapOffsetX:Number=0.0, mapOffsetY:Number=0.0):void
         {
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
 
-            var mapX:Number = (_mapX + padding.left) / mapTexture.width;
-            var mapY:Number = (_mapY + padding.top)  / mapTexture.height;
+            var mapX:Number = (_mapX + mapOffsetX + padding.left) / mapTexture.width;
+            var mapY:Number = (_mapY + mapOffsetY + padding.top)  / mapTexture.height;
             var maxU:Number = inputTexture.width  / mapTexture.width;
             var maxV:Number = inputTexture.height / mapTexture.height;
 
