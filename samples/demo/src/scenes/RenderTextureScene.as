@@ -42,6 +42,7 @@ package scenes
             infoText.x = Constants.CenterX - infoText.width / 2;
             infoText.y = Constants.CenterY - infoText.height / 2;
             _renderTexture.draw(infoText);
+            infoText.dispose();
             
             _button = new MenuButton("Mode: Draw");
             _button.x = int(Constants.CenterX - _button.width / 2);
