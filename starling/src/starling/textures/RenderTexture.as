@@ -164,6 +164,11 @@ package starling.textures
             var filter:FragmentFilter = object.filter;
             var mask:DisplayObject = object.mask;
 
+            // The object might have been rendered already (to the back buffer or another
+            // render texture), but not necessarily using the same render state / mvp matrix.
+            // Thus, we need to force a redraw.
+            object.setRequiresRedraw();
+
             painter.pushState();
 
             state.alpha *= alpha;
