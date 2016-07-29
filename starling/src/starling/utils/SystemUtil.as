@@ -172,7 +172,7 @@ package starling.utils
          *  @param italic    indicates if the font has an italic style
          *  @param fontType  the type of the font (one of the constants defined in the FontType class)
          */
-        public static function isEmbeddedFont(fontName:String, bold:Boolean, italic:Boolean,
+        public static function isEmbeddedFont(fontName:String, bold:Boolean=false, italic:Boolean=false,
                                               fontType:String="embedded"):Boolean
         {
             if (sEmbeddedFonts == null)
