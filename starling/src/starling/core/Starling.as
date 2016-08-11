@@ -1030,7 +1030,8 @@ import flash.display.DisplayObjectContainer;
 // put here to avoid naming conflicts
 function isNativeDisplayObjectEmpty(object:DisplayObject):Boolean
 {
-    if (object is DisplayObjectContainer)
+    if (object == null) return true;
+    else if (object is DisplayObjectContainer)
     {
         var container:DisplayObjectContainer = object as DisplayObjectContainer;
         var numChildren:int = container.numChildren;
