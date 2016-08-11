@@ -261,26 +261,23 @@ package starling.display
             // if the total width / height becomes smaller than the outer columns / rows,
             // we hide the center column / row and scale the rest normally.
 
-            if (sPosCols[1] < 0)
+            if (sPosCols[1] <= 0)
             {
                 correction = textureBounds.width / (textureBounds.width - gridCenter.width) * absScaleX;
                 sPadding.left *= correction;
                 sPosCols[0] *= correction;
-                sPosCols[1]  = 0.0001; // losing the column altogether would mix up texture coords
+                sPosCols[1]  = 0.0;
                 sPosCols[2] *= correction;
             }
 
-            if (sPosRows[1] < 0)
+            if (sPosRows[1] <= 0)
             {
                 correction = textureBounds.height / (textureBounds.height - gridCenter.height) * absScaleY;
                 sPadding.top *= correction;
                 sPosRows[0] *= correction;
-                sPosRows[1]  = 0.0001; // losing the row altogether would mix up texture coords
+                sPosRows[1]  = 0.0;
                 sPosRows[2] *= correction;
             }
-
-            numVertices = setupScale9GridAttributes(
-                sPadding.left, sPadding.top, sPosCols, sPosRows, setupScale9GridVertexPosition);
 
             // now set the texture coordinates
 
@@ -292,7 +289,8 @@ package starling.display
             sTexRows[2] = sBasRows[2] / pixelBounds.height;
             sTexRows[1] = 1.0 - sTexRows[0] - sTexRows[2];
 
-            setupScale9GridAttributes(0, 0, sTexCols, sTexRows, setupScale9GridVertexTexCoords);
+            numVertices = setupScale9GridAttributes(
+                sPadding.left, sPadding.top, sPosCols, sPosRows, sTexCols, sTexRows);
 
             // update indices
 
@@ -321,50 +319,66 @@ package starling.display
             setRequiresRedraw();
         }
 
-        private function setupScale9GridVertexPosition(vertexData:VertexData, texture:Texture,
-                                                       vertexID:int, x:Number, y:Number):void
-        {
-            vertexData.setPoint(vertexID, "position", x, y);
-        }
-
-        private function setupScale9GridVertexTexCoords(vertexData:VertexData, texture:Texture,
-                                                        vertexID:int, x:Number, y:Number):void
-        {
-            texture.setTexCoords(vertexData, vertexID, "texCoords", x, y);
-        }
-
         private function setupScale9GridAttributes(startX:Number, startY:Number,
-                                                   colWidths:Vector.<Number>,
-                                                   rowHeights:Vector.<Number>,
-                                                   callback:Function):int
+                                                   posCols:Vector.<Number>, posRows:Vector.<Number>,
+                                                   texCols:Vector.<Number>, texRows:Vector.<Number>):int
         {
-            var row:int, col:int, colWidth:Number, rowHeight:Number;
+            const posAttr:String = "position";
+            const texAttr:String = "texCoords";
+
+            var row:int, col:int;
+            var colWidthPos:Number, rowHeightPos:Number;
+            var colWidthTex:Number, rowHeightTex:Number;
             var vertexData:VertexData = this.vertexData;
             var texture:Texture = this.texture;
             var currentX:Number = startX;
             var currentY:Number = startY;
+            var currentU:Number = 0.0;
+            var currentV:Number = 0.0;
             var vertexID:int = 0;
 
             for (row = 0; row < 3; ++row)
             {
-                rowHeight = rowHeights[row];
-                if (rowHeight > 0)
+                rowHeightPos = posRows[row];
+                rowHeightTex = texRows[row];
+
+                if (rowHeightPos > 0)
                 {
                     for (col = 0; col < 3; ++col)
                     {
-                        colWidth = colWidths[col];
-                        if (colWidth > 0)
+                        colWidthPos = posCols[col];
+                        colWidthTex = texCols[col];
+
+                        if (colWidthPos > 0)
                         {
-                            callback(vertexData, texture, vertexID++, currentX, currentY);
-                            callback(vertexData, texture, vertexID++, currentX + colWidth, currentY);
-                            callback(vertexData, texture, vertexID++, currentX, currentY + rowHeight);
-                            callback(vertexData, texture, vertexID++, currentX + colWidth, currentY + rowHeight);
-                            currentX += colWidth;
+                            vertexData.setPoint(vertexID, posAttr, currentX, currentY);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU, currentV);
+                            vertexID++;
+
+                            vertexData.setPoint(vertexID, posAttr, currentX + colWidthPos, currentY);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU + colWidthTex, currentV);
+                            vertexID++;
+
+                            vertexData.setPoint(vertexID, posAttr, currentX, currentY + rowHeightPos);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU, currentV + rowHeightTex);
+                            vertexID++;
+
+                            vertexData.setPoint(vertexID, posAttr, currentX + colWidthPos, currentY + rowHeightPos);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU + colWidthTex, currentV + rowHeightTex);
+                            vertexID++;
+
+                            currentX += colWidthPos;
                         }
+
+                        currentU += colWidthTex;
                     }
-                    currentY += rowHeight;
+
+                    currentY += rowHeightPos;
                 }
+
                 currentX = startX;
+                currentU = 0.0;
+                currentV += rowHeightTex;
             }
 
             return vertexID;
