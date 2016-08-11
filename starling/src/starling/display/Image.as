@@ -15,6 +15,7 @@ package starling.display
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
     import starling.utils.Padding;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
@@ -184,6 +185,15 @@ package starling.display
             var frame:Rectangle = texture.frame;
             var absScaleX:Number = scaleX > 0 ? scaleX : -scaleX;
             var absScaleY:Number = scaleY > 0 ? scaleY : -scaleY;
+
+            // If top and bottom row / left and right column are empty, this is actually
+            // a scale3 grid. In that case, we want the 'caps' to maintain their aspect ratio.
+
+            if (MathUtil.isEquivalent(_scale9Grid.width, texture.frameWidth))
+                absScaleY /= absScaleX;
+            else if (MathUtil.isEquivalent(_scale9Grid.height, texture.frameHeight))
+                absScaleX /= absScaleY;
+
             var invScaleX:Number = 1.0 / absScaleX;
             var invScaleY:Number = 1.0 / absScaleY;
             var vertexData:VertexData = this.vertexData;
