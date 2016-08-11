@@ -190,7 +190,15 @@ package starling.display
             var indexData:IndexData = this.indexData;
             var prevNumVertices:int = vertexData.numVertices;
             var numVertices:int, numQuads:int;
-            var correction:Number;
+
+            var hasMidCol:Boolean;
+            var hasMidRow:Boolean;
+            var correctionX:Number;
+            var correctionY:Number;
+            var minCorrectionX:Number;
+            var minCorrectionY:Number;
+            var texMidWidth:Number;
+            var texMidHeight:Number;
 
             // The following rectangles are used to figure everything out.
             // The meaning of each is depicted in this sketch: http://i.imgur.com/KUcv71O.jpg
@@ -198,7 +206,6 @@ package starling.display
             var gridCenter:Rectangle = Pool.getRectangle();
             var textureBounds:Rectangle = Pool.getRectangle();
             var pixelBounds:Rectangle = Pool.getRectangle();
-            var intersection:Rectangle = Pool.getRectangle();
 
             gridCenter.copyFrom(_scale9Grid);
             textureBounds.setTo(0, 0, texture.frameWidth, texture.frameHeight);
@@ -209,12 +216,8 @@ package starling.display
             // calculate 3x3 grid according to texture and scale9 properties,
             // taking special care about the texture frame (headache included)
 
-            RectangleUtil.intersect(gridCenter, pixelBounds, intersection);
-
             sBasCols[0] = sBasCols[2] = 0;
             sBasRows[0] = sBasRows[2] = 0;
-            sBasCols[1] = intersection.width;
-            sBasRows[1] = intersection.height;
 
             if (pixelBounds.x < gridCenter.x)
                 sBasCols[0] = gridCenter.x - pixelBounds.x;
@@ -252,47 +255,56 @@ package starling.display
 
             sPosCols[0] = sBasCols[0] * invScaleX;
             sPosCols[2] = sBasCols[2] * invScaleX;
-            sPosCols[1] = textureBounds.width - sPadding.left - sPadding.right - sPosCols[0] - sPosCols[2];
+            sPosCols[1] = gridCenter.width ? textureBounds.width - sPadding.left - sPadding.right - sPosCols[0] - sPosCols[2] : 0;
 
             sPosRows[0] = sBasRows[0] * invScaleY;
             sPosRows[2] = sBasRows[2] * invScaleY;
-            sPosRows[1] = textureBounds.height - sPadding.top - sPadding.bottom - sPosRows[0] - sPosRows[2];
+            sPosRows[1] = gridCenter.height ? textureBounds.height - sPadding.top - sPadding.bottom - sPosRows[0] - sPosRows[2] : 0;
 
             // if the total width / height becomes smaller than the outer columns / rows,
             // we hide the center column / row and scale the rest normally.
 
-            if (sPosCols[1] < 0)
-            {
-                correction = textureBounds.width / (textureBounds.width - gridCenter.width) * absScaleX;
-                sPadding.left *= correction;
-                sPosCols[0] *= correction;
-                sPosCols[1]  = 0.0001; // losing the column altogether would mix up texture coords
-                sPosCols[2] *= correction;
-            }
+            hasMidCol = sPosCols[1] > 0;
+            hasMidRow = sPosRows[1] > 0;
 
-            if (sPosRows[1] < 0)
-            {
-                correction = textureBounds.height / (textureBounds.height - gridCenter.height) * absScaleY;
-                sPadding.top *= correction;
-                sPosRows[0] *= correction;
-                sPosRows[1]  = 0.0001; // losing the row altogether would mix up texture coords
-                sPosRows[2] *= correction;
+            if (!hasMidCol || !hasMidRow) {
+                minCorrectionX = textureBounds.width / (textureBounds.width - gridCenter.width) * absScaleX;
+                minCorrectionY = textureBounds.height / (textureBounds.height - gridCenter.height) * absScaleY;
+
+                correctionX = (hasMidCol || gridCenter.width)  && minCorrectionY < minCorrectionX ? minCorrectionY : minCorrectionX;
+                correctionY = (hasMidRow || gridCenter.height) && minCorrectionX < minCorrectionY ? minCorrectionX : minCorrectionY;
+
+                sPadding.left   *= correctionX;
+                sPadding.right  *= correctionX;
+                sPosCols[0]     *= correctionX;
+                sPosCols[2]     *= correctionX;
+                sPosCols[1]      = gridCenter.width ? textureBounds.width - sPadding.left - sPadding.right - sPosCols[0] - sPosCols[2] : 0;
+                hasMidCol = sPosCols[1] > 0;
+
+                sPadding.top    *= correctionY;
+                sPadding.bottom *= correctionY;
+                sPosRows[0]     *= correctionY;
+                sPosRows[2]     *= correctionY;
+                sPosRows[1]      = gridCenter.height ? textureBounds.height - sPadding.top - sPadding.bottom - sPosRows[0] - sPosRows[2] : 0;
+                hasMidRow = sPosRows[1] > 0;
             }
 
             numVertices = setupScale9GridAttributes(
-                sPadding.left, sPadding.top, sPosCols, sPosRows, setupScale9GridVertexPosition);
+                sPadding.left, sPadding.top, 0, 0, sPosCols, sPosRows, setupScale9GridVertexPosition);
 
             // now set the texture coordinates
 
             sTexCols[0] = sBasCols[0] / pixelBounds.width;
             sTexCols[2] = sBasCols[2] / pixelBounds.width;
-            sTexCols[1] = 1.0 - sTexCols[0] - sTexCols[2];
+            texMidWidth = 1.0 - sTexCols[0] - sTexCols[2];
+            sTexCols[1] = hasMidCol ? texMidWidth : 0;
 
             sTexRows[0] = sBasRows[0] / pixelBounds.height;
             sTexRows[2] = sBasRows[2] / pixelBounds.height;
-            sTexRows[1] = 1.0 - sTexRows[0] - sTexRows[2];
+            texMidHeight = 1.0 - sTexRows[0] - sTexRows[2];
+            sTexRows[1] = hasMidRow ? texMidHeight : 0;
 
-            setupScale9GridAttributes(0, 0, sTexCols, sTexRows, setupScale9GridVertexTexCoords);
+            setupScale9GridAttributes(0, 0, texMidWidth, texMidHeight, sTexCols, sTexRows, setupScale9GridVertexTexCoords);
 
             // update indices
 
@@ -316,7 +328,6 @@ package starling.display
             Pool.putRectangle(textureBounds);
             Pool.putRectangle(pixelBounds);
             Pool.putRectangle(gridCenter);
-            Pool.putRectangle(intersection);
 
             setRequiresRedraw();
         }
@@ -334,6 +345,7 @@ package starling.display
         }
 
         private function setupScale9GridAttributes(startX:Number, startY:Number,
+                                                   midWidth:Number, midHeight:Number,
                                                    colWidths:Vector.<Number>,
                                                    rowHeights:Vector.<Number>,
                                                    callback:Function):int
@@ -360,9 +372,13 @@ package starling.display
                             callback(vertexData, texture, vertexID++, currentX, currentY + rowHeight);
                             callback(vertexData, texture, vertexID++, currentX + colWidth, currentY + rowHeight);
                             currentX += colWidth;
+                        } else if (col == 1) {
+                            currentX += midWidth;
                         }
                     }
                     currentY += rowHeight;
+                } else if (row == 1) {
+                    currentY += midHeight;
                 }
                 currentX = startX;
             }
