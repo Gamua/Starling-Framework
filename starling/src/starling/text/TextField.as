@@ -428,7 +428,7 @@ package starling.text
         public function get style():MeshStyle { return _meshBatch.style; }
         public function set style(value:MeshStyle):void
         {
-            _style = value;
+            _meshBatch.style = _style = value;
             setRequiresRecomposition();
         }
 
