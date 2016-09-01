@@ -146,6 +146,20 @@ package starling.display
             return meshStyle;
         }
 
+        /** This method is called whenever the mesh's vertex data was changed.
+         *  The base implementation simply forwards to <code>setRequiresRedraw</code>. */
+        public function setVertexDataChanged():void
+        {
+            setRequiresRedraw();
+        }
+
+        /** This method is called whenever the mesh's index data was changed.
+         *  The base implementation simply forwards to <code>setRequiresRedraw</code>. */
+        public function setIndexDataChanged():void
+        {
+            setRequiresRedraw();
+        }
+
         // vertex manipulation
 
         /** The position of the vertex at the specified index, in the mesh's local coordinate

@@ -65,13 +65,27 @@ package starling.display
             super(vertexData, indexData);
         }
 
-        // display object overrides
-
         /** @inheritDoc */
         override public function dispose():void
         {
             if (_effect) _effect.dispose();
             super.dispose();
+        }
+
+        /** This method must be called whenever the mesh's vertex data was changed. Makes
+         *  sure that the vertex buffer is synchronized before rendering, and forces a redraw. */
+        override public function setVertexDataChanged():void
+        {
+            _vertexSyncRequired = true;
+            super.setVertexDataChanged();
+        }
+
+        /** This method must be called whenever the mesh's index data was changed. Makes
+         *  sure that the index buffer is synchronized before rendering, and forces a redraw. */
+        override public function setIndexDataChanged():void
+        {
+            _indexSyncRequired = true;
+            super.setIndexDataChanged();
         }
 
         private function setVertexAndIndexDataChanged():void

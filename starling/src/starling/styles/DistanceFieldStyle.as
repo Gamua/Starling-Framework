@@ -191,7 +191,7 @@ package starling.styles
                 vertexData.setUnsignedInt(i, "outerColor", outerColor);
             }
 
-            setRequiresRedraw();
+            setVertexDataChanged();
         }
 
         /** @private */
