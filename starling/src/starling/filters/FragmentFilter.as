@@ -186,8 +186,12 @@ package starling.filters
             {
                 // If 'requiresRedraw' is true, the object is non-static, and we guess that this
                 // will be the same in the next frame. So we render directly to the back buffer.
+                //
+                // -- That, however, is only possible for full alpha values, because
+                // (1) 'FilterEffect' can't handle alpha (and that will do the rendering)
+                // (2) we don't want lower layers (CompositeFilter!) to shine through.
 
-                drawLastPassToBackBuffer = true;
+                drawLastPassToBackBuffer = painter.state.alpha == 1.0;
                 painter.excludeFromCache(_target);
             }
 
@@ -245,6 +249,7 @@ package starling.filters
 
             painter.frameID = 0;
             painter.pushState(_token);
+            painter.state.alpha = 1.0;
             painter.state.renderTarget = input;
             painter.state.setProjectionMatrix(bounds.x, bounds.y,
                 input.root.width, input.root.height,
