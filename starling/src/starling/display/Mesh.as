@@ -314,9 +314,9 @@ package starling.display
 
         // static methods
 
-		/** Creates a mesh from the specified polygon. */
-		public static function fromPolygon(polygon:Polygon):Mesh
-		{
+        /** Creates a mesh from the specified polygon. */
+        public static function fromPolygon(polygon:Polygon):Mesh
+        {
 			var vertexData:VertexData = new VertexData();
 			var indexData:IndexData = new IndexData();
 
