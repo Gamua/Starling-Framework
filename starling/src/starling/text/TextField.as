@@ -97,7 +97,7 @@ package starling.text
 
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
-        private static var sTrueTypeCompositor:TrueTypeCompositor = new TrueTypeCompositor();
+        private static var sDefaultCompositor:ITextCompositor = new TrueTypeCompositor();
         private static var sDefaultTextureFormat:String = Context3DTextureFormat.BGRA_PACKED;
         private var _helperFormat:TextFormat = new TextFormat();
 
@@ -108,7 +108,7 @@ package starling.text
             _autoSize = TextFieldAutoSize.NONE;
             _hitArea = new Rectangle(0, 0, width, height);
             _requiresRecomposition = true;
-            _compositor = sTrueTypeCompositor;
+            _compositor = sDefaultCompositor;
             _options = new TextOptions();
 
             _format = format ? format.clone() : new TextFormat();
@@ -153,7 +153,7 @@ package starling.text
                     registerBitmapFont(bitmapFont);
                 }
 
-                _compositor = bitmapFont ? bitmapFont : sTrueTypeCompositor;
+                _compositor = bitmapFont ? bitmapFont : sDefaultCompositor;
 
                 updateText();
                 updateBorder();
@@ -433,13 +433,25 @@ package starling.text
         }
 
         /** The Context3D texture format that is used for rendering of all TrueType texts.
-         *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good
-         *  compromise between quality and memory consumption; use <pre>BGRA</pre> for
-         *  the highest quality. */
+         *  The default provides a good compromise between quality and memory consumption;
+         *  use <pre>Context3DTextureFormat.BGRA</pre> for the highest quality.
+         *
+         *  @default Context3DTextureFormat.BGRA_PACKED */
         public static function get defaultTextureFormat():String { return sDefaultTextureFormat; }
         public static function set defaultTextureFormat(value:String):void
         {
             sDefaultTextureFormat = value;
+        }
+
+        /** The default compositor used to arrange the letters of the text.
+         *  If a specific compositor was registered for a font, it takes precedence.
+         *
+         *  @default TrueTypeCompositor
+         */
+        public static function get defaultCompositor():ITextCompositor { return sDefaultCompositor; }
+        public static function set defaultCompositor(value:ITextCompositor):void
+        {
+            sDefaultCompositor = value;
         }
 
         /** Updates the list of embedded fonts. Call this method when you loaded a TrueType font
