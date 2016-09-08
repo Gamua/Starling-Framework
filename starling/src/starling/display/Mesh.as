@@ -317,14 +317,12 @@ package starling.display
         /** Creates a mesh from the specified polygon. */
         public static function fromPolygon(polygon:Polygon):Mesh
         {
-			var vertexData:VertexData = new VertexData();
-			var indexData:IndexData = new IndexData();
+            var vertexData:VertexData = new VertexData();
+            var indexData:IndexData = new IndexData();
 
-			polygon.copyToVertexData(vertexData);
-			polygon.triangulate(indexData);
-
-			return new Mesh(vertexData, indexData);			
-		}
-
+            polygon.copyToVertexData(vertexData);
+            polygon.triangulate(indexData);
+            return new Mesh(vertexData, indexData);			
+        }
     }
 }
