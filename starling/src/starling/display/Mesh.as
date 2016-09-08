@@ -14,6 +14,7 @@ package starling.display
     import flash.geom.Rectangle;
 
     import starling.core.starling_internal;
+    import starling.geom.Polygon;
     import starling.rendering.IndexData;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
@@ -310,5 +311,20 @@ package starling.display
         {
             sDefaultStyleFactory = value;
         }
+
+        // static methods
+
+		/** Creates a mesh from the specified polygon. */
+		public static function fromPolygon(polygon:Polygon):Mesh
+		{
+			var vertexData:VertexData = new VertexData();
+			var indexData:IndexData = new IndexData();
+
+			polygon.copyToVertexData(vertexData);
+			polygon.triangulate(indexData);
+
+			return new Mesh(vertexData, indexData);			
+		}
+
     }
 }
