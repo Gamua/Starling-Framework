@@ -314,15 +314,19 @@ package starling.display
 
         // static methods
 
-        /** Creates a mesh from the specified polygon. */
-        public static function fromPolygon(polygon:Polygon):Mesh
+        /** Creates a mesh from the specified polygon.
+         *  Vertex positions and indices will be set up according to the polygon;
+         *  any other vertex attributes (e.g. texture coordinates) need to be set up manually.
+         */
+        public static function fromPolygon(polygon:Polygon, style:MeshStyle=null):Mesh
         {
-            var vertexData:VertexData = new VertexData();
-            var indexData:IndexData = new IndexData();
+            var vertexData:VertexData = new VertexData(null, polygon.numVertices);
+            var indexData:IndexData = new IndexData(polygon.numTriangles);
 
             polygon.copyToVertexData(vertexData);
             polygon.triangulate(indexData);
-            return new Mesh(vertexData, indexData);			
+
+            return new Mesh(vertexData, indexData, style);
         }
     }
 }
