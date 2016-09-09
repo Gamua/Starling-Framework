@@ -76,10 +76,12 @@ package starling.rendering
         private var _onDrawRequired:Function;
         private var _modelviewMatrix3D:Matrix3D;
         private var _projectionMatrix3D:Matrix3D;
+        private var _projectionMatrix3DRev:uint;
         private var _mvpMatrix3D:Matrix3D;
 
         // helper objects
         private static var sMatrix3D:Matrix3D = new Matrix3D();
+        private static var sProjectionMatrix3DRev:uint = 0;
 
         /** Creates a new render state with the default settings. */
         public function RenderState()
@@ -110,7 +112,12 @@ package starling.rendering
             _renderTargetOptions = renderState._renderTargetOptions;
             _culling = renderState._culling;
             _modelviewMatrix.copyFrom(renderState._modelviewMatrix);
-            _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
+
+            if (_projectionMatrix3DRev != renderState._projectionMatrix3DRev)
+            {
+                _projectionMatrix3DRev = renderState._projectionMatrix3DRev;
+                _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
+            }
 
             if (_modelviewMatrix3D || renderState._modelviewMatrix3D)
                 this.modelviewMatrix3D = renderState._modelviewMatrix3D;
@@ -129,6 +136,7 @@ package starling.rendering
             this.modelviewMatrix3D = null;
             this.renderTarget = null;
             this.clipRect = null;
+            _projectionMatrix3DRev = 0;
 
             if (_modelviewMatrix) _modelviewMatrix.identity();
             else _modelviewMatrix = new Matrix();
@@ -178,8 +186,17 @@ package starling.rendering
                                             stageWidth:Number=0, stageHeight:Number=0,
                                             cameraPos:Vector3D=null):void
         {
+            _projectionMatrix3DRev = ++sProjectionMatrix3DRev;
             MatrixUtil.createPerspectiveProjectionMatrix(
                     x, y, width, height, stageWidth, stageHeight, cameraPos, _projectionMatrix3D);
+        }
+
+        /** This method needs to be called whenever <code>projectionMatrix3D</code> was changed
+         *  other than via <code>setProjectionMatrix</code>.
+         */
+        public function setProjectionMatrixChanged():void
+        {
+            _projectionMatrix3DRev = ++sProjectionMatrix3DRev;
         }
 
         /** Changes the modelview matrices (2D and, if available, 3D) to identity matrices.
@@ -217,10 +234,15 @@ package starling.rendering
 
         /** Returns the current projection matrix. You can use the method 'setProjectionMatrix3D'
          *  to set it up in an intuitive way.
-         *  CAUTION: Use with care! Each call returns the same instance.
+         *  CAUTION: Use with care! Each call returns the same instance. If you modify the matrix
+         *           in place, you have to call <code>setProjectionMatrixChanged</code>.
          *  @default identity matrix */
         public function get projectionMatrix3D():Matrix3D { return _projectionMatrix3D; }
-        public function set projectionMatrix3D(value:Matrix3D):void { _projectionMatrix3D.copyFrom(value); }
+        public function set projectionMatrix3D(value:Matrix3D):void
+        {
+            setProjectionMatrixChanged();
+            _projectionMatrix3D.copyFrom(value);
+        }
 
         /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
          *  CAUTION: Use with care! Each call returns the same instance. */
