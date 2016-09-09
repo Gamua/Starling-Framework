@@ -19,6 +19,7 @@ package starling.rendering
 
     import starling.display.BlendMode;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
@@ -69,10 +70,13 @@ package starling.rendering
         /** @private */ internal var _blendMode:String;
         /** @private */ internal var _modelviewMatrix:Matrix;
 
-        private var _renderTarget:Texture;
-        private var _renderTargetOptions:uint;
-        private var _culling:String;
+        private static const CULLING_VALUES:Vector.<String> = new <String>
+            [Context3DTriangleFace.NONE, Context3DTriangleFace.FRONT,
+             Context3DTriangleFace.BACK, Context3DTriangleFace.FRONT_AND_BACK];
+
+        private var _miscOptions:uint;
         private var _clipRect:Rectangle;
+        private var _renderTarget:Texture;
         private var _onDrawRequired:Function;
         private var _modelviewMatrix3D:Matrix3D;
         private var _projectionMatrix3D:Matrix3D;
@@ -96,11 +100,12 @@ package starling.rendering
             {
                 var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
                 var nextTarget:TextureBase = renderState._renderTarget ? renderState._renderTarget.base : null;
+                var cullingChanges:Boolean = (_miscOptions & 0xf00) != (renderState._miscOptions & 0xf00);
                 var clipRectChanges:Boolean = _clipRect || renderState._clipRect ?
                     !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
 
-                if (_blendMode != renderState._blendMode || _culling != renderState._culling ||
-                    currentTarget != nextTarget || clipRectChanges)
+                if (_blendMode != renderState._blendMode ||
+                    currentTarget != nextTarget || clipRectChanges || cullingChanges)
                 {
                     _onDrawRequired();
                 }
@@ -109,8 +114,7 @@ package starling.rendering
             _alpha = renderState._alpha;
             _blendMode = renderState._blendMode;
             _renderTarget = renderState._renderTarget;
-            _renderTargetOptions = renderState._renderTargetOptions;
-            _culling = renderState._culling;
+            _miscOptions = renderState._miscOptions;
             _modelviewMatrix.copyFrom(renderState._modelviewMatrix);
 
             if (_projectionMatrix3DRev != renderState._projectionMatrix3DRev)
@@ -261,7 +265,7 @@ package starling.rendering
          *  @param target     Either a texture or <code>null</code> to render into the back buffer.
          *  @param enableDepthAndStencil  Indicates if depth and stencil testing will be available.
          *                    This parameter affects only texture targets.
-         *  @param antiAlias  The anti-aliasing quality (<code>0</code> meaning: no anti-aliasing).
+         *  @param antiAlias  The anti-aliasing quality (range: <code>0 - 16</code>).
          *                    This parameter affects only texture targets. Note that at the time
          *                    of this writing, AIR supports anti-aliasing only on Desktop.
          */
@@ -270,14 +274,15 @@ package starling.rendering
         {
             var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
             var newTarget:TextureBase = target ? target.base : null;
-            var newOptions:uint = uint(enableDepthAndStencil) | antiAlias << 4;
+            var newOptions:uint = MathUtil.min(antiAlias, 16) | uint(enableDepthAndStencil) << 4;
+            var optionsChange:Boolean = newOptions != (_miscOptions & 0xff);
 
-            if (currentTarget != newTarget || _renderTargetOptions != newOptions)
+            if (currentTarget != newTarget || optionsChange)
             {
                 if (_onDrawRequired != null) _onDrawRequired();
 
                 _renderTarget = target;
-                _renderTargetOptions = newOptions;
+                _miscOptions = (_miscOptions & 0xffffff00) | newOptions;
             }
         }
 
@@ -322,13 +327,22 @@ package starling.rendering
          *  their orientation relative to the view plane.
          *  @default Context3DTriangleFace.NONE
          */
-        public function get culling():String { return _culling; }
+        public function get culling():String
+        {
+            var index:int = (_miscOptions & 0xf00) >> 8;
+            return CULLING_VALUES[index];
+        }
+
         public function set culling(value:String):void
         {
-            if (_culling != value)
+            if (this.culling != value)
             {
                 if (_onDrawRequired != null) _onDrawRequired();
-                _culling = value;
+
+                var index:int = CULLING_VALUES.indexOf(value);
+                if (index == -1) throw new ArgumentError("Invalid culling mode");
+
+                _miscOptions = (_miscOptions & 0xfffff0ff) | (index << 8);
             }
         }
 
@@ -361,14 +375,14 @@ package starling.rendering
          *  via <code>setRenderTarget</code>. */
         public function get renderTargetAntiAlias():int
         {
-            return _renderTargetOptions >> 4;
+            return _miscOptions & 0xf;
         }
 
         /** Indicates if the render target (set via <code>setRenderTarget</code>)
          *  has its depth and stencil buffers enabled. */
         public function get renderTargetSupportsDepthAndStencil():Boolean
         {
-            return (_renderTargetOptions & 0xf) != 0;
+            return (_miscOptions & 0xf0) != 0;
         }
 
         /** Indicates if there have been any 3D transformations.
