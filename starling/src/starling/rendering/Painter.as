@@ -180,6 +180,8 @@ package starling.rendering
         {
             _context = _stage3D.context3D;
             _context.enableErrorChecking = _enableErrorChecking;
+            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+
             _actualBlendMode = null;
             _actualCulling = null;
         }
