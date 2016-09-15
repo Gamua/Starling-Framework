@@ -73,6 +73,7 @@ package starling.text
         private var _baseline:Number;
         private var _offsetX:Number;
         private var _offsetY:Number;
+        private var _padding:Number;
         private var _helperImage:Image;
 
         // helper objects
@@ -96,7 +97,7 @@ package starling.text
             
             _name = "unknown";
             _lineHeight = _size = _baseline = 14;
-            _offsetX = _offsetY = 0.0;
+            _offsetX = _offsetY = _padding = 0.0;
             _texture = texture;
             _chars = new Dictionary();
             _helperImage = new Image(texture);
@@ -288,8 +289,8 @@ package starling.text
             {
                 sLines.length = 0;
                 scale = fontSize / _size;
-                containerWidth  = width / scale;
-                containerHeight = height / scale;
+                containerWidth  = (width  - 2 * _padding) / scale;
+                containerHeight = (height - 2 * _padding) / scale;
                 
                 if (_lineHeight <= containerHeight)
                 {
@@ -423,8 +424,8 @@ package starling.text
                 for (var c:int=0; c<numChars; ++c)
                 {
                     charLocation = line[c];
-                    charLocation.x = scale * (charLocation.x + xOffset + _offsetX);
-                    charLocation.y = scale * (charLocation.y + yOffset + _offsetY);
+                    charLocation.x = scale * (charLocation.x + xOffset + _offsetX) + _padding;
+                    charLocation.y = scale * (charLocation.y + yOffset + _offsetY) + _padding;
                     charLocation.scale = scale;
                     
                     if (charLocation.char.width > 0 && charLocation.char.height > 0)
@@ -463,6 +464,12 @@ package starling.text
          *  Useful to make up for incorrect font data. @default 0. */
         public function get offsetY():Number { return _offsetY; }
         public function set offsetY(value:Number):void { _offsetY = value; }
+
+        /** The width of a "gutter" around the composed text area, in points.
+         *  This can be used to bring the output more in line with standard TrueType rendering:
+         *  Flash always draws them with 2 pixels of padding. @default 0.0 */
+        public function get padding():Number { return _padding; }
+        public function set padding(value:Number):void { _padding = value; }
 
         /** The underlying texture that contains all the chars. */
         public function get texture():Texture { return _texture; }
