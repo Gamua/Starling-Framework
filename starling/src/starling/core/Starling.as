@@ -433,7 +433,7 @@ package starling.core
                     _stage.stageWidth, _stage.stageHeight, _stage.cameraPosition);
 
                 if (!shareContext)
-                    _painter.clear(_stage.color, 1.0);
+                    _painter.clear(_stage.color, 0.0);
 
                 _stage.render(_painter);
                 _painter.finishFrame();
