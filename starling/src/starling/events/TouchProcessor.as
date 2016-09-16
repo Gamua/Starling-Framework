@@ -59,6 +59,7 @@ package starling.events
         private var _ctrlDown:Boolean  = false;
         private var _multitapTime:Number = 0.3;
         private var _multitapDistance:Number = 25;
+        private var _touchEvent:TouchEvent;
 
         private var _touchMarker:TouchMarker;
         private var _simulateMultitouch:Boolean;
@@ -83,6 +84,7 @@ package starling.events
             _currentTouches = new <Touch>[];
             _queue = new <Array>[];
             _lastTaps = new <Touch>[];
+            _touchEvent = new TouchEvent(TouchEvent.TOUCH);
 
             _stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
             _stage.addEventListener(KeyboardEvent.KEY_UP,   onKey);
@@ -158,13 +160,13 @@ package starling.events
         protected function processTouches(touches:Vector.<Touch>,
                                           shiftDown:Boolean, ctrlDown:Boolean):void
         {
-            sHoveringTouchData.length = 0;
-            
-            // the same touch event will be dispatched to all targets;
-            // the 'dispatch' method will make sure each bubble target is visited only once.
-            var touchEvent:TouchEvent = new TouchEvent(TouchEvent.TOUCH, _currentTouches, shiftDown, ctrlDown);
             var touch:Touch;
-            
+            sHoveringTouchData.length = 0;
+
+            // the same touch event will be dispatched to all targets;
+            // the 'dispatch' method makes sure each bubble target is visited only once.
+            _touchEvent.resetTo(TouchEvent.TOUCH, _currentTouches, shiftDown, ctrlDown);
+
             // hit test our updated touches
             for each (touch in touches)
             {
@@ -187,11 +189,14 @@ package starling.events
             // target to notify it that it's no longer being hovered over.
             for each (var touchData:Object in sHoveringTouchData)
                 if (touchData.touch.target != touchData.target)
-                    touchEvent.dispatch(touchData.bubbleChain);
+                    _touchEvent.dispatch(touchData.bubbleChain);
             
             // dispatch events for the rest of our updated touches
             for each (touch in touches)
-                touch.dispatchEvent(touchEvent);
+                touch.dispatchEvent(_touchEvent);
+
+            // clean up any references
+            _touchEvent.resetTo(TouchEvent.TOUCH);
         }
         
         /** Enqueues a new touch our mouse event with the given properties. */
