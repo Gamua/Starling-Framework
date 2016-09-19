@@ -138,7 +138,7 @@ package starling.display
         private var _transformationMatrix3D:Matrix3D;
         private var _orientationChanged:Boolean;
         private var _is3D:Boolean;
-        private var _isMask:Boolean;
+        private var _maskee:DisplayObject;
 
         // internal members (for fast access on rendering)
 
@@ -187,7 +187,7 @@ package starling.display
             if (_filter) _filter.dispose();
             if (_mask) _mask.dispose();
             removeEventListeners();
-            mask = null; // revert 'isMask' property, just to be sure.
+            mask = null; // clear 'mask._maskee', just to be sure.
         }
         
         /** Removes the object from its parent, if it has one, and optionally disposes it. */
@@ -519,7 +519,7 @@ package starling.display
         /** @private */
         internal function get isMask():Boolean
         {
-            return _isMask;
+            return _maskee != null;
         }
 
         // render cache
@@ -537,21 +537,18 @@ package starling.display
          */
         public function setRequiresRedraw():void
         {
-            var parent:DisplayObject = _parent;
+            var parent:DisplayObject = _parent || _maskee;
             var frameID:int = Starling.frameID;
 
-            _hasVisibleArea = _alpha != 0.0 && _visible && !_isMask && _scaleX != 0.0 && _scaleY != 0.0;
             _lastParentOrSelfChangeFrameID = frameID;
+            _hasVisibleArea = _alpha  != 0.0 && _visible && _maskee == null &&
+                              _scaleX != 0.0 && _scaleY != 0.0;
 
             while (parent && parent._lastChildChangeFrameID != frameID)
             {
                 parent._lastChildChangeFrameID = frameID;
-                if (parent._mask) parent._mask.setRequiresRedraw();
-                parent = parent._parent;
+                parent = parent._parent || parent._maskee;
             }
-
-            if (_isMask) Starling.current.setRequiresRedraw(); // notify 'skipUnchangedFrames'
-            else if (_mask) _mask.setRequiresRedraw();         // propagate into mask
         }
 
         /** Indicates if the object needs to be redrawn in the upcoming frame, i.e. if it has
@@ -1069,10 +1066,10 @@ package starling.display
         {
             if (_mask != value)
             {
-                if (_mask) _mask._isMask = false;
+                if (_mask) _mask._maskee = null;
                 if (value)
                 {
-                    value._isMask = true;
+                    value._maskee = this;
                     value._hasVisibleArea = false;
                 }
 

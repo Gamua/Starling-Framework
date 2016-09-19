@@ -351,25 +351,21 @@ package starling.display
         {
             var numChildren:int = _children.length;
             var frameID:uint = painter.frameID;
+            var cacheEnabled:Boolean = frameID;
             var selfOrParentChanged:Boolean = _lastParentOrSelfChangeFrameID == frameID;
 
             for (var i:int=0; i<numChildren; ++i)
             {
                 var child:DisplayObject = _children[i];
-                var filter:FragmentFilter = child._filter;
-                var mask:DisplayObject = child._mask;
 
                 if (child._hasVisibleArea)
                 {
                     if (selfOrParentChanged)
-                    {
                         child._lastParentOrSelfChangeFrameID = frameID;
-                        if (mask) mask._lastParentOrSelfChangeFrameID = frameID;
-                    }
 
                     if (child._lastParentOrSelfChangeFrameID != frameID &&
                         child._lastChildChangeFrameID != frameID &&
-                        child._tokenFrameID == frameID - 1)
+                        child._tokenFrameID == frameID - 1 && cacheEnabled)
                     {
                         painter.pushState(sCacheToken);
                         painter.drawFromCache(child._pushToken, child._popToken);
@@ -379,7 +375,12 @@ package starling.display
                     }
                     else
                     {
-                        painter.pushState(child._pushToken);
+                        var pushToken:BatchToken  = cacheEnabled ? child._pushToken : null;
+                        var popToken:BatchToken   = cacheEnabled ? child._popToken  : null;
+                        var filter:FragmentFilter = child._filter;
+                        var mask:DisplayObject    = child._mask;
+
+                        painter.pushState(pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
                         if (mask) painter.drawMask(mask, child);
@@ -389,10 +390,11 @@ package starling.display
 
                         if (mask) painter.eraseMask(mask, child);
 
-                        painter.popState(child._popToken);
+                        painter.popState(popToken);
                     }
 
-                    child._tokenFrameID = frameID;
+                    if (cacheEnabled)
+                        child._tokenFrameID = frameID;
                 }
             }
         }

@@ -21,7 +21,6 @@ package starling.filters
     import starling.display.Stage;
     import starling.events.Event;
     import starling.events.EventDispatcher;
-    import starling.rendering.BatchToken;
     import starling.rendering.FilterEffect;
     import starling.rendering.IndexData;
     import starling.rendering.Painter;
@@ -101,7 +100,6 @@ package starling.filters
         private var _effect:FilterEffect;
         private var _vertexData:VertexData;
         private var _indexData:IndexData;
-        private var _token:BatchToken;
         private var _padding:Padding;
         private var _helper:FilterHelper;
         private var _resolution:Number;
@@ -169,7 +167,6 @@ package starling.filters
 
         private function renderPasses(painter:Painter, forCache:Boolean):void
         {
-            if (_token == null) _token = new BatchToken();
             if (_helper  == null) _helper = new FilterHelper(_textureFormat);
             if (_quad  == null) _quad  = new FilterQuad(_textureSmoothing);
             else { _helper.putTexture(_quad.texture); _quad.texture = null; }
@@ -238,17 +235,12 @@ package starling.filters
             _resolution = 1.0; // applied via '_helper.textureScale' already;
                                // only 'child'-filters use resolution directly (in 'process')
 
+            var wasCacheEnabled:Boolean = painter.cacheEnabled;
             var input:Texture = _helper.getTexture();
-            var frameID:int = painter.frameID;
             var output:Texture;
 
-            // By temporarily setting the frameID to zero, the render cache is effectively
-            // disabled while we draw the target object. That is necessary because we rewind the
-            // cache later; if we didn't deactivate the cache, redrawing one of the target objects
-            // later might reference data that does not exist any longer.
-
-            painter.frameID = 0;
-            painter.pushState(_token);
+            painter.cacheEnabled = false; // -> what follows should not be cached
+            painter.pushState();
             painter.state.alpha = 1.0;
             painter.state.renderTarget = input;
             painter.state.setProjectionMatrix(bounds.x, bounds.y,
@@ -264,8 +256,7 @@ package starling.filters
             output = process(painter, _helper, input); // -> feed 'input' to actual filter code
 
             painter.popState();
-            painter.frameID = frameID;
-            painter.rewindCacheTo(_token); // -> render cache forgets all that happened above :)
+            painter.cacheEnabled = wasCacheEnabled; // -> cache again
 
             if (output) // indirect rendering
             {

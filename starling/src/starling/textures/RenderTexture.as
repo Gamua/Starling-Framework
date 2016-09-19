@@ -161,14 +161,11 @@ package starling.textures
         {
             var painter:Painter = Starling.painter;
             var state:RenderState = painter.state;
+            var wasCacheEnabled:Boolean = painter.cacheEnabled;
             var filter:FragmentFilter = object.filter;
             var mask:DisplayObject = object.mask;
 
-            // The object might have been rendered already (to the back buffer or another
-            // render texture), but not necessarily using the same render state / mvp matrix.
-            // Thus, we need to force a redraw.
-            object.setRequiresRedraw();
-
+            painter.cacheEnabled = false;
             painter.pushState();
 
             state.alpha *= alpha;
@@ -187,6 +184,7 @@ package starling.textures
             if (mask)   painter.eraseMask(mask);
 
             painter.popState();
+            painter.cacheEnabled = wasCacheEnabled;
         }
         
         private function renderBundled(renderBlock:Function, object:DisplayObject=null,
