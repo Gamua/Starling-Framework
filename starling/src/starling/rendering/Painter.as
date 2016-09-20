@@ -127,7 +127,7 @@ package starling.rendering
         public function Painter(stage3D:Stage3D)
         {
             _stage3D = stage3D;
-            _stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 10, true);
+            _stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 40, true);
             _context = _stage3D.context3D;
             _shareContext = _context && _context.driverInfo != "Disposed";
             _backBufferWidth  = _context ? _context.backBufferWidth  : 0;

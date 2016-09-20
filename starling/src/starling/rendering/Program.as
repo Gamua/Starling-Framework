@@ -49,7 +49,7 @@ package starling.rendering
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
-                onContextCreated, false, 0, true);
+                onContextCreated, false, 30, true);
         }
 
         /** Disposes the internal Program3D instance. */
