@@ -81,7 +81,7 @@ package starling.text
     public class TextField extends DisplayObjectContainer
     {
         // the name container with the registered bitmap fonts
-        private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
+        private static const COMPOSITOR_DATA_NAME:String = "starling.display.TextField.compositors";
 
         private var _text:String;
         private var _options:TextOptions;
@@ -144,16 +144,16 @@ package starling.text
             {
                 _compositor.clearMeshBatch(_meshBatch);
 
-                var font:String = _format.font;
-                var bitmapFont:BitmapFont = getBitmapFont(font);
+                var fontName:String = _format.font;
+                var compositor:ITextCompositor = getCompositor(fontName);
 
-                if (bitmapFont == null && font == BitmapFont.MINI)
+                if (compositor == null && fontName == BitmapFont.MINI)
                 {
-                    bitmapFont = new BitmapFont();
-                    registerBitmapFont(bitmapFont);
+                    compositor = new BitmapFont();
+                    registerCompositor(compositor, fontName);
                 }
 
-                _compositor = bitmapFont ? bitmapFont : sDefaultCompositor;
+                _compositor = compositor ? compositor : sDefaultCompositor;
 
                 updateText();
                 updateBorder();
@@ -461,48 +461,75 @@ package starling.text
             SystemUtil.updateEmbeddedFonts();
         }
 
+        // compositor registration
+
+        /** Makes a text compositor (like a <code>BitmapFont</code>) available to any TextField in
+         *  the current stage3D context. The font is identified by its <code>name</code> (not
+         *  case sensitive). */
+        public static function registerCompositor(compositor:ITextCompositor, name:String):void
+        {
+            if (name == null) throw new ArgumentError("name must not be null");
+            compositors[convertToLowerCase(name)] = compositor;
+        }
+
+        /** Unregisters the text compositor and, optionally, disposes it. */
+        public static function unregisterCompositor(name:String, dispose:Boolean=true):void
+        {
+            name = convertToLowerCase(name);
+
+            if (dispose && compositors[name] != undefined)
+                compositors[name].dispose();
+
+            delete compositors[name];
+        }
+
+        /** Returns a registered text compositor (or null, if the font has not been registered).
+         *  The name is not case sensitive. */
+        public static function getCompositor(name:String):ITextCompositor
+        {
+            return compositors[convertToLowerCase(name)];
+        }
+
         /** Makes a bitmap font available at any TextField in the current stage3D context.
          *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you
          *  can pass a custom name, as well. @return the name of the font. */
+        [Deprecated(replacement="registerCompositor")]
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;
-            bitmapFonts[convertToLowerCase(name)] = bitmapFont;
+            registerCompositor(bitmapFont, name);
             return name;
         }
 
         /** Unregisters the bitmap font and, optionally, disposes it. */
+        [Deprecated(replacement="unregisterCompositor")]
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
-            name = convertToLowerCase(name);
-
-            if (dispose && bitmapFonts[name] != undefined)
-                bitmapFonts[name].dispose();
-
-            delete bitmapFonts[name];
+            unregisterCompositor(name, dispose);
         }
 
-        /** Returns a registered bitmap font (or null, if the font has not been registered).
-         *  The name is not case sensitive. */
+        /** Returns a registered bitmap font compositor (or null, if no compositor has been
+         *  registered with that name, or if it's not a bitmap font). The name is not case
+         *  sensitive. */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return bitmapFonts[convertToLowerCase(name)];
+            return getCompositor(name) as BitmapFont;
         }
         
-        /** Stores the currently available bitmap fonts. Since a bitmap font will only work
+        /** Stores the currently available text compositors. Since compositors will only work
          *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
-        private static function get bitmapFonts():Dictionary
+        private static function get compositors():Dictionary
         {
-            var fonts:Dictionary = Starling.painter.sharedData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            var compositors:Dictionary = Starling.painter.sharedData[COMPOSITOR_DATA_NAME] as Dictionary;
             
-            if (fonts == null)
+            if (compositors == null)
             {
-                fonts = new Dictionary();
-                Starling.painter.sharedData[BITMAP_FONT_DATA_NAME] = fonts;
+                compositors = new Dictionary();
+                Starling.painter.sharedData[COMPOSITOR_DATA_NAME] = compositors;
             }
             
-            return fonts;
+            return compositors;
         }
 
         // optimization for 'toLowerCase' calls

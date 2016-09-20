@@ -105,7 +105,7 @@ package starling.text
             parseFontXml(fontXml);
         }
         
-        /** Disposes the texture of the bitmap font! */
+        /** Disposes the texture of the bitmap font. */
         public function dispose():void
         {
             if (_texture)

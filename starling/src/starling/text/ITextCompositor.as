@@ -22,5 +22,8 @@ package starling.text
         /** Clears the MeshBatch (filled by the same class) and disposes any resources that
          *  are no longer needed. */
         function clearMeshBatch(meshBatch:MeshBatch):void;
+
+        /** Frees all resources allocated by the compositor. */
+        function dispose():void;
     }
 }

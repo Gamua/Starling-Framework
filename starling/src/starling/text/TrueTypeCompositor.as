@@ -39,6 +39,10 @@ package starling.text
         { }
 
         /** @inheritDoc */
+        public function dispose():void
+        {}
+
+        /** @inheritDoc */
         public function fillMeshBatch(meshBatch:MeshBatch, width:Number, height:Number, text:String,
                                       format:TextFormat, options:TextOptions=null):void
         {
