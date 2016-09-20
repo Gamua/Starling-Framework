@@ -28,13 +28,14 @@ package starling.text
     import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
 
-    /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
+    /** A TextField displays text, using either standard true type fonts, custom bitmap fonts,
+     *  or a custom text representation.
      *  
-     *  <p>You can set all properties you are used to, like the font name and size, a color, the 
-     *  horizontal and vertical alignment, etc. The border property is helpful during development, 
-     *  because it lets you see the bounds of the TextField.</p>
+     *  <p>Access the <code>format</code> property to modify the appearance of the text, like the
+     *  font name and size, a color, the horizontal and vertical alignment, etc. The border property
+     *  is useful during development, because it lets you see the bounds of the TextField.</p>
      *  
-     *  <p>There are two types of fonts that can be displayed:</p>
+     *  <p>There are several types of fonts that can be displayed:</p>
      *  
      *  <ul>
      *    <li>Standard TrueType fonts. This renders the text just like a conventional Flash
@@ -45,9 +46,12 @@ package starling.text
      *        That is a font that has its glyphs rendered to a texture atlas. To use it, first 
      *        register the font with the method <code>registerBitmapFont</code>, and then pass 
      *        the font name to the corresponding property of the text field.</li>
-     *  </ul> 
+     *    <li>Custom text compositors. Any class implementing the <code>ITextCompositor</code>
+     *        interface can be used to render text. If the two standard options are not sufficient
+     *        for your needs, such a compositor might do the trick.</li>
+     *  </ul>
      *    
-     *  For bitmap fonts, we recommend one of the following tools:
+     *  <p>For bitmap fonts, we recommend one of the following tools:</p>
      * 
      *  <ul>
      *    <li>Windows: <a href="http://www.angelcode.com/products/bmfont">Bitmap Font Generator</a>
@@ -56,6 +60,9 @@ package starling.text
      *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
      *        71squared or <a href="http://http://www.bmglyph.com">bmGlyph</a> (both commercial). 
      *        They support Starling natively.</li>
+     *    <li>Cross-Platform: <a href="http://kvazars.com/littera/">Littera</a> or
+     *        <a href="http://renderhjs.net/shoebox/">ShoeBox</a> are great tools, as well.
+     *        Both are free to use and were built with Adobe AIR.</li>
      *  </ul>
      *
      *  <p>When using a bitmap font, the 'color' property is used to tint the font texture. This
@@ -74,13 +81,13 @@ package starling.text
      *  texture is in your main texture atlas.</p>
      *
      *  <p>The recommendation is to activate "batchable" if it reduces your draw calls (use the
-     *  StatsDisplay to check this) AND if the TextFields contain no more than about 10-15
-     *  characters (per TextField). For longer texts, the batching would take up more CPU time
-     *  than what is saved by avoiding the draw calls.</p>
+     *  StatsDisplay to check this) AND if the text fields contain no more than about 15-20
+     *  characters. For longer texts, the batching would take up more CPU time than what is saved
+     *  by avoiding the draw calls.</p>
      */
     public class TextField extends DisplayObjectContainer
     {
-        // the name container with the registered bitmap fonts
+        // the name of the "sharedData" container with the registered compositors
         private static const COMPOSITOR_DATA_NAME:String = "starling.display.TextField.compositors";
 
         private var _text:String;
