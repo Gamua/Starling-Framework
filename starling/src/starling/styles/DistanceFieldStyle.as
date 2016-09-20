@@ -321,7 +321,7 @@ package starling.styles
         /** The current render mode. It's recommended to use one of the 'setup...'-methods to
          *  change the mode, as those provide useful standard settings, as well. @default basic */
         public function get mode():String { return _mode; }
-        public function set mode(value:String)
+        public function set mode(value:String):void
         {
             _mode = value;
             setRequiresRedraw();
