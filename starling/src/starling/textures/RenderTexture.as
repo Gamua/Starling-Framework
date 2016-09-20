@@ -33,7 +33,7 @@ package starling.textures
      *  
      *  <p>Drawing is done very efficiently, as it is happening directly in graphics memory. After 
      *  you have drawn objects onto the texture, the performance will be just like that of a normal 
-     *  texture - no matter how many objects you have drawn.</p>
+     *  texture — no matter how many objects you have drawn.</p>
      *  
      *  <p>If you draw lots of objects at once, it is recommended to bundle the drawing calls in 
      *  a block via the <code>drawBundled</code> method, like shown below. That will speed it up 
@@ -51,11 +51,9 @@ package starling.textures
      *  </pre>
      *  
      *  <p>To erase parts of a render texture, you can use any display object like a "rubber" by
-     *  setting its blending mode to "BlendMode.ERASE".</p>
+     *  setting its blending mode to <code>BlendMode.ERASE</code>. To wipe it completely clean,
+     *  use the <code>clear</code> method.</p>
      * 
-     *  <p>Beware that render textures can't be restored when the Starling's render context is lost.
-     *  </p>
-     *
      *  <strong>Persistence</strong>
      *
      *  <p>Older devices may require double buffering to support persistent render textures. Thus,
@@ -63,6 +61,40 @@ package starling.textures
      *  need to make one draw operation on the texture. The static <code>useDoubleBuffering</code>
      *  property allows you to customize if new textures will be created with or without double
      *  buffering.</p>
+     *
+     *  <strong>Context Loss</strong>
+     *
+     *  <p>Unfortunately, render textures are wiped clean when the render context is lost.
+     *  This means that you need to manually recreate all their contents in such a case.
+     *  One way to do that is by using the <code>root.onRestore</code> callback, like here:</p>
+     *
+     *  <listing>
+     *  renderTexture.root.onRestore = function():void
+     *  {
+     *      var quad:Quad = new Quad(100, 100, 0xff00ff);
+     *      renderTexture.clear(); // required on texture restoration
+     *      renderTexture.draw(quad);
+     *  });</listing>
+     *
+     *  <p>For example, a drawing app would need to store information about all draw operations
+     *  when they occur, and then recreate them inside <code>onRestore</code> on a context loss
+     *  (preferably using <code>drawBundled</code> instead).</p>
+     *
+     *  <p>However, there is one problem: when that callback is executed, it's very likely that
+     *  not all of your textures are already available, since they need to be restored, too (and
+     *  that might take a while). You probably loaded your textures with the "AssetManager".
+     *  In that case, you can listen to its <code>TEXTURES_RESTORED</code> event instead:</p>
+     *
+     *  <listing>
+     *  assetManager.addEventListener(Event.TEXTURES_RESTORED, function():void
+     *  {
+     *      var brush:Image = new Image(assetManager.getTexture("brush"));
+     *      renderTexture.draw(brush);
+     *  });</listing>
+     *
+     *  <p>[Note that this time, there is no need to call <code>clear</code>, because that's the
+     *  default behavior of <code>onRestore</code>, anyway — and we didn't modify that.]</p>
+     *
      */
     public class RenderTexture extends SubTexture
     {
