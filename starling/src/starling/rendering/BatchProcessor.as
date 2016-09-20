@@ -14,7 +14,6 @@ package starling.rendering
 
     import starling.display.Mesh;
     import starling.display.MeshBatch;
-    import starling.utils.MathUtil;
     import starling.utils.MeshSubset;
 
     /** This class manages a list of mesh batches of different types;

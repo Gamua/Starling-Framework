@@ -351,7 +351,7 @@ package starling.display
         {
             var numChildren:int = _children.length;
             var frameID:uint = painter.frameID;
-            var cacheEnabled:Boolean = frameID;
+            var cacheEnabled:Boolean = frameID !=0;
             var selfOrParentChanged:Boolean = _lastParentOrSelfChangeFrameID == frameID;
 
             for (var i:int=0; i<numChildren; ++i)
