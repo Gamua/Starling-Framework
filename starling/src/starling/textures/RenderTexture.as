@@ -200,7 +200,7 @@ package starling.textures
             painter.cacheEnabled = false;
             painter.pushState();
 
-            state.alpha *= alpha;
+            state.alpha = object.alpha * alpha;
             state.setModelviewMatricesToIdentity();
             state.blendMode = object.blendMode == BlendMode.AUTO ?
                 BlendMode.NORMAL : object.blendMode;
