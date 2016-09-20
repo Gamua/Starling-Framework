@@ -51,7 +51,7 @@ package starling.styles
      *  <p>Another advantage of this rendering technique: it supports very efficient rendering of
      *  some popular filter effects, in just one pass, directly on the GPU. You can add an
      *  <em>outline</em> around the shape, let it <em>glow</em> in an arbitrary color, or add
-     *  a <em>shadow</em>.</p>
+     *  a <em>drop shadow</em>.</p>
      *
      *  <p>The type of effect currently used is called the 'mode'.
      *  Meshes with the same mode will be batched together on rendering.</p>
@@ -94,13 +94,13 @@ package starling.styles
 
         /** Creates a new distance field style.
          *
-         *  @param threshold  the value separating the inside from the outside of the shape.
-         *                    Range: 0 - 1.
          *  @param softness   adds a soft transition between the inside and the outside.
          *                    This should typically be 1.0 divided by the spread used when
          *                    creating the distance field texture.
+         *  @param threshold  the value separating the inside from the outside of the shape.
+         *                    Range: 0 - 1.
          */
-        public function DistanceFieldStyle(threshold:Number=0.5, softness:Number=0.125)
+        public function DistanceFieldStyle(softness:Number=0.125, threshold:Number=0.5)
         {
             _mode = MODE_BASIC;
             _threshold = threshold;
@@ -318,8 +318,14 @@ package starling.styles
 
         // properties
 
-        /** The current render mode, as determined by the 'setup...'-methods. @default basic */
+        /** The current render mode. It's recommended to use one of the 'setup...'-methods to
+         *  change the mode, as those provide useful standard settings, as well. @default basic */
         public function get mode():String { return _mode; }
+        public function set mode(value:String)
+        {
+            _mode = value;
+            setRequiresRedraw();
+        }
 
         /** The threshold that will separate the inside from the outside of the shape. On the
          *  distance field texture, '0' means completely outside, '1' completely inside; the
