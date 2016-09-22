@@ -16,6 +16,7 @@ package starling.text
     {
         private var _wordWrap:Boolean;
         private var _autoScale:Boolean;
+        private var _autoSize:String;
         private var _isHtmlText:Boolean;
         private var _textureScale:Number;
         private var _textureFormat:String;
@@ -25,6 +26,7 @@ package starling.text
         {
             _wordWrap = wordWrap;
             _autoScale = autoScale;
+            _autoSize = TextFieldAutoSize.NONE;
             _textureScale = Starling.contentScaleFactor;
             _textureFormat = Context3DTextureFormat.BGR_PACKED;
             _isHtmlText = false;
@@ -35,6 +37,7 @@ package starling.text
         {
             _wordWrap = options._wordWrap;
             _autoScale = options._autoScale;
+            _autoSize = options._autoSize;
             _isHtmlText = options._isHtmlText;
             _textureScale = options._textureScale;
             _textureFormat = options._textureFormat;
@@ -52,6 +55,13 @@ package starling.text
          *  the TextField otherwise. @default true */
         public function get wordWrap():Boolean { return _wordWrap; }
         public function set wordWrap(value:Boolean):void { _wordWrap = value; }
+
+        /** Specifies the type of auto-sizing set on the TextField. Custom text compositors may
+         *  take this into account, though the basic implementation (done by the TextField itself)
+         *  is often sufficient: it passes a very big size to the <code>fillMeshBatch</code>
+         *  method and then trims the result to the actually used area. @default none */
+        public function get autoSize():String { return _autoSize; }
+        public function set autoSize(value:String):void { _autoSize = value; }
 
         /** Indicates whether the font size is automatically reduced if the complete text does
          *  not fit into the TextField. @default false */

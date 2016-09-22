@@ -93,7 +93,6 @@ package starling.text
         private var _text:String;
         private var _options:TextOptions;
         private var _format:TextFormat;
-        private var _autoSize:String;
         private var _textBounds:Rectangle;
         private var _hitArea:Rectangle;
         private var _compositor:ITextCompositor;
@@ -112,7 +111,6 @@ package starling.text
         public function TextField(width:int, height:int, text:String="", format:TextFormat=null)
         {
             _text = text ? text : "";
-            _autoSize = TextFieldAutoSize.NONE;
             _hitArea = new Rectangle(0, 0, width, height);
             _requiresRecomposition = true;
             _compositor = sDefaultCompositor;
@@ -197,7 +195,7 @@ package starling.text
             _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
 
             if (_style) _meshBatch.style = _style;
-            if (_autoSize != TextFieldAutoSize.NONE)
+            if (_options.autoSize != TextFieldAutoSize.NONE)
             {
                 _textBounds = _meshBatch.getBounds(_meshBatch, _textBounds);
 
@@ -251,17 +249,17 @@ package starling.text
         }
 
         // properties
-        
+
         private function get isHorizontalAutoSize():Boolean
         {
-            return _autoSize == TextFieldAutoSize.HORIZONTAL ||
-                   _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+            return _options.autoSize == TextFieldAutoSize.HORIZONTAL ||
+                   _options.autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
 
         private function get isVerticalAutoSize():Boolean
         {
-            return _autoSize == TextFieldAutoSize.VERTICAL ||
-                   _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+            return _options.autoSize == TextFieldAutoSize.VERTICAL ||
+                   _options.autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
 
         /** Returns the bounds of the text within the text field. */
@@ -375,12 +373,12 @@ package starling.text
         /** Specifies the type of auto-sizing the TextField will do.
          *  Note that any auto-sizing will implicitly deactivate all auto-scaling.
          *  @default none */
-        public function get autoSize():String { return _autoSize; }
+        public function get autoSize():String { return _options.autoSize; }
         public function set autoSize(value:String):void
         {
-            if (_autoSize != value)
+            if (_options.autoSize != value)
             {
-                _autoSize = value;
+                _options.autoSize = value;
                 setRequiresRecomposition();
             }
         }
