@@ -19,6 +19,7 @@ package tests.animation
     import starling.animation.Juggler;
     import starling.animation.Tween;
     import starling.display.Quad;
+    import starling.display.Sprite;
     import starling.events.Event;
 
     public class JugglerTest
@@ -416,6 +417,28 @@ package tests.animation
             {
                 counter += 1;
             }
+        }
+
+        [Test]
+        public function testTimeScale():void
+        {
+            var juggler:Juggler = new Juggler();
+            var sprite:Sprite = new Sprite();
+            var tween:Tween = new Tween(sprite, 1.0);
+            tween.animate("x", 100);
+
+            juggler.add(tween);
+            juggler.timeScale = 0.5;
+            juggler.advanceTime(1.0);
+
+            assertThat(tween.currentTime, closeTo(0.5, E));
+            assertThat(sprite.x, closeTo(50, E));
+
+            juggler.timeScale = 2.0;
+            juggler.advanceTime(0.25);
+
+            assertThat(tween.currentTime, closeTo(1.0, E));
+            assertThat(sprite.x, closeTo(100, E));
         }
     }
 }

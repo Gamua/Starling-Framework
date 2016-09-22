@@ -51,6 +51,7 @@ package starling.animation
         private var _objects:Vector.<IAnimatable>;
         private var _objectIDs:Dictionary;
         private var _elapsedTime:Number;
+        private var _timeScale:Number;
 
         private static var sCurrentObjectID:uint;
         
@@ -58,6 +59,7 @@ package starling.animation
         public function Juggler()
         {
             _elapsedTime = 0;
+            _timeScale = 1.0;
             _objects = new <IAnimatable>[];
             _objectIDs = new Dictionary(true);
         }
@@ -324,13 +326,14 @@ package starling.animation
         
         /** Advances all objects by a certain time (in seconds). */
         public function advanceTime(time:Number):void
-        {   
+        {
             var numObjects:int = _objects.length;
             var currentIndex:int = 0;
             var i:int;
-            
+
+            time *= _timeScale;
+            if (numObjects == 0 || time == 0) return;
             _elapsedTime += time;
-            if (numObjects == 0) return;
             
             // there is a high probability that the "advanceTime" function modifies the list 
             // of animatables. we must not process new objects right now (they will be processed
@@ -380,6 +383,12 @@ package starling.animation
         
         /** The total life time of the juggler (in seconds). */
         public function get elapsedTime():Number { return _elapsedTime; }
+
+        /** The scale at which the time is passing. This can be used for slow motion or time laps
+         *  effects. Values below '1' will make all animations run slower, values above '1' faster.
+         *  @default 1.0 */
+        public function get timeScale():Number { return _timeScale; }
+        public function set timeScale(value:Number):void { _timeScale = value; }
  
         /** The actual vector that contains all objects that are currently being animated. */
         protected function get objects():Vector.<IAnimatable> { return _objects; }
