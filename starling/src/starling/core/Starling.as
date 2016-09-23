@@ -278,8 +278,9 @@ package starling.core
             _juggler = new Juggler();
             _antiAliasing = 0;
             _supportHighResolutions = false;
-            _frameTimestamp = getTimer() / 1000.0;
             _painter = new Painter(stage3D);
+            _frameTimestamp = getTimer() / 1000.0;
+            _frameID = 1;
             
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
