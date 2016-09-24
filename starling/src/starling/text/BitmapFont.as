@@ -90,7 +90,7 @@ package starling.text
                 texture = MiniBitmapFont.texture;
                 fontXml = MiniBitmapFont.xml;
             }
-            else if (texture != null && fontXml == null)
+            else if (texture == null || fontXml == null)
             {
                 throw new ArgumentError("fontXml cannot be null!");
             }
