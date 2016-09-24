@@ -92,7 +92,7 @@ package starling.text
             }
             else if (texture == null || fontXml == null)
             {
-                throw new ArgumentError("fontXml cannot be null!");
+                throw new ArgumentError("Set both of the 'texture' and 'fontXml' arguments to valid objects or leave both of them null.");
             }
             
             _name = "unknown";
