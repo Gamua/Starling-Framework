@@ -297,7 +297,7 @@ package starling.styles
          *
          *  <p>Beware that the style can only act within the limits of the mesh's vertices.
          *  This means that not all combinations of blur and offset are possible; too high values
-         *  will appear the shadow to be cut off on the sides. Reduce either blur or offset to
+         *  will cause the shadow to be cut off on the sides. Reduce either blur or offset to
          *  compensate.</p>
          */
         public function setupDropShadow(blur:Number=0.2, offsetX:Number=2, offsetY:Number=2,

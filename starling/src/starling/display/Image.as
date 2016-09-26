@@ -33,7 +33,7 @@ package starling.display
      *  the size of the image with the displayed texture.</p>
      *
      *  <p>Furthermore, it adds support for a "Scale9" grid. This splits up the image into
-     *  nine regions, the corners of which will always maintain their original aspect ratio.
+     *  nine regions, the corners of which will always maintain their original size.
      *  The center region stretches in both directions to fill the remaining space; the side
      *  regions will stretch accordingly in either horizontal or vertical direction.</p>
      *
@@ -69,8 +69,8 @@ package starling.display
         /** The current scaling grid that is in effect. If set to null, the image is scaled just
          *  like any other display object; assigning a rectangle will divide the image into a grid
          *  of nine regions, based on the center rectangle. The four corners of this grid will
-         *  always maintain their original aspect ratio; the other regions will stretch accordingly
-         *  (horizontally, vertically, or both) to fill the complete area.
+         *  always maintain their original size; the other regions will stretch (horizontally,
+         *  vertically, or both) to fill the complete area.
          *
          *  <p>Notes:</p>
          *
@@ -78,6 +78,8 @@ package starling.display
          *  <li>Assigning a Scale9 rectangle will change the number of vertices to a maximum of 16
          *  (less if possible) and all vertices will be colored like vertex 0 (the top left vertex).
          *  </li>
+         *  <li>For Scale3-grid behavior, assign a zero size for all but the center row / column.
+         *  This will cause the 'caps' to scale in a way that leaves the aspect ratio intact.</li>
          *  <li>An image can have either a <code>scale9Grid</code> or a <code>tileGrid</code>, but
          *  not both. Assigning one will delete the other.</li>
          *  <li>Changes will only be applied on assignment. To force an update, simply call
