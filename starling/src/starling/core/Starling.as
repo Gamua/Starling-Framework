@@ -335,11 +335,12 @@ package starling.core
             for each (var touchEventType:String in touchEventTypes)
                 _nativeStage.removeEventListener(touchEventType, onTouch, false);
 
+            _touchProcessor.dispose();
+            _painter.dispose();
+            _stage.dispose();
+
             var index:int =  sAll.indexOf(this);
             if (index != -1) sAll.removeAt(index);
-
-            if (_touchProcessor) _touchProcessor.dispose();
-            if (_stage) _stage.dispose();
             if (sCurrent == this) sCurrent = null;
         }
         
@@ -965,7 +966,8 @@ package starling.core
         public function get touchProcessor():TouchProcessor { return _touchProcessor; }
         public function set touchProcessor(value:TouchProcessor):void
         {
-            if (value != _touchProcessor)
+            if (value == null) throw new ArgumentError("TouchProcessor must not be null");
+            else if (value != _touchProcessor)
             {
                 _touchProcessor.dispose();
                 _touchProcessor = value;
