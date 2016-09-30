@@ -31,6 +31,7 @@ version 2.1 - 2016-09-29
 - updated API documentation about anti-aliasing of RenderTextures
 - updated all modules to use AIR 22
 - updated documentation of 'DisplayObject'
+- updated constructor of 'BitmapFont' class for better consistency
 - fixed problems caused by sharing 'Painter' across Starling instances (no longer sharing it)
 - fixed black screen on app-reactivation with 'skipUnchangedFrames' enabled on Android
 - fixed that 'CompositeFilter' clamped layer's alpha value
@@ -56,6 +57,7 @@ version 2.1 - 2016-09-29
 - fixed 'jiggling' of DropShadow- and GlowFilter
 - fixed incorrect quad bounds when using skewing
 - fixed that object alpha was not considered in 'RenderTexture.draw'
+- fixed that Painter was not disposed correctly
 
 version 2.0.1 - 2016-04-28
 --------------------------
