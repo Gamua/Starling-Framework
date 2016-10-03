@@ -61,7 +61,7 @@ package starling.utils
         /** Retrieves a Vector3D instance from the pool. */
         public static function getPoint3D(x:Number = 0, y:Number = 0, z:Number = 0):Vector3D
         {
-            if (sPoints.length == 0) return new Vector3D(x, y, z);
+            if (sPoints3D.length == 0) return new Vector3D(x, y, z);
             else
             {
                 var point:Vector3D = sPoints3D.pop();
