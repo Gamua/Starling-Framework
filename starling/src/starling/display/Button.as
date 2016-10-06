@@ -311,7 +311,8 @@ package starling.display
             _textField.style = value;
         }
 
-        /** The style that is used to render the Button. */
+        /** The style that is used to render the button.
+         *  Note that a style instance may only be used on one mesh at a time. */
         public function get style():MeshStyle { return _body.style; }
         public function set style(value:MeshStyle):void { _body.style = value; }
 

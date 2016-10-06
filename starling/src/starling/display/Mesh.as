@@ -231,10 +231,10 @@ package starling.display
         /** The style that is used to render the mesh. Styles (which are always subclasses of
          *  <code>MeshStyle</code>) provide a means to completely modify the way a mesh is rendered.
          *  For example, they may add support for color transformations or normal mapping.
-         *
-         *  <p>The setter will simply forward the assignee to <code>setStyle(value)</code>.</p>
+         *  Beware: a style instance may only be used on one mesh at a time.
          *
          *  @default MeshStyle
+         *  @see #setStyle()
          */
         public function get style():MeshStyle { return _style; }
         public function set style(value:MeshStyle):void

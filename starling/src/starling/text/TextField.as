@@ -429,7 +429,8 @@ package starling.text
         public function get pixelSnapping():Boolean { return _meshBatch.pixelSnapping; }
         public function set pixelSnapping(value:Boolean):void { _meshBatch.pixelSnapping = value }
 
-        /** The style that is used to render the text's mesh. */
+        /** The style that is used to render the text's mesh.
+         *  Note that a style instance may only be used on one mesh at a time. */
         public function get style():MeshStyle { return _meshBatch.style; }
         public function set style(value:MeshStyle):void
         {
