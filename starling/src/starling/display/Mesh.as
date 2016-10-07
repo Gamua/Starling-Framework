@@ -124,11 +124,13 @@ package starling.display
             if (_style)
             {
                 if (mergeWithPredecessor) meshStyle.copyFrom(_style);
-                _style.setTarget(null);
+                _style.setTarget();
             }
 
             _style = meshStyle;
             _style.setTarget(this, _vertexData, _indexData);
+
+            setRequiresRedraw();
         }
 
         private function createDefaultMeshStyle():MeshStyle

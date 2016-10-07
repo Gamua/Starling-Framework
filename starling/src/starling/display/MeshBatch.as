@@ -250,6 +250,8 @@ package starling.display
 
             _effect = style.createEffect();
             _effect.onRestore = setVertexAndIndexDataChanged;
+
+            setVertexAndIndexDataChanged(); // we've got a new set of buffers!
         }
 
         /** The total number of vertices in the mesh. If you change this to a smaller value,
