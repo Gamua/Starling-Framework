@@ -20,6 +20,7 @@ package starling.filters
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.utils.MathUtil;
+    import starling.utils.Pool;
 
     use namespace starling_internal;
 
@@ -45,6 +46,7 @@ package starling.filters
         private var _renderTarget:Texture;
         private var _targetBounds:Rectangle;
         private var _target:DisplayObject;
+        private var _clipRect:Rectangle;
 
         // helpers
         private var sRegion:Rectangle = new Rectangle();
@@ -66,6 +68,9 @@ package starling.filters
         /** Purges the pool. */
         public function dispose():void
         {
+            Pool.putRectangle(_clipRect);
+            _clipRect = null;
+
             purge();
         }
 
@@ -184,9 +189,22 @@ package starling.filters
 
         /** The render target that was active when the filter started processing. */
         public function get renderTarget():Texture { return _renderTarget; }
-        public function set renderTarget(value:Texture):void
+        public function set renderTarget(value:Texture):void { _renderTarget = value; }
+
+        /** The clipping rectangle that was active when the filter started processing. */
+        public function get clipRect():Rectangle { return _clipRect; }
+        public function set clipRect(value:Rectangle):void
         {
-            _renderTarget = value;
+            if (value)
+            {
+                if (_clipRect) _clipRect.copyFrom(value);
+                else _clipRect = Pool.getRectangle(value.x, value.y, value.width, value.height);
+            }
+            else if (_clipRect)
+            {
+                Pool.putRectangle(_clipRect);
+                _clipRect = null;
+            }
         }
 
         /** @inheritDoc */

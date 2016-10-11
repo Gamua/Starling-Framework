@@ -227,6 +227,7 @@ package starling.filters
             _helper.textureScale = Starling.contentScaleFactor * _resolution;
             _helper.projectionMatrix3D = painter.state.projectionMatrix3D;
             _helper.renderTarget = painter.state.renderTarget;
+            _helper.clipRect = painter.state.clipRect;
             _helper.targetBounds = bounds;
             _helper.target = _target;
             _helper.start(numPasses, drawLastPassToBackBuffer);
@@ -242,6 +243,7 @@ package starling.filters
             painter.cacheEnabled = false; // -> what follows should not be cached
             painter.pushState();
             painter.state.alpha = 1.0;
+            painter.state.clipRect = null;
             painter.state.renderTarget = input;
             painter.state.setProjectionMatrix(bounds.x, bounds.y,
                 input.root.width, input.root.height,
@@ -251,7 +253,6 @@ package starling.filters
 
             painter.finishMeshBatch();
             painter.state.setModelviewMatricesToIdentity();
-            painter.state.clipRect = null;
 
             output = process(painter, _helper, input); // -> feed 'input' to actual filter code
 
@@ -318,6 +319,10 @@ package starling.filters
                 renderTarget = (helper as FilterHelper).renderTarget;
                 projectionMatrix = (helper as FilterHelper).projectionMatrix3D;
                 effect.textureSmoothing = _textureSmoothing;
+
+                // restore clipRect (projection matrix influences clipRect!)
+                painter.state.clipRect = (helper as FilterHelper).clipRect;
+                painter.state.projectionMatrix3D.copyFrom(projectionMatrix);
             }
 
             painter.state.renderTarget = renderTarget;
