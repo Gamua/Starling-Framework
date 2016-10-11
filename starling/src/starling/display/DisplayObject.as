@@ -1051,12 +1051,16 @@ package starling.display
          *  <p>For rectangular masks, you can use simple quads; for other forms (like circles
          *  or arbitrary shapes) it is recommended to use a 'Canvas' instance.</p>
          *
-         *  <p>Beware that a mask will typically cause at least two additional draw calls:
-         *  one to draw the mask to the stencil buffer and one to erase it. However, if the
+         *  <p><strong>Note:</strong> a mask will typically cause at least two additional draw
+         *  calls: one to draw the mask to the stencil buffer and one to erase it. However, if the
          *  mask object is an instance of <code>starling.display.Quad</code> and is aligned
          *  parallel to the stage axes, rendering will be optimized: instead of using the
          *  stencil buffer, the object will be clipped using the scissor rectangle. That's
          *  faster and reduces the number of draw calls, so make use of this when possible.</p>
+         *
+         *  <p><strong>Note:</strong> AIR apps require the <code>depthAndStencil</code> node
+         *  in the application descriptor XMLs to be enabled! Otherwise, stencil masking won't
+         *  work.</p>
          *
          *  @see Canvas
          *  @default null
