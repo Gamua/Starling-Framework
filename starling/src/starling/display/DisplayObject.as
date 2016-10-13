@@ -34,6 +34,7 @@ package starling.display
     import starling.utils.Align;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
+    import starling.utils.SystemUtil;
 
     use namespace starling_internal;
 
@@ -163,6 +164,7 @@ package starling.display
         private static var sHelperMatrixAlt:Matrix  = new Matrix();
         private static var sHelperMatrix3D:Matrix3D  = new Matrix3D();
         private static var sHelperMatrixAlt3D:Matrix3D  = new Matrix3D();
+        private static var sMaskWarningShown:Boolean = false;
         
         /** @private */ 
         public function DisplayObject()
@@ -1070,6 +1072,15 @@ package starling.display
         {
             if (_mask != value)
             {
+                if (!sMaskWarningShown)
+                {
+                    if (!SystemUtil.supportsDepthAndStencil)
+                        trace("[Starling] Full mask support requires 'depthAndStencil'" +
+                              " to be enabled in the application descriptor.");
+
+                    sMaskWarningShown = true;
+                }
+
                 if (_mask) _mask._maskee = null;
                 if (value)
                 {

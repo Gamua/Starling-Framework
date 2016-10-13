@@ -307,10 +307,6 @@ package starling.core
             }
             else
             {
-                if (!SystemUtil.supportsDepthAndStencil)
-                    trace("[Starling] Mask support requires 'depthAndStencil' to be enabled" +
-                          " in the application descriptor.");
-
                 _painter.requestContext3D(renderMode, profile);
             }
         }
