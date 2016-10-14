@@ -26,9 +26,9 @@ before_script:
     - brew tap caskroom/versions
     - brew cask install flash-player-debugger
     # Set env. variable used by FlexUnit
-    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
+    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player"
     # Set env. variable used by Gradle
-    - export FLASH_PLAYER_EXE="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
+    - export FLASH_PLAYER_EXE="$FLASHPLAYER_DEBUGGER"
     # Adobe AIR SDK
     - mkdir -p air_sdk
     - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/21.0/AIRSDK_Compiler.tbz2
