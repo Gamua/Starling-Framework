@@ -26,7 +26,7 @@ before_script:
     - brew tap caskroom/versions
     - brew cask install flash-player-debugger
     # Set env. variable used by FlexUnit
-    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player"
+    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
     # Set env. variable used by Gradle
     - export FLASH_PLAYER_EXE="$FLASHPLAYER_DEBUGGER"
     # Adobe AIR SDK
