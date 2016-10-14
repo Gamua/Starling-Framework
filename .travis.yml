@@ -23,6 +23,7 @@ before_script:
     - brew install ant gradle >brew-install.log
     # Adobe Flash Player for CLI
     - brew install caskroom/cask/brew-cask
+    - brew tap caskroom/versions
     - brew cask install flash-player-debugger
     # Set env. variable used by FlexUnit
     - export FLASHPLAYER_DEBUGGER="$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
