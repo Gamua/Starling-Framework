@@ -96,6 +96,7 @@ package starling.rendering
         private var _batchProcessorSpec:BatchProcessor; // special  processor (no cache)
 
         private var _actualRenderTarget:TextureBase;
+        private var _actualRenderTargetOptions:uint;
         private var _actualCulling:String;
         private var _actualBlendMode:String;
 
@@ -688,8 +689,9 @@ package starling.rendering
         private function applyRenderTarget():void
         {
             var target:TextureBase = _state.renderTargetBase;
+            var options:uint = _state.renderTargetOptions;
 
-            if (target != _actualRenderTarget)
+            if (target != _actualRenderTarget || options != _actualRenderTargetOptions)
             {
                 if (target)
                 {
@@ -701,6 +703,7 @@ package starling.rendering
                     _context.setRenderToBackBuffer();
 
                 _context.setStencilReferenceValue(stencilReferenceValue);
+                _actualRenderTargetOptions = options;
                 _actualRenderTarget = target;
             }
         }

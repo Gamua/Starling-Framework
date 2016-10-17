@@ -265,7 +265,7 @@ package starling.rendering
          *  @param target     Either a texture or <code>null</code> to render into the back buffer.
          *  @param enableDepthAndStencil  Indicates if depth and stencil testing will be available.
          *                    This parameter affects only texture targets.
-         *  @param antiAlias  The anti-aliasing quality (range: <code>0 - 16</code>).
+         *  @param antiAlias  The anti-aliasing quality (range: <code>0 - 4</code>).
          *                    This parameter affects only texture targets. Note that at the time
          *                    of this writing, AIR supports anti-aliasing only on Desktop.
          */
@@ -274,7 +274,7 @@ package starling.rendering
         {
             var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
             var newTarget:TextureBase = target ? target.base : null;
-            var newOptions:uint = MathUtil.min(antiAlias, 16) | uint(enableDepthAndStencil) << 4;
+            var newOptions:uint = MathUtil.min(antiAlias, 0xf) | uint(enableDepthAndStencil) << 4;
             var optionsChange:Boolean = newOptions != (_miscOptions & 0xff);
 
             if (currentTarget != newTarget || optionsChange)
@@ -321,6 +321,12 @@ package starling.rendering
         internal function get renderTargetBase():TextureBase
         {
             return _renderTarget ? _renderTarget.base : null;
+        }
+
+        /** @private */
+        internal function get renderTargetOptions():uint
+        {
+            return _miscOptions & 0xff;
         }
 
         /** Sets the triangle culling mode. Allows to exclude triangles from rendering based on

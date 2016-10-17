@@ -103,6 +103,7 @@ package starling.filters
         private var _padding:Padding;
         private var _helper:FilterHelper;
         private var _resolution:Number;
+        private var _antiAliasing:int;
         private var _textureFormat:String;
         private var _textureSmoothing:String;
         private var _alwaysDrawToBackBuffer:Boolean;
@@ -244,7 +245,7 @@ package starling.filters
             painter.pushState();
             painter.state.alpha = 1.0;
             painter.state.clipRect = null;
-            painter.state.renderTarget = input;
+            painter.state.setRenderTarget(input, true, _antiAliasing);
             painter.state.setProjectionMatrix(bounds.x, bounds.y,
                 input.root.width, input.root.height,
                 stage.stageWidth, stage.stageHeight, stage.cameraPosition);
@@ -485,6 +486,18 @@ package starling.filters
             {
                 if (value > 0) _resolution = value;
                 else throw new ArgumentError("resolution must be > 0");
+                setRequiresRedraw();
+            }
+        }
+
+        /** The anti-aliasing level. This is only used for rendering the target object
+         *  into a texture, not for the filter passes. 0 - none, 4 - maximum. @default 0 */
+        public function get antiAliasing():int { return _antiAliasing; }
+        public function set antiAliasing(value:int):void
+        {
+            if (value != _antiAliasing)
+            {
+                _antiAliasing = value;
                 setRequiresRedraw();
             }
         }
