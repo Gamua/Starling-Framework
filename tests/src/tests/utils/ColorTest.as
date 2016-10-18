@@ -15,7 +15,7 @@ package tests.utils
     import starling.utils.Color;
 
     public class ColorTest
-    {		
+    {
         [Test]
         public function testGetElement():void
         {
@@ -24,14 +24,24 @@ package tests.utils
             assertEquals(0xbb, Color.getGreen(color));
             assertEquals(0xcc, Color.getBlue(color));
         }
-        
+
+        [Test]
+        public function testSetElement():void
+        {
+            var color:uint = 0xaabbccdd;
+            assertEquals(0xffbbccdd, Color.setAlpha(color, 0xff));
+            assertEquals(0xaaffccdd, Color.setRed(color, 0xff));
+            assertEquals(0xaabbffdd, Color.setGreen(color, 0xff));
+            assertEquals(0xaabbccff, Color.setBlue(color, 0xff));
+        }
+
         [Test]
         public function testRgb():void
         {
             var color:uint = Color.rgb(0xaa, 0xbb, 0xcc);
             assertEquals(0xaabbcc, color);
         }
-        
+
         [Test]
         public function testArgb():void
         {

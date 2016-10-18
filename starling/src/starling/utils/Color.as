@@ -32,26 +32,50 @@ package starling.utils
         public static const NAVY:uint    = 0x000080;
         public static const FUCHSIA:uint = 0xff00ff;
         public static const PURPLE:uint  = 0x800080;
-        
+
         /** Returns the alpha part of an ARGB color (0 - 255). */
         public static function getAlpha(color:uint):int { return (color >> 24) & 0xff; }
-        
+
         /** Returns the red part of an (A)RGB color (0 - 255). */
         public static function getRed(color:uint):int   { return (color >> 16) & 0xff; }
-        
+
         /** Returns the green part of an (A)RGB color (0 - 255). */
         public static function getGreen(color:uint):int { return (color >>  8) & 0xff; }
-        
+
         /** Returns the blue part of an (A)RGB color (0 - 255). */
         public static function getBlue(color:uint):int  { return  color        & 0xff; }
-        
+
+        /** Sets the alpha part of an ARGB color (0 - 255). */
+        public static function setAlpha(color:uint, alpha:int):uint
+        {
+            return (color & 0x00ffffff) | (alpha & 0xff) << 24;
+        }
+
+        /** Sets the red part of an (A)RGB color (0 - 255). */
+        public static function setRed(color:uint, red:int):uint
+        {
+            return (color & 0xff00ffff) | (red & 0xff) << 16;
+        }
+
+        /** Sets the green part of an (A)RGB color (0 - 255). */
+        public static function setGreen(color:uint, green:int):uint
+        {
+            return (color & 0xffff00ff) | (green & 0xff) << 8;
+        }
+
+        /** Sets the blue part of an (A)RGB color (0 - 255). */
+        public static function setBlue(color:uint, blue:int):uint
+        {
+            return (color & 0xffffff00) | (blue & 0xff);
+        }
+
         /** Creates an RGB color, stored in an unsigned integer. Channels are expected
          *  in the range 0 - 255. */
         public static function rgb(red:int, green:int, blue:int):uint
         {
             return (red << 16) | (green << 8) | blue;
         }
-        
+
         /** Creates an ARGB color, stored in an unsigned integer. Channels are expected
          *  in the range 0 - 255. */
         public static function argb(alpha:int, red:int, green:int, blue:int):uint
@@ -110,7 +134,7 @@ package starling.utils
 
             return (newA << 24) | (newR << 16) | (newG << 8) | newB;
         }
-        
+
         /** @private */
         public function Color() { throw new AbstractClassError(); }
     }
