@@ -1,9 +1,17 @@
-/**
- * Created by redge on 16.12.15.
- */
+// =================================================================================================
+//
+//	Starling Framework
+//	Copyright Gamua GmbH. All Rights Reserved.
+//
+//	This program is free software. You can redistribute and/or modify it
+//	in accordance with the terms of the accompanying license agreement.
+//
+// =================================================================================================
+
 package starling.text
 {
     import flash.display3D.Context3DTextureFormat;
+    import flash.text.StyleSheet;
 
     import starling.core.Starling;
 
@@ -20,6 +28,7 @@ package starling.text
         private var _isHtmlText:Boolean;
         private var _textureScale:Number;
         private var _textureFormat:String;
+        private var _styleSheet:StyleSheet;
 
         /** Creates a new TextOptions instance with the given properties. */
         public function TextOptions(wordWrap:Boolean=true, autoScale:Boolean=false)
@@ -41,6 +50,7 @@ package starling.text
             _isHtmlText = options._isHtmlText;
             _textureScale = options._textureScale;
             _textureFormat = options._textureFormat;
+            _styleSheet = options._styleSheet;
         }
 
         /** Creates a clone of this instance. */
@@ -73,6 +83,10 @@ package starling.text
          *  Beware: Only supported for TrueType fonts. @default false */
         public function get isHtmlText():Boolean { return _isHtmlText; }
         public function set isHtmlText(value:Boolean):void { _isHtmlText = value; }
+
+        /** An optional style sheet to be used for HTML text. @default null */
+        public function get styleSheet():StyleSheet { return _styleSheet; }
+        public function set styleSheet(value:StyleSheet):void { _styleSheet = value; }
 
         /** The scale factor of any textures that are created during text composition.
          *  @default Starling.contentScaleFactor */
