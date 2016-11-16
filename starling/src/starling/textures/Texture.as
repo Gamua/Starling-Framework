@@ -170,7 +170,8 @@ package starling.textures
             {
                 return fromBitmapData(data as BitmapData,
                     options.mipMapping, options.optimizeForRenderToTexture,
-                    options.scale, options.format, options.forcePotTexture);
+                    options.scale, options.format, options.forcePotTexture,
+                    options.onReady);
             }
             else if (data is ByteArray)
             {
@@ -268,7 +269,7 @@ package starling.textures
 
         /** Creates a texture object from a bitmap.
          *  Beware: you must not dispose the bitmap's data if Starling should handle a lost device
-         *  context alternatively, you can handle restoration yourself via "texture.root.onRestore".
+         *  context (except if you handle restoration yourself via "texture.root.onRestore").
          *
          *  @param bitmap   the texture will be created with the bitmap data of this object.
          *  @param generateMipMaps  indicates if mipMaps will be created.
@@ -282,19 +283,26 @@ package starling.textures
          *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
          *                  as the power-of-two based "Texture" class instead of the more memory
          *                  efficient "RectangleTexture".
+         *  @param async    If you pass a callback function, the texture will be uploaded
+         *                  asynchronously, which allows smooth rendering even during the
+         *                  loading process. However, don't use the texture before the callback
+         *                  has been executed. This is the expected function definition:
+         *                  <code>function(texture:Texture, error:ErrorEvent):void;</code>
+         *                  The second parameter is optional and typically <code>null</code>.
          */
         public static function fromBitmap(bitmap:Bitmap, generateMipMaps:Boolean=false,
                                           optimizeForRenderToTexture:Boolean=false,
                                           scale:Number=1, format:String="bgra",
-                                          forcePotTexture:Boolean=false):Texture
+                                          forcePotTexture:Boolean=false,
+                                          async:Function=null):Texture
         {
             return fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture,
-                                  scale, format, forcePotTexture);
+                                  scale, format, forcePotTexture, async);
         }
 
         /** Creates a texture object from bitmap data.
-         *  Beware: you must not dispose 'data' if Starling should handle a lost device context;
-         *  alternatively, you can handle restoration yourself via "texture.root.onRestore".
+         *  Beware: you must not dispose 'data' if Starling should handle a lost device context
+         *  (except if you handle restoration yourself via "texture.root.onRestore").
          *
          *  @param data     the bitmap data to upload to the texture.
          *  @param generateMipMaps  indicates if mipMaps will be created.
@@ -308,17 +316,24 @@ package starling.textures
          *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
          *                  as the power-of-two based "Texture" class instead of the more memory
          *                  efficient "RectangleTexture".
+         *  @param async    If you pass a callback function, the texture will be uploaded
+         *                  asynchronously, which allows smooth rendering even during the
+         *                  loading process. However, don't use the texture before the callback
+         *                  has been executed. This is the expected function definition:
+         *                  <code>function(texture:Texture, error:ErrorEvent):void;</code>
+         *                  The second parameter is optional and typically <code>null</code>.
          */
         public static function fromBitmapData(data:BitmapData, generateMipMaps:Boolean=false,
                                               optimizeForRenderToTexture:Boolean=false,
                                               scale:Number=1, format:String="bgra",
-                                              forcePotTexture:Boolean=false):Texture
+                                              forcePotTexture:Boolean=false,
+                                              async:Function=null):Texture
         {
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true,
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
                                                 format, forcePotTexture);
 
-            texture.root.uploadBitmapData(data);
+            texture.root.uploadBitmapData(data, async);
             texture.root.onRestore = function():void
             {
                 texture.root.uploadBitmapData(data);
