@@ -797,7 +797,11 @@ package starling.core
         
         /** The viewport into which Starling contents will be rendered. */
         public function get viewPort():Rectangle { return _viewPort; }
-        public function set viewPort(value:Rectangle):void { _viewPort = value.clone(); }
+        public function set viewPort(value:Rectangle):void
+        {
+            _viewPort = value.clone();
+            _stage.setRequiresRedraw();
+        }
         
         /** The ratio between viewPort width and stage width. Useful for choosing a different
          *  set of textures depending on the display resolution. */
