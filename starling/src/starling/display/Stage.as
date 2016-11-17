@@ -281,12 +281,20 @@ package starling.display
         /** The width of the stage coordinate system. Change it to scale its contents relative
          *  to the <code>viewPort</code> property of the Starling object. */ 
         public function get stageWidth():int { return _width; }
-        public function set stageWidth(value:int):void { _width = value; }
+        public function set stageWidth(value:int):void
+        {
+            _width = value;
+            setRequiresRedraw();
+        }
         
         /** The height of the stage coordinate system. Change it to scale its contents relative
          *  to the <code>viewPort</code> property of the Starling object. */
         public function get stageHeight():int { return _height; }
-        public function set stageHeight(value:int):void { _height = value; }
+        public function set stageHeight(value:int):void
+        {
+            _height = value;
+            setRequiresRedraw();
+        }
 
         /** The Starling instance this stage belongs to. */
         public function get starling():Starling
