@@ -29,6 +29,7 @@ package starling.utils
         private static var sPlatform:String;
         private static var sDesktop:Boolean;
         private static var sVersion:String;
+        private static var sApplicationVersionNumber:String;
         private static var sAIR:Boolean;
         private static var sEmbeddedFonts:Array = null;
         private static var sSupportsDepthAndStencil:Boolean = true;
@@ -60,6 +61,7 @@ package starling.utils
                 var ds:String = appDescriptor.ns::initialWindow.ns::depthAndStencil.toString().toLowerCase();
 
                 sSupportsDepthAndStencil = (ds == "true");
+                sApplicationVersionNumber = appDescriptor.ns::versionNumber;
                 sAIR = true;
             }
             catch (e:Error)
@@ -140,6 +142,13 @@ package starling.utils
         {
             initialize();
             return sVersion;
+        }
+        
+        /** Returns the application version number setup in the <em>*-app.xml</em>. */
+        public static function get applicationVersionNumber():String
+        {
+            initialize();
+            return sApplicationVersionNumber;
         }
 
         /** Returns the value of the 'initialWindow.depthAndStencil' node of the application
