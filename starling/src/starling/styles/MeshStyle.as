@@ -86,8 +86,8 @@ package starling.styles
      *  Directly before rendering begins, Starling will then call <code>updateEffect</code>
      *  to set it up.</p>
      *
-     *  @see MeshEffect
-     *  @see VertexDataFormat
+     *  @see starling.rendering.MeshEffect
+     *  @see starling.rendering.VertexDataFormat
      *  @see starling.display.Mesh
      */
     public class MeshStyle extends EventDispatcher
