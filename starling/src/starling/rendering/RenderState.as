@@ -110,10 +110,10 @@ package starling.rendering
                 var cullingChanges:Boolean = (_miscOptions & 0xf00) != (renderState._miscOptions & 0xf00);
                 var clipRectChanges:Boolean = _clipRect || renderState._clipRect ?
                     !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
-                var depthWriteChanges:Boolean = (_miscOptions & 0xf000) != (renderState._miscOptions & 0xf000);
+                var depthMaskChanges:Boolean = (_miscOptions & 0xf000) != (renderState._miscOptions & 0xf000);
                 var depthTestChanges:Boolean = (_miscOptions & 0xf0000) != (renderState._miscOptions & 0xf0000);
                 if (_blendMode != renderState._blendMode || currentTarget != nextTarget ||
-                    clipRectChanges || cullingChanges || depthWriteChanges || depthTestChanges)
+                    clipRectChanges || cullingChanges || depthMaskChanges || depthTestChanges)
                 {
                     _onDrawRequired();
                 }
@@ -145,7 +145,7 @@ package starling.rendering
             this.alpha = 1.0;
             this.blendMode = BlendMode.NORMAL;
             this.culling = Context3DTriangleFace.NONE;
-            this.depthWrite = false;
+            this.depthMask = false;
             this.depthTest = Context3DCompareMode.ALWAYS;
             this.modelviewMatrix3D = null;
             this.renderTarget = null;
@@ -365,14 +365,14 @@ package starling.rendering
         /** Enables or disables depth buffer writes.
          *  @default false
          */
-        public function get depthWrite():Boolean
+        public function get depthMask():Boolean
         {
             return (_miscOptions & 0x0000f000) != 0;
         }
 
-        public function set depthWrite(value:Boolean):void
+        public function set depthMask(value:Boolean):void
         {
-            if (depthWrite != value)
+            if (depthMask != value)
             {
                 if (_onDrawRequired != null) { _onDrawRequired(); }
                 _miscOptions = (_miscOptions & 0xffff0fff) | (uint(value) << 12);

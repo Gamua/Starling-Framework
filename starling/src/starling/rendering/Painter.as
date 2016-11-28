@@ -98,7 +98,7 @@ package starling.rendering
         private var _actualRenderTargetOptions:uint;
         private var _actualCulling:String;
         private var _actualBlendMode:String;
-        private var _actualDepthWrite:Boolean;
+        private var _actualDepthMask:Boolean;
         private var _actualDepthTest:String;
 
         private var _backBufferWidth:Number;
@@ -194,7 +194,7 @@ package starling.rendering
 
             _actualBlendMode = null;
             _actualCulling = null;
-            _actualDepthWrite = false;
+            _actualDepthMask = false;
             _actualDepthTest = null;
         }
 
@@ -566,7 +566,7 @@ package starling.rendering
             // enforce reset of basic context settings
             _actualBlendMode = null;
             _actualCulling = null;
-            _actualDepthWrite = false;
+            _actualDepthMask = false;
             _actualDepthTest = null;
 
             // reset everything else
@@ -709,12 +709,12 @@ package starling.rendering
 
         private function applyDepthTest():void
         {
-            var depthWrite:Boolean = _state.depthWrite;
+            var depthMask:Boolean = _state.depthMask;
             var depthTest:String = _state.depthTest;
-            if (depthWrite != _actualDepthWrite || depthTest != _actualDepthTest)
+            if (depthMask != _actualDepthMask || depthTest != _actualDepthTest)
             {
-                _context.setDepthTest(depthWrite, depthTest);
-                _actualDepthWrite = depthWrite;
+                _context.setDepthTest(depthMask, depthTest);
+                _actualDepthMask = depthMask;
                 _actualDepthTest = depthTest;
             }
         }
