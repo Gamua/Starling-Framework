@@ -22,7 +22,6 @@ package starling.rendering
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.Dictionary;
-
     import starling.core.starling_internal;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
@@ -99,6 +98,8 @@ package starling.rendering
         private var _actualRenderTargetOptions:uint;
         private var _actualCulling:String;
         private var _actualBlendMode:String;
+        private var _actualDepthWrite:Boolean;
+        private var _actualDepthTest:String;
 
         private var _backBufferWidth:Number;
         private var _backBufferHeight:Number;
@@ -190,10 +191,11 @@ package starling.rendering
         {
             _context = _stage3D.context3D;
             _context.enableErrorChecking = _enableErrorChecking;
-            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
 
             _actualBlendMode = null;
             _actualCulling = null;
+            _actualDepthWrite = false;
+            _actualDepthTest = null;
         }
 
         /** Sets the viewport dimensions and other attributes of the rendering buffer.
@@ -564,7 +566,8 @@ package starling.rendering
             // enforce reset of basic context settings
             _actualBlendMode = null;
             _actualCulling = null;
-            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+            _actualDepthWrite = false;
+            _actualDepthTest = null;
 
             // reset everything else
             stencilReferenceValue = 0;
@@ -662,6 +665,7 @@ package starling.rendering
             applyRenderTarget();
             applyClipRect();
             applyCulling();
+            applyDepthTest();
         }
 
         /** Clears the render context with a certain color and alpha value. Since this also
@@ -700,6 +704,18 @@ package starling.rendering
             {
                 _context.setCulling(culling);
                 _actualCulling = culling;
+            }
+        }
+
+        private function applyDepthTest():void
+        {
+            var depthWrite:Boolean = _state.depthWrite;
+            var depthTest:String = _state.depthTest;
+            if (depthWrite != _actualDepthWrite || depthTest != _actualDepthTest)
+            {
+                _context.setDepthTest(depthWrite, depthTest);
+                _actualDepthWrite = depthWrite;
+                _actualDepthTest = depthTest;
             }
         }
 
