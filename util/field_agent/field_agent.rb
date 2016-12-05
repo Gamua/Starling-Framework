@@ -14,6 +14,10 @@ script_name = File.basename(__FILE__)
 input_file  = nil
 output_file = nil
 
+def windows?
+  (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+end
+
 def log(message)
   puts "# Field agent: #{message}, Sir."
 end
@@ -23,11 +27,23 @@ def fail(message)
   exit 1
 end
 
+# crude workaround so that the call to 'convert' works on Windows, too.
+def system_xp(command)
+  if windows?
+    command.gsub!("'", '"')
+    command.gsub!("%", "%%")
+    command.gsub!("\\(", "(")
+    command.gsub!("\\)", ")")
+  end
+  system command
+end
+
 # prepare the options and their parser
 options = OpenStruct.new
 options.spread = 8
 options.quality = 1
 options.scale = 1
+options.convert_path = windows? ? 'magick' : 'convert'
 
 option_parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} input-file output-file [options]"
@@ -48,6 +64,10 @@ option_parser = OptionParser.new do |opts|
 
   opts.on('-i', '--invert', 'Invert input image. Use when input contents is white.') do
     options.invert = true
+  end
+
+  opts.on('-c', '--convert-path PATH', String, 'Name or path of the ImageMagick "convert" tool') do |path|
+    options.convert_path = path
   end
 
   opts.on_tail('-h', '--help', 'Show this message.') do
@@ -80,7 +100,7 @@ end
 
 spread = options.spread * options.quality / options.scale
 
-command = "convert #{input_file} "
+command = "#{options.convert_path} #{input_file} "
 command << "-negate " if options.invert
 command << "-background white -alpha remove "
 command << "-filter Jinc -resize #{options.quality * 100}\% -threshold 30% " unless options.quality == 1
@@ -88,10 +108,10 @@ command << "\\( +clone -negate -morphology Distance Euclidean:4,'#{spread}!' -le
 command << "-morphology Distance Euclidean:4,'#{spread}!' "
 command << "-compose Plus -composite "
 command << "-resize #{options.scale / options.quality * 100}\% " unless options.scale * options.quality == 1
-command << "-alpha copy -fx '#fff' -channel alpha -negate "
+command << "-negate -alpha copy -channel RGB -fx '#fff' "
 command << "PNG32:#{output_file}"
 
-system command
+system_xp command
 
 if $?.success?
   log "All done"
