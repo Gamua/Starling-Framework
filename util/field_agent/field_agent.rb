@@ -15,7 +15,7 @@ input_file  = nil
 output_file = nil
 
 def windows?
-  (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+  (/mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
 end
 
 def log(message)
@@ -66,7 +66,7 @@ option_parser = OptionParser.new do |opts|
     options.invert = true
   end
 
-  opts.on('-c', '--convert-path PATH', String, 'Name or path of the ImageMagick "convert" tool') do |path|
+  opts.on('-c', '--convert-path PATH', String, 'Name or path of the ImageMagick "convert" tool.') do |path|
     options.convert_path = path
   end
 
