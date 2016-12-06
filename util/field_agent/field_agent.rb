@@ -14,8 +14,8 @@ script_name = File.basename(__FILE__)
 input_file  = nil
 output_file = nil
 
-def windows?
-  (/mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+def windows_prompt?
+  `echo \\(`.strip != "("
 end
 
 def log(message)
@@ -29,7 +29,7 @@ end
 
 # crude workaround so that the call to 'convert' works on Windows, too.
 def system_xp(command)
-  if windows?
+  if windows_prompt?
     command.gsub!("'", '"')
     command.gsub!("%", "%%")
     command.gsub!("\\(", "(")
@@ -43,7 +43,8 @@ options = OpenStruct.new
 options.spread = 8
 options.quality = 1
 options.scale = 1
-options.convert_path = windows? ? 'magick' : 'convert'
+options.auto_size = false
+options.convert_path = windows_prompt? ? 'magick' : 'convert'
 
 option_parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} input-file output-file [options]"
@@ -64,6 +65,10 @@ option_parser = OptionParser.new do |opts|
 
   opts.on('-i', '--invert', 'Invert input image. Use when input contents is white.') do
     options.invert = true
+  end
+
+  opts.on('-a', '--auto-size', 'Extend or trim image to the size required by the DF.') do
+    options.auto_size = true
   end
 
   opts.on('-c', '--convert-path PATH', String, 'Name or path of the ImageMagick "convert" tool.') do |path|
@@ -104,9 +109,11 @@ command = "#{options.convert_path} #{input_file} "
 command << "-negate " if options.invert
 command << "-background white -alpha remove "
 command << "-filter Jinc -resize #{options.quality * 100}\% -threshold 30% " unless options.quality == 1
+command << "-bordercolor white -border #{spread}x#{spread} " if options.auto_size
 command << "\\( +clone -negate -morphology Distance Euclidean:4,'#{spread}!' -level 50%,-50% \\) "
 command << "-morphology Distance Euclidean:4,'#{spread}!' "
 command << "-compose Plus -composite "
+command << "-trim " if options.auto_size
 command << "-resize #{options.scale / options.quality * 100}\% " unless options.scale * options.quality == 1
 command << "-negate -alpha copy -channel RGB -fx '#fff' "
 command << "PNG32:#{output_file}"

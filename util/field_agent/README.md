@@ -9,7 +9,7 @@ This allows them to be scaled to almost any size while staying crisp and sharp.
 This tool is actually a short [Ruby][2] script that calls [ImageMagick][3] to create the distance field.
 So you need both Ruby and ImageMagick installed on your computer.
 
-### MacOS
+### macOS
 
 MacOS already comes with Ruby, so you only need to install ImageMagick.
 For that, my recommendation is to first install [Homebrew][4], a fantastic package manager for macOS.
@@ -17,7 +17,7 @@ Once ready, you can install ImageMagick (like many other tools and libraries) wi
 
     brew install imagemagick
 
-You also optionally make the script executable, which allows you to call it directly (without passing it to Ruby).
+You can also optionally make the script executable, which will allow you to call it directly (without passing it to Ruby).
 
     cd /path/to/starling/util/field_agent
     chmod u+x field_agent.rb
@@ -30,6 +30,8 @@ Once ready, install both Ruby and ImageMagick via the command line (`cmd.exe`).
 
     choco install ruby
     choco install imagemagick
+
+It also works great with [Cygwin][6].
 
 ## Usage
 
@@ -69,10 +71,15 @@ Of course, you can customize that:
 
 Note that the value is given in pixels of the _output_ image.
 
-### Rendering
+### More options
+
+Run the script without any arguments to see a list of all supported options.
+For example, it also supports trimming the texture to the optimal size or inverting its colors.
+
+## Using the Texture in Starling
 
 Inside Starling, load the distance field texture as usual, then assign it to an _Image_ or any other kind of _Mesh_.
-To switch to distance field rendering, simply assign the appropriate [style][6].
+To switch to distance field rendering, simply assign the appropriate [style][7].
 
     var image:Image = new Image(distanceFieldTexture);
     image.style = new DistanceFieldStyle();
@@ -84,4 +91,5 @@ That's it!
 [3]: http://www.imagemagick.org
 [4]: http://brew.sh
 [5]: https://chocolatey.org
-[6]: http://doc.starling-framework.org/current/starling/styles/DistanceFieldStyle.html
+[6]: https://cygwin.com
+[7]: http://doc.starling-framework.org/current/starling/styles/DistanceFieldStyle.html
