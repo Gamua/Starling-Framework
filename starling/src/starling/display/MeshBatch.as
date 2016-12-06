@@ -187,9 +187,15 @@ package starling.display
             var meshStyleType:Class = meshStyle.type;
 
             if (_style.type != meshStyleType)
-                setStyle(new meshStyleType() as MeshStyle, false);
-
-            _style.copyFrom(meshStyle);
+            {
+                var newStyle:MeshStyle = new meshStyleType() as MeshStyle;
+                newStyle.copyFrom(meshStyle);
+                setStyle(newStyle, false);
+            }
+            else
+            {
+                _style.copyFrom(meshStyle);
+            }
         }
 
         /** Indicates if the given mesh instance fits to the current state of the batch.
