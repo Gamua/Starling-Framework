@@ -14,6 +14,7 @@ package starling.text
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.text.StyleSheet;
     import flash.utils.Dictionary;
 
     import starling.core.Starling;
@@ -423,13 +424,23 @@ package starling.text
             }
         }
 
+        /** An optional style sheet to be used for HTML text. For more information on style
+         *  sheets, please refer to the StyleSheet class in the ActionScript 3 API reference.
+         *  @default null */
+        public function get styleSheet():StyleSheet { return _options.styleSheet; }
+        public function set styleSheet(value:StyleSheet):void
+        {
+            _options.styleSheet = value;
+            setRequiresRecomposition();
+        }
+
         /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
          *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
          *  @default true */
         public function get pixelSnapping():Boolean { return _meshBatch.pixelSnapping; }
         public function set pixelSnapping(value:Boolean):void { _meshBatch.pixelSnapping = value }
 
-        /** The style that is used to render the text's mesh.
+        /** The mesh style that is used to render the text.
          *  Note that a style instance may only be used on one mesh at a time. */
         public function get style():MeshStyle { return _meshBatch.style; }
         public function set style(value:MeshStyle):void

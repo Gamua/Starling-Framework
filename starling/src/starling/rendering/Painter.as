@@ -334,6 +334,23 @@ package starling.rendering
             if (token) _batchProcessor.fillToken(token);
         }
 
+        /** Restores the render state that was last pushed to the stack, but does NOT remove
+         *  it from the stack. */
+        public function restoreState():void
+        {
+            if (_stateStackPos < 0)
+                throw new IllegalOperationError("Cannot restore from empty state stack");
+
+            _state.copyFrom(_stateStack[_stateStackPos]); // -> might cause 'finishMeshBatch'
+        }
+
+        /** Updates all properties of the given token so that it describes the current position
+         *  within the render cache. */
+        public function fillToken(token:BatchToken):void
+        {
+            if (token) _batchProcessor.fillToken(token);
+        }
+
         // masks
 
         /** Draws a display object into the stencil buffer, incrementing the buffer on each

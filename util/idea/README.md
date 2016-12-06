@@ -2,9 +2,9 @@
 
 ## copy_resources.rb
 
-IntelliJ IDEA allows you specify which resources to add to your application package. This is done in the "Dependencies" tab of the module's build configuration ("Files and folders to package").
+IntelliJ IDEA allows you specify which resources to add to your application package. This is done in the module settings, within the build configuration. Enter one of the last tabs ("iOS", "Android", or "AIR Package") and look for the section "Files and folders to package".
 
-This works fine when you actually create the package or debug on a real device; however, when running the simulator, those resources won't show up. As a work-around, you can copy them manually into the output folder — or you let this little Ruby script do the work for you.
+This works fine when you actually create the package or debug on a real device; however, when running the simulator, those resources won't show up. As a workaround, you can copy them manually into the output folder — or you let this little Ruby script do the work for you.
 
 It parses IDEA's module file to find out which resources to copy and where to put them. It's easy to integrate it into IDEA by adding it as an "External Tool" (IntelliJ IDEA Preferences - Tools).
 
@@ -16,7 +16,7 @@ Create one such tool entry for each platform you support. Here are sample settin
 * Parameters: `$ModuleFilePath$ ios`
 * Working Directory: [leave empty]
 
-[Other options for the second parameter are "android" and "air-desktop".]
+[Other options for the second parameter are "android" and "air-desktop". Alternatively, you can also omit the second parameter; in that case, the resources of all configured platforms will be copied.]
 
 To try out the tool, first click on the project you want to process, then on "Tools - External Tools - Copy Resources [platform]". If everything works, you will see the terminal output of the tools displayed inside IDEA.
 
