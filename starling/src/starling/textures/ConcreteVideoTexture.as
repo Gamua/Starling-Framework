@@ -25,6 +25,7 @@ package starling.textures
     internal class ConcreteVideoTexture extends ConcreteTexture
     {
         private var _textureReadyCallback:Function;
+        private var _disposed:Boolean;
 
         /** Creates a new instance with the given parameters.
          *  <code>base</code> must be of type <code>flash.display3D.textures.VideoTexture</code>.
@@ -39,6 +40,17 @@ package starling.textures
         override public function dispose():void
         {
             base.removeEventListener(Event.TEXTURE_READY, onTextureReady);
+
+            // It shouldn't be necessary to manually release the attachments.
+            // The following is a workaround for bugs #4198120 and #4198123 in the Adobe Bugbase.
+
+            if (!_disposed)
+            {
+                videoBase.attachCamera(null);
+                videoBase.attachNetStream(null);
+                _disposed = true;
+            }
+
             super.dispose();
         }
 

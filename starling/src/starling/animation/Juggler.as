@@ -175,7 +175,7 @@ package starling.animation
                 {
                     delayedCall.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
                     _objects[i] = null;
-                    delete _objectIDs[tween];
+                    delete _objectIDs[delayedCall];
                 }
             }
         }
