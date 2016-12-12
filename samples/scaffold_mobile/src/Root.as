@@ -1,6 +1,5 @@
 package
 {
-    import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.utils.AssetManager;
@@ -12,8 +11,12 @@ package
      *  controls the high level behaviour of your game. */
     public class Root extends Sprite
     {
+        // Embed the Ubuntu Font. Beware: the 'embedAsCFF'-part IS REQUIRED!!!
+        [Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
+        private static const UbuntuRegular:Class;
+
         private static var sAssets:AssetManager;
-        
+
         private var _activeScene:Sprite;
         
         public function Root()
@@ -30,7 +33,7 @@ package
             // all the assets from everywhere by simply calling "Root.assets"
 
             sAssets = assets;
-            addChild(new Image(assets.getTexture("background")));
+
             showScene(Menu);
         }
         
@@ -49,7 +52,7 @@ package
         private function showScene(screen:Class):void
         {
             if (_activeScene) _activeScene.removeFromParent(true);
-            _activeScene = new screen();
+            _activeScene = new screen(stage.stageWidth, stage.stageHeight);
             addChild(_activeScene);
         }
         

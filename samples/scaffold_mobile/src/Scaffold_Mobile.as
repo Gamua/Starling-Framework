@@ -8,58 +8,48 @@ package
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
-    import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.system.System;
     import flash.utils.ByteArray;
-    import flash.utils.setTimeout;
 
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.textures.RenderTexture;
     import starling.utils.AssetManager;
-    import starling.utils.RectangleUtil;
-    import starling.utils.ScaleMode;
     import starling.utils.StringUtil;
     import starling.utils.SystemUtil;
 
     import utils.ProgressBar;
+    import utils.ScreenSetup;
 
-    [SWF(width="320", height="480", frameRate="30", backgroundColor="#000000")]
+    [SWF(width="320", height="480", frameRate="30", backgroundColor="#badefe")]
     public class Scaffold_Mobile extends Sprite
     {
-        private const StageWidth:int  = 320;
-        private const StageHeight:int = 480;
-
         private var _starling:Starling;
-        private var _background:Loader;
+        private var _logo:Loader;
         private var _progressBar:ProgressBar;
 
         public function Scaffold_Mobile()
         {
-            // We develop the game in a *fixed* coordinate system of 320x480. The game might
-            // then run on a device with a different resolution; for that case, we zoom the
-            // viewPort to the optimal size for any display and load the optimal textures.
+            // The "ScreenSetup" class is part of the "utils" package of this project.
+            // It figures out the perfect scale factor and stage size for the given device.
+            // The third parameter describes the available asset sets (here, '1x' and '2x').
 
-            var iOS:Boolean = SystemUtil.platform == "IOS";
-            var stageSize:Rectangle  = new Rectangle(0, 0, StageWidth, StageHeight);
-            var screenSize:Rectangle = new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight);
-            var viewPort:Rectangle = RectangleUtil.fit(stageSize, screenSize, ScaleMode.SHOW_ALL);
-            var scaleFactor:int = viewPort.width < 480 ? 1 : 2; // midway between 320 and 640
+            var screen:ScreenSetup = new ScreenSetup(
+                stage.fullScreenWidth, stage.fullScreenHeight, [1, 2]);
 
-            Starling.multitouchEnabled = true; // useful on mobile devices
+            Starling.multitouchEnabled = true; // we want to make use of multitouch
 
-            _starling = new Starling(Root, stage, viewPort, null, "auto", "auto");
-            _starling.stage.stageWidth    = StageWidth;  // <- same size on all devices!
-            _starling.stage.stageHeight   = StageHeight; // <- same size on all devices!
-            _starling.enableErrorChecking = Capabilities.isDebugger;
+            _starling = new Starling(Root, stage, screen.viewPort);
+            _starling.stage.stageWidth  = screen.stageWidth;
+            _starling.stage.stageHeight = screen.stageHeight;
+            _starling.skipUnchangedFrames = true;
             _starling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
             {
-                loadAssets(scaleFactor, startGame);
+                loadAssets(screen.assetScale, startGame);
             });
 
             _starling.start();
-            initElements(scaleFactor);
+            initLoadingScreen(screen.assetScale);
 
             // When the game becomes inactive, we pause Starling; otherwise, the enter frame event
             // would report a very long 'passedTime' when the app is reactivated.
@@ -73,19 +63,19 @@ package
             }
         }
 
-        private function loadAssets(scaleFactor:int, onComplete:Function):void
+        private function loadAssets(scale:int, onComplete:Function):void
         {
             // Our assets are loaded and managed by the 'AssetManager'. To use that class,
             // we first have to enqueue pointers to all assets we want it to load.
 
             var appDir:File = File.applicationDirectory;
-            var assets:AssetManager = new AssetManager(scaleFactor);
+            var assets:AssetManager = new AssetManager(scale);
 
             assets.verbose = Capabilities.isDebugger;
             assets.enqueue(
                 appDir.resolvePath("audio"),
-                appDir.resolvePath(StringUtil.format("fonts/{0}x",    scaleFactor)),
-                appDir.resolvePath(StringUtil.format("textures/{0}x", scaleFactor))
+                appDir.resolvePath(StringUtil.format("fonts/{0}x",    scale)),
+                appDir.resolvePath(StringUtil.format("textures/{0}x", scale))
             );
 
             // Now, while the AssetManager now contains pointers to all the assets, it actually
@@ -110,14 +100,22 @@ package
         {
             var root:Root = _starling.root as Root;
             root.start(assets);
-            setTimeout(removeElements, 150); // delay to make 100% sure there's no flickering.
+            removeLoadingScreen();
         }
 
-        private function initElements(scaleFactor:int):void
+        private function initLoadingScreen(scale:int):void
         {
-            // Add background image. By using "loadBytes", we can avoid any flickering.
+            var overlay:Sprite = _starling.nativeOverlay;
+            var stageWidth:Number = _starling.stage.stageWidth;
+            var stageHeight:Number = _starling.stage.stageHeight;
 
-            var bgPath:String = StringUtil.format("textures/{0}x/background.jpg", scaleFactor);
+            // On iOS, the "Default.png" image (or one of its variants) is shown while the app
+            // starts up. For an absolutely seamless transition, we recreate its contents
+            // in the classic display list via the stage color and the logo.
+            // Loading the logo from a file and displaying it in the same frame -> that's only
+            // possible via the FileStream calls below.
+
+            var bgPath:String = StringUtil.format("textures/{0}x/logo.png", scale);
             var bgFile:File = File.applicationDirectory.resolvePath(bgPath);
             var bytes:ByteArray = new ByteArray();
             var stream:FileStream = new FileStream();
@@ -125,32 +123,34 @@ package
             stream.readBytes(bytes, 0, stream.bytesAvailable);
             stream.close();
 
-            _background = new Loader();
-            _background.loadBytes(bytes);
-            _background.scaleX = 1.0 / scaleFactor;
-            _background.scaleY = 1.0 / scaleFactor;
-            _starling.nativeOverlay.addChild(_background);
+            _logo = new Loader();
+            _logo.loadBytes(bytes);
+            _logo.scaleX = 1.0 / scale;
+            _logo.scaleY = 1.0 / scale;
+            overlay.addChild(_logo);
 
-            _background.contentLoaderInfo.addEventListener(flash.events.Event.COMPLETE,
+            _logo.contentLoaderInfo.addEventListener(flash.events.Event.COMPLETE,
                 function(e:Object):void
                 {
-                    (_background.content as Bitmap).smoothing = true;
+                    (_logo.content as Bitmap).smoothing = true;
+                    _logo.x = (stageWidth  - _logo.width)  / 2;
+                    _logo.y = (stageHeight - _logo.height) / 2;
                 });
 
             // While the assets are loaded, we will display a progress bar.
 
             _progressBar = new ProgressBar(175, 20);
-            _progressBar.x = (StageWidth - _progressBar.width) / 2;
-            _progressBar.y =  StageHeight * 0.7;
+            _progressBar.x = (stageWidth - _progressBar.width) / 2;
+            _progressBar.y =  stageHeight * 0.8;
             _starling.nativeOverlay.addChild(_progressBar);
         }
 
-        private function removeElements():void
+        private function removeLoadingScreen():void
         {
-            if (_background)
+            if (_logo)
             {
-                _starling.nativeOverlay.removeChild(_background);
-                _background = null;
+                _starling.nativeOverlay.removeChild(_logo);
+                _logo = null;
             }
 
             if (_progressBar)
