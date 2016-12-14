@@ -27,10 +27,12 @@ package utils
             if (screenDPI <= 0) screenDPI = Capabilities.screenDPI;
             if (assetScales == null || assetScales.length == 0) assetScales = [1];
 
-            var exactScale:Number = screenDPI / 160;
+            var isIPad:Boolean = Capabilities.os.indexOf("iPad") != -1;
+            var isIPadMaxi:Boolean = isIPad && (screenDPI == 132 || screenDPI == 264);
+            var baseDPI:Number = isIPadMaxi ? 130 : 160;
+            var exactScale:Number = screenDPI / baseDPI;
 
-            if (exactScale < 0.875) _scale = 0.75;
-            else if (exactScale < 1.25) _scale = 1.0;
+            if (exactScale < 1.25) _scale = 1.0;
             else if (exactScale < 1.75) _scale = 1.5;
             else _scale = Math.round(exactScale);
 
