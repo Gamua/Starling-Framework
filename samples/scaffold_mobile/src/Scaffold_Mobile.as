@@ -24,6 +24,9 @@ package
     [SWF(width="320", height="480", frameRate="30", backgroundColor="#badefe")]
     public class Scaffold_Mobile extends Sprite
     {
+        [Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
+        private static const UbuntuRegular:Class;
+
         private var _starling:Starling;
         private var _logo:Loader;
         private var _progressBar:ProgressBar;

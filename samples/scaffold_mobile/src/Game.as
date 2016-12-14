@@ -3,30 +3,24 @@ package
     import starling.animation.Transitions;
     import starling.core.Starling;
     import starling.display.Image;
-    import starling.display.Sprite;
     import starling.events.TouchEvent;
     import starling.events.TouchPhase;
     import starling.utils.deg2rad;
 
     /** The Game class represents the actual game. In this scaffold, it just displays a
      *  Starling that moves around fast. When the user touches the Starling, the game ends. */ 
-    public class Game extends Sprite
+    public class Game extends Scene
     {
         public static const GAME_OVER:String = "gameOver";
         
         private var _bird:Image;
-        private var _width:Number;
-        private var _height:Number;
+
+        public function Game()
+        { }
         
-        public function Game(width:Number, height:Number)
+        override public function init(width:Number, height:Number):void
         {
-            init(width, height);
-        }
-        
-        private function init(width:Number, height:Number):void
-        {
-            _width = width;
-            _height = height;
+            super.init(width, height);
 
             _bird = new Image(Root.assets.getTexture("starling_rocket"));
             _bird.pivotX = _bird.width / 2;
@@ -38,7 +32,7 @@ package
             
             moveBird();
         }
-        
+
         private function moveBird():void
         {
             var scale:Number = Math.random() * 0.8 + 0.2;

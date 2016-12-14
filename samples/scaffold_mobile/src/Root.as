@@ -1,23 +1,21 @@
 package
 {
+    import starling.core.Starling;
     import starling.display.Sprite;
     import starling.events.Event;
+    import starling.events.ResizeEvent;
     import starling.utils.AssetManager;
 
-    /** The Root class is the topmost display object in your game. It loads all the assets
-     *  and displays a progress bar while this is happening. Later, it is responsible for
-     *  switching between game and menu. For this, it listens to "START_GAME" and "GAME_OVER"
-     *  events fired by the Menu and Game classes. Keep this class rather lightweight: it 
-     *  controls the high level behaviour of your game. */
+    /** The Root class is the topmost display object in your game.
+     *  It is responsible for switching between game and menu. For this, it listens to
+     *  "START_GAME" and "GAME_OVER" events fired by the Menu and Game classes.
+     *  In other words, this class is supposed to control the high level behaviour of your game.
+     */
     public class Root extends Sprite
     {
-        // Embed the Ubuntu Font. Beware: the 'embedAsCFF'-part IS REQUIRED!!!
-        [Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
-        private static const UbuntuRegular:Class;
-
         private static var sAssets:AssetManager;
 
-        private var _activeScene:Sprite;
+        private var _activeScene:Scene;
         
         public function Root()
         {
@@ -33,10 +31,40 @@ package
             // all the assets from everywhere by simply calling "Root.assets"
 
             sAssets = assets;
-
             showScene(Menu);
+
+            // If you don't want to support auto-orientation, you can delete this event handler.
+            // Don't forget to update the AIR XML accordingly ("aspectRatio" and "autoOrients").
+            stage.addEventListener(Event.RESIZE, onResize);
         }
-        
+
+        private function showScene(scene:Class):void
+        {
+            if (_activeScene) _activeScene.removeFromParent(true);
+            _activeScene = new scene() as Scene;
+
+            if (_activeScene == null)
+                throw new ArgumentError("Invalid scene: " + scene);
+
+            addChild(_activeScene);
+            _activeScene.init(stage.stageWidth, stage.stageHeight);
+        }
+
+        public function onResize(event:ResizeEvent):void
+        {
+            var current:Starling = Starling.current;
+            var scale:Number = current.contentScaleFactor;
+
+            stage.stageWidth  = event.width  / scale;
+            stage.stageHeight = event.height / scale;
+
+            current.viewPort.width  = stage.stageWidth  * scale;
+            current.viewPort.height = stage.stageHeight * scale;
+
+            if (_activeScene)
+                _activeScene.resizeTo(stage.stageWidth, stage.stageHeight);
+        }
+
         private function onGameOver(event:Event, score:int):void
         {
             trace("Game Over! Score: " + score);
@@ -47,13 +75,6 @@ package
         {
             trace("Game starts! Mode: " + gameMode);
             showScene(Game);
-        }
-        
-        private function showScene(screen:Class):void
-        {
-            if (_activeScene) _activeScene.removeFromParent(true);
-            _activeScene = new screen(stage.stageWidth, stage.stageHeight);
-            addChild(_activeScene);
         }
         
         public static function get assets():AssetManager { return sAssets; }
