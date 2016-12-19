@@ -111,7 +111,7 @@ package starling.filters
         private var _cached:Boolean;
 
         // helpers
-        private static var sMatrix3D:Matrix3D;
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
 
         /** Creates a new instance. The base class' implementation just draws the unmodified
          *  input texture. */
