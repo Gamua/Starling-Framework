@@ -412,7 +412,7 @@ package starling.text
 
         /** Indicates if text should be interpreted as HTML code. For a description
          *  of the supported HTML subset, refer to the classic Flash 'TextField' documentation.
-         *  Clickable hyperlinks and external images are not supported. Only works for
+         *  Clickable hyperlinks and images are not supported. Only works for
          *  TrueType fonts! @default false */
         public function get isHtmlText():Boolean { return _options.isHtmlText; }
         public function set isHtmlText(value:Boolean):void
