@@ -13,10 +13,10 @@ Quick Links
 -----------
 
 * [Official Homepage](http://www.starling-framework.org)
+* [Instruction Manual](http://manual.starling-framework.org)
 * [API Reference](http://doc.starling-framework.org)
 * [Support Forum](http://forum.starling-framework.org)
 * [Starling Wiki](http://wiki.starling-framework.org)
-  * [Manual](http://wiki.starling-framework.org/manual/start)
   * [Showcase](http://wiki.starling-framework.org/games/start)
   * [Extensions](http://wiki.starling-framework.org/extensions/start)
 
