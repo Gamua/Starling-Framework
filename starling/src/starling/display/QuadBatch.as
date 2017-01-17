@@ -149,7 +149,10 @@ package starling.display
         
         private function onContextCreated(event:Object):void
         {
-            createBuffers();
+            if (mVertexData) // !disposed
+            {
+                createBuffers();
+            }
         }
         
         /** Call this method after manually changing the contents of 'mVertexData'. */
