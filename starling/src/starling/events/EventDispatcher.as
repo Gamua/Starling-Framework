@@ -38,6 +38,7 @@ package starling.events
     public class EventDispatcher
     {
         private var _eventListeners:Dictionary;
+        private var _eventStack:Vector.<String> = new <String>[];
         
         /** Helper object. */
         private static var sBubbleChains:Array = [];
@@ -76,12 +77,19 @@ package starling.events
 
                     if (index != -1)
                     {
-                        var restListeners:Vector.<Function> = listeners.slice(0, index);
+                        if(_eventStack.indexOf(type) == -1)
+                        {
+                            listeners.removeAt(index);
+                        }
+                        else
+                        {
+                            var restListeners:Vector.<Function> = listeners.slice(0, index);
 
-                        for (var i:int=index+1; i<numListeners; ++i)
-                            restListeners[i-1] = listeners[i];
+                            for (var i:int=index+1; i<numListeners; ++i)
+                                restListeners[i-1] = listeners[i];
 
-                        _eventListeners[type] = restListeners;
+                            _eventListeners[type] = restListeners;
+                        }
                     }
                 }
             }
@@ -133,6 +141,7 @@ package starling.events
             if (numListeners)
             {
                 event.setCurrentTarget(this);
+                _eventStack[_eventStack.length] = event.type;
                 
                 // we can enumerate directly over the vector, because:
                 // when somebody modifies the list while we're looping, "addEventListener" is not
@@ -150,6 +159,8 @@ package starling.events
                     if (event.stopsImmediatePropagation)
                         return true;
                 }
+
+                _eventStack.pop();
                 
                 return event.stopsPropagation;
             }
