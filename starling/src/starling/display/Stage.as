@@ -111,50 +111,6 @@ package starling.display
             return target ? target : this;
         }
         
-        /** Draws the complete stage into a BitmapData object.
-         *
-         *  <p>If you encounter problems with transparency, start Starling in BASELINE profile
-         *  (or higher). BASELINE_CONSTRAINED might not support transparency on all platforms.
-         *  </p>
-         *
-         *  @param destination  If you pass null, the object will be created for you.
-         *                      If you pass a BitmapData object, it should have the size of the
-         *                      back buffer (which is accessible via the respective properties
-         *                      on the Starling instance).
-         *  @param transparent  If enabled, empty areas will appear transparent; otherwise, they
-         *                      will be filled with the stage color.
-         */
-        public function drawToBitmapData(destination:BitmapData=null,
-                                         transparent:Boolean=true):BitmapData
-        {
-            var painter:Painter = Starling.painter;
-            var state:RenderState = painter.state;
-            var context:Context3D = painter.context;
-
-            if (destination == null)
-            {
-                var width:int  = context.backBufferWidth;
-                var height:int = context.backBufferHeight;
-                destination = new BitmapData(width, height, transparent);
-            }
-
-            painter.pushState();
-            state.renderTarget = null;
-            state.setProjectionMatrix(0, 0, _width, _height, _width, _height, cameraPosition);
-            
-            if (transparent) painter.clear();
-            else             painter.clear(_color, 1);
-            
-            render(painter);
-            painter.finishMeshBatch();
-
-            context.drawToBitmapData(destination);
-            context.present(); // required on some platforms to avoid flickering
-
-            painter.popState();
-            return destination;
-        }
-
         /** Returns the stage bounds (i.e. not the bounds of its contents, but the rectangle
          *  spawned up by 'stageWidth' and 'stageHeight') in another coordinate system. */
         public function getStageBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle

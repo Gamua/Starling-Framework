@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -384,6 +385,43 @@ package starling.display
             else if (verticalAlign == Align.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
             else if (verticalAlign == Align.BOTTOM) _pivotY = bounds.y + bounds.height;
             else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+        }
+
+        /** Draws the object into a BitmapData object.
+         *
+         *  @param out  If you pass null, the object will be created for you.
+         *              If you pass a BitmapData object, it should have the size of the
+         *              object bounds, multiplied by the current contentScaleFactor.
+         */
+        public function drawToBitmapData(out:BitmapData=null):BitmapData
+        {
+            var stage:Stage = Starling.current.stage;
+            var stageWidth:Number = stage.stageWidth;
+            var stageHeight:Number = stage.stageHeight;
+            var scale:Number = Starling.contentScaleFactor;
+            var painter:Painter = Starling.painter;
+            var bounds:Rectangle = this is Stage ?
+                stage.getStageBounds(this, sHelperRect) : getBounds(_parent, sHelperRect);
+
+            if (out == null)
+                out = new BitmapData(Math.ceil(bounds.width  * scale),
+                                     Math.ceil(bounds.height * scale));
+
+            painter.clear();
+            painter.pushState();
+            painter.state.renderTarget = null;
+            painter.state.setModelviewMatricesToIdentity();
+            painter.setStateTo(transformationMatrix);
+            painter.state.setProjectionMatrix(bounds.x, bounds.y, stageWidth, stageHeight,
+                stageWidth, stageHeight, stage.cameraPosition);
+
+            render(painter);
+
+            painter.finishMeshBatch();
+            painter.context.drawToBitmapData(out);
+            painter.popState();
+
+            return out;
         }
 
         // 3D transformation
