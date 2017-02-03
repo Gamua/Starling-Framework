@@ -29,6 +29,14 @@ package starling.filters
      *
      *  <p>Where <code>componentX(x, y)</code> gets the componentX property color value from the
      *  map texture at <code>(x - mapPoint.x, y - mapPoint.y)</code>.</p>
+     *
+     *  <strong>Clamping to the Edges</strong>
+     *
+     *  <p>Per default, the filter allows the object to grow beyond its actual bounds to make
+     *  room for the displacement (depending on <code>scaleX/Y</code>). If you want to clamp the
+     *  displacement to the actual object bounds, set all margins to zero via a call to
+     *  <code>filter.padding.setTo()</code>. This works only with rectangular, stage-aligned
+     *  objects, though.</p>
      */
     public class DisplacementMapFilter extends FragmentFilter
     {
@@ -175,7 +183,9 @@ package starling.filters
             }
         }
 
-        /** Indicates how the pixels of the map texture will be wrapped at the edge. */
+        /** Indicates if pixels at the edge of the map texture will be repeated.
+         *  Note that this only works if the map texture is a power-of-two texture!
+         */
         public function get mapRepeat():Boolean { return dispEffect.mapRepeat; }
         public function set mapRepeat(value:Boolean):void
         {
@@ -218,7 +228,8 @@ class DisplacementMapEffect extends FilterEffect
     private var _scaleY:Number;
 
     // helper objects
-    private static var sOffset:Vector.<Number> = new <Number>[0.5, 0.5, 0.0, 0.0];
+    private static var sOffset:Vector.<Number>  = new <Number>[0.5, 0.5, 0.0, 0.0];
+    private static var sClampUV:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
     private static var sMatrix:Matrix3D = new Matrix3D();
     private static var sMatrixData:Vector.<Number> =
         new <Number>[0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0];
@@ -247,14 +258,17 @@ class DisplacementMapEffect extends FilterEffect
             // v0:    input texCoords
             // v1:    map texCoords
             // fc0:   offset (0.5, 0.5)
-            // fc1-4: matrix
+            // fc1:   clampUV (max value for U and V, stored in x and y)
+            // fc2-5: matrix
 
             var fragmentShader:String = [
                 tex("ft0", "v1", 1, _mapTexture, false), // read map texture
                 "sub ft1, ft0, fc0",          // subtract 0.5 -> range [-0.5, 0.5]
                 "mul ft1.xy, ft1.xy, ft0.ww", // zero displacement when alpha == 0
-                "m44 ft2, ft1, fc1",          // multiply matrix with displacement values
+                "m44 ft2, ft1, fc2",          // multiply matrix with displacement values
                 "add ft3,  v0, ft2",          // add displacement values to texture coords
+                "sat ft3.xy, ft3.xy",         // move texture coords into range 0-1
+                "min ft3.xy, ft3.xy, fc1.xy", // move texture coords into range 0-maxUV
                 tex("oc", "ft3", 0, texture)  // read input texture at displaced coords
             ].join("\n");
 
@@ -278,9 +292,13 @@ class DisplacementMapEffect extends FilterEffect
 
             getMapMatrix(sMatrix);
 
+            sClampUV[0] = texture.width  / texture.root.width  - 0.5 / texture.root.nativeWidth;
+            sClampUV[1] = texture.height / texture.root.height - 0.5 / texture.root.nativeHeight;
+
             vertexFormat.setVertexBufferAt(2, vertexBuffer, "mapTexCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOffset);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 1, sMatrix, true);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, sClampUV);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 2, sMatrix, true);
             RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, _mapRepeat);
             context.setTextureAt(1, _mapTexture.base);
         }
