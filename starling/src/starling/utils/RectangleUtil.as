@@ -139,7 +139,7 @@ package starling.utils
             }
         }
 
-        /** Extends the bounds of the rectangle in all four directions. */
+        /** Extends the rectangle in all four directions. */
         public static function extend(rect:Rectangle, left:Number=0, right:Number=0,
                                       top:Number=0, bottom:Number=0):void
         {
@@ -147,6 +147,17 @@ package starling.utils
             rect.y -= top;
             rect.width  += left + right;
             rect.height += top  + bottom;
+        }
+
+        /** Extends the rectangle in all four directions so that it is exactly on pixel bounds. */
+        public static function extendToWholePixels(rect:Rectangle, scaleFactor:Number=1):void
+        {
+            var left:Number   = Math.floor(rect.x     * scaleFactor) / scaleFactor;
+            var top:Number    = Math.floor(rect.y     * scaleFactor) / scaleFactor;
+            var right:Number  = Math.ceil(rect.right  * scaleFactor) / scaleFactor;
+            var bottom:Number = Math.ceil(rect.bottom * scaleFactor) / scaleFactor;
+
+            rect.setTo(left, top, right - left, bottom - top);
         }
 
         /** Calculates the bounds of a rectangle after transforming it by a matrix.
