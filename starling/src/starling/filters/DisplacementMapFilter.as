@@ -28,7 +28,7 @@ package starling.filters
      *  </listing>
      *
      *  <p>Where <code>componentX(x, y)</code> gets the componentX property color value from the
-     *  map texture at <code>(x - mapPoint.x, y - mapPoint.y)</code>.</p>
+     *  map texture at <code>(x - mapX, y - mapY)</code>.</p>
      *
      *  <strong>Clamping to the Edges</strong>
      *
