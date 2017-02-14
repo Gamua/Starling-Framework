@@ -98,9 +98,9 @@ package starling.styles
         private var _type:Class;
         private var _target:Mesh;
         private var _texture:Texture;
-        private var _textureBase:TextureBase;
         private var _textureSmoothing:String;
         private var _textureRepeat:Boolean;
+        private var _textureBase:TextureBase; // just a reference to _texture.base
         private var _vertexData:VertexData;   // just a reference to the target's vertex data
         private var _indexData:IndexData;     // just a reference to the target's index data
 
@@ -121,7 +121,7 @@ package starling.styles
         public function copyFrom(meshStyle:MeshStyle):void
         {
             _texture = meshStyle._texture;
-            _textureBase = meshStyle._textureBase;
+            _textureBase = _texture ? _texture.base : null; // fixes outdated base, too
             _textureRepeat = meshStyle._textureRepeat;
             _textureSmoothing = meshStyle._textureSmoothing;
         }
