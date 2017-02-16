@@ -10,6 +10,7 @@
 
 package starling.filters
 {
+    import starling.core.Starling;
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
@@ -21,20 +22,25 @@ package starling.filters
         private var _blurX:Number;
         private var _blurY:Number;
 
-        /** Create a new BlurFilter. For each blur direction, the number of required passes is
-         *  <code>Math.ceil(blur)</code>.
+        /** Create a new BlurFilter.
          *
-         *  <ul><li>blur = 0.5: 1 pass</li>
-         *      <li>blur = 1.0: 1 pass</li>
-         *      <li>blur = 1.5: 2 passes</li>
-         *      <li>blur = 2.0: 2 passes</li>
-         *      <li>etc.</li>
+         *  <p>The blur is rendered for each direction (x and y) separately; the number of
+         *  draw calls add up. The blur value itself is internally multiplied with the current
+         *  <code>contentScaleFactor</code> in order to guarantee a consistent look on HiDPI
+         *  displays (dubbed 'totalBlur' below).</p>
+         *
+         *  <p>The number of draw calls per blur value is the following:</p>
+         *  <ul><li>totalBlur <= 1: 1 draw call</li>
+         *      <li>totalBlur <= 2: 2 draw calls</li>
+         *      <li>totalBlur <= 4: 3 draw calls</li>
+         *      <li>totalBlur <= 8: 4 draw calls</li>
+         *      <li>... etc.</li>
          *  </ul>
          */
         public function BlurFilter(blurX:Number=1.0, blurY:Number=1.0, resolution:Number=1.0)
         {
-            _blurX = blurX;
-            _blurY = blurY;
+            _blurX = Math.abs(blurX);
+            _blurY = Math.abs(blurY);
             this.resolution = resolution;
         }
 
@@ -51,35 +57,35 @@ package starling.filters
                 return super.process(painter, helper, input0);
             }
 
-            var blurX:Number = Math.abs(_blurX);
-            var blurY:Number = Math.abs(_blurY);
-            var outTexture:Texture = input0;
             var inTexture:Texture;
+            var outTexture:Texture = input0;
+            var strengthX:Number = totalBlurX;
+            var strengthY:Number = totalBlurY;
 
             effect.direction = BlurEffect.HORIZONTAL;
 
-            while (blurX > 0)
+            while (strengthX > 0)
             {
-                effect.strength = Math.min(1.0, blurX);
+                effect.strength = strengthX;
 
-                blurX -= effect.strength;
                 inTexture = outTexture;
                 outTexture = super.process(painter, helper, inTexture);
 
                 if (inTexture != input0) helper.putTexture(inTexture);
+                if (strengthX <= 1) break; else strengthX /= 2;
             }
 
             effect.direction = BlurEffect.VERTICAL;
 
-            while (blurY > 0)
+            while (strengthY > 0)
             {
-                effect.strength = Math.min(1.0, blurY);
+                effect.strength = strengthY;
 
-                blurY -= effect.strength;
                 inTexture = outTexture;
                 outTexture = super.process(painter, helper, inTexture);
 
                 if (inTexture != input0) helper.putTexture(inTexture);
+                if (strengthY <= 1) break; else strengthY /= 2;
             }
 
             return outTexture;
@@ -98,35 +104,45 @@ package starling.filters
             updatePadding();
         }
 
-        /** @private */
-        override public function get numPasses():int
-        {
-            return (Math.ceil(_blurX) + Math.ceil(_blurY)) || 1;
-        }
-
         private function updatePadding():void
         {
-            var paddingX:Number = (_blurX ? Math.ceil(Math.abs(_blurX)) + 3 : 1) / resolution;
-            var paddingY:Number = (_blurY ? Math.ceil(Math.abs(_blurY)) + 3 : 1) / resolution;
+            var paddingX:Number = _blurX ? (totalBlurX * 3 + 2) / resolution : 0;
+            var paddingY:Number = _blurY ? (totalBlurY * 3 + 2) / resolution : 0;
 
             padding.setTo(paddingX, paddingX, paddingY, paddingY);
         }
 
-        /** The blur factor in x-direction.
-         *  The number of required passes will be <code>Math.ceil(value)</code>. */
+        /** @private */
+        override public function get numPasses():int
+        {
+            if (_blurX == 0 && _blurY == 0) return 1;
+            else return getNumPasses(totalBlurX) + getNumPasses(totalBlurY);
+        }
+
+        private static function getNumPasses(blur:Number):int
+        {
+            var numPasses:int = 1;
+            while (blur > 1) { numPasses += 1; blur /= 2; }
+            return numPasses;
+        }
+
+        /** The blur values scaled by the current contentScaleFactor. */
+        private function get totalBlurX():Number { return _blurX * Starling.contentScaleFactor; }
+        private function get totalBlurY():Number { return _blurY * Starling.contentScaleFactor; }
+
+        /** The blur factor in x-direction. */
         public function get blurX():Number { return _blurX; }
         public function set blurX(value:Number):void
         {
-            _blurX = value;
+            _blurX = Math.abs(value);
             updatePadding();
         }
 
-        /** The blur factor in y-direction.
-         *  The number of required passes will be <code>Math.ceil(value)</code>. */
+        /** The blur factor in y-direction. */
         public function get blurY():Number { return _blurY; }
         public function set blurY(value:Number):void
         {
-            _blurY = value;
+            _blurY = Math.abs(value);
             updatePadding();
         }
     }
@@ -137,49 +153,45 @@ import flash.display3D.Context3DProgramType;
 
 import starling.rendering.FilterEffect;
 import starling.rendering.Program;
-import starling.utils.MathUtil;
 
 class BlurEffect extends FilterEffect
 {
     public static const HORIZONTAL:String = "horizontal";
     public static const VERTICAL:String = "vertical";
 
-    private static const MAX_SIGMA:Number = 2.0;
-
     private var _strength:Number;
     private var _direction:String;
 
-    private var _offsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
-    private var _weights:Vector.<Number> = new <Number>[0, 0, 0, 0];
+    private static const sTmpWeights:Vector.<Number> = new <Number>[0, 0, 0, 0, 0];
+    private static const sWeights:Vector.<Number> = new <Number>[0, 0, 0, 0];
+    private static const sOffsets:Vector.<Number> = new <Number>[0, 0, 0, 0];
 
-    // helpers
-    private var sTmpWeights:Vector.<Number> = new Vector.<Number>(5, true);
-
-    /** Creates a new BlurEffect.
-     *
-     *  @param direction     horizontal or vertical
-     *  @param strength      range 0-1
-     */
-    public function BlurEffect(direction:String="horizontal", strength:Number=1):void
+    /** Creates a new BlurEffect. */
+    public function BlurEffect():void
     {
-        this.strength  = strength;
-        this.direction = direction;
+        _strength = 0.0;
+        _direction = HORIZONTAL;
     }
 
     override protected function createProgram():Program
     {
         if (_strength == 0) return super.createProgram();
 
+        // vc4.xy - offset1
+        // vc4.zw - offset2
+
         var vertexShader:String = [
-            "m44 op, va0, vc0     ", // 4x4 matrix transform to output space
-            "mov v0, va1          ", // pos:  0 |
-            "sub v1, va1, vc4.zwxx", // pos: -2 |
-            "sub v2, va1, vc4.xyxx", // pos: -1 | --> kernel positions
-            "add v3, va1, vc4.xyxx", // pos: +1 |     (only 1st two values are relevant)
-            "add v4, va1, vc4.zwxx"  // pos: +2 |
+            "m44 op, va0, vc0      ", // 4x4 matrix transform to output space
+            "mov v0, va1           ", // pos:  0 (center)
+
+            "add v1,  va1, vc4.xyww", // pos: +1
+            "sub v2,  va1, vc4.xyww", // pos: -1
+
+            "add v3,  va1, vc4.zwxx", // pos: +2
+            "sub v4,  va1, vc4.zwxx"  // pos: -2
         ].join("\n");
 
-        // v0-v4 - kernel position
+        // v0-v6 - kernel positions
         // fs0   - input texture
         // fc0   - weight data
         // ft0-4 - pixel color from texture
@@ -189,19 +201,19 @@ class BlurEffect extends FilterEffect
             tex("ft0", "v0", 0, texture),    // read center pixel
             "mul ft5, ft0, fc0.xxxx       ", // multiply with center weight
 
-            tex("ft1", "v1", 0, texture),    // read pixel -2
-            "mul ft1, ft1, fc0.zzzz       ", // multiply with weight
+            tex("ft1", "v1", 0, texture),    // read pixel +1
+            "mul ft1, ft1, fc0.yyyy       ", // multiply with weight
             "add ft5, ft5, ft1            ", // add to output color
 
             tex("ft2", "v2", 0, texture),    // read pixel -1
             "mul ft2, ft2, fc0.yyyy       ", // multiply with weight
             "add ft5, ft5, ft2            ", // add to output color
 
-            tex("ft3", "v3", 0, texture),    // read pixel +1
-            "mul ft3, ft3, fc0.yyyy       ", // multiply with weight
+            tex("ft3", "v3", 0, texture),    // read pixel +2
+            "mul ft3, ft3, fc0.zzzz       ", // multiply with weight
             "add ft5, ft5, ft3            ", // add to output color
 
-            tex("ft4", "v4", 0, texture),    // read pixel +2
+            tex("ft4", "v4", 0, texture),    // read pixel -2
             "mul ft4, ft4, fc0.zzzz       ", // multiply with weight
             "add  oc, ft5, ft4            "  // add to output color
         ].join("\n");
@@ -217,8 +229,78 @@ class BlurEffect extends FilterEffect
         {
             updateParameters();
 
-            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, _offsets);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, _weights);
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX,   4, sOffsets);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sWeights);
+        }
+    }
+
+    private function updateParameters():void
+    {
+        var offset1:Number, offset2:Number;
+        var pixelSize:Number = 1.0 / (_direction == HORIZONTAL ?
+                texture.root.nativeWidth : texture.root.nativeHeight);
+
+        if (_strength <= 1)
+        {
+            // algorithm described here:
+            // http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
+            //
+            // To support the baseline constrained profile, we can only make 5 texture look-ups
+            // in the fragment shader. By making use of linear texture sampling, we can produce
+            // similar output to what would be 9 look-ups.
+
+            var sigma:Number = _strength * 2;
+            var twoSigmaSq:Number = 2 * sigma * sigma;
+            var multiplier:Number = 1.0 / Math.sqrt(twoSigmaSq * Math.PI);
+
+            // get weights on the exact pixels (sTmpWeights) and calculate sums (sWeights)
+
+            for (var i:int=0; i<5; ++i)
+                sTmpWeights[i] = multiplier * Math.exp(-i*i / twoSigmaSq);
+
+            sWeights[0] = sTmpWeights[0];
+            sWeights[1] = sTmpWeights[1] + sTmpWeights[2];
+            sWeights[2] = sTmpWeights[3] + sTmpWeights[4];
+
+            // normalize weights so that sum equals "1.0"
+
+            var weightSum:Number = sWeights[0] + 2 * sWeights[1] + 2 * sWeights[2];
+            var invWeightSum:Number = 1.0 / weightSum;
+
+            sWeights[0] *= invWeightSum;
+            sWeights[1] *= invWeightSum;
+            sWeights[2] *= invWeightSum;
+
+            // calculate intermediate offsets
+
+            offset1 = (    sTmpWeights[1] + 2 * sTmpWeights[2]) / sWeights[1];
+            offset2 = (3 * sTmpWeights[3] + 4 * sTmpWeights[4]) / sWeights[2];
+        }
+        else
+        {
+            // All other passes look up 5 texels with a standard gauss distribution and bigger
+            // offsets. In itself, this looks as if the object was drawn multiple times; combined
+            // with the last pass (strength <= 1), though, the result is a very strong blur.
+
+            sWeights[0] = 0.29412;
+            sWeights[1] = 0.23529;
+            sWeights[2] = 0.11765;
+
+            offset1 = _strength * 1.3; // the additional '0.3' compensate the difference between
+            offset2 = _strength * 2.3; // the two gauss distributions.
+        }
+
+        // depending on pass, we move in x- or y-direction
+
+        if (_direction == HORIZONTAL)
+        {
+            sOffsets[0] = offset1 * pixelSize; sOffsets[1] = 0;
+            sOffsets[2] = offset2 * pixelSize; sOffsets[3] = 0;
+        }
+        else
+        {
+            sOffsets[0] = 0; sOffsets[1] = offset1 * pixelSize;
+            sOffsets[2] = 0; sOffsets[3] = offset2 * pixelSize;
         }
     }
 
@@ -227,79 +309,9 @@ class BlurEffect extends FilterEffect
         return super.programVariantName | (_strength ? 1 << 4 : 0);
     }
 
-    private function updateParameters():void
-    {
-        // algorithm described here:
-        // http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
-        //
-        // To run in constrained mode, we can only make 5 texture look-ups in the fragment
-        // shader. By making use of linear texture sampling, we can produce similar output
-        // to what would be 9 look-ups.
-
-        var sigma:Number;
-        var pixelSize:Number;
-
-        if (_direction == HORIZONTAL)
-        {
-            sigma = _strength * MAX_SIGMA;
-            pixelSize = 1.0 / texture.root.width;
-        }
-        else
-        {
-            sigma = _strength * MAX_SIGMA;
-            pixelSize = 1.0 / texture.root.height;
-        }
-
-        const twoSigmaSq:Number = 2 * sigma * sigma;
-        const multiplier:Number = 1.0 / Math.sqrt(twoSigmaSq * Math.PI);
-
-        // get weights on the exact pixels (sTmpWeights) and calculate sums (_weights)
-
-        for (var i:int=0; i<5; ++i)
-            sTmpWeights[i] = multiplier * Math.exp(-i*i / twoSigmaSq);
-
-        _weights[0] = sTmpWeights[0];
-        _weights[1] = sTmpWeights[1] + sTmpWeights[2];
-        _weights[2] = sTmpWeights[3] + sTmpWeights[4];
-
-        // normalize weights so that sum equals "1.0"
-
-        var weightSum:Number = _weights[0] + 2*_weights[1] + 2*_weights[2];
-        var invWeightSum:Number = 1.0 / weightSum;
-
-        _weights[0] *= invWeightSum;
-        _weights[1] *= invWeightSum;
-        _weights[2] *= invWeightSum;
-
-        // calculate intermediate offsets
-
-        var offset1:Number = (  pixelSize * sTmpWeights[1] + 2*pixelSize * sTmpWeights[2]) / _weights[1];
-        var offset2:Number = (3*pixelSize * sTmpWeights[3] + 4*pixelSize * sTmpWeights[4]) / _weights[2];
-
-        // depending on pass, we move in x- or y-direction
-
-        if (_direction == HORIZONTAL)
-        {
-            _offsets[0] = offset1;
-            _offsets[1] = 0;
-            _offsets[2] = offset2;
-            _offsets[3] = 0;
-        }
-        else
-        {
-            _offsets[0] = 0;
-            _offsets[1] = offset1;
-            _offsets[2] = 0;
-            _offsets[3] = offset2;
-        }
-    }
-
     public function get direction():String { return _direction; }
     public function set direction(value:String):void { _direction = value; }
 
     public function get strength():Number { return _strength; }
-    public function set strength(value:Number):void
-    {
-        _strength = MathUtil.clamp(value, 0, 1);
-    }
+    public function set strength(value:Number):void { _strength = value; }
 }
