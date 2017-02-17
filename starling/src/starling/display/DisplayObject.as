@@ -395,24 +395,42 @@ package starling.display
          */
         public function drawToBitmapData(out:BitmapData=null):BitmapData
         {
-            var stage:Stage = Starling.current.stage;
-            var stageWidth:Number = stage.stageWidth;
-            var stageHeight:Number = stage.stageHeight;
-            var scale:Number = Starling.contentScaleFactor;
             var painter:Painter = Starling.painter;
-            var bounds:Rectangle = this is Stage ?
-                stage.getStageBounds(this, sHelperRect) : getBounds(_parent, sHelperRect);
+            var stage:Stage = Starling.current.stage;
+            var viewPort:Rectangle = Starling.current.viewPort;
+            var stageWidth:Number  = stage.stageWidth;
+            var stageHeight:Number = stage.stageHeight;
+            var scaleX:Number = viewPort.width  / stageWidth;
+            var scaleY:Number = viewPort.height / stageHeight;
+            var backBufferScale:Number = painter.backBufferScaleFactor;
+            var projectionX:Number, projectionY:Number;
+            var bounds:Rectangle;
 
-            if (out == null)
-                out = new BitmapData(Math.ceil(bounds.width  * scale),
-                                     Math.ceil(bounds.height * scale));
+            if (this is Stage)
+            {
+                projectionX = viewPort.x < 0 ? -viewPort.x / scaleX : 0.0;
+                projectionY = viewPort.y < 0 ? -viewPort.y / scaleY : 0.0;
+
+                out ||= new BitmapData(painter.backBufferWidth  * backBufferScale,
+                                       painter.backBufferHeight * backBufferScale);
+            }
+            else
+            {
+                bounds = getBounds(_parent, sHelperRect);
+                projectionX = bounds.x;
+                projectionY = bounds.y;
+
+                out ||= new BitmapData(Math.ceil(bounds.width  * scaleX * backBufferScale),
+                                       Math.ceil(bounds.height * scaleY * backBufferScale));
+            }
 
             painter.clear();
             painter.pushState();
             painter.state.renderTarget = null;
             painter.state.setModelviewMatricesToIdentity();
             painter.setStateTo(transformationMatrix);
-            painter.state.setProjectionMatrix(bounds.x, bounds.y, stageWidth, stageHeight,
+            painter.state.setProjectionMatrix(projectionX, projectionY,
+                painter.backBufferWidth / scaleX, painter.backBufferHeight / scaleY,
                 stageWidth, stageHeight, stage.cameraPosition);
 
             render(painter);
