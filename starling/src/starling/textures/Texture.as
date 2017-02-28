@@ -34,6 +34,7 @@ package starling.textures
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.SystemUtil;
+    import starling.utils.execute;
 
     /** <p>A texture stores the information that represents an image. It cannot be added to the
      *  display list directly; instead it has to be mapped onto a display object. In Starling,
@@ -332,13 +333,9 @@ package starling.textures
             var texture:Texture = Texture.empty(data.width / scale, data.height / scale, true,
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
                                                 format, forcePotTexture);
-
-            texture.root.uploadBitmapData(data, async);
-            texture.root.onRestore = function():void
-            {
-                texture.root.uploadBitmapData(data);
-            };
-
+            texture.root.uploadBitmapData(data,
+                async ? function():void { execute(async, texture); } : null);
+            texture.root.onRestore = function():void { texture.root.uploadBitmapData(data); };
             return texture;
         }
 
