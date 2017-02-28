@@ -19,6 +19,7 @@ package starling.styles
     import starling.events.Event;
     import starling.events.EventDispatcher;
     import starling.rendering.*;
+    import starling.textures.ConcreteTexture;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
 
@@ -100,9 +101,9 @@ package starling.styles
         private var _texture:Texture;
         private var _textureSmoothing:String;
         private var _textureRepeat:Boolean;
-        private var _textureBase:TextureBase; // just a reference to _texture.base
-        private var _vertexData:VertexData;   // just a reference to the target's vertex data
-        private var _indexData:IndexData;     // just a reference to the target's index data
+        private var _textureRoot:ConcreteTexture; // just a reference to _texture.root
+        private var _vertexData:VertexData;       // just a reference to the target's vertex data
+        private var _indexData:IndexData;         // just a reference to the target's index data
 
         // helper objects
         private static var sPoint:Point = new Point();
@@ -121,7 +122,7 @@ package starling.styles
         public function copyFrom(meshStyle:MeshStyle):void
         {
             _texture = meshStyle._texture;
-            _textureBase = _texture ? _texture.base : null; // fixes outdated base, too
+            _textureRoot = meshStyle._textureRoot;
             _textureRepeat = meshStyle._textureRepeat;
             _textureSmoothing = meshStyle._textureSmoothing;
         }
@@ -166,13 +167,16 @@ package starling.styles
          */
         public function canBatchWith(meshStyle:MeshStyle):Boolean
         {
+            // I'm comparing the 'root' texture, not the 'base' texture, because the former
+            // reference stays the same even when 'base' is recreated after a context loss.
+
             if (_type == meshStyle._type)
             {
                 var newTexture:Texture = meshStyle._texture;
 
                 if (_texture == null && newTexture == null) return true;
                 else if (_texture && newTexture)
-                    return _textureBase == meshStyle._textureBase &&
+                    return _textureRoot == meshStyle._textureRoot &&
                            _textureSmoothing == meshStyle._textureSmoothing &&
                            _textureRepeat == meshStyle._textureRepeat;
                 else return false;
@@ -410,7 +414,7 @@ package starling.styles
                 else setRequiresRedraw();
 
                 _texture = value;
-                _textureBase = value ? value.base : null;
+                _textureRoot = value ? value.root : null;
             }
         }
 
