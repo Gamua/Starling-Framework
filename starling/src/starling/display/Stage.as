@@ -274,6 +274,7 @@ package starling.display
         public function set focalLength(value:Number):void
         {
             _fieldOfView = 2 * Math.atan(stageWidth / (2*value));
+            setRequiresRedraw();
         }
 
         /** Specifies an angle (radian, between zero and PI) for the field of view. This value
@@ -287,7 +288,11 @@ package starling.display
          *  @default 1.0
          */
         public function get fieldOfView():Number { return _fieldOfView; }
-        public function set fieldOfView(value:Number):void { _fieldOfView = value; }
+        public function set fieldOfView(value:Number):void
+        {
+            _fieldOfView = value;
+            setRequiresRedraw();
+        }
 
         /** A vector that moves the camera away from its default position in the center of the
          *  stage. Use this property to change the center of projection, i.e. the vanishing
@@ -297,6 +302,7 @@ package starling.display
         public function set projectionOffset(value:Point):void
         {
             _projectionOffset.setTo(value.x, value.y);
+            setRequiresRedraw();
         }
 
         /** The global position of the camera. This property can only be used to find out the
