@@ -77,6 +77,13 @@ package starling.display
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sCacheToken:BatchToken = new BatchToken();
         
+        public static const ON_X:int			= 0;
+        public static const ON_Y:int			= 1;
+        public static const ON_Z:int			= 2;
+        public static const ON_X_REVERSE:int	= 4;
+        public static const ON_Y_REVERSE:int	= 5;
+        public static const ON_Z_REVERSE:int	= 6;
+        
         // construction
         
         /** @private */
@@ -264,6 +271,13 @@ package starling.display
         {
             sSortBuffer.length = _children.length;
             mergeSort(_children, compareFunction, 0, _children.length, sSortBuffer);
+            sSortBuffer.length = 0;
+            setRequiresRedraw();
+        }
+        
+        public function sortChildrenOnKey(key:int):void {
+            sSortBuffer.length = _children.length;
+            mergeSortOnKey(_children, key, 0, _children.length, sSortBuffer);
             sSortBuffer.length = 0;
             setRequiresRedraw();
         }
@@ -492,6 +506,132 @@ package starling.display
                     input[i] = buffer[int(i - startIndex)];
             }
         }
+        
+        private static function mergeSortOnKey(input:Vector.<DisplayObject>, key:int,
+                                          startIndex:int, length:int, 
+                                          buffer:Vector.<DisplayObject>):void
+        {
+            // This is a port of the C++ merge sort algorithm shown here:
+            // http://www.cprogramming.com/tutorial/computersciencetheory/mergesort.html
+            
+            if (length > 1)
+            {
+                var i:int;
+                var endIndex:int = startIndex + length;
+                var halfLength:int = length / 2;
+                var l:int = startIndex;              // current position in the left subvector
+                var r:int = startIndex + halfLength; // current position in the right subvector
+                
+                // sort each subvector
+                mergeSortOnKey(input, key, startIndex, halfLength, buffer);
+                mergeSortOnKey(input, key, startIndex + halfLength, length - halfLength, buffer);
+                
+                // merge the vectors, using the buffer vector for temporary storage
+				switch(key)
+				{
+					case ON_X:
+						for (i = 0; i < length; i++)
+						{
+							if (l < startIndex + halfLength && 
+								(r == endIndex || input[l].x <= input[r].x))
+							{
+								buffer[i] = input[l];
+								l++;
+							}
+							else
+							{
+								buffer[i] = input[r];
+								r++;
+							}
+						}
+						break;
+					case ON_Y:
+						for (i = 0; i < length; i++)
+						{
+							if (l < startIndex + halfLength && 
+								(r == endIndex || input[l].y <= input[r].y))
+							{
+								buffer[i] = input[l];
+								l++;
+							}
+							else
+							{
+								buffer[i] = input[r];
+								r++;
+							}
+						}
+						break;
+					case ON_Z:
+						for (i = 0; i < length; i++)
+						{
+							if (l < startIndex + halfLength && 
+								(r == endIndex || input[l].z <= input[r].z))
+							{
+								buffer[i] = input[l];
+								l++;
+							}
+							else
+							{
+								buffer[i] = input[r];
+								r++;
+							}
+						}
+						break;
+  					case ON_X_REVERSE:
+						for (i = 0; i < length; i++)
+						{
+							if (l < startIndex + halfLength && 
+								(r == endIndex || input[l].x > input[r].x))
+							{
+								buffer[i] = input[l];
+								l++;
+							}
+							else
+							{
+								buffer[i] = input[r];
+								r++;
+							}
+						}
+						break;
+					case ON_Y_REVERSE:
+						for (i = 0; i < length; i++)
+						{
+							if (l < startIndex + halfLength && 
+								(r == endIndex || input[l].y > input[r].y))
+							{
+								buffer[i] = input[l];
+								l++;
+							}
+							else
+							{
+								buffer[i] = input[r];
+								r++;
+							}
+						}
+						break;
+					case ON_Z_REVERSE:
+						for (i = 0; i < length; i++)
+						{
+							if (l < startIndex + halfLength && 
+								(r == endIndex || input[l].z > input[r].z))
+							{
+								buffer[i] = input[l];
+								l++;
+							}
+							else
+							{
+								buffer[i] = input[r];
+								r++;
+							}
+						}
+						break;
+                }
+                // copy the sorted subvector back to the input
+                for(i = startIndex; i < endIndex; i++)
+                    input[i] = buffer[int(i - startIndex)];
+            }
+        }
+        
 
         /** @private */
         internal function getChildEventListeners(object:DisplayObject, eventType:String, 
