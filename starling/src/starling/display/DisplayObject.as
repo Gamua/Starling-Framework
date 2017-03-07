@@ -141,6 +141,7 @@ package starling.display
         private var _orientationChanged:Boolean;
         private var _is3D:Boolean;
         private var _maskee:DisplayObject;
+        private var _sort:Number;
 
         // internal members (for fast access on rendering)
 
@@ -395,42 +396,24 @@ package starling.display
          */
         public function drawToBitmapData(out:BitmapData=null):BitmapData
         {
-            var painter:Painter = Starling.painter;
             var stage:Stage = Starling.current.stage;
-            var viewPort:Rectangle = Starling.current.viewPort;
-            var stageWidth:Number  = stage.stageWidth;
+            var stageWidth:Number = stage.stageWidth;
             var stageHeight:Number = stage.stageHeight;
-            var scaleX:Number = viewPort.width  / stageWidth;
-            var scaleY:Number = viewPort.height / stageHeight;
-            var backBufferScale:Number = painter.backBufferScaleFactor;
-            var projectionX:Number, projectionY:Number;
-            var bounds:Rectangle;
+            var scale:Number = Starling.contentScaleFactor;
+            var painter:Painter = Starling.painter;
+            var bounds:Rectangle = this is Stage ?
+                stage.getStageBounds(this, sHelperRect) : getBounds(_parent, sHelperRect);
 
-            if (this is Stage)
-            {
-                projectionX = viewPort.x < 0 ? -viewPort.x / scaleX : 0.0;
-                projectionY = viewPort.y < 0 ? -viewPort.y / scaleY : 0.0;
-
-                out ||= new BitmapData(painter.backBufferWidth  * backBufferScale,
-                                       painter.backBufferHeight * backBufferScale);
-            }
-            else
-            {
-                bounds = getBounds(_parent, sHelperRect);
-                projectionX = bounds.x;
-                projectionY = bounds.y;
-
-                out ||= new BitmapData(Math.ceil(bounds.width  * scaleX * backBufferScale),
-                                       Math.ceil(bounds.height * scaleY * backBufferScale));
-            }
+            if (out == null)
+                out = new BitmapData(Math.ceil(bounds.width  * scale),
+                                     Math.ceil(bounds.height * scale));
 
             painter.clear();
             painter.pushState();
             painter.state.renderTarget = null;
             painter.state.setModelviewMatricesToIdentity();
             painter.setStateTo(transformationMatrix);
-            painter.state.setProjectionMatrix(projectionX, projectionY,
-                painter.backBufferWidth / scaleX, painter.backBufferHeight / scaleY,
+            painter.state.setProjectionMatrix(bounds.x, bounds.y, stageWidth, stageHeight,
                 stageWidth, stageHeight, stage.cameraPosition);
 
             render(painter);
@@ -1148,6 +1131,10 @@ package starling.display
                 setRequiresRedraw();
             }
         }
+
+        
+        public function get sort():Number { return _sort; }
+        public function set sort(value:Number):void { _sort = value;}
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }

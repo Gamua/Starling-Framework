@@ -77,12 +77,12 @@ package starling.display
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sCacheToken:BatchToken = new BatchToken();
         
-        public static const ON_X:int			= 0;
-        public static const ON_Y:int			= 1;
-        public static const ON_Z:int			= 2;
-        public static const ON_X_REVERSE:int	= 4;
-        public static const ON_Y_REVERSE:int	= 5;
-        public static const ON_Z_REVERSE:int	= 6;
+        public static const ON_SORT:int			= 0;
+        public static const ON_X:int			= 1;
+        public static const ON_Y:int			= 2;
+        public static const ON_SORT_REVERSE:int	= 4;
+        public static const ON_X_REVERSE:int	= 5;
+        public static const ON_Y_REVERSE:int	= 6;
         
         // construction
         
@@ -275,7 +275,7 @@ package starling.display
             setRequiresRedraw();
         }
         
-        public function sortChildrenOnKey(key:int):void {
+        public function sortChildrenOnKey(key:int = ON_SORT):void {
             sSortBuffer.length = _children.length;
             mergeSortOnKey(_children, key, 0, _children.length, sSortBuffer);
             sSortBuffer.length = 0;
@@ -609,11 +609,11 @@ package starling.display
 							}
 						}
 						break;
-					case ON_Z_REVERSE:
+					default:
 						for (i = 0; i < length; i++)
 						{
 							if (l < startIndex + halfLength && 
-								(r == endIndex || input[l].z > input[r].z))
+								(r == endIndex || input[l].sort > input[r].sort))
 							{
 								buffer[i] = input[l];
 								l++;
