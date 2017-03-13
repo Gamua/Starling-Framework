@@ -332,8 +332,8 @@ package starling.core
                 _nativeStage.removeEventListener(touchEventType, onTouch, false);
 
             _touchProcessor.dispose();
-            _painter.dispose();
             _stage.dispose();
+            _painter.dispose();
 
             var index:int =  sAll.indexOf(this);
             if (index != -1) sAll.removeAt(index);
