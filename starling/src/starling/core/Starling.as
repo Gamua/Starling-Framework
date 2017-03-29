@@ -299,8 +299,16 @@ package starling.core
             
             stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 10, true);
             stage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 10, true);
-            
-            if (_painter.shareContext)
+
+            var runtimeVersion:int = parseInt(SystemUtil.version.split(",").shift());
+            if (runtimeVersion < 19)
+            {
+                var runtime:String = SystemUtil.isAIR ? "Adobe AIR" : "Flash Player";
+                stopWithFatalError(
+                    "Your " + runtime + " installation is outdated. " +
+                    "This software requires at least version 19.");
+            }
+            else if (_painter.shareContext)
             {
                 setTimeout(initialize, 1); // we don't call it right away, because Starling should
                                            // behave the same way with or without a shared context
