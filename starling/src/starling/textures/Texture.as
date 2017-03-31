@@ -334,7 +334,7 @@ package starling.textures
                                                 generateMipMaps, optimizeForRenderToTexture, scale,
                                                 format, forcePotTexture);
             texture.root.uploadBitmapData(data,
-                async ? function():void { execute(async, texture); } : null);
+                async != null ? function():void { execute(async, texture); } : null);
             texture.root.onRestore = function():void { texture.root.uploadBitmapData(data); };
             return texture;
         }

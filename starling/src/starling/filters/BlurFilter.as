@@ -30,10 +30,10 @@ package starling.filters
          *  displays (dubbed 'totalBlur' below).</p>
          *
          *  <p>The number of draw calls per blur value is the following:</p>
-         *  <ul><li>totalBlur <= 1: 1 draw call</li>
-         *      <li>totalBlur <= 2: 2 draw calls</li>
-         *      <li>totalBlur <= 4: 3 draw calls</li>
-         *      <li>totalBlur <= 8: 4 draw calls</li>
+         *  <ul><li>totalBlur &lt;= 1: 1 draw call</li>
+         *      <li>totalBlur &lt;= 2: 2 draw calls</li>
+         *      <li>totalBlur &lt;= 4: 3 draw calls</li>
+         *      <li>totalBlur &lt;= 8: 4 draw calls</li>
          *      <li>... etc.</li>
          *  </ul>
          */

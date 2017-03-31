@@ -511,7 +511,7 @@ package starling.text
          *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you
          *  can pass a custom name, as well. @return the name of the font. */
-        [Deprecated(replacement="registerCompositor")]
+        [Deprecated(replacement="registerCompositor()")]
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;
@@ -520,7 +520,7 @@ package starling.text
         }
 
         /** Unregisters the bitmap font and, optionally, disposes it. */
-        [Deprecated(replacement="unregisterCompositor")]
+        [Deprecated(replacement="unregisterCompositor()")]
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
             unregisterCompositor(name, dispose);
