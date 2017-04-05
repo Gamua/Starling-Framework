@@ -84,7 +84,11 @@ package starling.text
         public function clearMeshBatch(meshBatch:MeshBatch):void
         {
             meshBatch.clear();
-            if (meshBatch.texture) meshBatch.texture.dispose();
+            if (meshBatch.texture)
+            {
+                meshBatch.texture.dispose();
+                meshBatch.texture = null;
+            }
         }
 
         private function renderText(width:Number, height:Number, text:String,
