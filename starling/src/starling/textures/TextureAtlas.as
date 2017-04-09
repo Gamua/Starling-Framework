@@ -71,9 +71,9 @@ package starling.textures
      */
     public class TextureAtlas
     {
-        private var _atlasTexture:Texture;
-        private var _subTextures:Dictionary;
-        private var _subTextureNames:Vector.<String>;
+        protected var _atlasTexture:Texture;
+        protected var _subTextures:Dictionary;
+        protected var _subTextureNames:Vector.<String>;
         
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
@@ -213,7 +213,7 @@ package starling.textures
         
         // utility methods
 
-        private static function parseBool(value:String):Boolean
+        protected static function parseBool(value:String):Boolean
         {
             return value.toLowerCase() == "true";
         }
