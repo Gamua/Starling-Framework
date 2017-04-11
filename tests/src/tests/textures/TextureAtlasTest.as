@@ -75,6 +75,16 @@ package tests.textures
             
             assertNull(atlas.getTexture("bob"));
         }
+
+        [Test]
+        public function testAddSubTexture():void
+        {
+            var texture:Texture = new MockTexture(64, 64);
+            var subTexture:SubTexture = new SubTexture(texture, new Rectangle(32, 32, 32, 32));
+            var atlas:TextureAtlas = new TextureAtlas(texture);
+            atlas.addSubTexture("subTexture", subTexture);
+            assertEquals(atlas.getTexture("subTexture"), subTexture);
+        }
         
         [Test]
         public function testGetTextures():void
