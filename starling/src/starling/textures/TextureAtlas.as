@@ -114,7 +114,7 @@ package starling.textures
                 var frameY:Number      = parseFloat(subTexture.@frameY) / scale;
                 var frameWidth:Number  = parseFloat(subTexture.@frameWidth)  / scale;
                 var frameHeight:Number = parseFloat(subTexture.@frameHeight) / scale;
-                var rotated:Boolean    = parseBool( subTexture.@rotated);
+                var rotated:Boolean    = StringUtil.parseBoolean(subTexture.@rotated);
 
                 region.setTo(x, y, width, height);
                 frame.setTo(frameX, frameY, frameWidth, frameHeight);
@@ -195,13 +195,15 @@ package starling.textures
         public function addRegion(name:String, region:Rectangle, frame:Rectangle=null,
                                   rotated:Boolean=false):void
         {
-            _subTextures[name] = new SubTexture(_atlasTexture, region, false, frame, rotated);
-            _subTextureNames = null;
+            addSubTexture(name, new SubTexture(_atlasTexture, region, false, frame, rotated));
         }
         
         /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
         public function addSubTexture(name:String, subTexture:SubTexture):void
         {
+            if (subTexture.root != _atlasTexture.root)
+                throw new ArgumentError("SubTexture's root must be atlas texture.");
+
             _subTextures[name] = subTexture;
             _subTextureNames = null;
         }
@@ -217,12 +219,5 @@ package starling.textures
         
         /** The base texture that makes up the atlas. */
         public function get texture():Texture { return _atlasTexture; }
-        
-        // utility methods
-
-        protected static function parseBool(value:String):Boolean
-        {
-            return value.toLowerCase() == "true";
-        }
     }
 }
