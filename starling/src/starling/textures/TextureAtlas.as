@@ -71,9 +71,9 @@ package starling.textures
      */
     public class TextureAtlas
     {
-        protected var _atlasTexture:Texture;
-        protected var _subTextures:Dictionary;
-        protected var _subTextureNames:Vector.<String>;
+        private var _atlasTexture:Texture;
+        private var _subTextures:Dictionary;
+        private var _subTextureNames:Vector.<String>;
         
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
@@ -198,6 +198,13 @@ package starling.textures
             _subTextures[name] = new SubTexture(_atlasTexture, region, false, frame, rotated);
             _subTextureNames = null;
         }
+        
+        /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
+		public function addSubTexture(name:String, subTexture:SubTexture):void
+		{
+            _subTextures[name] = subTexture;
+            _subTextureNames = null;
+		}
         
         /** Removes a region with a certain name. */
         public function removeRegion(name:String):void
