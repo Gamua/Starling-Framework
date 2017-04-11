@@ -199,6 +199,13 @@ package starling.textures
             _subTextureNames = null;
         }
         
+        /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
+        public function addSubTexture(name:String, subTexture:SubTexture):void
+        {
+            _subTextures[name] = subTexture;
+            _subTextureNames = null;
+        }
+        
         /** Removes a region with a certain name. */
         public function removeRegion(name:String):void
         {
@@ -213,7 +220,7 @@ package starling.textures
         
         // utility methods
 
-        private static function parseBool(value:String):Boolean
+        protected static function parseBool(value:String):Boolean
         {
             return value.toLowerCase() == "true";
         }
