@@ -200,11 +200,11 @@ package starling.textures
         }
         
         /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
-		public function addSubTexture(name:String, subTexture:SubTexture):void
-		{
+        public function addSubTexture(name:String, subTexture:SubTexture):void
+        {
             _subTextures[name] = subTexture;
             _subTextureNames = null;
-		}
+        }
         
         /** Removes a region with a certain name. */
         public function removeRegion(name:String):void
