@@ -17,39 +17,28 @@ env:
     - TERM=dumb
 
 before_script:
-    # Update Brew silently
+    # Homebrew
     - brew update >brew-update.log
-    # Install Brew Packages silently
     - brew install ant gradle >brew-install.log
-    # Adobe Flash Player for CLI
     - brew install caskroom/cask/brew-cask
     - brew tap caskroom/versions
     - brew cask install flash-player-debugger
-    # Set env. variable used by FlexUnit
-    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
-    # Set env. variable used by Gradle
-    - export FLASH_PLAYER_EXE="$FLASHPLAYER_DEBUGGER"
     # Adobe AIR SDK
     - mkdir -p air_sdk
-    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/25.0/AIRSDK_Compiler.tbz2
+    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/latest/AIRSDK_Compiler.tbz2
     - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
+    - mkdir -p air_sdk/frameworks/libs/player/11.1/
+    - cp -f air_sdk/frameworks/libs/player/*/playerglobal.swc air_sdk/frameworks/libs/player/11.1/
     # Apache Flex SDK
     - wget -O flex_sdk.zip http://www-us.apache.org/dist/flex/4.15.0/binaries/apache-flex-sdk-4.15.0-bin.zip
     - unzip -q flex_sdk.zip -d flex_sdk
-    # Init PlayerGlobals
+    - cp -rf air_sdk/frameworks/libs/player flex_sdk/frameworks/libs/
     - echo env.PLAYERGLOBAL_HOME=libs/player > flex_sdk/env.properties
-    # Init Apache Flex SDK
-    - mkdir -p flex_sdk/frameworks/libs/player/11.1/
-    - mkdir -p flex_sdk/frameworks/libs/player/25.0/
-    - cp -f air_sdk/frameworks/libs/player/25.0/playerglobal.swc flex_sdk/frameworks/libs/player/11.1/
-    - cp -f air_sdk/frameworks/libs/player/25.0/playerglobal.swc flex_sdk/frameworks/libs/player/25.0/
-    # Set env. variable used by Ant and Gradle
+    # environment variables
     - export FLEX_HOME="$TRAVIS_BUILD_DIR/flex_sdk"
-    # Init Adobe AIR SDK
-    - mkdir -p air_sdk/frameworks/libs/player/11.1/
-    - cp -f air_sdk/frameworks/libs/player/25.0/playerglobal.swc air_sdk/frameworks/libs/player/11.1/
-    # Set env. variable used by Ant and Gradle
     - export AIR_HOME="$TRAVIS_BUILD_DIR/air_sdk"
+    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
+    - export FLASH_PLAYER_EXE="$FLASHPLAYER_DEBUGGER"
     # permissions
     - chmod +x flex_sdk/bin/mxmlc
 
