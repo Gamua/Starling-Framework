@@ -257,7 +257,7 @@ package starling.core
                                  viewPort:Rectangle=null, stage3D:Stage3D=null,
                                  renderMode:String="auto", profile:Object="auto")
         {
-            if (stage == null) throw new ArgumentError("Stage must not be null");
+            if (stage == null) throw new ArgumentError(outputName + " Stage must not be null");
             if (viewPort == null) viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
             if (stage3D == null) stage3D = stage.stage3Ds[0];
 
@@ -367,7 +367,7 @@ package starling.core
             if (_root == null && _rootClass != null)
             {
                 _root = new _rootClass() as DisplayObject;
-                if (_root == null) throw new Error("Invalid root class: " + _rootClass);
+                if (_root == null) throw new Error(outputName + " Invalid root class: " + _rootClass);
                 _stage.addChildAt(_root, 0);
 
                 dispatchEventWith(starling.events.Event.ROOT_CREATED, false, _root);
@@ -520,7 +520,7 @@ package starling.core
             nativeOverlay.addChild(textField);
             stop(true);
 
-            trace("[Starling]", message);
+            trace(outputName, message);
             dispatchEventWith(starling.events.Event.FATAL_ERROR, false, message);
         }
         
@@ -876,12 +876,12 @@ package starling.core
                 if (horizontalAlign == Align.LEFT) _statsDisplay.x = 0;
                 else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  stageWidth - _statsDisplay.width;
                 else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (stageWidth - _statsDisplay.width) / 2;
-                else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
+                else throw new ArgumentError(outputName + " Invalid horizontal alignment: " + horizontalAlign);
                 
                 if (verticalAlign == Align.TOP) _statsDisplay.y = 0;
                 else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  stageHeight - _statsDisplay.height;
                 else if (verticalAlign == Align.CENTER) _statsDisplay.y = (stageHeight - _statsDisplay.height) / 2;
-                else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+                else throw new ArgumentError(outputName + " Invalid vertical alignment: " + verticalAlign);
             }
             
             function onRootCreated():void
@@ -918,7 +918,7 @@ package starling.core
         public function set rootClass(value:Class):void
         {
             if (_rootClass != null && _root != null)
-                throw new Error("Root class may not change after root has been instantiated");
+                throw new Error(outputName + " Root class may not change after root has been instantiated");
             else if (_rootClass == null)
             {
                 _rootClass = value;
@@ -975,7 +975,7 @@ package starling.core
         public function get touchProcessor():TouchProcessor { return _touchProcessor; }
         public function set touchProcessor(value:TouchProcessor):void
         {
-            if (value == null) throw new ArgumentError("TouchProcessor must not be null");
+            if (value == null) throw new ArgumentError(outputName + " TouchProcessor must not be null");
             else if (value != _touchProcessor)
             {
                 _touchProcessor.dispose();
@@ -1022,7 +1022,7 @@ package starling.core
         public static function set multitouchEnabled(value:Boolean):void
         {
             if (sCurrent) throw new IllegalOperationError(
-                "'multitouchEnabled' must be set before Starling instance is created");
+                outputName + " 'multitouchEnabled' must be set before Starling instance is created");
             else 
                 Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
                                                MultitouchInputMode.NONE;
@@ -1033,6 +1033,8 @@ package starling.core
         {
             return sCurrent ? sCurrent._frameID : 0;
         }
+
+        private static function get outputName():String { return "[Starling]"; }
     }
 }
 

@@ -237,7 +237,7 @@ package starling.animation
          */
         public function delayCall(call:Function, delay:Number, ...args):uint
         {
-            if (call == null) throw new ArgumentError("call must not be null");
+            if (call == null) throw new ArgumentError(outputName + " call must not be null");
             
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, delay, args);
             delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
@@ -252,7 +252,7 @@ package starling.animation
          */
         public function repeatCall(call:Function, interval:Number, repeatCount:int=0, ...args):uint
         {
-            if (call == null) throw new ArgumentError("call must not be null");
+            if (call == null) throw new ArgumentError(outputName + " call must not be null");
             
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, interval, args);
             delayedCall.repeatCount = repeatCount;
@@ -299,7 +299,7 @@ package starling.animation
          */
         public function tween(target:Object, time:Number, properties:Object):uint
         {
-            if (target == null) throw new ArgumentError("target must not be null");
+            if (target == null) throw new ArgumentError(outputName + " target must not be null");
 
             var tween:Tween = Tween.starling_internal::fromPool(target, time);
             
@@ -312,7 +312,7 @@ package starling.animation
                 else if (target.hasOwnProperty(Tween.getPropertyName(property)))
                     tween.animate(property, value as Number);
                 else
-                    throw new ArgumentError("Invalid property: " + property);
+                    throw new ArgumentError(outputName + " Invalid property: " + property);
             }
             
             tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
@@ -392,5 +392,7 @@ package starling.animation
  
         /** The actual vector that contains all objects that are currently being animated. */
         protected function get objects():Vector.<IAnimatable> { return _objects; }
+
+        private static function get outputName():String { return "[Juggler]"; }
     }
 }
