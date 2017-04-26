@@ -1,16 +1,17 @@
 // =================================================================================================
 //
-//	Starling Framework
-//	Copyright Gamua GmbH. All Rights Reserved.
+//    Starling Framework
+//    Copyright Gamua GmbH. All Rights Reserved.
 //
-//	This program is free software. You can redistribute and/or modify it
-//	in accordance with the terms of the accompanying license agreement.
+//    This program is free software. You can redistribute and/or modify it
+//    in accordance with the terms of the accompanying license agreement.
 //
 // =================================================================================================
 
 package starling.display
 {
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
 
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
@@ -46,6 +47,7 @@ package starling.display
     public class Image extends Quad
     {
         private var _scale9Grid:Rectangle;
+        private var _scale9GridIsFromBinding:Boolean;
         private var _tileGrid:Rectangle;
 
         // helper objects
@@ -57,6 +59,31 @@ package starling.display
         private static var sPosRows:Vector.<Number> = new Vector.<Number>(3, true);
         private static var sTexCols:Vector.<Number> = new Vector.<Number>(3, true);
         private static var sTexRows:Vector.<Number> = new Vector.<Number>(3, true);
+
+        //used to bind scale 9 Rectangles to textures
+        private static var sScale9Bindings:Dictionary = new Dictionary(true);
+
+        /** Bind the given scaling grid to the given Texture, so that any Image which displays the 
+         *  Texture will automatically use the grid.
+         */
+        public static function bindScale9GridToTexture(texture:Texture, grid:Rectangle):void {
+            if (texture == null) {
+                throw new ArgumentError("Can't bind Scale 9 grid to a null texture!");
+            }
+            sScale9Bindings[texture] = grid;
+        }
+
+        /** Remove any currently bound scaling grid for the given Texture
+         */
+        public static function clearScale9Binding(texture:Texture):void {
+            delete sScale9Bindings[texture];
+        }
+
+        /** Remove all scaling grid bindings 
+         */
+        public static function clearAllScale9Bindings():void {
+            sScale9Bindings = new Dictionary(true);
+        }
 
         /** Creates an image with a texture mapped onto it. */
         public function Image(texture:Texture)
@@ -102,7 +129,8 @@ package starling.display
                 _tileGrid = null;
             }
             else _scale9Grid = null;
-
+            
+            _scale9GridIsFromBinding = false;
             setupVertices();
         }
 
@@ -175,7 +203,17 @@ package starling.display
             if (value != texture)
             {
                 super.texture = value;
-                if (_scale9Grid && value) readjustSize();
+                // Check for Scale9Grid binding
+                var grid:Rectangle = sScale9Bindings[value];
+                if (grid) 
+                { 
+                    // Found a binding, apply that grid
+                    scale9Grid = grid;
+                    _scale9GridIsFromBinding = true;
+                } else if (_scale9GridIsFromBinding)  // If current scale9Grid was bound to previous texture, clear it now
+                {
+                    scale9Grid = null;
+                } else if (_scale9Grid && value) readjustSize();
             }
         }
 
