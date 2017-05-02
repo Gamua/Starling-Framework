@@ -283,15 +283,15 @@ package starling.geom
         // factory methods
 
         /** Creates an ellipse with optimized implementations of triangulation, hitTest, etc. */
-        public static function createEllipse(x:Number, y:Number, radiusX:Number, radiusY:Number):Polygon
+        public static function createEllipse(x:Number, y:Number, radiusX:Number, radiusY:Number, numSides:int = -1):Polygon
         {
-            return new Ellipse(x, y, radiusX, radiusY);
+            return new Ellipse(x, y, radiusX, radiusY, numSides);
         }
 
         /** Creates a circle with optimized implementations of triangulation, hitTest, etc. */
-        public static function createCircle(x:Number, y:Number, radius:Number):Polygon
+        public static function createCircle(x:Number, y:Number, radius:Number, numSides:int = -1):Polygon
         {
-            return new Ellipse(x, y, radius, radius);
+            return new Ellipse(x, y, radius, radius, numSides);
         }
 
         /** Creates a rectangle with optimized implementations of triangulation, hitTest, etc. */
