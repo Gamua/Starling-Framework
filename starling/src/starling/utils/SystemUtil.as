@@ -115,6 +115,12 @@ package starling.utils
             initialize();
             return sAIR;
         }
+		
+		/** Indicates if the code is executed on an Android device, based on the <code>platform</code> string.
+		 */
+		public static function get isAndroid():Boolean {
+			return platform == "AND";
+		}
         
         /** Indicates if the code is executed on a Desktop computer with Windows, OS X or Linux
          *  operating system. If the method returns 'false', it's probably a mobile device
@@ -124,6 +130,24 @@ package starling.utils
             initialize();
             return sDesktop;
         }
+		
+		/** Indicates if the code is executed on an iOS device, based on the <code>platform</code> string.
+		 */
+		public static function get isIOS():Boolean {
+			return platform == "IOS";
+		}
+		
+		/** Indicates if the code is executed on a Macintosh, based on the <code>platform</code> string.
+		 */
+		public static function get isMac():Boolean {
+			return platform == "MAC";
+		}
+		
+		/** Indicates if the code is executed on Windows, based on the <code>platform</code> string.
+		 */
+		public static function get isWindows():Boolean {
+			return platform == "WIN";
+		}
         
         /** Returns the three-letter platform string of the current system. These are
          *  the most common platforms: <code>WIN, MAC, LNX, IOS, AND, QNX</code>. Except for the
