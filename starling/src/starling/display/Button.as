@@ -69,7 +69,8 @@ package starling.display
         public function Button(upState:Texture, text:String="", downState:Texture=null,
                                overState:Texture=null, disabledState:Texture=null)
         {
-            if (upState == null) throw new ArgumentError("Texture 'upState' cannot be null");
+            if (upState == null) 
+                throw new ArgumentError(outputName + " Texture 'upState' cannot be null");
             
             _upState = upState;
             _downState = downState;
@@ -225,7 +226,7 @@ package starling.display
                     _contents.alpha = _alphaWhenDisabled;
                     break;
                 default:
-                    throw new ArgumentError("Invalid button state: " + _state);
+                    throw new ArgumentError(outputName + " Invalid button state: " + _state);
             }
         }
 
@@ -321,7 +322,7 @@ package starling.display
         public function set upState(value:Texture):void
         {
             if (value == null)
-                throw new ArgumentError("Texture 'upState' cannot be null");
+                throw new ArgumentError(outputName + " Texture 'upState' cannot be null");
 
             if (_upState != value)
             {
@@ -452,5 +453,7 @@ package starling.display
          */
         public function get scale9Grid():Rectangle { return _body.scale9Grid; }
         public function set scale9Grid(value:Rectangle):void { _body.scale9Grid = value; }
+
+        private static function get outputName():String { return "[Button]"; }
     }
 }

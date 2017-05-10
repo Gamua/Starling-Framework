@@ -106,7 +106,8 @@ package starling.animation
             else if (transition is Function)
                 this.transitionFunc = transition as Function;
             else 
-                throw new ArgumentError("Transition must be either a string or a function");
+                throw new ArgumentError(outputName + " Transition must be either a string or a " +
+				                        "function");
             
             if (_properties)  _properties.length  = 0; else _properties  = new <String>[];
             if (_startValues) _startValues.length = 0; else _startValues = new <Number>[];
@@ -319,7 +320,7 @@ package starling.animation
         public function getEndValue(property:String):Number
         {
             var index:int = _properties.indexOf(property);
-            if (index == -1) throw new ArgumentError("The property '" + property + "' is not animated");
+            if (index == -1) throw new ArgumentError(outputName + " The property '" + property + "' is not animated");
             else return _endValues[index] as Number;
         }
         
@@ -340,7 +341,7 @@ package starling.animation
             _transitionFunc = Transitions.getTransition(value);
             
             if (_transitionFunc == null)
-                throw new ArgumentError("Invalid transiton: " + value);
+                throw new ArgumentError(outputName + " Invalid transiton: " + value);
         }
         
         /** The actual transition function used for the animation. */
@@ -423,6 +424,8 @@ package starling.animation
          *  this tween is completed. */
         public function get nextTween():Tween { return _nextTween; }
         public function set nextTween(value:Tween):void { _nextTween = value; }
+        
+        private static function get outputName():String { return "[Tween]"; }
         
         // tween pooling
         

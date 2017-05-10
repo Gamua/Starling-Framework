@@ -602,7 +602,7 @@ package starling.utils
         public function loadQueue(onProgress:Function):void
         {
             if (onProgress == null)
-                throw new ArgumentError("Argument 'onProgress' must not be null");
+                throw new ArgumentError(outputName + " Argument 'onProgress' must not be null");
 
             if (_queue.length == 0)
             {
@@ -613,7 +613,7 @@ package starling.utils
             _starling = Starling.current;
             
             if (_starling == null || _starling.context == null)
-                throw new Error("The Starling instance needs to be ready before assets can be loaded.");
+                throw new Error(outputName + " The Starling instance needs to be ready before assets can be loaded.");
 
             const PROGRESS_PART_ASSETS:Number = 0.9;
             const PROGRESS_PART_XMLS:Number = 1.0 - PROGRESS_PART_ASSETS;
@@ -741,7 +741,7 @@ package starling.utils
                     else log("Cannot create bitmap font: texture '" + name + "' is missing.");
                 }
                 else
-                    throw new Error("XML contents not recognized: " + rootNode);
+                    throw new Error(outputName + " XML contents not recognized: " + rootNode);
 
                 onProgress(PROGRESS_PART_ASSETS + PROGRESS_PART_XMLS * xmlProgress);
                 setTimeout(processXml, 1, index + 1);
@@ -837,7 +837,7 @@ package starling.utils
                         {
                             try
                             {
-                                if (asset == null) throw new Error("Reload failed");
+                                if (asset == null) throw new Error(outputName + " Reload failed");
                                 texture.root.uploadBitmap(asset as Bitmap);
                                 asset.bitmapData.dispose();
                             }
@@ -874,7 +874,7 @@ package starling.utils
                             {
                                 try
                                 {
-                                    if (asset == null) throw new Error("Reload failed");
+                                    if (asset == null) throw new Error(outputName + " Reload failed");
                                     texture.root.uploadAtfData(asset as ByteArray, 0, false);
                                     asset.clear();
                                 }
@@ -1122,12 +1122,14 @@ package starling.utils
                 name = getBasenameFromUrl(name);
 
                 if (name) return name;
-                else throw new ArgumentError("Could not extract name from String '" + rawAsset + "'");
+                else throw new ArgumentError(outputName + " Could not extract name from String '" +
+				                             rawAsset + "'");
             }
             else
             {
                 name = getQualifiedClassName(rawAsset);
-                throw new ArgumentError("Cannot extract names for objects of type '" + name + "'");
+                throw new ArgumentError(outputName + " Cannot extract names for objects of type '" +
+                                        name + "'");
             }
         }
 
@@ -1147,9 +1149,9 @@ package starling.utils
          *  default, it traces 'message' to the console. */
         protected function log(message:String):void
         {
-            if (_verbose) trace("[AssetManager]", message);
+            if (_verbose) trace(outputName, message);
         }
-        
+
         private function byteArrayStartsWith(bytes:ByteArray, char:String):Boolean
         {
             var start:int = 0;
@@ -1300,5 +1302,7 @@ package starling.utils
          *  More connections can reduce loading times, but require more memory. @default 3. */
         public function get numConnections():int { return _numConnections; }
         public function set numConnections(value:int):void { _numConnections = value; }
+
+        private static function get outputName():String { return "[AssetManager]"; }
     }
 }

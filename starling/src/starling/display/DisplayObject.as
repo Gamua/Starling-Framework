@@ -379,12 +379,14 @@ package starling.display
             if (horizontalAlign == Align.LEFT)        _pivotX = bounds.x;
             else if (horizontalAlign == Align.CENTER) _pivotX = bounds.x + bounds.width / 2.0;
             else if (horizontalAlign == Align.RIGHT)  _pivotX = bounds.x + bounds.width;
-            else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
+            else throw new ArgumentError(outputName + " Invalid horizontal alignment: " +
+                                         horizontalAlign);
             
             if (verticalAlign == Align.TOP)         _pivotY = bounds.y;
             else if (verticalAlign == Align.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
             else if (verticalAlign == Align.BOTTOM) _pivotY = bounds.y + bounds.height;
-            else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+            else throw new ArgumentError(outputName + " Invalid vertical alignment: " + 
+                                         verticalAlign);
         }
 
         /** Draws the object into a BitmapData object.
@@ -530,7 +532,8 @@ package starling.display
         public function local3DToGlobal(localPoint:Vector3D, out:Point=null):Point
         {
             var stage:Stage = this.stage;
-            if (stage == null) throw new IllegalOperationError("Object not connected to stage");
+            if (stage == null) 
+                throw new IllegalOperationError(outputName + " Object not connected to stage");
 
             getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
             MatrixUtil.transformPoint3D(sHelperMatrixAlt3D, localPoint, sHelperPoint3D);
@@ -543,7 +546,8 @@ package starling.display
         public function globalToLocal3D(globalPoint:Point, out:Vector3D=null):Vector3D
         {
             var stage:Stage = this.stage;
-            if (stage == null) throw new IllegalOperationError("Object not connected to stage");
+            if (stage == null) 
+                throw new IllegalOperationError(outputName + " Object not connected to stage");
 
             getTransformationMatrix3D(stage, sHelperMatrixAlt3D);
             sHelperMatrixAlt3D.invert();
@@ -562,8 +566,9 @@ package starling.display
                 ancestor = ancestor._parent;
             
             if (ancestor == this)
-                throw new ArgumentError("An object cannot be added as a child to itself or one " +
-                                        "of its children (or children's children, etc.)");
+                throw new ArgumentError(outputName + " An object cannot be added as a child " + 
+                                        "to itself or one of its children (or children's " +
+                                        "children, etc.)");
             else
                 _parent = value;
         }
@@ -661,7 +666,7 @@ package starling.display
             sAncestors.length = 0;
 
             if (currentObject) return currentObject;
-            else throw new ArgumentError("Object not connected to target");
+            else throw new ArgumentError(outputName + " Object not connected to target");
         }
 
         // stage event handling
@@ -1178,5 +1183,7 @@ package starling.display
         /** The stage the display object is connected to, or null if it is not connected 
          *  to the stage. */
         public function get stage():Stage { return this.base as Stage; }
+        
+        private static function get outputName():String { return "[DisplayObject]"; }
     }
 }
