@@ -930,8 +930,12 @@ package starling.core
          *  uses the same render context. If enabled, Starling will not execute any destructive
          *  context operations (e.g. not call 'configureBackBuffer', 'clear', 'present', etc.
          *  This has to be done manually, then. @default false */
-        public function get shareContext() : Boolean { return _painter.shareContext; }
-        public function set shareContext(value : Boolean) : void { _painter.shareContext = value; }
+        public function get shareContext():Boolean { return _painter.shareContext; }
+        public function set shareContext(value:Boolean):void
+        {
+            if (!value) _previousViewPort.setEmpty(); // forces back buffer update
+            _painter.shareContext = value;
+        }
 
         /** The Context3D profile of the current render context, or <code>null</code>
          *  if the context has not been created yet. */
