@@ -376,14 +376,14 @@ package starling.display
             var bounds:Rectangle = getBounds(this, sHelperRect);
             setOrientationChanged();
             
-            if (horizontalAlign == Align.LEFT)        _pivotX = bounds.x;
-            else if (horizontalAlign == Align.CENTER) _pivotX = bounds.x + bounds.width / 2.0;
-            else if (horizontalAlign == Align.RIGHT)  _pivotX = bounds.x + bounds.width;
+            if (horizontalAlign == Align.LEFT)        pivotX = bounds.x;
+            else if (horizontalAlign == Align.CENTER) pivotX = bounds.x + bounds.width / 2.0;
+            else if (horizontalAlign == Align.RIGHT)  pivotX = bounds.x + bounds.width;
             else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
             
-            if (verticalAlign == Align.TOP)         _pivotY = bounds.y;
-            else if (verticalAlign == Align.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
-            else if (verticalAlign == Align.BOTTOM) _pivotY = bounds.y + bounds.height;
+            if (verticalAlign == Align.TOP)           pivotY = bounds.y;
+            else if (verticalAlign == Align.CENTER)   pivotY = bounds.y + bounds.height / 2.0;
+            else if (verticalAlign == Align.BOTTOM)   pivotY = bounds.y + bounds.height;
             else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
         }
 
