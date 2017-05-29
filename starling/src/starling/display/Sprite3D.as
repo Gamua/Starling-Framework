@@ -77,7 +77,7 @@ package starling.display
 
         private var _transformationMatrix:Matrix;
         private var _transformationMatrix3D:Matrix3D;
-        private var _is2D:Boolean;
+        private var _isFlat:Boolean;
 
         /** Helper objects. */
         private static var sHelperPoint:Vector3D    = new Vector3D();
@@ -91,8 +91,8 @@ package starling.display
             _rotationX = _rotationY = _pivotZ = _z = 0.0;
             _transformationMatrix   = this.transformationMatrix;
             _transformationMatrix3D = this.transformationMatrix3D;
-            _is2D = true;  // meaning: this 3D object contains only 2D content
-            setIs3D(true); // meaning: this display object supports 3D transformations
+            _isFlat = true; // meaning: this 3D object contains only 2D content
+            setIs3D(true);  // meaning: this display object supports 3D transformations
 
             addEventListener(Event.ADDED, onAddedChild);
             addEventListener(Event.REMOVED, onRemovedChild);
@@ -101,7 +101,7 @@ package starling.display
         /** @inheritDoc */
         override public function render(painter:Painter):void
         {
-            if (_is2D) super.render(painter);
+            if (_isFlat) super.render(painter);
             else
             {
                 painter.finishMeshBatch();
@@ -119,7 +119,7 @@ package starling.display
         /** @inheritDoc */
         override public function hitTest(localPoint:Point):DisplayObject
         {
-            if (_is2D) return super.hitTest(localPoint);
+            if (_isFlat) return super.hitTest(localPoint);
             else
             {
                 if (!visible || !touchable) return null;
@@ -141,11 +141,7 @@ package starling.display
         /** @private */
         override public function setRequiresRedraw():void
         {
-            _is2D = _z > -E && _z < E &&
-                    _rotationX > -E && _rotationX < E &&
-                    _rotationY > -E && _rotationY < E &&
-                    _pivotZ > -E && _pivotZ < E;
-
+            updateIsFlat();
             super.setRequiresRedraw();
         }
 
@@ -178,19 +174,14 @@ package starling.display
             object.setIs3D(value);
         }
 
-        override starling_internal function updateTransformationMatrix():void
+        override starling_internal function updateTransformationMatrix(
+            x:Number, y:Number, pivotX:Number, pivotY:Number, scaleX:Number, scaleY:Number,
+            skewX:Number, skewY:Number, rotation:Number):void
         {
-            if (_is2D) super.updateTransformationMatrix();
+            if (_isFlat) super.updateTransformationMatrix(
+                x, y, pivotX, pivotY, scaleX, scaleY, skewX, skewY, rotation);
             else
             {
-                var x:Number = this.x;
-                var y:Number = this.y;
-                var scaleX:Number = this.scaleX;
-                var scaleY:Number = this.scaleY;
-                var pivotX:Number = this.pivotX;
-                var pivotY:Number = this.pivotY;
-                var rotationZ:Number = this.rotation;
-
                 _transformationMatrix.identity();
                 _transformationMatrix3D.identity();
 
@@ -200,13 +191,21 @@ package starling.display
                     _transformationMatrix3D.appendRotation(rad2deg(_rotationX), Vector3D.X_AXIS);
                 if (_rotationY != 0.0)
                     _transformationMatrix3D.appendRotation(rad2deg(_rotationY), Vector3D.Y_AXIS);
-                if (rotationZ != 0.0)
-                    _transformationMatrix3D.appendRotation(rad2deg( rotationZ), Vector3D.Z_AXIS);
+                if ( rotation  != 0.0)
+                    _transformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
                 if (x != 0.0 || y != 0.0 || _z != 0.0)
                     _transformationMatrix3D.appendTranslation(x, y, _z);
                 if (pivotX != 0.0 || pivotY != 0.0 || _pivotZ != 0.0)
                     _transformationMatrix3D.prependTranslation(-pivotX, -pivotY, -_pivotZ);
             }
+        }
+
+        starling_internal function updateIsFlat():void
+        {
+            _isFlat = _z > -E && _z < E &&
+                      _rotationX > -E && _rotationX < E &&
+                      _rotationY > -E && _rotationY < E &&
+                      _pivotZ > -E && _pivotZ < E;
         }
 
         // properties
@@ -290,5 +289,9 @@ package starling.display
          *  (In Starling, all angles are measured in radians.) */
         public function get rotationZ():Number { return rotation; }
         public function set rotationZ(value:Number):void { rotation = value; }
+
+        /** If <code>true</code>, this 3D object contains only 2D content.
+         *  This means that rendering will be just as efficient as for a standard 2D object. */
+        public function get isFlat():Boolean { return _isFlat; }
     }
 }

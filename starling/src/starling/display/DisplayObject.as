@@ -644,27 +644,29 @@ package starling.display
         }
 
         /** @private */
-        starling_internal function updateTransformationMatrix():void
+        starling_internal function updateTransformationMatrix(
+            x:Number, y:Number, pivotX:Number, pivotY:Number, scaleX:Number, scaleY:Number,
+            skewX:Number, skewY:Number, rotation:Number):void
         {
-            if (_skewX == 0.0 && _skewY == 0.0)
+            if (skewX == 0.0 && skewY == 0.0)
             {
                 // optimization: no skewing / rotation simplifies the matrix math
 
-                if (_rotation == 0.0)
+                if (rotation == 0.0)
                 {
-                    _transformationMatrix.setTo(_scaleX, 0.0, 0.0, _scaleY,
-                        _x - _pivotX * _scaleX, _y - _pivotY * _scaleY);
+                    _transformationMatrix.setTo(scaleX, 0.0, 0.0, scaleY,
+                        x - pivotX * scaleX, y - pivotY * scaleY);
                 }
                 else
                 {
-                    var cos:Number = Math.cos(_rotation);
-                    var sin:Number = Math.sin(_rotation);
-                    var a:Number   = _scaleX *  cos;
-                    var b:Number   = _scaleX *  sin;
-                    var c:Number   = _scaleY * -sin;
-                    var d:Number   = _scaleY *  cos;
-                    var tx:Number  = _x - _pivotX * a - _pivotY * c;
-                    var ty:Number  = _y - _pivotX * b - _pivotY * d;
+                    var cos:Number = Math.cos(rotation);
+                    var sin:Number = Math.sin(rotation);
+                    var a:Number   = scaleX *  cos;
+                    var b:Number   = scaleX *  sin;
+                    var c:Number   = scaleY * -sin;
+                    var d:Number   = scaleY *  cos;
+                    var tx:Number  = x - pivotX * a - pivotY * c;
+                    var ty:Number  = y - pivotX * b - pivotY * d;
 
                     _transformationMatrix.setTo(a, b, c, d, tx, ty);
                 }
@@ -672,18 +674,18 @@ package starling.display
             else
             {
                 _transformationMatrix.identity();
-                _transformationMatrix.scale(_scaleX, _scaleY);
-                MatrixUtil.skew(_transformationMatrix, _skewX, _skewY);
-                _transformationMatrix.rotate(_rotation);
-                _transformationMatrix.translate(_x, _y);
+                _transformationMatrix.scale(scaleX, scaleY);
+                MatrixUtil.skew(_transformationMatrix, skewX, skewY);
+                _transformationMatrix.rotate(rotation);
+                _transformationMatrix.translate(x, y);
 
-                if (_pivotX != 0.0 || _pivotY != 0.0)
+                if (pivotX != 0.0 || pivotY != 0.0)
                 {
                     // prepend pivot transformation
-                    _transformationMatrix.tx = _x - _transformationMatrix.a * _pivotX
-                        - _transformationMatrix.c * _pivotY;
-                    _transformationMatrix.ty = _y - _transformationMatrix.b * _pivotX
-                        - _transformationMatrix.d * _pivotY;
+                    _transformationMatrix.tx = x - _transformationMatrix.a * pivotX
+                                                 - _transformationMatrix.c * pivotY;
+                    _transformationMatrix.ty = y - _transformationMatrix.b * pivotX
+                                                 - _transformationMatrix.d * pivotY;
                 }
             }
 
@@ -796,7 +798,8 @@ package starling.display
             if (_transformationChanged)
             {
                 _transformationChanged = false;
-                updateTransformationMatrix();
+                updateTransformationMatrix(
+                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation);
             }
             
             return _transformationMatrix;
@@ -845,15 +848,14 @@ package starling.display
          *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix3D():Matrix3D
         {
-            // this method needs to be overridden in 3D-supporting subclasses (like Sprite3D).
-
             if (_transformationMatrix3D == null)
                 _transformationMatrix3D = MatrixUtil.convertTo3D(_transformationMatrix);
 
             if (_transformationChanged)
             {
                 _transformationChanged = false;
-                updateTransformationMatrix();
+                updateTransformationMatrix(
+                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation);
             }
 
             return _transformationMatrix3D;
