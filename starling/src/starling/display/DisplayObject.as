@@ -795,6 +795,10 @@ package starling.display
             if (_transformationChanged)
             {
                 _transformationChanged = false;
+
+                if (_transformationMatrix3D == null && _is3D)
+                    _transformationMatrix3D = new Matrix3D();
+
                 updateTransformationMatrices(
                     _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
                     _transformationMatrix, _transformationMatrix3D);
