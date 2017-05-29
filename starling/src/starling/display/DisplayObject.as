@@ -644,9 +644,9 @@ package starling.display
         }
 
         /** @private */
-        starling_internal function updateTransformationMatrix(
+        starling_internal function updateTransformationMatrices(
             x:Number, y:Number, pivotX:Number, pivotY:Number, scaleX:Number, scaleY:Number,
-            skewX:Number, skewY:Number, rotation:Number):void
+            skewX:Number, skewY:Number, rotation:Number, out:Matrix, out3D:Matrix3D):void
         {
             if (skewX == 0.0 && skewY == 0.0)
             {
@@ -654,7 +654,7 @@ package starling.display
 
                 if (rotation == 0.0)
                 {
-                    _transformationMatrix.setTo(scaleX, 0.0, 0.0, scaleY,
+                    out.setTo(scaleX, 0.0, 0.0, scaleY,
                         x - pivotX * scaleX, y - pivotY * scaleY);
                 }
                 else
@@ -668,29 +668,26 @@ package starling.display
                     var tx:Number  = x - pivotX * a - pivotY * c;
                     var ty:Number  = y - pivotX * b - pivotY * d;
 
-                    _transformationMatrix.setTo(a, b, c, d, tx, ty);
+                    out.setTo(a, b, c, d, tx, ty);
                 }
             }
             else
             {
-                _transformationMatrix.identity();
-                _transformationMatrix.scale(scaleX, scaleY);
-                MatrixUtil.skew(_transformationMatrix, skewX, skewY);
-                _transformationMatrix.rotate(rotation);
-                _transformationMatrix.translate(x, y);
+                out.identity();
+                out.scale(scaleX, scaleY);
+                MatrixUtil.skew(out, skewX, skewY);
+                out.rotate(rotation);
+                out.translate(x, y);
 
                 if (pivotX != 0.0 || pivotY != 0.0)
                 {
                     // prepend pivot transformation
-                    _transformationMatrix.tx = x - _transformationMatrix.a * pivotX
-                                                 - _transformationMatrix.c * pivotY;
-                    _transformationMatrix.ty = y - _transformationMatrix.b * pivotX
-                                                 - _transformationMatrix.d * pivotY;
+                    out.tx = x - out.a * pivotX - out.c * pivotY;
+                    out.ty = y - out.b * pivotX - out.d * pivotY;
                 }
             }
 
-            if (_transformationMatrix3D)
-                MatrixUtil.convertTo3D(transformationMatrix, _transformationMatrix3D);
+            if (out3D) MatrixUtil.convertTo3D(out, out3D);
         }
 
         private static function findCommonParent(object1:DisplayObject,
@@ -798,8 +795,9 @@ package starling.display
             if (_transformationChanged)
             {
                 _transformationChanged = false;
-                updateTransformationMatrix(
-                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation);
+                updateTransformationMatrices(
+                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
+                    _transformationMatrix, _transformationMatrix3D);
             }
             
             return _transformationMatrix;
@@ -854,8 +852,9 @@ package starling.display
             if (_transformationChanged)
             {
                 _transformationChanged = false;
-                updateTransformationMatrix(
-                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation);
+                updateTransformationMatrices(
+                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
+                    _transformationMatrix, _transformationMatrix3D);
             }
 
             return _transformationMatrix3D;

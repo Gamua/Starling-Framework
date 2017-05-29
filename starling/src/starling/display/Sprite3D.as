@@ -75,9 +75,6 @@ package starling.display
         private var _pivotZ:Number;
         private var _z:Number;
 
-        private var _transformationMatrix:Matrix;
-        private var _transformationMatrix3D:Matrix3D;
-
         /** Helper objects. */
         private static var sHelperPoint:Vector3D    = new Vector3D();
         private static var sHelperPointAlt:Vector3D = new Vector3D();
@@ -88,9 +85,7 @@ package starling.display
         {
             _scaleZ = 1.0;
             _rotationX = _rotationY = _pivotZ = _z = 0.0;
-            _transformationMatrix   = this.transformationMatrix;
-            _transformationMatrix3D = this.transformationMatrix3D;
-            setIs3D(true);  // meaning: this display object supports 3D transformations
+            setIs3D(true);
 
             addEventListener(Event.ADDED, onAddedChild);
             addEventListener(Event.REMOVED, onRemovedChild);
@@ -165,30 +160,39 @@ package starling.display
             object.setIs3D(value);
         }
 
-        override starling_internal function updateTransformationMatrix(
+        override starling_internal function updateTransformationMatrices(
             x:Number, y:Number, pivotX:Number, pivotY:Number, scaleX:Number, scaleY:Number,
-            skewX:Number, skewY:Number, rotation:Number):void
+            skewX:Number, skewY:Number, rotation:Number, out:Matrix, out3D:Matrix3D):void
         {
-            if (isFlat) super.updateTransformationMatrix(
-                x, y, pivotX, pivotY, scaleX, scaleY, skewX, skewY, rotation);
-            else
-            {
-                _transformationMatrix.identity();
-                _transformationMatrix3D.identity();
+            if (isFlat) super.updateTransformationMatrices(
+                x, y, pivotX, pivotY, scaleX, scaleY, skewX, skewY, rotation, out, out3D);
+            else updateTransformationMatrices3D(
+                x, y, _z, pivotX, pivotY, _pivotZ, scaleX, scaleY, _scaleZ,
+                _rotationX, _rotationY, rotation, out, out3D);
+        }
 
-                if (scaleX != 1.0 || scaleY != 1.0 || _scaleZ != 1.0)
-                    _transformationMatrix3D.appendScale(scaleX || E , scaleY || E, _scaleZ || E);
-                if (_rotationX != 0.0)
-                    _transformationMatrix3D.appendRotation(rad2deg(_rotationX), Vector3D.X_AXIS);
-                if (_rotationY != 0.0)
-                    _transformationMatrix3D.appendRotation(rad2deg(_rotationY), Vector3D.Y_AXIS);
-                if ( rotation  != 0.0)
-                    _transformationMatrix3D.appendRotation(rad2deg( rotation ), Vector3D.Z_AXIS);
-                if (x != 0.0 || y != 0.0 || _z != 0.0)
-                    _transformationMatrix3D.appendTranslation(x, y, _z);
-                if (pivotX != 0.0 || pivotY != 0.0 || _pivotZ != 0.0)
-                    _transformationMatrix3D.prependTranslation(-pivotX, -pivotY, -_pivotZ);
-            }
+        starling_internal function updateTransformationMatrices3D(
+            x:Number, y:Number, z:Number,
+            pivotX:Number, pivotY:Number, pivotZ:Number,
+            scaleX:Number, scaleY:Number, scaleZ:Number,
+            rotationX:Number, rotationY:Number, rotationZ:Number,
+            out:Matrix, out3D:Matrix3D):void
+        {
+            out.identity();
+            out3D.identity();
+
+            if (scaleX != 1.0 || scaleY != 1.0 || scaleZ != 1.0)
+                out3D.appendScale(scaleX || E , scaleY || E, scaleZ || E);
+            if (rotationX != 0.0)
+                out3D.appendRotation(rad2deg(rotationX), Vector3D.X_AXIS);
+            if (rotationY != 0.0)
+                out3D.appendRotation(rad2deg(rotationY), Vector3D.Y_AXIS);
+            if (rotationZ != 0.0)
+                out3D.appendRotation(rad2deg(rotationZ), Vector3D.Z_AXIS);
+            if (x != 0.0 || y != 0.0 || z != 0.0)
+                out3D.appendTranslation(x, y, z);
+            if (pivotX != 0.0 || pivotY != 0.0 || pivotZ != 0.0)
+                out3D.prependTranslation(-pivotX, -pivotY, -pivotZ);
         }
 
         // properties
