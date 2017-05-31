@@ -160,6 +160,18 @@ package starling.text
             }
         }
         
+        /** Returns chars available in this bitmap font. */
+        public function getChars():Vector.<int>
+        {
+            var keys:Vector.<int> = new <int>[];
+            
+            for(var key:int in mChars){
+                keys[keys.length] = key;
+            }
+            
+            return keys;
+        }
+        
         /** Returns a single bitmap char with a certain character ID. */
         public function getChar(charID:int):BitmapChar
         {
