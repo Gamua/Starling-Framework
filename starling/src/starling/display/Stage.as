@@ -230,7 +230,10 @@ package starling.display
             throw new IllegalOperationError("Cannot add filter to stage. Add it to 'root' instead!");
         }
         
-        /** The background color of the stage. */
+        /** The background color of the stage.
+         *  When Starling clears the render context (which happens automatically once per frame),
+         *  it will use this this color. Note that it's actually an 'ARGB' value: if you need
+         *  the context to be cleared with a specific alpha value, include it in the color. */
         public function get color():uint { return _color; }
         public function set color(value:uint):void { _color = value; }
         

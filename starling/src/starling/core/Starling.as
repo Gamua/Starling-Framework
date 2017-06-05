@@ -44,6 +44,7 @@ package starling.core
     import starling.events.TouchProcessor;
     import starling.rendering.Painter;
     import starling.utils.Align;
+    import starling.utils.Color;
     import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
 
@@ -428,6 +429,7 @@ package starling.core
                 var shareContext:Boolean = _painter.shareContext;
                 var scaleX:Number = _viewPort.width  / _stage.stageWidth;
                 var scaleY:Number = _viewPort.height / _stage.stageHeight;
+                var stageColor:uint = _stage.color;
 
                 _painter.nextFrame();
                 _painter.pixelSize = 1.0 / contentScaleFactor;
@@ -439,7 +441,7 @@ package starling.core
                     _stage.stageWidth, _stage.stageHeight, _stage.cameraPosition);
 
                 if (!shareContext)
-                    _painter.clear(_stage.color, 0.0);
+                    _painter.clear(stageColor, Color.getAlpha(stageColor));
 
                 _stage.render(_painter);
                 _painter.finishFrame();
