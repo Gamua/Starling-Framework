@@ -44,7 +44,7 @@ package starling.utils
                     Color.getBlue(rgb)  / 255.0,
                     alpha,
                     1.0, // depth
-					127  // stencil
+		    127  // stencil
              );
         }
 
