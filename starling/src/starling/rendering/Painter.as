@@ -627,7 +627,7 @@ package starling.rendering
             _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
 
             // reset everything else
-            stencilReferenceValue = 0;
+            stencilReferenceValue = 127;
             _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
@@ -729,7 +729,7 @@ package starling.rendering
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             applyRenderTarget();
-            stencilReferenceValue = 0;
+            stencilReferenceValue = 127;
             RenderUtil.clear(rgb, alpha);
         }
 
