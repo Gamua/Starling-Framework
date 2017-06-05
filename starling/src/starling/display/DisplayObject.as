@@ -153,6 +153,7 @@ package starling.display
         /** @private */ internal var _hasVisibleArea:Boolean;
         /** @private */ internal var _filter:FragmentFilter;
         /** @private */ internal var _mask:DisplayObject;
+        /** @private */ internal var _isMaskInverted:Boolean = false;
 
         // helper objects
 
@@ -1167,6 +1168,10 @@ package starling.display
                 setRequiresRedraw();
             }
         }
+        
+        /** Indicates if the masked region of this object is set to be inverted.*/
+        public function get isMaskInverted():Boolean { return _isMaskInverted; }
+        public function set isMaskInverted(value:Boolean):void { _isMaskInverted = value; }
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }
