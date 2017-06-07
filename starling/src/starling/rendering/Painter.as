@@ -552,6 +552,15 @@ package starling.rendering
             _batchCacheExclusions.length = 0;
         }
 
+        /** Makes sure that the default context settings Starling relies on will be refreshed
+         *  before the next 'draw' operation. This includes blend mode, culling, and depth test. */
+        public function setupContextDefaults():void
+        {
+            _actualBlendMode = null;
+            _actualCulling = null;
+            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+        }
+
         /** Resets the current state, state stack, batch processor, stencil reference value,
          *  clipping rectangle, and draw count. Furthermore, depth testing is disabled. */
         public function nextFrame():void
@@ -561,10 +570,7 @@ package starling.rendering
             _batchProcessor.clear();
             _batchProcessorSpec.clear();
 
-            // enforce reset of basic context settings
-            _actualBlendMode = null;
-            _actualCulling = null;
-            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+            setupContextDefaults();
 
             // reset everything else
             stencilReferenceValue = 0;

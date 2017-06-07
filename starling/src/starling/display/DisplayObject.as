@@ -425,6 +425,7 @@ package starling.display
 
             painter.clear();
             painter.pushState();
+            painter.setupContextDefaults();
             painter.state.renderTarget = null;
             painter.state.setModelviewMatricesToIdentity();
             painter.setStateTo(transformationMatrix);
