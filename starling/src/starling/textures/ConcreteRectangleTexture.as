@@ -107,5 +107,9 @@ package starling.textures
             execute(_textureReadyCallback, this, event as ErrorEvent);
             _textureReadyCallback = null;
         }
+
+        /** @private */
+        internal static function get asyncSupported():Boolean { return sAsyncSupported; }
+        internal static function set asyncSupported(value:Boolean):void { sAsyncSupported = value; }
     }
 }

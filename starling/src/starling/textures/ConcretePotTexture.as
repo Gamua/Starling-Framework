@@ -180,5 +180,9 @@ package starling.textures
         {
             return base as flash.display3D.textures.Texture;
         }
+
+        /** @private */
+        internal static function get asyncSupported():Boolean { return sAsyncSupported; }
+        internal static function set asyncSupported(value:Boolean):void { sAsyncSupported = value; }
     }
 }
