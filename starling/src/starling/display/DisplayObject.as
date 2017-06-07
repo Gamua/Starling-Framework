@@ -141,6 +141,7 @@ package starling.display
         private var _transformationChanged:Boolean;
         private var _is3D:Boolean;
         private var _maskee:DisplayObject;
+        private var _sort:uint;
 
         // internal members (for fast access on rendering)
 
@@ -1168,6 +1169,10 @@ package starling.display
                 setRequiresRedraw();
             }
         }
+
+        
+        public function get sort():uint { return _sort; }
+        public function set sort(value:uint):void { _sort = value;}
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }

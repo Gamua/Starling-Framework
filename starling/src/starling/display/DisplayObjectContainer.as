@@ -263,7 +263,11 @@ package starling.display
         public function sortChildren(compareFunction:Function):void
         {
             sSortBuffer.length = _children.length;
-            mergeSort(_children, compareFunction, 0, _children.length, sSortBuffer);
+            if (compareFunction) {
+	            mergeSort(_children, compareFunction, 0, _children.length, sSortBuffer);
+	        } else {
+	            mergeSortNoFunction(_children, 0, _children.length, sSortBuffer);
+	        }
             sSortBuffer.length = 0;
             setRequiresRedraw();
         }
@@ -488,6 +492,39 @@ package starling.display
                 }
                 
                 // copy the sorted subvector back to the input
+                for(i = startIndex; i < endIndex; i++)
+                    input[i] = buffer[int(i - startIndex)];
+            }
+        }
+
+        private static function mergeSortNoFunction(input:Vector.<DisplayObject>, 
+                                          startIndex:int, length:int, 
+                                          buffer:Vector.<DisplayObject>):void {
+            
+            if (length > 1) {
+                var i:int;
+                var endIndex:int = startIndex + length;
+                var halfLength:int = length / 2;
+                var l:int = startIndex;
+                var r:int = startIndex + halfLength;
+                
+                mergeSortNoFunction(input, startIndex, halfLength, buffer);
+                mergeSortNoFunction(input, startIndex + halfLength, length - halfLength, buffer);
+                
+                for (i = 0; i < length; i++) {
+                    if (l < startIndex + halfLength && 
+                        (r == endIndex || input[l].sort <= input[r].sort))
+                    {
+                        buffer[i] = input[l];
+                        l++;
+                    }
+                    else
+                    {
+                        buffer[i] = input[r];
+                        r++;
+                    }
+                }
+                
                 for(i = startIndex; i < endIndex; i++)
                     input[i] = buffer[int(i - startIndex)];
             }
