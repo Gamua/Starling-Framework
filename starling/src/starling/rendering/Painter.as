@@ -353,79 +353,139 @@ package starling.rendering
 
         // masks
 
-        /** Draws a display object into the stencil buffer, incrementing the buffer on each
-         *  used pixel. The stencil reference value is incremented as well; thus, any subsequent
-         *  stencil tests outside of this area will fail.
-         *
-         *  <p>If 'mask' is part of the display list, it will be drawn at its conventional stage
-         *  coordinates. Otherwise, it will be drawn with the current modelview matrix.</p>
-         *
-         *  <p>As an optimization, this method might update the clipping rectangle of the render
-         *  state instead of utilizing the stencil buffer. This is possible when the mask object
-         *  is of type <code>starling.display.Quad</code> and is aligned parallel to the stage
-         *  axes.</p>
-         *
-         *  <p>Note that masking breaks the render cache; the masked object must be redrawn anew
-         *  in the next frame. If you pass <code>maskee</code>, the method will automatically
-         *  call <code>excludeFromCache(maskee)</code> for you.</p>
-         */
-        public function drawMask(mask:DisplayObject, maskee:DisplayObject=null):void
-        {
-            if (_context == null) return;
-
-            finishMeshBatch();
-
-            if (isRectangularMask(mask, maskee, sMatrix))
-            {
-                mask.getBounds(mask, sClipRect);
-                RectangleUtil.getBounds(sClipRect, sMatrix, sClipRect);
-                pushClipRect(sClipRect);
-            }
-            else
-            {
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.INCREMENT_SATURATE);
-
-                renderMask(mask);
-                stencilReferenceValue++;
-
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
-            }
-
-            excludeFromCache(maskee);
-        }
-
-        /** Draws a display object into the stencil buffer, decrementing the
-         *  buffer on each used pixel. This effectively erases the object from the stencil buffer,
-         *  restoring the previous state. The stencil reference value will be decremented.
-         *
-         *  <p>Note: if the mask object meets the requirements of using the clipping rectangle,
-         *  it will be assumed that this erase operation undoes the clipping rectangle change
-         *  caused by the corresponding <code>drawMask()</code> call.</p>
-         */
-        public function eraseMask(mask:DisplayObject, maskee:DisplayObject=null):void
-        {
-            if (_context == null) return;
-
-            finishMeshBatch();
-
-            if (isRectangularMask(mask, maskee, sMatrix))
-            {
-                popClipRect();
-            }
-            else
-            {
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.DECREMENT_SATURATE);
-
-                renderMask(mask);
-                stencilReferenceValue--;
-
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
-            }
-        }
+        /** Draws a display object into the stencil buffer only; increments or decrements the 
+		 *  entry value corresponding to the pixel of the shape in the stencil buffer, for the
+		 *  normal or inverted mask modes, respectively. Effectively, the stencil buffer 
+		 *  modification is to mark only the appropriate pixel coordinates where the 'maskee' 
+		 *  object is to be rendered.<br>
+		 *  The stencil reference value will be incremented in the normal mask mode only.
+		 *
+		 *  <p>If the 'mask' is part of the display list, it will be drawn at its conventional 
+		 *  stage coordinates. Otherwise, it will be drawn with the current modelview matrix.</p>
+		 *
+		 *  <p>As an optimization, this method might update the clipping rectangle of the render
+		 *  state instead of utilizing the stencil buffer. This is possible when the mask object
+		 *  is of type <code>starling.display.Quad</code> and is aligned parallel to the stage
+		 *  axes.</p>
+		 *
+		 *  <p>Note that masking breaks the render cache; the masked object must be redrawn anew
+		 *  in the next frame. If you pass <code>maskee</code>, the method will automatically
+		 *  call <code>excludeFromCache(maskee)</code> for you.</p>
+		 */
+		public function drawMask(mask:DisplayObject, isMaskInverted:Boolean=false, maskee:DisplayObject=null):void
+		{
+			if (_context == null) return;
+			
+			finishMeshBatch();
+			
+			if (isRectangularMask(mask, maskee, sMatrix))
+			{
+				mask.getBounds(mask, sClipRect);
+				RectangleUtil.getBounds(sClipRect, sMatrix, sClipRect);
+				pushClipRect(sClipRect);
+			}
+			else
+			{
+				// The mask should 'never' be written to the destination color buffer
+				_context.setDepthTest(false, Context3DCompareMode.NEVER);
+				
+				// Since the depth test for the mask object always fails, the stencil action
+				// specified throught the 4th argument of the 'setStencilActions()' method is
+				// the only action that will be carried out during the stencil test.
+				// The ineffectual but yet valid value of 'Context3DStencilAction.KEEP' is passed
+				// as the 3rd argument of the method, only to reach the next argument.
+				if (isMaskInverted)
+				{
+					_context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+						Context3DCompareMode.ALWAYS,
+						Context3DStencilAction.KEEP,
+						Context3DStencilAction.DECREMENT_SATURATE
+					);
+					
+					renderMask(mask);
+				}
+				else
+				{
+					_context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+						Context3DCompareMode.EQUAL,
+						Context3DStencilAction.KEEP,
+						Context3DStencilAction.INCREMENT_SATURATE
+					);
+					
+					renderMask(mask);
+					stencilReferenceValue++;
+				}
+				
+				// Reset the depth test
+				_context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+				
+				// Reset all the stencil actions back to the default value of 'Context3DStencilAction.KEEP'
+				_context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK, Context3DCompareMode.EQUAL);
+			}
+			
+			excludeFromCache(maskee);
+		}
+		
+		/** Draws a display object into the stencil buffer only; increments or decrements the 
+		 *  entry value corresponding to the pixel of the shape in the stencil buffer, for the
+		 *  inverted or normal mask modes, respectively. Effectively, The stencil buffer 
+		 *  modification is to erase the object shape from the stencil buffer, restoring the 
+		 *  previous state.<br>
+		 *  The stencil reference value will be decremented in the normal mask mode only.
+		 *
+		 *  <p>Note: if the mask object meets the requirements of using the clipping rectangle,
+		 *  it will be assumed that this erase operation undoes the clipping rectangle change
+		 *  caused by the corresponding <code>drawMask()</code> call.</p>
+		 */
+		public function eraseMask(mask:DisplayObject, isMaskInverted:Boolean=false, maskee:DisplayObject=null):void
+		{
+			if (_context == null) return;
+			
+			finishMeshBatch();
+			
+			if (isRectangularMask(mask, maskee, sMatrix))
+			{
+				popClipRect();
+			}
+			else
+			{
+				// The mask should 'never' be written to the destination color buffer
+				_context.setDepthTest(false, Context3DCompareMode.NEVER);
+				
+				// Since the depth test for the mask object always fails, the stencil action
+				// specified throught the 4th argument of the 'setStencilActions()' method is
+				// the only action that will be carried out during the stencil test.
+				// The ineffectual but yet valid value of 'Context3DStencilAction.KEEP' is passed
+				// as the 3rd argument of the method, only to reach the next argument.
+				if (isMaskInverted)
+				{
+					_context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+						Context3DCompareMode.ALWAYS,
+						Context3DStencilAction.KEEP,
+						Context3DStencilAction.INCREMENT_SATURATE
+					);
+					
+					renderMask(mask);
+				}
+				else
+				{
+					_context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+						Context3DCompareMode.EQUAL,
+						Context3DStencilAction.KEEP,
+						Context3DStencilAction.DECREMENT_SATURATE
+					);
+					
+					renderMask(mask);
+					stencilReferenceValue--;
+				}
+				
+				// Reset the depth test
+				_context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+				
+				// Reset all the stencil actions back to the default value of 'Context3DStencilAction.KEEP'
+				_context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK, Context3DCompareMode.EQUAL);
+			}
+		}
 
         private function renderMask(mask:DisplayObject):void
         {
@@ -573,7 +633,7 @@ package starling.rendering
             setupContextDefaults();
 
             // reset everything else
-            stencilReferenceValue = 0;
+            stencilReferenceValue = 127;
             _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
@@ -675,7 +735,7 @@ package starling.rendering
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             applyRenderTarget();
-            stencilReferenceValue = 0;
+            stencilReferenceValue = 127;
             RenderUtil.clear(rgb, alpha);
         }
 
