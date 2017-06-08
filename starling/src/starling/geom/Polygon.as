@@ -294,6 +294,16 @@ package starling.geom
             return new Ellipse(x, y, radius, radius, numSides);
         }
 
+        /** Creates an n-pointed star shape with optimized implementations of triangulation, hitTest, etc.<br/>
+         *  @param radius1 The radius of the circle on which the odd-numbered vertices reside.
+         *  @param radius2 The radius of the circle on which the even-numbered vertices reside.
+         *  @param angleOffset The generation angle. By default, the star is generated having it's 
+         *         first stellar pointing to the right direction. (default:0)*/
+        public static function createStar(x:Number, y:Number, radius1:Number, radius2:Number, numPoints:uint, angleOffset:Number=0):Polygon
+        {
+            return new Star(x, y, radius1, radius2, numPoints, angleOffset);
+        }
+
         /** Creates a rectangle with optimized implementations of triangulation, hitTest, etc. */
         public static function createRectangle(x:Number, y:Number,
                                                width:Number, height:Number):Polygon
@@ -560,6 +570,143 @@ class Ellipse extends ImmutablePolygon
     override public function get isConvex():Boolean
     {
         return true;
+    }
+}
+
+class Star extends ImmutablePolygon
+{
+    private var _radius1:Number;
+    private var _radius2:Number;
+
+    private var _verticesCoords:Array;
+    
+    private var _trianglesCount:uint;
+    private var _bumpedTriangleAreaDoubled:Number;
+    private var _totalArea:Number;
+
+    // for performance
+    private var _radiusMin:Number;
+    private var _radiusMax:Number;
+    
+    public function Star(x:Number, y:Number, radius1:Number, radius2:Number, numPoints:uint, angleOffset:Number=0)
+    {
+        _radius1 = Math.abs(radius1);
+        _radius2 = Math.abs(radius2);
+        
+        _radiusMin = Math.min(_radius1, _radius2);
+        _radiusMax = Math.max(_radius1, _radius2);
+        
+        numPoints = Math.max(3, numPoints);
+        _trianglesCount = numPoints * 2;
+        
+        super(genVerticesCoords(x, y, angleOffset));
+    }
+    
+    private function genVerticesCoords(x:Number, y:Number, angleOffset:Number):Array
+    {
+        if (_radius1 == 0 || _radius2 == 0)
+            throw new ArgumentError("Radius can not be Zero!");
+        
+        _verticesCoords = new Array(2 + _trianglesCount*2);
+        
+        // The center vertex
+        _verticesCoords[0] = x;
+        _verticesCoords[1] = y;
+        
+        const angleDelta:Number = 2 * Math.PI / _trianglesCount;
+        
+        var triangleArea:Number = Math.sin(angleDelta) * _radius1 * _radius2 * 0.5;
+        _totalArea = triangleArea * _trianglesCount;
+        
+        var angle:Number = angleOffset;
+        var r:Number;
+        
+        for (var i:uint=1; i<=_trianglesCount; ++i)
+        {
+            r = i&1 ? _radius2 : _radius1;
+            _verticesCoords[i * 2    ] = Math.cos(angle) * r + x;
+            _verticesCoords[i * 2 + 1] = Math.sin(angle) * r + y;
+            angle += angleDelta;
+        }
+        
+        // All the bumped triangles have the same shape and area
+        var p0x:Number = _verticesCoords[4], p0y:Number = _verticesCoords[5],
+            p1x:Number = _verticesCoords[6], p1y:Number = _verticesCoords[7],
+            p2x:Number = _verticesCoords[8], p2y:Number = _verticesCoords[9];
+        _bumpedTriangleAreaDoubled = -p1y*p2x + p0y*(-p1x + p2x) + p0x*(p1y - p2y) + p1x*p2y;
+        
+        return _verticesCoords;
+    }
+    
+    override public function triangulate(indexData:IndexData=null, offset:int=0):IndexData
+    {
+        if (indexData == null) indexData = new IndexData(_trianglesCount * 3);
+        
+        for (var i:uint = 1; i<_trianglesCount; ++i)
+            indexData.addTriangle(0, i, i+1);
+        indexData.addTriangle(0, _trianglesCount, 1);
+        
+        return indexData;
+    }
+    
+    override public function contains(px:Number, py:Number):Boolean
+    {
+        // Check if the point is inide the inscribed circle or outside of the circumscribed circle
+        var dx:Number = _verticesCoords[0] - px, dy:Number = _verticesCoords[1] - py;
+        var d:Number = Math.sqrt(dx*dx + dy*dy);
+        
+        if (d <= _radiusMin)
+            return true;
+        else if (d > _radiusMax)
+            return false;
+        
+        
+        // The function evaluates an analytical solution of an equation system in barycentric
+        // coordinates to determine whether the point is inside the specified triangle. (optimized)
+        var s:Number, t:Number;
+        function isInsideTriangle(
+            p0x:Number, p0y:Number,
+            p1x:Number, p1y:Number,
+            p2x:Number, p2y:Number):Boolean
+        {
+            s = (p0y*p2x - p0x*p2y + (p2y - p0y)*px + (p0x - p2x)*py);
+            t = (p0x*p1y - p0y*p1x + (p0y - p1y)*px + (p1x - p0x)*py);
+            return s > 0 && t > 0 && s+t < _bumpedTriangleAreaDoubled;
+        }
+        
+        var index:uint, i:uint;
+        for (i = 2; i<_trianglesCount; i += 2)
+        {
+            index = i*2;
+            if (isInsideTriangle(
+                _verticesCoords[index  ], _verticesCoords[index+1], // p0
+                _verticesCoords[index+2], _verticesCoords[index+3], // p1
+                _verticesCoords[index+4], _verticesCoords[index+5]  // p2
+            ))
+                return true;
+        }
+        
+        index = i * 2;
+        return isInsideTriangle(
+            _verticesCoords[index], _verticesCoords[index+1], // p0: last point
+            _verticesCoords[2    ], _verticesCoords[3      ], // p1: the first point after the center
+            _verticesCoords[4    ], _verticesCoords[5      ]  // p2: the one next to p1
+        );
+    }
+    
+    override public function get area():Number
+    {
+        return _totalArea;
+    }
+    
+    override public function get isSimple():Boolean
+    {
+        return true;
+    }
+    
+    override public function get isConvex():Boolean
+    {
+        return _radius1 == _radius2;
     }
 }
 

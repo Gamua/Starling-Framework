@@ -70,6 +70,12 @@ package starling.display
             appendPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY));
         }
 
+        /** Draws an n-pointed star. */
+        public function drawStar(x:Number, y:Number, radius1:Number, radius2:Number, numPoints:uint, angleOffset:Number = 0):void
+        {
+            appendPolygon(Polygon.createStar(x, y, radius1, radius2, numPoints, angleOffset));
+        }
+
         /** Draws a rectangle. */
         public function drawRectangle(x:Number, y:Number, width:Number, height:Number):void
         {
