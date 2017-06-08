@@ -950,6 +950,8 @@ package starling.core
         public function get supportHighResolutions():Boolean { return _supportHighResolutions; }
         public function set supportHighResolutions(value:Boolean):void 
         {
+            if (context && context.driverInfo.indexOf("Software") != -1) return;
+
             if (_supportHighResolutions != value)
             {
                 _supportHighResolutions = value;
