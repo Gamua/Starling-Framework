@@ -384,7 +384,6 @@ package starling.display
                         var popToken:BatchToken    = cacheEnabled ? child._popToken  : null;
                         var filter:FragmentFilter  = child._filter;
                         var mask:DisplayObject     = child._mask;
-                        var isMaskInverted:Boolean = child._isMaskInverted;
 
                         painter.fillToken(pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
