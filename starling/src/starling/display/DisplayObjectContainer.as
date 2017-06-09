@@ -389,12 +389,12 @@ package starling.display
                         painter.fillToken(pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
-                        if (mask) painter.drawMask(mask, isMaskInverted, child);
+                        if (mask) painter.drawMask(mask, child);
 
                         if (filter) filter.render(painter);
                         else        child.render(painter);
 
-                        if (mask) painter.eraseMask(mask, isMaskInverted, child);
+                        if (mask) painter.eraseMask(mask, child);
 
                         painter.fillToken(popToken);
                     }

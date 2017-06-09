@@ -141,6 +141,7 @@ package starling.display
         private var _transformationChanged:Boolean;
         private var _is3D:Boolean;
         private var _maskee:DisplayObject;
+        private var _isMaskInverted:Boolean = false;
 
         // internal members (for fast access on rendering)
 
@@ -153,7 +154,6 @@ package starling.display
         /** @private */ internal var _hasVisibleArea:Boolean;
         /** @private */ internal var _filter:FragmentFilter;
         /** @private */ internal var _mask:DisplayObject;
-        /** @private */ internal var _isMaskInverted:Boolean = false;
 
         // helper objects
 
@@ -317,7 +317,8 @@ package starling.display
 
                 var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
                 MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
-                return _mask.hitTest(helperPoint) != null;
+                var isMaskHit:Boolean = _mask.hitTest(helperPoint) != null;
+                return _isMaskInverted ? !isMaskHit : isMaskHit;
             }
             else return true;
         }

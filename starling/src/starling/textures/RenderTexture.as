@@ -196,7 +196,6 @@ package starling.textures
             var wasCacheEnabled:Boolean = painter.cacheEnabled;
             var filter:FragmentFilter = object.filter;
             var mask:DisplayObject = object.mask;
-            var isMaskInverted:Boolean = object.isMaskInverted;
 
             painter.cacheEnabled = false;
             painter.pushState();
@@ -209,12 +208,12 @@ package starling.textures
             if (matrix) state.transformModelviewMatrix(matrix);
             else        state.transformModelviewMatrix(object.transformationMatrix);
 
-            if (mask)   painter.drawMask(mask, isMaskInverted);
+            if (mask)   painter.drawMask(mask, object);
 
             if (filter) filter.render(painter);
             else        object.render(painter);
 
-            if (mask)   painter.eraseMask(mask, isMaskInverted);
+            if (mask)   painter.eraseMask(mask, object);
 
             painter.popState();
             painter.cacheEnabled = wasCacheEnabled;
