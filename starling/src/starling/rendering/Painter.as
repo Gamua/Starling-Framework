@@ -190,10 +190,6 @@ package starling.rendering
         {
             _context = _stage3D.context3D;
             _context.enableErrorChecking = _enableErrorChecking;
-            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
-
-            _actualBlendMode = null;
-            _actualCulling = null;
         }
 
         /** Sets the viewport dimensions and other attributes of the rendering buffer.
@@ -386,24 +382,30 @@ package starling.rendering
             }
             else
             {
+                // In 'renderMask', we'll make sure the depth test always fails. Thus, the 3rd
+                // parameter of 'setStencilActions' will always be ignored; the 4th is the one
+                // that counts!
+
                 if (maskee && maskee.isMaskInverted)
                 {
                     _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                        Context3DCompareMode.ALWAYS, Context3DStencilAction.DECREMENT_SATURATE);
+                        Context3DCompareMode.ALWAYS, Context3DStencilAction.KEEP,
+                        Context3DStencilAction.DECREMENT_SATURATE);
 
                     renderMask(mask);
                 }
                 else
                 {
                     _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                        Context3DCompareMode.EQUAL, Context3DStencilAction.INCREMENT_SATURATE);
+                        Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP,
+                        Context3DStencilAction.INCREMENT_SATURATE);
 
                     renderMask(mask);
                     stencilReferenceValue++;
                 }
 
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
+                _context.setStencilActions(
+                    Context3DTriangleFace.FRONT_AND_BACK, Context3DCompareMode.EQUAL);
             }
 
             excludeFromCache(maskee);
@@ -432,39 +434,45 @@ package starling.rendering
             }
             else
             {
+                // In 'renderMask', we'll make sure the depth test always fails. Thus, the 3rd
+                // parameter of 'setStencilActions' will always be ignored; the 4th is the one
+                // that counts!
+
                 if (maskee && maskee.isMaskInverted)
                 {
                     _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                        Context3DCompareMode.ALWAYS, Context3DStencilAction.INCREMENT_SATURATE);
+                        Context3DCompareMode.ALWAYS, Context3DStencilAction.KEEP,
+                        Context3DStencilAction.INCREMENT_SATURATE);
 
                     renderMask(mask);
                 }
                 else
                 {
                     _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                        Context3DCompareMode.EQUAL, Context3DStencilAction.DECREMENT_SATURATE);
+                        Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP,
+                        Context3DStencilAction.DECREMENT_SATURATE);
 
                     renderMask(mask);
                     stencilReferenceValue--;
                 }
 
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
+                // restore default stencil action ("keep")
 
+                _context.setStencilActions(
+                    Context3DTriangleFace.FRONT_AND_BACK, Context3DCompareMode.EQUAL);
             }
         }
 
         private function renderMask(mask:DisplayObject):void
         {
+            var matrix:Matrix = null;
+            var matrix3D:Matrix3D = null;
             var wasCacheEnabled:Boolean = cacheEnabled;
 
             pushState();
             cacheEnabled = false;
-            _state.alpha = 0.0;
-
-            var matrix:Matrix = null;
-            var matrix3D:Matrix3D = null;
-
+            setDefaultDepthTest(Context3DCompareMode.NEVER); // depth test always fails ->
+                                                             // color buffer won't be modified
             if (mask.stage)
             {
                 _state.setModelviewMatricesToIdentity();
@@ -484,6 +492,7 @@ package starling.rendering
             mask.render(this);
             finishMeshBatch();
 
+            setDefaultDepthTest();
             cacheEnabled = wasCacheEnabled;
             popState();
         }
@@ -586,7 +595,7 @@ package starling.rendering
         {
             _actualBlendMode = null;
             _actualCulling = null;
-            _context.setDepthTest(false, Context3DCompareMode.ALWAYS);
+            setDefaultDepthTest();
         }
 
         /** Resets the current state, state stack, batch processor, stencil reference value,
@@ -804,6 +813,11 @@ package starling.rendering
             {
                 _context.setScissorRectangle(null);
             }
+        }
+
+        private function setDefaultDepthTest(passCompareMode:String="always"):void
+        {
+            _context.setDepthTest(false, passCompareMode);
         }
 
         // properties
