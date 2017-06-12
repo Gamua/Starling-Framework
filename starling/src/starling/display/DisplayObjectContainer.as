@@ -380,10 +380,10 @@ package starling.display
                     }
                     else
                     {
-                        var pushToken:BatchToken  = cacheEnabled ? child._pushToken : null;
-                        var popToken:BatchToken   = cacheEnabled ? child._popToken  : null;
-                        var filter:FragmentFilter = child._filter;
-                        var mask:DisplayObject    = child._mask;
+                        var pushToken:BatchToken   = cacheEnabled ? child._pushToken : null;
+                        var popToken:BatchToken    = cacheEnabled ? child._popToken  : null;
+                        var filter:FragmentFilter  = child._filter;
+                        var mask:DisplayObject     = child._mask;
 
                         painter.fillToken(pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);

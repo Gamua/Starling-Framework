@@ -208,12 +208,12 @@ package starling.textures
             if (matrix) state.transformModelviewMatrix(matrix);
             else        state.transformModelviewMatrix(object.transformationMatrix);
 
-            if (mask)   painter.drawMask(mask);
+            if (mask)   painter.drawMask(mask, object);
 
             if (filter) filter.render(painter);
             else        object.render(painter);
 
-            if (mask)   painter.eraseMask(mask);
+            if (mask)   painter.eraseMask(mask, object);
 
             painter.popState();
             painter.cacheEnabled = wasCacheEnabled;

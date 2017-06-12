@@ -353,12 +353,15 @@ package starling.rendering
 
         // masks
 
-        /** Draws a display object into the stencil buffer, incrementing the buffer on each
-         *  used pixel. The stencil reference value is incremented as well; thus, any subsequent
-         *  stencil tests outside of this area will fail.
+        /** Draws a display object into the stencil buffer only; increments or decrements the
+         *  entry value corresponding to the pixel of the shape in the stencil buffer, for the
+         *  normal or inverted mask modes, respectively. Effectively, the stencil buffer
+         *  modification is to mark only the appropriate pixel coordinates where the 'maskee'
+         *  object is to be rendered.<br>
+         *  The stencil reference value will be incremented in the normal mask mode only.
          *
-         *  <p>If 'mask' is part of the display list, it will be drawn at its conventional stage
-         *  coordinates. Otherwise, it will be drawn with the current modelview matrix.</p>
+         *  <p>If the 'mask' is part of the display list, it will be drawn at its conventional
+         *  stage coordinates. Otherwise, it will be drawn with the current modelview matrix.</p>
          *
          *  <p>As an optimization, this method might update the clipping rectangle of the render
          *  state instead of utilizing the stencil buffer. This is possible when the mask object
@@ -383,11 +386,21 @@ package starling.rendering
             }
             else
             {
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.INCREMENT_SATURATE);
+                if (maskee && maskee.isMaskInverted)
+                {
+                    _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+                        Context3DCompareMode.ALWAYS, Context3DStencilAction.DECREMENT_SATURATE);
 
-                renderMask(mask);
-                stencilReferenceValue++;
+                    renderMask(mask);
+                }
+                else
+                {
+                    _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+                        Context3DCompareMode.EQUAL, Context3DStencilAction.INCREMENT_SATURATE);
+
+                    renderMask(mask);
+                    stencilReferenceValue++;
+                }
 
                 _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
@@ -396,9 +409,12 @@ package starling.rendering
             excludeFromCache(maskee);
         }
 
-        /** Draws a display object into the stencil buffer, decrementing the
-         *  buffer on each used pixel. This effectively erases the object from the stencil buffer,
-         *  restoring the previous state. The stencil reference value will be decremented.
+        /** Draws a display object into the stencil buffer only; increments or decrements the
+         *  entry value corresponding to the pixel of the shape in the stencil buffer, for the
+         *  inverted or normal mask modes, respectively. Effectively, The stencil buffer
+         *  modification is to erase the object shape from the stencil buffer, restoring the
+         *  previous state.<br>
+         *  The stencil reference value will be decremented in the normal mask mode only.
          *
          *  <p>Note: if the mask object meets the requirements of using the clipping rectangle,
          *  it will be assumed that this erase operation undoes the clipping rectangle change
@@ -416,14 +432,25 @@ package starling.rendering
             }
             else
             {
-                _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
-                    Context3DCompareMode.EQUAL, Context3DStencilAction.DECREMENT_SATURATE);
+                if (maskee && maskee.isMaskInverted)
+                {
+                    _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+                        Context3DCompareMode.ALWAYS, Context3DStencilAction.INCREMENT_SATURATE);
 
-                renderMask(mask);
-                stencilReferenceValue--;
+                    renderMask(mask);
+                }
+                else
+                {
+                    _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
+                        Context3DCompareMode.EQUAL, Context3DStencilAction.DECREMENT_SATURATE);
+
+                    renderMask(mask);
+                    stencilReferenceValue--;
+                }
 
                 _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                     Context3DCompareMode.EQUAL, Context3DStencilAction.KEEP);
+
             }
         }
 
@@ -496,9 +523,10 @@ package starling.rendering
         private function isRectangularMask(mask:DisplayObject, maskee:DisplayObject, out:Matrix):Boolean
         {
             var quad:Quad = mask as Quad;
+            var isInverted:Boolean = maskee && maskee.isMaskInverted;
             var is3D:Boolean = mask.is3D || (maskee && maskee.is3D && mask.stage == null);
 
-            if (quad && !is3D && quad.texture == null)
+            if (quad && !isInverted && !is3D && quad.texture == null)
             {
                 if (mask.stage) mask.getTransformationMatrix(null, out);
                 else
@@ -573,7 +601,7 @@ package starling.rendering
             setupContextDefaults();
 
             // reset everything else
-            stencilReferenceValue = 0;
+            stencilReferenceValue = 127;
             _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
@@ -675,7 +703,7 @@ package starling.rendering
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             applyRenderTarget();
-            stencilReferenceValue = 0;
+            stencilReferenceValue = 127;
             RenderUtil.clear(rgb, alpha);
         }
 
