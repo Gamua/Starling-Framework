@@ -106,6 +106,7 @@ package starling.events
         {
             var i:int;
             var touch:Touch;
+            var numIterations:int = 0;
             
             _elapsedTime += passedTime;
             sUpdatedTouches.length = 0;
@@ -118,8 +119,10 @@ package starling.events
                         _lastTaps.removeAt(i);
             }
             
-            while (_queue.length > 0)
+            while (_queue.length > 0 || numIterations == 0)
             {
+                ++numIterations; // we need to enter this loop at least once (for HOVER updates)
+
                 // Set touches that were new or moving to phase 'stationary'.
                 for each (touch in _currentTouches)
                     if (touch.phase == TouchPhase.BEGAN || touch.phase == TouchPhase.MOVED)
@@ -137,8 +140,22 @@ package starling.events
                     sUpdatedTouches[sUpdatedTouches.length] = touch; // avoiding 'push'
                 }
 
+                // Find any hovering touches that did not move.
+                // If the target of such a touch changed, add it to the list of updated touches.
+                for (i=_currentTouches.length-1; i>=0; --i)
+                {
+                    touch = _currentTouches[i];
+                    if (touch.phase == TouchPhase.HOVER && !containsTouchWithID(sUpdatedTouches, touch.id))
+                    {
+                        sHelperPoint.setTo(touch.globalX, touch.globalY);
+                        if (touch.target != _root.hitTest(sHelperPoint))
+                            sUpdatedTouches[sUpdatedTouches.length] = touch;
+                    }
+                }
+
                 // process the current set of touches (i.e. dispatch touch events)
-                processTouches(sUpdatedTouches, _shiftDown, _ctrlDown);
+                if (sUpdatedTouches.length)
+                    processTouches(sUpdatedTouches, _shiftDown, _ctrlDown);
 
                 // remove ended touches
                 for (i=_currentTouches.length-1; i>=0; --i)
