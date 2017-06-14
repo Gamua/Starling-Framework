@@ -336,6 +336,12 @@ package starling.text
             _format.copyFrom(value);
         }
 
+        /** The options that describe how the letters of a text should be assembled.
+         *  This class basically collects all the TextField's properties that are needed
+         *  during text composition. Since an instance of 'TextOptions' is passed to the
+         *  constructor, you can pass custom options to the compositor. */
+        protected function get options():TextOptions { return _options; }
+
         /** Draws a border around the edges of the text field. Useful for visual debugging.
          *  @default false */
         public function get border():Boolean { return _border != null; }
