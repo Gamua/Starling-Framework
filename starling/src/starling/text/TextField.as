@@ -481,30 +481,29 @@ package starling.text
         // compositor registration
 
         /** Makes a text compositor (like a <code>BitmapFont</code>) available to any TextField in
-         *  the current stage3D context. The font is identified by its <code>name</code> (not
-         *  case sensitive). */
-        public static function registerCompositor(compositor:ITextCompositor, name:String):void
+         *  the current stage3D context. The font is identified by its name (not case sensitive). */
+        public static function registerCompositor(compositor:ITextCompositor, fontName:String):void
         {
-            if (name == null) throw new ArgumentError("name must not be null");
-            compositors[convertToLowerCase(name)] = compositor;
+            if (fontName == null) throw new ArgumentError("fontName must not be null");
+            compositors[convertToLowerCase(fontName)] = compositor;
         }
 
-        /** Unregisters the text compositor and, optionally, disposes it. */
-        public static function unregisterCompositor(name:String, dispose:Boolean=true):void
+        /** Unregisters the specified text compositor and optionally disposes it. */
+        public static function unregisterCompositor(fontName:String, dispose:Boolean=true):void
         {
-            name = convertToLowerCase(name);
+            fontName = convertToLowerCase(fontName);
 
-            if (dispose && compositors[name] != undefined)
-                compositors[name].dispose();
+            if (dispose && compositors[fontName] != undefined)
+                compositors[fontName].dispose();
 
-            delete compositors[name];
+            delete compositors[fontName];
         }
 
         /** Returns a registered text compositor (or null, if the font has not been registered).
-         *  The name is not case sensitive. */
-        public static function getCompositor(name:String):ITextCompositor
+         *  The <code>fontName</code> is not case sensitive. */
+        public static function getCompositor(fontName:String):ITextCompositor
         {
-            return compositors[convertToLowerCase(name)];
+            return compositors[convertToLowerCase(fontName)];
         }
 
         /** Makes a bitmap font available at any TextField in the current stage3D context.
