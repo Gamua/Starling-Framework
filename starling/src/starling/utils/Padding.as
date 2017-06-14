@@ -31,7 +31,7 @@ package starling.utils
             setTo(left, right, top, bottom);
         }
 
-        /** Sets all four values at once. */
+        /** Sets all four sides at once. */
         public function setTo(left:Number=0, right:Number=0, top:Number=0, bottom:Number=0):void
         {
             var changed:Boolean = _left != left || _right != right || _top != top || _bottom != bottom;
@@ -42,6 +42,18 @@ package starling.utils
             _bottom = bottom;
 
             if (changed) dispatchEventWith(Event.CHANGE);
+        }
+
+        /** Sets all four sides to the same value. */
+        public function setToUniform(value:Number):void
+        {
+            setTo(value, value, value, value);
+        }
+
+        /** Sets left and right to <code>horizontal</code>, top and bottom to <code>vertical</code>. */
+        public function setToSymmetric(horizontal:Number, vertical:Number):void
+        {
+            setTo(horizontal, horizontal, vertical, vertical);
         }
 
         /** Copies all properties from another Padding instance.
@@ -101,5 +113,11 @@ package starling.utils
                 dispatchEventWith(Event.CHANGE);
             }
         }
+
+        /** The sum of left and right padding. */
+        public function get horizontal():Number { return _left + _right; }
+
+        /** The sum of top and bottom padding. */
+        public function get vertical():Number { return _top + _bottom; }
     }
 }
