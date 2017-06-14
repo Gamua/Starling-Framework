@@ -101,24 +101,27 @@ package starling.text
         private var _border:DisplayObjectContainer;
         private var _meshBatch:MeshBatch;
         private var _style:MeshStyle;
+        private var _recomposing:Boolean;
 
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
         private static var sDefaultCompositor:ITextCompositor = new TrueTypeCompositor();
         private static var sDefaultTextureFormat:String = Context3DTextureFormat.BGRA_PACKED;
-        private var _helperFormat:TextFormat = new TextFormat();
 
         /** Create a new text field with the given properties. */
-        public function TextField(width:int, height:int, text:String="", format:TextFormat=null)
+        public function TextField(width:int, height:int, text:String="",
+                                  format:TextFormat=null, options:TextOptions=null)
         {
             _text = text ? text : "";
             _hitArea = new Rectangle(0, 0, width, height);
             _requiresRecomposition = true;
             _compositor = sDefaultCompositor;
-            _options = new TextOptions();
 
             _format = format ? format.clone() : new TextFormat();
             _format.addEventListener(Event.CHANGE, setRequiresRecomposition);
+
+            _options = options ? options.clone() : new TextOptions();
+            _options.addEventListener(Event.CHANGE, setRequiresRecomposition);
 
             _meshBatch = new MeshBatch();
             _meshBatch.touchable = false;
@@ -130,6 +133,7 @@ package starling.text
         public override function dispose():void
         {
             _format.removeEventListener(Event.CHANGE, setRequiresRecomposition);
+            _options.removeEventListener(Event.CHANGE, setRequiresRecomposition);
             _compositor.clearMeshBatch(_meshBatch);
 
             super.dispose();
@@ -148,6 +152,7 @@ package starling.text
         {
             if (_requiresRecomposition)
             {
+                _recomposing = true;
                 _compositor.clearMeshBatch(_meshBatch);
 
                 var fontName:String = _format.font;
@@ -165,6 +170,7 @@ package starling.text
                 updateBorder();
 
                 _requiresRecomposition = false;
+                _recomposing = false;
             }
         }
 
@@ -174,15 +180,6 @@ package starling.text
         {
             var width:Number  = _hitArea.width;
             var height:Number = _hitArea.height;
-            var format:TextFormat = _helperFormat;
-
-            // By working on a copy of the TextFormat, we make sure that modifications done
-            // within the 'fillMeshBatch' method do not cause any side effects.
-            //
-            // (We cannot use a static variable, because that might lead to problems when
-            //  recreating textures after a context loss.)
-
-            format.copyFrom(_format);
 
             // Horizontal autoSize does not work for HTML text, since it supports custom alignment.
             // What should we do if one line is aligned to the left, another to the right?
@@ -192,8 +189,7 @@ package starling.text
 
             _meshBatch.x = _meshBatch.y = 0;
             _options.textureScale = Starling.contentScaleFactor;
-            _options.textureFormat = sDefaultTextureFormat;
-            _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
+            _compositor.fillMeshBatch(_meshBatch, width, height, _text, _format, _options);
 
             if (_style) _meshBatch.style = _style;
             if (_options.autoSize != TextFieldAutoSize.NONE)
@@ -245,8 +241,11 @@ package starling.text
         /** Forces the text to be recomposed before rendering it in the upcoming frame. */
         protected function setRequiresRecomposition():void
         {
-            _requiresRecomposition = true;
-            setRequiresRedraw();
+            if (!_recomposing)
+            {
+                _requiresRecomposition = true;
+                setRequiresRedraw();
+            }
         }
 
         // properties
@@ -362,39 +361,18 @@ package starling.text
         /** Indicates whether the font size is automatically reduced if the complete text does
          *  not fit into the TextField. @default false */
         public function get autoScale():Boolean { return _options.autoScale; }
-        public function set autoScale(value:Boolean):void
-        {
-            if (_options.autoScale != value)
-            {
-                _options.autoScale = value;
-                setRequiresRecomposition();
-            }
-        }
-        
+        public function set autoScale(value:Boolean):void { _options.autoScale = value; }
+
         /** Specifies the type of auto-sizing the TextField will do.
          *  Note that any auto-sizing will implicitly deactivate all auto-scaling.
          *  @default none */
         public function get autoSize():String { return _options.autoSize; }
-        public function set autoSize(value:String):void
-        {
-            if (_options.autoSize != value)
-            {
-                _options.autoSize = value;
-                setRequiresRecomposition();
-            }
-        }
+        public function set autoSize(value:String):void { _options.autoSize = value; }
 
         /** Indicates if the text should be wrapped at word boundaries if it does not fit into
          *  the TextField otherwise. @default true */
         public function get wordWrap():Boolean { return _options.wordWrap; }
-        public function set wordWrap(value:Boolean):void
-        {
-            if (value != _options.wordWrap)
-            {
-                _options.wordWrap = value;
-                setRequiresRecomposition();
-            }
-        }
+        public function set wordWrap(value:Boolean):void { _options.wordWrap = value; }
 
         /** Indicates if TextField should be batched on rendering.
          *
@@ -415,24 +393,19 @@ package starling.text
          *  Clickable hyperlinks and images are not supported. Only works for
          *  TrueType fonts! @default false */
         public function get isHtmlText():Boolean { return _options.isHtmlText; }
-        public function set isHtmlText(value:Boolean):void
-        {
-            if (_options.isHtmlText != value)
-            {
-                _options.isHtmlText = value;
-                setRequiresRecomposition();
-            }
-        }
+        public function set isHtmlText(value:Boolean):void { _options.isHtmlText = value; }
 
         /** An optional style sheet to be used for HTML text. For more information on style
          *  sheets, please refer to the StyleSheet class in the ActionScript 3 API reference.
          *  @default null */
         public function get styleSheet():StyleSheet { return _options.styleSheet; }
-        public function set styleSheet(value:StyleSheet):void
-        {
-            _options.styleSheet = value;
-            setRequiresRecomposition();
-        }
+        public function set styleSheet(value:StyleSheet):void { _options.styleSheet = value; }
+
+        /** The padding (in points) that's added to the sides of text that's rendered to a Bitmap.
+         *  If your text is truncated on the sides (which may happen if the font returns incorrect
+         *  bounds), padding can make up for that. Value must be positive. @default 0.0 */
+        public function get padding():Number { return _options.padding; }
+        public function set padding(value:Number):void { _options.padding = value; }
 
         /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
          *  object from looking blurry when it's not exactly aligned with the pixels of the screen.

@@ -73,7 +73,8 @@ package starling.text
         /** Creates a clone of this instance. */
         public function clone():starling.text.TextFormat
         {
-            var clone:starling.text.TextFormat = new starling.text.TextFormat();
+            var actualClass:Class = Object(this).constructor as Class;
+            var clone:starling.text.TextFormat = new actualClass() as starling.text.TextFormat;
             clone.copyFrom(this);
             return clone;
         }
