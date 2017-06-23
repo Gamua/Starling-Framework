@@ -76,6 +76,7 @@ package starling.rendering
     {
         // the key for the programs stored in 'sharedData'
         private static const PROGRAM_DATA_NAME:String = "starling.rendering.Painter.Programs";
+        private static const DEFAULT_STENCIL_VALUE:uint = 127;
 
         // members
 
@@ -99,6 +100,8 @@ package starling.rendering
         private var _actualRenderTargetOptions:uint;
         private var _actualCulling:String;
         private var _actualBlendMode:String;
+        private var _actualDepthMask:Boolean;
+        private var _actualDepthTest:String;
 
         private var _backBufferWidth:Number;
         private var _backBufferHeight:Number;
@@ -471,8 +474,8 @@ package starling.rendering
 
             pushState();
             cacheEnabled = false;
-            setDefaultDepthTest(Context3DCompareMode.NEVER); // depth test always fails ->
-                                                             // color buffer won't be modified
+            _state.depthTest = Context3DCompareMode.NEVER; // depth test always fails ->
+                                                           // color buffer won't be modified
             if (mask.stage)
             {
                 _state.setModelviewMatricesToIdentity();
@@ -492,7 +495,6 @@ package starling.rendering
             mask.render(this);
             finishMeshBatch();
 
-            setDefaultDepthTest();
             cacheEnabled = wasCacheEnabled;
             popState();
         }
@@ -595,7 +597,8 @@ package starling.rendering
         {
             _actualBlendMode = null;
             _actualCulling = null;
-            setDefaultDepthTest();
+            _actualDepthMask = false;
+            _actualDepthTest = null;
         }
 
         /** Resets the current state, state stack, batch processor, stencil reference value,
@@ -610,7 +613,7 @@ package starling.rendering
             setupContextDefaults();
 
             // reset everything else
-            stencilReferenceValue = 127;
+            stencilReferenceValue = DEFAULT_STENCIL_VALUE;
             _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
@@ -705,6 +708,7 @@ package starling.rendering
             applyRenderTarget();
             applyClipRect();
             applyCulling();
+            applyDepthTest();
         }
 
         /** Clears the render context with a certain color and alpha value. Since this also
@@ -712,7 +716,7 @@ package starling.rendering
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             applyRenderTarget();
-            stencilReferenceValue = 127;
+            stencilReferenceValue = DEFAULT_STENCIL_VALUE;
             RenderUtil.clear(rgb, alpha);
         }
 
@@ -743,6 +747,19 @@ package starling.rendering
             {
                 _context.setCulling(culling);
                 _actualCulling = culling;
+            }
+        }
+
+        private function applyDepthTest():void
+        {
+            var depthMask:Boolean = _state.depthMask;
+            var depthTest:String = _state.depthTest;
+
+            if (depthMask != _actualDepthMask || depthTest != _actualDepthTest)
+            {
+                _context.setDepthTest(depthMask, depthTest);
+                _actualDepthMask = depthMask;
+                _actualDepthTest = depthTest;
             }
         }
 
@@ -813,11 +830,6 @@ package starling.rendering
             {
                 _context.setScissorRectangle(null);
             }
-        }
-
-        private function setDefaultDepthTest(passCompareMode:String="always"):void
-        {
-            _context.setDepthTest(false, passCompareMode);
         }
 
         // properties
