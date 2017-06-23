@@ -10,6 +10,7 @@
 
 package starling.rendering
 {
+    import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DTriangleFace;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
@@ -74,6 +75,12 @@ package starling.rendering
             [Context3DTriangleFace.NONE, Context3DTriangleFace.FRONT,
              Context3DTriangleFace.BACK, Context3DTriangleFace.FRONT_AND_BACK];
 
+        private static const COMPARE_VALUES:Vector.<String> = new <String>
+            [Context3DCompareMode.ALWAYS,  Context3DCompareMode.NEVER,
+             Context3DCompareMode.LESS,    Context3DCompareMode.LESS_EQUAL,
+             Context3DCompareMode.EQUAL,   Context3DCompareMode.GREATER_EQUAL,
+             Context3DCompareMode.GREATER, Context3DCompareMode.NOT_EQUAL];
+
         private var _miscOptions:uint;
         private var _clipRect:Rectangle;
         private var _renderTarget:Texture;
@@ -100,12 +107,14 @@ package starling.rendering
             {
                 var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
                 var nextTarget:TextureBase = renderState._renderTarget ? renderState._renderTarget.base : null;
-                var cullingChanges:Boolean = (_miscOptions & 0xf00) != (renderState._miscOptions & 0xf00);
+                var cullingChanges:Boolean   = (_miscOptions &   0xf00) != (renderState._miscOptions &   0xf00);
+                var depthMaskChanges:Boolean = (_miscOptions &  0xf000) != (renderState._miscOptions &  0xf000);
+                var depthTestChanges:Boolean = (_miscOptions & 0xf0000) != (renderState._miscOptions & 0xf0000);
                 var clipRectChanges:Boolean = _clipRect || renderState._clipRect ?
                     !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
 
-                if (_blendMode != renderState._blendMode ||
-                    currentTarget != nextTarget || clipRectChanges || cullingChanges)
+                if (_blendMode != renderState._blendMode || currentTarget != nextTarget ||
+                    clipRectChanges || cullingChanges || depthMaskChanges || depthTestChanges)
                 {
                     _onDrawRequired();
                 }
@@ -137,6 +146,8 @@ package starling.rendering
             this.alpha = 1.0;
             this.blendMode = BlendMode.NORMAL;
             this.culling = Context3DTriangleFace.NONE;
+            this.depthMask = false;
+            this.depthTest = Context3DCompareMode.ALWAYS;
             this.modelviewMatrix3D = null;
             this.renderTarget = null;
             this.clipRect = null;
@@ -352,6 +363,45 @@ package starling.rendering
             }
         }
 
+        /** Enables or disables depth buffer writes.
+         *  @default false
+         */
+        public function get depthMask():Boolean
+        {
+            return (_miscOptions & 0x0000f000) != 0;
+        }
+
+        public function set depthMask(value:Boolean):void
+        {
+            if (depthMask != value)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+                _miscOptions = (_miscOptions & 0xffff0fff) | (uint(value) << 12);
+            }
+        }
+
+        /** Sets type of comparison used for depth testing.
+         *  @default Context3DCompareMode.ALWAYS
+         */
+        public function get depthTest():String
+        {
+            var index:int = (_miscOptions & 0x000f0000) >> 16;
+            return COMPARE_VALUES[index];
+        }
+
+        public function set depthTest(value:String):void
+        {
+            if (depthTest != value)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+
+                var index:int = COMPARE_VALUES.indexOf(value);
+                if (index == -1) throw new ArgumentError("Invalid compare mode");
+
+                _miscOptions = (_miscOptions & 0xfff0ffff) | (index << 16);
+            }
+        }
+
         /** The clipping rectangle can be used to limit rendering in the current render target to
          *  a certain area. This method expects the rectangle in stage coordinates. To prevent
          *  any clipping, assign <code>null</code>.
@@ -398,7 +448,7 @@ package starling.rendering
         /** @private
          *
          *  This callback is executed whenever a state change requires a draw operation.
-         *  This is the case if blend mode, render target, culling or clipping rectangle
+         *  This is the case if blend mode, render target, depth test, culling or clipping rectangle
          *  are changing. */
         internal function get onDrawRequired():Function { return _onDrawRequired; }
         internal function set onDrawRequired(value:Function):void { _onDrawRequired = value; }
