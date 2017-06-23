@@ -238,8 +238,12 @@ package starling.text
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = _format.color;
         }
 
-        /** Forces the text to be recomposed before rendering it in the upcoming frame. */
-        protected function setRequiresRecomposition():void
+        /** Forces the text to be recomposed before rendering it in the upcoming frame. Any changes
+         *  of the TextField itself will automatically trigger recomposition; changes in its
+         *  parents or the viewport, however, need to be processed manually. For example, you
+         *  might want to force recomposition to fix blurring caused by a scale factor change.
+         */
+        public function setRequiresRecomposition():void
         {
             if (!_recomposing)
             {
