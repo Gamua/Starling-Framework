@@ -100,6 +100,8 @@ package starling.utils
         /** Multiplies all channels of an (A)RGB color with a certain factor. */
         public static function multiply(color:uint, factor:Number):uint
         {
+            if (factor == 0.0) return 0x0;
+
             var alpha:uint = ((color >> 24) & 0xff) * factor;
             var red:uint   = ((color >> 16) & 0xff) * factor;
             var green:uint = ((color >>  8) & 0xff) * factor;

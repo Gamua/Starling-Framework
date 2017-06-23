@@ -33,6 +33,7 @@ package starling.display
     import starling.rendering.BatchToken;
     import starling.rendering.Painter;
     import starling.utils.Align;
+    import starling.utils.Color;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.SystemUtil;
@@ -390,11 +391,14 @@ package starling.display
 
         /** Draws the object into a BitmapData object.
          *
-         *  @param out  If you pass null, the object will be created for you.
-         *              If you pass a BitmapData object, it should have the size of the
-         *              object bounds, multiplied by the current contentScaleFactor.
+         *  @param out   If you pass null, the object will be created for you.
+         *               If you pass a BitmapData object, it should have the size of the
+         *               object bounds, multiplied by the current contentScaleFactor.
+         *  @param color The RGB color value with which the bitmap will be initialized.
+         *  @param alpha The alpha value with which the bitmap will be initialized.
          */
-        public function drawToBitmapData(out:BitmapData=null):BitmapData
+        public function drawToBitmapData(out:BitmapData=null,
+                                         color:uint=0x0, alpha:Number=0.0):BitmapData
         {
             var painter:Painter = Starling.painter;
             var stage:Stage = Starling.current.stage;
@@ -425,7 +429,9 @@ package starling.display
                                        Math.ceil(bounds.height * scaleY * backBufferScale));
             }
 
-            painter.clear();
+            color = Color.multiply(color, alpha); // premultiply alpha
+
+            painter.clear(color, alpha);
             painter.pushState();
             painter.setupContextDefaults();
             painter.state.renderTarget = null;
