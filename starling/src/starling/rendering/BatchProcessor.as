@@ -180,7 +180,7 @@ class BatchPool
 
     public function purge():void
     {
-        for each (var batchList:Vector.<MeshBatch> in _batchLists)
+        for each (var batchList:Array in _batchLists)
         {
             for (var i:int=0; i<batchList.length; ++i)
                 batchList[i].dispose();
@@ -191,10 +191,10 @@ class BatchPool
 
     public function get(styleType:Class):MeshBatch
     {
-        var batchList:Vector.<MeshBatch> = _batchLists[styleType];
+        var batchList:Array = _batchLists[styleType];
         if (batchList == null)
         {
-            batchList = new <MeshBatch>[];
+            batchList = [];
             _batchLists[styleType] = batchList;
         }
 
@@ -205,10 +205,10 @@ class BatchPool
     public function put(meshBatch:MeshBatch):void
     {
         var styleType:Class = meshBatch.style.type;
-        var batchList:Vector.<MeshBatch> = _batchLists[styleType];
+        var batchList:Array = _batchLists[styleType];
         if (batchList == null)
         {
-            batchList = new <MeshBatch>[];
+            batchList = [];
             _batchLists[styleType] = batchList;
         }
 
