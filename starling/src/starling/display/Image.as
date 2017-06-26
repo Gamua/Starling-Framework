@@ -11,6 +11,7 @@
 package starling.display
 {
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
 
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
@@ -19,6 +20,7 @@ package starling.display
     import starling.utils.Padding;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
+    import starling.utils.execute;
 
     /** An Image is a quad with a texture mapped onto it.
      *
@@ -47,6 +49,8 @@ package starling.display
     {
         private var _scale9Grid:Rectangle;
         private var _tileGrid:Rectangle;
+
+        private static var sSetupFunctions:Dictionary = new Dictionary(true);
 
         // helper objects
         private static var sPadding:Padding = new Padding();
@@ -174,8 +178,15 @@ package starling.display
         {
             if (value != texture)
             {
+                if (texture && sSetupFunctions[texture])
+                    execute(sSetupFunctions[texture][1], this);
+
                 super.texture = value;
-                if (_scale9Grid && value) readjustSize();
+
+                if (value && sSetupFunctions[value])
+                    execute(sSetupFunctions[value][0], this);
+                else if (_scale9Grid && value)
+                    readjustSize();
             }
         }
 
@@ -488,6 +499,48 @@ package starling.display
             }
 
             setRequiresRedraw();
+        }
+
+        // bindings
+
+        /** Injects code that is called by all instances whenever the given texture is assigned or replaced.
+         *
+         *  @param texture    Assignment of this texture instance will lead to the following callback(s) being executed.
+         *  @param onAssign   Called when the texture is assigned. Receives one parameter of type 'Image'.
+         *  @param onRelease  Called when the texture is replaced. Receives one parameter of type 'Image'. (Optional.)
+         */
+        public static function automateSetupForTexture(texture:Texture, onAssign:Function, onRelease:Function=null):void
+        {
+            if (texture == null)
+                return;
+            else if (onAssign == null && onRelease == null)
+                delete sSetupFunctions[texture];
+            else
+                sSetupFunctions[texture] = [onAssign, onRelease];
+        }
+
+        /** Removes any custom setup functions for the given texture. */
+        public static function resetSetupForTexture(texture:Texture):void
+        {
+            automateSetupForTexture(texture, null, null);
+        }
+
+        /** Binds the given scaling grid to the given texture so that any image which displays the texture will
+         *  automatically use the grid. */
+        public static function bindScale9GridToTexture(texture:Texture, scale9Grid:Rectangle):void
+        {
+            automateSetupForTexture(texture,
+                function(image:Image):void { image.scale9Grid = scale9Grid; },
+                function(image:Image):void { image.scale9Grid = null; });
+        }
+
+        /** Binds the given pivot point to the given texture so that any image which displays the texture will
+         *  automatically use the pivot point. */
+        public static function bindPivotPointToTexture(texture:Texture, pivotX:Number, pivotY:Number):void
+        {
+            automateSetupForTexture(texture,
+                function(image:Image):void { image.pivotX = pivotX; image.pivotY = pivotY; },
+                function(image:Image):void { image.pivotX = image.pivotY = 0; });
         }
     }
 }

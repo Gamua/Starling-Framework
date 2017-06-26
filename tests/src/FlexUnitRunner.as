@@ -13,6 +13,7 @@ package
     import tests.display.ButtonTest;
     import tests.display.DisplayObjectContainerTest;
     import tests.display.DisplayObjectTest;
+    import tests.display.ImageTest;
     import tests.display.MeshTest;
     import tests.display.MovieClipTest;
     import tests.display.QuadTest;
@@ -60,6 +61,7 @@ package
             testsToRun.push(JugglerTest);
             testsToRun.push(MeshTest);
             testsToRun.push(QuadTest);
+            testsToRun.push(ImageTest);
             testsToRun.push(AssetManagerTest);
             testsToRun.push(TweenTest);
             testsToRun.push(DisplayObjectContainerTest);
