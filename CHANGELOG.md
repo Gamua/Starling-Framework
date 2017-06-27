@@ -1,6 +1,68 @@
 Starling: Changelog
 ===================
 
+version 2.2 - 2017-06-27
+------------------------
+
+- added 'DisplayObject.isMaskInverted' (thanks to Ehsan Marufi)
+- added support for stronger blurs with fewer passes to BlurFilter
+- added 'Image.bindScale9GridToTexture' for automated scale9Grid setup (thanks to Kevin Foley)
+- added 'Image.bindPivotPointToTexture' for automated pivot point setup
+- added 'Image.automateSetupForTexture' for automated setup of all the rest ;)
+- added workaround for memory issue on iOS concerning BatchPools
+- added 'padding' to TextField class → allowing injection of 'TextOptions' into TextField
+- added convenience methods and properties to 'Padding' class
+- added 'Painter.setupContextDefaults' and using it in 'DisplayObject.drawToBitmapData'
+- added support for asynchronous bitmap texture uploads (via 'Texture.asyncBitmapUploadEnabled')
+- added support for specifying the alpha value with which the context is cleared each frame
+- added support for overriding 'updateTransformationMatrix' in display objects
+- added methods for quickly checking the current platform in SystemUtil (thanks to Kevin Foley)
+- added 'numSides' parameter in 'Polygon.createEllipse' and 'createCircle' (thanks to Ehsan Marufi)
+- added 'StringUtil.parseBoolean' and using it for XML parsing in TextureAtlas
+- added 'TextureAtlas.addSubTexture' (thanks to Ehsan Marufi)
+- added 'RectangleUtil.extendToWholePixels' and using it to optimize area processed by fragment filter
+- added 'DisplayObject.drawToBitmapData' method
+- added link to new manual to README
+- added iPad support and auto-orientation to scaffold project
+- added 'Field Agent' utility for simple distance field creation
+- added depth test settings to RenderState (thanks to Alexander Mokretsov)
+- added 'styleSheet' property to TextField
+- added color component setter functions to 'Color' class (thanks to Alexander Mokretsov)
+- added 'letterSpacing' property to 'TextFormat' class (thanks to pbalmasov)
+- added 'antiAliasing' property to FragmentFilter
+- changed 'TextField.setRequiresRecomposition' to be public
+- changed that Travis build now always uses the latest AIR SDK
+- changed that Starling now stops with an error if AIR/Flash runtime version is not supported
+- changed 'scaffold_mobile' project to be better suited for current mobile device
+- changed that 'copyFrom' is called before setting the new style in MeshBatch (thanks to Robert Carone)
+- changed IntelliJ IDEA resource utility so it's easier to use
+- changed that 'depthAndStencil' warning is printed out on first use of masks
+- optimized MiniBitmapFont: replaced XML with compressed ByteArray to save space
+- optimized masking: now using depth test to prevent masks from being drawn (thanks to Ehsan Marufi)
+- optimized transformation matrix workflow
+- optimized 'removeEventListener' by avoiding duplicate vector creation (thanks to Josh Tynjala)
+- optimized pushing and popping of state stack in DisplayObjectContainer (thanks to vroad)
+- fixed that objects were not notified if HOVER phase ended due to display list changes
+- fixed possible null reference error in Sprite3D instances
+- fixed that back buffer could be left in unknown state after disabling 'Starling.shareContext'
+- fixed that 'alignPivot' did not force transformation matrix update on Sprite3D
+- fixed that internal 'dispose' was called twice on empty TextField (thanks to 5k0rp)
+- fixed that render context was disposed before the stage (thanks to neuronix)
+- fixed that changing camera settings did not force redraw
+- fixed 'drawToBitmapData' when called on the stage with negative viewPort.x/y
+- fixed that DisplacementMapFilter did not clamp edge pixels
+- fixed that 'copy_resources.rb' script could not handle multiple configurations
+- fixed that helper matrix was not initialized in FragmentFilter (thanks to bwhiting)
+- fixed iPad logic of mobile scaffold
+- fixed that 'Juggler.removeDelayedCalls' didn't remove the id of the delayed call
+- fixed that disposing video texture did not always cut connections to camera and net stream
+- fixed some class references in the API documentation
+- fixed that 'setRequiresRedraw' was not called after resizing native window (thanks to Josh Tynjala)
+- fixed that masking a filtered object with a clipRect did not work
+- fixed exception on rendering of mesh occurring when its style was changed
+- fixed that back buffer sizes below 32x32 lead to an exception (now forcing this minimal size)
+- fixed null pointer exception in Pool.getPoint3D
+
 version 2.1 - 2016-09-29
 ------------------------
 
@@ -545,7 +607,7 @@ version 1.3 - 2013-01-14
 - added arguments for mipmaps and scale to 'fromBitmap' method (thanks to elsassph)
 - added preloader to demo project
 - added scale parameter to 'Starling.showStatsAt'
-- added support for Event.MOUSE_LEAVE on native stage (thans to jamikado)
+- added support for Event.MOUSE_LEAVE on native stage (thanks to jamikado)
 - added support for Maven builds (thanks to bsideup)
 - added 'contextData' property on Starling instance
 - added 'RenderSupport.assembleAgal'
