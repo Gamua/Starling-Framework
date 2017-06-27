@@ -762,26 +762,22 @@ package starling.textures
                 return 4096;
         }
 
-        /** Indicates if it should be attempted to upload bitmaps asynchronously when the
-         *  <code>async</code> parameter is supplied to supported methods. This defaults to 'true',
-         *  but automatically reverts to 'false' if the feature is not supported by the current
-         *  AIR or Flash version.
+        /** Indicates if it should be attempted to upload bitmaps asynchronously when the <code>async</code> parameter
+         *  is supplied to supported methods. Since this feature is still not 100% reliable in AIR 26 (especially on
+         *  Android), it defaults to 'false' for now.
          *
-         *  <p>Even if disabled or unsupported, the <code>async</code> callback will still be
-         *  executed; the upload will happen synchronously, though.</p>
-         *
-         *  <p>At the time of this writing (with AIR 25), this feature is still problematic on
-         *  some Android devices. It's recommended to deactivate it for production builds.</p>
+         *  <p>If the feature is disabled or not available in the current AIR/Flash runtime, the async callback will
+         *  still be executed; however, the upload itself will be made synchronously.</p>
          */
-        public static function get asyncBitmapUploadSupported():Boolean
+        public static function get asyncBitmapUploadEnabled():Boolean
         {
-            return ConcreteRectangleTexture.asyncSupported;
+            return ConcreteRectangleTexture.asyncUploadEnabled;
         }
 
-        public static function set asyncBitmapUploadSupported(value:Boolean):void
+        public static function set asyncBitmapUploadEnabled(value:Boolean):void
         {
-            ConcreteRectangleTexture.asyncSupported = value;
-            ConcretePotTexture.asyncSupported = value;
+            ConcreteRectangleTexture.asyncUploadEnabled = value;
+            ConcretePotTexture.asyncUploadEnabled = value;
         }
     }
 }

@@ -35,7 +35,7 @@ package starling.textures
         private static var sMatrix:Matrix = new Matrix();
         private static var sRectangle:Rectangle = new Rectangle();
         private static var sOrigin:Point = new Point();
-        private static var sAsyncSupported:Boolean = true;
+        private static var sAsyncUploadEnabled:Boolean = false;
 
         /** Creates a new instance with the given parameters. */
         public function ConcretePotTexture(base:flash.display3D.textures.Texture, format:String,
@@ -148,19 +148,19 @@ package starling.textures
 
         private function uploadAsync(source:BitmapData, mipLevel:uint):void
         {
-            if (sAsyncSupported)
+            if (sAsyncUploadEnabled)
             {
                 try { base["uploadFromBitmapDataAsync"](source, mipLevel); }
                 catch (error:Error)
                 {
                     if (error.errorID == 3708 || error.errorID == 1069)
-                        sAsyncSupported = false;
+                        sAsyncUploadEnabled = false;
                     else
                         throw error;
                 }
             }
 
-            if (!sAsyncSupported)
+            if (!sAsyncUploadEnabled)
             {
                 setTimeout(base.dispatchEvent, 1, new Event(Event.TEXTURE_READY));
                 potBase.uploadFromBitmapData(source);
@@ -182,7 +182,7 @@ package starling.textures
         }
 
         /** @private */
-        internal static function get asyncSupported():Boolean { return sAsyncSupported; }
-        internal static function set asyncSupported(value:Boolean):void { sAsyncSupported = value; }
+        internal static function get asyncUploadEnabled():Boolean { return sAsyncUploadEnabled; }
+        internal static function set asyncUploadEnabled(value:Boolean):void { sAsyncUploadEnabled = value; }
     }
 }
