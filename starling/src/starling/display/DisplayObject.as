@@ -142,7 +142,7 @@ package starling.display
         private var _transformationChanged:Boolean;
         private var _is3D:Boolean;
         private var _maskee:DisplayObject;
-        private var _isMaskInverted:Boolean = false;
+        private var _maskInverted:Boolean = false;
 
         // internal members (for fast access on rendering)
 
@@ -319,7 +319,7 @@ package starling.display
                 var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
                 MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
                 var isMaskHit:Boolean = _mask.hitTest(helperPoint) != null;
-                return _isMaskInverted ? !isMaskHit : isMaskHit;
+                return _maskInverted ? !isMaskHit : isMaskHit;
             }
             else return true;
         }
@@ -1178,8 +1178,8 @@ package starling.display
         }
         
         /** Indicates if the masked region of this object is set to be inverted.*/
-        public function get isMaskInverted():Boolean { return _isMaskInverted; }
-        public function set isMaskInverted(value:Boolean):void { _isMaskInverted = value; }
+        public function get maskInverted():Boolean { return _maskInverted; }
+        public function set maskInverted(value:Boolean):void { _maskInverted = value; }
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }

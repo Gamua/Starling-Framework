@@ -389,7 +389,7 @@ package starling.rendering
                 // parameter of 'setStencilActions' will always be ignored; the 4th is the one
                 // that counts!
 
-                if (maskee && maskee.isMaskInverted)
+                if (maskee && maskee.maskInverted)
                 {
                     _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                         Context3DCompareMode.ALWAYS, Context3DStencilAction.KEEP,
@@ -441,7 +441,7 @@ package starling.rendering
                 // parameter of 'setStencilActions' will always be ignored; the 4th is the one
                 // that counts!
 
-                if (maskee && maskee.isMaskInverted)
+                if (maskee && maskee.maskInverted)
                 {
                     _context.setStencilActions(Context3DTriangleFace.FRONT_AND_BACK,
                         Context3DCompareMode.ALWAYS, Context3DStencilAction.KEEP,
@@ -534,7 +534,7 @@ package starling.rendering
         private function isRectangularMask(mask:DisplayObject, maskee:DisplayObject, out:Matrix):Boolean
         {
             var quad:Quad = mask as Quad;
-            var isInverted:Boolean = maskee && maskee.isMaskInverted;
+            var isInverted:Boolean = maskee && maskee.maskInverted;
             var is3D:Boolean = mask.is3D || (maskee && maskee.is3D && mask.stage == null);
 
             if (quad && !isInverted && !is3D && quad.texture == null)
