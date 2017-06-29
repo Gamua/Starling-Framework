@@ -188,7 +188,7 @@ package starling.text
             if (isVerticalAutoSize) height = 100000;
 
             _meshBatch.x = _meshBatch.y = 0;
-            _options.textureScale = Starling.contentScaleFactor;
+            _options.textureScale = Starling.contentScaleFactor * totalScale;
             _compositor.fillMeshBatch(_meshBatch, width, height, _text, _format, _options);
 
             if (_style) _meshBatch.style = _style;
@@ -215,6 +215,20 @@ package starling.text
                 // hit area doesn't change, and text bounds can be created on demand
                 _textBounds = null;
             }
+        }
+
+        private function get totalScale():Number
+        {
+            var currentObject:DisplayObject = this;
+            var totalScale:Number = 1.0;
+
+            while (currentObject != stage)
+            {
+                totalScale *= currentObject.scale;
+                currentObject = currentObject.parent;
+            }
+
+            return totalScale;
         }
 
         private function updateBorder():void
