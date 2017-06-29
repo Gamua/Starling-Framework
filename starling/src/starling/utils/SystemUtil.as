@@ -27,7 +27,6 @@ package starling.utils
         private static var sApplicationActive:Boolean = true;
         private static var sWaitingCalls:Array = [];
         private static var sPlatform:String;
-        private static var sDesktop:Boolean;
         private static var sVersion:String;
         private static var sAIR:Boolean;
         private static var sEmbeddedFonts:Array = null;
@@ -45,7 +44,6 @@ package starling.utils
             sInitialized = true;
             sPlatform = Capabilities.version.substr(0, 3);
             sVersion = Capabilities.version.substr(4);
-            sDesktop = /(WIN|MAC|LNX)/.exec(sPlatform) != null;
 
             try
             {
@@ -116,58 +114,29 @@ package starling.utils
             return sAIR;
         }
         
-        /** Indicates if the code is executed on an Android device, based on the <code>platform</code> string.
-         */
-        public static function get isAndroid():Boolean 
-        {
-            return platform == "AND";
-        }
-        
-        /** Indicates if the code is executed on a Desktop computer with Windows, OS X or Linux
-         *  operating system. If the method returns 'false', it's probably a mobile device
-         *  or a Smart TV. */
-        public static function get isDesktop():Boolean
-        {
-            initialize();
-            return sDesktop;
-        }
-        
-        /** Indicates if the code is executed on an iOS device, based on the <code>platform</code> string.
-         */
-        public static function get isIOS():Boolean 
-        {
-            return platform == "IOS";
-        }
-        
-        /** Indicates if the code is executed on a Macintosh, based on the <code>platform</code> string.
-         */
-        public static function get isMac():Boolean 
-        {
-            return platform == "MAC";
-        }
-        
-        /** Indicates if the code is executed on Windows, based on the <code>platform</code> string.
-         */
-        public static function get isWindows():Boolean 
-        {
-            return platform == "WIN";
-        }
-        
-        /** Returns the three-letter platform string of the current system. These are
-         *  the most common platforms: <code>WIN, MAC, LNX, IOS, AND, QNX</code>. Except for the
-         *  last one, which indicates "Blackberry", all should be self-explanatory. */
-        public static function get platform():String
-        {
-            initialize();
-            return sPlatform;
-        }
-
         /** Returns the Flash Player/AIR version string. The format of the version number is:
          *  <em>majorVersion,minorVersion,buildNumber,internalBuildNumber</em>. */
         public static function get version():String
         {
             initialize();
             return sVersion;
+        }
+
+        /** Returns the three-letter platform string of the current system. These are
+         *  the most common platforms: <code>WIN, MAC, LNX, IOS, AND, QNX</code>. Except for the
+         *  last one, which indicates "Blackberry", all should be self-explanatory.
+         *
+         *  <p>For debugging purposes, you can also assign a custom value.</p> */
+        public static function get platform():String
+        {
+            initialize();
+            return sPlatform;
+        }
+
+        public static function set platform(value:String):void
+        {
+            initialize();
+            sPlatform = value;
         }
 
         /** Returns the value of the 'initialWindow.depthAndStencil' node of the application
@@ -177,13 +146,13 @@ package starling.utils
             return sSupportsDepthAndStencil;
         }
 
-        /** Indicates if Context3D supports video textures. At the time of this writing,
-         *  video textures are only supported on Windows, OS X and iOS, and only in AIR
-         *  applications (not the Flash Player). */
+        /** Indicates if the current platform and runtime support video textures.  */
         public static function get supportsVideoTexture():Boolean
         {
             return Context3D["supportsVideoTexture"];
         }
+
+        // embedded fonts
 
         /** Updates the list of embedded fonts. To be called when a font is loaded at runtime. */
         public static function updateEmbeddedFonts():void
@@ -220,6 +189,44 @@ package starling.utils
             }
 
             return false;
+        }
+
+        // convenience methods
+
+        /** Indicates if the code is executed on an iOS device, based on the <code>platform</code>
+         *  string. */
+        public static function get isIOS():Boolean
+        {
+            return platform == "IOS";
+        }
+
+        /** Indicates if the code is executed on an Android device, based on the
+         *  <code>platform</code> string. */
+        public static function get isAndroid():Boolean
+        {
+            return platform == "AND";
+        }
+
+        /** Indicates if the code is executed on a Macintosh, based on the <code>platform</code>
+         *  string. */
+        public static function get isMac():Boolean
+        {
+            return platform == "MAC";
+        }
+
+        /** Indicates if the code is executed on Windows, based on the <code>platform</code>
+         *  string. */
+        public static function get isWindows():Boolean
+        {
+            return platform == "WIN";
+        }
+
+        /** Indicates if the code is executed on a Desktop computer with Windows, macOS or Linux
+         *  operating system. If the method returns 'false', it's probably a mobile device
+         *  or a Smart TV. */
+        public static function get isDesktop():Boolean
+        {
+            return platform == "WIN" || platform == "MAC" || platform == "LNX";
         }
     }
 }
