@@ -166,7 +166,8 @@ package starling.rendering
 
             if (!_shareContext)
             {
-                _context.dispose(false);
+                if (_context)
+                    _context.dispose(false);
                 sSharedData = new Dictionary();
             }
         }
