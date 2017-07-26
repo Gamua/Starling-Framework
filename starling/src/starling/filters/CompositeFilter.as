@@ -173,7 +173,7 @@ class CompositeEffect extends FilterEffect
                 );
 
             var fragmentShader:Array = [
-                "seq ft5, v0, v0" // ft5 -> 1, 1, 1, 1
+                "sge ft5, v0, v0" // ft5 -> 1, 1, 1, 1
             ];
 
             for (i=0; i<numLayers; ++i)
