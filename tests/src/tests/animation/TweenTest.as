@@ -379,6 +379,20 @@ package tests.animation
             assertThat(shape.rotation, closeTo(170, E));
         }
 
+        [Test]
+        public function testAnimatesProperty():void
+        {
+            var shape:Shape = new Shape();
+            var tween:Tween = new Tween(shape, 1.0);
+            tween.animate("x", 5.0);
+            tween.animate("rotation", 0.5);
+
+            assertTrue(tween.animatesProperty("x"));
+            assertTrue(tween.animatesProperty("rotation"));
+            assertFalse(tween.animatesProperty("y"));
+            assertFalse(tween.animatesProperty("alpha"));
+        }
+
         private function executeTween(time:Number, advanceTime:Number):void
         {
             var quad:Quad = new Quad(100, 100);
