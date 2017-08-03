@@ -76,7 +76,7 @@ package starling.rendering
     {
         // the key for the programs stored in 'sharedData'
         private static const PROGRAM_DATA_NAME:String = "starling.rendering.Painter.Programs";
-        private static const DEFAULT_STENCIL_VALUE:uint = 127;
+        private static const DEFAULT_STENCIL_REFERENCE_VALUE:uint = 127;
 
         // members
 
@@ -613,7 +613,7 @@ package starling.rendering
             setupContextDefaults();
 
             // reset everything else
-            stencilReferenceValue = DEFAULT_STENCIL_VALUE;
+            stencilReferenceValue = DEFAULT_STENCIL_REFERENCE_VALUE;
             _clipRectStack.length = 0;
             _drawCount = 0;
             _stateStackPos = -1;
@@ -712,12 +712,13 @@ package starling.rendering
         }
 
         /** Clears the render context with a certain color and alpha value. Since this also
-         *  clears the stencil buffer, the stencil reference value is also reset to '0'. */
+         *  clears the stencil buffer, the stencil reference value is also reset to its default
+         *  value. */
         public function clear(rgb:uint=0, alpha:Number=0.0):void
         {
             applyRenderTarget();
-            stencilReferenceValue = DEFAULT_STENCIL_VALUE;
-            RenderUtil.clear(rgb, alpha);
+            stencilReferenceValue = DEFAULT_STENCIL_REFERENCE_VALUE;
+            RenderUtil.clear(rgb, alpha, 1.0, DEFAULT_STENCIL_REFERENCE_VALUE);
         }
 
         /** Resets the render target to the back buffer and displays its contents. */
@@ -847,7 +848,7 @@ package starling.rendering
         {
             var key:Object = _state.renderTarget ? _state.renderTargetBase : this;
             if (key in _stencilReferenceValues) return _stencilReferenceValues[key];
-            else return 0;
+            else return DEFAULT_STENCIL_REFERENCE_VALUE;
         }
 
         public function set stencilReferenceValue(value:uint):void
