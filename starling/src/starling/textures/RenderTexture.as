@@ -10,6 +10,8 @@
 
 package starling.textures
 {
+    import flash.display3D.Context3DCompareMode;
+    import flash.display3D.Context3DTriangleFace;
     import flash.display3D.textures.TextureBase;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
@@ -247,8 +249,11 @@ package starling.textures
 
             state.clipRect = sClipRect;
             state.setRenderTarget(_activeTexture, true, antiAliasing);
+
             painter.prepareToDraw();
-            
+            painter.context.setStencilActions( // should not be necessary, but fixes mask issues
+                Context3DTriangleFace.FRONT_AND_BACK, Context3DCompareMode.ALWAYS);
+
             if (isDoubleBuffered || !isPersistent || !_bufferReady)
                 painter.clear();
 
