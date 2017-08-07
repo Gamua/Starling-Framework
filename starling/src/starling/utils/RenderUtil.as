@@ -232,7 +232,11 @@ package starling.utils
             {
                 currentProfile = profiles.shift();
 
-                try { execute(stage3D.requestContext3D, renderMode, currentProfile); }
+                try
+                {
+                    SystemUtil.executeWhenApplicationIsActive(
+                        stage3D.requestContext3D, renderMode, currentProfile);
+                }
                 catch (error:Error)
                 {
                     if (profiles.length != 0) setTimeout(requestNextProfile, 1);
