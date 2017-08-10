@@ -199,6 +199,8 @@ package starling.display
             var absScaleX:Number = scaleX > 0 ? scaleX : -scaleX;
             var absScaleY:Number = scaleY > 0 ? scaleY : -scaleY;
 
+            if (absScaleX == 0.0 || absScaleY == 0) return;
+
             // If top and bottom row / left and right column are empty, this is actually
             // a scale3 grid. In that case, we want the 'caps' to maintain their aspect ratio.
 
