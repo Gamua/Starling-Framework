@@ -50,7 +50,7 @@ package starling.styles
      *
      *  <ul>
      *    <li><a href="https://github.com/soimy/msdf-bmfont-xml/">msdf-bmfont-xml</a> - a command
-     *        line tool powered by msdf and thus producing excellent multi-channel output.</a>
+     *        line tool powered by msdf and thus producing excellent multi-channel output.</li>
      *    <li><a href="http://kvazars.com/littera/">Littera</a> - a free online bitmap font
      *        generator.</li>
      *    <li><a href="http://github.com/libgdx/libgdx/wiki/Hiero">Hiero</a> - a cross platform
