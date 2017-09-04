@@ -236,6 +236,9 @@ package starling.styles
                     var maxScale:Number = DistanceFieldEffect.MAX_SCALE;
                     var minScale:Number = maxScale / 255;
 
+                    if (numVertices < 0)
+                        numVertices = vertexData.numVertices - vertexID;
+
                     for (var i:int=0; i<numVertices; ++i)
                     {
                         var srcAttr:uint = vertexData.getUnsignedInt(vertexID + i, "basic");
