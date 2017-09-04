@@ -75,6 +75,8 @@ package starling.text
         private var _offsetY:Number;
         private var _padding:Number;
         private var _helperImage:Image;
+        private var _type:String;
+        private var _distanceFieldSpread:Number;
 
         // helper objects
         private static var sLines:Array = [];
@@ -92,7 +94,8 @@ package starling.text
             }
             else if (texture == null || fontXml == null)
             {
-                throw new ArgumentError("Set both of the 'texture' and 'fontXml' arguments to valid objects or leave both of them null.");
+                throw new ArgumentError("Set both of the 'texture' and 'fontXml' " +
+                    "arguments to valid objects or leave both of them null.");
             }
             
             _name = "unknown";
@@ -101,6 +104,8 @@ package starling.text
             _texture = texture;
             _chars = new Dictionary();
             _helperImage = new Image(texture);
+            _type = BitmapFontType.STANDARD;
+            _distanceFieldSpread = 0.0;
             
             parseFontXml(fontXml);
         }
@@ -131,6 +136,18 @@ package starling.text
             {
                 trace("[Starling] Warning: invalid font size in '" + _name + "' font.");
                 _size = (_size == 0.0 ? 16.0 : _size * -1.0);
+            }
+
+            if (fontXml.distanceField)
+            {
+                _distanceFieldSpread = parseFloat(fontXml.distanceField.@distanceRange);
+                _type = fontXml.distanceField.@fieldType == "msdf" ?
+                    BitmapFontType.MULTI_CHANNEL_DISTANCE_FIELD : BitmapFontType.DISTANCE_FIELD;
+            }
+            else
+            {
+                _distanceFieldSpread = 0.0;
+                _type = BitmapFontType.STANDARD;
             }
             
             for each (var charElement:XML in fontXml.chars.char)
@@ -238,7 +255,7 @@ package starling.text
                     width, height, text, format, options);
             var numChars:int = charLocations.length;
             _helperImage.color = format.color;
-            
+
             for (var i:int=0; i<numChars; ++i)
             {
                 var charLocation:CharLocation = charLocations[i];
@@ -441,6 +458,15 @@ package starling.text
         
         /** The native size of the font. */
         public function get size():Number { return _size; }
+
+        /** The type of the bitmap font. @see starling.text.BitmapFontType @default standard */
+        public function get type():String { return _type; }
+        public function set type(value:String):void { _type = value; }
+
+        /** If the font uses a distance field texture, this property returns its spread (i.e.
+         *  the width of the blurred edge in points). */
+        public function get distanceFieldSpread():Number { return _distanceFieldSpread; }
+        public function set distanceFieldSpread(value:Number):void { _distanceFieldSpread = value; }
         
         /** The height of one line in points. */
         public function get lineHeight():Number { return _lineHeight; }
