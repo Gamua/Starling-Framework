@@ -16,6 +16,7 @@ package starling.text
 
     import starling.display.MeshBatch;
     import starling.display.Quad;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
     import starling.utils.Align;
     import starling.utils.MathUtil;
@@ -90,6 +91,13 @@ package starling.text
                 meshBatch.texture.dispose();
                 meshBatch.texture = null;
             }
+        }
+
+        /** @private */
+        public function getDefaultMeshStyle(previousStyle:MeshStyle,
+                                            format:TextFormat, options:TextOptions):MeshStyle
+        {
+            return null;
         }
 
         private function renderText(width:Number, height:Number, text:String,

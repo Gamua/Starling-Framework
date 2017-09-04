@@ -16,6 +16,8 @@ package starling.text
     import starling.display.Image;
     import starling.display.MeshBatch;
     import starling.display.Sprite;
+    import starling.styles.DistanceFieldStyle;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
     import starling.textures.TextureSmoothing;
     import starling.utils.Align;
@@ -274,6 +276,22 @@ package starling.text
         public function clearMeshBatch(meshBatch:MeshBatch):void
         {
             meshBatch.clear();
+        }
+
+        /** @inheritDoc */
+        public function getDefaultMeshStyle(previousStyle:MeshStyle,
+                                            format:TextFormat, options:TextOptions):MeshStyle
+        {
+            if (_type == BitmapFontType.STANDARD) return null;
+            else // -> distance field font
+            {
+                var dfStyle:DistanceFieldStyle;
+                var fontSize:Number = format.size < 0 ? format.size * -_size : format.size;
+                dfStyle = previousStyle as DistanceFieldStyle || new DistanceFieldStyle();
+                dfStyle.multiChannel = (_type == BitmapFontType.MULTI_CHANNEL_DISTANCE_FIELD);
+                dfStyle.softness = _size / (fontSize * _distanceFieldSpread);
+                return dfStyle;
+            }
         }
         
         /** Arranges the characters of a text inside a rectangle, adhering to the given settings. 

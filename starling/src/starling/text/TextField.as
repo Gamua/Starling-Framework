@@ -100,7 +100,8 @@ package starling.text
         private var _requiresRecomposition:Boolean;
         private var _border:DisplayObjectContainer;
         private var _meshBatch:MeshBatch;
-        private var _style:MeshStyle;
+        private var _customStyle:MeshStyle;
+        private var _defaultStyle:MeshStyle;
         private var _recomposing:Boolean;
 
         // helper objects
@@ -175,7 +176,7 @@ package starling.text
         }
 
         // font and border rendering
-        
+
         private function updateText():void
         {
             var width:Number  = _hitArea.width;
@@ -191,7 +192,13 @@ package starling.text
             _options.textureScale = Starling.contentScaleFactor;
             _compositor.fillMeshBatch(_meshBatch, width, height, _text, _format, _options);
 
-            if (_style) _meshBatch.style = _style;
+            if (_customStyle) _meshBatch.style = _customStyle;
+            else
+            {
+                _defaultStyle = _compositor.getDefaultMeshStyle(_defaultStyle, _format, _options);
+                if (_defaultStyle) _meshBatch.style = _defaultStyle;
+            }
+
             if (_options.autoSize != TextFieldAutoSize.NONE)
             {
                 _textBounds = _meshBatch.getBounds(_meshBatch, _textBounds);
@@ -425,10 +432,15 @@ package starling.text
 
         /** The mesh style that is used to render the text.
          *  Note that a style instance may only be used on one mesh at a time. */
-        public function get style():MeshStyle { return _meshBatch.style; }
+        public function get style():MeshStyle
+        {
+            if (_requiresRecomposition) recompose(); // might change style!
+            return _meshBatch.style;
+        }
+
         public function set style(value:MeshStyle):void
         {
-            _meshBatch.style = _style = value;
+            _customStyle = value;
             setRequiresRecomposition();
         }
 
