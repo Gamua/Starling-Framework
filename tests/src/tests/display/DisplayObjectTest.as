@@ -501,5 +501,23 @@ package tests.display
             assertThat(quad.width, closeTo(100, E));
             assertThat(quad.height, closeTo(200, E));
         }
+
+        [Test]
+        public function testSetWidthAndHeightToVerySmallValueAndBack():void
+        {
+            var sprite:Sprite = new Sprite();
+            var quad:Quad = new Quad(100, 100);
+            sprite.addChild(quad);
+            sprite.x = sprite.y = 480;
+
+            sprite.width = 2.842170943040401e-14;
+            sprite.width = 100;
+
+            sprite.height = 2.842170943040401e-14;
+            sprite.height = 100;
+
+            assertThat(sprite.width, closeTo(100, E));
+            assertThat(sprite.height, closeTo(100, E));
+        }
     }
 }
