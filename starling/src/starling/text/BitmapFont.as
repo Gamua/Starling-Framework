@@ -140,7 +140,7 @@ package starling.text
                 _size = (_size == 0.0 ? 16.0 : _size * -1.0);
             }
 
-            if (fontXml.distanceField)
+            if (fontXml.distanceField.length())
             {
                 _distanceFieldSpread = parseFloat(fontXml.distanceField.@distanceRange);
                 _type = fontXml.distanceField.@fieldType == "msdf" ?
