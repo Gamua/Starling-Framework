@@ -12,6 +12,8 @@ package starling.styles
 {
     import flash.geom.Matrix;
 
+    import starling.core.Starling;
+
     import starling.display.Mesh;
     import starling.rendering.MeshEffect;
     import starling.rendering.RenderState;
@@ -263,12 +265,13 @@ package starling.styles
             if (state.is3D) dfEffect.scale = 1.0;
             else
             {
-                // The softness is adapted automatically with the total scale of the object.
-                // However, this only works for 2D objects.
+                // The softness is adapted automatically with the total scale of the object;
+                // this only works for 2D objects, though. Since a 'texture scale' does not
+                // make much sense for distance field textures, it is eliminated.
 
                 var matrix:Matrix = state.modelviewMatrix;
                 var scale:Number = Math.sqrt(matrix.a * matrix.a + matrix.c * matrix.c);
-                dfEffect.scale = scale;
+                dfEffect.scale = scale * Starling.contentScaleFactor / texture.scale;
             }
 
             super.updateEffect(effect, state);
