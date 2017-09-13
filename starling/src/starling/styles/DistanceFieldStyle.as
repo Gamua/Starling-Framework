@@ -13,7 +13,6 @@ package starling.styles
     import flash.geom.Matrix;
 
     import starling.core.Starling;
-
     import starling.display.Mesh;
     import starling.rendering.MeshEffect;
     import starling.rendering.RenderState;
