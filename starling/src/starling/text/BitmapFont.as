@@ -327,7 +327,7 @@ package starling.text
                 containerWidth  = (width  - 2 * _padding) / scale;
                 containerHeight = (height - 2 * _padding) / scale;
                 
-                if (fontSize <= containerHeight)
+                if (_size <= containerHeight)
                 {
                     var lastWhiteSpace:int = -1;
                     var lastCharID:int = -1;
@@ -411,7 +411,7 @@ package starling.text
                             if (lastWhiteSpace == i)
                                 currentLine.pop();
                             
-                            if (currentY + _lineHeight + leading + fontSize <= containerHeight)
+                            if (currentY + _lineHeight + leading + _size <= containerHeight)
                             {
                                 currentLine = CharLocation.vectorFromPool();
                                 currentX = 0;
