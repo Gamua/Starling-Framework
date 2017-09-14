@@ -138,6 +138,8 @@ package starling.utils
         private var _xmls:Dictionary;
         private var _objects:Dictionary;
         private var _byteArrays:Dictionary;
+
+        private var _fontTexture:Array;
         
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
@@ -159,6 +161,7 @@ package starling.utils
             _numConnections = 3;
             _verbose = true;
             _queue = [];
+            _fontTexture = new Array();
         }
         
         /** Disposes all contained textures, XMLs and ByteArrays.
@@ -699,11 +702,15 @@ package starling.utils
                 if (canceled) return;
                 else if (index == xmls.length)
                 {
+                    for each(var t:String in _fontTexture)
+                        removeTexture(t, false);
+                    _fontTexture.length = 0;
                     finish();
                     return;
                 }
 
                 var name:String;
+                var fontName:String;
                 var texture:Texture;
                 var xml:XML = xmls[index];
                 var rootNode:String = xml.localName();
@@ -727,13 +734,15 @@ package starling.utils
                 else if (rootNode == "font")
                 {
                     name = getName(xml.pages.page.@file.toString());
+                    fontName = getName(xml.info.@face.toString());
                     texture = getTexture(name);
 
                     if (texture)
                     {
-                        log("Adding bitmap font '" + name + "'");
-                        TextField.registerCompositor(new BitmapFont(texture, xml), name);
-                        removeTexture(name, false);
+                        log("Adding bitmap font '" + fontName + "'");
+                        TextField.registerCompositor(new BitmapFont(texture, xml), fontName);
+                        // removeTexture(name, false);
+                        _fontTexture.push(name);
 
                         if (_keepFontXmls) addXml(name, xml);
                         else System.disposeXML(xml);
