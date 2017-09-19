@@ -718,11 +718,11 @@ package starling.utils
                     {
                         addTextureAtlas(name, new TextureAtlas(texture, xml));
                         removeTexture(name, false);
-
-                        if (_keepAtlasXmls) addXml(name, xml);
-                        else System.disposeXML(xml);
                     }
                     else log("Cannot create atlas: texture '" + name + "' is missing.");
+
+                    if (_keepAtlasXmls) addXml(name, xml);
+                    else System.disposeXML(xml);
                 }
                 else if (rootNode == "font")
                 {
@@ -734,11 +734,11 @@ package starling.utils
                         log("Adding bitmap font '" + name + "'");
                         TextField.registerCompositor(new BitmapFont(texture, xml), name);
                         removeTexture(name, false);
-
-                        if (_keepFontXmls) addXml(name, xml);
-                        else System.disposeXML(xml);
                     }
                     else log("Cannot create bitmap font: texture '" + name + "' is missing.");
+
+                    if (_keepFontXmls) addXml(name, xml);
+                    else System.disposeXML(xml);
                 }
                 else
                     throw new Error("XML contents not recognized: " + rootNode);
