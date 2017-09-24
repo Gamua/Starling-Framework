@@ -120,8 +120,8 @@ package starling.styles
         /** Creates a new distance field style.
          *
          *  @param softness   adds a soft transition between the inside and the outside.
-         *                    This should typically be 1.0 divided by the spread used when
-         *                    creating the distance field texture.
+         *                    This should typically be 1.0 divided by the spread (in points)
+         *                    used when creating the distance field texture.
          *  @param threshold  the value separating the inside from the outside of the shape.
          *                    Range: 0 - 1.
          */
@@ -265,12 +265,11 @@ package starling.styles
             else
             {
                 // The softness is adapted automatically with the total scale of the object;
-                // this only works for 2D objects, though. Since a 'texture scale' does not
-                // make much sense for distance field textures, it is eliminated.
+                // this only works for 2D objects, though.
 
                 var matrix:Matrix = state.modelviewMatrix;
                 var scale:Number = Math.sqrt(matrix.a * matrix.a + matrix.c * matrix.c);
-                dfEffect.scale = scale * Starling.contentScaleFactor / texture.scale;
+                dfEffect.scale = scale * Starling.contentScaleFactor;
             }
 
             super.updateEffect(effect, state);
