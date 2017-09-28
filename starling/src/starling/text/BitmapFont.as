@@ -61,12 +61,13 @@ package starling.text
         
         /** The font name of the embedded minimal bitmap font. Use this e.g. for debug output. */
         public static const MINI:String = "mini";
-        
-        private static const CHAR_SPACE:int           = 32;
+
+        private static const CHAR_MISSING:int         =  0;
         private static const CHAR_TAB:int             =  9;
         private static const CHAR_NEWLINE:int         = 10;
         private static const CHAR_CARRIAGE_RETURN:int = 13;
-        
+        private static const CHAR_SPACE:int           = 32;
+
         private var _texture:Texture;
         private var _chars:Dictionary;
         private var _name:String;
@@ -108,7 +109,8 @@ package starling.text
             _helperImage = new Image(texture);
             _type = BitmapFontType.STANDARD;
             _distanceFieldSpread = 0.0;
-            
+
+            addChar(CHAR_MISSING, new BitmapChar(CHAR_MISSING, null, 0, 0, 0));
             parseFontXml(fontXml);
         }
         
@@ -346,12 +348,18 @@ package starling.text
                         {
                             lineFull = true;
                         }
-                        else if (char == null)
-                        {
-                            trace("[Starling] Font: "+ name + " missing character: " + text.charAt(i) + " id: "+ charID);
-                        }
                         else
                         {
+                            if (char == null)
+                            {
+                                trace(StringUtil.format(
+                                    "[Starling] Character '{0}' (id: {1}) not found in '{2}'",
+                                    text.charAt(i), charID, name));
+
+                                charID = CHAR_MISSING;
+                                char = getChar(CHAR_MISSING);
+                            }
+
                             if (charID == CHAR_SPACE || charID == CHAR_TAB)
                                 lastWhiteSpace = i;
                             

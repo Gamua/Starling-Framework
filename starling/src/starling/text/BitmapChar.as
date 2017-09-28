@@ -78,9 +78,9 @@ package starling.text
         public function get texture():Texture { return _texture; }
         
         /** The width of the character in points. */
-        public function get width():Number { return _texture.width; }
+        public function get width():Number { return _texture ? _texture.width : 0; }
         
         /** The height of the character in points. */
-        public function get height():Number { return _texture.height; }
+        public function get height():Number { return _texture ? _texture.height : 0; }
     }
 }
