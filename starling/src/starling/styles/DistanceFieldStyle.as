@@ -546,12 +546,17 @@ class DistanceFieldEffect extends MeshEffect
             /// *** VERTEX SHADER ***
 
             var vertexShader:Vector.<String> = new <String>[
-                "m44 op, va0, vc0", // 4x4 matrix transform to output clip-space
-                "mov v0, va1     ", // pass texture coordinates to fragment program
-                "mul v1, va2, vc4", // multiply alpha (vc4) with color (va2), pass to fp
-                "mov v3, va3     ",
-                "mov v4, va4     ",
-                "mov v5, va5     ",
+                "m44 op, va0, vc0",       // 4x4 matrix transform to output clip-space
+                "mov v0, va1",            // pass texture coordinates to fragment program
+                "mul vt4, va3.yyyy, vc4", // multiply inner alpha (va3.y) with state alpha (vc4)
+                "mul v1, va2, vt4",       // multiply vertex color (va2) with combined alpha (vt4)
+                "mov v3, va3",
+                "mov v4, va4",
+                "mov v5, va5",
+
+                // multiply outerAlphaStart and outerAlphaEnd with state alpha
+                "mul v4.y, va4.y, vc4.x",
+                "mul v5.w, va5.w, vc4.x",
 
                 // update softness to take current scale into account
                 "mul vt0.x, va3.w, vc5.z", // vt0.x = local scale [decoded]
