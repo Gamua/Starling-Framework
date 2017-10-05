@@ -554,9 +554,10 @@ class DistanceFieldEffect extends MeshEffect
                 "mov v4, va4",
                 "mov v5, va5",
 
-                // multiply outerAlphaStart and outerAlphaEnd with state alpha
-                "mul v4.y, va4.y, vc4.x",
-                "mul v5.w, va5.w, vc4.x",
+                // multiply outerAlphaStart and outerAlphaEnd with state alpha and vertex alpha
+                "mul vt4.w, vc4.w, va2.w", // state alpha (vc4) * vertex alpha (va2.w)
+                "mul v4.y, va4.y, vt4.w",  // v4.x = outerAlphaEnd
+                "mul v5.w, va5.w, vt4.w",  // v5.w = outerAlphaStart
 
                 // update softness to take current scale into account
                 "mul vt0.x, va3.w, vc5.z", // vt0.x = local scale [decoded]
