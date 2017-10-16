@@ -312,11 +312,13 @@ package starling.text
 
             var kerning:Boolean = format.kerning;
             var leading:Number = format.leading;
+            var spacing:Number = format.letterSpacing;
             var hAlign:String = format.horizontalAlign;
             var vAlign:String = format.verticalAlign;
             var fontSize:Number = format.size;
             var autoScale:Boolean = options.autoScale;
             var wordWrap:Boolean = options.wordWrap;
+
 
             var finished:Boolean = false;
             var charLocation:BitmapCharLocation;
@@ -378,7 +380,7 @@ package starling.text
                             charLocation.y = currentY + char.yOffset;
                             currentLine[currentLine.length] = charLocation; // push
                             
-                            currentX += char.xAdvance;
+                            currentX += char.xAdvance + spacing;
                             lastCharID = charID;
                             
                             if (charLocation.x + char.width > containerWidth)
