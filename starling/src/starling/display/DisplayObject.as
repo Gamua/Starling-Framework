@@ -912,7 +912,7 @@ package starling.display
 
             var actualWidth:Number;
             var scaleIsNaN:Boolean = _scaleX != _scaleX; // avoid 'isNaN' call
-            var scaleIsZero:Boolean = _scaleX < 1e8 && _scaleX > -1e8;
+            var scaleIsZero:Boolean = _scaleX < 1e-8 && _scaleX > -1e-8;
 
             if (scaleIsZero || scaleIsNaN) { scaleX = 1.0; actualWidth = width; }
             else actualWidth = Math.abs(width / _scaleX);
@@ -928,7 +928,7 @@ package starling.display
         {
             var actualHeight:Number;
             var scaleIsNaN:Boolean  = _scaleY != _scaleY; // avoid 'isNaN' call
-            var scaleIsZero:Boolean = _scaleY < 1e8 && _scaleY > -1e8;
+            var scaleIsZero:Boolean = _scaleY < 1e-8 && _scaleY > -1e-8;
 
             if (scaleIsZero || scaleIsNaN) { scaleY = 1.0; actualHeight = height; }
             else actualHeight = Math.abs(height / _scaleY);
