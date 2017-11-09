@@ -276,9 +276,7 @@ package starling.text
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
-            if (_requiresRecomposition) recompose();
-            if (_textBounds == null) _textBounds = _meshBatch.getBounds(this);
-            return _textBounds.clone();
+            return getTextBounds(this);
         }
         
         /** @inheritDoc */
@@ -287,6 +285,15 @@ package starling.text
             if (_requiresRecomposition) recompose();
             getTransformationMatrix(targetSpace, sMatrix);
             return RectangleUtil.getBounds(_hitArea, sMatrix, out);
+        }
+
+        /** Returns the bounds of the text within the text field in the given coordinate space. */
+        public function getTextBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
+        {
+            if (_requiresRecomposition) recompose();
+            if (_textBounds == null) _textBounds = _meshBatch.getBounds(this);
+            getTransformationMatrix(targetSpace, sMatrix);
+            return RectangleUtil.getBounds(_textBounds, sMatrix, out);
         }
         
         /** @inheritDoc */
