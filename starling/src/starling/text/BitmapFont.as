@@ -84,20 +84,25 @@ package starling.text
         // helper objects
         private static var sLines:Array = [];
         private static var sDefaultOptions:TextOptions = new TextOptions();
-        
-        /** Creates a bitmap font by parsing an XML file and uses the specified texture. 
-         *  If you don't pass any data, the "mini" font will be created. */
-        public function BitmapFont(texture:Texture=null, fontXml:XML=null)
+
+        /** Creates a bitmap font from the given texture and font data.
+         *  If you don't pass any data, the "mini" font will be created.
+         *
+         * @param texture  The texture containing all the glyphs.
+         * @param fontData Typically an XML file in the standard AngelCode format. Override the
+         *                 the 'parseFontData' method to add support for additional formats.
+         */
+        public function BitmapFont(texture:Texture=null, fontData:*=null)
         {
             // if no texture is passed in, we create the minimal, embedded font
-            if (texture == null && fontXml == null)
+            if (texture == null && fontData == null)
             {
                 texture = MiniBitmapFont.texture;
-                fontXml = MiniBitmapFont.xml;
+                fontData = MiniBitmapFont.xml;
             }
-            else if (texture == null || fontXml == null)
+            else if (texture == null || fontData == null)
             {
-                throw new ArgumentError("Set both of the 'texture' and 'fontXml' " +
+                throw new ArgumentError("Set both of the 'texture' and 'fontData' " +
                     "arguments to valid objects or leave both of them null.");
             }
             
@@ -111,7 +116,7 @@ package starling.text
             _distanceFieldSpread = 0.0;
 
             addChar(CHAR_MISSING, new BitmapChar(CHAR_MISSING, null, 0, 0, 0));
-            parseFontXml(fontXml);
+            parseFontData(fontData);
         }
         
         /** Disposes the texture of the bitmap font. */
@@ -119,6 +124,14 @@ package starling.text
         {
             if (_texture)
                 _texture.dispose();
+        }
+
+        /** Parses the data that's passed as second argument to the constructor.
+         *  Override this method to support different file formats. */
+        protected function parseFontData(data:*):void
+        {
+            if (data is XML) parseFontXml(data);
+            else throw new ArgumentError("BitmapFont only supports XML data");
         }
         
         private function parseFontXml(fontXml:XML):void
@@ -490,9 +503,11 @@ package starling.text
         
         /** The name of the font as it was parsed from the font file. */
         public function get name():String { return _name; }
+        public function set name(value:String):void { _name = value; }
         
         /** The native size of the font. */
         public function get size():Number { return _size; }
+        public function set size(value:Number):void { _size = value; }
 
         /** The type of the bitmap font. @see starling.text.BitmapFontType @default standard */
         public function get type():String { return _type; }
