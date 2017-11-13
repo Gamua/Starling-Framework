@@ -125,6 +125,7 @@ package starling.utils
         private var _numLoadingQueues:int;
 
         private var _defaultTextureOptions:TextureOptions;
+        private var _registerBitmapFontsWithFontFace:Boolean;
         private var _checkPolicyFile:Boolean;
         private var _keepAtlasXmls:Boolean;
         private var _keepFontXmls:Boolean;
@@ -413,7 +414,7 @@ package starling.utils
             
             if (dispose && name in _atlases)
                 _atlases[name].dispose();
-            
+
             delete _atlases[name];
         }
         
@@ -620,7 +621,7 @@ package starling.utils
 
             var i:int;
             var canceled:Boolean = false;
-            var xmls:Array = [];
+            var xmls:Vector.<XML> = new <XML>[];
             var assetInfos:Array = _queue.concat();
             var assetCount:int = _queue.length;
             var assetProgress:Array = [];
@@ -687,8 +688,8 @@ package starling.utils
                 // have to be available for other XMLs. Texture atlases are processed first:
                 // that way, their textures can be referenced, too.
                 
-                xmls.sort(function(a:Object, b:Object):int {
-                    return a.xml.localName() == "TextureAtlas" ? -1 : 1;
+                xmls.sort(function(a:XML, b:XML):int {
+                    return a.localName() == "TextureAtlas" ? -1 : 1;
                 });
 
                 setTimeout(processXml, 1, 0);
@@ -703,10 +704,9 @@ package starling.utils
                     return;
                 }
 
-                var name:String;
                 var texture:Texture;
-                var xml:XML = xmls[index].xml;
-                var xmlName:String = xmls[index].name;
+                var name:String, fontName:String;
+                var xml:XML = xmls[index];
                 var rootNode:String = xml.localName();
                 var xmlProgress:Number = (index + 1) / (xmls.length + 1);
 
@@ -724,12 +724,13 @@ package starling.utils
                 else if (rootNode == "font")
                 {
                     name = getName(xml.pages.page.@file.toString());
+                    fontName = _registerBitmapFontsWithFontFace ? xml.info.@face.toString() : name;
                     texture = getTexture(name);
 
                     if (texture)
                     {
-                        log("Adding bitmap font '" + xmlName + "'");
-                        TextField.registerCompositor(new BitmapFont(texture, xml), xmlName);
+                        log("Adding bitmap font '" + fontName + "'");
+                        TextField.registerCompositor(new BitmapFont(texture, xml), fontName);
                     }
                     else log("Cannot create bitmap font: texture '" + name + "' is missing.");
 
@@ -768,7 +769,7 @@ package starling.utils
         }
         
         private function processRawAsset(name:String, rawAsset:Object, options:TextureOptions,
-                                         xmls:Array, onProgress:Function, onComplete:Function):void
+                                         xmls:Vector.<XML>, onProgress:Function, onComplete:Function):void
         {
             var canceled:Boolean = false;
             
@@ -804,7 +805,7 @@ package starling.utils
                     xml = asset as XML;
                     
                     if (xml.localName() == "TextureAtlas" || xml.localName() == "font")
-                        xmls.push({name: name, xml: xml});
+                        xmls.push(xml);
                     else
                         addXml(name, xml);
 
@@ -1295,5 +1296,11 @@ package starling.utils
          *  More connections can reduce loading times, but require more memory. @default 3. */
         public function get numConnections():int { return _numConnections; }
         public function set numConnections(value:int):void { _numConnections = value; }
+
+        /** Indicates if bitmap fonts should be registered with their "face" attribute from the
+         *  font XML file. Per default, they are registered with the name of the texture file.
+         *  @default false */
+        public function get registerBitmapFontsWithFontFace():Boolean { return _registerBitmapFontsWithFontFace; }
+        public function set registerBitmapFontsWithFontFace(value:Boolean):void { _registerBitmapFontsWithFontFace = value; }
     }
 }
