@@ -620,7 +620,7 @@ package starling.utils
 
             var i:int;
             var canceled:Boolean = false;
-            var xmls:Vector.<XML> = new <XML>[];
+            var xmls:Array = [];
             var assetInfos:Array = _queue.concat();
             var assetCount:int = _queue.length;
             var assetProgress:Array = [];
@@ -687,8 +687,8 @@ package starling.utils
                 // have to be available for other XMLs. Texture atlases are processed first:
                 // that way, their textures can be referenced, too.
                 
-                xmls.sort(function(a:XML, b:XML):int { 
-                    return a.localName() == "TextureAtlas" ? -1 : 1; 
+                xmls.sort(function(a:Object, b:Object):int {
+                    return a.xml.localName() == "TextureAtlas" ? -1 : 1;
                 });
 
                 setTimeout(processXml, 1, 0);
@@ -705,7 +705,8 @@ package starling.utils
 
                 var name:String;
                 var texture:Texture;
-                var xml:XML = xmls[index];
+                var xml:XML = xmls[index].xml;
+                var xmlName:String = xmls[index].name;
                 var rootNode:String = xml.localName();
                 var xmlProgress:Number = (index + 1) / (xmls.length + 1);
 
@@ -714,11 +715,7 @@ package starling.utils
                     name = getName(xml.@imagePath.toString());
                     texture = getTexture(name);
 
-                    if (texture)
-                    {
-                        addTextureAtlas(name, new TextureAtlas(texture, xml));
-                        removeTexture(name, false);
-                    }
+                    if (texture) addTextureAtlas(name, new TextureAtlas(texture, xml));
                     else log("Cannot create atlas: texture '" + name + "' is missing.");
 
                     if (_keepAtlasXmls) addXml(name, xml);
@@ -731,9 +728,8 @@ package starling.utils
 
                     if (texture)
                     {
-                        log("Adding bitmap font '" + name + "'");
-                        TextField.registerCompositor(new BitmapFont(texture, xml), name);
-                        removeTexture(name, false);
+                        log("Adding bitmap font '" + xmlName + "'");
+                        TextField.registerCompositor(new BitmapFont(texture, xml), xmlName);
                     }
                     else log("Cannot create bitmap font: texture '" + name + "' is missing.");
 
@@ -772,8 +768,7 @@ package starling.utils
         }
         
         private function processRawAsset(name:String, rawAsset:Object, options:TextureOptions,
-                                         xmls:Vector.<XML>,
-                                         onProgress:Function, onComplete:Function):void
+                                         xmls:Array, onProgress:Function, onComplete:Function):void
         {
             var canceled:Boolean = false;
             
@@ -809,10 +804,10 @@ package starling.utils
                     xml = asset as XML;
                     
                     if (xml.localName() == "TextureAtlas" || xml.localName() == "font")
-                        xmls.push(xml);
+                        xmls.push({name: name, xml: xml});
                     else
                         addXml(name, xml);
-                    
+
                     onComplete();
                 }
                 else if (_starling.context.driverInfo == "Disposed")
