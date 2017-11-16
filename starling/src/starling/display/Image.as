@@ -506,6 +506,7 @@ package starling.display
         // bindings
 
         /** Injects code that is called by all instances whenever the given texture is assigned or replaced.
+         *  Any existing setup functions will be replaced.
          *
          *  @param texture    Assignment of this texture instance will lead to the following callback(s) being executed.
          *  @param onAssign   Called when the texture is assigned. Receives one parameter of type 'Image'.
@@ -528,7 +529,13 @@ package starling.display
         }
 
         /** Binds the given scaling grid to the given texture so that any image which displays the texture will
-         *  automatically use the grid. */
+         *  automatically use the grid.
+         *
+         *  <p>This method calls 'automateSetupForTexture' internally and will thus replace any
+         *  other automated setup code. If you want to set up your images with more than just a
+         *  scale9Grid, call 'automateSetupForTexture' instead, combining all your setup logic
+         *  into one set of functions.</p>
+         */
         public static function bindScale9GridToTexture(texture:Texture, scale9Grid:Rectangle):void
         {
             automateSetupForTexture(texture,
@@ -537,7 +544,13 @@ package starling.display
         }
 
         /** Binds the given pivot point to the given texture so that any image which displays the texture will
-         *  automatically use the pivot point. */
+         *  automatically use the pivot point.
+         *
+         *  <p>This method calls 'automateSetupForTexture' internally and will thus replace any
+         *  other automated setup code. If you want to set up your images with more than just a
+         *  pivot point, call 'automateSetupForTexture' instead, combining all your setup logic
+         *  into one set of functions.</p>
+         */
         public static function bindPivotPointToTexture(texture:Texture, pivotX:Number, pivotY:Number):void
         {
             automateSetupForTexture(texture,
