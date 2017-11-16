@@ -328,7 +328,7 @@ package starling.utils
         {
             log("Adding texture '" + name + "'");
             
-            if (name in _textures)
+            if (name in _textures && texture != _textures[name])
             {
                 log("Warning: name was already in use; the previous texture will be replaced.");
                 _textures[name].dispose();
@@ -344,7 +344,7 @@ package starling.utils
         {
             log("Adding texture atlas '" + name + "'");
             
-            if (name in _atlases)
+            if (name in _atlases && atlas != _atlases[name])
             {
                 log("Warning: name was already in use; the previous atlas will be replaced.");
                 _atlases[name].dispose();
@@ -359,7 +359,7 @@ package starling.utils
         {
             log("Adding sound '" + name + "'");
             
-            if (name in _sounds)
+            if (name in _sounds && sound != _sounds[name])
                 log("Warning: name was already in use; the previous sound will be replaced.");
 
             _sounds[name] = sound;
@@ -372,7 +372,7 @@ package starling.utils
         {
             log("Adding XML '" + name + "'");
             
-            if (name in _xmls)
+            if (name in _xmls && xml != _xmls[name])
             {
                 log("Warning: name was already in use; the previous XML will be replaced.");
                 System.disposeXML(_xmls[name]);
@@ -387,7 +387,7 @@ package starling.utils
         {
             log("Adding object '" + name + "'");
             
-            if (name in _objects)
+            if (name in _objects && object != _objects[name])
                 log("Warning: name was already in use; the previous object will be replaced.");
             
             _objects[name] = object;
@@ -400,7 +400,7 @@ package starling.utils
         {
             log("Adding byte array '" + name + "'");
             
-            if (name in _byteArrays)
+            if (name in _byteArrays && byteArray != _byteArrays[name])
             {
                 log("Warning: name was already in use; the previous byte array will be replaced.");
                 _byteArrays[name].clear();
@@ -420,7 +420,7 @@ package starling.utils
         {
             log("Adding bitmap font '" + name + "'");
 
-            if (name in _bitmapFonts)
+            if (name in _bitmapFonts && font != _bitmapFonts[name])
             {
                 log("Warning: name was already in use; the previous font will be replaced.");
                 _bitmapFonts[name].dispose();

@@ -14,10 +14,12 @@ package tests.utils
     import flash.utils.ByteArray;
 
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertNull;
     import org.flexunit.asserts.assertStrictlyEquals;
 
     import starling.events.Event;
+    import starling.textures.Texture;
     import starling.textures.TextureAtlas;
 
     import tests.AsyncUtil;
@@ -386,7 +388,18 @@ package tests.utils
             _manager.enqueue({});
             assertEquals(0, _manager.numQueuedAssets);
         }
-        
+
+        [Test]
+        public function addSameTextureTwice():void
+        {
+            var texture:MockTexture = new MockTexture();
+            var name:String = "mock";
+
+            _manager.addTexture(name, texture);
+            _manager.addTexture(name, texture);
+
+            assertFalse(texture.isDisposed);
+        }
     }
 }
 
