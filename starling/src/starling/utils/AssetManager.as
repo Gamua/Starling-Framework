@@ -139,6 +139,7 @@ package starling.utils
         private var _xmls:Dictionary;
         private var _objects:Dictionary;
         private var _byteArrays:Dictionary;
+        private var _bitmapFonts:Dictionary;
         
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
@@ -157,6 +158,7 @@ package starling.utils
             _xmls = new Dictionary();
             _objects = new Dictionary();
             _byteArrays = new Dictionary();
+            _bitmapFonts = new Dictionary();
             _numConnections = 3;
             _verbose = true;
             _queue = [];
@@ -181,6 +183,9 @@ package starling.utils
             
             for each (var byteArray:ByteArray in _byteArrays)
                 byteArray.clear();
+
+            for each (var bitmapFont:BitmapFont in _bitmapFonts)
+                bitmapFont.dispose();
         }
         
         // retrieving
@@ -303,7 +308,17 @@ package starling.utils
         {
             return getDictionaryKeys(_byteArrays, prefix, out);
         }
-        
+
+        public function getBitmapFont(name:String):BitmapFont
+        {
+            return _bitmapFonts[name] as BitmapFont;
+        }
+
+        public function getBitmapFontNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
+        {
+            return getDictionaryKeys(_bitmapFonts, prefix, out);
+        }
+
         // direct adding
         
         /** Register a texture under a certain name. It will be available right away.
@@ -393,6 +408,26 @@ package starling.utils
             
             _byteArrays[name] = byteArray;
         }
+
+        /** Register a bitmap font under a certain name. It will be available right away.
+         *  If the name was already taken, the existing font will be disposed and replaced
+         *  by the new one.
+         *
+         *  <p>Note that the font is <strong>not</strong> registered at the TextField class.
+         *  This only happens when a bitmap font is loaded via the asset queue.</p>
+         */
+        public function addBitmapFont(name:String, font:BitmapFont):void
+        {
+            log("Adding bitmap font '" + name + "'");
+
+            if (name in _bitmapFonts)
+            {
+                log("Warning: name was already in use; the previous font will be replaced.");
+                _bitmapFonts[name].dispose();
+            }
+
+            _bitmapFonts[name] = font;
+        }
         
         // removing
         
@@ -453,6 +488,17 @@ package starling.utils
             
             delete _byteArrays[name];
         }
+
+        /** Removes a certain bitmap font, optionally disposing it. */
+        public function removeBitmapFont(name:String, dispose:Boolean=true):void
+        {
+            log("Removing bitmap font '" + name + "'");
+
+            if (dispose && name in _bitmapFonts)
+                _bitmapFonts[name].dispose();
+
+            delete _bitmapFonts[name];
+        }
         
         /** Empties the queue and aborts any pending load operations. */
         public function purgeQueue():void
@@ -476,6 +522,7 @@ package starling.utils
             _xmls = new Dictionary();
             _objects = new Dictionary();
             _byteArrays = new Dictionary();
+            _bitmapFonts = new Dictionary();
         }
         
         // queued adding
@@ -709,6 +756,7 @@ package starling.utils
                 var xml:XML = xmls[index];
                 var rootNode:String = xml.localName();
                 var xmlProgress:Number = (index + 1) / (xmls.length + 1);
+                var bitmapFont:BitmapFont;
 
                 if (rootNode == "TextureAtlas")
                 {
@@ -729,8 +777,9 @@ package starling.utils
 
                     if (texture)
                     {
-                        log("Adding bitmap font '" + fontName + "'");
-                        TextField.registerCompositor(new BitmapFont(texture, xml), fontName);
+                        bitmapFont = new BitmapFont(texture, xml);
+                        addBitmapFont(fontName, bitmapFont);
+                        TextField.registerCompositor(bitmapFont, fontName);
                     }
                     else log("Cannot create bitmap font: texture '" + name + "' is missing.");
 
