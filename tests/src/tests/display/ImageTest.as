@@ -14,7 +14,6 @@ package tests.display
 
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
-
     import org.flexunit.asserts.assertNull;
     import org.hamcrest.number.closeTo;
 
@@ -74,6 +73,68 @@ package tests.display
             image = new Image(texture);
             assertEquals(image.pivotX, 0);
             assertEquals(image.pivotY, 0);
+        }
+
+        [Test]
+        public function testAddAndRemoveAutomatedSetup():void
+        {
+            var image:Image;
+            var texture:Texture = new MockTexture(16, 16);
+            var setupColor:uint = 0xff0000;
+            var releaseColor:uint = 0x00ff00;
+
+            Image.automateSetupForTexture(texture, onAssign, onRelease);
+            image = new Image(texture);
+            assertEquals(image.color, setupColor);
+
+            assertEquals(image.color, setupColor);
+            image.texture = null;
+            assertEquals(image.color, releaseColor);
+
+            Image.removeSetupForTexture(texture, onAssign, onRelease);
+            image.texture = texture;
+            assertEquals(image.color, releaseColor);
+
+            image.color = 0x0;
+            assertEquals(image.color, 0x0);
+
+            function onAssign(image:Image):void { image.color = setupColor; }
+            function onRelease(image:Image):void { image.color = releaseColor; }
+        }
+
+        [Test]
+        public function testAutomatedSetupWithMultipleCallbacks():void
+        {
+            var image:Image;
+            var texture:Texture = new MockTexture(16, 16);
+            var pivotX:Number = 4;
+            var pivotY:Number = 8;
+            var setupColor:uint = 0xff0000;
+            var releaseColor:uint = 0;
+
+            Image.bindPivotPointToTexture(texture, pivotX, pivotY);
+            Image.automateSetupForTexture(texture,
+                function(image:Image):void { image.color = setupColor; },
+                function(image:Image):void { image.color = releaseColor; });
+
+            image = new Image(texture);
+
+            assertThat(image.pivotX, closeTo(pivotX, E));
+            assertThat(image.pivotY, closeTo(pivotY, E));
+            assertEquals(image.color, setupColor);
+
+            image.texture = new MockTexture(16, 16);
+
+            assertEquals(image.pivotX, 0);
+            assertEquals(image.pivotY, 0);
+            assertEquals(image.color, 0);
+
+            Image.resetSetupForTexture(texture);
+            image.texture = texture;
+
+            assertEquals(image.pivotX, 0);
+            assertEquals(image.pivotY, 0);
+            assertEquals(image.color, releaseColor);
         }
     }
 }
