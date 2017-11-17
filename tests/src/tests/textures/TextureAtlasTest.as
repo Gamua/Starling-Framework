@@ -16,7 +16,10 @@ package tests.textures
     import org.flexunit.asserts.assertNotNull;
     import org.flexunit.asserts.assertNull;
     import org.flexunit.asserts.assertTrue;
+    import org.hamcrest.assertThat;
+    import org.hamcrest.number.closeTo;
 
+    import starling.display.Image;
     import starling.textures.SubTexture;
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
@@ -24,7 +27,9 @@ package tests.textures
     import tests.utils.MockTexture;
 
     public class TextureAtlasTest
-    {		
+    {
+        private const E:Number = 0.0001;
+
         [Test]
         public function testXmlParsing():void
         {
@@ -41,7 +46,7 @@ package tests.textures
             var bob:Texture = atlas.getTexture("bob");
             
             assertTrue(ann is SubTexture);
-            assertTrue(bob    is SubTexture);
+            assertTrue(bob is SubTexture);
             
             assertEquals(55.5, ann.width);
             assertEquals(16, ann.height);
@@ -55,6 +60,36 @@ package tests.textures
             assertEquals(0, annST.region.y);
             assertEquals(16, bobST.region.x);
             assertEquals(32, bobST.region.y);
+        }
+
+        [Test]
+        public function testPivotParsing():void
+        {
+            var xml:XML =
+                <TextureAtlas>
+                  <SubTexture name='ann' x='0' y='0' width='16' height='32' pivotX='8' pivotY='16'/>
+                  <SubTexture name='bob' x='16' y='0' width='16' height='32' pivotX='4.0'/>
+                  <SubTexture name='cal' x='32' y='0' width='16' height='32'/>
+                </TextureAtlas>;
+
+            var texture:Texture = new MockTexture(64, 64);
+            var atlas:TextureAtlas = new TextureAtlas(texture, xml);
+
+            var ann:Texture = atlas.getTexture("ann");
+            var bob:Texture = atlas.getTexture("bob");
+            var cal:Texture = atlas.getTexture("cal");
+
+            var annImage:Image = new Image(ann);
+            assertThat(annImage.pivotX, closeTo(8.0, E));
+            assertThat(annImage.pivotY, closeTo(16.0, E));
+
+            var bobImage:Image = new Image(bob);
+            assertEquals(bobImage.pivotX, 4.0);
+            assertEquals(bobImage.pivotY, 0.0);
+
+            var calImage:Image = new Image(cal);
+            assertEquals(calImage.pivotX, 0.0);
+            assertEquals(calImage.pivotY, 0.0);
         }
         
         [Test]
