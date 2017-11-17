@@ -79,14 +79,14 @@ package starling.textures
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
         
-        /** Create a texture atlas from a texture by parsing the regions from an XML file. */
-        public function TextureAtlas(texture:Texture, atlasXml:XML=null)
+        /** Create a texture atlas from a texture and atlas data. The second argument typically
+         *  points to an XML file. */
+        public function TextureAtlas(texture:Texture, data:*=null)
         {
             _subTextures = new Dictionary();
             _atlasTexture = texture;
             
-            if (atlasXml)
-                parseAtlasXml(atlasXml);
+            if (data) parseAtlasData(data);
         }
         
         /** Disposes the atlas texture. */
@@ -94,10 +94,18 @@ package starling.textures
         {
             _atlasTexture.dispose();
         }
-        
-        /** This function is called by the constructor and will parse an XML in Starling's 
-         *  default atlas file format. Override this method to create custom parsing logic
-         *  (e.g. to support a different file format). */
+
+        /** Parses the data that's passed as second argument to the constructor.
+         *  Override this method to add support for additional file formats. */
+        protected function parseAtlasData(data:*):void
+        {
+            if (data is XML) parseAtlasXml(data as XML);
+            else throw new ArgumentError("TextureAtlas only supports XML data");
+        }
+
+        /** This function is called by 'parseAtlasData' for XML data. It will parse an XML in
+         *  Starling's default atlas file format. Override this method to create custom parsing
+         *  logic (e.g. to support additional attributes). */
         protected function parseAtlasXml(atlasXml:XML):void
         {
             var scale:Number = _atlasTexture.scale;
