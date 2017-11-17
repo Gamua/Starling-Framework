@@ -614,19 +614,14 @@ package starling.utils
         public function enqueueWithName(asset:Object, name:String=null,
                                         options:TextureOptions=null):String
         {
-            var filename:String = null;
-
-            if (getQualifiedClassName(asset) == "flash.filesystem::File")
-            {
-                filename = asset["name"];
-                asset = decodeURI(asset["url"]);
-            }
-
             if (name == null)    name = getName(asset);
             if (options == null) options = _defaultTextureOptions.clone();
             else                 options = options.clone();
 
-            log("Enqueuing '" + (filename || name) + "'");
+            log("Enqueuing '" + name + "'");
+
+            if (getQualifiedClassName(asset) == "flash.filesystem::File")
+                asset = decodeURI(asset["url"]);
 
             _queue.push({
                 name: name,
