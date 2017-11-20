@@ -42,6 +42,7 @@ package starling.filters
             _blurX = Math.abs(blurX);
             _blurY = Math.abs(blurY);
             this.resolution = resolution;
+            this.maintainResolutionAcrossPasses = true;
         }
 
         /** @private */
