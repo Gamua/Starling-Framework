@@ -7,7 +7,7 @@ package starling.text
      *
      *  <p>This class supports object pooling. All instances returned by the methods
      *  <code>instanceFromPool</code> and <code>vectorFromPool</code> are returned to the
-     *  respective pool when calling <code>rechargePool</code>.
+     *  respective pool when calling <code>rechargePool</code>.</p>
      */
     public class BitmapCharLocation
     {
