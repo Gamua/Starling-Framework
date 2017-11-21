@@ -248,6 +248,8 @@ class CompositeEffect extends FilterEffect
      */
     override protected function beforeDraw(context:Context3D):void
     {
+        super.beforeDraw(context);
+
         var layers:Array = getUsedLayers(sLayers);
         var numLayers:int = layers.length;
 
@@ -268,15 +270,15 @@ class CompositeEffect extends FilterEffect
 
                 context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, i + 4, sOffset);
                 context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, i, sColor);
-                context.setTextureAt(i, texture.base);
-                RenderUtil.setSamplerStateAt(i, texture.mipMapping, textureSmoothing);
+
+                if (i > 0)
+                {
+                    context.setTextureAt(i, texture.base);
+                    RenderUtil.setSamplerStateAt(i, texture.mipMapping, textureSmoothing);
+                    vertexFormat.setVertexBufferAt(i + 1, vertexBuffer, "texCoords" + i);
+                }
             }
-
-            for (i=1; i<numLayers; ++i)
-                vertexFormat.setVertexBufferAt(i + 1, vertexBuffer, "texCoords" + i);
         }
-
-        super.beforeDraw(context);
     }
 
     override protected function afterDraw(context:Context3D):void
@@ -284,7 +286,7 @@ class CompositeEffect extends FilterEffect
         var layers:Array = getUsedLayers(sLayers);
         var numLayers:int = layers.length;
 
-        for (var i:int=0; i<numLayers; ++i)
+        for (var i:int=1; i<numLayers; ++i)
         {
             context.setTextureAt(i, null);
             context.setVertexBufferAt(i + 1, null);
