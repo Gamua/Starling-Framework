@@ -14,6 +14,7 @@ package starling.filters
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
 
     /** The BlurFilter applies a Gaussian blur to an object. The strength of the blur can be
      *  set for x- and y-axis separately. */
@@ -21,6 +22,7 @@ package starling.filters
     {
         private var _blurX:Number;
         private var _blurY:Number;
+        private var _quality:Number;
 
         /** Create a new BlurFilter.
          *
@@ -41,6 +43,7 @@ package starling.filters
         {
             _blurX = Math.abs(blurX);
             _blurY = Math.abs(blurY);
+            _quality = 1.0;
             this.resolution = resolution;
             this.maintainResolutionAcrossPasses = true;
         }
@@ -63,6 +66,7 @@ package starling.filters
             var strengthX:Number = totalBlurX;
             var strengthY:Number = totalBlurY;
 
+            effect.quality = _quality;
             effect.direction = BlurEffect.HORIZONTAL;
 
             while (strengthX > 0)
@@ -107,8 +111,8 @@ package starling.filters
 
         private function updatePadding():void
         {
-            var paddingX:Number = _blurX ? (totalBlurX * 3 + 2) / resolution : 0;
-            var paddingY:Number = _blurY ? (totalBlurY * 3 + 2) / resolution : 0;
+            var paddingX:Number = _blurX ? (totalBlurX * 3 + 2) / (resolution * _quality) : 0;
+            var paddingY:Number = _blurY ? (totalBlurY * 3 + 2) / (resolution * _quality) : 0;
 
             padding.setTo(paddingX, paddingX, paddingY, paddingY);
         }
@@ -135,16 +139,42 @@ package starling.filters
         public function get blurX():Number { return _blurX; }
         public function set blurX(value:Number):void
         {
-            _blurX = Math.abs(value);
-            updatePadding();
+            if (_blurX != value)
+            {
+                _blurX = Math.abs(value);
+                updatePadding();
+            }
+
         }
 
         /** The blur factor in y-direction. */
         public function get blurY():Number { return _blurY; }
         public function set blurY(value:Number):void
         {
-            _blurY = Math.abs(value);
-            updatePadding();
+            if (_blurY != value)
+            {
+                _blurY = Math.abs(value);
+                updatePadding();
+            }
+        }
+
+        /** The quality of the blur effect. Low values will look as if the target was drawn
+         *  multiple times in close proximity (range: 0.1 - 1).
+         *
+         *  <p>Typically, it's better to reduce the filter resolution instead; however, if that
+         *  is not an option (e.g. when using the BlurFilter as part of a composite filter),
+         *  this property may provide an alternative.</p>
+         *
+         *  @default 1.0
+         */
+        public function get quality():Number { return _quality; }
+        public function set quality(value:Number):void
+        {
+            if (_quality != value)
+            {
+                _quality = MathUtil.clamp(value, 0.1, 1.0);
+                updatePadding();
+            }
         }
     }
 }
@@ -162,6 +192,7 @@ class BlurEffect extends FilterEffect
 
     private var _strength:Number;
     private var _direction:String;
+    private var _quality:Number;
 
     private static const sTmpWeights:Vector.<Number> = new <Number>[0, 0, 0, 0, 0];
     private static const sWeights:Vector.<Number> = new <Number>[0, 0, 0, 0];
@@ -172,6 +203,7 @@ class BlurEffect extends FilterEffect
     {
         _strength = 0.0;
         _direction = HORIZONTAL;
+        _quality = 1.0;
     }
 
     override protected function createProgram():Program
@@ -295,13 +327,13 @@ class BlurEffect extends FilterEffect
 
         if (_direction == HORIZONTAL)
         {
-            sOffsets[0] = offset1 * pixelSize; sOffsets[1] = 0;
-            sOffsets[2] = offset2 * pixelSize; sOffsets[3] = 0;
+            sOffsets[0] = offset1 * pixelSize / _quality; sOffsets[1] = 0;
+            sOffsets[2] = offset2 * pixelSize / _quality; sOffsets[3] = 0;
         }
         else
         {
-            sOffsets[0] = 0; sOffsets[1] = offset1 * pixelSize;
-            sOffsets[2] = 0; sOffsets[3] = offset2 * pixelSize;
+            sOffsets[0] = 0; sOffsets[1] = offset1 * pixelSize / _quality;
+            sOffsets[2] = 0; sOffsets[3] = offset2 * pixelSize / _quality;
         }
     }
 
@@ -315,4 +347,7 @@ class BlurEffect extends FilterEffect
 
     public function get strength():Number { return _strength; }
     public function set strength(value:Number):void { _strength = value; }
+
+    public function get quality():Number { return _quality; }
+    public function set quality(value:Number):void { _quality = value; }
 }

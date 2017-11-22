@@ -33,20 +33,20 @@ package starling.filters
          *                   opacity; values > 1 will make it stronger, i.e. produce a harder edge.
          * @param blur       the amount of blur with which the shadow is created. Note that high
          *                   values will cause the number of render passes to grow.
-         * @param resolution the resolution of the filter texture. '1' means full resolution,
-         *                   '0.5' half resolution, etc.
+         * @param quality    the quality of the shadow blur, '1' being the best (range 0.1 - 1.0)
          */
         public function DropShadowFilter(distance:Number=4.0, angle:Number=0.785,
                                          color:uint=0x0, alpha:Number=0.5, blur:Number=1.0,
-                                         resolution:Number=0.5)
+                                         quality:Number=0.5)
         {
             _compositeFilter = new CompositeFilter();
-            _blurFilter = new BlurFilter(blur, blur, resolution);
+            _blurFilter = new BlurFilter(blur, blur);
             _distance = distance;
             _angle = angle;
 
             this.color = color;
             this.alpha = alpha;
+            this.quality = quality;
 
             updatePadding();
         }
@@ -157,13 +157,14 @@ package starling.filters
             }
         }
 
-        /** @private */
-        override public function get resolution():Number { return _blurFilter.resolution; }
-        override public function set resolution(value:Number):void
+        /** The quality used for blurring the shadow.
+         *  Forwarded to the internally used <em>BlurFilter</em>. */
+        public function get quality():Number { return _blurFilter.quality; }
+        public function set quality(value:Number):void
         {
-            if (resolution != value)
+            if (quality != value)
             {
-                _blurFilter.resolution = value;
+                _blurFilter.quality = value;
                 setRequiresRedraw();
                 updatePadding();
             }

@@ -34,13 +34,14 @@ package starling.filters
          *                   opacity; values > 1 will make it stronger, i.e. produce a harder edge.
          * @param blur       the amount of blur used to create the glow. Note that high
          *                   values will cause the number of render passes to grow.
-         * @param resolution the resolution of the filter texture. '1' means full resolution,
-         *                   '0.5' half resolution, etc.
+         * @param quality    the quality of the glow's blur, '1' being the best (range 0.1 - 1.0)
          */
         public function GlowFilter(color:uint=0xffff00, alpha:Number=1.0, blur:Number=1.0,
-                                   resolution:Number=0.5)
+                                   quality:Number=0.5)
         {
-            _blurFilter = new BlurFilter(blur, blur, resolution);
+            _blurFilter = new BlurFilter(blur, blur);
+            _blurFilter.quality = quality;
+
             _compositeFilter = new CompositeFilter();
             _compositeFilter.setColorAt(0, color, true);
             _compositeFilter.setAlphaAt(0, alpha);
@@ -116,13 +117,14 @@ package starling.filters
             }
         }
 
-        /** @private */
-        override public function get resolution():Number { return _blurFilter.resolution; }
-        override public function set resolution(value:Number):void
+        /** The quality used for blurring the glow.
+         *  Forwarded to the internally used <em>BlurFilter</em>. */
+        public function get quality():Number { return _blurFilter.quality; }
+        public function set quality(value:Number):void
         {
-            if (resolution != value)
+            if (quality != value)
             {
-                _blurFilter.resolution = value;
+                _blurFilter.quality = value;
                 setRequiresRedraw();
                 updatePadding();
             }
