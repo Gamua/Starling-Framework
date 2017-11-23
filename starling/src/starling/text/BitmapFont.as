@@ -317,8 +317,8 @@ package starling.text
          *  always call <code>BitmapCharLocation.rechargePool()</code> when you are done processing.
          *  </p>
          */
-        protected function arrangeChars(width:Number, height:Number, text:String,
-                                        format:TextFormat, options:TextOptions):Vector.<BitmapCharLocation>
+        public function arrangeChars(width:Number, height:Number, text:String,
+                                     format:TextFormat, options:TextOptions):Vector.<BitmapCharLocation>
         {
             if (text == null || text.length == 0) return BitmapCharLocation.vectorFromPool();
             if (options == null) options = sDefaultOptions;
@@ -331,7 +331,6 @@ package starling.text
             var fontSize:Number = format.size;
             var autoScale:Boolean = options.autoScale;
             var wordWrap:Boolean = options.wordWrap;
-
 
             var finished:Boolean = false;
             var charLocation:BitmapCharLocation;
