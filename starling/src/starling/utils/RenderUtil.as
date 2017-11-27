@@ -214,6 +214,8 @@ package starling.utils
         {
             var profiles:Array;
             var currentProfile:String;
+            var executeFunc:Function = SystemUtil.isDesktop ?
+                execute : SystemUtil.executeWhenApplicationIsActive;
 
             if (profile == "auto")
                 profiles = ["standardExtended", "standard", "standardConstrained",
@@ -236,8 +238,7 @@ package starling.utils
 
                 try
                 {
-                    SystemUtil.executeWhenApplicationIsActive(
-                        stage3D.requestContext3D, renderMode, currentProfile);
+                    executeFunc(stage3D.requestContext3D, renderMode, currentProfile);
                 }
                 catch (error:Error)
                 {
