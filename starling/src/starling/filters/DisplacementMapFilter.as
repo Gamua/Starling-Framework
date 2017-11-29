@@ -294,12 +294,13 @@ class DisplacementMapEffect extends FilterEffect
 
             sClampUV[0] = texture.width  / texture.root.width  - 0.5 / texture.root.nativeWidth;
             sClampUV[1] = texture.height / texture.root.height - 0.5 / texture.root.nativeHeight;
+            var mapRepeat:Boolean = _mapRepeat && _mapTexture.root.isPotTexture;
 
             vertexFormat.setVertexBufferAt(2, vertexBuffer, "mapTexCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOffset);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, sClampUV);
             context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 2, sMatrix, true);
-            RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, _mapRepeat);
+            RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, mapRepeat);
             context.setTextureAt(1, _mapTexture.base);
         }
     }
