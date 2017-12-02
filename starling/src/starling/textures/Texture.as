@@ -251,6 +251,15 @@ package starling.textures
                     texture.root.uploadBitmap(new assetClass());
                 };
             }
+            else if (asset is BitmapData)
+            {
+                texture = Texture.fromBitmapData(asset as BitmapData, mipMapping,
+                                    optimizeForRenderToTexture, scale, format, forcePotTexture);
+                texture.root.onRestore = function():void
+                {
+                    texture.root.uploadBitmapData(new assetClass());
+                };
+            }
             else if (asset is ByteArray)
             {
                 texture = Texture.fromAtfData(asset as ByteArray, scale, mipMapping, null);
