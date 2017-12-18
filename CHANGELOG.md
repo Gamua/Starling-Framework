@@ -1,6 +1,54 @@
 Starling: Changelog
 ===================
 
+version 2.3 - 2017-12-18
+------------------------
+
+- added multi-channel support for distance field rendering (closes #994)
+- added automatic distance field rendering for TextFields when an appropriate BitmapFont flag is set
+- added 'BitmapFontType' class and appropriate properties to 'BitmapFont'
+- added support for 'BitmapData' to 'Texture.fromEmbeddedAsset' (closes #1011)
+- added 'quality' property to Blur-, DropShadow-, and GlowFilter (refs #1007)
+- added BitmapFont management methods to AssetManager (closes #990)
+- added 'TextField.getTextBounds'
+- added 'Mesh.createDefaultStyle'
+- added 'Tween.animatesProperty' (closes #993)
+- added a setter for 'SystemUtil.platform' for debugging purposes (closes #979)
+- added support for custom file formats in TextureAtlas subclasses
+- added support for custom file formats in BitmapFont subclasses
+- added support for 'pivotX/Y' attributes in texture atlas XML (closes #445)
+- added 'TextureAtlas.registerBitmapFontsWithFontFace' (refs #997, #998)
+- updated AGALMiniAssembler with latest changes from Adobe
+- updated 'Image.automateSetupForTexture' to support multiple setup/release methods per texture (refs #1004)
+- updated default stencil value constant to be public (closes #995)
+- updated 'BitmapFont.arrangeChars' method to be public (refs #996)
+- optimized basic Effect by exchanging 'seq' with 'sge' opcode (refs #983)
+- optimized CompositeFilter by exchanging 'seq' with 'sge' opcode (refs #983)
+- fixed problems when using masks and render textures simultaneously (closes #992)
+- fixed that composite filter sometimes used incorrect texture smoothing
+- fixed resolution quality issue of BlurFilter (closes #1007)
+- fixed strange behavior with special characters in filenames (closes #1006)
+- fixed that adding the same asset with the same name multiple times would dispose the asset
+- fixed outdated documentation (closes #1005)
+- fixed wrong method name in API reference
+- fixed 'isZero' check in width/height assignment
+- fixed that letterSpacing was not applied to BitmapFont (closes #1003)
+- fixed alpha problems in DistanceFieldStyle
+- fixed that missing chars in bitmap fonts could sometimes screw up text composition
+- fixed that auto-scaling of distance field 'softness' didn't take 'contentScaleFactor' into account (refs #828)
+- fixed that BitmapFont was not drawn if lineHeight exceeded TextField height (refs #1002)
+- fixed rare problem that made object stuck at zero width or height
+- fixed that properties of DistanceFieldStyle were not always updated correctly on batching
+- fixed that Image with Scale9Grid forgot color information when temporarily setting scaleX or scaleY to zero
+- fixed stencil reference value access inconsistencies (refs #992)
+- fixed that scaled TrueType TextFields were not rendered in the optimal resolution
+- fixed that an incompatible 'mapRepeat' setting on the DisplacementMapFilter caused an exception (closes #1009)
+- fixed that workaround for black screen after app re-activation was not limited to mobile (refs #987)
+- fixed that TextureMaskStyle did not work on a Samsung Galaxy S8
+- fixed that texture scale was not taken into account for distance field softness
+- fixed that AssetManager did not keep references to atlas and font XMLs when texture was missing
+- fixed that render context could be requested while application was inactive (refs #987)
+
 version 2.2 - 2017-06-27
 ------------------------
 
