@@ -91,6 +91,36 @@ package tests.textures
             assertEquals(calImage.pivotX, 0.0);
             assertEquals(calImage.pivotY, 0.0);
         }
+
+        [Test]
+        public function testPivotDuplication():void
+        {
+            var xml:XML =
+                <TextureAtlas>
+                    <SubTexture name='ann0001' x='0' y='0' width='16' height='32' pivotX='8' pivotY='16'/>
+                    <SubTexture name='ann0002' x='16' y='0' width='16' height='32'/>
+                    <SubTexture name='anne' x='32' y='0' width='16' height='32'/>
+                </TextureAtlas>;
+
+            var texture:Texture = new MockTexture(64, 64);
+            var atlas:TextureAtlas = new TextureAtlas(texture, xml);
+
+            var ann1:Texture = atlas.getTexture("ann0001");
+            var ann2:Texture = atlas.getTexture("ann0002");
+            var anne:Texture = atlas.getTexture("anna");
+
+            var annImage1:Image = new Image(ann1);
+            assertThat(annImage1.pivotX, closeTo(8.0, E));
+            assertThat(annImage1.pivotY, closeTo(16.0, E));
+
+            var annImage2:Image = new Image(ann2);
+            assertThat(annImage2.pivotX, closeTo(8.0, E));
+            assertThat(annImage2.pivotY, closeTo(16.0, E));
+
+            var anneImage:Image = new Image(anne);
+            assertEquals(anneImage.pivotX, 0.0);
+            assertEquals(anneImage.pivotY, 0.0);
+        }
         
         [Test]
         public function testManualCreation():void

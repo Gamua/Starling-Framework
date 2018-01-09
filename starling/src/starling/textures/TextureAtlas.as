@@ -152,7 +152,7 @@ package starling.textures
             for (var pivotName:String in pivotPoints)
             {
                 var matches:Array = pivotName.match(NAME_REGEX);
-                if (matches.length > 0)
+                if (matches && matches.length > 0)
                 {
                     var baseName:String = matches[1];
                     var pivot:Point = pivotPoints[pivotName];
