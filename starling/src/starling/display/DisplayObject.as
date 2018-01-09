@@ -391,6 +391,10 @@ package starling.display
 
         /** Draws the object into a BitmapData object.
          *
+         *  <p>This is achieved by drawing the object into the back buffer and then copying the
+         *  pixels of the back buffer into a texture. This also means that the returned bitmap
+         *  data cannot be bigger than the current viewPort.</p>
+         *
          *  @param out   If you pass null, the object will be created for you.
          *               If you pass a BitmapData object, it should have the size of the
          *               object bounds, multiplied by the current contentScaleFactor.
