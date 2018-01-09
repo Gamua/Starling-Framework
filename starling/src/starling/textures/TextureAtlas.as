@@ -10,6 +10,7 @@
 
 package starling.textures
 {
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
 
@@ -72,6 +73,8 @@ package starling.textures
      */
     public class TextureAtlas
     {
+        private static const NAME_REGEX:RegExp = /(.+?)\d+$/; // find text before trailing digits
+
         private var _atlasTexture:Texture;
         private var _subTextures:Dictionary;
         private var _subTextureNames:Vector.<String>;
@@ -111,7 +114,8 @@ package starling.textures
             var scale:Number = _atlasTexture.scale;
             var region:Rectangle = new Rectangle();
             var frame:Rectangle  = new Rectangle();
-            
+            var pivotPoints:Dictionary = new Dictionary();
+
             for each (var subTexture:XML in atlasXml.SubTexture)
             {
                 var name:String        = StringUtil.clean(subTexture.@name);
@@ -136,7 +140,27 @@ package starling.textures
                     addRegion(name, region, null,  rotated);
 
                 if (pivotX != 0 || pivotY != 0)
+                {
                     Image.bindPivotPointToTexture(getTexture(name), pivotX, pivotY);
+                    pivotPoints[name] = new Point(pivotX, pivotY);
+                }
+            }
+
+            // Adobe Animate writes pivot points only for the first texture of an animation.
+            // The code below duplicates the pivot points for the rest of them.
+
+            for (var pivotName:String in pivotPoints)
+            {
+                var matches:Array = pivotName.match(NAME_REGEX);
+                if (matches.length > 0)
+                {
+                    var baseName:String = matches[1];
+                    var pivot:Point = pivotPoints[pivotName];
+
+                    for (name in _subTextures)
+                        if (name.indexOf(baseName) == 0 && !(name in pivotPoints))
+                            Image.bindPivotPointToTexture(_subTextures[name], pivot.x, pivot.y);
+                }
             }
         }
         
