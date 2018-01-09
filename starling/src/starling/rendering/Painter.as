@@ -911,6 +911,8 @@ package starling.rendering
         {
             _enableErrorChecking = value;
             if (_context) _context.enableErrorChecking = value;
+            if (value) trace("[Starling] Warning: 'enableErrorChecking' has a " +
+                "negative impact on performance. Never activate for release builds!");
         }
 
         /** Returns the current width of the back buffer. In most cases, this value is in pixels;
