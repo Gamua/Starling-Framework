@@ -39,12 +39,20 @@ package starling.textures
         /** Creates a clone of the TextureOptions object with the exact same properties. */
         public function clone():TextureOptions
         {
-            var clone:TextureOptions = new TextureOptions(_scale, _mipMapping, _format);
-            clone._optimizeForRenderToTexture = _optimizeForRenderToTexture;
-            clone._premultipliedAlpha = _premultipliedAlpha;
-            clone._forcePotTexture = _forcePotTexture;
-            clone._onReady = _onReady;
+            var clone:TextureOptions = new TextureOptions();
+            clone.copyFrom(this);
             return clone;
+        }
+
+        public function copyFrom(other:TextureOptions):void
+        {
+            _scale = other._scale;
+            _mipMapping = other._mipMapping;
+            _format = other._format;
+            _optimizeForRenderToTexture = other._optimizeForRenderToTexture;
+            _premultipliedAlpha = other._premultipliedAlpha;
+            _forcePotTexture = other._forcePotTexture;
+            _onReady = other._onReady;
         }
 
         /** The scale factor, which influences width and height properties. If you pass '-1',
