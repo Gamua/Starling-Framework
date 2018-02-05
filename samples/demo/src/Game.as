@@ -6,13 +6,13 @@ package
 
     import scenes.Scene;
 
+    import starling.assets.AssetManager;
     import starling.core.Starling;
     import starling.display.Button;
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.KeyboardEvent;
-    import starling.utils.AssetManager;
 
     public class Game extends Sprite
     {

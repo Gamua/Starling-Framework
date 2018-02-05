@@ -1,10 +1,10 @@
 package
 {
+    import starling.assets.AssetManager;
     import starling.core.Starling;
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.events.ResizeEvent;
-    import starling.utils.AssetManager;
 
     /** The Root class is the topmost display object in your game.
      *  It is responsible for switching between game and menu. For this, it listens to

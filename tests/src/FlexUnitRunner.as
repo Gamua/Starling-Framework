@@ -30,6 +30,7 @@ package
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
     import tests.utils.AssetManagerTest;
+    import tests.utils.ByteArrayUtilTest;
     import tests.utils.ColorTest;
     import tests.utils.MathUtilTest;
     import tests.utils.MatrixUtilTest;
@@ -86,6 +87,7 @@ package
             testsToRun.push(FragmentFilterTest);
             testsToRun.push(MeshStyleTest);
             testsToRun.push(ButtonTest);
+            testsToRun.push(ByteArrayUtilTest);
             return testsToRun;
         }
     }

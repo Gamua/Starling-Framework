@@ -12,9 +12,9 @@ package
     import flash.system.System;
     import flash.utils.ByteArray;
 
+    import starling.assets.AssetManager;
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.utils.AssetManager;
     import starling.utils.StringUtil;
     import starling.utils.SystemUtil;
 
@@ -85,18 +85,23 @@ package
             // has not loaded them yet. This happens in the "loadQueue" method; and since this
             // will take a while, we'll update the progress bar accordingly.
 
-            assets.loadQueue(function(ratio:Number):void
-            {
-                _progressBar.ratio = ratio;
-                if (ratio == 1)
+            assets.loadQueue(
+                function():void
                 {
                     // now would be a good time for a clean-up
                     System.pauseForGCIfCollectionImminent(0);
                     System.gc();
 
                     onComplete(assets);
-                }
-            });
+                },
+                function(error:String):void
+                {
+                    trace("Error while loading assets: " + error);
+                },
+                function(ratio:Number):void
+                {
+                    _progressBar.ratio = ratio;
+                });
         }
 
         private function startGame(assets:AssetManager):void
