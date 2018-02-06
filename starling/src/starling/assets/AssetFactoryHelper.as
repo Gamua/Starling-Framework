@@ -10,6 +10,7 @@ package starling.assets
         private var _getNameFromUrlFunc:Function;
         private var _getExtensionFromUrlFunc:Function;
         private var _addPostProcessorFunc:Function;
+        private var _addAssetFunc:Function;
         private var _onRestoreFunc:Function;
         private var _logFunc:Function;
 
@@ -53,6 +54,11 @@ package starling.assets
             if (_logFunc) _logFunc(message);
         }
 
+        public function addComplementaryAsset(name:String, asset:Object):void
+        {
+            if (_addAssetFunc) _addAssetFunc(name, asset);
+        }
+
         public function executeWhenContextReady(call:Function, ...args):void
         {
             // On mobile, it is not allowed / endorsed to make stage3D calls while the app
@@ -77,6 +83,9 @@ package starling.assets
 
         internal function set logFunc(value:Function):void { _logFunc = value; }
         internal function get logFunc():Function { return _logFunc; }
+
+        internal function set addAssetFunc(value:Function):void { _addAssetFunc = value; }
+        internal function get addAssetFunc():Function { return _addAssetFunc; }
 
         internal function set onRestoreFunc(value:Function):void { _onRestoreFunc = value; }
         internal function get onRestoreFunc():Function { return _onRestoreFunc; }

@@ -35,10 +35,14 @@ package starling.assets
         private var _numRestoredTextures:int;
         private var _numLostTextures:int;
 
-        /** Regex for name / extension extraction from URLs. */
+        // Regex for name / extension extraction from URLs.
         private static const NAME_REGEX:RegExp = /([^?\/\\]+?)(?:\.([\w\-]+))?(?:\?.*)?$/;
 
-        /** helper objects */
+        // fallback for unnamed assets
+        private static const NO_NAME:String = "unnamed";
+        private static var sNoNameCount:int = 0;
+
+        // helper objects
         private static var sNames:Vector.<String> = new <String>[];
 
         public function AssetManager(scaleFactor:Number=1)
@@ -119,7 +123,7 @@ package starling.assets
                             enqueueSingle(asset);
                     }
                 }
-                else if (asset is String || asset is URLRequest)
+                else if (asset is String || asset is URLRequest || asset is AssetManager)
                 {
                     enqueueSingle(asset);
                 }
@@ -133,10 +137,16 @@ package starling.assets
         public function enqueueSingle(asset:Object, name:String=null,
                                       options:TextureOptions=null):String
         {
-            if (asset is Class) asset = new asset();
+            if (asset is Class)
+                asset = new asset();
+
             var assetReference:AssetReference = new AssetReference(asset, name);
             assetReference.setCallbacks(getNameFromUrl, getExtensionFromUrl);
             assetReference.textureOptions = options || _textureOptions;
+
+            if (assetReference.name == null)
+                assetReference.name = NO_NAME + "-" + sNoNameCount++;
+
             _queue.push(assetReference);
             log("Enqueuing '" + assetReference.filename + "'");
             return assetReference.name;
@@ -154,8 +164,7 @@ package starling.assets
         {
             if (_queue.length == 0)
             {
-                execute(onProgress, 1.0);
-                execute(onComplete);
+                finish();
                 return;
             }
 
@@ -172,6 +181,7 @@ package starling.assets
             factoryHelper.getNameFromUrlFunc = getNameFromUrl;
             factoryHelper.getExtensionFromUrlFunc = getExtensionFromUrl;
             factoryHelper.addPostProcessorFunc = addPostProcessor;
+            factoryHelper.addAssetFunc = addAsset;
             factoryHelper.onRestoreFunc = onAssetRestored;
             factoryHelper.urlLoader = _urlLoader;
             factoryHelper.logFunc = log;
@@ -191,16 +201,34 @@ package starling.assets
                 assetProgress[i] = -1;
 
             for (i=0; i<numConnections; ++i)
-                loadFromQueue(queue, assetProgress, i, factoryHelper,
-                    onAssetLoaded, onAssetLoadError, onAssetLoadProgress);
+                loadNextAsset();
 
-            function onAssetLoaded(name:String, asset:Object,
-                                   postProcessor:AssetPostProcessor=null):void
+            function loadNextAsset():void
+            {
+                if (canceled) return;
+
+                for (var j:int=0; j<numAssets; ++j)
+                {
+                    if (assetProgress[j] < 0)
+                    {
+                        loadFromQueue(queue, assetProgress, j, factoryHelper,
+                            onAssetLoaded, onAssetLoadError, onError, onAssetLoadProgress);
+                        break;
+                    }
+                }
+
+                if (j == numAssets)
+                {
+                    postProcessors.sort(comparePriorities);
+                    runPostProcessors();
+                }
+            }
+
+            function onAssetLoaded(name:String, asset:Object):void
             {
                 if (canceled) disposeAsset(asset);
                 else
                 {
-                    if (postProcessor) postProcessors.push(postProcessor);
                     addAsset(name, asset);
                     setTimeout(loadNextAsset, 1);
                 }
@@ -217,55 +245,26 @@ package starling.assets
 
             function onAssetLoadProgress(ratio:Number):void
             {
-                if (!canceled) execute(onProgress, ratio);
-            }
-
-            function loadNextAsset():void
-            {
-                if (canceled) return;
-
-                for (var j:int=0; j<numAssets; ++j)
-                {
-                    if (assetProgress[j] < 0)
-                    {
-                        loadFromQueue(queue, assetProgress, j, factoryHelper,
-                            onAssetLoaded, onAssetLoadError, onAssetLoadProgress);
-                        break;
-                    }
-                }
-
-                if (j == numAssets)
-                {
-                    postProcessors.sort(comparePriorities);
-                    runPostProcessors(onPostProcessComplete, onError);
-                }
+                if (!canceled) execute(onProgress, ratio * 0.95);
             }
 
             function addPostProcessor(processorFunc:Function, priority:int):void
             {
-                var processor:AssetPostProcessor = new AssetPostProcessor(processorFunc);
-                processor.priority = priority;
-                postProcessors.push(processor);
+                postProcessors.push(new AssetPostProcessor(processorFunc, priority));
             }
 
-            function runPostProcessors(onComplete:Function, onError:Function):void
-            {
-                if (postProcessors.length && !canceled)
-                {
-                    try { postProcessors.shift().execute(self); }
-                    catch (e:Error) { execute(onError, e.message); }
-
-                    setTimeout(runPostProcessors, 1, onComplete, onError);
-                }
-                else onComplete();
-            }
-
-            function onPostProcessComplete():void
+            function runPostProcessors():void
             {
                 if (!canceled)
                 {
-                    onCanceled();
-                    execute(onComplete);
+                    if (postProcessors.length)
+                    {
+                        try { postProcessors.shift().execute(self); }
+                        catch (e:Error) { execute(onError, e.message); }
+
+                        setTimeout(runPostProcessors, 1);
+                    }
+                    else finish();
                 }
             }
 
@@ -274,11 +273,19 @@ package starling.assets
                 canceled = true;
                 removeEventListener(Event.CANCEL, onCanceled);
             }
+
+            function finish():void
+            {
+                onCanceled();
+                execute(onProgress, 1.0);
+                execute(onComplete);
+            }
         }
 
         private function loadFromQueue(
             queue:Vector.<AssetReference>, progressRatios:Vector.<Number>, index:int,
-            helper:AssetFactoryHelper, onComplete:Function, onError:Function, onProgress:Function):void
+            helper:AssetFactoryHelper, onComplete:Function, onError:Function,
+            onNonBlockingError:Function, onProgress:Function):void
         {
             var assetCount:int = queue.length;
             var asset:AssetReference = queue[index];
@@ -286,6 +293,8 @@ package starling.assets
 
             if (asset.data is String || ("url" in asset.data && asset.data["url"]))
                 _urlLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
+            else if (asset.data is AssetManager)
+                (asset.data as AssetManager).loadQueue(onManagerComplete, onNonBlockingError, onLoadProgress);
             else
                 setTimeout(onLoadComplete, 1, asset.data);
 
@@ -335,6 +344,11 @@ package starling.assets
                 log(error);
                 execute(onError, error);
             }
+
+            function onManagerComplete():void
+            {
+                execute(onComplete, asset.name, asset.data);
+            }
         }
 
         private function getFactoryFor(asset:AssetReference):AssetFactory
@@ -377,7 +391,6 @@ package starling.assets
         public function addAsset(name:String, asset:Object):void
         {
             var assetType:String = AssetType.fromAsset(asset);
-
             var store:Dictionary = _assets[assetType];
             if (store == null)
             {
@@ -397,17 +410,67 @@ package starling.assets
             store[name] = asset;
         }
 
-        public function getAsset(assetType:String, name:String):Object
+        public function getAsset(assetType:String, name:String, recursive:Boolean=true):Object
         {
+            if (recursive)
+            {
+                var managerStore:Dictionary = _assets[AssetType.ASSET_MANAGER];
+                if (managerStore)
+                {
+                    for each (var manager:AssetManager in managerStore)
+                    {
+                        var asset:Object = manager.getAsset(assetType, name, true);
+                        if (asset) return asset;
+                    }
+                }
+
+                if (assetType == AssetType.TEXTURE)
+                {
+                    var atlasStore:Dictionary = _assets[AssetType.TEXTURE_ATLAS];
+                    if (atlasStore)
+                    {
+                        for each (var atlas:TextureAtlas in atlasStore)
+                        {
+                            var texture:Texture = atlas.getTexture(name);
+                            if (texture) return texture;
+                        }
+                    }
+                }
+            }
+
             var store:Dictionary = _assets[assetType];
-            if (store && name in store) return store[name];
+            if (store) return store[name];
             else return null;
         }
 
-        public function getAssetNames(assetType:String, prefix:String="",
+        public function getAssetNames(assetType:String, prefix:String="", recursive:Boolean=true,
                                       out:Vector.<String>=null):Vector.<String>
         {
-            return getDictionaryKeys(_assets[assetType], prefix, out);
+            out ||= new <String>[];
+
+            if (recursive)
+            {
+                var managerStore:Dictionary = _assets[AssetType.ASSET_MANAGER];
+                if (managerStore)
+                {
+                    for each (var manager:AssetManager in managerStore)
+                        manager.getAssetNames(assetType, prefix, true, out);
+                }
+
+                if (assetType == AssetType.TEXTURE_ATLAS)
+                {
+                    var atlasStore:Dictionary = _assets[AssetType.TEXTURE_ATLAS];
+                    if (atlasStore)
+                    {
+                        for each (var atlas:TextureAtlas in atlasStore)
+                            atlas.getNames(prefix, out);
+                    }
+                }
+            }
+
+            getDictionaryKeys(_assets[assetType], prefix, out);
+            out.sort(Array.CASEINSENSITIVE);
+            return out;
         }
 
         public function removeAsset(assetType:String, name:String, dispose:Boolean=true):void
@@ -430,15 +493,6 @@ package starling.assets
         /** Returns a texture with a certain name. Includes textures stored inside atlases. */
         public function getTexture(name:String):Texture
         {
-            var atlasStore:Dictionary = _assets[AssetType.TEXTURE_ATLAS];
-            if (atlasStore)
-            {
-                for each (var atlas:TextureAtlas in atlasStore)
-                {
-                    var texture:Texture = atlas.getTexture(name);
-                    if (texture) return texture;
-                }
-            }
             return getAsset(AssetType.TEXTURE, name) as Texture;
         }
 
@@ -459,17 +513,7 @@ package starling.assets
          *  Includes textures stored inside atlases. */
         public function getTextureNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            out = getAssetNames(AssetType.TEXTURE, prefix, out);
-
-            var atlasStore:Dictionary = _assets[AssetType.TEXTURE_ATLAS];
-            if (atlasStore)
-            {
-                for each (var atlas:TextureAtlas in atlasStore)
-                    atlas.getNames(prefix, out);
-            }
-
-            out.sort(Array.CASEINSENSITIVE);
-            return out;
+            return getAssetNames(AssetType.TEXTURE, prefix, true, out);
         }
 
         /** Returns a texture atlas with a certain name, or null if it's not found. */
@@ -482,7 +526,7 @@ package starling.assets
          *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
         public function getTextureAtlasNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getAssetNames(AssetType.TEXTURE_ATLAS, prefix, out);
+            return getAssetNames(AssetType.TEXTURE_ATLAS, prefix, true, out);
         }
 
         /** Returns a sound with a certain name, or null if it's not found. */
@@ -495,7 +539,7 @@ package starling.assets
          *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
         public function getSoundNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getAssetNames(AssetType.SOUND, prefix, out);
+            return getAssetNames(AssetType.SOUND, prefix, true, out);
         }
 
         /** Generates a new SoundChannel object to play back the sound. This method returns a
@@ -518,7 +562,7 @@ package starling.assets
          *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
         public function getXmlNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getAssetNames(AssetType.XML_DOCUMENT, prefix, out);
+            return getAssetNames(AssetType.XML_DOCUMENT, prefix, true, out);
         }
 
         /** Returns an object with a certain name, or null if it's not found. Enqueued JSON
@@ -532,7 +576,7 @@ package starling.assets
          *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
         public function getObjectNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getAssetNames(AssetType.OBJECT, prefix, out);
+            return getAssetNames(AssetType.OBJECT, prefix, true, out);
         }
 
         /** Returns a byte array with a certain name, or null if it's not found. */
@@ -545,7 +589,7 @@ package starling.assets
          *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
         public function getByteArrayNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getAssetNames(AssetType.BYTE_ARRAY, prefix, out);
+            return getAssetNames(AssetType.BYTE_ARRAY, prefix, true, out);
         }
 
         /** Returns a bitmap font with a certain name, or null if it's not found. */
@@ -554,9 +598,24 @@ package starling.assets
             return getAsset(AssetType.BITMAP_FONT, name) as BitmapFont;
         }
 
+        /** Returns all bitmap font names that start with a certain string, sorted alphabetically.
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
         public function getBitmapFontNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
         {
-            return getAssetNames(AssetType.BITMAP_FONT, prefix, out);
+            return getAssetNames(AssetType.BITMAP_FONT, prefix, true, out);
+        }
+
+        /** Returns an asset manager with a certain name, or null if it's not found. */
+        public function getAssetManager(name:String):AssetManager
+        {
+            return getAsset(AssetType.ASSET_MANAGER, name) as AssetManager;
+        }
+
+        /** Returns all asset manager names that start with a certain string, sorted alphabetically.
+         *  If you pass an <code>out</code>-vector, the names will be added to that vector. */
+        public function getAssetManagerNames(prefix:String="", out:Vector.<String>=null):Vector.<String>
+        {
+            return getAssetNames(AssetType.ASSET_MANAGER, prefix, true, out);
         }
 
         /** Removes a certain texture, optionally disposing it. */
@@ -601,6 +660,11 @@ package starling.assets
             removeAsset(AssetType.BITMAP_FONT, name, dispose);
         }
 
+        public function removeAssetManager(name:String, dispose:Boolean=true):void
+        {
+            removeAsset(AssetType.ASSET_MANAGER, name, dispose);
+        }
+
         // registration of factories and post processors
 
         public function registerFactory(factory:AssetFactory, priority:int=0):void
@@ -621,16 +685,22 @@ package starling.assets
 
         protected function getNameFromUrl(url:String):String
         {
-            var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-            if (matches && matches.length > 0) return matches[1];
-            else return "unknown";
+            if (url)
+            {
+                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                if (matches && matches.length > 0) return matches[1];
+            }
+            return null;
         }
 
         protected function getExtensionFromUrl(url:String):String
         {
-            var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-            if (matches && matches.length > 1) return matches[2];
-            else return "";
+            if (url)
+            {
+                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                if (matches && matches.length > 1) return matches[2];
+            }
+            return "";
         }
 
         protected function disposeAsset(asset:Object):void
@@ -702,13 +772,14 @@ class AssetPostProcessor
     private var _priority:int;
     private var _callback:Function;
 
-    public function AssetPostProcessor(callback:Function)
+    public function AssetPostProcessor(callback:Function, priority:int)
     {
         if (callback == null || callback.length != 1)
             throw new ArgumentError("callback must be a function " +
                 "accepting one 'AssetStore' parameter");
 
         _callback = callback;
+        _priority = priority;
     }
 
     internal function execute(store:AssetManager):void
@@ -717,5 +788,4 @@ class AssetPostProcessor
     }
 
     public function get priority():int { return _priority; }
-    public function set priority(value:int):void { _priority = value; }
 }

@@ -326,7 +326,7 @@ package tests.utils
             assertEquals("a", _manager.__getNameFromUrl("a"));
             assertEquals("image", _manager.__getNameFromUrl("image.png"));
             assertEquals("image", _manager.__getNameFromUrl("http://example.com/dir/image.png"));
-            assertEquals("unknown", _manager.__getNameFromUrl("http://example.com/dir/image/"));
+            assertEquals(null, _manager.__getNameFromUrl("http://example.com/dir/image/"));
         }
         
         [Test]

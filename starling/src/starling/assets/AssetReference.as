@@ -10,7 +10,6 @@ package starling.assets
         private var _mimeType:String;
         private var _extension:String;
         private var _textureOptions:TextureOptions;
-
         private var _nameFromUrl:Function;
         private var _extensionFromUrl:Function;
 
