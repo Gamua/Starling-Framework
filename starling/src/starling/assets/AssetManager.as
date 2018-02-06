@@ -21,6 +21,84 @@ package starling.assets
     import starling.utils.MathUtil;
     import starling.utils.execute;
 
+    /** Dispatched when all textures have been restored after a context loss. */
+    [Event(name="texturesRestored", type="starling.events.Event")]
+
+    /** The AssetManager handles loading and accessing a variety of asset types. You can
+     *  add assets directly (via the 'add...' methods) or asynchronously via a queue. This allows
+     *  you to deal with assets in a unified way, no matter if they are loaded from a file,
+     *  directory, URL, or from an embedded object.
+     *
+     *  <p>The class can deal with the following media types:
+     *  <ul>
+     *    <li>Textures, either from Bitmaps or ATF data</li>
+     *    <li>Texture atlases</li>
+     *    <li>Bitmap Fonts</li>
+     *    <li>Sounds</li>
+     *    <li>XML data</li>
+     *    <li>JSON data</li>
+     *    <li>ByteArrays</li>
+     *    <li>other AssetManagers</li>
+     *  </ul>
+     *  </p>
+     *
+     *  <p>For more information on how to add assets from different sources, read the documentation
+     *  of the "enqueue()" method.</p>
+     *
+     *  <strong>Context Loss</strong>
+     *
+     *  <p>When the stage3D context is lost (and you have enabled 'Starling.handleLostContext'),
+     *  the AssetManager will automatically restore all loaded textures. To save memory, it will
+     *  get them from their original sources. Since this is done asynchronously, your images might
+     *  not reappear all at once, but during a timeframe of several seconds. If you want, you can
+     *  pause your game during that time; the AssetManager dispatches an "Event.TEXTURES_RESTORED"
+     *  event when all textures have been restored.</p>
+     *
+     *  <strong>Error handling</strong>
+     *
+     *  <p>Loading of some assets may fail while the queue is being processed. In that case, the
+     *  AssetManager will call the 'onError' callback that you can optional provide to the
+     *  'loadQueue' method. Queue processing will continue after an error, so it's always
+     *  guaranteed that the 'onComplete' callback is executed, too.</p>
+     *
+     *  <strong>Using varying texture properties</strong>
+     *
+     *  <p>When you enqueue a texture, its properties for "format", "scale", "mipMapping", and
+     *  "repeat" will reflect the settings of the AssetManager at the time they were enqueued.
+     *  This means that you can enqueue a bunch of textures, then change the settings and enqueue
+     *  some more. Like this:</p>
+     *
+     *  <listing>
+     *  var appDir:File = File.applicationDirectory;
+     *  var assets:AssetManager = new AssetManager();
+     *
+     *  assets.textureOptions.format = Context3DTextureFormat.BGRA;
+     *  assets.enqueue(appDir.resolvePath("textures/32bit"));
+     *
+     *  assets.textureOptions.format = Context3DTextureFormat.BGRA_PACKED;
+     *  assets.enqueue(appDir.resolvePath("textures/16bit"));
+     *
+     *  assets.loadQueue(...);</listing>
+     *
+     *  <strong>Extending the AssetManager</strong>
+     *
+     *  <p>You can customize how assets are created by extending the 'AssetFactory' class and
+     *  registering an instance of your new class at the AssetManager via 'registerFactory'.
+     *  Factories are probed by priority; any factory with a priority > 0 will be executed
+     *  before the built-in factories.</p>
+     *
+     *  <p>An asset type is identified by a unique String. You can add your own asset types
+     *  by creating a custom 'AssetFactory' and having it add the asset with custom string
+     *  identifier.</p>
+     *
+     *  <p>By overriding the methods 'getNameFromUrl', 'getExtensionFromUrl', 'disposeAsset',
+     *  and 'log', you can customize how assets are named and disposed, and you can forward
+     *  any logging to an external logger.</p>
+     *
+     *  @see starling.assets.AssetFactory
+     *  @see starling.assets.AssetType
+     *
+     */
     public class AssetManager extends EventDispatcher
     {
         private var _starling:Starling;
@@ -45,6 +123,7 @@ package starling.assets
         // helper objects
         private static var sNames:Vector.<String> = new <String>[];
 
+        /** Create a new instance with the given scale factor. */
         public function AssetManager(scaleFactor:Number=1)
         {
             _assets = new Dictionary();
@@ -63,6 +142,12 @@ package starling.assets
             registerFactory(new ByteArrayFactory(), -100);
         }
 
+        /** Disposes all assets and purges the queue.
+         *
+         *  <p>Beware that all references to the assets will remain intact, even though the assets
+         *  are no longer valid. Call 'purge' if you want to remove all resources and reuse
+         *  the AssetManager later.</p>
+         */
         public function dispose():void
         {
             purgeQueue();
@@ -86,6 +171,32 @@ package starling.assets
 
         // queue processing
 
+        /** Enqueues one or more raw assets; they will only be available after successfully
+         *  executing the "loadQueue" method. This method accepts a variety of different objects:
+         *
+         *  <ul>
+         *    <li>Strings or URLRequests containing an URL to a local or remote resource. Supported
+         *        types: <code>png, jpg, gif, atf, mp3, xml, fnt, json, binary</code>.</li>
+         *    <li>Instances of the File class (AIR only) pointing to a directory or a file.
+         *        Directories will be scanned recursively for all supported types.</li>
+         *    <li>Classes that contain <code>static</code> embedded assets.</li>
+         *    <li>If the file extension is not recognized, the data is analyzed to see if
+         *        contains XML or JSON data. If it's neither, it is stored as ByteArray.</li>
+         *  </ul>
+         *
+         *  <p>Suitable object names are extracted automatically: A file named "image.png" will be
+         *  accessible under the name "image". When enqueuing embedded assets via a class,
+         *  the variable name of the embedded object will be used as its name. An exception
+         *  are texture atlases: they will have the same name as the actual texture they are
+         *  referencing.</p>
+         *
+         *  <p>XMLs are made available via "getXml()"; this includes XMLs containing texture
+         *  atlases or bitmap fonts, which are processed along the way. Bitmap fonts are also
+         *  registered at the TextField class.</p>
+         *
+         *  <p>If you pass in JSON data, it will be parsed into an object and will be available via
+         *  "getObject()".</p>
+         */
         public function enqueue(...assets):void
         {
             for each (var asset:Object in assets)
@@ -134,6 +245,16 @@ package starling.assets
             }
         }
 
+        /** Enqueues a single asset with a custom name that can be used to access it later.
+         *  If the asset is a texture, you can also add custom texture options.
+         *
+         *  @param asset    The asset that will be enqueued; accepts the same objects as the
+         *                  'enqueue' method.
+         *  @param name     The name under which the asset will be found later. If you pass null or
+         *                  omit the parameter, it's attempted to generate a name automatically.
+         *  @param options  Custom options that will be used if 'asset' points to texture data.
+         *  @return         the name with which the asset was registered.
+         */
         public function enqueueSingle(asset:Object, name:String=null,
                                       options:TextureOptions=null):String
         {
@@ -142,7 +263,7 @@ package starling.assets
 
             var assetReference:AssetReference = new AssetReference(asset, name);
             assetReference.setCallbacks(getNameFromUrl, getExtensionFromUrl);
-            assetReference.textureOptions = options || _textureOptions;
+            assetReference.textureOptions = options || _textureOptions.clone();
 
             if (assetReference.name == null)
                 assetReference.name = NO_NAME + "-" + sNoNameCount++;
@@ -159,6 +280,20 @@ package starling.assets
             dispatchEventWith(Event.CANCEL);
         }
 
+        /** Loads all enqueued assets asynchronously. The 'onComplete' callback will be executed
+         *  once all assets have been loaded - even when there have been errors, which are
+         *  forwarded to the optional 'onError' callback. The 'onProgress' function will be called
+         *  with a 'ratio' between '0.0' and '1.0' and is also optional.
+         *
+         *  <p>When you call this method, the manager will save a reference to "Starling.current";
+         *  all textures that are loaded will be accessible only from within this instance. Thus,
+         *  if you are working with more than one Starling instance, be sure to call
+         *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
+         *
+         *  @param onComplete   function():void;
+         *  @param onProgress   function(ratio:Number):void;
+         *  @param onError      function(error:String):void;
+         */
         public function loadQueue(onComplete:Function,
                                   onProgress:Function=null, onError:Function=null):void
         {
@@ -410,6 +545,12 @@ package starling.assets
             store[name] = asset;
         }
 
+        /** Retrieves an asset of the given type, with the given name. If 'recursive' is true,
+         *  the method will traverse included texture atlases and asset managers.
+         *
+         *  <p>Typically, you will use one of the type-safe convenience methods instead, like
+         *  'getTexture', 'getSound', etc.</p>
+         */
         public function getAsset(assetType:String, name:String, recursive:Boolean=true):Object
         {
             if (recursive)
@@ -443,6 +584,9 @@ package starling.assets
             else return null;
         }
 
+        /** Retrieves an alphabetically sorted list of all assets that have the given type and
+         *  start with the given prefix. If 'recursive' is true, the method will traverse included
+         *  texture atlases and asset managers. */
         public function getAssetNames(assetType:String, prefix:String="", recursive:Boolean=true,
                                       out:Vector.<String>=null):Vector.<String>
         {
@@ -473,6 +617,7 @@ package starling.assets
             return out;
         }
 
+        /** Removes the asset with the given name and type, and will optionally dispose it. */
         public function removeAsset(assetType:String, name:String, dispose:Boolean=true):void
         {
             var store:Dictionary = _assets[assetType];
@@ -660,6 +805,7 @@ package starling.assets
             removeAsset(AssetType.BITMAP_FONT, name, dispose);
         }
 
+        /** Removes a certain asset manager and optionally disposes it right away. */
         public function removeAssetManager(name:String, dispose:Boolean=true):void
         {
             removeAsset(AssetType.ASSET_MANAGER, name, dispose);
@@ -667,6 +813,9 @@ package starling.assets
 
         // registration of factories
 
+        /** Registers a custom AssetFactory. If you use any priority > 0, the factory will
+         *  be called before the default factories. The final factory to be invoked is the
+         *  'ByteArrayFactory', which is using a priority of '-100'. */
         public function registerFactory(factory:AssetFactory, priority:int=0):void
         {
             factory.priority = priority;
@@ -683,6 +832,10 @@ package starling.assets
 
         // helpers
 
+        /** This method is called internally to determine the name under which an asset will be
+         *  accessible; override it if you need a custom naming scheme.
+         *
+         *  @return the name to be used for the asset, or 'null' if it can't be determined. */
         protected function getNameFromUrl(url:String):String
         {
             if (url)
@@ -693,6 +846,12 @@ package starling.assets
             return null;
         }
 
+        /** This method is called internally to determine the extension that's passed to the
+         *  'AssetFactory' (via the 'AssetReference'). Override it if you need to customize
+         *  e.g. the extension of a server URL.
+         *
+         *  @return the extension to be used for the asset, or an empty string if it can't be
+         *          determined. */
         protected function getExtensionFromUrl(url:String):String
         {
             if (url)
@@ -703,6 +862,9 @@ package starling.assets
             return "";
         }
 
+        /** Disposes the given asset. ByteArrays are cleared, XMLs are disposed using
+         *  'System.disposeXML'. If the object contains a 'dispose' method, it will be called.
+         *  Override if you need to add custom cleanup code for a certain asset. */
         protected function disposeAsset(asset:Object):void
         {
             if (asset is ByteArray) (asset as ByteArray).clear();
@@ -749,6 +911,11 @@ package starling.assets
         {
             _numConnections = MathUtil.min(1, value);
         }
+
+        /** Textures will be created with the options set up in this object at the time of
+         *  enqueuing. */
+        public function get textureOptions():TextureOptions { return _textureOptions; }
+        public function set textureOptions(value:TextureOptions):void { _textureOptions.copyFrom(value); }
 
         /** Indicates if bitmap fonts should be registered with their "face" attribute from the
          *  font XML file. Per default, they are registered with the name of the texture file.

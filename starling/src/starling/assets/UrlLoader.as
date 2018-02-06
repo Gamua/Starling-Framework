@@ -13,6 +13,7 @@ package starling.assets
 
     import starling.utils.execute;
 
+    /** @private */
     internal class UrlLoader
     {
         // This HTTPStatusEvent is only available in AIR

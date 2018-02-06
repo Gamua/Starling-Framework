@@ -8,20 +8,26 @@ package starling.assets
     import starling.textures.TextureAtlas;
     import starling.utils.ByteArrayUtil;
 
+    /** This AssetFactory creates XML assets, texture atlases and bitmap fonts. */
     public class XmlFactory extends AssetFactory
     {
+        /** Creates a new instance. */
         public function XmlFactory()
         {
             addMimeTypes("application/xml", "text/xml");
             addExtensions("xml", "fnt");
         }
 
+        /** Returns true if mime type or extension fit for XML data, or if the data starts
+         *  with a "&lt;" character. */
         override public function canHandle(reference:AssetReference):Boolean
         {
             return super.canHandle(reference) || (reference.data is ByteArray &&
                 ByteArrayUtil.startsWithString(reference.data as ByteArray, "<"));
         }
 
+        /** Creates the XML asset and passes it to 'onComplete'. If the XML contains a
+         *  TextureAtlas or a BitmapFont, adds suitable post processors. */
         override public function create(reference:AssetReference, helper:AssetFactoryHelper,
                                         onComplete:Function, onError:Function):void
         {

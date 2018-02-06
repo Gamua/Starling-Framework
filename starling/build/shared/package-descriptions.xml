@@ -3,6 +3,9 @@
 		<package name="starling.animation">
 			<shortDescription><![CDATA[The components of Starlings animation system.]]></shortDescription>
 		</package>
+		<package name="starling.assets">
+			<shortDescription><![CDATA[Starling's AssetManager and supporting classes.]]></shortDescription>
+		</package>
 		<package name="starling.core">
 			<shortDescription><![CDATA[Contains the core component of the framework.]]></shortDescription>
 		</package>

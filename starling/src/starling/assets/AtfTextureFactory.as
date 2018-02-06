@@ -5,18 +5,22 @@ package starling.assets
     import starling.textures.AtfData;
     import starling.textures.Texture;
 
+    /** This AssetFactory creates texture assets from ATF files. */
     public class AtfTextureFactory extends AssetFactory
     {
+        /** Creates a new instance. */
         public function AtfTextureFactory()
         {
             addExtensions("atf"); // not used, actually, since we can parse the ATF header, anyway.
         }
 
+        /** @inheritDoc */
         override public function canHandle(reference:AssetReference):Boolean
         {
             return (reference.data is ByteArray && AtfData.isAtfData(reference.data as ByteArray));
         }
 
+        /** @inheritDoc */
         override public function create(reference:AssetReference, helper:AssetFactoryHelper,
                                         onComplete:Function, onError:Function):void
         {

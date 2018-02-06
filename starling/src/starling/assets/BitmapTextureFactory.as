@@ -13,20 +13,24 @@ package starling.assets
     import starling.textures.Texture;
     import starling.utils.execute;
 
+    /** This AssetFactory creates texture assets from bitmaps and image files. */
     public class BitmapTextureFactory extends AssetFactory
     {
+        /** Creates a new instance. */
         public function BitmapTextureFactory()
         {
             addMimeTypes("image/png", "image/jpg", "image/jpeg", "image/gif");
             addExtensions("png", "jpg", "jpeg", "gif");
         }
 
+        /** @inheritDoc */
         override public function canHandle(reference:AssetReference):Boolean
         {
             return reference.data is Bitmap || reference.data is BitmapData ||
                 super.canHandle(reference);
         }
 
+        /** @inheritDoc */
         override public function create(reference:AssetReference, helper:AssetFactoryHelper,
                                         onComplete:Function, onError:Function):void
         {

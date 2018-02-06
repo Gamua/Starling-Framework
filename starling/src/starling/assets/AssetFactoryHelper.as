@@ -1,9 +1,8 @@
 package starling.assets
 {
-    import flash.utils.ByteArray;
-
     import starling.utils.SystemUtil;
 
+    /** A helper class that's passed to an AssetFactory's "create" method. */
     public class AssetFactoryHelper
     {
         private var _urlLoader:UrlLoader;
@@ -14,51 +13,81 @@ package starling.assets
         private var _onRestoreFunc:Function;
         private var _logFunc:Function;
 
+        /** @private */
         public function AssetFactoryHelper()
         { }
 
+        /** Forwarded to the AssetManager's method with the same name. */
         public function getNameFromUrl(url:String):String
         {
-            if (_getNameFromUrlFunc) return _getNameFromUrlFunc(url);
+            if (_getNameFromUrlFunc != null) return _getNameFromUrlFunc(url);
             else return "";
         }
 
+        /** Forwarded to the AssetManager's method with the same name. */
         public function getExtensionFromUrl(url:String):String
         {
-            if (_getExtensionFromUrlFunc) return _getExtensionFromUrlFunc(url);
+            if (_getExtensionFromUrlFunc != null) return _getExtensionFromUrlFunc(url);
             else return "";
         }
 
+        /** Accesses an URL (local or remote) and passes the loaded ByteArray to the
+         *  'onComplete' callback - or executes 'onError' when the data can't be loaded.
+         *
+         *  @param url         Either a String or an URLRequest, or an arbitrary object containing
+         *                     an 'url' property.
+         *  @param onComplete  function(data:ByteArray, mimeType:String):void;
+         *  @param onError     function(error:String):void;
+         */
         public function loadDataFromUrl(url:Object, onComplete:Function, onError:Function):void
         {
             if (_urlLoader) _urlLoader.load(url, onComplete, onError);
         }
 
+        /** Adds a method to be called by the AssetManager when the queue has finished processed.
+         *  Useful e.g. if assets depend on other assets (like an atlas XML depending on the atlas
+         *  texture).
+         *
+         *  @param processor  function(manager:AssetManager):void;
+         *  @param priority   Processors with a higher priority will be called first.
+         *                    The default processor for texture atlases is called with a
+         *                    priority of '100', others with '0'.
+         */
         public function addPostProcessor(processor:Function, priority:int=0):void
         {
-            if (_addPostProcessorFunc) _addPostProcessorFunc(processor, priority);
+            if (_addPostProcessorFunc != null) _addPostProcessorFunc(processor, priority);
         }
 
+        /** Textures are required to call this method when they begin their restoration process
+         *  after a context loss. */
         public function onBeginRestore():void
         {
-            if (_onRestoreFunc) _onRestoreFunc(false);
+            if (_onRestoreFunc != null) _onRestoreFunc(false);
         }
 
+        /** Textures are required to call this method when they have finished their restoration
+         *  process after a context loss. */
         public function onEndRestore():void
         {
-            if (_onRestoreFunc) _onRestoreFunc(true);
+            if (_onRestoreFunc != null) _onRestoreFunc(true);
         }
 
+        /** Forwarded to the AssetManager's method with the same name. */
         public function log(message:String):void
         {
-            if (_logFunc) _logFunc(message);
+            if (_logFunc != null) _logFunc(message);
         }
 
+        /** Adds additional assets to the AssetManager. To be called when the factory
+         *  creates more than one asset. */
         public function addComplementaryAsset(name:String, asset:Object):void
         {
-            if (_addAssetFunc) _addAssetFunc(name, asset);
+            if (_addAssetFunc != null) _addAssetFunc(name, asset);
         }
 
+        /** Delay the execution of 'call' until it's allowed. (On mobile, the context
+         *  may not be accessed while the application is in the background.)
+         */
         public function executeWhenContextReady(call:Function, ...args):void
         {
             // On mobile, it is not allowed / endorsed to make stage3D calls while the app
@@ -72,25 +101,25 @@ package starling.assets
             }
         }
 
+        /** @private */
         internal function set getNameFromUrlFunc(value:Function):void { _getNameFromUrlFunc = value; }
-        internal function get getNameFromUrlFunc():Function { return _getNameFromUrlFunc; }
 
+        /** @private */
         internal function set getExtensionFromUrlFunc(value:Function):void { _getExtensionFromUrlFunc = value; }
-        internal function get getExtensionFromUrlFunc():Function { return _getExtensionFromUrlFunc; }
 
+        /** @private */
         internal function set urlLoader(value:UrlLoader):void { _urlLoader = value; }
-        internal function get urlLoader():UrlLoader { return _urlLoader; }
 
+        /** @private */
         internal function set logFunc(value:Function):void { _logFunc = value; }
-        internal function get logFunc():Function { return _logFunc; }
 
+        /** @private */
         internal function set addAssetFunc(value:Function):void { _addAssetFunc = value; }
-        internal function get addAssetFunc():Function { return _addAssetFunc; }
 
+        /** @private */
         internal function set onRestoreFunc(value:Function):void { _onRestoreFunc = value; }
-        internal function get onRestoreFunc():Function { return _onRestoreFunc; }
 
+        /** @private */
         internal function set addPostProcessorFunc(value:Function):void { _addPostProcessorFunc = value; }
-        internal function get addPostProcessorFunc():Function { return _addPostProcessorFunc; }
     }
 }

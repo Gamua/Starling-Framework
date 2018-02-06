@@ -9,8 +9,10 @@ package starling.assets
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
 
+    /** An enumeration class containing all the asset types supported by the AssetManager. */
     public class AssetType
     {
+        /** @private */
         public function AssetType() { throw new AbstractClassError(); }
 
         public static const TEXTURE:String = "texture";
@@ -22,6 +24,7 @@ package starling.assets
         public static const BITMAP_FONT:String = "bitmapFont";
         public static const ASSET_MANAGER:String = "assetManager";
 
+        /** Figures out the asset type string from the type of the given instance. */
         public static function fromAsset(asset:Object):String
         {
             if (asset is Texture) return TEXTURE;
