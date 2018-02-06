@@ -159,8 +159,8 @@ package starling.assets
             dispatchEventWith(Event.CANCEL);
         }
 
-        public function loadQueue(onComplete:Function, onError:Function=null,
-                                  onProgress:Function=null):void
+        public function loadQueue(onComplete:Function,
+                                  onProgress:Function=null, onError:Function=null):void
         {
             if (_queue.length == 0)
             {
@@ -212,7 +212,7 @@ package starling.assets
                     if (assetProgress[j] < 0)
                     {
                         loadFromQueue(queue, assetProgress, j, factoryHelper,
-                            onAssetLoaded, onAssetLoadError, onError, onAssetLoadProgress);
+                            onAssetLoaded, onAssetProgress, onAssetLoadError, onError);
                         break;
                     }
                 }
@@ -243,7 +243,7 @@ package starling.assets
                 }
             }
 
-            function onAssetLoadProgress(ratio:Number):void
+            function onAssetProgress(ratio:Number):void
             {
                 if (!canceled) execute(onProgress, ratio * 0.95);
             }
@@ -284,8 +284,8 @@ package starling.assets
 
         private function loadFromQueue(
             queue:Vector.<AssetReference>, progressRatios:Vector.<Number>, index:int,
-            helper:AssetFactoryHelper, onComplete:Function, onError:Function,
-            onNonBlockingError:Function, onProgress:Function):void
+            helper:AssetFactoryHelper, onComplete:Function, onProgress:Function,
+            onError:Function, onIntermediateError:Function):void
         {
             var assetCount:int = queue.length;
             var asset:AssetReference = queue[index];
@@ -294,7 +294,7 @@ package starling.assets
             if (asset.data is String || ("url" in asset.data && asset.data["url"]))
                 _urlLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
             else if (asset.data is AssetManager)
-                (asset.data as AssetManager).loadQueue(onManagerComplete, onNonBlockingError, onLoadProgress);
+                (asset.data as AssetManager).loadQueue(onManagerComplete, onLoadProgress, onIntermediateError);
             else
                 setTimeout(onLoadComplete, 1, asset.data);
 
@@ -665,7 +665,7 @@ package starling.assets
             removeAsset(AssetType.ASSET_MANAGER, name, dispose);
         }
 
-        // registration of factories and post processors
+        // registration of factories
 
         public function registerFactory(factory:AssetFactory, priority:int=0):void
         {

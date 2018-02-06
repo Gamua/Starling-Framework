@@ -82,7 +82,7 @@ package
                     System.gc();
 
                     onComplete(assets);
-                }, null,
+                },
                 function onLoadProgress(ratio:Number):void
                 {
                     _progressBar.ratio = ratio;
