@@ -20,7 +20,6 @@ package starling.assets
         public static const OBJECT:String = "object";
         public static const BYTE_ARRAY:String = "byteArray";
         public static const BITMAP_FONT:String = "bitmapFont";
-        public static const VIDEO:String = "video";
         public static const ASSET_MANAGER:String = "assetManager";
 
         public static function fromAsset(asset:Object):String
@@ -31,7 +30,6 @@ package starling.assets
             else if (asset is XML) return XML_DOCUMENT;
             else if (asset is ByteArray) return BYTE_ARRAY;
             else if (asset is BitmapFont) return BITMAP_FONT;
-            else if (asset is Video) return VIDEO;
             else if (asset is AssetManager) return ASSET_MANAGER;
             else return OBJECT;
         }
