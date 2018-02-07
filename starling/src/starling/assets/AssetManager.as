@@ -301,11 +301,6 @@ package starling.assets
                 return;
             }
 
-            _starling = Starling.current;
-
-            if (_starling == null || _starling.context == null)
-                throw new Error("The Starling instance needs to be ready before assets can be loaded.");
-
             // By using an event listener, we can make a call to "cancel" affect
             // only the currently active loading process(es).
             addEventListener(Event.CANCEL, onCanceled);
@@ -328,6 +323,7 @@ package starling.assets
             var assetProgress:Vector.<Number> = new Vector.<Number>(numAssets, true);
             var postProcessors:Vector.<AssetPostProcessor> = new <AssetPostProcessor>[];
 
+            _starling = Starling.current;
             _queue.length = 0;
 
             for (i=0; i<numAssets; ++i)
@@ -433,7 +429,8 @@ package starling.assets
 
             function onLoadComplete(data:Object, mimeType:String=null):void
             {
-                _starling.makeCurrent();
+                if (_starling) _starling.makeCurrent();
+
                 onLoadProgress(1.0);
                 asset.data = data;
                 asset.mimeType ||= mimeType;
@@ -501,7 +498,9 @@ package starling.assets
             if (finished)
             {
                 _numRestoredTextures++;
-                _starling.stage.setRequiresRedraw();
+
+                if (_starling)
+                    _starling.stage.setRequiresRedraw();
 
                 if (_numRestoredTextures == _numLostTextures)
                     dispatchEventWith(Event.TEXTURES_RESTORED);
