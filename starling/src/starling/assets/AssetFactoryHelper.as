@@ -80,9 +80,9 @@ package starling.assets
 
         /** Adds additional assets to the AssetManager. To be called when the factory
          *  creates more than one asset. */
-        public function addComplementaryAsset(name:String, asset:Object):void
+        public function addComplementaryAsset(name:String, asset:Object, type:String=null):void
         {
-            if (_addAssetFunc != null) _addAssetFunc(name, asset);
+            if (_addAssetFunc != null) _addAssetFunc(name, asset, type);
         }
 
         /** Delay the execution of 'call' until it's allowed. (On mobile, the context
