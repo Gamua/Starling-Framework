@@ -47,25 +47,35 @@ package starling.assets
             var rootNode:String = xml.localName();
 
             if (rootNode == "TextureAtlas")
-                helper.addPostProcessor(function(store:AssetManager):void
-                {
-                    var name:String = helper.getNameFromUrl(xml.@imagePath.toString());
-                    var texture:Texture = store.getTexture(name);
-                    store.addAsset(name, new TextureAtlas(texture, xml));
-                }, 100);
+                helper.addPostProcessor(textureAtlasPostProcessor, 100);
             else if (rootNode == "font")
-                helper.addPostProcessor(function(store:AssetManager):void
-                {
-                    var textureName:String = helper.getNameFromUrl(xml.pages.page.@file.toString());
-                    var fontName:String = store.registerBitmapFontsWithFontFace ? xml.info.@face.toString() : textureName;
-                    var texture:Texture = store.getTexture(textureName);
-                    var bitmapFont:BitmapFont = new BitmapFont(texture, xml);
-
-                    store.addAsset(fontName, bitmapFont);
-                    TextField.registerCompositor(bitmapFont, fontName);
-                });
+                helper.addPostProcessor(bitmapFontPostProcessor);
 
             onComplete(reference.name, xml);
+
+            function textureAtlasPostProcessor(store:AssetManager):void
+            {
+                var name:String = helper.getNameFromUrl(xml.@imagePath.toString());
+                var texture:Texture = store.getTexture(name);
+                if (texture) store.addAsset(name, new TextureAtlas(texture, xml));
+                else helper.log("Cannot create atlas: texture '" + name + "' is missing.");
+            }
+
+            function bitmapFontPostProcessor(store:AssetManager):void
+            {
+                var textureName:String = helper.getNameFromUrl(xml.pages.page.@file.toString());
+                var texture:Texture = store.getTexture(textureName);
+                var fontName:String = store.registerBitmapFontsWithFontFace ?
+                    xml.info.@face.toString() : textureName;
+
+                if (texture)
+                {
+                    var bitmapFont:BitmapFont = new BitmapFont(texture, xml);
+                    store.addAsset(fontName, bitmapFont);
+                    TextField.registerCompositor(bitmapFont, fontName);
+                }
+                else helper.log("Cannot create bitmap font: texture '" + textureName + "' is missing.");
+            }
         }
     }
 }
