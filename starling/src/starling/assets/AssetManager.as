@@ -590,7 +590,7 @@ package starling.assets
         public function getAssetNames(assetType:String, prefix:String="", recursive:Boolean=true,
                                       out:Vector.<String>=null):Vector.<String>
         {
-            out ||= new <String>[];
+            out ||= new Vector.<String>();
 
             if (recursive)
             {

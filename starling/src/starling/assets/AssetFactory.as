@@ -86,7 +86,7 @@ package starling.assets
         /** Returns the mime types this factory supports. */
         public function getMimeTypes(out:Vector.<String>=null):Vector.<String>
         {
-            out ||= new <String>[];
+            out ||= new Vector.<String>();
 
             for (var i:int=0; i<_mimeTypes.length; ++i)
                 out[i] = _mimeTypes[i];
@@ -97,7 +97,7 @@ package starling.assets
         /** Returns the file extensions this factory supports. */
         public function getExtensions(out:Vector.<String>=null):Vector.<String>
         {
-            out ||= new <String>[];
+            out ||= new Vector.<String>();
 
             for (var i:int=0; i<_extensions.length; ++i)
                 out[i] = _extensions[i];
