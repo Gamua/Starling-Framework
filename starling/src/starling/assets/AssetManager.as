@@ -513,32 +513,35 @@ package starling.assets
 
         // basic accessing methods
 
-        /** Add an asset with a certain name. The asset type will be figured out automatically,
-         *  and the asset will be available right away.
+        /** Add an asset with a certain name and type.
          *
          *  <p>Beware: if the slot (name + type) was already taken, the existing object will be
          *  disposed and replaced by the new one.</p>
          *
-         *  @param name       The name with which the asset can be retrieved later. Must be
-         *                    unique within this asset type.
-         *  @param asset      The actual asset to add (e.g. a texture, a sound, etc.)
+         *  @param name    The name with which the asset can be retrieved later. Must be
+         *                 unique within this asset type.
+         *  @param asset   The actual asset to add (e.g. a texture, a sound, etc).
+         *  @param type    The type of the asset. If omitted, the type will be determined
+         *                 automatically (which works for all standard types defined within
+         *                 the 'AssetType' class).
          */
-        public function addAsset(name:String, asset:Object):void
+        public function addAsset(name:String, asset:Object, type:String=null):void
         {
-            var assetType:String = AssetType.fromAsset(asset);
-            var store:Dictionary = _assets[assetType];
+            type ||= AssetType.fromAsset(asset);
+
+            var store:Dictionary = _assets[type];
             if (store == null)
             {
                 store = new Dictionary();
-                _assets[assetType] = store;
+                _assets[type] = store;
             }
 
-            log("Adding " + assetType + " '" + name + "'");
+            log("Adding " + type + " '" + name + "'");
 
             var prevAsset:Object = store[name];
             if (prevAsset && prevAsset != asset)
             {
-                log("Warning: name was already in use; disposing the previous " + assetType);
+                log("Warning: name was already in use; disposing the previous " + type);
                 disposeAsset(prevAsset);
             }
 
@@ -551,7 +554,7 @@ package starling.assets
          *  <p>Typically, you will use one of the type-safe convenience methods instead, like
          *  'getTexture', 'getSound', etc.</p>
          */
-        public function getAsset(assetType:String, name:String, recursive:Boolean=true):Object
+        public function getAsset(type:String, name:String, recursive:Boolean=true):Object
         {
             if (recursive)
             {
@@ -560,12 +563,12 @@ package starling.assets
                 {
                     for each (var manager:AssetManager in managerStore)
                     {
-                        var asset:Object = manager.getAsset(assetType, name, true);
+                        var asset:Object = manager.getAsset(type, name, true);
                         if (asset) return asset;
                     }
                 }
 
-                if (assetType == AssetType.TEXTURE)
+                if (type == AssetType.TEXTURE)
                 {
                     var atlasStore:Dictionary = _assets[AssetType.TEXTURE_ATLAS];
                     if (atlasStore)
@@ -579,7 +582,7 @@ package starling.assets
                 }
             }
 
-            var store:Dictionary = _assets[assetType];
+            var store:Dictionary = _assets[type];
             if (store) return store[name];
             else return null;
         }
