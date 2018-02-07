@@ -11,19 +11,13 @@ package starling.assets
         private var _mimeType:String;
         private var _extension:String;
         private var _textureOptions:TextureOptions;
-        private var _nameFromUrl:Function;
-        private var _extensionFromUrl:Function;
 
-        /** Creates a new instance with the given data and name.
-         *
-         *  @param data  Could be a URL, a URLReference or an instance of an asset class.
-         *  @param name  The name with which the asset should be stored, or null if it ought
-         *               to be figured out automatically.
-         */
-        public function AssetReference(data:Object, name:String=null)
+        /** Creates a new instance with the given data, which is typically some kind of file
+         *  reference / URL or an instance of an asset class. If 'data' contains an URL, an
+         *  equivalent value will be assigned to the 'url' property. */
+        public function AssetReference(data:Object)
         {
             _data = data;
-            _name = name;
             _textureOptions = new TextureOptions();
 
             if (data is String) _url = data as String;
@@ -31,7 +25,7 @@ package starling.assets
         }
 
         /** The name with which the asset should be added to the AssetManager. */
-        public function get name():String { return _name || _nameFromUrl(_url); }
+        public function get name():String { return _name; }
         public function set name(value:String):void { _name = value; }
 
         /** The url from which the asset needs to be / has been loaded. */
@@ -49,7 +43,7 @@ package starling.assets
         public function set mimeType(value:String):void { _mimeType = value; }
 
         /** The file extension of the asset, if the filename or URL contains one. */
-        public function get extension():String { return _extension || _extensionFromUrl(_url); }
+        public function get extension():String { return _extension; }
         public function set extension(value:String):void { _extension = value; }
 
         /** The TextureOptions describing how to create a texture, if the asset references one. */
@@ -62,17 +56,9 @@ package starling.assets
         /** @private */
         internal function get filename():String
         {
-            var filename:String = this.name;
-            var extension:String = this.extension;
-            if (extension) filename += "." + extension;
-            return filename;
-        }
-
-        /** @private */
-        internal function setCallbacks(nameFromUrl:Function, extensionFromUrl:Function):void
-        {
-            _nameFromUrl = nameFromUrl;
-            _extensionFromUrl = extensionFromUrl;
+            if (name && extension && extension != "") return name + "." + extension;
+            else if (name) return name;
+            else return null;
         }
     }
 }

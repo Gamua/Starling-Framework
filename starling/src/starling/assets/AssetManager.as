@@ -261,12 +261,10 @@ package starling.assets
             if (asset is Class)
                 asset = new asset();
 
-            var assetReference:AssetReference = new AssetReference(asset, name);
-            assetReference.setCallbacks(getNameFromUrl, getExtensionFromUrl);
-            assetReference.textureOptions = options || _textureOptions.clone();
-
-            if (assetReference.name == null)
-                assetReference.name = NO_NAME + "-" + sNoNameCount++;
+            var assetReference:AssetReference = new AssetReference(asset);
+            assetReference.name = name || getNameFromUrl(assetReference.url) || getUniqueName();
+            assetReference.extension = getExtensionFromUrl(assetReference.url);
+            assetReference.textureOptions = options || _textureOptions;
 
             _queue.push(assetReference);
             log("Enqueuing '" + assetReference.filename + "'");
@@ -359,12 +357,12 @@ package starling.assets
                 }
             }
 
-            function onAssetLoaded(name:String, asset:Object):void
+            function onAssetLoaded(name:String=null, asset:Object=null):void
             {
                 if (canceled) disposeAsset(asset);
                 else
                 {
-                    addAsset(name, asset);
+                    if (name && asset) addAsset(name, asset);
                     setTimeout(loadNextAsset, 1);
                 }
             }
@@ -895,6 +893,11 @@ package starling.assets
                 out.sort(Array.CASEINSENSITIVE);
             }
             return out;
+        }
+
+        private static function getUniqueName():String
+        {
+            return NO_NAME + "-" + sNoNameCount++;
         }
 
         // properties
