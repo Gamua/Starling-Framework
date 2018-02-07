@@ -601,7 +601,7 @@ package starling.assets
                         manager.getAssetNames(assetType, prefix, true, out);
                 }
 
-                if (assetType == AssetType.TEXTURE_ATLAS)
+                if (assetType == AssetType.TEXTURE)
                 {
                     var atlasStore:Dictionary = _assets[AssetType.TEXTURE_ATLAS];
                     if (atlasStore)
