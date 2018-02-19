@@ -31,7 +31,7 @@ package starling.assets
             else return "";
         }
 
-        /** Accesses an URL (local or remote) and passes the loaded ByteArray to the
+        /** Accesses a URL (local or remote) and passes the loaded ByteArray to the
          *  'onComplete' callback - or executes 'onError' when the data can't be loaded.
          *
          *  @param url         Either a String or an URLRequest, or an arbitrary object containing
@@ -44,7 +44,7 @@ package starling.assets
             if (_urlLoader) _urlLoader.load(url, onComplete, onError);
         }
 
-        /** Adds a method to be called by the AssetManager when the queue has finished processed.
+        /** Adds a method to be called by the AssetManager when the queue has finished processing.
          *  Useful e.g. if assets depend on other assets (like an atlas XML depending on the atlas
          *  texture).
          *
