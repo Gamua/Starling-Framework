@@ -218,7 +218,8 @@ package starling.utils
                 execute : SystemUtil.executeWhenApplicationIsActive;
 
             if (profile == "auto")
-                profiles = ["standardExtended", "standard", "standardConstrained",
+                profiles = ["enhanced",
+                            "standardExtended", "standard", "standardConstrained",
                             "baselineExtended", "baseline", "baselineConstrained"];
             else if (profile is String)
                 profiles = [profile as String];
