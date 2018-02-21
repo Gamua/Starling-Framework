@@ -105,7 +105,7 @@ package starling.assets
         private var _assets:Dictionary;
         private var _verbose:Boolean;
         private var _numConnections:int;
-        private var _urlLoader:UrlLoader;
+        private var _dataLoader:DataLoader;
         private var _textureOptions:TextureOptions;
         private var _queue:Vector.<AssetReference>;
         private var _registerBitmapFontsWithFontFace:Boolean;
@@ -131,7 +131,7 @@ package starling.assets
             _textureOptions = new TextureOptions(scaleFactor);
             _queue = new <AssetReference>[];
             _numConnections = 1;
-            _urlLoader = new UrlLoader();
+            _dataLoader = new DataLoader();
             _assetFactories = new <AssetFactory>[];
 
             registerFactory(new BitmapTextureFactory());
@@ -275,6 +275,7 @@ package starling.assets
         public function purgeQueue():void
         {
             _queue.length = 0;
+            _dataLoader.close();
             dispatchEventWith(Event.CANCEL);
         }
 
@@ -311,7 +312,7 @@ package starling.assets
             factoryHelper.addPostProcessorFunc = addPostProcessor;
             factoryHelper.addAssetFunc = addAsset;
             factoryHelper.onRestoreFunc = onAssetRestored;
-            factoryHelper.urlLoader = _urlLoader;
+            factoryHelper.dataLoader = _dataLoader;
             factoryHelper.logFunc = log;
 
             var i:int;
@@ -421,7 +422,7 @@ package starling.assets
             progressRatios[index] = 0;
 
             if (asset.data is String || ("url" in asset.data && asset.data["url"]))
-                _urlLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
+                _dataLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
             else if (asset.data is AssetManager)
                 (asset.data as AssetManager).loadQueue(onManagerComplete, onLoadProgress, onIntermediateError);
             else
@@ -921,6 +922,11 @@ package starling.assets
          *  enqueuing. */
         public function get textureOptions():TextureOptions { return _textureOptions; }
         public function set textureOptions(value:TextureOptions):void { _textureOptions.copyFrom(value); }
+
+        /** The DataLoader is used to load any data from files or URLs. If you need to customize
+         *  its behavior (e.g. to add a caching mechanism), assign your custom instance here. */
+        public function get dataLoader():DataLoader { return _dataLoader; }
+        public function set dataLoader(value:DataLoader):void { _dataLoader = value; }
 
         /** Indicates if bitmap fonts should be registered with their "face" attribute from the
          *  font XML file. Per default, they are registered with the name of the texture file.

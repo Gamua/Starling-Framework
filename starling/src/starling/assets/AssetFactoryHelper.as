@@ -5,7 +5,7 @@ package starling.assets
     /** A helper class that's passed to an AssetFactory's "create" method. */
     public class AssetFactoryHelper
     {
-        private var _urlLoader:UrlLoader;
+        private var _dataLoader:DataLoader;
         private var _getNameFromUrlFunc:Function;
         private var _getExtensionFromUrlFunc:Function;
         private var _addPostProcessorFunc:Function;
@@ -41,7 +41,7 @@ package starling.assets
          */
         public function loadDataFromUrl(url:Object, onComplete:Function, onError:Function):void
         {
-            if (_urlLoader) _urlLoader.load(url, onComplete, onError);
+            if (_dataLoader) _dataLoader.load(url, onComplete, onError);
         }
 
         /** Adds a method to be called by the AssetManager when the queue has finished processing.
@@ -108,7 +108,7 @@ package starling.assets
         internal function set getExtensionFromUrlFunc(value:Function):void { _getExtensionFromUrlFunc = value; }
 
         /** @private */
-        internal function set urlLoader(value:UrlLoader):void { _urlLoader = value; }
+        internal function set dataLoader(value:DataLoader):void { _dataLoader = value; }
 
         /** @private */
         internal function set logFunc(value:Function):void { _logFunc = value; }
