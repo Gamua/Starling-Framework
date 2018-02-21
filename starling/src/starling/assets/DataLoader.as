@@ -113,7 +113,7 @@ package starling.assets
         /** Aborts all current load operations. The loader can still be used, though. */
         public function close():void
         {
-            for (var loader:URLLoader in _urlLoaders)
+            for (var loader:* in _urlLoaders)
             {
                 try { loader.close(); }
                 catch (e:Error) {}
