@@ -85,7 +85,7 @@ package
             // has not loaded them yet. This happens in the "loadQueue" method; and since this
             // will take a while, we'll update the progress bar accordingly.
 
-            assets.loadQueue(onAssetsLoaded, onAssetProgress);
+            assets.loadQueue(onAssetsLoaded, onAssetError, onAssetProgress);
 
             function onAssetsLoaded():void
             {
@@ -94,6 +94,11 @@ package
                 System.gc();
 
                 onComplete(assets);
+            }
+
+            function onAssetError(error:String):void
+            {
+                trace("Error while loading assets: " + error);
             }
 
             function onAssetProgress(ratio:Number):void

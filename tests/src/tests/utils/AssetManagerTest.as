@@ -98,7 +98,7 @@ package tests.utils
             var errorCount:int = 0;
 
             _manager.enqueue("../fixtures/invalid.xml");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, onComplete), null, onError);
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, onComplete), onError);
 
             function onComplete():void
             {
@@ -124,7 +124,7 @@ package tests.utils
             var errorCount:int=0;
 
             _manager.enqueue("../fixtures/invalid.json");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, onComplete), null, onError);
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, onComplete), onError);
 
             function onComplete():void
             {

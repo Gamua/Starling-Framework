@@ -74,19 +74,26 @@ package
             // has not loaded them yet. This happens in the "loadQueue" method; and since this
             // will take a while, we'll update the progress bar accordingly.
 
-            assets.loadQueue(
-                function onLoadComplete():void
-                {
-                    // now would be a good time for a clean-up
-                    System.pauseForGCIfCollectionImminent(0);
-                    System.gc();
+            assets.loadQueue(onLoadComplete, onLoadError, onLoadProgress);
 
-                    onComplete(assets);
-                },
-                function onLoadProgress(ratio:Number):void
-                {
-                    _progressBar.ratio = ratio;
-                });
+            function onLoadComplete():void
+            {
+                // now would be a good time for a clean-up
+                System.pauseForGCIfCollectionImminent(0);
+                System.gc();
+
+                onComplete(assets);
+            }
+
+            function onLoadError(error:String):void
+            {
+                trace("Error while loading assets: " + error);
+            }
+
+            function onLoadProgress(ratio:Number):void
+            {
+                _progressBar.ratio = ratio;
+            }
         }
 
         private function startGame(assets:AssetManager):void

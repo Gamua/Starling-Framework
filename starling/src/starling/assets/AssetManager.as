@@ -290,11 +290,11 @@ package starling.assets
          *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
          *
          *  @param onComplete   function():void;
-         *  @param onProgress   function(ratio:Number):void;
          *  @param onError      function(error:String):void;
+         *  @param onProgress   function(ratio:Number):void;
          */
         public function loadQueue(onComplete:Function,
-                                  onProgress:Function=null, onError:Function=null):void
+                                  onError:Function=null, onProgress:Function=null):void
         {
             if (_queue.length == 0)
             {
@@ -424,7 +424,7 @@ package starling.assets
             if (asset.data is String || ("url" in asset.data && asset.data["url"]))
                 _dataLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
             else if (asset.data is AssetManager)
-                (asset.data as AssetManager).loadQueue(onManagerComplete, onLoadProgress, onIntermediateError);
+                (asset.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
             else
                 setTimeout(onLoadComplete, 1, asset.data);
 
