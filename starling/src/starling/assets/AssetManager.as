@@ -31,7 +31,7 @@ package starling.assets
      *
      *  <p>The class can deal with the following media types:
      *  <ul>
-     *    <li>Textures, either from Bitmaps or ATF data</li>
+     *    <li>Textures (either from Bitmaps or ATF data)</li>
      *    <li>Texture atlases</li>
      *    <li>Bitmap Fonts</li>
      *    <li>Sounds</li>
@@ -47,21 +47,21 @@ package starling.assets
      *
      *  <strong>Context Loss</strong>
      *
-     *  <p>When the stage3D context is lost (and you have enabled 'Starling.handleLostContext'),
-     *  the AssetManager will automatically restore all loaded textures. To save memory, it will
-     *  get them from their original sources. Since this is done asynchronously, your images might
-     *  not reappear all at once, but during a timeframe of several seconds. If you want, you can
-     *  pause your game during that time; the AssetManager dispatches an "Event.TEXTURES_RESTORED"
-     *  event when all textures have been restored.</p>
+     *  <p>When the stage3D context is lost, the AssetManager will automatically restore all
+     *  loaded textures. To save memory, it will get them from their original sources. Since
+     *  this is done asynchronously, your images might not reappear all at once, but during
+     *  a time frame of several seconds. If you want, you can pause your game during that time;
+     *  the AssetManager dispatches an "Event.TEXTURES_RESTORED" event when all textures have
+     *  been restored.</p>
      *
-     *  <strong>Error handling</strong>
+     *  <strong>Error Handling</strong>
      *
      *  <p>Loading of some assets may fail while the queue is being processed. In that case, the
      *  AssetManager will call the 'onError' callback that you can optional provide to the
      *  'loadQueue' method. Queue processing will continue after an error, so it's always
      *  guaranteed that the 'onComplete' callback is executed, too.</p>
      *
-     *  <strong>Using varying texture properties</strong>
+     *  <strong>Texture Properties</strong>
      *
      *  <p>When you enqueue a texture, its properties for "format", "scale", "mipMapping", and
      *  "repeat" will reflect the settings of the AssetManager at the time they were enqueued.
@@ -71,16 +71,43 @@ package starling.assets
      *  <listing>
      *  var appDir:File = File.applicationDirectory;
      *  var assets:AssetManager = new AssetManager();
-     *
+     *  
      *  assets.textureOptions.format = Context3DTextureFormat.BGRA;
      *  assets.enqueue(appDir.resolvePath("textures/32bit"));
-     *
+     *  
      *  assets.textureOptions.format = Context3DTextureFormat.BGRA_PACKED;
      *  assets.enqueue(appDir.resolvePath("textures/16bit"));
-     *
+     *  
      *  assets.loadQueue(...);</listing>
+     * 
+     *  <strong>Nesting</strong>
      *
-     *  <strong>Extending the AssetManager</strong>
+     *  <p>When you enqueue one or more AssetManagers to another one, the "loadQueue" method will
+     *  oad the Assets of the "child" AssetManager, as well. Later, when accessing assets,
+     *  the "parent" AssetManager will return the "child" assets as well - just like it returns,
+     *  say, the SubTextures from a contained TextureAtlas.</p>
+     *
+     *  <p>The main advantage of grouping your assets like this is something else, though: it
+     *  allows to remove (and dispose) a complete group of assets in one step. The example
+     *  below loads the assets from two directories. When the contents of one of them are no
+     *  longer needed, all its assets are removed together.</p>
+     *
+     *  <listing>
+     *  var manager:AssetManager = new AssetManager();
+     *  var appDir:File = File.applicationDirectory;
+     *  
+     *  var redAssets:AssetManager = new AssetManager();
+     *  manager.enqueueSingle(appDir.resolvePath("textures/red/", "redAssets");
+     *  
+     *  var greenAssets:AssetManager = new AssetManager();
+     *  manager.enqueueSingle(appDir.resolvePath("textures/green/", "greenAssets");
+     *  
+     *  manager.loadQueue(...); // loads both "red" and "green" assets
+     *  
+     *  // ... later, remove all "red" assets together
+     *  manager.removeAssetManager("redAssets");</listing>
+     *
+     *  <strong>Customization</strong>
      *
      *  <p>You can customize how assets are created by extending the 'AssetFactory' class and
      *  registering an instance of your new class at the AssetManager via 'registerFactory'.
@@ -93,11 +120,12 @@ package starling.assets
      *
      *  <p>By overriding the methods 'getNameFromUrl', 'getExtensionFromUrl', 'disposeAsset',
      *  and 'log', you can customize how assets are named and disposed, and you can forward
-     *  any logging to an external logger.</p>
+     *  any logging to an external logger. To customize the way data is loaded from URLs or
+     *  files, you can assign a custom 'DataLoader' instance to the AssetManager.</p>
      *
      *  @see starling.assets.AssetFactory
      *  @see starling.assets.AssetType
-     *
+     *  @see starling.assets.DataLoader
      */
     public class AssetManager extends EventDispatcher
     {
