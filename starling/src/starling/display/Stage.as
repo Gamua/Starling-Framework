@@ -10,8 +10,6 @@
 
 package starling.display
 {
-    import flash.display.BitmapData;
-    import flash.display3D.Context3D;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -24,8 +22,6 @@ package starling.display
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
-    import starling.rendering.Painter;
-    import starling.rendering.RenderState;
     import starling.utils.MatrixUtil;
     import starling.utils.RectangleUtil;
 
