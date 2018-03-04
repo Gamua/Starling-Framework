@@ -13,6 +13,7 @@ package starling.textures
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
+    import flash.system.Capabilities;
 
     import starling.core.starling_internal;
 
@@ -33,6 +34,8 @@ package starling.textures
         private var _scale:Number;
         private var _transformationMatrix:Matrix;
         private var _transformationMatrixToRoot:Matrix;
+
+        private static const E:Number = 0.000001;
 
         /** Creates a new SubTexture containing the specified region of a parent texture.
          *
@@ -84,8 +87,8 @@ package starling.textures
             _height = (rotated ? _region.width  : _region.height) / scaleModifier;
             _scale = _parent.scale * scaleModifier;
 
-            if (_frame && (_frame.x > 0 || _frame.y > 0 ||
-                _frame.right < _width || _frame.bottom < _height))
+            if (Capabilities.isDebugger && _frame && (_frame.x > 0 || _frame.y > 0 ||
+                _frame.right + E < _width || _frame.bottom + E < _height))
             {
                 trace("[Starling] Warning: frames inside the texture's region are unsupported.");
             }
