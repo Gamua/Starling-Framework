@@ -317,9 +317,9 @@ package starling.assets
          *  if you are working with more than one Starling instance, be sure to call
          *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
          *
-         *  @param onComplete   function():void;
-         *  @param onError      function(error:String):void;
-         *  @param onProgress   function(ratio:Number):void;
+         *  @param onComplete   <code>function(manager:AssetManager):void;</code> - parameter is optional!
+         *  @param onError      <code>function(error:String):void;</code>
+         *  @param onProgress   <code>function(ratio:Number):void;</code>
          */
         public function loadQueue(onComplete:Function,
                                   onError:Function=null, onProgress:Function=null):void
@@ -436,7 +436,7 @@ package starling.assets
             {
                 onCanceled();
                 execute(onProgress, 1.0);
-                execute(onComplete);
+                execute(onComplete, self);
             }
         }
 
