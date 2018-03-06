@@ -165,7 +165,12 @@ package starling.display
             return _frames[frameID].action;
         }
 
-        /** Sets an action that will be executed whenever a certain frame is reached. */
+        /** Sets an action that will be executed whenever a certain frame is reached.
+         *
+         * @param frameID   The frame at which the action will be executed.
+         * @param action    A callback with two optional parameters:
+         *                  <code>function(movie:MovieClip, frameID:int):void;</code>
+         */
         public function setFrameAction(frameID:int, action:Function):void
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
