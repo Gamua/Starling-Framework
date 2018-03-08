@@ -216,7 +216,8 @@ package starling.core
         private var _supportHighResolutions:Boolean;
         private var _skipUnchangedFrames:Boolean;
         private var _showStats:Boolean;
-        
+        private var _supportsCursor:Boolean;
+
         private var _viewPort:Rectangle;
         private var _previousViewPort:Rectangle;
         private var _clippedViewPort:Rectangle;
@@ -282,7 +283,8 @@ package starling.core
             _painter = new Painter(stage3D);
             _frameTimestamp = getTimer() / 1000.0;
             _frameID = 1;
-            
+            _supportsCursor = Mouse.supportsCursor || Capabilities.os.indexOf("Windows") == 0;
+
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
@@ -691,7 +693,7 @@ package starling.core
                 // is dispatched as mouse event as well. Since we don't want to listen to that
                 // event twice, we ignore the primary touch in that case.
 
-                if (Mouse.supportsCursor && touchEvent.isPrimaryTouchPoint) return;
+                if (_supportsCursor && touchEvent.isPrimaryTouchPoint) return;
                 else
                 {
                     globalX  = touchEvent.stageX;
@@ -723,7 +725,7 @@ package starling.core
             _touchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
 
             // allow objects that depend on mouse-over state to be updated immediately
-            if (event.type == MouseEvent.MOUSE_UP && Mouse.supportsCursor)
+            if (event.type == MouseEvent.MOUSE_UP && _supportsCursor)
                 _touchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
 
@@ -734,7 +736,7 @@ package starling.core
             if (multitouchEnabled)
                 types.push(TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_END);
 
-            if (!multitouchEnabled || Mouse.supportsCursor)
+            if (!multitouchEnabled || _supportsCursor)
                 types.push(MouseEvent.MOUSE_DOWN,  MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_UP);
 
             return types;
