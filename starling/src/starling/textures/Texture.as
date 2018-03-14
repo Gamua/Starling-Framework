@@ -758,15 +758,29 @@ package starling.textures
          *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
         public function get transformationMatrixToRoot():Matrix { return null; }
 
-        /** Returns the maximum size constraint (for both width and height) for textures in the
-         *  current Context3D profile. */
-        public static function get maxSize():int
+        /** Returns the maximum size constraint (for both width and height) for uncompressed
+         *  textures in the current Context3D profile. */
+        public static function get maxSize():int { return getMaxSize(); }
+
+        /** Returns the maximum size constraint (for both width and height) for normal and
+         *  RectangleTextures with the given format in the current Context3D profile.
+         *
+         *  <p>Note: compressed textures, as well as video and cube textures are currently limited
+         *  to 4096 pixels (or less in some profiles). Only uncompressed normal (POT) and
+         *  RectangleTextures may support 8k dimensions.</p>
+         */
+        public static function getMaxSize(textureFormat:String="bgra"):int
         {
             var target:Starling = Starling.current;
+            var context:Context3D = target.context;
             var profile:String = target ? target.profile : "baseline";
+            var isCompressed:Boolean = (textureFormat == Context3DTextureFormat.COMPRESSED ||
+                                        textureFormat == Context3DTextureFormat.COMPRESSED_ALPHA);
 
             if (profile == "baseline" || profile == "baselineConstrained")
                 return 2048;
+            else if (!isCompressed && context && "supports8kTexture" in context && context["supports8kTexture"])
+                return 8192;
             else
                 return 4096;
         }

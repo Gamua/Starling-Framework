@@ -129,7 +129,7 @@ package starling.text
                 autoScaleNativeTextField(sNativeTextField, text, options.isHtmlText);
 
             var minTextureSize:int = 1;
-            var maxTextureSize:int = Texture.maxSize;
+            var maxTextureSize:int = Texture.getMaxSize(options.textureFormat);
             var paddingX:Number = options.padding * scale;
             var paddingY:Number = options.padding * scale;
             var textWidth:Number  = sNativeTextField.textWidth  + 4;
