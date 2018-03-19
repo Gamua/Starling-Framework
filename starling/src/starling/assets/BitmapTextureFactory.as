@@ -38,28 +38,26 @@ package starling.assets
             var url:String = reference.url;
             var data:Object = reference.data;
 
-            if (data is Bitmap || data is BitmapData)
-            {
-                helper.executeWhenContextReady(createDownloadedTexture, data);
-            }
+            if (data is Bitmap)
+                onBitmapDataCreated((data as Bitmap).bitmapData);
+            else if (data is BitmapData)
+                onBitmapDataCreated(data as BitmapData);
             else if (data is ByteArray)
+                createBitmapDataFromByteArray(data as ByteArray, onBitmapDataCreated, onError);
+
+            function onBitmapDataCreated(bitmapData:BitmapData):void
             {
-                loadFromByteArray(data as ByteArray, onLoadComplete, onError);
+                helper.executeWhenContextReady(createFromBitmapData, bitmapData);
             }
 
-            function onLoadComplete(bitmap:Bitmap):void
-            {
-                helper.executeWhenContextReady(createDownloadedTexture, bitmap);
-            }
-
-            function createDownloadedTexture(bitmapOrBitmapData:Object):void
+            function createFromBitmapData(bitmapData:BitmapData):void
             {
                 reference.textureOptions.onReady = function():void
                 {
                     onComplete(reference.name, texture);
                 };
 
-                texture = Texture.fromData(bitmapOrBitmapData, reference.textureOptions);
+                texture = Texture.fromData(bitmapData, reference.textureOptions);
 
                 if (url)
                 {
@@ -67,11 +65,11 @@ package starling.assets
                     {
                         helper.onBeginRestore();
 
-                        reload(url, function(bitmap:Bitmap):void
+                        reload(url, function(bitmapData:BitmapData):void
                         {
                             helper.executeWhenContextReady(function():void
                             {
-                                texture.root.uploadBitmap(bitmap);
+                                texture.root.uploadBitmapData(bitmapData);
                                 helper.onEndRestore();
                             });
                         });
@@ -83,7 +81,7 @@ package starling.assets
             {
                 helper.loadDataFromUrl(url, function(data:ByteArray):void
                 {
-                   loadFromByteArray(data, onComplete, onReloadError);
+                   createBitmapDataFromByteArray(data, onComplete, onReloadError);
                 }, onReloadError);
             }
 
@@ -94,7 +92,17 @@ package starling.assets
             }
         }
 
-        private function loadFromByteArray(data:ByteArray, onComplete:Function, onError:Function):void
+        /** Called by 'create' to convert a ByteArray to a BitmapData.
+         *
+         *  @param data        A ByteArray that contains image data
+         *                     (like the contents of a PNG or JPG file).
+         *  @param onComplete  Called with the BitmapData when successful.
+         *                     <pre>function(bitmapData:BitmapData):void;</pre>
+         *  @param onError     To be called when creation fails for some reason.
+         *                     <pre>function(error:String):void</pre>
+         */
+        protected function createBitmapDataFromByteArray(data:ByteArray,
+                                                         onComplete:Function, onError:Function):void
         {
             var loader:Loader = new Loader();
             var loaderInfo:LoaderInfo = loader.contentLoaderInfo;
@@ -112,13 +120,13 @@ package starling.assets
 
             function onLoaderComplete(event:Object):void
             {
-                complete(event.target.content);
+                complete(event.target.content.bitmapData);
             }
 
-            function complete(asset:Object):void
+            function complete(bitmapData:BitmapData):void
             {
                 cleanup();
-                execute(onComplete, asset);
+                execute(onComplete, bitmapData);
             }
 
             function cleanup():void
