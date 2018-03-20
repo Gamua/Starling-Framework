@@ -331,10 +331,11 @@ package starling.animation
             var currentIndex:int = 0;
             var i:int;
 
-            time *= _timeScale;
-            if (numObjects == 0 || time == 0) return;
             _elapsedTime += time;
-            
+            time *= _timeScale;
+
+            if (numObjects == 0 || time == 0) return;
+
             // there is a high probability that the "advanceTime" function modifies the list 
             // of animatables. we must not process new objects right now (they will be processed
             // in the next frame), and we need to clean up any empty slots in the list.
