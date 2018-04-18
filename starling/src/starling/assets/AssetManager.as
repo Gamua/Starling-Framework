@@ -464,11 +464,15 @@ package starling.assets
                 asset.data = data;
                 asset.mimeType ||= mimeType;
 
-                var assetFactory:AssetFactory = getFactoryFor(asset);
-                if (assetFactory == null)
-                    execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
-                else
-                    assetFactory.create(asset, helper, onComplete, onCreateError);
+                if (transformAsset(asset))
+                {
+                    var assetFactory:AssetFactory = getFactoryFor(asset);
+                    if (assetFactory == null)
+                        execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
+                    else
+                        assetFactory.create(asset, helper, onComplete, onCreateError);
+                }
+                else onComplete();
             }
 
             function onLoadProgress(ratio:Number):void
@@ -535,6 +539,15 @@ package starling.assets
                     dispatchEventWith(Event.TEXTURES_RESTORED);
             }
             else _numLostTextures++;
+        }
+
+        /** This method is called directly after asset data has been loaded from a local or remote
+         *  source. Override this method to update the reference in any way (like changing name,
+         *  extension or data) before the asset reference is passed to the respective factory.
+         *  Return <code>false</code> if you don't want to add that asset at all. */
+        protected function transformAsset(asset:AssetReference):Boolean
+        {
+            return true;
         }
 
         // basic accessing methods
