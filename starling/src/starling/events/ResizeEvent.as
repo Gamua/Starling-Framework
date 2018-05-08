@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -11,7 +11,7 @@
 package starling.events
 {
     import flash.geom.Point;
-    
+
     /** A ResizeEvent is dispatched by the stage when the size of the Flash container changes.
      *  Use it to update the Starling viewport and the stage size.
      *  

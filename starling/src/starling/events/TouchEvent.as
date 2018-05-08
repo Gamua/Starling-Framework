@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -12,7 +12,7 @@ package starling.events
 {
     import starling.core.starling_internal;
     import starling.display.DisplayObject;
-    
+
     use namespace starling_internal;
     
     /** A TouchEvent is triggered either by touch or mouse input.  
@@ -57,39 +57,59 @@ package starling.events
     {
         /** Event type for touch or mouse input. */
         public static const TOUCH:String = "touch";
-        
-        private var mShiftKey:Boolean;
-        private var mCtrlKey:Boolean;
-        private var mTimestamp:Number;
-        private var mVisitedObjects:Vector.<EventDispatcher>;
+
+        private var _shiftKey:Boolean;
+        private var _ctrlKey:Boolean;
+        private var _timestamp:Number;
+        private var _visitedObjects:Vector.<EventDispatcher>;
         
         /** Helper object. */
         private static var sTouches:Vector.<Touch> = new <Touch>[];
         
         /** Creates a new TouchEvent instance. */
-        public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
+        public function TouchEvent(type:String, touches:Vector.<Touch>=null, shiftKey:Boolean=false,
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
         {
             super(type, bubbles, touches);
+
+            _shiftKey = shiftKey;
+            _ctrlKey = ctrlKey;
+            _visitedObjects = new <EventDispatcher>[];
             
-            mShiftKey = shiftKey;
-            mCtrlKey = ctrlKey;
-            mTimestamp = -1.0;
-            mVisitedObjects = new <EventDispatcher>[];
-            
-            var numTouches:int=touches.length;
-            for (var i:int=0; i<numTouches; ++i)
-                if (touches[i].timestamp > mTimestamp)
-                    mTimestamp = touches[i].timestamp;
+            updateTimestamp(touches);
         }
-        
-        /** Returns a list of touches that originated over a certain target. If you pass a
-         *  'result' vector, the touches will be added to this vector instead of creating a new 
-         *  object. */
-        public function getTouches(target:DisplayObject, phase:String=null,
-                                   result:Vector.<Touch>=null):Vector.<Touch>
+
+        /** @private */
+        internal function resetTo(type:String, touches:Vector.<Touch>=null, shiftKey:Boolean=false,
+                                  ctrlKey:Boolean=false, bubbles:Boolean=true):TouchEvent
         {
-            if (result == null) result = new <Touch>[];
+            super.reset(type, bubbles, touches);
+
+            _shiftKey = shiftKey;
+            _ctrlKey = ctrlKey;
+            _visitedObjects.length = 0;
+            updateTimestamp(touches);
+
+            return this;
+        }
+
+        private function updateTimestamp(touches:Vector.<Touch>):void
+        {
+            _timestamp = -1.0;
+            var numTouches:int = touches ? touches.length : 0;
+
+            for (var i:int=0; i<numTouches; ++i)
+                if (touches[i].timestamp > _timestamp)
+                    _timestamp = touches[i].timestamp;
+        }
+
+        /** Returns a list of touches that originated over a certain target. If you pass an
+         *  <code>out</code>-vector, the touches will be added to this vector instead of creating
+         *  a new object. */
+        public function getTouches(target:DisplayObject, phase:String=null,
+                                   out:Vector.<Touch>=null):Vector.<Touch>
+        {
+            if (out == null) out = new <Touch>[];
             var allTouches:Vector.<Touch> = data as Vector.<Touch>;
             var numTouches:int = allTouches.length;
             
@@ -100,9 +120,9 @@ package starling.events
                 var correctPhase:Boolean = (phase == null || phase == touch.phase);
                     
                 if (correctTarget && correctPhase)
-                    result[result.length] = touch; // avoiding 'push'
+                    out[out.length] = touch; // avoiding 'push'
             }
-            return result;
+            return out;
         }
         
         /** Returns a touch that originated over a certain target. 
@@ -169,10 +189,10 @@ package starling.events
                 for (var i:int=0; i<chainLength; ++i)
                 {
                     var chainElement:EventDispatcher = chain[i] as EventDispatcher;
-                    if (mVisitedObjects.indexOf(chainElement) == -1)
+                    if (_visitedObjects.indexOf(chainElement) == -1)
                     {
                         var stopPropagation:Boolean = chainElement.invokeEvent(this);
-                        mVisitedObjects[mVisitedObjects.length] = chainElement;
+                        _visitedObjects[_visitedObjects.length] = chainElement;
                         if (stopPropagation) break;
                     }
                 }
@@ -184,15 +204,15 @@ package starling.events
         // properties
         
         /** The time the event occurred (in seconds since application launch). */
-        public function get timestamp():Number { return mTimestamp; }
+        public function get timestamp():Number { return _timestamp; }
         
         /** All touches that are currently available. */
         public function get touches():Vector.<Touch> { return (data as Vector.<Touch>).concat(); }
         
         /** Indicates if the shift key was pressed when the event occurred. */
-        public function get shiftKey():Boolean { return mShiftKey; }
+        public function get shiftKey():Boolean { return _shiftKey; }
         
         /** Indicates if the ctrl key was pressed when the event occurred. (Mac OS: Cmd or Ctrl) */
-        public function get ctrlKey():Boolean { return mCtrlKey; }
+        public function get ctrlKey():Boolean { return _ctrlKey; }
     }
 }

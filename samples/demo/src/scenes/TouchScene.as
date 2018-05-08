@@ -3,7 +3,7 @@ package scenes
     import starling.display.Image;
     import starling.text.TextField;
     import starling.utils.deg2rad;
-    
+
     import utils.TouchSheet;
 
     public class TouchScene extends Scene

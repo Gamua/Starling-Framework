@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -10,17 +10,21 @@
 
 package starling.display
 {
-    import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
+    import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Point;
-    
-    import starling.core.RenderSupport;
+    import flash.geom.Rectangle;
+    import flash.geom.Vector3D;
+
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
-    
+    import starling.utils.MatrixUtil;
+    import starling.utils.RectangleUtil;
+
     use namespace starling_internal;
     
     /** Dispatched when the Flash container is resized. */
@@ -51,100 +55,100 @@ package starling.display
      *  @see starling.events.KeyboardEvent
      *  @see starling.events.ResizeEvent  
      * 
-     * */
+     */
     public class Stage extends DisplayObjectContainer
     {
-        private var mWidth:int;
-        private var mHeight:int;
-        private var mColor:uint;
-        private var mEnterFrameEvent:EnterFrameEvent;
-        private var mEnterFrameListeners:Vector.<DisplayObject>;
-        
+        private var _width:int;
+        private var _height:int;
+        private var _color:uint;
+        private var _fieldOfView:Number;
+        private var _projectionOffset:Point;
+        private var _cameraPosition:Vector3D;
+        private var _enterFrameEvent:EnterFrameEvent;
+        private var _enterFrameListeners:Vector.<DisplayObject>;
+
+        // helper objects
+        private static var sMatrix:Matrix = new Matrix();
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
+
         /** @private */
         public function Stage(width:int, height:int, color:uint=0)
         {
-            mWidth = width;
-            mHeight = height;
-            mColor = color;
-            mEnterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
-            mEnterFrameListeners = new <DisplayObject>[];
+            _width = width;
+            _height = height;
+            _color = color;
+            _fieldOfView = 1.0;
+            _projectionOffset = new Point();
+            _cameraPosition = new Vector3D();
+            _enterFrameEvent = new EnterFrameEvent(Event.ENTER_FRAME, 0.0);
+            _enterFrameListeners = new <DisplayObject>[];
         }
         
         /** @inheritDoc */
         public function advanceTime(passedTime:Number):void
         {
-            mEnterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
-            broadcastEvent(mEnterFrameEvent);
+            _enterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
+            broadcastEvent(_enterFrameEvent);
         }
 
         /** Returns the object that is found topmost beneath a point in stage coordinates, or  
          *  the stage itself if nothing else is found. */
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
-            if (forTouch && (!visible || !touchable))
-                return null;
+            if (!visible || !touchable) return null;
             
             // locations outside of the stage area shouldn't be accepted
-            if (localPoint.x < 0 || localPoint.x > mWidth ||
-                localPoint.y < 0 || localPoint.y > mHeight)
+            if (localPoint.x < 0 || localPoint.x > _width ||
+                localPoint.y < 0 || localPoint.y > _height)
                 return null;
             
             // if nothing else is hit, the stage returns itself as target
-            var target:DisplayObject = super.hitTest(localPoint, forTouch);
-            if (target == null) target = this;
-            return target;
+            var target:DisplayObject = super.hitTest(localPoint);
+            return target ? target : this;
         }
         
-        /** Draws the complete stage into a BitmapData object.
-         *
-         *  <p>If you encounter problems with transparency, start Starling in BASELINE profile
-         *  (or higher). BASELINE_CONSTRAINED might not support transparency on all platforms.
-         *  </p>
-         *
-         *  @param destination: If you pass null, the object will be created for you.
-         *                      If you pass a BitmapData object, it should have the size of the
-         *                      back buffer (which is accessible via the respective properties
-         *                      on the Starling instance).
-         *  @param transparent: If enabled, empty areas will appear transparent; otherwise, they
-         *                      will be filled with the stage color.
-         */
-        public function drawToBitmapData(destination:BitmapData=null,
-                                         transparent:Boolean=true):BitmapData
+        /** Returns the stage bounds (i.e. not the bounds of its contents, but the rectangle
+         *  spawned up by 'stageWidth' and 'stageHeight') in another coordinate system. */
+        public function getStageBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
-            var support:RenderSupport = new RenderSupport();
-            var star:Starling = Starling.current;
-            
-            if (destination == null)
-                destination = new BitmapData(star.backBufferWidth, star.backBufferHeight, transparent);
-            
-            support.renderTarget = null;
-            support.setOrthographicProjection(0, 0, mWidth, mHeight);
-            
-            if (transparent) support.clear();
-            else             support.clear(mColor, 1);
-            
-            render(support, 1.0);
-            support.finishQuadBatch();
-            
-            Starling.current.context.drawToBitmapData(destination);
-            Starling.current.context.present(); // required on some platforms to avoid flickering
-            
-            return destination;
+            if (out == null) out = new Rectangle();
+
+            out.setTo(0, 0, _width, _height);
+            getTransformationMatrix(targetSpace, sMatrix);
+
+            return RectangleUtil.getBounds(out, sMatrix, out);
         }
-        
+
+        // camera positioning
+
+        /** Returns the position of the camera within the local coordinate system of a certain
+         *  display object. If you do not pass a space, the method returns the global position.
+         *  To change the position of the camera, you can modify the properties 'fieldOfView',
+         *  'focalDistance' and 'projectionOffset'.
+         */
+        public function getCameraPosition(space:DisplayObject=null, out:Vector3D=null):Vector3D
+        {
+            getTransformationMatrix3D(space, sMatrix3D);
+
+            return MatrixUtil.transformCoords3D(sMatrix3D,
+                _width / 2 + _projectionOffset.x, _height / 2 + _projectionOffset.y,
+                -focalLength, out);
+        }
+
         // enter frame event optimization
         
         /** @private */
         internal function addEnterFrameListener(listener:DisplayObject):void
         {
-            mEnterFrameListeners.push(listener);
+            var index:int = _enterFrameListeners.indexOf(listener);
+            if (index < 0)  _enterFrameListeners[_enterFrameListeners.length] = listener;
         }
         
         /** @private */
         internal function removeEnterFrameListener(listener:DisplayObject):void
         {
-            var index:int = mEnterFrameListeners.indexOf(listener);
-            if (index >= 0) mEnterFrameListeners.splice(index, 1); 
+            var index:int = _enterFrameListeners.indexOf(listener);
+            if (index >= 0) _enterFrameListeners.removeAt(index);
         }
         
         /** @private */
@@ -153,8 +157,8 @@ package starling.display
         {
             if (eventType == Event.ENTER_FRAME && object == this)
             {
-                for (var i:int=0, length:int=mEnterFrameListeners.length; i<length; ++i)
-                    listeners[listeners.length] = mEnterFrameListeners[i]; // avoiding 'push' 
+                for (var i:int=0, length:int=_enterFrameListeners.length; i<length; ++i)
+                    listeners[listeners.length] = _enterFrameListeners[i]; // avoiding 'push'
             }
             else
                 super.getChildEventListeners(object, eventType, listeners);
@@ -222,18 +226,94 @@ package starling.display
             throw new IllegalOperationError("Cannot add filter to stage. Add it to 'root' instead!");
         }
         
-        /** The background color of the stage. */
-        public function get color():uint { return mColor; }
-        public function set color(value:uint):void { mColor = value; }
+        /** The background color of the stage.
+         *  When Starling clears the render context (which happens automatically once per frame),
+         *  it will use this this color. Note that it's actually an 'ARGB' value: if you need
+         *  the context to be cleared with a specific alpha value, include it in the color. */
+        public function get color():uint { return _color; }
+        public function set color(value:uint):void { _color = value; }
         
         /** The width of the stage coordinate system. Change it to scale its contents relative
          *  to the <code>viewPort</code> property of the Starling object. */ 
-        public function get stageWidth():int { return mWidth; }
-        public function set stageWidth(value:int):void { mWidth = value; }
+        public function get stageWidth():int { return _width; }
+        public function set stageWidth(value:int):void
+        {
+            _width = value;
+            setRequiresRedraw();
+        }
         
         /** The height of the stage coordinate system. Change it to scale its contents relative
          *  to the <code>viewPort</code> property of the Starling object. */
-        public function get stageHeight():int { return mHeight; }
-        public function set stageHeight(value:int):void { mHeight = value; }
+        public function get stageHeight():int { return _height; }
+        public function set stageHeight(value:int):void
+        {
+            _height = value;
+            setRequiresRedraw();
+        }
+
+        /** The Starling instance this stage belongs to. */
+        public function get starling():Starling
+        {
+            var instances:Vector.<Starling> = Starling.all;
+            var numInstances:int = instances.length;
+
+            for (var i:int=0; i<numInstances; ++i)
+                if (instances[i].stage == this) return instances[i];
+
+            return null;
+        }
+
+        /** The distance between the stage and the camera. Changing this value will update the
+         *  field of view accordingly. */
+        public function get focalLength():Number
+        {
+            return _width / (2 * Math.tan(_fieldOfView/2));
+        }
+
+        public function set focalLength(value:Number):void
+        {
+            _fieldOfView = 2 * Math.atan(stageWidth / (2*value));
+            setRequiresRedraw();
+        }
+
+        /** Specifies an angle (radian, between zero and PI) for the field of view. This value
+         *  determines how strong the perspective transformation and distortion apply to a Sprite3D
+         *  object.
+         *
+         *  <p>A value close to zero will look similar to an orthographic projection; a value
+         *  close to PI results in a fisheye lens effect. If the field of view is set to 0 or PI,
+         *  nothing is seen on the screen.</p>
+         *
+         *  @default 1.0
+         */
+        public function get fieldOfView():Number { return _fieldOfView; }
+        public function set fieldOfView(value:Number):void
+        {
+            _fieldOfView = value;
+            setRequiresRedraw();
+        }
+
+        /** A vector that moves the camera away from its default position in the center of the
+         *  stage. Use this property to change the center of projection, i.e. the vanishing
+         *  point for 3D display objects. <p>CAUTION: not a copy, but the actual object!</p>
+         */
+        public function get projectionOffset():Point { return _projectionOffset; }
+        public function set projectionOffset(value:Point):void
+        {
+            _projectionOffset.setTo(value.x, value.y);
+            setRequiresRedraw();
+        }
+
+        /** The global position of the camera. This property can only be used to find out the
+         *  current position, but not to modify it. For that, use the 'projectionOffset',
+         *  'fieldOfView' and 'focalLength' properties. If you need the camera position in
+         *  a certain coordinate space, use 'getCameraPosition' instead.
+         *
+         *  <p>CAUTION: not a copy, but the actual object!</p>
+         */
+        public function get cameraPosition():Vector3D
+        {
+            return getCameraPosition(null, _cameraPosition);
+        }
     }
 }

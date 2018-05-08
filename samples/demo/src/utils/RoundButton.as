@@ -2,11 +2,11 @@ package utils
 {
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    
+
     import starling.display.Button;
     import starling.display.DisplayObject;
     import starling.textures.Texture;
-    
+
     public class RoundButton extends Button
     {
         public function RoundButton(upState:Texture, text:String="", downState:Texture=null)
@@ -14,16 +14,14 @@ package utils
             super(upState, text, downState);
         }
         
-        public override function hitTest(localPoint:Point, forTouch:Boolean=false):DisplayObject
+        public override function hitTest(localPoint:Point):DisplayObject
         {
             // When the user touches the screen, this method is used to find out if an object was 
             // hit. By default, this method uses the bounding box, but by overriding it, 
             // we can change the box (rectangle) to a circle (or whatever necessary).
             
-            // when the hit test is done to check if a touch is hitting the object, invisible or
-            // untouchable objects must cause the hit test to fail.
-            if (forTouch && (!visible || !touchable)) 
-                return null; 
+            // these are the cases in which a hit test must always fail
+            if (!visible || !touchable || !hitTestMask(localPoint)) return null;
             
             // get center of button
             var bounds:Rectangle = this.bounds;

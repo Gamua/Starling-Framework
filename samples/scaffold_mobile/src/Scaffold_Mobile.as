@@ -2,124 +2,173 @@ package
 {
     import flash.desktop.NativeApplication;
     import flash.display.Bitmap;
+    import flash.display.Loader;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.filesystem.File;
-    import flash.geom.Rectangle;
+    import flash.filesystem.FileMode;
+    import flash.filesystem.FileStream;
     import flash.system.Capabilities;
-    
+    import flash.system.System;
+    import flash.utils.ByteArray;
+
+    import starling.assets.AssetManager;
     import starling.core.Starling;
     import starling.events.Event;
-    import starling.textures.Texture;
-    import starling.utils.AssetManager;
-    import starling.utils.RectangleUtil;
-    import starling.utils.ScaleMode;
-    import starling.utils.formatString;
-    
-    [SWF(frameRate="30", backgroundColor="#000")]
+    import starling.utils.StringUtil;
+    import starling.utils.SystemUtil;
+
+    import utils.ProgressBar;
+    import utils.ScreenSetup;
+
+    [SWF(width="320", height="480", frameRate="30", backgroundColor="#badefe")]
     public class Scaffold_Mobile extends Sprite
     {
-        // We embed the "Ubuntu" font. Beware: the 'embedAsCFF'-part IS REQUIRED!!!
-        [Embed(source="/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
+        [Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
         private static const UbuntuRegular:Class;
-        
-        // Startup image for SD screens
-        [Embed(source="/startup.jpg")]
-        private static var Background:Class;
-        
-        // Startup image for HD screens
-        [Embed(source="/startupHD.jpg")]
-        private static var BackgroundHD:Class;
-        
-        private var mStarling:Starling;
-        
+
+        private var _starling:Starling;
+        private var _logo:Loader;
+        private var _progressBar:ProgressBar;
+
         public function Scaffold_Mobile()
         {
-            // set general properties
-            
-            var stageWidth:int   = Constants.STAGE_WIDTH;
-            var stageHeight:int  = Constants.STAGE_HEIGHT;
-            var iOS:Boolean = Capabilities.manufacturer.indexOf("iOS") != -1;
-            
-            Starling.multitouchEnabled = true;  // useful on mobile devices
-            Starling.handleLostContext = !iOS;  // not necessary on iOS. Saves a lot of memory!
-            
-            // create a suitable viewport for the screen size
-            // 
-            // we develop the game in a *fixed* coordinate system of 320x480; the game might 
-            // then run on a device with a different resolution; for that case, we zoom the 
-            // viewPort to the optimal size for any display and load the optimal textures.
-            
-            var viewPort:Rectangle = RectangleUtil.fit(
-                new Rectangle(0, 0, stageWidth, stageHeight), 
-                new Rectangle(0, 0, stage.fullScreenWidth, stage.fullScreenHeight), 
-                ScaleMode.SHOW_ALL);
-            
-            // create the AssetManager, which handles all required assets for this resolution
-            
-            var scaleFactor:int = viewPort.width < 480 ? 1 : 2; // midway between 320 and 640
+            // The "ScreenSetup" class is part of the "utils" package of this project.
+            // It figures out the perfect scale factor and stage size for the given device.
+            // The third parameter describes the available asset sets (here, '1x' and '2x').
+
+            var screen:ScreenSetup = new ScreenSetup(
+                stage.fullScreenWidth, stage.fullScreenHeight, [1, 2]);
+
+            Starling.multitouchEnabled = true; // we want to make use of multitouch
+
+            _starling = new Starling(Root, stage, screen.viewPort);
+            _starling.stage.stageWidth  = screen.stageWidth;
+            _starling.stage.stageHeight = screen.stageHeight;
+            _starling.skipUnchangedFrames = true;
+            _starling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
+            {
+                loadAssets(screen.assetScale, startGame);
+            });
+
+            _starling.start();
+            initLoadingScreen(screen.assetScale);
+
+            // When the game becomes inactive, we pause Starling; otherwise, the enter frame event
+            // would report a very long 'passedTime' when the app is reactivated.
+
+            if (!SystemUtil.isDesktop)
+            {
+                NativeApplication.nativeApplication.addEventListener(
+                    flash.events.Event.ACTIVATE, function (e:*):void { _starling.start(); });
+                NativeApplication.nativeApplication.addEventListener(
+                    flash.events.Event.DEACTIVATE, function (e:*):void { _starling.stop(true); });
+            }
+        }
+
+        private function loadAssets(scale:int, onComplete:Function):void
+        {
+            // Our assets are loaded and managed by the 'AssetManager'. To use that class,
+            // we first have to enqueue pointers to all assets we want it to load.
+
             var appDir:File = File.applicationDirectory;
-            var assets:AssetManager = new AssetManager(scaleFactor);
-            
+            var assets:AssetManager = new AssetManager(scale);
+
             assets.verbose = Capabilities.isDebugger;
             assets.enqueue(
                 appDir.resolvePath("audio"),
-                appDir.resolvePath(formatString("fonts/{0}x", scaleFactor)),
-                appDir.resolvePath(formatString("textures/{0}x", scaleFactor))
+                appDir.resolvePath(StringUtil.format("fonts/{0}x",    scale)),
+                appDir.resolvePath(StringUtil.format("textures/{0}x", scale))
             );
-            
-            // While Stage3D is initializing, the screen will be blank. To avoid any flickering, 
-            // we display a startup image now and remove it below, when Starling is ready to go.
-            // This is especially useful on iOS, where "Default.png" (or a variant) is displayed
-            // during Startup. You can create an absolute seamless startup that way.
-            // 
-            // These are the only embedded graphics in this app. We can't load them from disk,
-            // because that can only be done asynchronously (resulting in a short flicker).
-            // 
-            // Note that we cannot embed "Default.png" (or its siblings), because any embedded
-            // files will vanish from the application package, and those are picked up by the OS!
-            
-            var backgroundClass:Class = scaleFactor == 1 ? Background : BackgroundHD;
-            var background:Bitmap = new backgroundClass();
-            Background = BackgroundHD = null; // no longer needed!
-            
-            background.x = viewPort.x;
-            background.y = viewPort.y;
-            background.width  = viewPort.width;
-            background.height = viewPort.height;
-            background.smoothing = true;
-            addChild(background);
-            
-            // launch Starling
-            
-            mStarling = new Starling(Root, stage, viewPort);
-            mStarling.stage.stageWidth  = stageWidth;  // <- same size on all devices!
-            mStarling.stage.stageHeight = stageHeight; // <- same size on all devices!
-            mStarling.simulateMultitouch  = false;
-            mStarling.enableErrorChecking = Capabilities.isDebugger;
-            
-            mStarling.addEventListener(starling.events.Event.ROOT_CREATED, 
-                function(event:Object, app:Root):void
+
+            // Now, while the AssetManager now contains pointers to all the assets, it actually
+            // has not loaded them yet. This happens in the "loadQueue" method; and since this
+            // will take a while, we'll update the progress bar accordingly.
+
+            assets.loadQueue(onAssetsLoaded, onAssetError, onAssetProgress);
+
+            function onAssetsLoaded():void
+            {
+                // now would be a good time for a clean-up
+                System.pauseForGCIfCollectionImminent(0);
+                System.gc();
+
+                onComplete(assets);
+            }
+
+            function onAssetError(error:String):void
+            {
+                trace("Error while loading assets: " + error);
+            }
+
+            function onAssetProgress(ratio:Number):void
+            {
+                _progressBar.ratio = ratio;
+            }
+        }
+
+        private function startGame(assets:AssetManager):void
+        {
+            var root:Root = _starling.root as Root;
+            root.start(assets);
+            removeLoadingScreen();
+        }
+
+        private function initLoadingScreen(scale:int):void
+        {
+            var overlay:Sprite = _starling.nativeOverlay;
+            var stageWidth:Number = _starling.stage.stageWidth;
+            var stageHeight:Number = _starling.stage.stageHeight;
+
+            // On iOS, the "Default.png" image (or one of its variants) is shown while the app
+            // starts up. For an absolutely seamless transition, we recreate its contents
+            // in the classic display list via the stage color and the logo.
+            // Loading the logo from a file and displaying it in the same frame -> that's only
+            // possible via the FileStream calls below.
+
+            var bgPath:String = StringUtil.format("textures/{0}x/logo.png", scale);
+            var bgFile:File = File.applicationDirectory.resolvePath(bgPath);
+            var bytes:ByteArray = new ByteArray();
+            var stream:FileStream = new FileStream();
+            stream.open(bgFile, FileMode.READ);
+            stream.readBytes(bytes, 0, stream.bytesAvailable);
+            stream.close();
+
+            _logo = new Loader();
+            _logo.loadBytes(bytes);
+            _logo.scaleX = 1.0 / scale;
+            _logo.scaleY = 1.0 / scale;
+            overlay.addChild(_logo);
+
+            _logo.contentLoaderInfo.addEventListener(flash.events.Event.COMPLETE,
+                function(e:Object):void
                 {
-                    mStarling.removeEventListener(starling.events.Event.ROOT_CREATED, arguments.callee);
-                    removeChild(background);
-                    background = null;
-                    
-                    var bgTexture:Texture = Texture.fromEmbeddedAsset(
-                        backgroundClass, false, false, scaleFactor);
-                    
-                    app.start(bgTexture, assets);
-                    mStarling.start();
+                    (_logo.content as Bitmap).smoothing = true;
+                    _logo.x = (stageWidth  - _logo.width)  / 2;
+                    _logo.y = (stageHeight - _logo.height) / 2;
                 });
-            
-            // When the game becomes inactive, we pause Starling; otherwise, the enter frame event
-            // would report a very long 'passedTime' when the app is reactivated. 
-            
-            NativeApplication.nativeApplication.addEventListener(
-                flash.events.Event.ACTIVATE, function (e:*):void { mStarling.start(); });
-            
-            NativeApplication.nativeApplication.addEventListener(
-                flash.events.Event.DEACTIVATE, function (e:*):void { mStarling.stop(true); });
+
+            // While the assets are loaded, we will display a progress bar.
+
+            _progressBar = new ProgressBar(175, 20);
+            _progressBar.x = (stageWidth - _progressBar.width) / 2;
+            _progressBar.y =  stageHeight * 0.8;
+            _starling.nativeOverlay.addChild(_progressBar);
+        }
+
+        private function removeLoadingScreen():void
+        {
+            if (_logo)
+            {
+                _starling.nativeOverlay.removeChild(_logo);
+                _logo = null;
+            }
+
+            if (_progressBar)
+            {
+                _starling.nativeOverlay.removeChild(_progressBar);
+                _progressBar = null;
+            }
         }
     }
 }

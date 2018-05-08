@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2012 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -10,582 +10,665 @@
 
 package starling.filters
 {
-    import flash.display3D.Context3D;
-    import flash.display3D.Context3DProgramType;
-    import flash.display3D.Context3DVertexBufferFormat;
-    import flash.display3D.IndexBuffer3D;
-    import flash.display3D.Program3D;
-    import flash.display3D.VertexBuffer3D;
+    import flash.display3D.Context3DTextureFormat;
     import flash.errors.IllegalOperationError;
-    import flash.geom.Matrix;
+    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
-    import flash.system.Capabilities;
-    import flash.utils.getQualifiedClassName;
-    
-    import starling.core.RenderSupport;
+
     import starling.core.Starling;
     import starling.core.starling_internal;
-    import starling.display.BlendMode;
     import starling.display.DisplayObject;
-    import starling.display.Image;
-    import starling.display.QuadBatch;
     import starling.display.Stage;
-    import starling.errors.AbstractClassError;
-    import starling.errors.MissingContextError;
     import starling.events.Event;
+    import starling.events.EventDispatcher;
+    import starling.rendering.FilterEffect;
+    import starling.rendering.IndexData;
+    import starling.rendering.Painter;
+    import starling.rendering.VertexData;
     import starling.textures.Texture;
+    import starling.textures.TextureSmoothing;
     import starling.utils.MatrixUtil;
+    import starling.utils.Padding;
+    import starling.utils.Pool;
     import starling.utils.RectangleUtil;
-    import starling.utils.VertexData;
-    import starling.utils.getNextPowerOfTwo;
+
+    /** Dispatched when the settings change in a way that requires a redraw. */
+    [Event(name="change", type="starling.events.Event")]
+
+    /** Dispatched every frame on filters assigned to display objects connected to the stage. */
+    [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
 
     /** The FragmentFilter class is the base class for all filter effects in Starling.
-     *  All other filters of this package extend this class. You can attach them to any display
-     *  object through the 'filter' property.
-     * 
+     *  All filters must extend this class. You can attach them to any display object through the
+     *  <code>filter</code> property.
+     *
      *  <p>A fragment filter works in the following way:</p>
      *  <ol>
-     *    <li>The object that is filtered is rendered into a texture (in stage coordinates).</li>
-     *    <li>That texture is passed to the first filter pass.</li>
-     *    <li>Each pass processes the texture using a fragment shader (and optionally a vertex 
-     *        shader) to achieve a certain effect.</li>
-     *    <li>The output of each pass is used as the input for the next pass; if it's the 
-     *        final pass, it will be rendered directly to the back buffer.</li>  
+     *    <li>The object to be filtered is rendered into a texture.</li>
+     *    <li>That texture is passed to the <code>process</code> method.</li>
+     *    <li>This method processes the texture using a <code>FilterEffect</code> subclass
+     *        that processes the input via fragment and vertex shaders to achieve a certain
+     *        effect.</li>
+     *    <li>If the filter requires several passes, the process method may execute the
+     *        effect several times, or even make use of other filters in the process.</li>
+     *    <li>In the end, a quad with the output texture is added to the batch renderer.
+     *        In the next frame, if the object hasn't changed, the filter is drawn directly
+     *        from the render cache.</li>
+     *    <li>Alternatively, the last pass may be drawn directly to the back buffer. That saves
+     *        one draw call, but means that the object may not be drawn from the render cache in
+     *        the next frame. Starling makes an educated guess if that makes sense, but you can
+     *        also force it to do so via the <code>alwaysDrawToBackBuffer</code> property.</li>
      *  </ol>
-     * 
-     *  <p>All of this is set up by the abstract FragmentFilter class. Concrete subclasses
-     *  just need to override the protected methods 'createPrograms', 'activate' and 
-     *  (optionally) 'deactivate' to create and execute its custom shader code. Each filter
-     *  can be configured to either replace the original object, or be drawn below or above it.
-     *  This can be done through the 'mode' property, which accepts one of the Strings defined
-     *  in the 'FragmentFilterMode' class.</p>
-     * 
-     *  <p>Beware that each filter should be used only on one object at a time. Otherwise, it
-     *  will get slower and require more resources; and caching will lead to undefined
-     *  results.</p>
-     */ 
-    public class FragmentFilter
+     *
+     *  <p>All of this is set up by the basic FragmentFilter class. Concrete subclasses
+     *  just need to override the protected method <code>createEffect</code> and (optionally)
+     *  <code>process</code>. Multi-pass filters must also override <code>numPasses</code>.</p>
+     *
+     *  <p>Typically, any properties on the filter are just forwarded to an effect instance,
+     *  which is then used automatically by <code>process</code> to render the filter pass.
+     *  For a simple example on how to write a single-pass filter, look at the implementation of
+     *  the <code>ColorMatrixFilter</code>; for a composite filter (i.e. a filter that combines
+     *  several others), look at the <code>GlowFilter</code>.
+     *  </p>
+     *
+     *  <p>Beware that a filter instance may only be used on one object at a time!</p>
+     *
+     *  <p><strong>Animated filters</strong></p>
+     *
+     *  <p>The <code>process</code> method of a filter is only called when it's necessary, i.e.
+     *  when the filter properties or the target display object changes. This means that you cannot
+     *  rely on the method to be called on a regular basis, as needed when creating an animated
+     *  filter class. Instead, you can do so by listening for an <code>ENTER_FRAME</code>-event.
+     *  It is dispatched on the filter once every frame, as long as the filter is assigned to
+     *  a display object that is connected to the stage.</p>
+     *
+     *  <p><strong>Caching</strong></p>
+     *
+     *  <p>Per default, whenever the target display object is changed in any way (i.e. the render
+     *  cache fails), the filter is reprocessed. However, you can manually cache the filter output
+     *  via the method of the same name: this will let the filter redraw the current output texture,
+     *  even if the target object changes later on. That's especially useful if you add a filter
+     *  to an object that changes only rarely, e.g. a TextField or an Image. Keep in mind, though,
+     *  that you have to call <code>cache()</code> again in order for any changes to show up.</p>
+     *
+     *  @see starling.rendering.FilterEffect
+     */
+    public class FragmentFilter extends EventDispatcher
     {
-        /** The minimum size of a filter texture. */
-        private const MIN_TEXTURE_SIZE:int = 64;
-        
-        /** All filter processing is expected to be done with premultiplied alpha. */
-        protected const PMA:Boolean = true;
-        
-        /** The standard vertex shader code. It will be used automatically if you don't create
-         *  a custom vertex shader yourself. */
-        protected const STD_VERTEX_SHADER:String = 
-            "m44 op, va0, vc0 \n" + // 4x4 matrix transform to output space
-            "mov v0, va1      \n";  // pass texture coordinates to fragment program
-        
-        /** The standard fragment shader code. It just forwards the texture color to the output. */
-        protected const STD_FRAGMENT_SHADER:String =
-            "tex oc, v0, fs0 <2d, clamp, linear, mipnone>"; // just forward texture color
-        
-        private var mVertexPosAtID:int = 0;
-        private var mTexCoordsAtID:int = 1;
-        private var mBaseTextureID:int = 0;
-        private var mMvpConstantID:int = 0;
-        
-        private var mNumPasses:int;
-        private var mPassTextures:Vector.<Texture>;
+        private var _quad:FilterQuad;
+        private var _target:DisplayObject;
+        private var _effect:FilterEffect;
+        private var _vertexData:VertexData;
+        private var _indexData:IndexData;
+        private var _padding:Padding;
+        private var _helper:FilterHelper;
+        private var _resolution:Number;
+        private var _antiAliasing:int;
+        private var _textureFormat:String;
+        private var _textureSmoothing:String;
+        private var _alwaysDrawToBackBuffer:Boolean;
+        private var _maintainResolutionAcrossPasses:Boolean;
+        private var _cacheRequested:Boolean;
+        private var _cached:Boolean;
 
-        private var mMode:String;
-        private var mResolution:Number;
-        private var mMarginX:Number;
-        private var mMarginY:Number;
-        private var mOffsetX:Number;
-        private var mOffsetY:Number;
-        
-        private var mVertexData:VertexData;
-        private var mVertexBuffer:VertexBuffer3D;
-        private var mIndexData:Vector.<uint>;
-        private var mIndexBuffer:IndexBuffer3D;
-        
-        private var mCacheRequested:Boolean;
-        private var mCache:QuadBatch;
-        
-        /** helper objects. */
-        private var mProjMatrix:Matrix = new Matrix();
-        private static var sBounds:Rectangle  = new Rectangle();
-        private static var sBoundsPot:Rectangle = new Rectangle();
-        private static var sStageBounds:Rectangle = new Rectangle();
-        private static var sTransformationMatrix:Matrix = new Matrix();
-        
-        /** Creates a new Fragment filter with the specified number of passes and resolution.
-         *  This constructor may only be called by the constructor of a subclass. */
-        public function FragmentFilter(numPasses:int=1, resolution:Number=1.0)
+        // helpers
+        private static var sMatrix3D:Matrix3D = new Matrix3D();
+
+        /** Creates a new instance. The base class' implementation just draws the unmodified
+         *  input texture. */
+        public function FragmentFilter()
         {
-            if (Capabilities.isDebugger && 
-                getQualifiedClassName(this) == "starling.filters::FragmentFilter")
-            {
-                throw new AbstractClassError();
-            }
-            
-            if (numPasses < 1) throw new ArgumentError("At least one pass is required.");
-            
-            mNumPasses = numPasses;
-            mMarginX = mMarginY = 0.0;
-            mOffsetX = mOffsetY = 0;
-            mResolution = resolution;
-            mMode = FragmentFilterMode.REPLACE;
-            
-            mVertexData = new VertexData(4);
-            mVertexData.setTexCoords(0, 0, 0);
-            mVertexData.setTexCoords(1, 1, 0);
-            mVertexData.setTexCoords(2, 0, 1);
-            mVertexData.setTexCoords(3, 1, 1);
-            
-            mIndexData = new <uint>[0, 1, 2, 1, 3, 2];
-            mIndexData.fixed = true;
-            
-            createPrograms();
-            
-            // Handle lost context. By using the conventional event, we can make it weak; this  
-            // avoids memory leaks when people forget to call "dispose" on the filter.
-            Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE, 
+            _resolution = 1.0;
+            _textureFormat = Context3DTextureFormat.BGRA;
+            _textureSmoothing = TextureSmoothing.BILINEAR;
+
+            // Handle lost context (using conventional Flash event for weak listener support)
+            Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
                 onContextCreated, false, 0, true);
         }
-        
-        /** Disposes the filter (programs, buffers, textures). */
+
+        /** Disposes all resources that have been created by the filter. */
         public function dispose():void
         {
             Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
-            if (mVertexBuffer) mVertexBuffer.dispose();
-            if (mIndexBuffer)  mIndexBuffer.dispose();
-            disposePassTextures();
-            disposeCache();
+
+            if (_helper) _helper.dispose();
+            if (_effect) _effect.dispose();
+            if (_quad)   _quad.dispose();
+
+            _effect = null;
+            _quad = null;
         }
-        
+
         private function onContextCreated(event:Object):void
         {
-            mVertexBuffer = null;
-            mIndexBuffer  = null;
-            mPassTextures = null;
-            
-            createPrograms();
-            if (mCache) cache();
+            setRequiresRedraw();
         }
-        
-        /** Applies the filter on a certain display object, rendering the output into the current 
-         *  render target. This method is called automatically by Starling's rendering system 
-         *  for the object the filter is attached to. */
-        public function render(object:DisplayObject, support:RenderSupport, parentAlpha:Number):void
-        {
-            // bottom layer
-            
-            if (mode == FragmentFilterMode.ABOVE)
-                object.render(support, parentAlpha);
-            
-            // center layer
-            
-            if (mCacheRequested)
-            {
-                mCacheRequested = false;
-                mCache = renderPasses(object, support, 1.0, true);
-                disposePassTextures();
-            }
-            
-            if (mCache)
-                mCache.render(support, parentAlpha);
-            else
-                renderPasses(object, support, parentAlpha, false);
-            
-            // top layer
-            
-            if (mode == FragmentFilterMode.BELOW)
-                object.render(support, parentAlpha);
-        }
-        
-        private function renderPasses(object:DisplayObject, support:RenderSupport, 
-                                      parentAlpha:Number, intoCache:Boolean=false):QuadBatch
-        {
-            var passTexture:Texture;
-            var cacheTexture:Texture = null;
-            var stage:Stage = object.stage;
-            var context:Context3D = Starling.context;
-            var scale:Number = Starling.current.contentScaleFactor;
-            
-            if (stage   == null) throw new Error("Filtered object must be on the stage.");
-            if (context == null) throw new MissingContextError();
-            
-            // the bounds of the object in stage coordinates 
-            calculateBounds(object, stage, mResolution * scale, !intoCache, sBounds, sBoundsPot);
-            
-            if (sBounds.isEmpty())
-            {
-                disposePassTextures();
-                return intoCache ? new QuadBatch() : null; 
-            }
-            
-            updateBuffers(context, sBoundsPot);
-            updatePassTextures(sBoundsPot.width, sBoundsPot.height, mResolution * scale);
-            
-            support.finishQuadBatch();
-            support.raiseDrawCount(mNumPasses);
-            support.pushMatrix();
-            
-            // save original projection matrix and render target
-            mProjMatrix.copyFrom(support.projectionMatrix); 
-            var previousRenderTarget:Texture = support.renderTarget;
-            
-            if (previousRenderTarget)
-                throw new IllegalOperationError(
-                    "It's currently not possible to stack filters! " +
-                    "This limitation will be removed in a future Stage3D version.");
-            
-            if (intoCache) 
-                cacheTexture = Texture.empty(sBoundsPot.width, sBoundsPot.height, PMA, false, true, 
-                                             mResolution * scale);
-            
-            // draw the original object into a texture
-            support.renderTarget = mPassTextures[0];
-            support.clear();
-            support.blendMode = BlendMode.NORMAL;
-            support.setOrthographicProjection(sBounds.x, sBounds.y, sBoundsPot.width, sBoundsPot.height);
-            object.render(support, parentAlpha);
-            support.finishQuadBatch();
-            
-            // prepare drawing of actual filter passes
-            RenderSupport.setBlendFactors(PMA);
-            support.loadIdentity();  // now we'll draw in stage coordinates!
-            support.pushClipRect(sBounds);
-            
-            context.setVertexBufferAt(mVertexPosAtID, mVertexBuffer, VertexData.POSITION_OFFSET, 
-                                      Context3DVertexBufferFormat.FLOAT_2);
-            context.setVertexBufferAt(mTexCoordsAtID, mVertexBuffer, VertexData.TEXCOORD_OFFSET,
-                                      Context3DVertexBufferFormat.FLOAT_2);
-            
-            // draw all passes
-            for (var i:int=0; i<mNumPasses; ++i)
-            {
-                if (i < mNumPasses - 1) // intermediate pass  
-                {
-                    // draw into pass texture
-                    support.renderTarget = getPassTexture(i+1);
-                    support.clear();
-                }
-                else // final pass
-                {
-                    if (intoCache)
-                    {
-                        // draw into cache texture
-                        support.renderTarget = cacheTexture;
-                        support.clear();
-                    }
-                    else
-                    {
-                        // draw into back buffer, at original (stage) coordinates
-                        support.projectionMatrix = mProjMatrix;
-                        support.renderTarget = previousRenderTarget;
-                        support.translateMatrix(mOffsetX, mOffsetY);
-                        support.blendMode = object.blendMode;
-                        support.applyBlendMode(PMA);
-                    }
-                }
-                
-                passTexture = getPassTexture(i);
-                context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, mMvpConstantID, 
-                                                      support.mvpMatrix3D, true);
-                context.setTextureAt(mBaseTextureID, passTexture.base);
-                
-                activate(i, context, passTexture);
-                context.drawTriangles(mIndexBuffer, 0, 2);
-                deactivate(i, context, passTexture);
-            }
-            
-            // reset shader attributes
-            context.setVertexBufferAt(mVertexPosAtID, null);
-            context.setVertexBufferAt(mTexCoordsAtID, null);
-            context.setTextureAt(mBaseTextureID, null);
-            
-            support.popMatrix();
-            support.popClipRect();
-            
-            if (intoCache)
-            {
-                // restore support settings
-                support.renderTarget = previousRenderTarget;
-                support.projectionMatrix.copyFrom(mProjMatrix);
-                
-                // Create an image containing the cache. To have a display object that contains
-                // the filter output in object coordinates, we wrap it in a QuadBatch: that way,
-                // we can modify it with a transformation matrix.
-                
-                var quadBatch:QuadBatch = new QuadBatch();
-                var image:Image = new Image(cacheTexture);
-                
-                stage.getTransformationMatrix(object, sTransformationMatrix);
-                MatrixUtil.prependTranslation(sTransformationMatrix, 
-                                              sBounds.x + mOffsetX, sBounds.y + mOffsetY);
-                quadBatch.addImage(image, 1.0, sTransformationMatrix);
 
-                return quadBatch;
-            }
-            else return null;
-        }
-        
-        // helper methods
-        
-        private function updateBuffers(context:Context3D, bounds:Rectangle):void
-        {
-            mVertexData.setPosition(0, bounds.x, bounds.y);
-            mVertexData.setPosition(1, bounds.right, bounds.y);
-            mVertexData.setPosition(2, bounds.x, bounds.bottom);
-            mVertexData.setPosition(3, bounds.right, bounds.bottom);
-            
-            if (mVertexBuffer == null)
-            {
-                mVertexBuffer = context.createVertexBuffer(4, VertexData.ELEMENTS_PER_VERTEX);
-                mIndexBuffer  = context.createIndexBuffer(6);
-                mIndexBuffer.uploadFromVector(mIndexData, 0, 6);
-            }
-            
-            mVertexBuffer.uploadFromVector(mVertexData.rawData, 0, 4);
-        }
-        
-        private function updatePassTextures(width:int, height:int, scale:Number):void
-        {
-            var numPassTextures:int = mNumPasses > 1 ? 2 : 1;
-            var needsUpdate:Boolean = mPassTextures == null || 
-                mPassTextures.length != numPassTextures ||
-                mPassTextures[0].width != width || mPassTextures[0].height != height;  
-            
-            if (needsUpdate)
-            {
-                if (mPassTextures)
-                {
-                    for each (var texture:Texture in mPassTextures) 
-                        texture.dispose();
-                    
-                    mPassTextures.length = numPassTextures;
-                }
-                else
-                {
-                    mPassTextures = new Vector.<Texture>(numPassTextures);
-                }
-                
-                for (var i:int=0; i<numPassTextures; ++i)
-                    mPassTextures[i] = Texture.empty(width, height, PMA, false, true, scale);
-            }
-        }
-        
-        private function getPassTexture(pass:int):Texture
-        {
-            return mPassTextures[pass % 2];
-        }
-        
-        /** Calculates the bounds of the filter in stage coordinates. The method calculates two
-         *  rectangles: one with the exact filter bounds, the other with an extended rectangle that
-         *  will yield to a POT size when multiplied with the current scale factor / resolution.
+        /** Renders the filtered target object. Most users will never have to call this manually;
+         *  it's executed automatically in the rendering process of the filtered display object.
          */
-        private function calculateBounds(object:DisplayObject, stage:Stage, scale:Number, 
-                                         intersectWithStage:Boolean, 
-                                         resultRect:Rectangle,
-                                         resultPotRect:Rectangle):void
+        public function render(painter:Painter):void
         {
-            var marginX:Number, marginY:Number;
-            
-            if (object == stage || object == Starling.current.root)
+            if (_target == null)
+                throw new IllegalOperationError("Cannot render filter without target");
+
+            if (_target.is3D)
+                _cached = _cacheRequested = false;
+
+            if (!_cached || _cacheRequested)
             {
-                // optimize for full-screen effects
-                marginX = marginY = 0;
-                resultRect.setTo(0, 0, stage.stageWidth, stage.stageHeight);
+                renderPasses(painter, _cacheRequested);
+                _cacheRequested = false;
+            }
+            else if (_quad.visible)
+            {
+                _quad.render(painter);
+            }
+        }
+
+        private function renderPasses(painter:Painter, forCache:Boolean):void
+        {
+            if (_helper  == null) _helper = new FilterHelper(_textureFormat);
+            if (_quad  == null) _quad  = new FilterQuad(_textureSmoothing);
+            else { _helper.putTexture(_quad.texture); _quad.texture = null; }
+
+            var bounds:Rectangle = Pool.getRectangle(); // might be recursive -> no static var
+            var drawLastPassToBackBuffer:Boolean = false;
+            var origResolution:Number = _resolution;
+            var renderSpace:DisplayObject = _target.stage || _target.parent;
+            var isOnStage:Boolean = renderSpace is Stage;
+            var stage:Stage = Starling.current.stage;
+            var stageBounds:Rectangle;
+
+            if (!forCache && (_alwaysDrawToBackBuffer || _target.requiresRedraw))
+            {
+                // If 'requiresRedraw' is true, the object is non-static, and we guess that this
+                // will be the same in the next frame. So we render directly to the back buffer.
+                //
+                // -- That, however, is only possible for full alpha values, because
+                // (1) 'FilterEffect' can't handle alpha (and that will do the rendering)
+                // (2) we don't want lower layers (CompositeFilter!) to shine through.
+
+                drawLastPassToBackBuffer = painter.state.alpha == 1.0 &&
+                    (!_maintainResolutionAcrossPasses || _resolution == 1.0);
+                painter.excludeFromCache(_target);
+            }
+
+            if (_target == Starling.current.root)
+            {
+                // full-screen filters use exactly the stage bounds
+                stage.getStageBounds(_target, bounds);
             }
             else
             {
-                marginX = mMarginX;
-                marginY = mMarginY;
-                object.getBounds(stage, resultRect);
-            }
-            
-            if (intersectWithStage)
-            {
-                sStageBounds.setTo(0, 0, stage.stageWidth, stage.stageHeight);
-                RectangleUtil.intersect(resultRect, sStageBounds, resultRect);
-            }
-            
-            if (!resultRect.isEmpty())
-            {    
-                // the bounds are a rectangle around the object, in stage coordinates,
-                // and with an optional margin. 
-                resultRect.inflate(marginX, marginY);
-                
-                // To fit into a POT-texture, we extend it towards the right and bottom.
-                var minSize:int = MIN_TEXTURE_SIZE / scale;
-                var minWidth:Number  = resultRect.width  > minSize ? resultRect.width  : minSize;
-                var minHeight:Number = resultRect.height > minSize ? resultRect.height : minSize;
-                resultPotRect.setTo(
-                    resultRect.x, resultRect.y,
-                    getNextPowerOfTwo(minWidth  * scale) / scale,
-                    getNextPowerOfTwo(minHeight * scale) / scale);
-            }
-        }
-        
-        private function disposePassTextures():void
-        {
-            for each (var texture:Texture in mPassTextures)
-                texture.dispose();
-            
-            mPassTextures = null;
-        }
-        
-        private function disposeCache():void
-        {
-            if (mCache)
-            {
-                if (mCache.texture) mCache.texture.dispose();
-                mCache.dispose();
-                mCache = null;
-            }
-        }
-        
-        // protected methods
+                // Unfortunately, the following bounds calculation yields the wrong result when
+                // drawing a filter to a RenderTexture using a custom matrix. The 'modelviewMatrix'
+                // should be used for the bounds calculation, but the API doesn't support this.
+                // A future version should change this to: "getBounds(modelviewMatrix, bounds)"
 
-        /** Subclasses must override this method and use it to create their 
-         *  fragment- and vertex-programs. */
-        protected function createPrograms():void
-        {
-            throw new Error("Method has to be implemented in subclass!");
+                _target.getBounds(renderSpace, bounds);
+
+                if (!forCache && isOnStage) // normally, we don't need anything outside
+                {
+                    stageBounds = stage.getStageBounds(null, Pool.getRectangle());
+                    RectangleUtil.intersect(bounds, stageBounds, bounds);
+                    Pool.putRectangle(stageBounds);
+                }
+            }
+
+            _quad.visible = !bounds.isEmpty();
+            if (!_quad.visible) { Pool.putRectangle(bounds); return; }
+
+            if (_padding) RectangleUtil.extend(bounds,
+                _padding.left, _padding.right, _padding.top, _padding.bottom);
+
+            // extend to actual pixel bounds for maximum sharpness + to avoid jiggling
+            RectangleUtil.extendToWholePixels(bounds, Starling.contentScaleFactor);
+
+            _helper.textureScale = Starling.contentScaleFactor * _resolution;
+            _helper.projectionMatrix3D = painter.state.projectionMatrix3D;
+            _helper.renderTarget = painter.state.renderTarget;
+            _helper.clipRect = painter.state.clipRect;
+            _helper.targetBounds = bounds;
+            _helper.target = _target;
+            _helper.start(numPasses, drawLastPassToBackBuffer);
+
+            _quad.setBounds(bounds);
+            _resolution = 1.0; // applied via '_helper.textureScale' already;
+                               // only 'child'-filters use resolution directly (in 'process')
+
+            var wasCacheEnabled:Boolean = painter.cacheEnabled;
+            var input:Texture = _helper.getTexture();
+            var output:Texture;
+
+            painter.cacheEnabled = false; // -> what follows should not be cached
+            painter.pushState();
+            painter.state.alpha = 1.0;
+            painter.state.clipRect = null;
+            painter.state.setRenderTarget(input, true, _antiAliasing);
+            painter.state.setProjectionMatrix(bounds.x, bounds.y,
+                input.root.width, input.root.height,
+                stage.stageWidth, stage.stageHeight, stage.cameraPosition);
+
+            _target.render(painter); // -> draw target object into 'input'
+
+            painter.finishMeshBatch();
+            painter.state.setModelviewMatricesToIdentity();
+
+            output = process(painter, _helper, input); // -> feed 'input' to actual filter code
+
+            painter.popState();
+            painter.cacheEnabled = wasCacheEnabled; // -> cache again
+
+            if (output) // indirect rendering
+            {
+                painter.pushState();
+
+                if (_target.is3D) painter.state.setModelviewMatricesToIdentity(); // -> stage coords
+                else              _quad.moveVertices(renderSpace, _target);       // -> local coords
+
+                _quad.texture = output;
+                _quad.render(painter);
+
+                painter.finishMeshBatch();
+                painter.popState();
+            }
+
+            _helper.target = null;
+            _helper.putTexture(input);
+            _resolution = origResolution;
+            Pool.putRectangle(bounds);
         }
 
-        /** Subclasses must override this method and use it to activate their fragment- and 
-         *  to vertext-programs.
-         *  The 'activate' call directly precedes the call to 'context.drawTriangles'. Set up
-         *  the context the way your filter needs it. The following constants and attributes 
-         *  are set automatically:
-         *  
-         *  <ul><li>vertex constants 0-3: mvpMatrix (3D)</li>
-         *      <li>vertex attribute 0: vertex position (FLOAT_2)</li>
-         *      <li>vertex attribute 1: texture coordinates (FLOAT_2)</li>
-         *      <li>texture 0: input texture</li>
-         *  </ul>
-         *  
-         *  @param pass: the current render pass, starting with '0'. Multipass filters can
-         *               provide different logic for each pass.
-         *  @param context: the current context3D (the same as in Starling.context, passed
-         *               just for convenience)
-         *  @param texture: the input texture, which is already bound to sampler 0. */
-        protected function activate(pass:int, context:Context3D, texture:Texture):void
+        /** Does the actual filter processing. This method will be called with up to four input
+         *  textures and must return a new texture (acquired from the <code>helper</code>) that
+         *  contains the filtered output. To to do this, it configures the FilterEffect
+         *  (provided via <code>createEffect</code>) and calls its <code>render</code> method.
+         *
+         *  <p>In a standard filter, only <code>input0</code> will contain a texture; that's the
+         *  object the filter was applied to, rendered into an appropriately sized texture.
+         *  However, filters may also accept multiple textures; that's useful when you need to
+         *  combine the output of several filters into one. For example, the DropShadowFilter
+         *  uses a BlurFilter to create the shadow and then feeds both input and shadow texture
+         *  into a CompositeFilter.</p>
+         *
+         *  <p>Never create or dispose any textures manually within this method; instead, get
+         *  new textures from the provided helper object, and pass them to the helper when you do
+         *  not need them any longer. Ownership of both input textures and returned texture
+         *  lies at the caller; only temporary textures should be put into the helper.</p>
+         */
+        public function process(painter:Painter, helper:IFilterHelper,
+                                input0:Texture=null, input1:Texture=null,
+                                input2:Texture=null, input3:Texture=null):Texture
         {
-            throw new Error("Method has to be implemented in subclass!");
+            var effect:FilterEffect = this.effect;
+            var output:Texture = helper.getTexture(_resolution);
+            var projectionMatrix:Matrix3D;
+            var bounds:Rectangle = null;
+            var renderTarget:Texture;
+
+            if (output) // render to texture
+            {
+                renderTarget = output;
+                projectionMatrix = MatrixUtil.createPerspectiveProjectionMatrix(0, 0,
+                    output.root.width / _resolution, output.root.height / _resolution,
+                    0, 0, null, sMatrix3D);
+            }
+            else // render to back buffer
+            {
+                bounds = helper.targetBounds;
+                renderTarget = (helper as FilterHelper).renderTarget;
+                projectionMatrix = (helper as FilterHelper).projectionMatrix3D;
+                effect.textureSmoothing = _textureSmoothing;
+
+                // restore clipRect (projection matrix influences clipRect!)
+                painter.state.clipRect = (helper as FilterHelper).clipRect;
+                painter.state.projectionMatrix3D.copyFrom(projectionMatrix);
+            }
+
+            painter.state.renderTarget = renderTarget;
+            painter.prepareToDraw();
+            painter.drawCount += 1;
+
+            input0.setupVertexPositions(vertexData, 0, "position", bounds);
+            input0.setupTextureCoordinates(vertexData);
+
+            effect.texture = input0;
+            effect.mvpMatrix3D = projectionMatrix;
+            effect.uploadVertexData(vertexData);
+            effect.uploadIndexData(indexData);
+            effect.render(0, indexData.numTriangles);
+
+            return output;
         }
-        
-        /** This method is called directly after 'context.drawTriangles'. 
-         *  If you need to clean up any resources, you can do so in this method. */
-        protected function deactivate(pass:int, context:Context3D, texture:Texture):void
+
+        /** Creates the effect that does the actual, low-level rendering.
+         *  Must be overridden by all subclasses that do any rendering on their own (instead
+         *  of just forwarding processing to other filters).
+         */
+        protected function createEffect():FilterEffect
         {
-            // clean up resources
+            return new FilterEffect();
         }
-        
-        /** Assembles fragment- and vertex-shaders, passed as Strings, to a Program3D. 
-         *  If any argument is  null, it is replaced by the class constants STD_FRAGMENT_SHADER or
-         *  STD_VERTEX_SHADER, respectively. */
-        protected function assembleAgal(fragmentShader:String=null, vertexShader:String=null):Program3D
-        {
-            if (fragmentShader == null) fragmentShader = STD_FRAGMENT_SHADER;
-            if (vertexShader   == null) vertexShader   = STD_VERTEX_SHADER;
-            
-            return RenderSupport.assembleAgal(vertexShader, fragmentShader);
-        }
-        
-        // cache
-        
-        /** Caches the filter output into a texture. An uncached filter is rendered in every frame;
-         *  a cached filter only once. However, if the filtered object or the filter settings
-         *  change, it has to be updated manually; to do that, call "cache" again. */
+
+        /** Caches the filter output into a texture.
+         *
+         *  <p>An uncached filter is rendered every frame (except if it can be rendered from the
+         *  global render cache, which happens if the target object does not change its appearance
+         *  or location relative to the stage). A cached filter is only rendered once; the output
+         *  stays unchanged until you call <code>cache</code> again or change the filter settings.
+         *  </p>
+         *
+         *  <p>Beware: you cannot cache filters on 3D objects; if the object the filter is attached
+         *  to is a Sprite3D or has a Sprite3D as (grand-) parent, the request will be silently
+         *  ignored. However, you <em>can</em> cache a 2D object that has 3D children!</p>
+         */
         public function cache():void
         {
-            mCacheRequested = true;
-            disposeCache();
+            _cached = _cacheRequested = true;
+            setRequiresRedraw();
         }
-        
-        /** Clears the cached output of the filter. After calling this method, the filter will
-         *  be executed once per frame again. */ 
+
+        /** Clears the cached output of the filter. After calling this method, the filter will be
+         *  processed once per frame again. */
         public function clearCache():void
         {
-            mCacheRequested = false;
-            disposeCache();
+            _cached = _cacheRequested = false;
+            setRequiresRedraw();
         }
-        
-        // flattening
-        
+
+        // enter frame event
+
         /** @private */
-        starling_internal function compile(object:DisplayObject):QuadBatch
+        override public function addEventListener(type:String, listener:Function):void
         {
-            if (mCache) return mCache;
-            else
+            if (type == Event.ENTER_FRAME && _target)
+                _target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+            super.addEventListener(type, listener);
+        }
+
+        /** @private */
+        override public function removeEventListener(type:String, listener:Function):void
+        {
+            if (type == Event.ENTER_FRAME && _target)
+                _target.removeEventListener(type, onEnterFrame);
+
+            super.removeEventListener(type, listener);
+        }
+
+        private function onEnterFrame(event:Event):void
+        {
+            dispatchEvent(event);
+        }
+
+        // properties
+
+        /** The effect instance returning the FilterEffect created via <code>createEffect</code>. */
+        protected function get effect():FilterEffect
+        {
+            if (_effect == null) _effect = createEffect();
+            return _effect;
+        }
+
+        /** The VertexData used to process the effect. Per default, uses the format provided
+         *  by the effect, and contains four vertices enclosing the target object. */
+        protected function get vertexData():VertexData
+        {
+            if (_vertexData == null) _vertexData = new VertexData(effect.vertexFormat, 4);
+            return _vertexData;
+        }
+
+        /** The IndexData used to process the effect. Per default, references a quad (two triangles)
+         *  of four vertices. */
+        protected function get indexData():IndexData
+        {
+            if (_indexData == null)
             {
-                var renderSupport:RenderSupport;
-                var stage:Stage = object.stage;
-                
-                if (stage == null) 
-                    throw new Error("Filtered object must be on the stage.");
-                
-                renderSupport = new RenderSupport();
-                object.getTransformationMatrix(stage, renderSupport.modelViewMatrix);
-                return renderPasses(object, renderSupport, 1.0, true);
+                _indexData = new IndexData(6);
+                _indexData.addQuad(0, 1, 2, 3);
+            }
+
+            return _indexData;
+        }
+
+        /** Call this method when any of the filter's properties changes.
+         *  This will make sure the filter is redrawn in the next frame. */
+        protected function setRequiresRedraw():void
+        {
+            dispatchEventWith(Event.CHANGE);
+            if (_target) _target.setRequiresRedraw();
+            if (_cached) _cacheRequested = true;
+        }
+
+        /** Indicates the number of rendering passes required for this filter.
+         *  Subclasses must override this method if the number of passes is not <code>1</code>. */
+        public function get numPasses():int
+        {
+            return 1;
+        }
+
+        /** Called when assigning a target display object.
+         *  Override to plug in class-specific logic. */
+        protected function onTargetAssigned(target:DisplayObject):void
+        { }
+
+        /** Padding can extend the size of the filter texture in all directions.
+         *  That's useful when the filter "grows" the bounds of the object in any direction. */
+        public function get padding():Padding
+        {
+            if (_padding == null)
+            {
+                _padding = new Padding();
+                _padding.addEventListener(Event.CHANGE, setRequiresRedraw);
+            }
+
+            return _padding;
+        }
+
+        public function set padding(value:Padding):void
+        {
+            padding.copyFrom(value);
+        }
+
+        /** Indicates if the filter is cached (via the <code>cache</code> method). */
+        public function get isCached():Boolean { return _cached; }
+
+        /** The resolution of the filter texture. "1" means stage resolution, "0.5" half the stage
+         *  resolution. A lower resolution saves memory and execution time, but results in a lower
+         *  output quality. Values greater than 1 are allowed; such values might make sense for a
+         *  cached filter when it is scaled up. @default 1
+         */
+        public function get resolution():Number { return _resolution; }
+        public function set resolution(value:Number):void
+        {
+            if (value != _resolution)
+            {
+                if (value > 0) _resolution = value;
+                else throw new ArgumentError("resolution must be > 0");
+                setRequiresRedraw();
             }
         }
-        
-        // properties
-        
-        /** Indicates if the filter is cached (via the "cache" method). */
-        public function get isCached():Boolean { return (mCache != null) || mCacheRequested; }
-        
-        /** The resolution of the filter texture. "1" means stage resolution, "0.5" half the
-         *  stage resolution. A lower resolution saves memory and execution time (depending on 
-         *  the GPU), but results in a lower output quality. Values greater than 1 are allowed;
-         *  such values might make sense for a cached filter when it is scaled up. @default 1 */
-        public function get resolution():Number { return mResolution; }
-        public function set resolution(value:Number):void 
-        {
-            if (value <= 0) throw new ArgumentError("Resolution must be > 0");
-            else mResolution = value; 
-        }
-        
-        /** The filter mode, which is one of the constants defined in the "FragmentFilterMode" 
-         *  class. @default "replace" */
-        public function get mode():String { return mMode; }
-        public function set mode(value:String):void { mMode = value; }
-        
-        /** Use the x-offset to move the filter output to the right or left. */
-        public function get offsetX():Number { return mOffsetX; }
-        public function set offsetX(value:Number):void { mOffsetX = value; }
-        
-        /** Use the y-offset to move the filter output to the top or bottom. */
-        public function get offsetY():Number { return mOffsetY; }
-        public function set offsetY(value:Number):void { mOffsetY = value; }
-        
-        /** The x-margin will extend the size of the filter texture along the x-axis.
-         *  Useful when the filter will "grow" the rendered object. */
-        protected function get marginX():Number { return mMarginX; }
-        protected function set marginX(value:Number):void { mMarginX = value; }
-        
-        /** The y-margin will extend the size of the filter texture along the y-axis.
-         *  Useful when the filter will "grow" the rendered object. */
-        protected function get marginY():Number { return mMarginY; }
-        protected function set marginY(value:Number):void { mMarginY = value; }
-        
-        /** The number of passes the filter is applied. The "activate" and "deactivate" methods
-         *  will be called that often. */
-        protected function set numPasses(value:int):void { mNumPasses = value; }
-        protected function get numPasses():int { return mNumPasses; }
-        
-        /** The ID of the vertex buffer attribute that stores the vertex position. */ 
-        protected final function get vertexPosAtID():int { return mVertexPosAtID; }
-        protected final function set vertexPosAtID(value:int):void { mVertexPosAtID = value; }
-        
-        /** The ID of the vertex buffer attribute that stores the texture coordinates. */
-        protected final function get texCoordsAtID():int { return mTexCoordsAtID; }
-        protected final function set texCoordsAtID(value:int):void { mTexCoordsAtID = value; }
 
-        /** The ID (sampler) of the input texture (containing the output of the previous pass). */
-        protected final function get baseTextureID():int { return mBaseTextureID; }
-        protected final function set baseTextureID(value:int):void { mBaseTextureID = value; }
-        
-        /** The ID of the first register of the modelview-projection constant (a 4x4 matrix). */
-        protected final function get mvpConstantID():int { return mMvpConstantID; }
-        protected final function set mvpConstantID(value:int):void { mMvpConstantID = value; }
+        /** Indicates if the filter requires all passes to be processed with the exact same
+         *  resolution.
+         *
+         *  <p>Some filters must use the same resolution for input and output; e.g. the blur filter
+         *  is very sensitive to changes of pixel / texel sizes. When the filter is used as part
+         *  of a filter chain, or if its last pass is drawn directly to the back buffer, such a
+         *  filter produces artifacts. In that case, the filter author must set this property
+         *  to <code>true</code>.</p>
+         *
+         *  @default false
+         */
+        protected function get maintainResolutionAcrossPasses():Boolean
+        {
+            return _maintainResolutionAcrossPasses;
+        }
+
+        protected function set maintainResolutionAcrossPasses(value:Boolean):void
+        {
+            _maintainResolutionAcrossPasses = value;
+        }
+
+        /** The anti-aliasing level. This is only used for rendering the target object
+         *  into a texture, not for the filter passes. 0 - none, 4 - maximum. @default 0 */
+        public function get antiAliasing():int { return _antiAliasing; }
+        public function set antiAliasing(value:int):void
+        {
+            if (value != _antiAliasing)
+            {
+                _antiAliasing = value;
+                setRequiresRedraw();
+            }
+        }
+
+        /** The smoothing mode of the filter texture. @default bilinear */
+        public function get textureSmoothing():String { return _textureSmoothing; }
+        public function set textureSmoothing(value:String):void
+        {
+            if (value != _textureSmoothing)
+            {
+                _textureSmoothing = value;
+                if (_quad) _quad.textureSmoothing = value;
+                setRequiresRedraw();
+            }
+        }
+
+        /** The format of the filter texture. @default BGRA */
+        public function get textureFormat():String { return _textureFormat; }
+        public function set textureFormat(value:String):void
+        {
+            if (value != _textureFormat)
+            {
+                _textureFormat = value;
+                if (_helper) _helper.textureFormat = value;
+                setRequiresRedraw();
+            }
+        }
+
+        /** Indicates if the last filter pass is always drawn directly to the back buffer.
+         *
+         *  <p>Per default, the filter tries to automatically render in a smart way: objects that
+         *  are currently moving are rendered to the back buffer, objects that are static are
+         *  rendered into a texture first, which allows the filter to be drawn directly from the
+         *  render cache in the next frame (in case the object remains static).</p>
+         *
+         *  <p>However, this fails when filters are added to an object that does not support the
+         *  render cache, or to a container with such a child (e.g. a Sprite3D object or a masked
+         *  display object). In such a case, enable this property for maximum performance.</p>
+         *
+         *  @default false
+         */
+        public function get alwaysDrawToBackBuffer():Boolean { return _alwaysDrawToBackBuffer; }
+        public function set alwaysDrawToBackBuffer(value:Boolean):void
+        {
+            _alwaysDrawToBackBuffer = value;
+        }
+
+        // internal methods
+
+        /** @private */
+        starling_internal function setTarget(target:DisplayObject):void
+        {
+            if (target != _target)
+            {
+                var prevTarget:DisplayObject = _target;
+                _target = target;
+
+                if (target == null)
+                {
+                    if (_helper) _helper.purge();
+                    if (_effect) _effect.purgeBuffers();
+                    if (_quad)   _quad.disposeTexture();
+                }
+
+                if (prevTarget)
+                {
+                    prevTarget.filter = null;
+                    prevTarget.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+                }
+
+                if (target)
+                {
+                    if (hasEventListener(Event.ENTER_FRAME))
+                        target.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+
+                    onTargetAssigned(target);
+                }
+            }
+        }
+    }
+}
+
+import flash.geom.Matrix;
+import flash.geom.Rectangle;
+
+import starling.display.DisplayObject;
+import starling.display.Mesh;
+import starling.rendering.IndexData;
+import starling.rendering.VertexData;
+import starling.textures.Texture;
+
+class FilterQuad extends Mesh
+{
+    private static var sMatrix:Matrix = new Matrix();
+
+    public function FilterQuad(smoothing:String)
+    {
+        var vertexData:VertexData = new VertexData(null, 4);
+        vertexData.numVertices = 4;
+
+        var indexData:IndexData = new IndexData(6);
+        indexData.addQuad(0, 1, 2, 3);
+
+        super(vertexData, indexData);
+
+        textureSmoothing = smoothing;
+        pixelSnapping = false;
+    }
+
+    override public function dispose():void
+    {
+        disposeTexture();
+        super.dispose();
+    }
+
+    public function disposeTexture():void
+    {
+        if (texture)
+        {
+            texture.dispose();
+            texture = null;
+        }
+    }
+
+    public function moveVertices(sourceSpace:DisplayObject, targetSpace:DisplayObject):void
+    {
+        if (targetSpace.is3D)
+            throw new Error("cannot move vertices into 3D space");
+        else if (sourceSpace != targetSpace)
+        {
+            targetSpace.getTransformationMatrix(sourceSpace, sMatrix).invert(); // ss could be null!
+            vertexData.transformPoints("position", sMatrix);
+        }
+    }
+
+    public function setBounds(bounds:Rectangle):void
+    {
+        var vertexData:VertexData = this.vertexData;
+        var attrName:String = "position";
+
+        vertexData.setPoint(0, attrName, bounds.x, bounds.y);
+        vertexData.setPoint(1, attrName, bounds.right, bounds.y);
+        vertexData.setPoint(2, attrName, bounds.x, bounds.bottom);
+        vertexData.setPoint(3, attrName, bounds.right, bounds.bottom);
+    }
+
+    override public function set texture(value:Texture):void
+    {
+        super.texture = value;
+        if (value) value.setupTextureCoordinates(vertexData);
     }
 }

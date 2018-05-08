@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -26,26 +26,26 @@ package starling.animation
      */ 
     public class DelayedCall extends EventDispatcher implements IAnimatable
     {
-        private var mCurrentTime:Number;
-        private var mTotalTime:Number;
-        private var mCall:Function;
-        private var mArgs:Array;
-        private var mRepeatCount:int;
+        private var _currentTime:Number;
+        private var _totalTime:Number;
+        private var _callback:Function;
+        private var _args:Array;
+        private var _repeatCount:int;
         
         /** Creates a delayed call. */
-        public function DelayedCall(call:Function, delay:Number, args:Array=null)
+        public function DelayedCall(callback:Function, delay:Number, args:Array=null)
         {
-            reset(call, delay, args);
+            reset(callback, delay, args);
         }
         
         /** Resets the delayed call to its default values, which is useful for pooling. */
-        public function reset(call:Function, delay:Number, args:Array=null):DelayedCall
+        public function reset(callback:Function, delay:Number, args:Array=null):DelayedCall
         {
-            mCurrentTime = 0;
-            mTotalTime = Math.max(delay, 0.0001);
-            mCall = call;
-            mArgs = args;
-            mRepeatCount = 1;
+            _currentTime = 0;
+            _totalTime = Math.max(delay, 0.0001);
+            _callback = callback;
+            _args = args;
+            _repeatCount = 1;
             
             return this;
         }
@@ -53,24 +53,27 @@ package starling.animation
         /** @inheritDoc */
         public function advanceTime(time:Number):void
         {
-            var previousTime:Number = mCurrentTime;
-            mCurrentTime = Math.min(mTotalTime, mCurrentTime + time);
+            var previousTime:Number = _currentTime;
+            _currentTime += time;
+
+            if (_currentTime > _totalTime)
+                _currentTime = _totalTime;
             
-            if (previousTime < mTotalTime && mCurrentTime >= mTotalTime)
+            if (previousTime < _totalTime && _currentTime >= _totalTime)
             {                
-                if (mRepeatCount == 0 || mRepeatCount > 1)
+                if (_repeatCount == 0 || _repeatCount > 1)
                 {
-                    mCall.apply(null, mArgs);
+                    _callback.apply(null, _args);
                     
-                    if (mRepeatCount > 0) mRepeatCount -= 1;
-                    mCurrentTime = 0;
-                    advanceTime((previousTime + time) - mTotalTime);
+                    if (_repeatCount > 0) _repeatCount -= 1;
+                    _currentTime = 0;
+                    advanceTime((previousTime + time) - _totalTime);
                 }
                 else
                 {
                     // save call & args: they might be changed through an event listener
-                    var call:Function = mCall;
-                    var args:Array = mArgs;
+                    var call:Function = _callback;
+                    var args:Array = _args;
                     
                     // in the callback, people might want to call "reset" and re-add it to the
                     // juggler; so this event has to be dispatched *before* executing 'call'.
@@ -79,23 +82,38 @@ package starling.animation
                 }
             }
         }
+
+        /** Advances the delayed call so that it is executed right away. If 'repeatCount' is
+          * anything else than '1', this method will complete only the current iteration. */
+        public function complete():void
+        {
+            var restTime:Number = _totalTime - _currentTime;
+            if (restTime > 0) advanceTime(restTime);
+        }
         
         /** Indicates if enough time has passed, and the call has already been executed. */
         public function get isComplete():Boolean 
         { 
-            return mRepeatCount == 1 && mCurrentTime >= mTotalTime; 
+            return _repeatCount == 1 && _currentTime >= _totalTime;
         }
         
         /** The time for which calls will be delayed (in seconds). */
-        public function get totalTime():Number { return mTotalTime; }
+        public function get totalTime():Number { return _totalTime; }
         
         /** The time that has already passed (in seconds). */
-        public function get currentTime():Number { return mCurrentTime; }
+        public function get currentTime():Number { return _currentTime; }
         
         /** The number of times the call will be repeated. 
          *  Set to '0' to repeat indefinitely. @default 1 */
-        public function get repeatCount():int { return mRepeatCount; }
-        public function set repeatCount(value:int):void { mRepeatCount = value; }
+        public function get repeatCount():int { return _repeatCount; }
+        public function set repeatCount(value:int):void { _repeatCount = value; }
+
+        /** The callback that will be executed when the time is up. */
+        public function get callback():Function { return _callback; }
+
+        /** The arguments that the callback will be executed with.
+         *  Beware: not a copy, but the actual object! */
+        public function get arguments():Array { return _args; }
         
         // delayed call pooling
         
@@ -113,8 +131,8 @@ package starling.animation
         starling_internal static function toPool(delayedCall:DelayedCall):void
         {
             // reset any object-references, to make sure we don't prevent any garbage collection
-            delayedCall.mCall = null;
-            delayedCall.mArgs = null;
+            delayedCall._callback = null;
+            delayedCall._args = null;
             delayedCall.removeEventListeners();
             sPool.push(delayedCall);
         }

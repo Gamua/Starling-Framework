@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 #	Transporter Chief
-#	Copyright 2012 Gamua OG. All Rights Reserved.
+#	Copyright Gamua GmbH. All Rights Reserved.
 #
 #	This program is free software. You can redistribute and/or modify it
 #	in accordance with the terms of the accompanying license agreement.
@@ -94,13 +94,13 @@ if options.update_ios_deploy || !File.exist?($ios_deploy_executable)
   Dir.chdir($temp_path) do
     log "Fetching latest ios-deploy"
     quiet = options.verbose ? "" : "-q"
-    execute("git clone #{quiet} git://github.com/phonegap/ios-deploy.git", options.verbose)
+    execute("git clone #{quiet} https://github.com/phonegap/ios-deploy.git", options.verbose)
     Dir.chdir("ios-deploy/") do
       log "Compiling ios-deploy"
-      execute("make ios-deploy", options.verbose)
+      execute("xcodebuild", options.verbose)
     end
   end
-  FileUtils.mv(File.join($temp_path, "/ios-deploy/ios-deploy"), $script_path)
+  FileUtils.mv(File.join($temp_path, "/ios-deploy/build/Release/ios-deploy"), $script_path)
 end
 
 # install the app if a valid path was given

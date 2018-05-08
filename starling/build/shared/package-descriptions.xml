@@ -1,0 +1,43 @@
+<overviews>
+	<packages>
+		<package name="starling.animation">
+			<shortDescription><![CDATA[The components of Starlings animation system.]]></shortDescription>
+		</package>
+		<package name="starling.assets">
+			<shortDescription><![CDATA[Starling's AssetManager and supporting classes.]]></shortDescription>
+		</package>
+		<package name="starling.core">
+			<shortDescription><![CDATA[Contains the core component of the framework.]]></shortDescription>
+		</package>
+		<package name="starling.display">
+			<shortDescription><![CDATA[The main classes from which to build anything that is displayed on the screen.]]></shortDescription>
+		</package>
+		<package name="starling.errors">
+			<shortDescription><![CDATA[A set of commonly used error classes.]]></shortDescription>
+		</package>
+		<package name="starling.events">
+			<shortDescription><![CDATA[A simplified version of Flash's DOM event model, including an alternative EventDispatcher base class.]]></shortDescription>
+		</package>
+		<package name="starling.geom">
+			<shortDescription><![CDATA[Geometry classes that expand on what the corresponding Flash package has to offer.]]></shortDescription>
+		</package>
+		<package name="starling.text">
+			<shortDescription><![CDATA[Classes for working with text fields and bitmap fonts.]]></shortDescription>
+		</package>
+		<package name="starling.textures">
+			<shortDescription><![CDATA[Classes to create and work with GPU texture data.]]></shortDescription>
+		</package>
+		<package name="starling.utils">
+			<shortDescription><![CDATA[Utility classes and helper methods.]]></shortDescription>
+		</package>
+		<package name="starling.filters">
+			<shortDescription><![CDATA[Post processing filters for special effects.]]></shortDescription>
+		</package>
+		<package name="starling.styles">
+			<shortDescription><![CDATA[Styles completely modify the way a mesh is rendered and batched.]]></shortDescription>
+		</package>
+		<package name="starling.rendering">
+			<shortDescription><![CDATA[All things related to Stage3D rendering.]]></shortDescription>
+		</package>
+	</packages>
+</overviews>

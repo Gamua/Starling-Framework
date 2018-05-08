@@ -1,0 +1,47 @@
+# =================================================================================================
+#
+#	Starling Framework
+#	Copyright Gamua GmbH. All Rights Reserved.
+#
+#	This program is free software. You can redistribute and/or modify it
+#	in accordance with the terms of the accompanying license agreement.
+#
+# =================================================================================================
+
+git:
+    depth: 10
+
+language: objective-c
+
+env:
+    - TERM=dumb
+
+before_script:
+    # Homebrew
+    - brew update >brew-update.log
+    - brew install ant gradle >brew-install.log
+    - brew install caskroom/cask/brew-cask
+    - brew tap caskroom/versions
+    - brew cask install flash-player-debugger
+    # Adobe AIR SDK
+    - mkdir -p air_sdk
+    - wget -O AIRSDK_Compiler.tbz2 http://airdownload.adobe.com/air/mac/download/latest/AIRSDK_Compiler.tbz2
+    - tar -xjf AIRSDK_Compiler.tbz2 -C air_sdk
+    - mkdir -p air_sdk/frameworks/libs/player/11.1/
+    - cp -f air_sdk/frameworks/libs/player/*/playerglobal.swc air_sdk/frameworks/libs/player/11.1/
+    # Apache Flex SDK
+    - wget -O flex_sdk.zip http://www-us.apache.org/dist/flex/4.16.0/binaries/apache-flex-sdk-4.16.0-bin.zip
+    - unzip -q flex_sdk.zip -d flex_sdk
+    - cp -rf air_sdk/frameworks/libs/player flex_sdk/frameworks/libs/
+    - echo env.PLAYERGLOBAL_HOME=libs/player > flex_sdk/env.properties
+    # environment variables
+    - export FLEX_HOME="$TRAVIS_BUILD_DIR/flex_sdk"
+    - export AIR_HOME="$TRAVIS_BUILD_DIR/air_sdk"
+    - export FLASHPLAYER_DEBUGGER="/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
+    - export FLASH_PLAYER_EXE="$FLASHPLAYER_DEBUGGER"
+    # permissions
+    - chmod +x flex_sdk/bin/mxmlc
+
+script:
+    - cd starling/build/ant && ant
+    - cd ../gradle && gradle

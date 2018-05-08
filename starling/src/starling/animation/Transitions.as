@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -15,10 +15,10 @@
 package starling.animation
 {
     import flash.utils.Dictionary;
-    
+
     import starling.errors.AbstractClassError;
-    
-    /** The Transitions class contains static methods that define easing functions. 
+
+    /** The Transitions class contains static methods that define easing functions.
      *  Those functions are used by the Tween class to execute animations.
      * 
      *  <p>Here is a visual representation of the available transitions:</p> 

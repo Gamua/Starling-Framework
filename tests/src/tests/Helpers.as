@@ -1,7 +1,7 @@
 // =================================================================================================
 //
 //	Starling Framework
-//	Copyright 2011 Gamua OG. All Rights Reserved.
+//	Copyright Gamua GmbH. All Rights Reserved.
 //
 //	This program is free software. You can redistribute and/or modify it
 //	in accordance with the terms of the accompanying license agreement.
@@ -15,13 +15,13 @@ package tests
     import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
-    
-    import org.flexunit.Assert;
+
     import org.flexunit.assertThat;
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.fail;
     import org.hamcrest.number.closeTo;
 
-    internal class Helpers
+    public class Helpers
     {
         public static function compareRectangles(rect1:Rectangle, rect2:Rectangle, 
                                                  e:Number=0.0001):void
@@ -45,8 +45,16 @@ package tests
             assertThat(v1.z, closeTo(v2.z, e));
             assertThat(v1.w, closeTo(v2.w, e));
         }
-        
-        public static function compareVectors(vector1:Vector.<Number>, vector2:Vector.<Number>,
+
+        public static function compareArrays(array1:Array, array2:Array):void
+        {
+            assertEquals(array1.length, array2.length);
+
+            for (var i:int=0; i<array1.length; ++i)
+                assertEquals(array1[i], array2[i]);
+        }
+
+        public static function compareVectorsOfNumbers(vector1:Vector.<Number>, vector2:Vector.<Number>,
                                               e:Number=0.0001):void
         {
             assertEquals(vector1.length, vector2.length);
@@ -54,14 +62,33 @@ package tests
             for (var i:int=0; i<vector1.length; ++i)
                 assertThat(vector1[i], closeTo(vector2[i], e));
         }
+
+        public static function compareVectorsOfUints(vector1:Vector.<uint>, vector2:Vector.<uint>):void
+        {
+            assertEquals(vector1.length, vector2.length);
+
+            for (var i:int=0; i<vector1.length; ++i)
+                assertEquals(vector1[i], vector2[i]);
+        }
         
         public static function compareByteArrays(b1:ByteArray, b2:ByteArray):void
         {
+            assertEquals(b1.endian, b2.endian);
             assertEquals(b1.length, b2.length);
             b1.position = b2.position = 0;
-            
+
             while (b1.bytesAvailable)
                 assertEquals(b1.readByte(), b2.readByte());
+        }
+
+        public static function compareByteArraysOfFloats(b1:ByteArray, b2:ByteArray, e:Number=0.0001):void
+        {
+            assertEquals(b1.endian, b2.endian);
+            assertEquals(b1.length, b2.length);
+            b1.position = b2.position = 0;
+
+            while (b1.bytesAvailable)
+                assertThat(b1.readFloat(), closeTo(b2.readFloat(), e));
         }
         
         public static function compareMatrices(matrix1:Matrix, matrix2:Matrix, e:Number=0.0001):void
@@ -82,7 +109,7 @@ package tests
             }
             catch (e:Error)
             {
-                Assert.fail("Error thrown: " + e.message);
+                fail("Error thrown: " + e.message);
             }
         }
     }

@@ -25,26 +25,14 @@ package scenes
             image3.x = 100;
             image3.y = -60;
             addChild(image3);
-            
-            try
-            {
-                // display a compressed texture
-                var compressedTexture:Texture = Game.assets.getTexture("compressed_texture");
-                var image:Image = new Image(compressedTexture);
-                image.x = Constants.CenterX - image.width / 2;
-                image.y = 280;
-                addChild(image);
-            }
-            catch (e:Error)
-            {
-                // if it fails, it's probably not supported
-                var textField:TextField = new TextField(220, 128, 
-                    "Update to Flash Player 11.4 or AIR 3.4 (swf-version=17) to see a compressed " +
-                    "ATF texture instead of this boring text.", "Verdana", 14);
-                textField.x = Constants.CenterX - textField.width / 2;
-                textField.y = 280;
-                addChild(textField);
-            }
+
+            // display a compressed texture
+
+            var compressedTexture:Texture = Game.assets.getTexture("compressed_texture");
+            var image4:Image = new Image(compressedTexture);
+            image4.x = Constants.CenterX - image4.width / 2;
+            image4.y = 280;
+            addChild(image4);
         }
     }
 }
