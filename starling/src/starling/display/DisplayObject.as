@@ -445,7 +445,12 @@ package starling.display
                 painter.backBufferWidth / scaleX, painter.backBufferHeight / scaleY,
                 stageWidth, stageHeight, stage.cameraPosition);
 
-            render(painter);
+            if (_mask)   painter.drawMask(mask, this);
+
+            if (_filter) _filter.render(painter);
+            else         render(painter);
+
+            if (_mask)   painter.eraseMask(mask, this);
 
             painter.finishMeshBatch();
             painter.context.drawToBitmapData(out);

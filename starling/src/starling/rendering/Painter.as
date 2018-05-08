@@ -93,6 +93,7 @@ package starling.rendering
         private var _stencilReferenceValues:Dictionary;
         private var _clipRectStack:Vector.<Rectangle>;
         private var _batchCacheExclusions:Vector.<DisplayObject>;
+        private var _batchTrimInterval:int = 250;
 
         private var _batchProcessor:BatchProcessor;
         private var _batchProcessorCurr:BatchProcessor; // current  processor
@@ -564,11 +565,31 @@ package starling.rendering
             _batchProcessor.finishBatch();
         }
 
+        /** Indicate how often the internally used batches are being trimmed to save memory.
+         *
+         *  <p>While rendering, the internally used MeshBatches are used in a different way in each
+         *  frame. To save memory, they should be trimmed every once in a while. This method defines
+         *  how often that happens, if at all. (Default: enabled = true, interval = 250)</p>
+         *
+         *  @param enabled   If trimming happens at all. Only disable temporarily!
+         *  @param interval  The number of frames between each trim operation.
+         */
+        public function enableBatchTrimming(enabled:Boolean=true, interval:int=250):void
+        {
+            _batchTrimInterval = enabled ? interval : 0;
+        }
+
         /** Completes all unfinished batches, cleanup procedures. */
         public function finishFrame():void
         {
-            if (_frameID %  99 == 0) _batchProcessorCurr.trim(); // odd number -> alternating processors
-            if (_frameID % 150 == 0) _batchProcessorSpec.trim();
+            if (_batchTrimInterval > 0)
+            {
+                const baseInterval:int = _batchTrimInterval | 0x1; // odd number -> alternating processors
+                const specInterval:int = _batchTrimInterval * 1.5;
+
+                if (_frameID % baseInterval == 0) _batchProcessorCurr.trim();
+                if (_frameID % specInterval == 0) _batchProcessorSpec.trim();
+            }
 
             _batchProcessor.finishBatch();
             _batchProcessor = _batchProcessorSpec; // no cache between frames
