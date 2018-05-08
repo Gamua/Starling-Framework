@@ -17,6 +17,8 @@ package starling.utils
     import flash.geom.Vector3D;
 
     import starling.errors.AbstractClassError;
+    import starling.memory.AllocationData;
+    import starling.memory.FastByteArray;
 
     /** A simple object pool supporting the most basic utility objects.
      *
@@ -35,11 +37,56 @@ package starling.utils
         private static var sMatrices:Vector.<Matrix> = new <Matrix>[];
         private static var sMatrices3D:Vector.<Matrix3D> = new <Matrix3D>[];
         private static var sRectangles:Vector.<Rectangle> = new <Rectangle>[];
+        private static var sFastByteArray:Vector.<FastByteArray> = new <FastByteArray>[];
+        private static var sAllocationData:Vector.<AllocationData> = new <AllocationData>[];
+
 
         /** @private */
         public function Pool() { throw new AbstractClassError(); }
 
-        /** Retrieves a Point instance from the pool. */
+        public static  function reserveFastByteArray(newSize:int):void{
+            var oldSize:int = sFastByteArray.length;
+            if (newSize > oldSize) {
+                for (var i:int = oldSize; i < newSize; ++i) {
+                    sFastByteArray.push(new FastByteArray());
+                }
+            }
+        }
+
+        public static function getFastByteArray():FastByteArray{
+            if (sFastByteArray.length == 0){
+                return new FastByteArray();
+            }else{
+                return sFastByteArray.pop();
+            }
+        }
+
+        public static function putFastByteArray(fastByteArray:FastByteArray):void{
+            if (fastByteArray) sFastByteArray[sFastByteArray.length] = fastByteArray;
+        }
+
+        public static  function reserveAllocationData(newSize:int){
+            var oldSize:int = sAllocationData.length;
+            if (newSize > oldSize) {
+                for (var i:int = oldSize; i < newSize; ++i) {
+                    sAllocationData.push(new AllocationData());
+                }
+            }
+        }
+
+        public static function getAllocationData():AllocationData{
+            if (sAllocationData.length == 0){
+                return new AllocationData();
+            }else{
+                return sAllocationData.pop();
+            }
+        }
+
+        public static function putAllocationData(allocationData:AllocationData):void{
+            if (allocationData) sAllocationData[sAllocationData.length] = allocationData;
+        }
+
+    /** Retrieves a Point instance from the pool. */
         public static function getPoint(x:Number = 0, y:Number = 0):Point
         {
             if (sPoints.length == 0) return new Point(x, y);
