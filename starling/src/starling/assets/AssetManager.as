@@ -83,7 +83,7 @@ package starling.assets
      *  <strong>Nesting</strong>
      *
      *  <p>When you enqueue one or more AssetManagers to another one, the "loadQueue" method will
-     *  oad the Assets of the "child" AssetManager, as well. Later, when accessing assets,
+     *  load the assets of the "child" AssetManager, as well. Later, when accessing assets,
      *  the "parent" AssetManager will return the "child" assets as well - just like it returns,
      *  say, the SubTextures from a contained TextureAtlas.</p>
      *
@@ -158,7 +158,7 @@ package starling.assets
             _verbose = true;
             _textureOptions = new TextureOptions(scaleFactor);
             _queue = new <AssetReference>[];
-            _numConnections = 1;
+            _numConnections = 3;
             _dataLoader = new DataLoader();
             _assetFactories = new <AssetFactory>[];
 
@@ -348,6 +348,7 @@ package starling.assets
             var canceled:Boolean = false;
             var queue:Vector.<AssetReference> = _queue.concat();
             var numAssets:int = queue.length;
+            var numComplete:int = 0;
             var numConnections:int = MathUtil.min(_numConnections, numAssets);
             var assetProgress:Vector.<Number> = new Vector.<Number>(numAssets, true);
             var postProcessors:Vector.<AssetPostProcessor> = new <AssetPostProcessor>[];
@@ -375,7 +376,7 @@ package starling.assets
                     }
                 }
 
-                if (j == numAssets)
+                if (numComplete == numAssets)
                 {
                     postProcessors.sort(comparePriorities);
                     runPostProcessors();
@@ -389,6 +390,7 @@ package starling.assets
                 {
                     if (name && asset) addAsset(name, asset);
                     setTimeout(loadNextAsset, 1);
+                    numComplete++;
                 }
             }
 
@@ -398,6 +400,7 @@ package starling.assets
                 {
                     execute(onError, error);
                     setTimeout(loadNextAsset, 1);
+                    numComplete++;
                 }
             }
 
