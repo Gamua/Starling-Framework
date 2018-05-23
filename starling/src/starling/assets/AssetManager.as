@@ -379,7 +379,7 @@ package starling.assets
 
             function onAssetLoaded(name:String=null, asset:Object=null):void
             {
-                if (canceled) disposeAsset(asset);
+                if (canceled && asset) disposeAsset(asset);
                 else
                 {
                     if (name && asset) addAsset(name, asset);
@@ -399,8 +399,7 @@ package starling.assets
                 if (!canceled)
                 {
                     execute(onError, error);
-                    setTimeout(loadNextAsset, 1);
-                    numComplete++;
+                    onAssetLoaded();
                 }
             }
 
