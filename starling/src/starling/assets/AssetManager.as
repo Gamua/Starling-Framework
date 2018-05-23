@@ -375,12 +375,6 @@ package starling.assets
                         break;
                     }
                 }
-
-                if (numComplete == numAssets)
-                {
-                    postProcessors.sort(comparePriorities);
-                    runPostProcessors();
-                }
             }
 
             function onAssetLoaded(name:String=null, asset:Object=null):void
@@ -389,8 +383,14 @@ package starling.assets
                 else
                 {
                     if (name && asset) addAsset(name, asset);
-                    setTimeout(loadNextAsset, 1);
                     numComplete++;
+
+                    if (numComplete == numAssets)
+                    {
+                        postProcessors.sort(comparePriorities);
+                        setTimeout(runPostProcessors, 1);
+                    }
+                    else setTimeout(loadNextAsset, 1);
                 }
             }
 
