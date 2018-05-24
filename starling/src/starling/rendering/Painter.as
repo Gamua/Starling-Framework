@@ -216,9 +216,12 @@ package starling.rendering
          *                                be enabled. Note that on AIR, you also have to enable
          *                                this setting in the app-xml (application descriptor);
          *                                otherwise, this setting will be silently ignored.
+         * @param supportBrowserZoom      if enabled, zooming a website will adapt the size of
+         *                                the back buffer.
          */
         public function configureBackBuffer(viewPort:Rectangle, contentScaleFactor:Number,
-                                            antiAlias:int, enableDepthAndStencil:Boolean):void
+                                            antiAlias:int, enableDepthAndStencil:Boolean,
+                                            supportBrowserZoom:Boolean=false):void
         {
             if (!_shareContext)
             {
@@ -242,8 +245,8 @@ package starling.rendering
                 _stage3D.x = viewPort.x;
                 _stage3D.y = viewPort.y;
 
-                _context.configureBackBuffer(viewPort.width, viewPort.height,
-                    antiAlias, enableDepthAndStencil, contentScaleFactor != 1.0);
+                _context.configureBackBuffer(viewPort.width, viewPort.height, antiAlias,
+                    enableDepthAndStencil, contentScaleFactor != 1.0, supportBrowserZoom);
             }
 
             _backBufferWidth  = viewPort.width;
@@ -843,6 +846,18 @@ package starling.rendering
             {
                 _context.setScissorRectangle(null);
             }
+        }
+
+        /** Refreshes the values of "backBufferWidth" and "backBufferHeight" from the current
+         *  context dimensions and stores the given "backBufferScaleFactor". This method is
+         *  called by Starling when the browser zoom factor changes (in case "supportBrowserZoom"
+         *  is enabled).
+         */
+        public function refreshBackBufferSize(scaleFactor:Number):void
+        {
+            _backBufferWidth = _context.backBufferWidth;
+            _backBufferHeight = _context.backBufferHeight;
+            _backBufferScaleFactor = scaleFactor;
         }
 
         // properties

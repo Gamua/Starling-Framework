@@ -214,6 +214,7 @@ package starling.core
         private var _started:Boolean;
         private var _rendering:Boolean;
         private var _supportHighResolutions:Boolean;
+        private var _supportBrowserZoom:Boolean;
         private var _skipUnchangedFrames:Boolean;
         private var _showStats:Boolean;
         private var _supportsCursor:Boolean;
@@ -299,7 +300,7 @@ package starling.core
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave, false, 0, true);
-            
+
             stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 10, true);
             stage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 10, true);
 
@@ -333,6 +334,7 @@ package starling.core
             _nativeStage.removeEventListener(KeyboardEvent.KEY_UP, onKey, false);
             _nativeStage.removeEventListener(Event.RESIZE, onResize, false);
             _nativeStage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeave, false);
+            _nativeStage.removeEventListener(Event.BROWSER_ZOOM_CHANGE, onBrowserZoomChange, false);
             _nativeStage.removeChild(_nativeOverlay);
             
             stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false);
@@ -482,8 +484,10 @@ package starling.core
                 var contentScaleFactor:Number =
                         _supportHighResolutions ? _nativeStage.contentsScaleFactor : 1.0;
 
+                if (_supportBrowserZoom) contentScaleFactor *= _nativeStage.browserZoomFactor;
+
                 _painter.configureBackBuffer(_clippedViewPort, contentScaleFactor,
-                    _antiAliasing, true);
+                    _antiAliasing, true, _supportBrowserZoom);
 
                 setRequiresRedraw();
             }
@@ -652,6 +656,12 @@ package starling.core
                 removeEventListener(Event.CONTEXT3D_CREATE, dispatchResizeEvent);
                 _stage.dispatchEvent(new ResizeEvent(Event.RESIZE, stageWidth, stageHeight));
             }
+        }
+
+        private function onBrowserZoomChange(event:Event):void
+        {
+            _painter.refreshBackBufferSize(
+                _nativeStage.contentsScaleFactor * _nativeStage.browserZoomFactor);
         }
 
         private function onMouseLeave(event:Event):void
@@ -956,6 +966,25 @@ package starling.core
             {
                 _supportHighResolutions = value;
                 if (contextValid) updateViewPort(true);
+            }
+        }
+
+        /** If enabled, the Stage3D back buffer will change its size according to the browser zoom
+         *  value - similar to what's done when "supportHighResolutions" is enabled. The resolution
+         *  is updated on the fly when the zoom factor changes. Only relevant for the browser plugin.
+         *  @default false */
+        public function get supportBrowserZoom():Boolean { return _supportBrowserZoom; }
+        public function set supportBrowserZoom(value:Boolean):void
+        {
+            if (_supportBrowserZoom != value)
+            {
+                _supportBrowserZoom = value;
+                if (contextValid) updateViewPort(true);
+
+                if (value) _nativeStage.addEventListener(
+                    Event.BROWSER_ZOOM_CHANGE, onBrowserZoomChange, false, 0, true);
+                else _nativeStage.removeEventListener(
+                    Event.BROWSER_ZOOM_CHANGE, onBrowserZoomChange, false);
             }
         }
 
