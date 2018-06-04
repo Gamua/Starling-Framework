@@ -451,30 +451,30 @@ package starling.assets
             var asset:AssetReference = queue[index];
             progressRatios[index] = 0;
 
-            if (asset.data is String || ("url" in asset.data && asset.data["url"]))
-                _dataLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
+            if (asset.url)
+                _dataLoader.load(asset.url, onLoadComplete, onLoadError, onLoadProgress);
             else if (asset.data is AssetManager)
                 (asset.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
             else
                 setTimeout(onLoadComplete, 1, asset.data);
 
-            function onLoadComplete(data:Object, mimeType:String=null):void
+            function onLoadComplete(data:Object, mimeType:String=null,
+                                    name:String=null, extension:String=null):void
             {
                 if (_starling) _starling.makeCurrent();
 
                 onLoadProgress(1.0);
-                asset.data = data;
-                asset.mimeType ||= mimeType;
 
-                if (transformAsset(asset))
-                {
-                    var assetFactory:AssetFactory = getFactoryFor(asset);
-                    if (assetFactory == null)
-                        execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
-                    else
-                        assetFactory.create(asset, helper, onComplete, onCreateError);
-                }
-                else onComplete();
+                if (data)      asset.data = data;
+                if (name)      asset.name = name;
+                if (extension) asset.extension = extension;
+                if (mimeType)  asset.mimeType = mimeType;
+
+                var assetFactory:AssetFactory = getFactoryFor(asset);
+                if (assetFactory == null)
+                    execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
+                else
+                    assetFactory.create(asset, helper, onComplete, onCreateError);
             }
 
             function onLoadProgress(ratio:Number):void
@@ -541,15 +541,6 @@ package starling.assets
                     dispatchEventWith(Event.TEXTURES_RESTORED);
             }
             else _numLostTextures++;
-        }
-
-        /** This method is called directly after asset data has been loaded from a local or remote
-         *  source. Override this method to update the reference in any way (like changing name,
-         *  extension or data) before the asset reference is passed to the respective factory.
-         *  Return <code>false</code> if you don't want to add that asset at all. */
-        protected function transformAsset(asset:AssetReference):Boolean
-        {
-            return true;
         }
 
         // basic accessing methods
