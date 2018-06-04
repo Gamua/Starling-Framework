@@ -1,6 +1,10 @@
 package starling.assets
 {
+    import flash.system.Capabilities;
     import flash.utils.ByteArray;
+    import flash.utils.getQualifiedClassName;
+
+    import starling.errors.AbstractClassError;
 
     /** An AssetFactory is responsible for creating a concrete instance of an asset.
      *
@@ -21,6 +25,12 @@ package starling.assets
         /** Creates a new instance. */
         public function AssetFactory()
         {
+            if (Capabilities.isDebugger &&
+                getQualifiedClassName(this) == "starling.assets::AssetFactory")
+            {
+                throw new AbstractClassError();
+            }
+
             _mimeTypes = new <String>[];
             _extensions = new <String>[];
         }
