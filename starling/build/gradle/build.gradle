@@ -77,7 +77,7 @@ ant.FLASH_PLAYER_EXE = FLASH_PLAYER_EXE
 //----------------------------------
 
 // Set default properties
-version = '2.4'
+version = '2.4.1-SNAPSHOT'
 group = 'com.gamua'
 
 // Get version from Jenkins CI
