@@ -394,11 +394,11 @@ package starling.assets
                 }
             }
 
-            function onAssetLoadError(error:String):void
+            function onAssetLoadError(error:String, asset:AssetReference):void
             {
                 if (!canceled)
                 {
-                    execute(onError, error);
+                    execute(onError, error, asset);
                     onAssetLoaded();
                 }
             }
@@ -507,7 +507,7 @@ package starling.assets
             function onAnyError(error:String):void
             {
                 log(error);
-                execute(onError, error);
+                execute(onError, error, asset);
             }
 
             function onManagerComplete():void
