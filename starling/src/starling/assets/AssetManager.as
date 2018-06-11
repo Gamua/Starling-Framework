@@ -310,15 +310,16 @@ package starling.assets
         /** Loads all enqueued assets asynchronously. The 'onComplete' callback will be executed
          *  once all assets have been loaded - even when there have been errors, which are
          *  forwarded to the optional 'onError' callback. The 'onProgress' function will be called
-         *  with a 'ratio' between '0.0' and '1.0' and is also optional.
+         *  with a 'ratio' between '0.0' and '1.0' and is also optional. Furthermore, all
+         *  parameters of all the callbacks are optional.
          *
          *  <p>When you call this method, the manager will save a reference to "Starling.current";
          *  all textures that are loaded will be accessible only from within this instance. Thus,
          *  if you are working with more than one Starling instance, be sure to call
          *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
          *
-         *  @param onComplete   <code>function(manager:AssetManager):void;</code> - parameter is optional!
-         *  @param onError      <code>function(error:String):void;</code>
+         *  @param onComplete   <code>function(manager:AssetManager):void;</code>
+         *  @param onError      <code>function(error:String, asset:AssetReference):void;</code>
          *  @param onProgress   <code>function(ratio:Number):void;</code>
          */
         public function loadQueue(onComplete:Function,
