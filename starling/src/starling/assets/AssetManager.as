@@ -83,7 +83,7 @@ package starling.assets
      *  <strong>Nesting</strong>
      *
      *  <p>When you enqueue one or more AssetManagers to another one, the "loadQueue" method will
-     *  oad the Assets of the "child" AssetManager, as well. Later, when accessing assets,
+     *  load the assets of the "child" AssetManager, as well. Later, when accessing assets,
      *  the "parent" AssetManager will return the "child" assets as well - just like it returns,
      *  say, the SubTextures from a contained TextureAtlas.</p>
      *
@@ -158,7 +158,7 @@ package starling.assets
             _verbose = true;
             _textureOptions = new TextureOptions(scaleFactor);
             _queue = new <AssetReference>[];
-            _numConnections = 1;
+            _numConnections = 3;
             _dataLoader = new DataLoader();
             _assetFactories = new <AssetFactory>[];
 
@@ -348,6 +348,7 @@ package starling.assets
             var canceled:Boolean = false;
             var queue:Vector.<AssetReference> = _queue.concat();
             var numAssets:int = queue.length;
+            var numComplete:int = 0;
             var numConnections:int = MathUtil.min(_numConnections, numAssets);
             var assetProgress:Vector.<Number> = new Vector.<Number>(numAssets, true);
             var postProcessors:Vector.<AssetPostProcessor> = new <AssetPostProcessor>[];
@@ -374,21 +375,22 @@ package starling.assets
                         break;
                     }
                 }
-
-                if (j == numAssets)
-                {
-                    postProcessors.sort(comparePriorities);
-                    runPostProcessors();
-                }
             }
 
             function onAssetLoaded(name:String=null, asset:Object=null):void
             {
-                if (canceled) disposeAsset(asset);
+                if (canceled && asset) disposeAsset(asset);
                 else
                 {
                     if (name && asset) addAsset(name, asset);
-                    setTimeout(loadNextAsset, 1);
+                    numComplete++;
+
+                    if (numComplete == numAssets)
+                    {
+                        postProcessors.sort(comparePriorities);
+                        setTimeout(runPostProcessors, 1);
+                    }
+                    else setTimeout(loadNextAsset, 1);
                 }
             }
 
@@ -397,7 +399,7 @@ package starling.assets
                 if (!canceled)
                 {
                     execute(onError, error);
-                    setTimeout(loadNextAsset, 1);
+                    onAssetLoaded();
                 }
             }
 
@@ -449,30 +451,30 @@ package starling.assets
             var asset:AssetReference = queue[index];
             progressRatios[index] = 0;
 
-            if (asset.data is String || ("url" in asset.data && asset.data["url"]))
-                _dataLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
+            if (asset.url)
+                _dataLoader.load(asset.url, onLoadComplete, onLoadError, onLoadProgress);
             else if (asset.data is AssetManager)
                 (asset.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
             else
                 setTimeout(onLoadComplete, 1, asset.data);
 
-            function onLoadComplete(data:Object, mimeType:String=null):void
+            function onLoadComplete(data:Object, mimeType:String=null,
+                                    name:String=null, extension:String=null):void
             {
                 if (_starling) _starling.makeCurrent();
 
                 onLoadProgress(1.0);
-                asset.data = data;
-                asset.mimeType ||= mimeType;
 
-                if (transformAsset(asset))
-                {
-                    var assetFactory:AssetFactory = getFactoryFor(asset);
-                    if (assetFactory == null)
-                        execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
-                    else
-                        assetFactory.create(asset, helper, onComplete, onCreateError);
-                }
-                else onComplete();
+                if (data)      asset.data = data;
+                if (name)      asset.name = name;
+                if (extension) asset.extension = extension;
+                if (mimeType)  asset.mimeType = mimeType;
+
+                var assetFactory:AssetFactory = getFactoryFor(asset);
+                if (assetFactory == null)
+                    execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
+                else
+                    assetFactory.create(asset, helper, onComplete, onCreateError);
             }
 
             function onLoadProgress(ratio:Number):void
@@ -539,15 +541,6 @@ package starling.assets
                     dispatchEventWith(Event.TEXTURES_RESTORED);
             }
             else _numLostTextures++;
-        }
-
-        /** This method is called directly after asset data has been loaded from a local or remote
-         *  source. Override this method to update the reference in any way (like changing name,
-         *  extension or data) before the asset reference is passed to the respective factory.
-         *  Return <code>false</code> if you don't want to add that asset at all. */
-        protected function transformAsset(asset:AssetReference):Boolean
-        {
-            return true;
         }
 
         // basic accessing methods

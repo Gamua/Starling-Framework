@@ -1,6 +1,35 @@
 Starling: Changelog
 ===================
 
+version 2.4 - 2018-06-04
+------------------------
+
+- added completely rewritten AssetManager, to be found in the `starling.assets` package
+  - supports custom asset types (in addition to the available textures, sounds, XMLs, etc.)
+  - supports custom asset factories (factories load specific asset types)
+  - supports custom post processors (executed when all assets are loaded)
+  - supports custom data loaders (an object that loads data from local or remote resources)
+  - supports nesting of Asset Managers
+  - supports being used without active Starling instance (for assets that don't require a context)
+  - more intuitive callbacks in the `loadQueue` method
+  - better error handling
+- added support for 8k textures (as added in AIR 29 beta for Desktop targets)
+- added support for the Context3D option 'wantsBestResolutionOnBrowserZoom' via 'Starling.supportBrowserZoom'
+- added optional 'cameraPos' to RenderTexture's draw methods
+- added 'Painter.enableBatchTrimming()' (refs #1023)
+- added workaround for ADL mouse problem on Surface Books (closes #1022) (thanks to Josh!)
+- added ENHANCED stage3D profile to 'auto' profile list (closes #1019)
+- added warning when TextureAtlas or BitmapFont textures are missing
+- added 'copyFrom' method to TextureOptions
+- added warning whenever 'enableErrorChecking' is enabled (closes #1014)
+- optimized memory management by avoiding several 'ByteArray.clear' calls (refs #1027)
+- optimized memory handling in AOT mode by replacing some Vectors with Arrays
+- raised AIR SDK references to version 29
+- fixed Animate CC sprite sheet support by duplicating pivot points across textures with the same prefix (refs #445)
+- fixed that filter and mask on 'this' were ignored by 'DisplayObject.drawToBitmapData'
+- fixed that Juggler.elapsedTime was not raised while juggler was empty
+- fixed floating point problems in texture frame warning
+
 version 2.3 - 2017-12-18
 ------------------------
 

@@ -50,6 +50,8 @@ package
             _starling = new Starling(Game, stage);
             _starling.simulateMultitouch = true;
             _starling.skipUnchangedFrames = true;
+            _starling.supportBrowserZoom = true;
+            _starling.supportHighResolutions = true;
             _starling.enableErrorChecking = Capabilities.isDebugger;
             _starling.addEventListener(Event.ROOT_CREATED, function():void
             {
