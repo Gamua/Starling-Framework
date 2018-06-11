@@ -97,11 +97,13 @@ package starling.assets
      *  var appDir:File = File.applicationDirectory;
      *  
      *  var redAssets:AssetManager = new AssetManager();
-     *  manager.enqueueSingle(appDir.resolvePath("textures/red/", "redAssets");
+     *  redAssets.enqueueSingle(appDir.resolvePath("textures/red/"));
      *  
      *  var greenAssets:AssetManager = new AssetManager();
-     *  manager.enqueueSingle(appDir.resolvePath("textures/green/", "greenAssets");
+     *  greenAssets.enqueueSingle(appDir.resolvePath("textures/green/"));
      *  
+     *  manager.enqueueSingle(redAssets, "redAssets");
+     *  manager.enqueueSingle(greenAssets, "greenAssets");
      *  manager.loadQueue(...); // loads both "red" and "green" assets
      *  
      *  // ... later, remove all "red" assets together
