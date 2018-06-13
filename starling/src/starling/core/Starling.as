@@ -300,6 +300,7 @@ package starling.core
             stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
             stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave, false, 0, true);
+            stage.addEventListener(Event.ACTIVATE, onActivate, false, 0, true);
 
             stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated, false, 10, true);
             stage3D.addEventListener(ErrorEvent.ERROR, onStage3DError, false, 10, true);
@@ -620,6 +621,14 @@ package starling.core
             }
 
             updateNativeOverlay();
+        }
+
+        private function onActivate(event:Event):void
+        {
+            // on Windows with Context3DProfile.BASELINE_CONSTRAINED and
+            // skipUnchangedFrames, if Starling is minimized and isn't stopped 
+            // on deactivate, force redraw is required when app is restored.
+            setTimeout(setRequiresRedraw, 100);
         }
         
         private function onKey(event:KeyboardEvent):void
