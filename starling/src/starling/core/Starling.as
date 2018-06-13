@@ -547,9 +547,6 @@ package starling.core
         { 
             _started = _rendering = true;
             _frameTimestamp = getTimer() / 1000.0;
-
-            // mainly for Android: force redraw when app moves into foreground
-            setTimeout(setRequiresRedraw, 100);
         }
         
         /** Stops all logic and input processing, effectively freezing the app in its current state.
@@ -625,9 +622,10 @@ package starling.core
 
         private function onActivate(event:Event):void
         {
-            // on Windows with Context3DProfile.BASELINE_CONSTRAINED and
-            // skipUnchangedFrames, if Starling is minimized and isn't stopped 
-            // on deactivate, force redraw is required when app is restored.
+            // with 'skipUnchangedFrames' enabled, a forced redraw is required when the app
+            // is restored on some platforms (namely Windows with BASELINE_CONSTRAINED profile
+            // and some Android versions).
+
             setTimeout(setRequiresRedraw, 100);
         }
         
