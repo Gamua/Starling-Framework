@@ -40,24 +40,27 @@ package starling.assets
         /** Loads the binary data from a specific URL. Always supply both 'onComplete' and
          *  'onError' parameters; in case of an error, only the latter will be called.
          *
-         * @param url          a String, URLRequest or any object with an "url" property.
+         *  <p>The 'onComplete' callback may have up to four parameters, all of them being optional.
+         *  If you pass a callback that just takes zero or one, it will work just as well. The
+         *  additional parameters may be used to describe the name and type of the downloaded
+         *  data. They are not provided by the base class, but the AssetManager will check
+         *  if they are available.</p>
+         *
+         * @param url          a String containing an URL.
          * @param onComplete   will be called when the data has been loaded.
-         *                     <code>function(data:ByteArray):void</code>
+         * <code>function(data:ByteArray, mimeType:String, name:String, extension:String):void</code>
          * @param onError      will be called in case of an error. The 2nd parameter is optional.
          *                     <code>function(error:String, httpStatus:int):void</code>
          * @param onProgress   will be called multiple times with the current load ratio (0-1).
          *                     <code>function(ratio:Number):void</code>
          */
-        public function load(url:Object, onComplete:Function,
+        public function load(url:String, onComplete:Function,
                              onError:Function, onProgress:Function=null):void
         {
-            if ("url" in url && !(url is URLRequest))
-                url = url["url"];
-
             var message:String;
             var mimeType:String = null;
             var httpStatus:int = 0;
-            var request:URLRequest = url as URLRequest || new URLRequest(url as String);
+            var request:URLRequest = new URLRequest(url);
             var loader:URLLoader = new URLLoader();
             loader.dataFormat = URLLoaderDataFormat.BINARY;
             loader.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
