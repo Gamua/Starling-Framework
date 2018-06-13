@@ -2,40 +2,72 @@ package starling.memory {
 
 import flash.system.ApplicationDomain;
 import flash.utils.ByteArray;
+import flash.utils.Dictionary;
 import flash.utils.Endian;
 
-import starling.utils.Pool;
+import avm2.intrinsics.memory.li8;
+import avm2.intrinsics.memory.li32;
+import avm2.intrinsics.memory.si8;
+import avm2.intrinsics.memory.si32;
+
+import starling.utils.FastMemoryPool;
 
 public class FastMemoryManager {
     private static var sInstance:FastMemoryManager;
 
+    public static function getInstance():FastMemoryManager {
+        if (!sInstance) {
+            sInstance = new FastMemoryManager(1048576); //1MB
+        }
+        return sInstance;
+    }
+
+    public static function copyHeapContent(targetHeapOffset:int, sourceHeapOffset:uint, length:uint):void {
+        var currentSourceHeapOffset:uint = sourceHeapOffset;
+        var byteCount:int = length % 4;
+        var sourceEndPosition:uint = sourceHeapOffset + byteCount;
+        while (currentSourceHeapOffset < sourceEndPosition) {
+            si8(li8(currentSourceHeapOffset++), targetHeapOffset++);
+        }
+        sourceEndPosition = sourceHeapOffset + length;
+        while (currentSourceHeapOffset < sourceEndPosition) {
+            si32(li32(currentSourceHeapOffset), targetHeapOffset);
+            targetHeapOffset += 4;
+            currentSourceHeapOffset += 4;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private var _fastByteArrays:Dictionary;
     private var _allocationController:AllocationController;
     private var _fastHeap:ByteArray;
     private var _defaultHeap:ByteArray;
+
     private var _heapLength:int;
 
     public function FastMemoryManager(size:uint) {
-        super();
         if (sInstance) {
             throw new Error("DomainMemoryManager already exists.");
         }
-        Pool.reserveFastByteArray(3000);
+        FastMemoryPool.reserveFastByteArray(3000);
 
-        sInstance = this;
+        _fastByteArrays = new Dictionary();
         _defaultHeap = ApplicationDomain.currentDomain.domainMemory;
         _fastHeap = new ByteArray();
         _fastHeap.length = size;
         _fastHeap.endian = Endian.LITTLE_ENDIAN;
         _heapLength = size;
-        _allocationController = new AllocationController(this);
+        _allocationController = new AllocationController(_fastHeap);
         ApplicationDomain.currentDomain.domainMemory = _fastHeap;
     }
 
-    public static function getInstance():FastMemoryManager {
-        if (!sInstance) {
-            sInstance = new FastMemoryManager(1048576); //2^20
-        }
-        return sInstance;
+    public function get fastHeap():ByteArray {
+        return _fastHeap;
+    }
+
+    public function get defaultHeap():ByteArray {
+        return _defaultHeap;
     }
 
     public function switchToFastHeap():void {
@@ -50,34 +82,48 @@ public class FastMemoryManager {
         if (allocationSize == 0) {
             throw new Error("Cannot perform empty allocation!");
         }
+
         var data:AllocationData = _allocationController.allocate(allocationSize);
         while (!data) {
-            if (_fastHeap.length < 10485760) {//2^21+2^23
+            if (_fastHeap.length < 10485760) {//10MB
                 growHeap();
                 data = _allocationController.allocate(allocationSize);
                 continue;
             }
             break;
         }
+
         if (!data) {
-            throw new Error("Could not perform allocation. MAX_HEAP_SIZE exceeded!");
+            var defragmentationMap:Dictionary = _allocationController.defragment();
+            for each(var fba:FastByteArray in _fastByteArrays) {
+                fba.updateOffset(defragmentationMap[fba.offset]);
+            }
+
+            data = _allocationController.allocate(allocationSize);
+
+            if (data == null) {
+                throw new Error("Could not perform allocation. MAX_HEAP_SIZE exceeded!");
+            }
         }
         return data.start;
     }
 
-    public function reallocate(offset:uint, length:uint, newLength:uint):uint {
+    public function reallocate(fastByteArray:FastByteArray, newLength:uint):uint {
+        var length:uint = fastByteArray.length;
         if (length >= newLength) {
-            return offset;
+            return fastByteArray.offset;
         }
+
         var newOffset:uint = allocate(newLength);
 
-        if (length == 0) {
-            return newOffset;
+        //oldOffset can be changed as a result of defragmentation in allocate();
+        var oldOffset:uint = fastByteArray.offset;
+
+        if (length != 0) {
+            copyHeapContent(newOffset, oldOffset, length);
         }
 
-        _fastHeap.position = newOffset;
-        _fastHeap.writeBytes(_fastHeap, offset, length);
-        freeMemory(offset);
+        freeMemory(oldOffset);
         return newOffset;
     }
 
@@ -85,18 +131,19 @@ public class FastMemoryManager {
         _allocationController.freeMemory(offset);
     }
 
+
+    public function addFastByteArray(fastByteArray:FastByteArray):void {
+        _fastByteArrays[fastByteArray] = 1;
+    }
+
+    public function removeFastByteArray(fastByteArray:FastByteArray):void {
+        delete _fastByteArrays[fastByteArray];
+    }
+
     private function growHeap():void {
         _heapLength *= 1.5;
         _fastHeap.length = _heapLength;
         _allocationController.growHeap();
-    }
-
-    public function get fastHeap():ByteArray {
-        return _fastHeap;
-    }
-
-    public function get defaultHeap():ByteArray {
-        return _defaultHeap;
     }
 }
 }

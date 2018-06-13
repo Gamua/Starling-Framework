@@ -28,8 +28,10 @@ package starling.rendering
 
     import starling.memory.FastByteArray;
 
+
     import starling.core.Starling;
     import starling.errors.MissingContextError;
+    import starling.memory.IHeapOwner;
     import starling.styles.MeshStyle;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
@@ -108,7 +110,7 @@ package starling.rendering
      *  @see VertexDataFormat
      *  @see IndexData
      */
-    public class VertexData {
+    public class VertexData implements IHeapOwner {
         private var _rawData:FastByteArray;
         private var _heapOffset:uint;
 
@@ -167,10 +169,13 @@ package starling.rendering
             _numVertices = 0;
             _premultipliedAlpha = true;
 
-            _rawData = FastByteArray.create(initialCapacity * _vertexSize);
+            _rawData = FastByteArray.create(initialCapacity * _vertexSize,this);
             _rawData.length = 0; // changes length, but not memory!
-            _heapOffset = _rawData.offset;
 
+        }
+
+        public function updateHeapOffset(newOffset:uint ):void {
+            _heapOffset = newOffset;
         }
 
         /** Explicitly frees up the memory used by the ByteArray. */
@@ -379,11 +384,10 @@ package starling.rendering
         {
             var numBytes:int = _numVertices * _vertexSize;
 
-        sBytes.length = numBytes;
-        writeBytes(sBytes, 0, _rawData, 0, numBytes);
+            sBytes.length = numBytes;
+            writeBytes(sBytes, 0, _rawData, 0, numBytes);
 
-        FastByteArray.switchMemory(_rawData, sBytes);
-        _heapOffset = _rawData.offset;
+            FastByteArray.switchMemory(_rawData, sBytes);
 
             sBytes.length = 0;
         }
@@ -999,7 +1003,6 @@ package starling.rendering
 
                 if (_rawData.length < newLength){
                     _rawData.length = newLength;
-                    _heapOffset = _rawData.offset;
                 }
 
                 for (var i:int=0; i<_numAttributes; ++i)
@@ -1074,7 +1077,6 @@ package starling.rendering
                 _rawData.clear(); // avoid 4k blowup
 
             FastByteArray.switchMemory(_rawData, sBytes);
-            _heapOffset = _rawData.offset;
             sBytes.length = 0;
 
             _format = value;

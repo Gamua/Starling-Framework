@@ -1,8 +1,9 @@
 package starling.memory {
 
 import flash.utils.ByteArray;
+import flash.utils.Dictionary;
 
-import starling.utils.Pool;
+import starling.utils.FastMemoryPool;
 
 
 public class AllocationController {
@@ -62,27 +63,46 @@ public class AllocationController {
         var data2:AllocationData = dataList[int(index + 1)];
         if (data1.nextStart == data2.start) {
             data1.setSize(data1.start, data1.size + data2.size);
-            Pool.putAllocationData(dataList[index + 1]);
+            FastMemoryPool.putAllocationData(dataList[index + 1]);
             dataList.removeAt(index + 1);
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private var _fastMemoryManager:FastMemoryManager;
     private var _fastHeap:ByteArray;
     private var _freeList:Vector.<AllocationData>;
     private var _usedList:Vector.<AllocationData>;
 
 
-    public function AllocationController(fastMemoryManager:FastMemoryManager) {
+    public function AllocationController(fastHeap:ByteArray) {
         super();
-        Pool.reserveAllocationData(30000);
-        _fastMemoryManager = fastMemoryManager;
-        _fastHeap = _fastMemoryManager.fastHeap;
+        FastMemoryPool.reserveAllocationData(30000);
+        _fastHeap = fastHeap;
         _freeList = new <AllocationData>[];
         _usedList = new <AllocationData>[];
         growHeap();
+    }
+
+    public function defragment():Dictionary {
+        var startPosition:int = 0;
+        var defragmentationMap:Dictionary = new Dictionary();
+        for (var i:int = 0, i_len:int = _usedList.length; i < i_len; ++i) {
+            var usedItem:AllocationData = _usedList[i];
+            defragmentationMap[usedItem.start] = startPosition;
+            if (usedItem.start != startPosition) {
+                FastMemoryManager.copyHeapContent(startPosition, usedItem.start, usedItem.size);
+                usedItem.setSize(startPosition, usedItem.size);
+            }
+            startPosition = usedItem.nextStart;
+        }
+
+        for (var j:int = 0, j_len:int = _freeList.length; j < j_len; j++) {
+            FastMemoryPool.putAllocationData(_freeList[j]);
+        }
+
+        _freeList.length = 0;
+        growHeap();
+        return defragmentationMap;
     }
 
     public function allocate(allocationSize:uint):AllocationData {
@@ -97,7 +117,7 @@ public class AllocationController {
                 return candidate;
             }
             if (candidate.size > allocationSize) {
-                var newData:AllocationData = Pool.getAllocationData();
+                var newData:AllocationData = FastMemoryPool.getAllocationData();
                 newData.setSize(candidate.start, allocationSize);
                 candidate.setSize(candidate.start + allocationSize, candidate.size - allocationSize);
                 pushAndSort(_usedList, newData);

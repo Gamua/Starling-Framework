@@ -9,8 +9,8 @@ public class AllocationData {
     }
 
     public function setSize(start:uint, size:uint):void {
-        this._start = start;
-        this._size = size;
+        _start = start;
+        _size = size;
     }
 
     public function get nextStart():uint {

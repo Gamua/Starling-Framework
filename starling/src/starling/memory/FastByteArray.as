@@ -2,21 +2,23 @@ package starling.memory {
 
 import flash.utils.ByteArray;
 
-import starling.utils.Pool;
+import starling.utils.FastMemoryPool;
 
 
 public class FastByteArray {
-    public static function create(length:int):FastByteArray {
-        var out:FastByteArray = Pool.getFastByteArray();
-        reset(out, length);
+    public static function create(length:int, owner:IHeapOwner = null):FastByteArray {
+        var out:FastByteArray = FastMemoryPool.getFastByteArray();
+        reset(out, length, owner);
         return out;
     }
 
-    protected static function reset(out:FastByteArray, length:int):void {
-        out._fastMemoryManager = FastMemoryManager.getInstance();
-        out._bytes = out._fastMemoryManager.fastHeap;
+    protected static function reset(out:FastByteArray, length:int, owner:IHeapOwner):void {
+        var fastMemoryManager:FastMemoryManager = out._fastMemoryManager = FastMemoryManager.getInstance();
+        out._owner = owner;
+        out._heap = fastMemoryManager.fastHeap;
         out.allocate(length);
         out._disposed = false;
+        fastMemoryManager.addFastByteArray(out);
     }
 
     public static function switchMemory(fastByteArray1:FastByteArray, fastByteArray2:FastByteArray):void {
@@ -24,8 +26,8 @@ public class FastByteArray {
             throw new Error("[ERROR] Can't switch memory when FastByteArray is disposed.")
         }
         var tempUInt:uint = fastByteArray1._offset;
-        fastByteArray1._offset = fastByteArray2._offset;
-        fastByteArray2._offset = tempUInt;
+        fastByteArray1.updateOffset(fastByteArray2._offset);
+        fastByteArray2.updateOffset(tempUInt);
 
         tempUInt = fastByteArray1._length;
         fastByteArray1._length = fastByteArray2._length;
@@ -38,9 +40,10 @@ public class FastByteArray {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected var _bytes:ByteArray;
+    protected var _heap:ByteArray;
     protected var _offset:uint;
     protected var _length:uint;
+    protected var _owner:IHeapOwner;
 
 
     private var _disposed:Boolean;
@@ -56,7 +59,7 @@ public class FastByteArray {
     }
 
     public final function get heap():ByteArray {
-        return _bytes;
+        return _heap;
     }
 
     public function get length():uint {
@@ -74,8 +77,8 @@ public class FastByteArray {
 
     public final function resize(newLength:uint):void {
         if (newLength > _allocatedMemoryLength) {
-            _offset = _fastMemoryManager.reallocate(_offset, _length, newLength);
             _allocatedMemoryLength = newLength;
+            updateOffset(_fastMemoryManager.reallocate(this, newLength))
         }
     }
 
@@ -88,29 +91,35 @@ public class FastByteArray {
             return;
         }
         _fastMemoryManager.freeMemory(_offset);
-        _bytes = null;
+        _fastMemoryManager.removeFastByteArray(this);
+        _heap = null;
         _offset = 0;
         _length = 0;
         _allocatedMemoryLength = 0;
         _fastMemoryManager = null;
+        _owner = null;
         _disposed = true;
-        Pool.putFastByteArray(this);
+        FastMemoryPool.putFastByteArray(this);
     }
 
     public final function clear():void {
-        _allocatedMemoryLength = 0;
         _length = 0;
+    }
+
+    public function updateOffset(newOffset:int):void {
+        _offset = newOffset;
+        if (_owner) {
+            _owner.updateHeapOffset(_offset);
+        }
     }
 
     private function allocate(length:uint):void {
         if (length < 4) {
             length = 4;
         }
-        _offset = _fastMemoryManager.allocate(length);
         _allocatedMemoryLength = length;
         _length = length;
+        updateOffset(_fastMemoryManager.allocate(length));
     }
-
-
 }
 }
