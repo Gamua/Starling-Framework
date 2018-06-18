@@ -380,12 +380,12 @@ package starling.assets
                 }
             }
 
-            function onAssetLoaded(name:String=null, asset:Object=null):void
+            function onAssetLoaded(name:String=null, asset:Object=null, type:String=null):void
             {
                 if (canceled && asset) disposeAsset(asset);
                 else
                 {
-                    if (name && asset) addAsset(name, asset);
+                    if (name && asset) addAsset(name, asset, type);
                     numComplete++;
 
                     if (numComplete == numAssets)

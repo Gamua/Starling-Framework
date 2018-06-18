@@ -55,8 +55,8 @@ package starling.assets
          *                     it will already have been loaded, and 'data' will contain a ByteArray.
          *  @param helper      Contains useful utility methods to be used by the factory. Look
          *                     at the class documentation for more information.
-         *  @param onComplete  To be called with the name and asset as parameters when loading
-         *                     is successful. <pre>function(name:String, asset:Object):void;</pre>
+         *  @param onComplete  To be called when loading is successful. 'type' parameter is optional.
+         *                     <pre>function(name:String, asset:Object, type:String):void;</pre>
          *  @param onError     To be called when creation fails for some reason. Do not call
          *                     'onComplete' when that happens. <pre>function(error:String):void</pre>
          */
