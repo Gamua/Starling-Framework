@@ -24,6 +24,19 @@ package tests.utils
         }
 
         [Test]
+        public function testStartsWithBytes():void
+        {
+            var byteArray:ByteArray = new ByteArray();
+            byteArray.writeByte(0xaa); byteArray.writeByte(0xbb);
+            byteArray.writeByte(0xcc); byteArray.writeByte(0xdd);
+
+            assertTrue(ByteArrayUtil.startsWithBytes(byteArray,  [0xaa, 0xbb, 0xcc]));
+            assertTrue(ByteArrayUtil.startsWithBytes(byteArray,  [0xaa, 0xbb, 0xcc, 0xdd]));
+            assertFalse(ByteArrayUtil.startsWithBytes(byteArray, [0xaa, 0xbb, 0xcc, 0xdd, 0xee]));
+            assertFalse(ByteArrayUtil.startsWithBytes(byteArray, [0xaa, 0xbb, 0xc1]));
+        }
+
+        [Test]
         public function testCompare():void
         {
             var a:ByteArray = new ByteArray();

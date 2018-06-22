@@ -11,11 +11,15 @@ package starling.assets
     import flash.utils.ByteArray;
 
     import starling.textures.Texture;
+    import starling.utils.ByteArrayUtil;
     import starling.utils.execute;
 
     /** This AssetFactory creates texture assets from bitmaps and image files. */
     public class BitmapTextureFactory extends AssetFactory
     {
+        private static const MAGIC_NUMBERS_PNG:Array = [0xff, 0xd8];
+        private static const MAGIC_NUMBERS_JPG:Array = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
         /** Creates a new instance. */
         public function BitmapTextureFactory()
         {
@@ -26,8 +30,18 @@ package starling.assets
         /** @inheritDoc */
         override public function canHandle(reference:AssetReference):Boolean
         {
-            return reference.data is Bitmap || reference.data is BitmapData ||
-                super.canHandle(reference);
+            if (super.canHandle(reference) ||
+                reference.data is Bitmap || reference.data is BitmapData)
+            {
+                return true;
+            }
+            else if (reference.data is ByteArray)
+            {
+                var byteData:ByteArray = reference.data as ByteArray;
+                return ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_PNG) ||
+                       ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_JPG);
+            }
+            else return false;
         }
 
         /** @inheritDoc */
