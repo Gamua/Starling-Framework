@@ -23,18 +23,9 @@ public class FastMemoryManager {
     }
 
     public static function copyHeapContent(targetHeapOffset:int, sourceHeapOffset:uint, length:uint):void {
-        var currentSourceHeapOffset:uint = sourceHeapOffset;
-        var byteCount:int = length % 4;
-        var sourceEndPosition:uint = sourceHeapOffset + byteCount;
-        while (currentSourceHeapOffset < sourceEndPosition) {
-            si8(li8(currentSourceHeapOffset++), targetHeapOffset++);
-        }
-        sourceEndPosition = sourceHeapOffset + length;
-        while (currentSourceHeapOffset < sourceEndPosition) {
-            si32(li32(currentSourceHeapOffset), targetHeapOffset);
-            targetHeapOffset += 4;
-            currentSourceHeapOffset += 4;
-        }
+        var fastHeap:ByteArray=FastMemoryManager.sInstance._fastHeap;
+        fastHeap.position = targetHeapOffset;
+        fastHeap.writeBytes(fastHeap, sourceHeapOffset, length);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

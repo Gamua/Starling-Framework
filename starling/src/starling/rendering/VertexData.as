@@ -26,7 +26,9 @@ package starling.rendering
     import avm2.intrinsics.memory.si32;
     import avm2.intrinsics.memory.si8;
 
-    import starling.memory.FastByteArray;
+import flash.utils.ByteArray;
+
+import starling.memory.FastByteArray;
 
 
     import starling.core.Starling;
@@ -207,21 +209,9 @@ package starling.rendering
             if (targetBytes.length < destinationEndPosition) {
                 targetBytes.length = destinationEndPosition;
             }
-
-            var heapAddress:uint = targetBytes.getHeapAddress(targetPos);
-            var sourceHeapAddress:uint = sourceBytes.getHeapAddress(sourcePos);
-
-            var byteCount:int = length % 4;
-            var sourceEndPosition:uint = sourceBytes.getHeapAddress(sourcePos + byteCount);
-            while (sourceHeapAddress < sourceEndPosition) {
-                si8(li8(sourceHeapAddress++), heapAddress++);
-            }
-            sourceEndPosition = sourceBytes.getHeapAddress(sourcePos + length);
-            while (sourceHeapAddress < sourceEndPosition) {
-                si32(li32(sourceHeapAddress), heapAddress);
-                heapAddress += 4;
-                sourceHeapAddress += 4;
-            }
+            var heap:ByteArray = targetBytes.heap;
+            heap.position = targetBytes.getHeapAddress(targetPos);
+            heap.writeBytes(heap, sourceBytes.getHeapAddress(sourcePos), length);
         }
         /** Copies the vertex data (or a range of it, defined by 'vertexID' and 'numVertices')
          *  of this instance to another vertex data object, starting at a certain target index.
