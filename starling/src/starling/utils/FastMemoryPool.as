@@ -60,7 +60,7 @@ package starling.utils
             if (fastByteArray) sFastByteArray[sFastByteArray.length] = fastByteArray;
         }
 
-        public static  function reserveAllocationData(newSize:int){
+        public static  function reserveAllocationData(newSize:int):void{
             var oldSize:int = sAllocationData.length;
             if (newSize > oldSize) {
                 for (var i:int = oldSize; i < newSize; ++i) {
