@@ -231,15 +231,25 @@ package starling.display
          *  it will use this this color. Note that it's actually an 'ARGB' value: if you need
          *  the context to be cleared with a specific alpha value, include it in the color. */
         public function get color():uint { return _color; }
-        public function set color(value:uint):void { _color = value; }
+        public function set color(value:uint):void
+        {
+            if (_color != value)
+            {
+                _color = value;
+                setRequiresRedraw();
+            }
+        }
         
         /** The width of the stage coordinate system. Change it to scale its contents relative
          *  to the <code>viewPort</code> property of the Starling object. */ 
         public function get stageWidth():int { return _width; }
         public function set stageWidth(value:int):void
         {
-            _width = value;
-            setRequiresRedraw();
+            if (_width != value)
+            {
+                _width = value;
+                setRequiresRedraw();
+            }
         }
         
         /** The height of the stage coordinate system. Change it to scale its contents relative
@@ -247,8 +257,11 @@ package starling.display
         public function get stageHeight():int { return _height; }
         public function set stageHeight(value:int):void
         {
-            _height = value;
-            setRequiresRedraw();
+            if (_height != value)
+            {
+                _height = value;
+                setRequiresRedraw();
+            }
         }
 
         /** The Starling instance this stage belongs to. */
