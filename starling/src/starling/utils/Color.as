@@ -83,6 +83,31 @@ package starling.utils
             return (alpha << 24) | (red << 16) | (green << 8) | blue;
         }
 
+        /** Creates an RGB color from hue, saturation and value (brightness).
+         *  Conversion formula adapted from http://en.wikipedia.org/wiki/HSV_color_space.
+         *  Assumes hue, saturation, and value are contained in the range [0, 1]. */
+        public static function hsv(hue:Number, saturation:Number, value:Number):uint
+        {
+            var r:Number, g:Number, b:Number;
+            var i:Number = Math.floor(hue * 6);
+            var f:Number = hue * 6 - i;
+            var p:Number = value * (1 - saturation);
+            var q:Number = value * (1 - f * saturation);
+            var t:Number = value * (1 - (1 - f) * saturation);
+
+            switch (i % 6)
+            {
+                case 0: r = value; g = t; b = p; break;
+                case 1: r = q; g = value; b = p; break;
+                case 2: r = p; g = value; b = t; break;
+                case 3: r = p; g = q; b = value; break;
+                case 4: r = t; g = p; b = value; break;
+                case 5: r = value; g = p; b = q; break;
+            }
+
+            return rgb(r * 255, g * 255, b * 255);
+        }
+
         /** Converts a color to a vector containing the RGBA components (in this order) scaled
          *  between 0 and 1. */
         public static function toVector(color:uint, out:Vector.<Number>=null):Vector.<Number>
