@@ -45,7 +45,9 @@ package starling.assets
                         {
                             helper.executeWhenContextReady(function():void
                             {
-                                texture.root.uploadAtfData(data);
+                                try { texture.root.uploadAtfData(data); }
+                                catch (e:Error) { log("Texture restoration failed: " + e.message); }
+
                                 helper.onEndRestore();
                             });
                         }, onReloadError);

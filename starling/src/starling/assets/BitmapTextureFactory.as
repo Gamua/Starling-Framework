@@ -83,7 +83,9 @@ package starling.assets
                         {
                             helper.executeWhenContextReady(function():void
                             {
-                                texture.root.uploadBitmapData(bitmapData);
+                                try { texture.root.uploadBitmapData(bitmapData); }
+                                catch (e:Error) { log("Texture restoration failed: " + e.message); }
+
                                 helper.onEndRestore();
                             });
                         });
