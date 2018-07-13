@@ -66,7 +66,7 @@ package starling.events
         
         /** A vector of arrays with the arguments that were passed to the "enqueue"
          *  method (the oldest being at the end of the vector). */
-        protected var _queue:Vector.<Array>;
+        protected var _queue:Vector.<TouchData>;
         
         /** The list of all currently active touches. */
         protected var _currentTouches:Vector.<Touch>;
@@ -82,7 +82,7 @@ package starling.events
             _root = _stage = stage;
             _elapsedTime = 0.0;
             _currentTouches = new <Touch>[];
-            _queue = new <Array>[];
+            _queue = new <TouchData>[];
             _lastTaps = new <Touch>[];
             _touchEvent = new TouchEvent(TouchEvent.TOUCH);
 
@@ -107,6 +107,7 @@ package starling.events
             var i:int;
             var touch:Touch;
             var numIterations:int = 0;
+            var touchData:TouchData;
             
             _elapsedTime += passedTime;
             sUpdatedTouches.length = 0;
@@ -130,14 +131,12 @@ package starling.events
 
                 // analyze new touches, but each ID only once
                 while (_queue.length > 0 &&
-                      !containsTouchWithID(sUpdatedTouches, _queue[_queue.length-1][0]))
+                      !containsTouchWithID(sUpdatedTouches, _queue[_queue.length-1].id))
                 {
-                    var touchArgs:Array = _queue.pop();
-                    touch = createOrUpdateTouch(
-                                touchArgs[0], touchArgs[1], touchArgs[2], touchArgs[3],
-                                touchArgs[4], touchArgs[5], touchArgs[6]);
-                    
+                    touchData = _queue.pop();
+                    touch = createOrUpdateTouch(touchData);
                     sUpdatedTouches[sUpdatedTouches.length] = touch; // avoiding 'push'
+                    TouchData.toPool(touchData);
                 }
 
                 // Find any hovering touches that did not move.
@@ -220,16 +219,22 @@ package starling.events
         public function enqueue(touchID:int, phase:String, globalX:Number, globalY:Number,
                                 pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
-            _queue.unshift(arguments);
+            queue_unshift(touchID, phase, globalX, globalY, pressure, width, height);
             
             // multitouch simulation (only with mouse)
             if (_ctrlDown && _touchMarker && touchID == 0)
             {
                 _touchMarker.moveMarker(globalX, globalY, _shiftDown);
-                _queue.unshift([1, phase, _touchMarker.mockX, _touchMarker.mockY]);
+                queue_unshift(1, phase, _touchMarker.mockX, _touchMarker.mockY);
             }
         }
-        
+
+        private function queue_unshift(touchID:int, phase:String, globalX:Number, globalY:Number,
+                                       pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
+        {
+            _queue.unshift(TouchData.fromPool(touchID, phase, globalX, globalY, pressure, width, height));
+        }
+
         /** Enqueues an artificial touch that represents the mouse leaving the stage.
          *  
          *  <p>On OS X, we get mouse events from outside the stage; on Windows, we do not.
@@ -285,31 +290,30 @@ package starling.events
 
             // purge touches
             _currentTouches.length = 0;
-            _queue.length = 0;
+
+            while (_queue.length)
+                TouchData.toPool(_queue.pop());
         }
         
-        private function createOrUpdateTouch(touchID:int, phase:String,
-                                             globalX:Number, globalY:Number,
-                                             pressure:Number=1.0,
-                                             width:Number=1.0, height:Number=1.0):Touch
+        private function createOrUpdateTouch(touchData:TouchData):Touch
         {
-            var touch:Touch = getCurrentTouch(touchID);
+            var touch:Touch = getCurrentTouch(touchData.id);
             
             if (touch == null)
             {
-                touch = new Touch(touchID);
+                touch = new Touch(touchData.id);
                 addCurrentTouch(touch);
             }
             
-            touch.globalX = globalX;
-            touch.globalY = globalY;
-            touch.phase = phase;
+            touch.globalX = touchData.globalX;
+            touch.globalY = touchData.globalY;
+            touch.phase = touchData.phase;
             touch.timestamp = _elapsedTime;
-            touch.pressure = pressure;
-            touch.width  = width;
-            touch.height = height;
+            touch.pressure = touchData.pressure;
+            touch.width  = touchData.width;
+            touch.height = touchData.height;
 
-            if (phase == TouchPhase.BEGAN)
+            if (touchData.phase == TouchPhase.BEGAN)
                 updateTapCount(touch);
 
             return touch;
@@ -452,15 +456,15 @@ package starling.events
                     if (wasCtrlDown && mockedTouch && mockedTouch.phase != TouchPhase.ENDED)
                     {
                         // end active touch ...
-                        _queue.unshift([1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
+                        queue_unshift(1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY);
                     }
                     else if (_ctrlDown && mouseTouch)
                     {
                         // ... or start new one
                         if (mouseTouch.phase == TouchPhase.HOVER || mouseTouch.phase == TouchPhase.ENDED)
-                            _queue.unshift([1, TouchPhase.HOVER, _touchMarker.mockX, _touchMarker.mockY]);
+                            queue_unshift(1, TouchPhase.HOVER, _touchMarker.mockX, _touchMarker.mockY);
                         else
-                            _queue.unshift([1, TouchPhase.BEGAN, _touchMarker.mockX, _touchMarker.mockY]);
+                            queue_unshift(1, TouchPhase.BEGAN, _touchMarker.mockX, _touchMarker.mockY);
                     }
                 }
             }
