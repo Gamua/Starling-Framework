@@ -160,7 +160,10 @@ package starling.events
                     else listener(event, event.data);
                     
                     if (event.stopsImmediatePropagation)
+                    {
+                        _eventStack.pop();
                         return true;
+                    }
                 }
 
                 _eventStack.pop();
