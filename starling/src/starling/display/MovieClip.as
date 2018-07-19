@@ -289,15 +289,16 @@ package starling.display
             }
 
             var finalFrameID:int = _frames.length - 1;
-            var restTimeInFrame:Number = frame.duration - _currentTime + frame.startTime;
             var dispatchCompleteEvent:Boolean = false;
             var frameAction:Function = null;
             var previousFrameID:int = _currentFrameID;
+            var restTimeInFrame:Number;
             var changedFrame:Boolean;
 
-            while (passedTime >= restTimeInFrame)
+            while (_currentTime + passedTime >= frame.endTime)
             {
                 changedFrame = false;
+                restTimeInFrame = frame.duration - _currentTime + frame.startTime;
                 passedTime -= restTimeInFrame;
                 _currentTime = frame.startTime + frame.duration;
 
@@ -341,12 +342,6 @@ package starling.display
                     advanceTime(passedTime);
                     return;
                 }
-
-                restTimeInFrame = frame.duration;
-
-                // prevent a mean floating point problem (issue #851)
-                if (passedTime + 0.0001 > restTimeInFrame && passedTime - 0.0001 < restTimeInFrame)
-                    passedTime = restTimeInFrame;
             }
 
             if (previousFrameID != _currentFrameID)
@@ -481,4 +476,6 @@ class MovieClipFrame
                     "movie:MovieClip, frameID:int");
         }
     }
+
+    public function get endTime():Number { return startTime + duration; }
 }

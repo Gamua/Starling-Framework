@@ -499,6 +499,7 @@ package tests.display
             movie.addEventListener(Event.COMPLETE, onComplete);
             movie.currentTime = 0.9649999999999999;
             movie.advanceTime(0.03500000000000014);
+            movie.advanceTime(0.1);
 
             assertEquals(1, completeCount);
 
