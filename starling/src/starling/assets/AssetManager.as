@@ -450,16 +450,16 @@ package starling.assets
             helper:AssetFactoryHelper, onComplete:Function, onProgress:Function,
             onError:Function, onIntermediateError:Function):void
         {
-            var assetCount:int = queue.length;
-            var asset:AssetReference = queue[index];
+            var referenceCount:int = queue.length;
+            var reference:AssetReference = queue[index];
             progressRatios[index] = 0;
 
-            if (asset.url)
-                _dataLoader.load(asset.url, onLoadComplete, onLoadError, onLoadProgress);
-            else if (asset.data is AssetManager)
-                (asset.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
+            if (reference.url)
+                _dataLoader.load(reference.url, onLoadComplete, onLoadError, onLoadProgress);
+            else if (reference.data is AssetManager)
+                (reference.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
             else
-                setTimeout(onLoadComplete, 1, asset.data);
+                setTimeout(onLoadComplete, 1, reference.data);
 
             function onLoadComplete(data:Object, mimeType:String=null,
                                     name:String=null, extension:String=null):void
@@ -468,16 +468,16 @@ package starling.assets
 
                 onLoadProgress(1.0);
 
-                if (data)      asset.data = data;
-                if (name)      asset.name = name;
-                if (extension) asset.extension = extension;
-                if (mimeType)  asset.mimeType = mimeType;
+                if (data)      reference.data = data;
+                if (name)      reference.name = name;
+                if (extension) reference.extension = extension;
+                if (mimeType)  reference.mimeType = mimeType;
 
-                var assetFactory:AssetFactory = getFactoryFor(asset);
+                var assetFactory:AssetFactory = getFactoryFor(reference);
                 if (assetFactory == null)
-                    execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
+                    execute(onAnyError, "Warning: no suitable factory found for '" + reference.name + "'");
                 else
-                    assetFactory.create(asset, helper, onComplete, onCreateError);
+                    assetFactory.create(reference, helper, onFactoryComplete, onFactoryError);
             }
 
             function onLoadProgress(ratio:Number):void
@@ -485,9 +485,9 @@ package starling.assets
                 progressRatios[index] = ratio;
 
                 var totalRatio:Number = 0;
-                var multiplier:Number = 1.0 / assetCount;
+                var multiplier:Number = 1.0 / referenceCount;
 
-                for (var k:int=0; k<assetCount; ++k)
+                for (var k:int=0; k<referenceCount; ++k)
                 {
                     var r:Number = progressRatios[k];
                     if (r > 0) totalRatio += multiplier * r;
@@ -499,23 +499,29 @@ package starling.assets
             function onLoadError(error:String):void
             {
                 onLoadProgress(1.0);
-                execute(onAnyError, "Error loading " + asset.name + ": " + error);
-            }
-
-            function onCreateError(error:String):void
-            {
-                execute(onAnyError, "Error creating " + asset.name + ": " + error);
+                execute(onAnyError, "Error loading " + reference.name + ": " + error);
             }
 
             function onAnyError(error:String):void
             {
                 log(error);
-                execute(onError, error, asset);
+                execute(onError, error, reference);
+            }
+
+            function onFactoryError(error:String):void
+            {
+                execute(onAnyError, "Error creating " + reference.name + ": " + error);
+            }
+
+            function onFactoryComplete(name:String=null, asset:Object=null, type:String=null):void
+            {
+                onComplete(name, asset, type);
+                disposeAsset(reference.data);
             }
 
             function onManagerComplete():void
             {
-                execute(onComplete, asset.name, asset.data);
+                onComplete(reference.name, reference.data);
             }
         }
 
