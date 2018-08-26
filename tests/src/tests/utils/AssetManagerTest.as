@@ -15,6 +15,7 @@ package tests.utils
 
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertNotNull;
     import org.flexunit.asserts.assertNull;
     import org.flexunit.asserts.assertStrictlyEquals;
     import org.flexunit.asserts.assertTrue;
@@ -172,7 +173,9 @@ package tests.utils
             _manager.enqueue("../fixtures/data.txt");
             _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
-                assertEquals(1, _manager.getByteArrayNames("data").length);
+                var bytes:ByteArray = _manager.getByteArray("data");
+                assertNotNull(bytes);
+                assertEquals("data", bytes.readUTFBytes(bytes.length));
             }));
         }
         

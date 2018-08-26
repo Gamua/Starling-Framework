@@ -477,7 +477,7 @@ package starling.assets
                 if (assetFactory == null)
                     execute(onAnyError, "Warning: no suitable factory found for '" + reference.name + "'");
                 else
-                    assetFactory.create(reference, helper, onFactoryComplete, onFactoryError);
+                    assetFactory.create(reference, helper, onComplete, onFactoryError);
             }
 
             function onLoadProgress(ratio:Number):void
@@ -511,12 +511,6 @@ package starling.assets
             function onFactoryError(error:String):void
             {
                 execute(onAnyError, "Error creating " + reference.name + ": " + error);
-            }
-
-            function onFactoryComplete(name:String=null, asset:Object=null, type:String=null):void
-            {
-                onComplete(name, asset, type);
-                disposeAsset(reference.data);
             }
 
             function onManagerComplete():void
