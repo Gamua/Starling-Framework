@@ -53,6 +53,9 @@ package starling.assets
 
             onComplete(reference.name, xml);
 
+            // prevent closures from keeping references
+            reference.data = bytes = null;
+
             function textureAtlasPostProcessor(store:AssetManager):void
             {
                 var name:String = helper.getNameFromUrl(xml.@imagePath.toString());

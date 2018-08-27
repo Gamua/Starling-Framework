@@ -11,6 +11,7 @@ package starling.assets
     import flash.utils.ByteArray;
 
     import starling.textures.Texture;
+    import starling.textures.TextureOptions;
     import starling.utils.ByteArrayUtil;
     import starling.utils.execute;
 
@@ -49,8 +50,10 @@ package starling.assets
                                         onComplete:Function, onError:Function):void
         {
             var texture:Texture;
-            var url:String = reference.url;
+            var url:String  = reference.url;
             var data:Object = reference.data;
+            var name:String = reference.name;
+            var options:TextureOptions = reference.textureOptions;
 
             if (data is Bitmap)
                 onBitmapDataCreated((data as Bitmap).bitmapData);
@@ -59,6 +62,9 @@ package starling.assets
             else if (data is ByteArray)
                 createBitmapDataFromByteArray(data as ByteArray, onBitmapDataCreated, onError);
 
+            // prevent closures from keeping references
+            reference.data = data = null;
+
             function onBitmapDataCreated(bitmapData:BitmapData):void
             {
                 helper.executeWhenContextReady(createFromBitmapData, bitmapData);
@@ -66,31 +72,30 @@ package starling.assets
 
             function createFromBitmapData(bitmapData:BitmapData):void
             {
-                reference.textureOptions.onReady = function():void
-                {
-                    onComplete(reference.name, texture);
-                };
+                options.onReady = complete;
+                texture = Texture.fromData(bitmapData, options);
+                if (url) texture.root.onRestore = restoreTexture;
+            }
 
-                texture = Texture.fromData(bitmapData, reference.textureOptions);
+            function complete():void
+            {
+                onComplete(name, texture);
+            }
 
-                if (url)
+            function restoreTexture():void
+            {
+                helper.onBeginRestore();
+
+                reload(url, function(bitmapData:BitmapData):void
                 {
-                    texture.root.onRestore = function():void
+                    helper.executeWhenContextReady(function():void
                     {
-                        helper.onBeginRestore();
+                        try { texture.root.uploadBitmapData(bitmapData); }
+                        catch (e:Error) { helper.log("Texture restoration failed: " + e.message); }
 
-                        reload(url, function(bitmapData:BitmapData):void
-                        {
-                            helper.executeWhenContextReady(function():void
-                            {
-                                try { texture.root.uploadBitmapData(bitmapData); }
-                                catch (e:Error) { helper.log("Texture restoration failed: " + e.message); }
-
-                                helper.onEndRestore();
-                            });
-                        });
-                    };
-                }
+                        helper.onEndRestore();
+                    });
+                });
             }
 
             function reload(url:String, onComplete:Function):void

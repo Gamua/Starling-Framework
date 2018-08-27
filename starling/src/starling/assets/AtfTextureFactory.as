@@ -53,6 +53,8 @@ package starling.assets
                         }, onReloadError);
                     };
                 }
+
+                reference.data = null; // prevent closures from keeping reference
             }
 
             function onReloadError(error:String):void
