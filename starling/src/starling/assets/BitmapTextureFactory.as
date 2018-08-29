@@ -18,8 +18,9 @@ package starling.assets
     /** This AssetFactory creates texture assets from bitmaps and image files. */
     public class BitmapTextureFactory extends AssetFactory
     {
-        private static const MAGIC_NUMBERS_PNG:Array = [0xff, 0xd8];
-        private static const MAGIC_NUMBERS_JPG:Array = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        private static const MAGIC_NUMBERS_JPG:Array = [0xff, 0xd8];
+        private static const MAGIC_NUMBERS_PNG:Array = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        private static const MAGIC_NUMBERS_GIF:Array = [0x47, 0x49, 0x46, 0x38];
 
         /** Creates a new instance. */
         public function BitmapTextureFactory()
@@ -40,7 +41,8 @@ package starling.assets
             {
                 var byteData:ByteArray = reference.data as ByteArray;
                 return ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_PNG) ||
-                       ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_JPG);
+                       ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_JPG) ||
+                       ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_GIF);
             }
             else return false;
         }
