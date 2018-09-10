@@ -143,7 +143,10 @@ package starling.textures
         /** @inheritDoc */
         public override function dispose():void
         {
-            _activeTexture.dispose();
+            // if _ownsParent is true, _activeTexture will be disposed by the super.dispose() call
+            if (!_ownsParent) {
+                _activeTexture.dispose();
+            }
             
             if (isDoubleBuffered)
             {
