@@ -143,15 +143,13 @@ package starling.textures
         /** @inheritDoc */
         public override function dispose():void
         {
-            _activeTexture.dispose();
-            
             if (isDoubleBuffered)
             {
                 _bufferTexture.dispose();
                 _helperImage.dispose();
             }
-            
-            super.dispose();
+
+            super.dispose(); // will take care of '_activeTexture'
         }
         
         /** Draws an object into the texture.
