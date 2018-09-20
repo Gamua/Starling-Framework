@@ -90,8 +90,10 @@ package starling.display
             _contents = new Sprite();
             _contents.addChild(_body);
             addChild(_contents);
+
+            setStateTexture(upState);
             addEventListener(TouchEvent.TOUCH, onTouch);
-            
+
             this.touchGroup = true;
             this.text = text;
         }
@@ -206,19 +208,15 @@ package starling.display
             {
                 case ButtonState.DOWN:
                     setStateTexture(_downState);
+                    setContentScale(_scaleWhenDown);
                     _contents.alpha = _alphaWhenDown;
-                    _contents.scaleX = _contents.scaleY = _scaleWhenDown;
-                    _contents.x = (1.0 - _scaleWhenDown) / 2.0 * _body.width;
-                    _contents.y = (1.0 - _scaleWhenDown) / 2.0 * _body.height;
                     break;
                 case ButtonState.UP:
                     setStateTexture(_upState);
                     break;
                 case ButtonState.OVER:
                     setStateTexture(_overState);
-                    _contents.scaleX = _contents.scaleY = _scaleWhenOver;
-                    _contents.x = (1.0 - _scaleWhenOver) / 2.0 * _body.width;
-                    _contents.y = (1.0 - _scaleWhenOver) / 2.0 * _body.height;
+                    setContentScale(_scaleWhenOver);
                     break;
                 case ButtonState.DISABLED:
                     setStateTexture(_disabledState);
@@ -229,9 +227,29 @@ package starling.display
             }
         }
 
+        private function setContentScale(scale:Number):void
+        {
+            _contents.scaleX = _contents.scaleY = scale;
+            _contents.x = (1.0 - scale) / 2.0 * _body.width;
+            _contents.y = (1.0 - scale) / 2.0 * _body.height;
+        }
+
         private function setStateTexture(texture:Texture):void
         {
             _body.texture = texture ? texture : _upState;
+
+            if (_body.pivotX || _body.pivotY)
+            {
+                // The texture might force a custom pivot point on the image. We better use
+                // this pivot point on the button itself, because that's easier to access.
+                // (Plus, it simplifies internal object placement.)
+
+                pivotX = _body.pivotX;
+                pivotY = _body.pivotY;
+
+                _body.pivotX = 0;
+                _body.pivotY = 0;
+            }
         }
 
         /** The scale factor of the button on touch. Per default, a button without a down state
