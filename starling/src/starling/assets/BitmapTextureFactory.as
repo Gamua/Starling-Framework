@@ -51,7 +51,7 @@ package starling.assets
         override public function create(reference:AssetReference, helper:AssetFactoryHelper,
                                         onComplete:Function, onError:Function):void
         {
-            var texture:Texture;
+            var texture:Texture = null;
             var url:String  = reference.url;
             var data:Object = reference.data;
             var name:String = reference.name;
@@ -75,8 +75,11 @@ package starling.assets
             function createFromBitmapData(bitmapData:BitmapData):void
             {
                 options.onReady = complete;
-                texture = Texture.fromData(bitmapData, options);
-                if (url) texture.root.onRestore = restoreTexture;
+
+                try { texture = Texture.fromData(bitmapData, options); }
+                catch (e:Error) { onError(e.message); }
+
+                if (texture && url) texture.root.onRestore = restoreTexture;
             }
 
             function complete():void
