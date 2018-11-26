@@ -1094,15 +1094,17 @@ package starling.core
         
         public static function set multitouchEnabled(value:Boolean):void
         {
-            var prevInputMode:String = Multitouch.inputMode;
+            var wasEnabled:Boolean = Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
 
             Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
-                                           MultitouchInputMode.NONE;
+                MultitouchInputMode.NONE;
 
-            if (Multitouch.inputMode != prevInputMode)
+            var isEnabled:Boolean = Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+
+            if (wasEnabled != isEnabled)
             {
                 for each (var star:Starling in sAll)
-                    star.setMultitouchEnabled(value);
+                    star.setMultitouchEnabled(isEnabled);
             }
         }
 
