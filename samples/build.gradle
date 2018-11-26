@@ -16,7 +16,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'org.gradlefx', name: 'gradlefx', version: '0.+'
+        classpath group: 'org.gradlefx', name: 'gradlefx', version: '1.4.0'
     }
 }
 allprojects {
@@ -28,7 +28,7 @@ subprojects {
     apply plugin: 'gradlefx'
 
     version = '1.0-SNAPSHOT'
-    
+
     srcDirs = [
         'src',
         '../../starling/src',
@@ -36,19 +36,19 @@ subprojects {
         '../demo/system',
         '../demo/src',
     ]
-    
+
     frameworkLinkage = 'merged'
-    
-    playerVersion = '14.0'
+
+    playerVersion = '19.0'
 
     additionalCompilerOptions = [
         '-debug=true',
         '-optimize=true',
-        '-target-player=14.0',
-        '-swf-version=25'
+        '-target-player=19.0',
+        '-swf-version=30'
     ]
 
     dependencies {
     }
-    
+
 }
