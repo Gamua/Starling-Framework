@@ -17,7 +17,6 @@ package starling.core
     import flash.display.StageScaleMode;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProfile;
-    import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
@@ -218,6 +217,7 @@ package starling.core
         private var _skipUnchangedFrames:Boolean;
         private var _showStats:Boolean;
         private var _supportsCursor:Boolean;
+        private var _multitouchEnabled:Boolean;
 
         private var _viewPort:Rectangle;
         private var _previousViewPort:Rectangle;
@@ -229,7 +229,7 @@ package starling.core
 
         private static var sCurrent:Starling;
         private static var sAll:Vector.<Starling> = new <Starling>[];
-        
+
         // construction
         
         /** Creates a new Starling instance. 
@@ -286,13 +286,12 @@ package starling.core
             _frameID = 1;
             _supportsCursor = Mouse.supportsCursor || Capabilities.os.indexOf("Windows") == 0;
 
+            // register appropriate touch/mouse event handlers
+            setMultitouchEnabled(Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT, true);
+
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
-            
-            // register touch/mouse event handlers            
-            for each (var touchEventType:String in touchEventTypes)
-                stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
             // register other event handlers
             stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
@@ -342,7 +341,7 @@ package starling.core
             stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextRestored, false);
             stage3D.removeEventListener(ErrorEvent.ERROR, onStage3DError, false);
             
-            for each (var touchEventType:String in touchEventTypes)
+            for each (var touchEventType:String in getTouchEventTypes(_multitouchEnabled))
                 _nativeStage.removeEventListener(touchEventType, onTouch, false);
 
             _touchProcessor.dispose();
@@ -746,7 +745,25 @@ package starling.core
                 _touchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
 
-        private function get touchEventTypes():Array
+        private function setMultitouchEnabled(value:Boolean, forceUpdate:Boolean=false):void
+        {
+            if (forceUpdate || value != _multitouchEnabled)
+            {
+                var oldEventTypes:Array = getTouchEventTypes(_multitouchEnabled);
+                var newEventTypes:Array = getTouchEventTypes(value);
+
+                for each (var oldEventType:String in oldEventTypes)
+                    _nativeStage.removeEventListener(oldEventType, onTouch);
+
+                for each (var newEventType:String in newEventTypes)
+                    _nativeStage.addEventListener(newEventType, onTouch, false, 0, true);
+
+                _touchProcessor.cancelTouches();
+                _multitouchEnabled = value;
+            }
+        }
+
+        private function getTouchEventTypes(multitouchEnabled:Boolean):Array
         {
             var types:Array = [];
 
@@ -1057,19 +1074,36 @@ package starling.core
             return sCurrent ? sCurrent.contentScaleFactor : 1.0;
         }
         
-        /** Indicates if multitouch input should be supported. */
+        /** Indicates if multitouch input should be supported. You can enable or disable
+         *  multitouch at any time; just beware that any current touches will be cancelled. */
         public static function get multitouchEnabled():Boolean 
-        { 
-            return Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+        {
+            var enabled:Boolean = Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+            var outOfSync:Boolean = false;
+
+            for each (var star:Starling in sAll)
+                if (star._multitouchEnabled != enabled)
+                    outOfSync = true;
+
+            if (outOfSync)
+                trace("[Starling] Warning: multitouch settings are out of sync. Always set " +
+                      "'Starling.multitouchEnabled' instead of 'Multitouch.inputMode'.");
+
+            return enabled;
         }
         
         public static function set multitouchEnabled(value:Boolean):void
         {
-            if (sCurrent) throw new IllegalOperationError(
-                "'multitouchEnabled' must be set before Starling instance is created");
-            else 
-                Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
-                                               MultitouchInputMode.NONE;
+            var prevInputMode:String = Multitouch.inputMode;
+
+            Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
+                                           MultitouchInputMode.NONE;
+
+            if (Multitouch.inputMode != prevInputMode)
+            {
+                for each (var star:Starling in sAll)
+                    star.setMultitouchEnabled(value);
+            }
         }
 
         /** The number of frames that have been rendered since the current instance was created. */

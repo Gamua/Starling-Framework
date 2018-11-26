@@ -60,7 +60,8 @@ package starling.events
         private var _multitapTime:Number = 0.3;
         private var _multitapDistance:Number = 25;
         private var _touchEvent:TouchEvent;
-
+        private var _isProcessing:Boolean;
+        private var _cancelRequested:Boolean;
         private var _touchMarker:TouchMarker;
         private var _simulateMultitouch:Boolean;
         
@@ -104,6 +105,9 @@ package starling.events
          *  the queue while doing so. This method is called by Starling once per frame. */
         public function advanceTime(passedTime:Number):void
         {
+            if (_isProcessing) return;
+            else _isProcessing = true;
+
             var i:int;
             var touch:Touch;
             var numIterations:int = 0;
@@ -163,6 +167,9 @@ package starling.events
 
                 sUpdatedTouches.length = 0;
             }
+
+            _isProcessing = false;
+            if (_cancelRequested) cancelTouches();
         }
         
         /** Dispatches TouchEvents to the display objects that are affected by the list of
@@ -271,6 +278,12 @@ package starling.events
          *  when the app receives a 'DEACTIVATE' event. */
         public function cancelTouches():void
         {
+            // This method could be called from within a touch event handler. In that case,
+            // we wait until the current 'advanceTime' method is finished before we do anything.
+
+            if (_isProcessing) { _cancelRequested = true; return; }
+            else _cancelRequested = false;
+
             if (_currentTouches.length > 0)
             {
                 // abort touches
