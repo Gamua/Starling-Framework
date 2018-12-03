@@ -238,7 +238,16 @@ package starling.events
         
         /** The current phase the touch is in. @see TouchPhase */
         public function get phase():String { return _phase; }
-        public function set phase(value:String):void { _phase = value; }
+        public function set phase(value:String):void
+        {
+            _phase = value;
+
+            if (value == TouchPhase.BEGAN)
+            {
+                _startGlobalX = _globalX;
+                _startGlobalY = _globalY;
+            }
+        }
         
         /** The display object at which the touch occurred. */
         public function get target():DisplayObject { return _target; }
