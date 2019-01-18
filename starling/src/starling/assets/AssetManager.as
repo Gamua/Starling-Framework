@@ -144,7 +144,7 @@ package starling.assets
         private var _numLostTextures:int;
 
         // Regex for name / extension extraction from URLs.
-        private static const NAME_REGEX:RegExp = /([^?\/\\]+?)(?:\.([\w\-]+))?(?:\?.*)?$/;
+        private static const NAME_REGEX:RegExp = /(([^?\/\\]+?)(?:\.([\w\-]+))?)(?:\?.*)?$/;
 
         // fallback for unnamed assets
         private static const NO_NAME:String = "unnamed";
@@ -295,9 +295,10 @@ package starling.assets
             assetReference.name = name || getNameFromUrl(assetReference.url) || getUniqueName();
             assetReference.extension = getExtensionFromUrl(assetReference.url);
             assetReference.textureOptions = options || _textureOptions;
+            var logName:String = getFilenameFromUrl(assetReference.url) || assetReference.name;
 
             _queue.push(assetReference);
-            log("Enqueuing '" + assetReference.filename + "'");
+            log("Enqueuing '" + logName + "'");
             return assetReference.name;
         }
 
@@ -870,6 +871,16 @@ package starling.assets
 
         // helpers
 
+        private function getFilenameFromUrl(url:String):String
+        {
+            if (url)
+            {
+                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                if (matches && matches.length > 0) return matches[1];
+            }
+            return null;
+        }
+
         /** This method is called internally to determine the name under which an asset will be
          *  accessible; override it if you need a custom naming scheme.
          *
@@ -879,7 +890,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 0) return matches[1];
+                if (matches && matches.length > 1) return matches[2];
             }
             return null;
         }
@@ -895,7 +906,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 1) return matches[2];
+                if (matches && matches.length > 2) return matches[3];
             }
             return "";
         }

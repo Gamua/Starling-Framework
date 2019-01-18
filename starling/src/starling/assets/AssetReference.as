@@ -52,13 +52,5 @@ package starling.assets
         {
             _textureOptions.copyFrom(value);
         }
-
-        /** @private */
-        internal function get filename():String
-        {
-            if (name && extension && extension != "") return name + "." + extension;
-            else if (name) return name;
-            else return null;
-        }
     }
 }
