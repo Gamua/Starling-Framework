@@ -876,7 +876,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 0) return matches[1];
+                if (matches && matches.length > 1) return matches[1];
             }
             return null;
         }
@@ -890,7 +890,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 1) return matches[2];
+                if (matches && matches.length > 2) return matches[2];
             }
             return null;
         }
@@ -906,7 +906,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 2) return matches[3];
+                if (matches && matches.length > 3) return matches[3];
             }
             return "";
         }
