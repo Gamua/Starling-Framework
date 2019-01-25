@@ -16,6 +16,7 @@ package starling.filters
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
 
     /** The DisplacementMapFilter class uses the pixel values from the specified texture (called
      *  the map texture) to perform a displacement of an object. You can use this filter
@@ -42,16 +43,28 @@ package starling.filters
     {
         private var _mapX:Number;
         private var _mapY:Number;
+        private var _mapScaleX:Number;
+        private var _mapScaleY:Number;
 
         // helpers
         private static var sBounds:Rectangle = new Rectangle();
 
-        /** Creates a new displacement map filter that uses the provided map texture. */
+        /** Creates a new displacement map filter that uses the provided map texture.
+         *
+         * @param mapTexture  The texture containing the displacement map data.
+         * @param componentX  Describes which color channel to use in the map image to displace
+         *                    the x result. Possible values are the BitmapDataChannel constants.
+         * @param componentY  Describes which color channel to use in the map image to displace
+         *                    the y result. Possible values are the BitmapDataChannel constants.
+         * @param scaleX      The multiplier used to scale the x displacement result.
+         * @param scaleY      The multiplier used to scale the y displacement result.
+         */
         public function DisplacementMapFilter(mapTexture:Texture,
                                               componentX:uint=0, componentY:uint=0,
                                               scaleX:Number=0.0, scaleY:Number=0.0)
         {
             _mapX = _mapY = 0;
+            _mapScaleX = _mapScaleY = 1.0;
 
             this.mapTexture = mapTexture;
             this.componentX = componentX;
@@ -97,10 +110,12 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
 
-            var mapX:Number = (_mapX + mapOffsetX + padding.left) / mapTexture.width;
-            var mapY:Number = (_mapY + mapOffsetY + padding.top)  / mapTexture.height;
-            var maxU:Number = inputTexture.width  / mapTexture.width;
-            var maxV:Number = inputTexture.height / mapTexture.height;
+            var mapWidth:Number  = MathUtil.max(0.1, mapTexture.width  * _mapScaleX);
+            var mapHeight:Number = MathUtil.max(0.1, mapTexture.height * _mapScaleY);
+            var mapX:Number = (_mapX + mapOffsetX + padding.left) / mapWidth;
+            var mapY:Number = (_mapY + mapOffsetY + padding.top)  / mapHeight;
+            var maxU:Number = inputTexture.width  / mapWidth;
+            var maxV:Number = inputTexture.height / mapHeight;
 
             mapTexture.setTexCoords(vertexData, 0, "mapTexCoords", -mapX, -mapY);
             mapTexture.setTexCoords(vertexData, 1, "mapTexCoords", -mapX + maxU, -mapY);
@@ -171,6 +186,14 @@ package starling.filters
         /** The vertical offset of the map texture relative to the origin. @default 0 */
         public function get mapY():Number { return _mapY; }
         public function set mapY(value:Number):void { _mapY = value; setRequiresRedraw(); }
+
+        /** The horizontal scale applied to the map texture. @default 1 */
+        public function get mapScaleX():Number { return _mapScaleX; }
+        public function set mapScaleX(value:Number):void { _mapScaleX = value; setRequiresRedraw(); }
+
+        /** The vertical scale applied to the map texture. @default 1 */
+        public function get mapScaleY():Number { return _mapScaleY; }
+        public function set mapScaleY(value:Number):void { _mapScaleY = value; setRequiresRedraw(); }
 
         /** The texture that will be used to calculate displacement. */
         public function get mapTexture():Texture { return dispEffect.mapTexture; }
