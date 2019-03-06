@@ -10,8 +10,10 @@
 
 package starling.core
 {
+    import flash.geom.Rectangle;
     import flash.system.System;
 
+    import starling.display.DisplayObject;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.events.EnterFrameEvent;
@@ -28,11 +30,11 @@ package starling.core
     {
         private static const UPDATE_INTERVAL:Number = 0.5;
         private static const B_TO_MB:Number = 1.0 / (1024 * 1024); // convert from bytes to MB
-        
+
         private var _background:Quad;
         private var _labels:TextField;
         private var _values:TextField;
-        
+
         private var _frameCount:int = 0;
         private var _totalTime:Number = 0;
 
@@ -41,7 +43,7 @@ package starling.core
         private var _gpuMemory:Number = 0;
         private var _drawCount:int = 0;
         private var _skipCount:int = 0;
-        
+
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
         {
@@ -72,35 +74,35 @@ package starling.core
             addChild(_background);
             addChild(_labels);
             addChild(_values);
-            
+
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
             addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
         }
-        
+
         private function onAddedToStage():void
         {
             addEventListener(Event.ENTER_FRAME, onEnterFrame);
             _totalTime = _frameCount = _skipCount = 0;
             update();
         }
-        
+
         private function onRemovedFromStage():void
         {
             removeEventListener(Event.ENTER_FRAME, onEnterFrame);
         }
-        
+
         private function onEnterFrame(event:EnterFrameEvent):void
         {
             _totalTime += event.passedTime;
             _frameCount++;
-            
+
             if (_totalTime > UPDATE_INTERVAL)
             {
                 update();
                 _frameCount = _skipCount = _totalTime = 0;
             }
         }
-        
+
         /** Updates the displayed values. */
         public function update():void
         {
@@ -123,7 +125,8 @@ package starling.core
         {
             _skipCount += 1;
         }
-        
+
+        /** @private */
         public override function render(painter:Painter):void
         {
             // By calling 'finishQuadBatch' and 'excludeFromCache', we can make sure that the stats
@@ -133,6 +136,12 @@ package starling.core
             painter.excludeFromCache(this);
             painter.finishMeshBatch();
             super.render(painter);
+        }
+
+        /** @private */
+        override public function getBounds(targetSpace:DisplayObject, out:Rectangle = null):Rectangle
+        {
+            return _background.getBounds(targetSpace, out);
         }
 
         /** Indicates if the current runtime supports the 'totalGPUMemory' API. */
