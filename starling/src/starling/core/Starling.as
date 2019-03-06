@@ -44,6 +44,7 @@ package starling.core
     import starling.rendering.Painter;
     import starling.utils.Align;
     import starling.utils.Color;
+    import starling.utils.Pool;
     import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
 
@@ -475,11 +476,7 @@ package starling.core
                 // thus, we use a clipped viewport when configuring the back buffer. (In baseline
                 // mode, that's not necessary, but it does not hurt either.)
 
-                _clippedViewPort = _viewPort.intersection(
-                    new Rectangle(0, 0, _nativeStage.stageWidth, _nativeStage.stageHeight));
-
-                if (_clippedViewPort.width  < 32) _clippedViewPort.width  = 32;
-                if (_clippedViewPort.height < 32) _clippedViewPort.height = 32;
+                updateClippedViewPort();
 
                 var contentScaleFactor:Number =
                         _supportHighResolutions ? _nativeStage.contentsScaleFactor : 1.0;
@@ -491,6 +488,19 @@ package starling.core
 
                 setRequiresRedraw();
             }
+        }
+
+        private function updateClippedViewPort():void
+        {
+            var stageBounds:Rectangle = Pool.getRectangle(0, 0,
+                _nativeStage.stageWidth, _nativeStage.stageHeight);
+
+            _clippedViewPort = RectangleUtil.intersect(_viewPort, stageBounds, _clippedViewPort);
+
+            if (_clippedViewPort.width  < 32) _clippedViewPort.width  = 32;
+            if (_clippedViewPort.height < 32) _clippedViewPort.height = 32;
+
+            Pool.putRectangle(stageBounds);
         }
         
         private function updateNativeOverlay():void
@@ -911,15 +921,30 @@ package starling.core
                 _stage.addChild(_statsDisplay);
                 _statsDisplay.scaleX = _statsDisplay.scaleY = scale;
 
-                if (horizontalAlign == Align.LEFT) _statsDisplay.x = 0;
-                else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  stageWidth - _statsDisplay.width;
-                else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (stageWidth - _statsDisplay.width) / 2;
+                updateClippedViewPort();
+
+                // The stats display must always be visible, i.e. inside the clipped viewPort.
+                // So we take viewPort clipping into account when calculating its position.
+                
+                var scaleX:Number = _viewPort.width  / _stage.stageWidth;
+                var scaleY:Number = _viewPort.height / _stage.stageHeight;
+                var clipping:Rectangle = Pool.getRectangle(
+                    _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
+                    _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,
+                    _clippedViewPort.width  / scaleX,
+                    _clippedViewPort.height / scaleY);
+
+                if (horizontalAlign == Align.LEFT) _statsDisplay.x = clipping.x;
+                else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  clipping.right - _statsDisplay.width;
+                else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (clipping.right - _statsDisplay.width) / 2;
                 else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
                 
-                if (verticalAlign == Align.TOP) _statsDisplay.y = 0;
-                else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  stageHeight - _statsDisplay.height;
-                else if (verticalAlign == Align.CENTER) _statsDisplay.y = (stageHeight - _statsDisplay.height) / 2;
+                if (verticalAlign == Align.TOP) _statsDisplay.y = clipping.y;
+                else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  clipping.bottom - _statsDisplay.height;
+                else if (verticalAlign == Align.CENTER) _statsDisplay.y = (clipping.bottom - _statsDisplay.height) / 2;
                 else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+
+                Pool.putRectangle(clipping);
             }
             
             function onRootCreated():void
