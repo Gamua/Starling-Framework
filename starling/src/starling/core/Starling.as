@@ -909,9 +909,6 @@ package starling.core
             }
             else
             {
-                var stageWidth:int  = _stage.stageWidth;
-                var stageHeight:int = _stage.stageHeight;
-
                 if (_statsDisplay == null)
                 {
                     _statsDisplay = new StatsDisplay();
