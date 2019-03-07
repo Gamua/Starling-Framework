@@ -1066,6 +1066,21 @@ package starling.core
             }
         }
 
+        /** When enabled, all touches that start very close to the window edges are ignored.
+         *  On mobile, such touches often indicate swipes that are meant to open OS menus.
+         *  Per default, margins of 10 points at the very top and bottom of the screen are checked.
+         *  Call <code>starling.touchProcessor.setSystemGestureMargins()</code> to adapt the margins
+         *  in each direction. */
+        public function get ignoreSystemGestures():Boolean
+        {
+            return _touchProcessor.ignoreSystemGestures;
+        }
+
+        public function set ignoreSystemGestures(value:Boolean):void
+        {
+            _touchProcessor.ignoreSystemGestures = value;
+        }
+
         /** The number of frames that have been rendered since this instance was created. */
         public function get frameID():uint { return _frameID; }
         
