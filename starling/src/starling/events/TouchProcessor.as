@@ -66,6 +66,7 @@ package starling.events
         private var _cancelRequested:Boolean;
         private var _touchMarker:TouchMarker;
         private var _simulateMultitouch:Boolean;
+        private var _occlusionTest:Function;
 
         // system gesture detection
         private var _ignoreSystemGestures:Boolean = false;
@@ -216,7 +217,14 @@ package starling.events
                 if (touch.phase == TouchPhase.HOVER || touch.phase == TouchPhase.BEGAN)
                 {
                     sHelperPoint.setTo(touch.globalX, touch.globalY);
-                    touch.target = _root.hitTest(sHelperPoint);
+
+                    // If an occlusion test is supplied and turns out positive, the touch
+                    // isn't supposed to happen. In this case, the target is set to null.
+
+                    if (_occlusionTest != null && _occlusionTest(touch.globalX, touch.globalY))
+                        touch.target = null;
+                    else
+                        touch.target = _root.hitTest(sHelperPoint);
                 }
             }
             
@@ -508,6 +516,15 @@ package starling.events
 
         /** Returns the number of fingers / touch points that are currently on the stage. */
         public function get numCurrentTouches():int { return _currentTouches.length; }
+
+        /** If this callback returns <code>false</code>, the corresponding touch will have its
+         *  target set to <code>null</code>, which will prevent the original target from being
+         *  notified of the touch. In other words: the touch is being blocked. Callback format:
+         *  <pre>function(stageX:Number, stageY:Number):Boolean;</pre>
+         *  @default null
+         */
+        public function set occlusionTest(value:Function):void { _occlusionTest = value; }
+        public function get occlusionTest():Function { return _occlusionTest; }
 
         /** When enabled, all touches that start very close to the window edges are ignored.
          *  On mobile, such touches often indicate swipes that are meant to open OS menus.

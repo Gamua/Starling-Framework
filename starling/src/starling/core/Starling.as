@@ -22,6 +22,8 @@ package starling.core
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.events.TouchEvent;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.text.TextField;
@@ -44,6 +46,7 @@ package starling.core
     import starling.rendering.Painter;
     import starling.utils.Align;
     import starling.utils.Color;
+    import starling.utils.MatrixUtil;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
@@ -755,6 +758,23 @@ package starling.core
                 _touchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
 
+        private function hitTestNativeOverlay(localX:Number, localY:Number):Boolean
+        {
+            if (_nativeOverlay.numChildren)
+            {
+                var globalPos:Point = Pool.getPoint();
+                var matrix:Matrix   = Pool.getMatrix(
+                    _nativeOverlay.scaleX, 0, 0, _nativeOverlay.scaleY,
+                    _nativeOverlay.x, _nativeOverlay.y);
+                MatrixUtil.transformCoords(matrix, localX, localY, globalPos);
+                var result:Boolean = _nativeOverlay.hitTestPoint(globalPos.x, globalPos.y, true);
+                Pool.putPoint(globalPos);
+                Pool.putMatrix(matrix);
+                return result;
+            }
+            else return false;
+        }
+
         private function setMultitouchEnabled(value:Boolean, forceUpdate:Boolean=false):void
         {
             if (forceUpdate || value != _multitouchEnabled)
@@ -867,7 +887,20 @@ package starling.core
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
          *  Flash components. */ 
         public function get nativeOverlay():Sprite { return _nativeOverlay; }
-        
+
+        /** If enabled, touches or mouse events on the native overlay won't be propagated to
+         *  Starling. @default false */
+        public function get nativeOverlayBlocksTouches():Boolean
+        {
+            return _touchProcessor.occlusionTest != null;
+        }
+
+        public function set nativeOverlayBlocksTouches(value:Boolean):void
+        {
+            if (value != this.nativeOverlayBlocksTouches)
+                _touchProcessor.occlusionTest = value ? hitTestNativeOverlay : null;
+        }
+
         /** Indicates if a small statistics box (with FPS, memory usage and draw count) is
          *  displayed.
          *
