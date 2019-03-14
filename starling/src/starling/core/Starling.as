@@ -293,6 +293,9 @@ package starling.core
             // register appropriate touch/mouse event handlers
             setMultitouchEnabled(Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT, true);
 
+            // make the native overlay behave just like one would expect intuitively
+            nativeOverlayBlocksTouches = true;
+
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
