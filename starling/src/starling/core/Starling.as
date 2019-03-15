@@ -214,6 +214,7 @@ package starling.core
         private var _frameID:uint;
         private var _leftMouseDown:Boolean;
         private var _statsDisplay:StatsDisplay;
+        private var _statsDisplayAlign:Object;
         private var _started:Boolean;
         private var _rendering:Boolean;
         private var _supportHighResolutions:Boolean;
@@ -289,6 +290,7 @@ package starling.core
             _frameTimestamp = getTimer() / 1000.0;
             _frameID = 1;
             _supportsCursor = Mouse.supportsCursor || Capabilities.os.indexOf("Windows") == 0;
+            _statsDisplayAlign = {};
 
             // register appropriate touch/mouse event handlers
             setMultitouchEnabled(Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT, true);
@@ -483,6 +485,7 @@ package starling.core
                 // mode, that's not necessary, but it does not hurt either.)
 
                 updateClippedViewPort();
+                updateStatsDisplayPosition();
 
                 var contentScaleFactor:Number =
                         _supportHighResolutions ? _nativeStage.contentsScaleFactor : 1.0;
@@ -923,8 +926,8 @@ package starling.core
 
             if (value)
             {
-                if (_statsDisplay) _stage.addChild(_statsDisplay);
-                else               showStatsAt();
+                showStatsAt(_statsDisplayAlign.horizontal || "left",
+                            _statsDisplayAlign.vertical   || "top");
             }
             else if (_statsDisplay)
             {
@@ -937,6 +940,8 @@ package starling.core
                                     verticalAlign:String="top", scale:Number=1):void
         {
             _showStats = true;
+            _statsDisplayAlign.horizontal = horizontalAlign;
+            _statsDisplayAlign.vertical = verticalAlign;
 
             if (context == null)
             {
@@ -955,29 +960,7 @@ package starling.core
                 _statsDisplay.scaleX = _statsDisplay.scaleY = scale;
 
                 updateClippedViewPort();
-
-                // The stats display must always be visible, i.e. inside the clipped viewPort.
-                // So we take viewPort clipping into account when calculating its position.
-                
-                var scaleX:Number = _viewPort.width  / _stage.stageWidth;
-                var scaleY:Number = _viewPort.height / _stage.stageHeight;
-                var clipping:Rectangle = Pool.getRectangle(
-                    _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
-                    _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,
-                    _clippedViewPort.width  / scaleX,
-                    _clippedViewPort.height / scaleY);
-
-                if (horizontalAlign == Align.LEFT) _statsDisplay.x = clipping.x;
-                else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  clipping.right - _statsDisplay.width;
-                else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (clipping.right - _statsDisplay.width) / 2;
-                else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
-                
-                if (verticalAlign == Align.TOP) _statsDisplay.y = clipping.y;
-                else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  clipping.bottom - _statsDisplay.height;
-                else if (verticalAlign == Align.CENTER) _statsDisplay.y = (clipping.bottom - _statsDisplay.height) / 2;
-                else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
-
-                Pool.putRectangle(clipping);
+                updateStatsDisplayPosition();
             }
             
             function onRootCreated():void
@@ -986,7 +969,37 @@ package starling.core
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
-        
+
+        private function updateStatsDisplayPosition():void
+        {
+            if (!_showStats) return;
+
+            // The stats display must always be visible, i.e. inside the clipped viewPort.
+            // So we take viewPort clipping into account when calculating its position.
+
+            var horizontalAlign:String = _statsDisplayAlign.horizontal;
+            var verticalAlign:String   = _statsDisplayAlign.vertical;
+            var scaleX:Number = _viewPort.width  / _stage.stageWidth;
+            var scaleY:Number = _viewPort.height / _stage.stageHeight;
+            var clipping:Rectangle = Pool.getRectangle(
+                _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
+                _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,
+                _clippedViewPort.width  / scaleX,
+                _clippedViewPort.height / scaleY);
+
+            if (horizontalAlign == Align.LEFT) _statsDisplay.x = clipping.x;
+            else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  clipping.right - _statsDisplay.width;
+            else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (clipping.right - _statsDisplay.width) / 2;
+            else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
+
+            if (verticalAlign == Align.TOP) _statsDisplay.y = clipping.y;
+            else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  clipping.bottom - _statsDisplay.height;
+            else if (verticalAlign == Align.CENTER) _statsDisplay.y = (clipping.bottom - _statsDisplay.height) / 2;
+            else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+
+            Pool.putRectangle(clipping);
+        }
+
         /** The Starling stage object, which is the root of the display tree that is rendered. */
         public function get stage():Stage { return _stage; }
 
