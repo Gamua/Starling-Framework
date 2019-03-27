@@ -3,9 +3,14 @@ package starling.assets
     import flash.media.Sound;
     import flash.utils.ByteArray;
 
+    import starling.utils.ByteArrayUtil;
+
     /** This AssetFactory creates sound assets. */
     public class SoundFactory extends AssetFactory
     {
+        private static const MAGIC_NUMBERS_A:Array = [0xFF, 0xFB];
+        private static const MAGIC_NUMBERS_B:Array = [0x49, 0x44, 0x33];
+
         /** Creates a new instance. */
         public function SoundFactory()
         {
@@ -16,7 +21,15 @@ package starling.assets
         /** @inheritDoc */
         override public function canHandle(reference:AssetReference):Boolean
         {
-            return reference.data is Sound || super.canHandle(reference);
+            if (reference.data is Sound || super.canHandle(reference))
+                return true;
+            else if (reference.data is ByteArray)
+            {
+                var byteData:ByteArray = reference.data as ByteArray;
+                return ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_A) ||
+                       ByteArrayUtil.startsWithBytes(byteData, MAGIC_NUMBERS_B);
+            }
+            else return false;
         }
 
         /** @inheritDoc */

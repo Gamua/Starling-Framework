@@ -106,15 +106,17 @@ def fixturesDir = new File(projectDir, '/fixtures')
 //  Tasks
 //----------------------------------
 
-task clean_init << {
-    if (binDir.isDirectory()) {
-        delete(binDir)
-    }
-    if (buildDir.isDirectory()) {
-        delete(buildDir)
-    }
-    if (fixturesDir.isDirectory()) {
-        delete(fixturesDir)
+task clean_init {
+    doLast {
+        if (binDir.isDirectory()) {
+            delete(binDir)
+        }
+        if (buildDir.isDirectory()) {
+            delete(buildDir)
+        }
+        if (fixturesDir.isDirectory()) {
+            delete(fixturesDir)
+        }
     }
 }
 
@@ -162,46 +164,52 @@ task compileTest(type: JavaExec) {
     args = argsList
 }
 
-task test << {
-    if (reportDir.isDirectory()) {
-        delete("${reportDir}")
-    }
-    if(testDir.isDirectory()) {
-        def testTaskResult = 'testTaskResult'
-		def testRunner = new File(projectDir, 'build/tests.swf')
-		def htmlOutputDir = new File(projectDir, 'build/reports/html')
-        reportDir.mkdirs()
-        ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath)
-        ant.flexunit(swf: testRunner, toDir: reportDir, haltonfailure:'false', failureproperty: testTaskResult, verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
-        ant.junitreport(todir: reportDir) {
-            fileset(dir: reportDir, includes: 'TEST-*.xml')
-            report(format:'frames', todir: htmlOutputDir)
+task test {
+    doLast {
+        if (reportDir.isDirectory()) {
+            delete("${reportDir}")
         }
+        if(testDir.isDirectory()) {
+            def testTaskResult = 'testTaskResult'
+            def testRunner = new File(projectDir, 'build/tests.swf')
+            def htmlOutputDir = new File(projectDir, 'build/reports/html')
+            reportDir.mkdirs()
+            ant.taskdef(resource: 'flexUnitTasks.tasks', classpath: configurations.test.asPath)
+            ant.flexunit(swf: testRunner, toDir: reportDir, haltonfailure:'false', failureproperty: testTaskResult, verbose:'true', player:'flash', headless:'false', localTrusted:'true', command: FLASH_PLAYER_EXE)
+            ant.junitreport(todir: reportDir) {
+                fileset(dir: reportDir, includes: 'TEST-*.xml')
+                report(format:'frames', todir: htmlOutputDir)
+            }
 
-        String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
-        println(fileContents)
+            String fileContents = new File(projectDir, '/build/reports/TESTS-TestSuites.xml').text
+            println(fileContents)
 
-        if (ant.project.properties[testTaskResult]) {
-            ant.fail('One or more tests failed.')
+            if (ant.project.properties[testTaskResult]) {
+                ant.fail('One or more tests failed.')
+            }
         }
     }
 }
 
-task analyze << {
-    ant.taskdef(name: 'flexPmd', classname: 'com.adobe.ac.pmd.ant.FlexPmdAntTask', classpath: configurations.test.asPath)
-    ant.taskdef(name: 'flexCpd', classname: 'com.adobe.ac.cpd.ant.FlexCpdAntTask', classpath: configurations.test.asPath)
-    ant.flexPmd(sourceDirectory: srcDir, outputDirectory: reportDir )
-    ant.get(src: xsltFile, dest: reportDir)
-    ant.xslt(in: "${reportDir.absolutePath}/pmd.xml", style:"${reportDir.absolutePath}/flex-pmd-report-1.3.xslt", out:"${reportDir.absolutePath}/pmd.html")
+task analyze {
+    doLast {
+        ant.taskdef(name: 'flexPmd', classname: 'com.adobe.ac.pmd.ant.FlexPmdAntTask', classpath: configurations.test.asPath)
+        ant.taskdef(name: 'flexCpd', classname: 'com.adobe.ac.cpd.ant.FlexCpdAntTask', classpath: configurations.test.asPath)
+        ant.flexPmd(sourceDirectory: srcDir, outputDirectory: reportDir )
+        ant.get(src: xsltFile, dest: reportDir)
+        ant.xslt(in: "${reportDir.absolutePath}/pmd.xml", style:"${reportDir.absolutePath}/flex-pmd-report-1.3.xslt", out:"${reportDir.absolutePath}/pmd.html")
+    }
 }
 
-task document << {
-    ant.taskdef(resource: 'flexTasks.tasks', classpath: "${FLEX_HOME}/ant/lib/flexTasks.jar")
-    ant.asdoc(output: 'build/docs', lenient: true) {
-        'doc-sources'("${srcDir}")
-        'compiler.source-path'("${srcDir}")
-        'external-library-path'(dir: "${AIR_HOME}/frameworks/libs/air", append: true) {
-            'include'(name: '*.swc')
+task document {
+    doLast {
+        ant.taskdef(resource: 'flexTasks.tasks', classpath: "${FLEX_HOME}/ant/lib/flexTasks.jar")
+        ant.asdoc(output: 'build/docs', lenient: true) {
+            'doc-sources'("${srcDir}")
+            'compiler.source-path'("${srcDir}")
+            'external-library-path'(dir: "${AIR_HOME}/frameworks/libs/air", append: true) {
+                'include'(name: '*.swc')
+            }
         }
     }
 }

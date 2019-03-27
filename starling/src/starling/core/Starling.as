@@ -17,12 +17,13 @@ package starling.core
     import flash.display.StageScaleMode;
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProfile;
-    import flash.errors.IllegalOperationError;
     import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.events.TouchEvent;
+    import flash.geom.Matrix;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
     import flash.text.TextField;
@@ -45,6 +46,8 @@ package starling.core
     import starling.rendering.Painter;
     import starling.utils.Align;
     import starling.utils.Color;
+    import starling.utils.MatrixUtil;
+    import starling.utils.Pool;
     import starling.utils.RectangleUtil;
     import starling.utils.SystemUtil;
 
@@ -211,6 +214,7 @@ package starling.core
         private var _frameID:uint;
         private var _leftMouseDown:Boolean;
         private var _statsDisplay:StatsDisplay;
+        private var _statsDisplayAlign:Object;
         private var _started:Boolean;
         private var _rendering:Boolean;
         private var _supportHighResolutions:Boolean;
@@ -218,6 +222,7 @@ package starling.core
         private var _skipUnchangedFrames:Boolean;
         private var _showStats:Boolean;
         private var _supportsCursor:Boolean;
+        private var _multitouchEnabled:Boolean;
 
         private var _viewPort:Rectangle;
         private var _previousViewPort:Rectangle;
@@ -229,7 +234,7 @@ package starling.core
 
         private static var sCurrent:Starling;
         private static var sAll:Vector.<Starling> = new <Starling>[];
-        
+
         // construction
         
         /** Creates a new Starling instance. 
@@ -285,14 +290,17 @@ package starling.core
             _frameTimestamp = getTimer() / 1000.0;
             _frameID = 1;
             _supportsCursor = Mouse.supportsCursor || Capabilities.os.indexOf("Windows") == 0;
+            _statsDisplayAlign = {};
+
+            // register appropriate touch/mouse event handlers
+            setMultitouchEnabled(Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT, true);
+
+            // make the native overlay behave just like one would expect intuitively
+            nativeOverlayBlocksTouches = true;
 
             // all other modes are problematic in Starling, so we force those here
             stage.scaleMode = StageScaleMode.NO_SCALE;
             stage.align = StageAlign.TOP_LEFT;
-            
-            // register touch/mouse event handlers            
-            for each (var touchEventType:String in touchEventTypes)
-                stage.addEventListener(touchEventType, onTouch, false, 0, true);
             
             // register other event handlers
             stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
@@ -342,7 +350,7 @@ package starling.core
             stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextRestored, false);
             stage3D.removeEventListener(ErrorEvent.ERROR, onStage3DError, false);
             
-            for each (var touchEventType:String in touchEventTypes)
+            for each (var touchEventType:String in getTouchEventTypes(_multitouchEnabled))
                 _nativeStage.removeEventListener(touchEventType, onTouch, false);
 
             _touchProcessor.dispose();
@@ -476,11 +484,8 @@ package starling.core
                 // thus, we use a clipped viewport when configuring the back buffer. (In baseline
                 // mode, that's not necessary, but it does not hurt either.)
 
-                _clippedViewPort = _viewPort.intersection(
-                    new Rectangle(0, 0, _nativeStage.stageWidth, _nativeStage.stageHeight));
-
-                if (_clippedViewPort.width  < 32) _clippedViewPort.width  = 32;
-                if (_clippedViewPort.height < 32) _clippedViewPort.height = 32;
+                updateClippedViewPort();
+                updateStatsDisplayPosition();
 
                 var contentScaleFactor:Number =
                         _supportHighResolutions ? _nativeStage.contentsScaleFactor : 1.0;
@@ -492,6 +497,19 @@ package starling.core
 
                 setRequiresRedraw();
             }
+        }
+
+        private function updateClippedViewPort():void
+        {
+            var stageBounds:Rectangle = Pool.getRectangle(0, 0,
+                _nativeStage.stageWidth, _nativeStage.stageHeight);
+
+            _clippedViewPort = RectangleUtil.intersect(_viewPort, stageBounds, _clippedViewPort);
+
+            if (_clippedViewPort.width  < 32) _clippedViewPort.width  = 32;
+            if (_clippedViewPort.height < 32) _clippedViewPort.height = 32;
+
+            Pool.putRectangle(stageBounds);
         }
         
         private function updateNativeOverlay():void
@@ -746,7 +764,42 @@ package starling.core
                 _touchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
         }
 
-        private function get touchEventTypes():Array
+        private function hitTestNativeOverlay(localX:Number, localY:Number):Boolean
+        {
+            if (_nativeOverlay.numChildren)
+            {
+                var globalPos:Point = Pool.getPoint();
+                var matrix:Matrix   = Pool.getMatrix(
+                    _nativeOverlay.scaleX, 0, 0, _nativeOverlay.scaleY,
+                    _nativeOverlay.x, _nativeOverlay.y);
+                MatrixUtil.transformCoords(matrix, localX, localY, globalPos);
+                var result:Boolean = _nativeOverlay.hitTestPoint(globalPos.x, globalPos.y, true);
+                Pool.putPoint(globalPos);
+                Pool.putMatrix(matrix);
+                return result;
+            }
+            else return false;
+        }
+
+        private function setMultitouchEnabled(value:Boolean, forceUpdate:Boolean=false):void
+        {
+            if (forceUpdate || value != _multitouchEnabled)
+            {
+                var oldEventTypes:Array = getTouchEventTypes(_multitouchEnabled);
+                var newEventTypes:Array = getTouchEventTypes(value);
+
+                for each (var oldEventType:String in oldEventTypes)
+                    _nativeStage.removeEventListener(oldEventType, onTouch);
+
+                for each (var newEventType:String in newEventTypes)
+                    _nativeStage.addEventListener(newEventType, onTouch, false, 0, true);
+
+                _touchProcessor.cancelTouches();
+                _multitouchEnabled = value;
+            }
+        }
+
+        private function getTouchEventTypes(multitouchEnabled:Boolean):Array
         {
             var types:Array = [];
 
@@ -840,7 +893,20 @@ package starling.core
         /** A Flash Sprite placed directly on top of the Starling content. Use it to display native
          *  Flash components. */ 
         public function get nativeOverlay():Sprite { return _nativeOverlay; }
-        
+
+        /** If enabled, touches or mouse events on the native overlay won't be propagated to
+         *  Starling. @default false */
+        public function get nativeOverlayBlocksTouches():Boolean
+        {
+            return _touchProcessor.occlusionTest != null;
+        }
+
+        public function set nativeOverlayBlocksTouches(value:Boolean):void
+        {
+            if (value != this.nativeOverlayBlocksTouches)
+                _touchProcessor.occlusionTest = value ? hitTestNativeOverlay : null;
+        }
+
         /** Indicates if a small statistics box (with FPS, memory usage and draw count) is
          *  displayed.
          *
@@ -860,8 +926,8 @@ package starling.core
 
             if (value)
             {
-                if (_statsDisplay) _stage.addChild(_statsDisplay);
-                else               showStatsAt();
+                showStatsAt(_statsDisplayAlign.horizontal || "left",
+                            _statsDisplayAlign.vertical   || "top");
             }
             else if (_statsDisplay)
             {
@@ -874,6 +940,8 @@ package starling.core
                                     verticalAlign:String="top", scale:Number=1):void
         {
             _showStats = true;
+            _statsDisplayAlign.horizontal = horizontalAlign;
+            _statsDisplayAlign.vertical = verticalAlign;
 
             if (context == null)
             {
@@ -882,9 +950,6 @@ package starling.core
             }
             else
             {
-                var stageWidth:int  = _stage.stageWidth;
-                var stageHeight:int = _stage.stageHeight;
-
                 if (_statsDisplay == null)
                 {
                     _statsDisplay = new StatsDisplay();
@@ -894,15 +959,8 @@ package starling.core
                 _stage.addChild(_statsDisplay);
                 _statsDisplay.scaleX = _statsDisplay.scaleY = scale;
 
-                if (horizontalAlign == Align.LEFT) _statsDisplay.x = 0;
-                else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  stageWidth - _statsDisplay.width;
-                else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (stageWidth - _statsDisplay.width) / 2;
-                else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
-                
-                if (verticalAlign == Align.TOP) _statsDisplay.y = 0;
-                else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  stageHeight - _statsDisplay.height;
-                else if (verticalAlign == Align.CENTER) _statsDisplay.y = (stageHeight - _statsDisplay.height) / 2;
-                else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+                updateClippedViewPort();
+                updateStatsDisplayPosition();
             }
             
             function onRootCreated():void
@@ -911,7 +969,37 @@ package starling.core
                 removeEventListener(starling.events.Event.ROOT_CREATED, onRootCreated);
             }
         }
-        
+
+        private function updateStatsDisplayPosition():void
+        {
+            if (!_showStats) return;
+
+            // The stats display must always be visible, i.e. inside the clipped viewPort.
+            // So we take viewPort clipping into account when calculating its position.
+
+            var horizontalAlign:String = _statsDisplayAlign.horizontal;
+            var verticalAlign:String   = _statsDisplayAlign.vertical;
+            var scaleX:Number = _viewPort.width  / _stage.stageWidth;
+            var scaleY:Number = _viewPort.height / _stage.stageHeight;
+            var clipping:Rectangle = Pool.getRectangle(
+                _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
+                _viewPort.y < 0 ? -_viewPort.y / scaleY : 0.0,
+                _clippedViewPort.width  / scaleX,
+                _clippedViewPort.height / scaleY);
+
+            if (horizontalAlign == Align.LEFT) _statsDisplay.x = clipping.x;
+            else if (horizontalAlign == Align.RIGHT)  _statsDisplay.x =  clipping.right - _statsDisplay.width;
+            else if (horizontalAlign == Align.CENTER) _statsDisplay.x = (clipping.right - _statsDisplay.width) / 2;
+            else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
+
+            if (verticalAlign == Align.TOP) _statsDisplay.y = clipping.y;
+            else if (verticalAlign == Align.BOTTOM) _statsDisplay.y =  clipping.bottom - _statsDisplay.height;
+            else if (verticalAlign == Align.CENTER) _statsDisplay.y = (clipping.bottom - _statsDisplay.height) / 2;
+            else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
+
+            Pool.putRectangle(clipping);
+        }
+
         /** The Starling stage object, which is the root of the display tree that is rendered. */
         public function get stage():Stage { return _stage; }
 
@@ -1027,6 +1115,21 @@ package starling.core
             }
         }
 
+        /** When enabled, all touches that start very close to the window edges are ignored.
+         *  On mobile, such touches often indicate swipes that are meant to open OS menus.
+         *  Per default, margins of 10 points at the very top and bottom of the screen are checked.
+         *  Call <code>starling.touchProcessor.setSystemGestureMargins()</code> to adapt the margins
+         *  in each direction. */
+        public function get ignoreSystemGestures():Boolean
+        {
+            return _touchProcessor.ignoreSystemGestures;
+        }
+
+        public function set ignoreSystemGestures(value:Boolean):void
+        {
+            _touchProcessor.ignoreSystemGestures = value;
+        }
+
         /** The number of frames that have been rendered since this instance was created. */
         public function get frameID():uint { return _frameID; }
         
@@ -1057,19 +1160,38 @@ package starling.core
             return sCurrent ? sCurrent.contentScaleFactor : 1.0;
         }
         
-        /** Indicates if multitouch input should be supported. */
+        /** Indicates if multitouch input should be supported. You can enable or disable
+         *  multitouch at any time; just beware that any current touches will be cancelled. */
         public static function get multitouchEnabled():Boolean 
-        { 
-            return Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+        {
+            var enabled:Boolean = Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+            var outOfSync:Boolean = false;
+
+            for each (var star:Starling in sAll)
+                if (star._multitouchEnabled != enabled)
+                    outOfSync = true;
+
+            if (outOfSync)
+                trace("[Starling] Warning: multitouch settings are out of sync. Always set " +
+                      "'Starling.multitouchEnabled' instead of 'Multitouch.inputMode'.");
+
+            return enabled;
         }
         
         public static function set multitouchEnabled(value:Boolean):void
         {
-            if (sCurrent) throw new IllegalOperationError(
-                "'multitouchEnabled' must be set before Starling instance is created");
-            else 
-                Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
-                                               MultitouchInputMode.NONE;
+            var wasEnabled:Boolean = Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+
+            Multitouch.inputMode = value ? MultitouchInputMode.TOUCH_POINT :
+                MultitouchInputMode.NONE;
+
+            var isEnabled:Boolean = Multitouch.inputMode == MultitouchInputMode.TOUCH_POINT;
+
+            if (wasEnabled != isEnabled)
+            {
+                for each (var star:Starling in sAll)
+                    star.setMultitouchEnabled(isEnabled);
+            }
         }
 
         /** The number of frames that have been rendered since the current instance was created. */

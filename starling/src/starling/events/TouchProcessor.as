@@ -11,11 +11,13 @@
 package starling.events
 {
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.utils.getDefinitionByName;
 
     import starling.core.Starling;
     import starling.display.DisplayObject;
     import starling.display.Stage;
+    import starling.utils.Pool;
 
     /** The TouchProcessor is used to convert mouse and touch events of the conventional
      *  Flash stage to Starling's TouchEvents.
@@ -60,10 +62,17 @@ package starling.events
         private var _multitapTime:Number = 0.3;
         private var _multitapDistance:Number = 25;
         private var _touchEvent:TouchEvent;
-
+        private var _isProcessing:Boolean;
+        private var _cancelRequested:Boolean;
         private var _touchMarker:TouchMarker;
         private var _simulateMultitouch:Boolean;
-        
+        private var _occlusionTest:Function;
+
+        // system gesture detection
+        private var _ignoreSystemGestures:Boolean = false;
+        private var _systemGestureTouchID:int = -1;
+        private var _systemGestureMargins:Array = [10, 10, 0, 0];
+
         /** A vector of arrays with the arguments that were passed to the "enqueue"
          *  method (the oldest being at the end of the vector). */
         protected var _queue:Vector.<TouchData>;
@@ -75,7 +84,12 @@ package starling.events
         private static var sUpdatedTouches:Vector.<Touch> = new <Touch>[];
         private static var sHoveringTouchData:Vector.<Object> = new <Object>[];
         private static var sHelperPoint:Point = new Point();
-        
+
+        private static const TOP:int = 0;
+        private static const BOTTOM:int = 1;
+        private static const LEFT:int = 2;
+        private static const RIGHT:int = 3;
+
         /** Creates a new TouchProcessor that will dispatch events to the given stage. */
         public function TouchProcessor(stage:Stage)
         {
@@ -104,6 +118,9 @@ package starling.events
          *  the queue while doing so. This method is called by Starling once per frame. */
         public function advanceTime(passedTime:Number):void
         {
+            if (_isProcessing) return;
+            else _isProcessing = true;
+
             var i:int;
             var touch:Touch;
             var numIterations:int = 0;
@@ -163,6 +180,9 @@ package starling.events
 
                 sUpdatedTouches.length = 0;
             }
+
+            _isProcessing = false;
+            if (_cancelRequested) cancelTouches();
         }
         
         /** Dispatches TouchEvents to the display objects that are affected by the list of
@@ -197,7 +217,14 @@ package starling.events
                 if (touch.phase == TouchPhase.HOVER || touch.phase == TouchPhase.BEGAN)
                 {
                     sHelperPoint.setTo(touch.globalX, touch.globalY);
-                    touch.target = _root.hitTest(sHelperPoint);
+
+                    // If an occlusion test is supplied and turns out positive, the touch
+                    // isn't supposed to happen. In this case, the target is set to null.
+
+                    if (_occlusionTest != null && _occlusionTest(touch.globalX, touch.globalY))
+                        touch.target = null;
+                    else
+                        touch.target = _root.hitTest(sHelperPoint);
                 }
             }
             
@@ -214,11 +241,50 @@ package starling.events
             // clean up any references
             _touchEvent.resetTo(TouchEvent.TOUCH);
         }
-        
-        /** Enqueues a new touch our mouse event with the given properties. */
+
+        private function checkForSystemGesture(touchID:int, phase:String,
+                                               globalX:Number, globalY:Number):Boolean
+        {
+            if (_systemGestureMargins == null || phase == TouchPhase.HOVER)
+                return false;
+
+            if (_systemGestureTouchID == touchID)
+            {
+                if (phase == TouchPhase.ENDED)
+                    _systemGestureTouchID = -1;
+
+                return true;
+            }
+            else if (_systemGestureTouchID >= 0)
+            {
+                return false; // there can always only be one system gesture active
+            }
+            else if (phase == TouchPhase.BEGAN) // also: _systemGestureTouchID < 0
+            {
+                var isGesture:Boolean;
+                var screenBounds:Rectangle = _stage.getScreenBounds(_stage, Pool.getRectangle());
+
+                isGesture =
+                    globalX < screenBounds.left   + _systemGestureMargins[LEFT]  ||
+                    globalX > screenBounds.right  - _systemGestureMargins[RIGHT] ||
+                    globalY < screenBounds.top    + _systemGestureMargins[TOP]   ||
+                    globalY > screenBounds.bottom - _systemGestureMargins[BOTTOM];
+
+                Pool.putRectangle(screenBounds);
+
+                if (isGesture) _systemGestureTouchID = touchID;
+                return isGesture;
+            }
+            else return false;
+        }
+
+        /** Enqueues a new touch or mouse event with the given properties. */
         public function enqueue(touchID:int, phase:String, globalX:Number, globalY:Number,
                                 pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
         {
+            if (checkForSystemGesture(touchID, phase, globalX, globalY))
+                return;
+
             queue_unshift(touchID, phase, globalX, globalY, pressure, width, height);
             
             // multitouch simulation (only with mouse)
@@ -271,6 +337,12 @@ package starling.events
          *  when the app receives a 'DEACTIVATE' event. */
         public function cancelTouches():void
         {
+            // This method could be called from within a touch event handler. In that case,
+            // we wait until the current 'advanceTime' method is finished before we do anything.
+
+            if (_isProcessing) { _cancelRequested = true; return; }
+            else _cancelRequested = false;
+
             if (_currentTouches.length > 0)
             {
                 // abort touches
@@ -372,7 +444,19 @@ package starling.events
             
             return false;
         }
-        
+
+        /** Configures the margins within which, when a touch is starting, it's considered to be
+         *  a system gesture (in points). Note that you also need to enable 'ignoreSystemGestures'.
+         */
+        public function setSystemGestureMargins(topMargin:Number=10, bottomMargin:Number=10,
+                                                leftMargin:Number=0, rightMargin:Number=0):void
+        {
+            _systemGestureMargins[TOP] = topMargin;
+            _systemGestureMargins[BOTTOM] = bottomMargin;
+            _systemGestureMargins[LEFT] = leftMargin;
+            _systemGestureMargins[RIGHT] = rightMargin;
+        }
+
         /** Indicates if multitouch simulation should be activated. When the user presses
          *  ctrl/cmd (and optionally shift), he'll see a second touch cursor that mimics the first.
          *  That's an easy way to develop and test multitouch when there's only a mouse available.
@@ -393,7 +477,7 @@ package starling.events
                     target.addEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);
             }
             else if (!value && _touchMarker)
-            {                
+            {
                 _touchMarker.removeFromParent(true);
                 _touchMarker = null;
             }
@@ -410,12 +494,12 @@ package starling.events
                 }
             }
         }
-        
+
         /** The time period (in seconds) in which two touches must occur to be recognized as
          *  a multitap gesture. */
         public function get multitapTime():Number { return _multitapTime; }
         public function set multitapTime(value:Number):void { _multitapTime = value; }
-        
+
         /** The distance (in points) describing how close two touches must be to each other to
          *  be recognized as a multitap gesture. */
         public function get multitapDistance():Number { return _multitapDistance; }
@@ -426,12 +510,35 @@ package starling.events
          *  by assigning a different object. */
         public function get root():DisplayObject { return _root; }
         public function set root(value:DisplayObject):void { _root = value; }
-        
+
         /** The stage object to which the touch events are (per default) dispatched. */
         public function get stage():Stage { return _stage; }
-        
+
         /** Returns the number of fingers / touch points that are currently on the stage. */
         public function get numCurrentTouches():int { return _currentTouches.length; }
+
+        /** If this callback returns <code>false</code>, the corresponding touch will have its
+         *  target set to <code>null</code>, which will prevent the original target from being
+         *  notified of the touch. In other words: the touch is being blocked. Callback format:
+         *  <pre>function(stageX:Number, stageY:Number):Boolean;</pre>
+         *  @default null
+         */
+        public function set occlusionTest(value:Function):void { _occlusionTest = value; }
+        public function get occlusionTest():Function { return _occlusionTest; }
+
+        /** When enabled, all touches that start very close to the window edges are ignored.
+         *  On mobile, such touches often indicate swipes that are meant to open OS menus.
+         *  Per default, margins of 10 points at the very top and bottom of the screen are checked.
+         *  Call 'setSystemGestureMargins()' to adapt the margins in each direction. */
+        public function get ignoreSystemGestures():Boolean { return _ignoreSystemGestures; }
+        public function set ignoreSystemGestures(value:Boolean):void
+        {
+            if (_ignoreSystemGestures != value)
+            {
+                _ignoreSystemGestures = value;
+                _systemGestureTouchID = -1;
+            }
+        }
 
         // keyboard handling
         
