@@ -1,5 +1,6 @@
 package scenes
 {
+    import starling.animation.BezierEasing;
     import starling.animation.Transitions;
     import starling.animation.Tween;
     import starling.core.Starling;
@@ -22,10 +23,22 @@ package scenes
         
         public function AnimationScene()
         {
+            // some standard Starling transitions:
+
             _transitions = [Transitions.LINEAR, Transitions.EASE_IN_OUT,
                             Transitions.EASE_OUT_BACK, Transitions.EASE_OUT_BOUNCE,
                             Transitions.EASE_OUT_ELASTIC];
-            
+
+            // you can easily add the easing functions recommended for Material Design like this:
+            // see: https://material.io/design/motion/speed.html#easing
+            // see: http://cubic-bezier.com
+
+            Transitions.register("materialStandard",   BezierEasing.create(0.4, 0.0, 0.2, 1.0));
+            Transitions.register("materialDecelerate", BezierEasing.create(0.0, 0.0, 0.2, 1.0));
+            Transitions.register("materialAccelerate", BezierEasing.create(0.4, 0.0, 1.0, 1.0));
+
+            _transitions.push("materialStandard", "materialDecelerate", "materialAccelerate");
+
             // create a button that starts the tween
             _startButton = new MenuButton("Start animation");
             _startButton.addEventListener(Event.TRIGGERED, onStartButtonTriggered);
