@@ -376,14 +376,9 @@ package starling.events
                 touch = new Touch(touchData.id);
                 addCurrentTouch(touch);
             }
-            
-            touch.globalX = touchData.globalX;
-            touch.globalY = touchData.globalY;
-            touch.phase = touchData.phase;
-            touch.timestamp = _elapsedTime;
-            touch.pressure = touchData.pressure;
-            touch.width  = touchData.width;
-            touch.height = touchData.height;
+
+            touch.update(_elapsedTime, touchData.phase, touchData.globalX, touchData.globalY,
+                touchData.pressure, touchData.width, touchData.height);
 
             if (touchData.phase == TouchPhase.BEGAN)
                 updateTapCount(touch);
