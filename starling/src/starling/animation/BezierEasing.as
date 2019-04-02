@@ -5,7 +5,8 @@ package starling.animation
     /** Provides Cubic Bezier Curve easing, which generalizes easing functions
      *  via a four-point bezier curve. That way, you can easily create custom easing functions
      *  that will be picked up by Starling's Tween class later. To set up your bezier curves,
-     *  best use a visual tool like <a href="http://cubic-bezier.com/">this one</a>.
+     *  best use a visual tool like <a href="http://cubic-bezier.com/">cubic-bezier.com</a> or
+     *  <a href="http://matthewlein.com/ceaser/">Ceaser</a>.
      *
      *  <p>For example, you can add the transitions recommended by Google's Material Design
      *  standards (see <a href="https://material.io/design/motion/speed.html#easing">here</a>)
@@ -40,7 +41,7 @@ package starling.animation
         public function BezierEasing() { throw new AbstractClassError(); }
 
         /** Create an easing function that's defined by two control points of a bezier curve.
-         *  The curve will always go directly through points 0 and 3, which are fixed at the
+         *  The curve will always go directly through points 0 and 3, which are fixed at
          *  (0, 0) and (1, 1), respectively. Points 1 and 2 define the curvature of the bezier
          *  curve.
          *
