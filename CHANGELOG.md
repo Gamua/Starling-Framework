@@ -1,6 +1,48 @@
 Starling: Changelog
 ===================
 
+version 2.5 - 2019-04-02
+------------------------
+
+- added 'BezierEasing' class for simple CSS-like transitions (thanks to Rodrigo!)
+- added system gesture recognition - swipes from top or bottom of the screen are now ignored (#861)
+  - configured via new property 'ignoreSystemGestures' on TouchProcessor and Starling
+- added 'Starling.nativeOverlayBlocksTouches' property, which makes native overlay behave more intuitively (#861)
+- added 'stage.getScreenBounds' method
+- added support for SubTextures (atlas textures) to DisplacementMapFilter
+- added 'mapScaleX/Y' properties to the DisplacementMapFilter
+- added standard 'Array' pooling to Pool class
+- added 'ByteArrayUtil.startsWithBytes'; BitmapTextureFactory now checks for JPG, PNG and GIF magic numbers
+- added MP3 magic number check to SoundFactory
+- added HSV / HSL utility methods to 'Color' class (#1035) (thanks to Adolio!)
+- added 'TextureAtlas.removeRegions()' (#1036)
+- added support for enabling/disabling multi-touch at any time (#1048)
+- added new properties and methods to the 'Touch' class
+  - `function getStartLocation(space:DisplayObject, out:Point=null):Point`
+  - `function getMovementSinceStart(space:DisplayObject, out:Point=null):Point`
+  - `function get startGlobalX():Number`
+  - `function get startGlobalY():Number`
+  - `function get duration():Number`
+- enhanced memory management of AssetManager
+- enhanced asset manager verbose output (#1053)
+- enhanced TouchProcessor by pooling raw touch data (#1037)
+- enhanced usefulness of AssetManager's error callback by including the actual asset (#1031) (thanks to aram-ahak!)
+- fixed that stats display didn't align correctly after viewPort changes (#264)
+- fixed that stats display could be cropped when viewPort extended beyond stage bounds (#264)
+- fixed that stats display was not correctly aligned to the right
+- fixed that TrueType text could become blurry when using non-integer content scale factors (#1055)
+- fixed array range checks when accessing filename Regex matches in AssetManager
+- fixed that texture factories did not correctly enter 'onError' callbacks on exceptions during creation
+- fixed that button using a texture with automatic pivot assignment was not scaled correctly when pressed
+- fixed double-dispose of RenderTexture's base texture (#1043)
+- fixed mixed-up JPG/PNG magic numbers
+- fixed missing 'eventStack.pop' call in EventDispatcher (#1038) (thanks to Klug76!)
+- fixed that MovieClip skipped frames in certain floating-point situations
+- fixed that changing stage color did not force redraw
+- fixed that 'onComplete' parameter of 'AssetFactory.create' ignored 'type' parameter
+- fixed that on Windows, an app might render with a blank screen when becoming active (#1032) (thanks to Josh!)
+- fixed API doc sample for nesting AssetManagers (#1030)
+
 version 2.4 - 2018-06-04
 ------------------------
 
