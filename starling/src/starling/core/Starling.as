@@ -283,6 +283,7 @@ package starling.core
             _nativeStage = stage;
             _nativeStage.addChild(_nativeOverlay);
             _touchProcessor = new TouchProcessor(_stage);
+            _touchProcessor.discardSystemGestures = !SystemUtil.isDesktop;
             _juggler = new Juggler();
             _antiAliasing = 0;
             _supportHighResolutions = false;
@@ -1115,19 +1116,20 @@ package starling.core
             }
         }
 
-        /** When enabled, all touches that start very close to the window edges are ignored.
+        /** When enabled, all touches that start very close to the window edges are discarded.
          *  On mobile, such touches often indicate swipes that are meant to open OS menus.
          *  Per default, margins of 10 points at the very top and bottom of the screen are checked.
          *  Call <code>starling.touchProcessor.setSystemGestureMargins()</code> to adapt the margins
-         *  in each direction. */
-        public function get ignoreSystemGestures():Boolean
+         *  in each direction. @default true on mobile, false on desktop
+         */
+        public function get discardSystemGestures():Boolean
         {
-            return _touchProcessor.ignoreSystemGestures;
+            return _touchProcessor.discardSystemGestures;
         }
 
-        public function set ignoreSystemGestures(value:Boolean):void
+        public function set discardSystemGestures(value:Boolean):void
         {
-            _touchProcessor.ignoreSystemGestures = value;
+            _touchProcessor.discardSystemGestures = value;
         }
 
         /** The number of frames that have been rendered since this instance was created. */
