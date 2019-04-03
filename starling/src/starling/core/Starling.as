@@ -973,7 +973,7 @@ package starling.core
 
         private function updateStatsDisplayPosition():void
         {
-            if (!_showStats) return;
+            if (!_showStats || _statsDisplay == null) return;
 
             // The stats display must always be visible, i.e. inside the clipped viewPort.
             // So we take viewPort clipping into account when calculating its position.
