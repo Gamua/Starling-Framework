@@ -896,7 +896,7 @@ package starling.core
         public function get nativeOverlay():Sprite { return _nativeOverlay; }
 
         /** If enabled, touches or mouse events on the native overlay won't be propagated to
-         *  Starling. @default false */
+         *  Starling. @default true */
         public function get nativeOverlayBlocksTouches():Boolean
         {
             return _touchProcessor.occlusionTest != null;
