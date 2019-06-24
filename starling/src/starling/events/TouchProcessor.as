@@ -69,7 +69,7 @@ package starling.events
         private var _occlusionTest:Function;
 
         // system gesture detection
-        private var _ignoreSystemGestures:Boolean = false;
+        private var _discardSystemGestures:Boolean;
         private var _systemGestureTouchID:int = -1;
         private var _systemGestureMargins:Array = [10, 10, 0, 0];
 
@@ -245,7 +245,7 @@ package starling.events
         private function checkForSystemGesture(touchID:int, phase:String,
                                                globalX:Number, globalY:Number):Boolean
         {
-            if (_systemGestureMargins == null || phase == TouchPhase.HOVER)
+            if (!_discardSystemGestures || phase == TouchPhase.HOVER)
                 return false;
 
             if (_systemGestureTouchID == touchID)
@@ -376,14 +376,9 @@ package starling.events
                 touch = new Touch(touchData.id);
                 addCurrentTouch(touch);
             }
-            
-            touch.globalX = touchData.globalX;
-            touch.globalY = touchData.globalY;
-            touch.phase = touchData.phase;
-            touch.timestamp = _elapsedTime;
-            touch.pressure = touchData.pressure;
-            touch.width  = touchData.width;
-            touch.height = touchData.height;
+
+            touch.update(_elapsedTime, touchData.phase, touchData.globalX, touchData.globalY,
+                touchData.pressure, touchData.width, touchData.height);
 
             if (touchData.phase == TouchPhase.BEGAN)
                 updateTapCount(touch);
@@ -526,16 +521,17 @@ package starling.events
         public function set occlusionTest(value:Function):void { _occlusionTest = value; }
         public function get occlusionTest():Function { return _occlusionTest; }
 
-        /** When enabled, all touches that start very close to the window edges are ignored.
+        /** When enabled, all touches that start very close to the window edges are discarded.
          *  On mobile, such touches often indicate swipes that are meant to open OS menus.
          *  Per default, margins of 10 points at the very top and bottom of the screen are checked.
-         *  Call 'setSystemGestureMargins()' to adapt the margins in each direction. */
-        public function get ignoreSystemGestures():Boolean { return _ignoreSystemGestures; }
-        public function set ignoreSystemGestures(value:Boolean):void
+         *  Call 'setSystemGestureMargins()' to adapt the margins in each direction.
+         *  @default true on mobile, false on desktop */
+        public function get discardSystemGestures():Boolean { return _discardSystemGestures; }
+        public function set discardSystemGestures(value:Boolean):void
         {
-            if (_ignoreSystemGestures != value)
+            if (_discardSystemGestures != value)
             {
-                _ignoreSystemGestures = value;
+                _discardSystemGestures = value;
                 _systemGestureTouchID = -1;
             }
         }

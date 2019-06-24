@@ -199,10 +199,12 @@ package starling.events
         /** The previous y-position of the touch in stage coordinates. */
         public function get previousGlobalY():Number { return _previousGlobalY; }
 
-        /** The x-position of the touch when it was in 'TouchPhase.BEGAN' (in stage coordinates). */
+        /** The x-position of the touch when it was in 'TouchPhase.BEGAN', in stage coordinates.
+         *  (Or, if the touch is in phase 'HOVER', the x-position when it first appeared.) */
         public function get startGlobalX():Number { return _startGlobalX; }
 
-        /** The y-position of the touch when it was in 'TouchPhase.BEGAN' (in stage coordinates). */
+        /** The y-position of the touch when it was in 'TouchPhase.BEGAN', in stage coordinates.
+         *  (Or, if the touch is in phase 'HOVER', the y-position when it first appeared.) */
         public function get startGlobalY():Number { return _startGlobalY; }
 
         /** The x-position of the touch in stage coordinates. If you change this value,
@@ -246,6 +248,7 @@ package starling.events
             {
                 _startGlobalX = _globalX;
                 _startGlobalY = _globalY;
+                _startTimestamp = _timestamp;
             }
         }
         
@@ -288,13 +291,29 @@ package starling.events
         public function get cancelled():Boolean { return _cancelled; }
         public function set cancelled(value:Boolean):void { _cancelled = value; }
 
-        /** The time that has passed since the touch was created. */
+        /** If the touch is hovering, returns the time (in seconds) since the touch was created;
+         *  afterwards, the time since the touch was in phase 'BEGAN'. */
         public function get duration():Number
         {
-            return _timestamp >= 0 ? _timestamp - _startTimestamp : 0.0;
+            if (_timestamp < 0 || _startTimestamp < 0 || _startTimestamp > _timestamp) return -1.0;
+            else return _timestamp - _startTimestamp;
         }
 
         // internal methods
+
+        /** @private
+         *  Updates all important properties at once. */
+        internal function update(timestamp:Number, phase:String, globalX:Number, globalY:Number,
+                                 pressure:Number=1.0, width:Number=1.0, height:Number=1.0):void
+        {
+            _pressure = pressure;
+            _width = width;
+            _height = height;
+            this.timestamp = timestamp;
+            this.globalX = globalX;
+            this.globalY = globalY;
+            this.phase = phase; // must be the last property to be updated! (yikes)
+        }
         
         /** @private 
          *  Dispatches a touch event along the current bubble chain (which is updated each time

@@ -7,7 +7,7 @@ The Starling Framework allows you to create hardware accelerated apps in ActionS
 
 While Starling mimics the classic display tree architecture of Adobe AIR/Flash, it provides a much better performance: all objects are rendered directly by the GPU (using the Stage3D API). The complete architecture was designed for working well with the GPU; common game development tasks were built right into its core. Starling hides Stage3D internals from developers, but makes it easy to access them for those who need full performance and flexibility.
 
-Starling aims to be as lightweight and easy to use as possible. As an Open Source project, much care was taken to make the source code easy to read, understand and extend. With under 15k lines of code, experienced developers can easily grasp it in its entirety, or modify it to their needs.
+Starling aims to be as lightweight and easy to use as possible. As an Open Source project, much care was taken to make the source code easy to read, understand and extend. With under 20k lines of code, experienced developers can easily grasp it in its entirety, or modify it to their needs.
 
 Quick Links
 -----------
@@ -25,7 +25,6 @@ News and Updates
 
 * [Twitter](https://twitter.com/gamua)
 * [Facebook](https://facebook.com/gamua.co)
-* [Google+](https://www.google.com/+gamua)
 * [LinkedIn](https://www.linkedin.com/company/gamua)
 
 Minimum Requirements
