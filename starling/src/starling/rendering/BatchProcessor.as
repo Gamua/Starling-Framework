@@ -96,7 +96,7 @@ package starling.rendering
                 var matrix:Matrix = state ? state._modelviewMatrix : null;
                 var alpha:Number  = state ? state._alpha : 1.0;
 
-                _currentBatch.addMesh(mesh, matrix, alpha, subset, ignoreTransformations);
+                _currentBatch.addMeshAt(mesh, -1, -1, matrix, alpha, subset, ignoreTransformations);
                 _cacheToken.vertexID += subset.numVertices;
                 _cacheToken.indexID  += subset.numIndices;
             }
