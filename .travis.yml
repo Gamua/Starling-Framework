@@ -20,8 +20,6 @@ before_script:
     # Homebrew
     - brew update >brew-update.log
     - brew install ant gradle >brew-install.log
-    - brew install caskroom/cask/brew-cask
-    - brew tap caskroom/versions
     - brew cask install flash-player-debugger
     # Adobe AIR SDK
     - mkdir -p air_sdk
