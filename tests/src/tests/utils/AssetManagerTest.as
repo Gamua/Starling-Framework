@@ -386,6 +386,23 @@ package tests.utils
 
             assertFalse(texture.isDisposed);
         }
+
+        [Test(async)]
+        public function dequeueAsset():void
+        {
+            _manager.enqueue("../fixtures/image.png");
+            _manager.enqueue("../fixtures/json.json");
+            _manager.enqueue("../fixtures/data.txt");
+            _manager.enqueue("../fixtures/xml.xml");
+            _manager.dequeue("data", "xml");
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
+            {
+                assertNotNull(_manager.getTextures("image"));
+                assertNull(_manager.getByteArray("data"));
+                assertNotNull(_manager.getObject("json"));
+                assertNull(_manager.getObject("xml"));
+            }));
+        }
     }
 }
 

@@ -302,6 +302,16 @@ package starling.assets
             return assetReference.name;
         }
 
+        /** Removes the asset(s) with the given name(s) from the queue. Note that this won't work
+         *  after loading has started, even if these specific assets have not yet been processed. */
+        public function dequeue(...assetNames):void
+        {
+            _queue = _queue.filter(function(asset:AssetReference, i:int, v:*):Boolean
+            {
+                return assetNames.indexOf(asset.name) == -1;
+            });
+        }
+
         /** Empties the queue and aborts any pending load operations. */
         public function purgeQueue():void
         {
