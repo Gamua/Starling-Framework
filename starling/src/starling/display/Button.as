@@ -10,18 +10,14 @@
 
 package starling.display
 {
+    import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.ui.Mouse;
-    import flash.ui.MouseCursor;
 
-    import starling.events.Event;
-    import starling.events.Touch;
-    import starling.events.TouchEvent;
-    import starling.events.TouchPhase;
     import starling.styles.MeshStyle;
     import starling.text.TextField;
     import starling.text.TextFormat;
     import starling.textures.Texture;
+    import starling.utils.ButtonBehavior;
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
@@ -41,8 +37,6 @@ package starling.display
      */
     public class Button extends DisplayObjectContainer
     {
-        private static const MAX_DRAG_DIST:Number = 50;
-        
         private var _upState:Texture;
         private var _downState:Texture;
         private var _overState:Texture;
@@ -54,14 +48,11 @@ package starling.display
         private var _textBounds:Rectangle;
         private var _overlay:Sprite;
         
+        private var _behavior:ButtonBehavior;
         private var _scaleWhenDown:Number;
         private var _scaleWhenOver:Number;
         private var _alphaWhenDown:Number;
         private var _alphaWhenDisabled:Number;
-        private var _useHandCursor:Boolean;
-        private var _enabled:Boolean;
-        private var _state:String;
-        private var _triggerBounds:Rectangle;
 
         /** Creates a button with a set of state-textures and (optionally) some text.
          *  Any state that is left 'null' will display the up-state texture. Beware that all
@@ -76,23 +67,19 @@ package starling.display
             _overState = overState;
             _disabledState = disabledState;
 
-            _state = ButtonState.UP;
+            _behavior = new ButtonBehavior(this, onStateChange);
             _body = new Image(upState);
             _body.pixelSnapping = true;
             _scaleWhenDown = downState ? 1.0 : 0.9;
             _scaleWhenOver = _alphaWhenDown = 1.0;
             _alphaWhenDisabled = disabledState ? 1.0: 0.5;
-            _enabled = true;
-            _useHandCursor = true;
             _textBounds = new Rectangle(0, 0, _body.width, _body.height);
-            _triggerBounds = new Rectangle();
-            
+
             _contents = new Sprite();
             _contents.addChild(_body);
             addChild(_contents);
 
             setStateTexture(upState);
-            addEventListener(TouchEvent.TOUCH, onTouch);
 
             this.touchGroup = true;
             this.text = text;
@@ -106,6 +93,38 @@ package starling.display
                 _textField.dispose();
             
             super.dispose();
+        }
+
+        private function onStateChange(state:String):void
+        {
+            _contents.x = _contents.y = 0;
+            _contents.scaleX = _contents.scaleY = _contents.alpha = 1.0;
+
+            switch (state)
+            {
+                case ButtonState.DOWN:
+                    setStateTexture(_downState);
+                    setContentScale(_scaleWhenDown);
+                    _contents.alpha = _alphaWhenDown;
+                    break;
+                case ButtonState.UP:
+                    setStateTexture(_upState);
+                    break;
+                case ButtonState.OVER:
+                    setStateTexture(_overState);
+                    setContentScale(_scaleWhenOver);
+                    break;
+                case ButtonState.DISABLED:
+                    setStateTexture(_disabledState);
+                    _contents.alpha = _alphaWhenDisabled;
+                    break;
+            }
+        }
+
+        /** @private */
+        public override function hitTest(localPoint:Point):DisplayObject
+        {
+            return _behavior.hitTest(localPoint);
         }
         
         /** Readjusts the dimensions of the button according to its current state texture.
@@ -146,86 +165,10 @@ package starling.display
             _textField.y = _textBounds.y;
         }
         
-        private function onTouch(event:TouchEvent):void
-        {
-            Mouse.cursor = (_useHandCursor && _enabled && event.interactsWith(this)) ?
-                MouseCursor.BUTTON : MouseCursor.AUTO;
-            
-            var touch:Touch = event.getTouch(this);
-            var isWithinBounds:Boolean;
-
-            if (!_enabled)
-            {
-                return;
-            }
-            else if (touch == null)
-            {
-                state = ButtonState.UP;
-            }
-            else if (touch.phase == TouchPhase.HOVER)
-            {
-                state = ButtonState.OVER;
-            }
-            else if (touch.phase == TouchPhase.BEGAN && _state != ButtonState.DOWN)
-            {
-                _triggerBounds = getBounds(stage, _triggerBounds);
-                _triggerBounds.inflate(MAX_DRAG_DIST, MAX_DRAG_DIST);
-
-                state = ButtonState.DOWN;
-            }
-            else if (touch.phase == TouchPhase.MOVED)
-            {
-                isWithinBounds = _triggerBounds.contains(touch.globalX, touch.globalY);
-
-                if (_state == ButtonState.DOWN && !isWithinBounds)
-                {
-                    // reset button when finger is moved too far away ...
-                    state = ButtonState.UP;
-                }
-                else if (_state == ButtonState.UP && isWithinBounds)
-                {
-                    // ... and reactivate when the finger moves back into the bounds.
-                    state = ButtonState.DOWN;
-                }
-            }
-            else if (touch.phase == TouchPhase.ENDED && _state == ButtonState.DOWN)
-            {
-                state = ButtonState.UP;
-                if (!touch.cancelled) dispatchEventWith(Event.TRIGGERED, true);
-            }
-        }
-        
         /** The current state of the button. The corresponding strings are found
          *  in the ButtonState class. */
-        public function get state():String { return _state; }
-        public function set state(value:String):void
-        {
-            _state = value;
-            _contents.x = _contents.y = 0;
-            _contents.scaleX = _contents.scaleY = _contents.alpha = 1.0;
-
-            switch (_state)
-            {
-                case ButtonState.DOWN:
-                    setStateTexture(_downState);
-                    setContentScale(_scaleWhenDown);
-                    _contents.alpha = _alphaWhenDown;
-                    break;
-                case ButtonState.UP:
-                    setStateTexture(_upState);
-                    break;
-                case ButtonState.OVER:
-                    setStateTexture(_overState);
-                    setContentScale(_scaleWhenOver);
-                    break;
-                case ButtonState.DISABLED:
-                    setStateTexture(_disabledState);
-                    _contents.alpha = _alphaWhenDisabled;
-                    break;
-                default:
-                    throw new ArgumentError("Invalid button state: " + _state);
-            }
-        }
+        public function get state():String { return _behavior.state; }
+        public function set state(value:String):void { _behavior.state = value; }
 
         private function setContentScale(scale:Number):void
         {
@@ -271,16 +214,9 @@ package starling.display
         public function set alphaWhenDisabled(value:Number):void { _alphaWhenDisabled = value; }
         
         /** Indicates if the button can be triggered. */
-        public function get enabled():Boolean { return _enabled; }
-        public function set enabled(value:Boolean):void
-        {
-            if (_enabled != value)
-            {
-                _enabled = value;
-                state = value ? ButtonState.UP : ButtonState.DISABLED;
-            }
-        }
-        
+        public function get enabled():Boolean { return _behavior.enabled; }
+        public function set enabled(value:Boolean):void { _behavior.enabled = value; }
+
         /** The text that is displayed on the button. */
         public function get text():String { return _textField ? _textField.text : ""; }
         public function set text(value:String):void
@@ -344,10 +280,12 @@ package starling.display
             if (_upState != value)
             {
                 _upState = value;
-                if ( _state == ButtonState.UP ||
-                    (_state == ButtonState.DISABLED && _disabledState == null) ||
-                    (_state == ButtonState.DOWN && _downState == null) ||
-                    (_state == ButtonState.OVER && _overState == null))
+                var state:String = _behavior.state;
+
+                if ( state == ButtonState.UP ||
+                    (state == ButtonState.DISABLED && _disabledState == null) ||
+                    (state == ButtonState.DOWN && _downState == null) ||
+                    (state == ButtonState.OVER && _overState == null))
                 {
                     setStateTexture(value);
                 }
@@ -361,7 +299,7 @@ package starling.display
             if (_downState != value)
             {
                 _downState = value;
-                if (_state == ButtonState.DOWN) setStateTexture(value);
+                if (state == ButtonState.DOWN) setStateTexture(value);
             }
         }
 
@@ -372,7 +310,7 @@ package starling.display
             if (_overState != value)
             {
                 _overState = value;
-                if (_state == ButtonState.OVER) setStateTexture(value);
+                if (state == ButtonState.OVER) setStateTexture(value);
             }
         }
 
@@ -383,7 +321,7 @@ package starling.display
             if (_disabledState != value)
             {
                 _disabledState = value;
-                if (_state == ButtonState.DISABLED) setStateTexture(value);
+                if (state == ButtonState.DISABLED) setStateTexture(value);
             }
         }
         
@@ -419,8 +357,11 @@ package starling.display
 
         /** Indicates if the mouse cursor should transform into a hand while it's over the button. 
          *  @default true */
-        public override function get useHandCursor():Boolean { return _useHandCursor; }
-        public override function set useHandCursor(value:Boolean):void { _useHandCursor = value; }
+        public override function get useHandCursor():Boolean { return _behavior.useHandCursor; }
+        public override function set useHandCursor(value:Boolean):void
+        {
+            _behavior.useHandCursor = value;
+        }
 
         /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
          *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
@@ -470,5 +411,15 @@ package starling.display
          */
         public function get scale9Grid():Rectangle { return _body.scale9Grid; }
         public function set scale9Grid(value:Rectangle):void { _body.scale9Grid = value; }
+
+        /** The button's hit area will be extended to have at least this width / height.
+         *  @default 44 */
+        public function get minHitAreaSize():Number { return _behavior.minHitAreaSize; }
+        public function set minHitAreaSize(value:Number):void { _behavior.minHitAreaSize = value; }
+
+        /** The distance you can move away your finger before triggering is aborted.
+         *  @default 50 */
+        public function get abortDistance():Number { return _behavior.abortDistance; }
+        public function set abortDistance(value:Number):void { _behavior.abortDistance = value; }
     }
 }
