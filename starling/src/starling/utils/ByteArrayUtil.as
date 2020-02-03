@@ -4,6 +4,7 @@ package starling.utils
 
     import starling.errors.AbstractClassError;
 
+    /** A utility class containing methods related to the ByteArray class. */
     public class ByteArrayUtil
     {
         /** @private */
