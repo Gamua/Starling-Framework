@@ -1,6 +1,22 @@
 Starling: Changelog
 ===================
 
+version 2.6 - 2020-02-10
+------------------------
+
+- added 'ButtonBehavior' class
+- added 'inner' and 'knockout' modes to DropShadowFilter and GlowFilter
+- added 'AssetManager.dequeue' method
+- added missing parameters to 'MeshBatch.addMeshAt'
+- updated Travis script, as Homebrew now keeps casks updated automatically
+- fixed exception when using empty FilterChain (closes #1063)
+- fixed API reference default value for 'nativeOverlayBlocksTouches'
+
+version 2.5.1 - 2019-04-03
+--------------------------
+
+- fixed null reference exception when stats display was enabled before Starling was initialized
+
 version 2.5 - 2019-04-02
 ------------------------
 
