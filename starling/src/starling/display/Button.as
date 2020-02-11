@@ -18,6 +18,7 @@ package starling.display
     import starling.text.TextFormat;
     import starling.textures.Texture;
     import starling.utils.ButtonBehavior;
+    import starling.utils.SystemUtil;
 
     /** Dispatched when the user triggers the button. Bubbles. */
     [Event(name="triggered", type="starling.events.Event")]
@@ -67,7 +68,7 @@ package starling.display
             _overState = overState;
             _disabledState = disabledState;
 
-            _behavior = new ButtonBehavior(this, onStateChange);
+            _behavior = new ButtonBehavior(this, onStateChange, SystemUtil.isDesktop ? 16 : 44);
             _body = new Image(upState);
             _body.pixelSnapping = true;
             _scaleWhenDown = downState ? 1.0 : 0.9;
@@ -413,7 +414,7 @@ package starling.display
         public function set scale9Grid(value:Rectangle):void { _body.scale9Grid = value; }
 
         /** The button's hit area will be extended to have at least this width / height.
-         *  @default 44 */
+         *  @default on Desktop: 16, on mobile: 44 */
         public function get minHitAreaSize():Number { return _behavior.minHitAreaSize; }
         public function set minHitAreaSize(value:Number):void { _behavior.minHitAreaSize = value; }
 
