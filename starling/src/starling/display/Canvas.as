@@ -74,7 +74,7 @@ package starling.display
          * @param y         y-coordinate of bounding box
          * @param width     width of the ellipse
          * @param height    height of the ellipse
-         * @param numSides  the number of lines used to draw the circle.
+         * @param numSides  the number of lines used to draw the ellipse.
          *                  If you don't pass anything, Starling will pick a reasonable value.
          */
         public function drawEllipse(x:Number, y:Number, width:Number, height:Number, numSides:int = -1):void
