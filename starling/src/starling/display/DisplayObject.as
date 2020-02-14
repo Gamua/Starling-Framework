@@ -1,4 +1,4 @@
-// =================================================================================================
+﻿// =================================================================================================
 //
 //	Starling Framework
 //	Copyright Gamua GmbH. All Rights Reserved.
@@ -460,9 +460,9 @@ package starling.display
             {
                 stepX = projectionX;
                 positionInBitmap.x = 0;
-
+				
                 while (positionInBitmap.x < out.width)
-                {
+                {					
                     painter.clear(color, alpha);
                     painter.state.setProjectionMatrix(stepX, stepY, stepWidth, stepHeight,
                         stageWidth, stageHeight, stage.cameraPosition);
@@ -475,12 +475,13 @@ package starling.display
                     if (_mask)   painter.eraseMask(mask, this);
 
                     painter.finishMeshBatch();
-                    execute(painter.context.drawToBitmapData, out, boundsInBuffer, positionInBitmap);
+					var bmd:BitmapData = new BitmapData(stepWidth, stepHeight, true, 0x00ffffff);
+					painter.context.drawToBitmapData(bmd, boundsInBuffer);
+					out.copyPixels(bmd, boundsInBuffer,positionInBitmap);
 
                     stepX += stepWidth;
                     positionInBitmap.x += stepWidth * totalScaleX;
                 }
-
                 stepY += stepHeight;
                 positionInBitmap.y += stepHeight * totalScaleY;
             }
