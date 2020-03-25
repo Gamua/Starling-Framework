@@ -873,6 +873,13 @@ package starling.assets
             _assetFactories.sort(comparePriorities);
         }
 
+        /** Unregisters the specified AssetFactory. */
+        public function unregisterFactory(factory:AssetFactory):void
+        {
+            var index:int = _assetFactories.indexOf(factory);
+            if (index != -1) _assetFactories.removeAt(index);
+        }
+
         private static function comparePriorities(a:Object, b:Object):int
         {
             if (a.priority == b.priority) return 0;
