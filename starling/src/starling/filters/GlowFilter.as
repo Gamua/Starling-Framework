@@ -90,7 +90,7 @@ package starling.filters
         public function get color():uint { return _compositeFilter.getColorAt(1); }
         public function set color(value:uint):void
         {
-            if (color != value)
+            if (color != value || !_compositeFilter.getReplaceColorAt(1))
             {
                 _compositeFilter.setColorAt(1, value, true);
                 setRequiresRedraw();

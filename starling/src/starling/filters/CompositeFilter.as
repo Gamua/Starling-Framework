@@ -75,6 +75,12 @@ package starling.filters
             return compositeEffect.getLayerAt(layerID).color;
         }
 
+        /** Indicates if the color of the given layer is replaced (true) or tinted (false). */
+        public function getReplaceColorAt(layerID:int):Boolean
+        {
+            return compositeEffect.getLayerAt(layerID).replaceColor;
+        }
+
         /** Adjusts the RGB color with which a layer is tinted when it is being drawn.
          *  If <code>replace</code> is enabled, the pixels are not tinted, but instead
          *  the RGB channels will replace the texture's color entirely.
