@@ -144,7 +144,7 @@ package starling.assets
         private var _numLostTextures:int;
 
         // Regex for name / extension extraction from URLs.
-        private static const NAME_REGEX:RegExp = /([^?\/\\]+?)(?:\.([\w\-]+))?(?:\?.*)?$/;
+        private static const NAME_REGEX:RegExp = /(([^?\/\\]+?)(?:\.([\w\-]+))?)(?:\?.*)?$/;
 
         // fallback for unnamed assets
         private static const NO_NAME:String = "unnamed";
@@ -295,10 +295,21 @@ package starling.assets
             assetReference.name = name || getNameFromUrl(assetReference.url) || getUniqueName();
             assetReference.extension = getExtensionFromUrl(assetReference.url);
             assetReference.textureOptions = options || _textureOptions;
+            var logName:String = getFilenameFromUrl(assetReference.url) || assetReference.name;
 
             _queue.push(assetReference);
-            log("Enqueuing '" + assetReference.filename + "'");
+            log("Enqueuing '" + logName + "'");
             return assetReference.name;
+        }
+
+        /** Removes the asset(s) with the given name(s) from the queue. Note that this won't work
+         *  after loading has started, even if these specific assets have not yet been processed. */
+        public function dequeue(...assetNames):void
+        {
+            _queue = _queue.filter(function(asset:AssetReference, i:int, v:*):Boolean
+            {
+                return assetNames.indexOf(asset.name) == -1;
+            });
         }
 
         /** Empties the queue and aborts any pending load operations. */
@@ -862,6 +873,13 @@ package starling.assets
             _assetFactories.sort(comparePriorities);
         }
 
+        /** Unregisters the specified AssetFactory. */
+        public function unregisterFactory(factory:AssetFactory):void
+        {
+            var index:int = _assetFactories.indexOf(factory);
+            if (index != -1) _assetFactories.removeAt(index);
+        }
+
         private static function comparePriorities(a:Object, b:Object):int
         {
             if (a.priority == b.priority) return 0;
@@ -869,6 +887,16 @@ package starling.assets
         }
 
         // helpers
+
+        private function getFilenameFromUrl(url:String):String
+        {
+            if (url)
+            {
+                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                if (matches && matches.length > 1) return matches[1];
+            }
+            return null;
+        }
 
         /** This method is called internally to determine the name under which an asset will be
          *  accessible; override it if you need a custom naming scheme.
@@ -879,7 +907,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 0) return matches[1];
+                if (matches && matches.length > 2) return matches[2];
             }
             return null;
         }
@@ -895,7 +923,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 1) return matches[2];
+                if (matches && matches.length > 3) return matches[3];
             }
             return "";
         }

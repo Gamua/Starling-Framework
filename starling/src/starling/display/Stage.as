@@ -119,6 +119,28 @@ package starling.display
             return RectangleUtil.getBounds(out, sMatrix, out);
         }
 
+        /** Returns the bounds of the screen (or application window, on Desktop) relative to
+         *  a certain coordinate system. In most cases, that's identical to the stage bounds;
+         *  however, this changes if the viewPort is customized. */
+        public function getScreenBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
+        {
+            var target:Starling = this.starling;
+            if (target == null) return getStageBounds(targetSpace, out);
+            if (out == null) out = new Rectangle();
+
+            var nativeStage:Object = target.nativeStage;
+            var viewPort:Rectangle = target.viewPort;
+            var scaleX:Number = _width  / viewPort.width;
+            var scaleY:Number = _height / viewPort.height;
+            var x:Number = -viewPort.x * scaleX;
+            var y:Number = -viewPort.y * scaleY;
+
+            out.setTo(x, y, nativeStage.stageWidth * scaleX, nativeStage.stageHeight * scaleY);
+            getTransformationMatrix(targetSpace, sMatrix);
+
+            return RectangleUtil.getBounds(out, sMatrix, out);
+        }
+
         // camera positioning
 
         /** Returns the position of the camera within the local coordinate system of a certain

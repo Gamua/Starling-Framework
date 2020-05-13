@@ -118,6 +118,9 @@ package starling.display
 
         /** Adds a mesh to the batch by appending its vertices and indices.
          *
+         *  <p>Note that the first time you add a mesh to the batch, the batch will duplicate its
+         *  MeshStyle. All subsequently added meshes will then be converted to that same style.</p>
+         *
          *  @param mesh      the mesh to add to the batch.
          *  @param matrix    transform all vertex positions with a certain matrix. If this
          *                   parameter is omitted, <code>mesh.transformationMatrix</code>
@@ -132,25 +135,7 @@ package starling.display
         public function addMesh(mesh:Mesh, matrix:Matrix=null, alpha:Number=1.0,
                                 subset:MeshSubset=null, ignoreTransformations:Boolean=false):void
         {
-            if (ignoreTransformations) matrix = null;
-            else if (matrix == null) matrix = mesh.transformationMatrix;
-            if (subset == null) subset = sFullMeshSubset;
-
-            var targetVertexID:int = _vertexData.numVertices;
-            var targetIndexID:int  = _indexData.numIndices;
-            var meshStyle:MeshStyle = mesh._style;
-
-            if (targetVertexID == 0)
-                setupFor(mesh);
-
-            meshStyle.batchVertexData(_style, targetVertexID, matrix, subset.vertexID, subset.numVertices);
-            meshStyle.batchIndexData(_style, targetIndexID, targetVertexID - subset.vertexID,
-                subset.indexID, subset.numIndices);
-
-            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
-            if (_parent) setRequiresRedraw();
-
-            _indexSyncRequired = _vertexSyncRequired = true;
+            addMeshAt(mesh, -1, -1, matrix, alpha, subset, ignoreTransformations);
         }
 
         /** Adds a mesh to the batch by copying its vertices and indices to the given positions.
@@ -161,21 +146,46 @@ package starling.display
          *  <p>It's easiest to only add objects with an identical setup, e.g. only quads.
          *  For the latter, indices are aligned in groups of 6 (one quad requires six indices),
          *  and the vertices in groups of 4 (one vertex for every corner).</p>
+         *
+         *  <p>Note that the first time you add a mesh to the batch, the batch will duplicate its
+         *  MeshStyle. All subsequently added meshes will then be converted to that same style.</p>
+         *
+         *  @param mesh      the mesh to add to the batch.
+         *  @param indexID   the position at which the mesh's indices should be added to the batch.
+         *                   If negative, they will be added at the very end.
+         *  @param vertexID  the position at which the mesh's vertices should be added to the batch.
+         *                   If negative, they will be added at the very end.
+         *  @param matrix    transform all vertex positions with a certain matrix. If this
+         *                   parameter is omitted, <code>mesh.transformationMatrix</code>
+         *                   will be used instead (except if the last parameter is enabled).
+         *  @param alpha     will be multiplied with each vertex' alpha value.
+         *  @param subset    the subset of the mesh you want to add, or <code>null</code> for
+         *                   the complete mesh.
+         *  @param ignoreTransformations   when enabled, the mesh's vertices will be added
+         *                   without transforming them in any way (no matter the value of the
+         *                   <code>matrix</code> parameter).
          */
-        public function addMeshAt(mesh:Mesh, indexID:int, vertexID:int):void
+        public function addMeshAt(mesh:Mesh, indexID:int=-1, vertexID:int=-1,
+                                  matrix:Matrix=null, alpha:Number=1.0,
+                                  subset:MeshSubset=null, ignoreTransformations:Boolean=false):void
         {
-            var numIndices:int = mesh.numIndices;
-            var numVertices:int = mesh.numVertices;
-            var matrix:Matrix = mesh.transformationMatrix;
+            if (ignoreTransformations) matrix = null;
+            else if (matrix == null) matrix = mesh.transformationMatrix;
+            if (subset == null) subset = sFullMeshSubset;
+
+            var oldNumVertices:int = _vertexData.numVertices;
+            var targetVertexID:int = vertexID >= 0 ? vertexID : oldNumVertices;
+            var targetIndexID:int  = indexID  >= 0 ? indexID  : _indexData.numIndices;
             var meshStyle:MeshStyle = mesh._style;
 
-            if (_vertexData.numVertices == 0)
+            if (oldNumVertices == 0)
                 setupFor(mesh);
 
-            meshStyle.batchVertexData(_style, vertexID, matrix, 0, numVertices);
-            meshStyle.batchIndexData(_style, indexID, vertexID, 0, numIndices);
+            meshStyle.batchVertexData(_style, targetVertexID, matrix, subset.vertexID, subset.numVertices);
+            meshStyle.batchIndexData(_style, targetIndexID, targetVertexID - subset.vertexID,
+                subset.indexID, subset.numIndices);
 
-            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, vertexID, numVertices);
+            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
             if (_parent) setRequiresRedraw();
 
             _indexSyncRequired = _vertexSyncRequired = true;

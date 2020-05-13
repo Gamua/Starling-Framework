@@ -29,5 +29,11 @@ package starling.display
 
         /** The button was disabled altogether. */
         public static const DISABLED:String = "disabled";
+
+        /** Indicates whether the given state string is valid. */
+        public static function isValid(state:String):Boolean
+        {
+            return state == UP || state == DOWN || state == OVER || state == DISABLED;
+        }
     }
 }

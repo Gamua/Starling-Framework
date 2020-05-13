@@ -123,17 +123,18 @@ package starling.textures
          *  documentation of the <code>useDoubleBuffering</code> property.</p>
          */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true,
-                                      scale:Number=-1, format:String="bgra")
+                                      scale:Number=-1, format:String="bgra",
+                                      forcePotTexture:Boolean=false)
         {
             _isPersistent = persistent;
-            _activeTexture = Texture.empty(width, height, true, false, true, scale, format);
+            _activeTexture = Texture.empty(width, height, true, false, true, scale, format, forcePotTexture);
             _activeTexture.root.onRestore = _activeTexture.root.clear;
 
             super(_activeTexture, new Rectangle(0, 0, width, height), true, null, false);
 
             if (persistent && useDoubleBuffering)
             {
-                _bufferTexture = Texture.empty(width, height, true, false, true, scale, format);
+                _bufferTexture = Texture.empty(width, height, true, false, true, scale, format, forcePotTexture);
                 _bufferTexture.root.onRestore = _bufferTexture.root.clear;
                 _helperImage = new Image(_bufferTexture);
                 _helperImage.textureSmoothing = TextureSmoothing.NONE; // solves some aliasing-issues

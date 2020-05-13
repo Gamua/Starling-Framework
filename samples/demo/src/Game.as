@@ -9,6 +9,7 @@ package
     import starling.assets.AssetManager;
     import starling.core.Starling;
     import starling.display.Button;
+    import starling.display.DisplayObject;
     import starling.display.Image;
     import starling.display.Sprite;
     import starling.events.Event;
@@ -62,8 +63,8 @@ package
         
         private function onButtonTriggered(event:Event):void
         {
-            var button:Button = event.target as Button;
-            
+            var button:DisplayObject = event.target as DisplayObject;
+
             if (button.name == "backButton")
                 closeScene();
             else
