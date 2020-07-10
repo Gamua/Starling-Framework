@@ -56,6 +56,7 @@ package starling.assets
             var data:Object = reference.data;
             var name:String = reference.name;
             var options:TextureOptions = reference.textureOptions;
+            var onReady:Function = reference.textureOptions.onReady as Function;
 
             if (data is Bitmap)
                 onBitmapDataCreated((data as Bitmap).bitmapData);
@@ -84,6 +85,7 @@ package starling.assets
 
             function complete():void
             {
+                execute(onReady, texture);
                 onComplete(name, texture);
             }
 
