@@ -4,6 +4,7 @@ package starling.assets
 
     import starling.textures.AtfData;
     import starling.textures.Texture;
+    import starling.utils.execute;
 
     /** This AssetFactory creates texture assets from ATF files. */
     public class AtfTextureFactory extends AssetFactory
