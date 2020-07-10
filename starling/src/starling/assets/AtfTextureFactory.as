@@ -28,8 +28,10 @@ package starling.assets
 
             function createTexture():void
             {
+                var onReady:Function = reference.textureOptions.onReady as Function;
                 reference.textureOptions.onReady = function():void
                 {
+                    execute(onReady, texture);
                     onComplete(reference.name, texture);
                 };
 
