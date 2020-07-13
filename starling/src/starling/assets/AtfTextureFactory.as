@@ -4,6 +4,7 @@ package starling.assets
 
     import starling.textures.AtfData;
     import starling.textures.Texture;
+    import starling.utils.execute;
 
     /** This AssetFactory creates texture assets from ATF files. */
     public class AtfTextureFactory extends AssetFactory
@@ -28,8 +29,10 @@ package starling.assets
 
             function createTexture():void
             {
+                var onReady:Function = reference.textureOptions.onReady as Function;
                 reference.textureOptions.onReady = function():void
                 {
+                    execute(onReady, texture);
                     onComplete(reference.name, texture);
                 };
 
