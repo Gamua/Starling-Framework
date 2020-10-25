@@ -622,6 +622,7 @@ package starling.core
         {
             trace("[Starling] Context restored.");
             updateViewPort(true);
+            _painter.setupContextDefaults();
             dispatchEventWith(Event.CONTEXT3D_CREATE, false, context);
         }
         
