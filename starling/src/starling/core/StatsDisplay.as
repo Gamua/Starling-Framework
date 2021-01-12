@@ -43,6 +43,7 @@ package starling.core
         private var _gpuMemory:Number = 0;
         private var _drawCount:int = 0;
         private var _skipCount:int = 0;
+        private var _showSkipped:Boolean = false;
 
         /** Creates a new Statistics Box. */
         public function StatsDisplay()
@@ -51,20 +52,19 @@ package starling.core
             const fontSize:Number = BitmapFont.NATIVE_SIZE;
             const fontColor:uint  = 0xffffff;
             const width:Number    = 90;
-            const height:Number   = supportsGpuMem ? 35 : 27;
-            const gpuLabel:String = supportsGpuMem ? "\ngpu memory:" : "";
-            const labels:String   = "frames/sec:\nstd memory:" + gpuLabel + "\ndraw calls:";
+            const height:Number   = 45;
 
-            _labels = new TextField(width, height, labels);
-            _labels.format.setTo(fontName, fontSize, fontColor, Align.LEFT);
+            _labels = new TextField(width, height);
+            _labels.format.setTo(fontName, fontSize, fontColor, Align.LEFT, Align.TOP);
             _labels.batchable = true;
             _labels.x = 2;
 
             _values = new TextField(width - 1, height, "");
-            _values.format.setTo(fontName, fontSize, fontColor, Align.RIGHT);
+            _values.format.setTo(fontName, fontSize, fontColor, Align.RIGHT, Align.TOP);
             _values.batchable = true;
 
             _background = new Quad(width, height, 0x0);
+            updateLabels();
 
             // make sure that rendering takes 2 draw calls
             if (_background.style.type != MeshStyle) _background.style = new MeshStyle();
@@ -82,6 +82,7 @@ package starling.core
         private function onAddedToStage():void
         {
             addEventListener(Event.ENTER_FRAME, onEnterFrame);
+            Starling.current.addEventListener(Event.SKIP_FRAME, onSkipFrame);
             _totalTime = _frameCount = _skipCount = 0;
             update();
         }
@@ -89,6 +90,7 @@ package starling.core
         private function onRemovedFromStage():void
         {
             removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+            Starling.current.removeEventListener(Event.SKIP_FRAME, onSkipFrame);
         }
 
         private function onEnterFrame(event:EnterFrameEvent):void
@@ -103,6 +105,11 @@ package starling.core
             }
         }
 
+        private function onSkipFrame():void
+        {
+            _skipCount += 1;
+        }
+
         /** Updates the displayed values. */
         public function update():void
         {
@@ -111,19 +118,27 @@ package starling.core
             _memory = System.totalMemory * B_TO_MB;
             _gpuMemory = supportsGpuMem ? Starling.context['totalGPUMemory'] * B_TO_MB : -1;
 
+            var skippedPerSec:Number = _totalTime > 0 ? _skipCount / _totalTime : 0;
+            var skippedText:String = _showSkipped ? skippedPerSec.toFixed(skippedPerSec < 100 ? 1 : 0) : "";
             var fpsText:String = _fps.toFixed(_fps < 100 ? 1 : 0);
             var memText:String = _memory.toFixed(_memory < 100 ? 1 : 0);
             var gpuMemText:String = _gpuMemory.toFixed(_gpuMemory < 100 ? 1 : 0);
             var drwText:String = (_totalTime > 0 ? _drawCount-2 : _drawCount).toString(); // ignore self
 
-            _values.text = fpsText + "\n" + memText + "\n" +
-                (_gpuMemory >= 0 ? gpuMemText + "\n" : "") + drwText;
+            _values.text = fpsText + "\n" + (_showSkipped ? skippedText + "\n" : "") +
+                memText + "\n" + (_gpuMemory >= 0 ? gpuMemText + "\n" : "") + drwText;
         }
 
-        /** Call this once in every frame that can skip rendering because nothing changed. */
-        public function markFrameAsSkipped():void
+        private function updateLabels():void
         {
-            _skipCount += 1;
+            var labels:Array = ["frames/sec:"];
+            if (_showSkipped) labels.insertAt(labels.length, "skipped/sec:");
+            labels.insertAt(labels.length, "std memory:");
+            if (supportsGpuMem) labels.insertAt(labels.length, "gpu memory:");
+            labels.insertAt(labels.length, "draw calls:");
+
+            _labels.text = labels.join("\n");
+            _background.height = _labels.textBounds.height + 4;
         }
 
         /** @private */
@@ -165,5 +180,14 @@ package starling.core
         /** The currently used graphics memory in MB. */
         public function get gpuMemory():Number { return _gpuMemory; }
         public function set gpuMemory(value:Number):void { _gpuMemory = value; }
+
+        /** Indicates if the number of skipped frames should be shown. */
+        public function get showSkipped():Boolean { return _showSkipped; }
+        public function set showSkipped(value:Boolean):void
+        {
+            _showSkipped = value;
+            updateLabels();
+            update();
+        }
     }
 }

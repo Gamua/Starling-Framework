@@ -464,12 +464,11 @@ package starling.core
                 if (!shareContext)
                     _painter.present();
             }
+            else
+                dispatchEventWith(starling.events.Event.SKIP_FRAME);
 
             if (_statsDisplay)
-            {
                 _statsDisplay.drawCount = _painter.drawCount;
-                if (!doRedraw) _statsDisplay.markFrameAsSkipped();
-            }
         }
         
         private function updateViewPort(forceUpdate:Boolean=false):void
@@ -960,6 +959,7 @@ package starling.core
 
                 _stage.addChild(_statsDisplay);
                 _statsDisplay.scaleX = _statsDisplay.scaleY = scale;
+                _statsDisplay.showSkipped = _skipUnchangedFrames;
 
                 updateClippedViewPort();
                 updateStatsDisplayPosition();
@@ -1101,6 +1101,7 @@ package starling.core
         {
             _skipUnchangedFrames = value;
             _nativeStageEmpty = false; // required by 'mustAlwaysRender'
+            if (_statsDisplay) _statsDisplay.showSkipped = value;
         }
         
         /** The TouchProcessor is passed all mouse and touch input and is responsible for
