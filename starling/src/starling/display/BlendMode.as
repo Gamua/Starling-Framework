@@ -123,6 +123,12 @@ package starling.display
             return out;
         }
 
+        /** Returns true if a blend mode with the given name is available. */
+        public static function isRegistered(modeName:String):Boolean
+        {
+            return modeName in sBlendModes;
+        }
+
         // instance methods / properties
 
         /** Sets the appropriate blend factors for source and destination on the current context. */
