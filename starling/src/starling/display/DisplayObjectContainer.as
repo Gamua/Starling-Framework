@@ -73,7 +73,7 @@ package starling.display
         // helper objects
         private static var sHitTestMatrix:Matrix = new Matrix();
         private static var sHitTestPoint:Point = new Point();
-        private static var sBoundsMatrix:Matrix = new Matrix;
+        private static var sBoundsMatrix:Matrix = new Matrix();
         private static var sBoundsPoint:Point = new Point();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
