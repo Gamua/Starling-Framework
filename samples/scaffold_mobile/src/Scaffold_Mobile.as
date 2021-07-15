@@ -4,17 +4,18 @@ package
     import flash.display.Bitmap;
     import flash.display.Loader;
     import flash.display.Sprite;
+    import flash.display.StageDisplayState;
     import flash.events.Event;
     import flash.filesystem.File;
-    import flash.filesystem.FileMode;
-    import flash.filesystem.FileStream;
+    import flash.net.URLRequest;
     import flash.system.Capabilities;
     import flash.system.System;
-    import flash.utils.ByteArray;
+    import flash.utils.setTimeout;
 
     import starling.assets.AssetManager;
     import starling.core.Starling;
     import starling.events.Event;
+    import starling.utils.MathUtil;
     import starling.utils.StringUtil;
     import starling.utils.SystemUtil;
 
@@ -33,12 +34,28 @@ package
 
         public function Scaffold_Mobile()
         {
+            var resX:int = Capabilities.screenResolutionX;
+            var resY:int = Capabilities.screenResolutionY;
+            var aspectRatio:Number = MathUtil.max(resX, resY) / MathUtil.min(resX, resY);
+
+            // On long screens, use the additional space to show the status bar.
+            // Otherwise, give the app access to as much space as possible.
+            if (aspectRatio > 1.95)
+                stage.displayState = StageDisplayState.NORMAL;
+            else
+                stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+
+            // launch in next frame - that way, the stage has already been resized.
+            setTimeout(launch, 40);
+        }
+
+        private function launch():void
+        {
             // The "ScreenSetup" class is part of the "utils" package of this project.
             // It figures out the perfect scale factor and stage size for the given device.
-            // The third parameter describes the available asset sets (here, '1x' and '2x').
+            // The last parameter describes the available asset sets (here, '1x' and '2x').
 
-            var screen:ScreenSetup = new ScreenSetup(
-                stage.fullScreenWidth, stage.fullScreenHeight, [1, 2]);
+            const screen:ScreenSetup = new ScreenSetup(stage, [1, 2]);
 
             Starling.multitouchEnabled = true; // we want to make use of multitouch
 
@@ -48,7 +65,11 @@ package
             _starling.skipUnchangedFrames = true;
             _starling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
             {
-                loadAssets(screen.assetScale, startGame);
+                loadAssets(screen.assetScale,
+                    function onAssetsLoaded(assets:AssetManager)
+                    {
+                        startGame(assets, screen);
+                    });
             });
 
             _starling.start();
@@ -107,53 +128,43 @@ package
             }
         }
 
-        private function startGame(assets:AssetManager):void
+        private function startGame(assets:AssetManager, screen:ScreenSetup):void
         {
             var root:Root = _starling.root as Root;
-            root.start(assets);
+            root.start(assets, screen);
             removeLoadingScreen();
         }
 
         private function initLoadingScreen(scale:int):void
         {
-            var overlay:Sprite = _starling.nativeOverlay;
             var stageWidth:Number = _starling.stage.stageWidth;
             var stageHeight:Number = _starling.stage.stageHeight;
 
-            // On iOS, the "Default.png" image (or one of its variants) is shown while the app
-            // starts up. For an absolutely seamless transition, we recreate its contents
-            // in the classic display list via the stage color and the logo.
-            // Loading the logo from a file and displaying it in the same frame -> that's only
-            // possible via the FileStream calls below.
+            // While the assets are loaded, we will display a progress bar ...
 
-            var bgPath:String = StringUtil.format("textures/{0}x/logo.png", scale);
-            var bgFile:File = File.applicationDirectory.resolvePath(bgPath);
-            var bytes:ByteArray = new ByteArray();
-            var stream:FileStream = new FileStream();
-            stream.open(bgFile, FileMode.READ);
-            stream.readBytes(bytes, 0, stream.bytesAvailable);
-            stream.close();
+            _progressBar = new ProgressBar(175, 20);
+            _progressBar.x = (stageWidth - _progressBar.width) / 2;
+            _progressBar.y =  stageHeight * 0.8;
+
+            // ... and a centered logo.
+
+            var logoPath:String = StringUtil.format("textures/{0}x/logo.png", scale);
+            var logoFile:File = File.applicationDirectory.resolvePath(logoPath);
 
             _logo = new Loader();
-            _logo.loadBytes(bytes);
+            _logo.load(new URLRequest(logoFile.url));
             _logo.scaleX = 1.0 / scale;
             _logo.scaleY = 1.0 / scale;
-            overlay.addChild(_logo);
-
             _logo.contentLoaderInfo.addEventListener(flash.events.Event.COMPLETE,
                 function(e:Object):void
                 {
                     (_logo.content as Bitmap).smoothing = true;
                     _logo.x = (stageWidth  - _logo.width)  / 2;
                     _logo.y = (stageHeight - _logo.height) / 2;
+
+                    _starling.nativeOverlay.addChild(_logo);
+                    _starling.nativeOverlay.addChild(_progressBar);
                 });
-
-            // While the assets are loaded, we will display a progress bar.
-
-            _progressBar = new ProgressBar(175, 20);
-            _progressBar.x = (stageWidth - _progressBar.width) / 2;
-            _progressBar.y =  stageHeight * 0.8;
-            _starling.nativeOverlay.addChild(_progressBar);
         }
 
         private function removeLoadingScreen():void
