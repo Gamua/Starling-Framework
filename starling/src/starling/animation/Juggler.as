@@ -282,8 +282,7 @@ package starling.animation
          *  </pre> 
          *
          *  <p>To cancel the tween, call 'Juggler.removeTweens' with the same target, or pass
-         *  the returned 'IAnimatable' instance to 'Juggler.remove()'. Do not use the returned
-         *  IAnimatable otherwise; it is taken from a pool and will be reused.</p>
+         *  the returned ID to 'Juggler.removeByID()'.</p>
          *
          *  <p>Note that some property types may be animated in a special way:</p>
          *  <ul>
