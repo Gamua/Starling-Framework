@@ -66,7 +66,7 @@ package
             _starling.addEventListener(starling.events.Event.ROOT_CREATED, function():void
             {
                 loadAssets(screen.assetScale,
-                    function onAssetsLoaded(assets:AssetManager)
+                    function onAssetsLoaded(assets:AssetManager):void
                     {
                         startGame(assets, screen);
                     });
