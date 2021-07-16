@@ -16,6 +16,7 @@ package utils
     import flash.geom.Rectangle;
     import flash.system.Capabilities;
 
+    import starling.utils.Pool;
     import starling.utils.SystemUtil;
 
     public class ScreenSetup
@@ -48,13 +49,22 @@ package utils
 
         private function recalculate():void
         {
-            const screenDPI:int = Capabilities.screenDPI;
-            const isIPad:Boolean = Capabilities.os.indexOf("iPad") != -1;
-            const isAndroid:Boolean = SystemUtil.isAndroid;
-            const mainScreen:Screen = Screen.mainScreen;
-            const screenBounds:Rectangle = isAndroid ? mainScreen.visibleBounds : mainScreen.bounds;
-            const baseDPI:Number = isIPad ? 130 : 160;
-            const exactScale:Number = screenDPI / baseDPI;
+            var screenDPI:int = Capabilities.screenDPI;
+            var isAndroid:Boolean = SystemUtil.isAndroid;
+            var isIPad:Boolean = Capabilities.os.indexOf("iPad") != -1;
+            var isAirSimulator:Boolean = Capabilities.os.match(/(windows|mac)/ig).length != 0;
+            var screenWidth:int = _nativeStage.fullScreenWidth;
+            var screenHeight:int = _nativeStage.fullScreenHeight;
+
+            if (!isAirSimulator)
+            {
+                var screen:Screen = Screen.mainScreen;
+                screenWidth = isAndroid ? screen.visibleBounds.width : screen.bounds.width;
+                screenHeight = isAndroid ? screen.visibleBounds.height : screen.bounds.height;
+            }
+
+            var baseDPI:Number = isIPad ? 130 : 160;
+            var exactScale:Number = screenDPI / baseDPI;
 
             if (exactScale < 1.25) _scale = 1.0;
             else if (exactScale < 1.75) _scale = 1.5;
@@ -65,9 +75,9 @@ package utils
             for (var i:int=0; i<_assetScales.length; ++i)
                 if (_assetScales[i] >= _scale) _assetScale = _assetScales[i];
 
-            _stageWidth = screenBounds.width / scale;
-            _stageHeight = screenBounds.height / scale;
-            _viewPort.setTo(0, 0, screenBounds.width, screenBounds.height);
+            _stageWidth = screenWidth / scale;
+            _stageHeight = screenHeight / scale;
+            _viewPort.setTo(0, 0, screenWidth, screenHeight);
             _safeArea.setTo(0, 0, _stageWidth, _stageHeight);
 
             // Activate notch support by getting the "Application" ANE from distriqt:
