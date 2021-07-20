@@ -1,0 +1,52 @@
+{
+	"config": "airmobile",
+	"compilerOptions": {
+		"output": "bin-debug/scaffold_mobile.swf",
+		"source-path": [
+			"src",
+			"../../starling/src"
+		]
+	},
+	"mainClass": "Scaffold_Mobile",
+	"application": "src/Scaffold_Mobile-app.xml",
+	"airOptions": {
+		"android": {
+			"output": "out/Scaffold-Mobile.apk",
+			"listen": true,
+			"signingOptions": {
+				"storetype": "JKS",
+				"keystore": "../../../library/android/dev-key.keystore"
+			},
+			"resdir": "system/res"
+		},
+		"ios": {
+			"output": "out/Scaffold-Mobile.ipa",
+			"listen": true,
+			"signingOptions": {
+				"storetype": "pkcs12",
+				"keystore": "../../../library/ios/daniel_dev_certificate.p12",
+				"provisioning-profile": "../../../library/ios/ios_dev_profile.mobileprovision"
+			}
+		},
+		"ios_simulator": {
+			"output": "out/Scaffold-Mobile-Simulator.ipa",
+			"platformsdk": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk",
+            "target": "ipa-debug-interpreter-simulator",
+			"signingOptions": {
+				"storetype": "pkcs12",
+				"keystore": "../../../library/ios/daniel_dev_certificate.p12",
+				"provisioning-profile": "../../../library/ios/ios_dev_profile.mobileprovision"
+			}
+		},
+		"files": [
+			{
+				"file": "assets",
+				"path": "assets"
+			},
+			{
+				"file": "system",
+				"path": ""
+			}
+		]
+	}
+}
