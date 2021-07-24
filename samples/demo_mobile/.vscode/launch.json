@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (Android device)",
+            "type": "swf",
+            "request": "attach",
+            "platform": "android",
+            "connect": true,
+            "preLaunchTask": "Adobe AIR: package Android debug - asconfig.json"
+        },
+        {
+            "name": "Debug (iOS device)",
+            "type": "swf",
+            "request": "attach",
+            "platform": "ios",
+            "connect": true,
+            "preLaunchTask": "Adobe AIR: package iOS debug - asconfig.json"
+        },
+        {
+            "name": "Debug (AIR Simulator)",
+            "type": "swf",
+            "request": "launch",
+            "profile": "mobileDevice",
+            "screensize": "640x960:640x960", // iPhone 4S, a modern classic! ;)
+            "screenDPI": 326,
+            "versionPlatform": "IOS",
+            "preLaunchTask": "ActionScript: compile debug - asconfig.json"
+        },
+        {
+            "name": "Debug (iOS Simulator)",
+            "type": "swf",
+            "request": "attach",
+            "platform": "ios_simulator",
+            "preLaunchTask": "Adobe AIR: package iOS simulator debug - asconfig.json"
+        }
+    ]
+}

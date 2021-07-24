@@ -12,5 +12,5 @@ type = 'mobile'
 mainClass = 'Scaffold_Mobile.as'
 air {
     storepass = 'gradlefx'
-    applicationDescriptor = 'src/Scaffold_Mobile-app.xml'
+    applicationDescriptor = 'src/Scaffold-app.xml'
 } 

@@ -1,23 +1,17 @@
 {
 	"config": "airmobile",
 	"compilerOptions": {
-		"output": "out/scaffold.swf",
+		"output": "out/demo.swf",
 		"source-path": [
 			"src",
 			"../../starling/src"
 		]
-		// Add each of your ANEs here. Don't forget to enable 'extdir' below, as well!
-		// "library-path": [
-		// 	"lib/androidx.core.ane",
-		// 	"lib/com.distriqt.Application.ane",
-		// 	"lib/com.distriqt.Core.ane"
-		// ]
 	},
-	"mainClass": "Scaffold",
-	"application": "src/Scaffold-app.xml",
+	"mainClass": "Demo",
+	"application": "src/Demo-app.xml",
 	"airOptions": {
 		"android": {
-			"output": "out/scaffold.apk",
+			"output": "out/demo.apk",
 			"listen": true,
 			"signingOptions": {
 				"storetype": "JKS",
@@ -26,7 +20,7 @@
 			"resdir": "system/res"
 		},
 		"ios": {
-			"output": "out/scaffold.ipa",
+			"output": "out/demo.ipa",
 			"listen": true,
 			"signingOptions": {
 				"storetype": "pkcs12",
@@ -35,7 +29,7 @@
 			}
 		},
 		"ios_simulator": {
-			"output": "out/scaffold-simulator.ipa",
+			"output": "out/demo-simulator.ipa",
 			"platformsdk": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk",
 			"target": "ipa-debug-interpreter-simulator",
 			"signingOptions": {
@@ -44,10 +38,6 @@
 				"provisioning-profile": "../../../library/ios/ios_dev_profile.mobileprovision"
 			}
 		},
-		// Specify the directory where your ANEs are located.
-		// "extdir": [
-		// 	"lib"
-		// ],
 		"files": [
 			{
 				"file": "assets",

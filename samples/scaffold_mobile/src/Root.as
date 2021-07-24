@@ -34,7 +34,7 @@ package
         public function start(assets:AssetManager, screen:ScreenSetup):void
         {
             // the safe area overlay just shows us where the interactive content of our app
-            // should be.
+            // should be. Of course, this should be removed later. ;)
 
             _safeAreaOverlay = new SafeAreaOverlay();
             addChild(_safeAreaOverlay);

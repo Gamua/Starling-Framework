@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="scaffold-mobile">
     <configurations>
-      <configuration name="scaffold-mobile" target-platform="Mobile" pure-as="true" main-class="Scaffold_Mobile" output-file="scaffold_mobile.swf" output-folder="$MODULE_DIR$/out">
+      <configuration name="scaffold-mobile" target-platform="Mobile" pure-as="true" main-class="Scaffold" output-file="scaffold.swf" output-folder="$MODULE_DIR$/out">
         <dependencies>
           <entries>
             <entry module-name="starling" build-configuration-name="starling">
@@ -13,15 +13,15 @@
         </dependencies>
         <compiler-options />
         <packaging-air-desktop />
-        <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Scaffold_Mobile-app.xml" package-file-name="Scaffold-Mobile">
+        <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Scaffold-app.xml" package-file-name="Scaffold-Mobile">
           <files-to-package>
-            <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="." />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="assets" />
             <FilePathAndPathInPackage file-path="$MODULE_DIR$/system" path-in-package="." />
           </files-to-package>
         </packaging-android>
-        <packaging-ios enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Scaffold_Mobile-app.xml" package-file-name="Scaffold-Mobile">
+        <packaging-ios enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Scaffold-app.xml" package-file-name="Scaffold-Mobile">
           <files-to-package>
-            <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="." />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="assets" />
             <FilePathAndPathInPackage file-path="$MODULE_DIR$/system" path-in-package="." />
           </files-to-package>
           <AirSigningOptions keystore-path="$MODULE_DIR$/../../../library/ios/daniel_dev_certificate.p12" provisioning-profile-path="$MODULE_DIR$/../../../library/ios/ios_dev_profile.mobileprovision" />

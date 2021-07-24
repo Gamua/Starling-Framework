@@ -12,5 +12,5 @@ type = 'mobile'
 mainClass = 'Demo_Mobile.as'
 air {
     storepass = 'gradlefx'
-    applicationDescriptor = 'src/Demo_Mobile-app.xml'
+    applicationDescriptor = 'src/Demo-app.xml'
 } 
