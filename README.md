@@ -3,7 +3,7 @@
 The Cross Platform Game Engine
 ------------------------------
 
-The Starling Framework allows you to create hardware accelerated apps in ActionScript 3. The main target is the creation of 2D games, but Starling may be used for any graphical application. Thanks to Adobe AIR, Starling-based applications can be deployed to mobile devices (iOS, Android) and the desktop (Windows, OS X).
+The Starling Framework allows you to create hardware accelerated apps in ActionScript 3. The main target is the creation of 2D games, but Starling may be used for any graphical application. Thanks to Adobe AIR, Starling-based applications can be deployed to mobile devices (iOS, Android) and the desktop (Windows, macOS).
 
 While Starling mimics the classic display tree architecture of Adobe AIR/Flash, it provides a much better performance: all objects are rendered directly by the GPU (using the Stage3D API). The complete architecture was designed for working well with the GPU; common game development tasks were built right into its core. Starling hides Stage3D internals from developers, but makes it easy to access them for those who need full performance and flexibility.
 
