@@ -1,4 +1,4 @@
-# Starling Framework [![Build Status](https://travis-ci.org/Gamua/Starling-Framework.svg)](https://travis-ci.org/Gamua/Starling-Framework)
+# Starling Framework
 
 The Cross Platform Game Engine
 ------------------------------
