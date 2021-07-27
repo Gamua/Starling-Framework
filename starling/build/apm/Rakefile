@@ -62,21 +62,25 @@ def create_package(name, type)
 end
 
 namespace :apm do
-  desc "Create APM package with SWC file"
-  task :build_swc do
-    puts
-    puts "*** Attention: this task does NOT compile the SWC file! ***"
-    puts
-    create_package 'starling', :swc do
-      FileUtils.mkdir_p 'lib'
-      FileUtils.cp_r("#{PROJ_ROOT}/starling/bin/starling.swc", 'lib')
-    end
-  end
+  namespace :build do
 
-  desc "Create APM package with source"
-  task :build_src do
-    create_package 'starling-source', :src do
-      FileUtils.cp_r("#{PROJ_ROOT}/starling/src/", '.')
+    desc "Create APM package with SWC file"
+    task :swc do
+      puts
+      puts "*** Attention: this task does NOT compile the SWC file! ***"
+      puts
+      create_package 'starling', :swc do
+        FileUtils.mkdir_p 'lib'
+        FileUtils.cp_r("#{PROJ_ROOT}/starling/bin/starling.swc", 'lib')
+      end
     end
+
+    desc "Create APM package with source"
+    task :src do
+      create_package 'starling-source', :src do
+        FileUtils.cp_r("#{PROJ_ROOT}/starling/src/", '.')
+      end
+    end
+
   end
 end
