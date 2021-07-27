@@ -48,6 +48,7 @@ FlexUnitCompilerApplication.as
 
 # Release package
 starling/bin/starling-*.zip
+starling/build/apm/*.airpackage
 
 # ANE dir
 samples/scaffold_mobile/lib/

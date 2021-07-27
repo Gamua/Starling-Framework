@@ -1,0 +1,82 @@
+require 'fileutils'
+require 'tmpdir'
+require 'json'
+
+PROJ_ROOT = "#{__dir__}/../../.."
+PROJ_DEF = {
+  id: "starling",
+  name: "starling",
+  url: "https://gamua.com/starling",
+  docUrl: "https://doc.starling-framework.org",
+  description: "The Cross Platform Game Engine",
+  type: "swc",
+  version: "...",
+  sourceUrl: "...",
+  dependencies: [],
+  parameters: [],
+  tags: [ "framework", "gpu", "game engine", "game development", "gamedev", "games" ]
+}
+
+def get_source_url(name, version)
+  version_parts = version.split(".")
+  version_parts.pop if version_parts.last.to_i == 0
+  short_version = version_parts.join '.'
+  "https://github.com/Gamua/Starling-Framework/releases/download/" +
+    "v#{short_version}/#{name}-#{version}.airpackage"
+end
+
+def get_starling_version
+  version = nil
+  File.open("#{PROJ_ROOT}/starling/build/ant/build.properties", "r") do |f|
+    f.each_line do |line|
+      match = line.match /^version\s*=\s*([\d\.]+)/
+      version = match[1] unless match.nil?
+    end
+  end
+  version_parts = version.split('.')
+  version_parts << '0' unless version_parts.count > 2
+  version_parts.join('.')
+end
+
+def get_project_definition(name, type)
+  PROJ_DEF[:id] = name.downcase
+  PROJ_DEF[:name] = name
+  PROJ_DEF[:type] = type
+  PROJ_DEF[:version] = get_starling_version
+  PROJ_DEF[:sourceUrl] = get_source_url(name, get_starling_version)
+  PROJ_DEF
+end
+
+def create_package(name, type)
+  Dir.mktmpdir do |dir|
+    Dir.chdir(dir) do
+      project_definition = get_project_definition(name, type)
+      File.write 'package.json', JSON.pretty_generate(project_definition)
+      FileUtils.cp "#{PROJ_ROOT}/README.md", '.'
+      FileUtils.cp "#{PROJ_ROOT}/CHANGELOG.md", '.'
+      yield
+      system "apm build"
+      FileUtils.mv Dir.glob('*.airpackage'), __dir__
+    end
+  end
+end
+
+namespace :apm do
+  desc "Create APM package with SWC file"
+  task :build_swc do
+    puts
+    puts "*** Attention: this task does NOT compile the SWC file! ***"
+    puts
+    create_package 'starling', :swc do
+      FileUtils.mkdir_p 'lib'
+      FileUtils.cp_r("#{PROJ_ROOT}/starling/bin/starling.swc", 'lib')
+    end
+  end
+
+  desc "Create APM package with source"
+  task :build_src do
+    create_package 'starling-source', :src do
+      FileUtils.cp_r("#{PROJ_ROOT}/starling/src/", '.')
+    end
+  end
+end
