@@ -31,6 +31,9 @@ out/
 # Visual Studio Code
 **/.vscode/settings.json
 
+# Xcode
+xcuserdata/
+
 # Gradle CI
 .gradle/
 build/
