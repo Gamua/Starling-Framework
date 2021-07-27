@@ -22,7 +22,7 @@ def get_source_url(name, version)
   version_parts.pop if version_parts.last.to_i == 0
   short_version = version_parts.join '.'
   "https://github.com/Gamua/Starling-Framework/releases/download/" +
-    "v#{short_version}/#{name}-#{version}.airpackage"
+    "v#{short_version}/#{name}_#{version}.airpackage"
 end
 
 def get_starling_version
