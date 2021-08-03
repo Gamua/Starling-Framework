@@ -11,7 +11,7 @@ then
   exit 1
 fi
 
-ASDOC="/Users/redge/Dropbox/Development/library/flash/air/air-33/bin/asdoc"
+ASDOC="/Users/redge/Dropbox/Development/library/air/sdks/air-33/bin/asdoc"
 
 "${ASDOC}" \
   -doc-sources ../src \
