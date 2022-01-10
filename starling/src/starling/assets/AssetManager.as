@@ -255,31 +255,24 @@ package starling.assets
                         log("Looking for static embedded assets in '" +
                             (typeXml.@name).split("::").pop() + "'");
 
-                    for each (childNode in typeXml.constant.(@type == "Class"))
+                    function processNode(node:XML):void
                     {
                         // look for URL & mime type in the Embed metadata
-                        url = findUrlInVariableMetadata(childNode);
-                        mimeType = findMimeTypeInVariableMetadata(childNode);
+                        url = findUrlInVariableMetadata(node);
+                        mimeType = findMimeTypeInVariableMetadata(node);
 
                         // log found properties
                         if (_verbose && (url || mimeType))
-                            log("Constant class found with embed information. URL: '" + url + "', mimeType: '" + mimeType + "'");
+                            log("Found class with embed information. URL: '" + url + "', mimeType: '" + mimeType + "'");
 
-                        enqueueSingle(asset[childNode.@name], childNode.@name, null, getExtensionFromUrl(url), mimeType);
+                        enqueueSingle(asset[node.@name], node.@name, null, getExtensionFromUrl(url), mimeType);
                     }
+
+                    for each (childNode in typeXml.constant.(@type == "Class"))
+                        processNode(childNode);
 
                     for each (childNode in typeXml.variable.(@type == "Class"))
-                    {
-                        // look for URL & mime type in the Embed metadata
-                        url = findUrlInVariableMetadata(childNode);
-                        mimeType = findMimeTypeInVariableMetadata(childNode);
-
-                        // log found properties
-                        if (_verbose && (url || mimeType))
-                            log("Variable class found with embed information. URL: '" + url + "', mimeType: '" + mimeType + "'");
-
-                        enqueueSingle(asset[childNode.@name], childNode.@name, null, getExtensionFromUrl(url), mimeType);
-                    }
+                        processNode(childNode);
                 }
                 else if (getQualifiedClassName(asset) == "flash.filesystem::File")
                 {
@@ -362,7 +355,7 @@ package starling.assets
 
             var assetReference:AssetReference = new AssetReference(asset);
             assetReference.name = name || getNameFromUrl(assetReference.url) || getUniqueName();
-            assetReference.extension = customExtension ? customExtension : getExtensionFromUrl(assetReference.url);
+            assetReference.extension = customExtension || getExtensionFromUrl(assetReference.url);
             assetReference.mimeType = customMimeType;
             assetReference.textureOptions = options || _textureOptions;
             var logName:String = getFilenameFromUrl(assetReference.url) || assetReference.name;
