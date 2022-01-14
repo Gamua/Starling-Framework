@@ -20,7 +20,12 @@ package starling.rendering
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
     import flash.utils.Endian;
+	import flash.system.ApplicationDomain;
+	import avm2.intrinsics.memory.sf32;
+	import avm2.intrinsics.memory.si32;
+	import avm2.intrinsics.memory.lf32;
 
+	import starling.core.starling_internal;
     import starling.core.Starling;
     import starling.errors.MissingContextError;
     import starling.styles.MeshStyle;
@@ -103,6 +108,9 @@ package starling.rendering
      */
     public class VertexData
     {
+		private static var currentDomain:ApplicationDomain = ApplicationDomain.currentDomain;
+		private static var currentDomainByteArray:ByteArray;
+		private static var domainMemoryLength:uint = 0;
         private var _rawData:ByteArray;
         private var _numVertices:int;
         private var _format:VertexDataFormat;
@@ -167,6 +175,10 @@ package starling.rendering
         /** Explicitly frees up the memory used by the ByteArray. */
         public function clear():void
         {
+			if (currentDomainByteArray == _rawData)
+			{
+				starling_internal::unassignDomainMemory();
+			}
             _rawData.clear();
             _numVertices = 0;
             _tinted = false;
@@ -216,15 +228,42 @@ package starling.rendering
                 // and then overwrite only the transformed positions.
 
                 var targetRawData:ByteArray = target._rawData;
+				var pos:int = targetVertexID * _vertexSize + _posOffset;
+				var endPos:int = pos + (numVertices * _vertexSize);
+				if (currentDomainByteArray == targetRawData && endPos > domainMemoryLength)
+				{
+						currentDomainByteArray = null;
+						currentDomain.domainMemory = null;
+				}
                 targetRawData.position = targetVertexID * _vertexSize;
                 targetRawData.writeBytes(_rawData, vertexID * _vertexSize, numVertices * _vertexSize);
 
                 if (matrix)
                 {
                     var x:Number, y:Number;
-                    var pos:int = targetVertexID * _vertexSize + _posOffset;
-                    var endPos:int = pos + (numVertices * _vertexSize);
-
+				//Only set the ByteArray to domain memory if the length is bigger than 1024 byte.
+					if (targetRawData.length > ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH)
+					{	
+						if (currentDomainByteArray != targetRawData)
+						{
+							domainMemoryLength = targetRawData.length;
+							targetRawData.length = domainMemoryLength;
+							currentDomain.domainMemory = targetRawData;
+							currentDomainByteArray = targetRawData;
+						}
+						while (pos < endPos)
+						{
+							// Reads float numbers from targetRawData.
+							x = lf32(pos);
+							y = lf32(pos + 4);
+							// Write float numbers to targetRawData.
+							sf32(matrix.a * x + matrix.c * y + matrix.tx, pos);
+							sf32(matrix.d * y + matrix.b * x + matrix.ty, pos + 4);
+							pos += _vertexSize;
+						}
+					}
+					else
+					{
                     while (pos < endPos)
                     {
                         targetRawData.position = pos;
@@ -239,6 +278,7 @@ package starling.rendering
                     }
                 }
             }
+}
             else
             {
                 if (target._numVertices < targetVertexID + numVertices)
@@ -312,10 +352,25 @@ package starling.rendering
             var attributeSizeIn32Bits:int = sourceAttribute.size / 4;
 
             sourceData.position = vertexID * _vertexSize + sourceAttribute.offset;
-            targetData.position = targetVertexID * target._vertexSize + targetAttribute.offset;
-
+            var pos:int = targetVertexID * target._vertexSize + targetAttribute.offset;
             if (matrix)
             {
+				if (starling_internal::tryAssignToDomainMemory(targetData, (targetDelta + 8) * numVertices))
+				{
+					for (i = 0; i < numVertices; ++i)
+					{
+						x = sourceData.readFloat();
+						y = sourceData.readFloat();
+						// Write float number into targetData.
+						sf32(matrix.a * x + matrix.c * y + matrix.tx, pos);
+						sf32(matrix.d * y + matrix.b * x + matrix.ty, pos += 4);
+						pos += 4 + targetDelta;
+						sourceData.position += sourceDelta;
+					}
+				}
+				else
+				{
+					targetData.position = pos;
                 for (i=0; i<numVertices; ++i)
                 {
                     x = sourceData.readFloat();
@@ -328,8 +383,10 @@ package starling.rendering
                     targetData.position += targetDelta;
                 }
             }
+}
             else
             {
+targetData.position = pos;
                 for (i=0; i<numVertices; ++i)
                 {
                     for (j=0; j<attributeSizeIn32Bits; ++j)
@@ -427,6 +484,19 @@ package starling.rendering
             _rawData.writeFloat(x);
             _rawData.writeFloat(y);
         }
+
+		/** Writes to domain memory at the given coordinates to the specified vertex and attribute. */
+		starling_internal function setPointToDomainMemory(vertexID:int, attrName:String, x:Number, y:Number):void
+		{
+			if (_numVertices < vertexID + 1)
+				numVertices = vertexID + 1;
+			
+			var offset:int = attrName == "position" ? _posOffset : getAttribute(attrName).offset;
+			var position:int = vertexID * _vertexSize + offset;
+			// Write float number into Domain Memory ByteArray.
+			sf32(x, position);
+			sf32(y, position + 4);
+		}
 
         /** Reads a Vector3D from the specified vertex and attribute.
          *  The 'w' property of the Vector3D is ignored. */
@@ -839,18 +909,49 @@ package starling.rendering
             else if (rgba != 0xffffffff) _tinted = true;
 
             if (_premultipliedAlpha && alpha != 1.0) rgba = premultiplyAlpha(rgba);
-
-            _rawData.position = vertexID * _vertexSize + offset;
-            _rawData.writeUnsignedInt(switchEndian(rgba));
-
+			var rgbaSwitched:uint = switchEndian(rgba);
             while (pos < endPos)
             {
                 _rawData.position = pos;
-                _rawData.writeUnsignedInt(switchEndian(rgba));
+                _rawData.writeUnsignedInt(rgbaSwitched);
                 pos += _vertexSize;
             }
         }
 
+		/** Writes the given RGB and alpha values to the specified vertices. */
+		starling_internal function colorizeToDomainMemory(attrName:String = "color", color:uint = 0xffffff, alpha:Number = 1.0, vertexID:int = 0, numVertices:int = -1):void
+		{
+			if (numVertices < 0 || vertexID + numVertices > _numVertices)
+				numVertices = _numVertices - vertexID;
+			
+			var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
+			
+			if (alpha > 1.0)
+				alpha = 1.0;
+			else if (alpha < 0.0)
+				alpha = 0.0;
+			
+			var rgba:uint = ((color << 8) & 0xffffff00) | (int(alpha * 255.0) & 0xff);
+			
+			if (rgba == 0xffffffff && numVertices == _numVertices)
+				_tinted = false;
+			else if (rgba != 0xffffffff)
+				_tinted = true;
+			
+			if (_premultipliedAlpha && alpha != 1.0)
+				rgba = premultiplyAlpha(rgba);
+			
+			var pos:int = vertexID * _vertexSize + offset;
+			var endPos:int = pos + (numVertices * _vertexSize);
+			var rgbaSwitched:uint = switchEndian(rgba);
+			while (pos < endPos)
+			{
+		//Write rgba into _rawData, even due the instruction is writing signed int it has the same effect as to write unsigned int.
+				si32(rgbaSwitched, pos);
+				pos += _vertexSize;
+			}
+		}
+		
         // format helpers
 
         /** Returns the format of a certain vertex attribute, identified by its name.
@@ -932,6 +1033,39 @@ package starling.rendering
             return null;
         }
 
+		
+		 /** Assign <code>ByteArray</code> into domain Memory. 
+		   The <code>ByteArray</code> will be assigned only if its length is bigger than <code>ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH</code>
+		   At the end of the frame it will be automatically unassigned*/
+		starling_internal static function tryAssignToDomainMemory(byteArray:ByteArray, endPos:int):Boolean
+		{
+			if (currentDomainByteArray != byteArray)
+			{
+				if (byteArray.length < ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH)
+				{
+					return false;
+				}
+				byteArray.length = Math.max(byteArray.length,endPos);
+				currentDomain.domainMemory = byteArray;
+				currentDomainByteArray = byteArray;
+			}
+			else if (endPos > domainMemoryLength)
+			{
+				//In case byteArray length got bigger this casue the domain memory to reallocate to the new length size.
+                domainMemoryLength = endPos;
+				currentDomain.domainMemory = null;
+				byteArray.length = domainMemoryLength;
+				currentDomain.domainMemory = byteArray;
+			}
+			return true;
+		}
+		
+		starling_internal static function unassignDomainMemory():void
+		{
+			currentDomain.domainMemory = null;
+			currentDomainByteArray = null;
+		}
+		
         [Inline]
         private static function switchEndian(value:uint):uint
         {
