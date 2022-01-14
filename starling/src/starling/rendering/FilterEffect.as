@@ -48,7 +48,7 @@ package starling.rendering
         /** Creates a new FilterEffect instance. */
         public function FilterEffect()
         {
-            _textureSmoothing = Starling.current.defaultTextureSmoothing;
+            _textureSmoothing = Starling.defaultTextureSmoothing;
         }
 
         /** Override this method if the effect requires a different program depending on the

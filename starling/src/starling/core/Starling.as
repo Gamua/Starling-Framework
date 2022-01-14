@@ -1219,6 +1219,13 @@ package starling.core
         {
             return sCurrent ? sCurrent._frameID : 0;
         }
+
+        /** The default texture smoothing value of 'Starling.current', or 'bilinear'.
+         *  @default "bilinear" */
+        public static function get defaultTextureSmoothing():String
+        {
+            return sCurrent ? sCurrent._defaultTextureSmoothing : TextureSmoothing.BILINEAR;
+        }
     }
 }
 
