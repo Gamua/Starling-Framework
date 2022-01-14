@@ -175,7 +175,10 @@ package starling.display
                 }
                 
                 child.setParent(null);
+				if (index > _children.length-1 || _children[index] != child)
+				{
                 index = _children.indexOf(child); // index might have changed by event handler
+				}
                 if (index >= 0) _children.removeAt(index);
                 if (dispose) child.dispose();
                 
