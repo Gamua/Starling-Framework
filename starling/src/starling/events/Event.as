@@ -57,6 +57,9 @@ package starling.events
         public static const CONTEXT3D_CREATE:String = "context3DCreate";
         /** Event type that is dispatched by the Starling instance directly before rendering. */
         public static const RENDER:String = "render";
+        /** Event type for a frame that is skipped because the display list did not change.
+         *  Dispatched instead of the <code>RENDER</code> event. */
+        public static const SKIP_FRAME:String = "skipFrame";
         /** Event type that indicates that the root DisplayObject has been created. */
         public static const ROOT_CREATED:String = "rootCreated";
         /** Event type for an animated object that requests to be removed from the juggler. */

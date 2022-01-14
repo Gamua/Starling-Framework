@@ -131,6 +131,7 @@ package starling.geom
             // Algorithm & implementation thankfully taken from:
             // -> http://alienryderflex.com/polygon/
 
+            var numVertices:int = this.numVertices;
             var i:int, j:int = numVertices - 1;
             var oddNodes:uint = 0;
 

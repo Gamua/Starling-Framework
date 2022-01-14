@@ -1,0 +1,13 @@
+{
+	"type": "lib",
+	"config": "air",
+	"compilerOptions": {
+		"output": "bin-debug/starling.swc",
+		"source-path": [
+			"src"
+		],
+		"include-sources": [
+			"src"
+		]
+	}
+}

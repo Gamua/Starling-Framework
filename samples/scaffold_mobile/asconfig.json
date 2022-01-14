@@ -1,0 +1,62 @@
+{
+	"config": "airmobile",
+	"compilerOptions": {
+		"output": "out/scaffold.swf",
+		"source-path": [
+			"src",
+			"../../starling/src"
+		]
+		// Add each of your ANEs here. Don't forget to enable 'extdir' below, as well!
+		// "library-path": [
+		// 	"lib/androidx.core.ane",
+		// 	"lib/com.distriqt.Application.ane",
+		// 	"lib/com.distriqt.Core.ane"
+		// ]
+	},
+	"mainClass": "Scaffold",
+	"application": "src/Scaffold-app.xml",
+	"airOptions": {
+		"android": {
+			"output": "out/scaffold.apk",
+			"listen": true,
+			"signingOptions": {
+				"storetype": "JKS",
+				"keystore": "../../../library/android/dev-key.keystore"
+			},
+			"resdir": "system/res"
+		},
+		"ios": {
+			"output": "out/scaffold.ipa",
+			"listen": true,
+			"signingOptions": {
+				"storetype": "pkcs12",
+				"keystore": "../../../library/ios/daniel_dev_certificate.p12",
+				"provisioning-profile": "../../../library/ios/ios_dev_profile.mobileprovision"
+			}
+		},
+		"ios_simulator": {
+			"output": "out/scaffold-simulator.ipa",
+			"platformsdk": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk",
+			"target": "ipa-debug-interpreter-simulator",
+			"signingOptions": {
+				"storetype": "pkcs12",
+				"keystore": "../../../library/ios/daniel_dev_certificate.p12",
+				"provisioning-profile": "../../../library/ios/ios_dev_profile.mobileprovision"
+			}
+		},
+		// Specify the directory where your ANEs are located.
+		// "extdir": [
+		// 	"lib"
+		// ],
+		"files": [
+			{
+				"file": "assets",
+				"path": "assets"
+			},
+			{
+				"file": "system",
+				"path": ""
+			}
+		]
+	}
+}

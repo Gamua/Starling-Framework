@@ -10,10 +10,10 @@
 
 package starling.styles
 {
-    import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
     import flash.geom.Point;
 
+    import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.display.Mesh;
     import starling.events.Event;
@@ -21,7 +21,6 @@ package starling.styles
     import starling.rendering.*;
     import starling.textures.ConcreteTexture;
     import starling.textures.Texture;
-    import starling.textures.TextureSmoothing;
 
     /** Dispatched every frame on styles assigned to display objects connected to the stage. */
     [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
@@ -112,7 +111,7 @@ package starling.styles
          *  Subclasses must provide a constructor that can be called without any arguments. */
         public function MeshStyle()
         {
-            _textureSmoothing = TextureSmoothing.BILINEAR;
+            _textureSmoothing = Starling.current.defaultTextureSmoothing;
             _type = Object(this).constructor as Class;
         }
 

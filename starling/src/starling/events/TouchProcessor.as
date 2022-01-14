@@ -71,7 +71,7 @@ package starling.events
         // system gesture detection
         private var _discardSystemGestures:Boolean;
         private var _systemGestureTouchID:int = -1;
-        private var _systemGestureMargins:Array = [10, 10, 0, 0];
+        private var _systemGestureMargins:Array = [15, 15, 15, 0];
 
         /** A vector of arrays with the arguments that were passed to the "enqueue"
          *  method (the oldest being at the end of the vector). */

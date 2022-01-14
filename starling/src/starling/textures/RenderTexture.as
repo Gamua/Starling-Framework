@@ -29,34 +29,33 @@ package starling.textures
     import starling.utils.execute;
 
     /** A RenderTexture is a dynamic texture onto which you can draw any display object.
-     * 
+     *
      *  <p>After creating a render texture, just call the <code>draw</code> method to render
      *  an object directly onto the texture. The object will be drawn onto the texture at its current
-     *  position, adhering its current rotation, scale and alpha properties.</p> 
-     *  
-     *  <p>Drawing is done very efficiently, as it is happening directly in graphics memory. After 
-     *  you have drawn objects onto the texture, the performance will be just like that of a normal 
+     *  position, adhering its current rotation, scale and alpha properties.</p>
+     *
+     *  <p>Drawing is done very efficiently, as it is happening directly in graphics memory. After
+     *  you have drawn objects onto the texture, the performance will be just like that of a normal
      *  texture — no matter how many objects you have drawn.</p>
-     *  
-     *  <p>If you draw lots of objects at once, it is recommended to bundle the drawing calls in 
-     *  a block via the <code>drawBundled</code> method, like shown below. That will speed it up 
+     *
+     *  <p>If you draw lots of objects at once, it is recommended to bundle the drawing calls in
+     *  a block via the <code>drawBundled</code> method, like shown below. That will speed it up
      *  immensely, allowing you to draw hundreds of objects very quickly.</p>
-     *  
-     * 	<pre>
+     *
+     *  <listing>
      *  renderTexture.drawBundled(function():void
      *  {
      *     for (var i:int=0; i&lt;numDrawings; ++i)
      *     {
      *         image.rotation = (2 &#42; Math.PI / numDrawings) &#42; i;
      *         renderTexture.draw(image);
-     *     }   
-     *  });
-     *  </pre>
-     *  
+     *     }
+     *  });</listing>
+     *
      *  <p>To erase parts of a render texture, you can use any display object like a "rubber" by
      *  setting its blending mode to <code>BlendMode.ERASE</code>. To wipe it completely clean,
      *  use the <code>clear</code> method.</p>
-     * 
+     *
      *  <strong>Persistence</strong>
      *
      *  <p>Older devices may require double buffering to support persistent render textures. Thus,
@@ -98,6 +97,11 @@ package starling.textures
      *  <p>[Note that this time, there is no need to call <code>clear</code>, because that's the
      *  default behavior of <code>onRestore</code>, anyway — and we didn't modify that.]</p>
      *
+     *  <strong>Required: clear or draw before first usage</strong>
+     *
+     *  <p>Directly after creating a render texture, it is still in an undefined state.
+     *  Before it can be used, you need to call <code>clear</code> or one of the
+     *  <code>draw</code>-methods; otherwise, you will run into a render error.</p>
      */
     public class RenderTexture extends SubTexture
     {
@@ -113,7 +117,7 @@ package starling.textures
 
         // helper object
         private static var sClipRect:Rectangle = new Rectangle();
-        
+
         /** Creates a new RenderTexture with a certain size (in points). If the texture is
          *  persistent, its contents remains intact after each draw call, allowing you to use the
          *  texture just like a canvas. If it is not, it will be cleared before each draw call.
@@ -123,23 +127,24 @@ package starling.textures
          *  documentation of the <code>useDoubleBuffering</code> property.</p>
          */
         public function RenderTexture(width:int, height:int, persistent:Boolean=true,
-                                      scale:Number=-1, format:String="bgra")
+                                      scale:Number=-1, format:String="bgra",
+                                      forcePotTexture:Boolean=false)
         {
             _isPersistent = persistent;
-            _activeTexture = Texture.empty(width, height, true, false, true, scale, format);
+            _activeTexture = Texture.empty(width, height, true, false, true, scale, format, forcePotTexture);
             _activeTexture.root.onRestore = _activeTexture.root.clear;
 
             super(_activeTexture, new Rectangle(0, 0, width, height), true, null, false);
 
             if (persistent && useDoubleBuffering)
             {
-                _bufferTexture = Texture.empty(width, height, true, false, true, scale, format);
+                _bufferTexture = Texture.empty(width, height, true, false, true, scale, format, forcePotTexture);
                 _bufferTexture.root.onRestore = _bufferTexture.root.clear;
                 _helperImage = new Image(_bufferTexture);
                 _helperImage.textureSmoothing = TextureSmoothing.NONE; // solves some aliasing-issues
             }
         }
-        
+
         /** @inheritDoc */
         public override function dispose():void
         {
@@ -149,11 +154,11 @@ package starling.textures
 
             super.dispose(); // will take care of parent (either _bufferTexture or _activeTexture)
         }
-        
+
         /** Draws an object into the texture.
          *
          *  @param object       The object to draw.
-         *  @param matrix       If 'matrix' is null, the object will be drawn adhering its 
+         *  @param matrix       If 'matrix' is null, the object will be drawn adhering its
          *                      properties for position, scale, and rotation. If it is not null,
          *                      the object will be drawn in the orientation depicted by the matrix.
          *  @param alpha        The object's alpha value will be multiplied with this value.
@@ -168,18 +173,18 @@ package starling.textures
                              antiAliasing:int=0, cameraPos:Vector3D=null):void
         {
             if (object == null) return;
-            
+
             if (_drawing)
                 render(object, matrix, alpha);
             else
                 renderBundled(render, object, matrix, alpha, antiAliasing, cameraPos);
         }
-        
-        /** Bundles several calls to <code>draw</code> together in a block. This avoids buffer 
+
+        /** Bundles several calls to <code>draw</code> together in a block. This avoids buffer
          *  switches and allows you to draw multiple objects into a non-persistent texture.
          *  Note that the 'antiAliasing' setting provided here overrides those provided in
          *  individual 'draw' calls.
-         *  
+         *
          *  @param drawingBlock  a callback with the form: <pre>function():void;</pre>
          *  @param antiAliasing  Values range from 0 (no antialiasing) to 4 (best quality).
          *                       Beginning with AIR 22, this feature is supported on all platforms
@@ -193,7 +198,7 @@ package starling.textures
         {
             renderBundled(drawingBlock, null, null, 1.0, antiAliasing, cameraPos);
         }
-        
+
         private function render(object:DisplayObject, matrix:Matrix=null, alpha:Number=1.0):void
         {
             var painter:Painter = Starling.painter;
@@ -223,7 +228,7 @@ package starling.textures
             painter.popState();
             painter.cacheEnabled = wasCacheEnabled;
         }
-        
+
         private function renderBundled(renderBlock:Function, object:DisplayObject=null,
                                        matrix:Matrix=null, alpha:Number=1.0,
                                        antiAliasing:int=0, cameraPos:Vector3D=null):void
@@ -266,7 +271,7 @@ package starling.textures
                 _helperImage.render(painter);
             else
                 _bufferReady = true;
-            
+
             try
             {
                 _drawing = true;
@@ -278,7 +283,7 @@ package starling.textures
                 painter.popState();
             }
         }
-        
+
         /** Clears the render texture with a certain color and alpha value. Call without any
          *  arguments to restore full transparency. */
         public function clear(color:uint=0, alpha:Number=0.0):void
@@ -296,10 +301,10 @@ package starling.textures
 
         /** Indicates if the texture is persistent over multiple draw calls. */
         public function get isPersistent():Boolean { return _isPersistent; }
-        
+
         /** @inheritDoc */
         public override function get base():TextureBase { return _activeTexture.base; }
-        
+
         /** @inheritDoc */
         public override function get root():ConcreteTexture { return _activeTexture.root; }
 

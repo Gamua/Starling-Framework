@@ -953,14 +953,14 @@ package starling.rendering
 
         /** Returns the current width of the back buffer. In most cases, this value is in pixels;
          *  however, if the app is running on an HiDPI display with an activated
-         *  'supportHighResolutions' setting, you have to multiply with 'backBufferPixelsPerPoint'
+         *  'supportHighResolutions' setting, you have to multiply with 'backBufferScaleFactor'
          *  for the actual pixel count. Alternatively, use the Context3D-property with the
          *  same name: it will return the exact pixel values. */
         public function get backBufferWidth():int { return _backBufferWidth; }
 
         /** Returns the current height of the back buffer. In most cases, this value is in pixels;
          *  however, if the app is running on an HiDPI display with an activated
-         *  'supportHighResolutions' setting, you have to multiply with 'backBufferPixelsPerPoint'
+         *  'supportHighResolutions' setting, you have to multiply with 'backBufferScaleFactor'
          *  for the actual pixel count. Alternatively, use the Context3D-property with the
          *  same name: it will return the exact pixel values. */
         public function get backBufferHeight():int { return _backBufferHeight; }

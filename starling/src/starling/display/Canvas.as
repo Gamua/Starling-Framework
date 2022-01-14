@@ -55,19 +55,34 @@ package starling.display
             return null;
         }
 
-        /** Draws a circle. */
-        public function drawCircle(x:Number, y:Number, radius:Number):void
+        /** Draws a circle.
+         *
+         * @param x         x-coordinate of center point
+         * @param y         y-coordinate of center point
+         * @param radius    radius of circle
+         * @param numSides  the number of lines used to draw the circle.
+         *                  If you don't pass anything, Starling will pick a reasonable value.
+         */
+        public function drawCircle(x:Number, y:Number, radius:Number, numSides:int = -1):void
         {
-            appendPolygon(Polygon.createCircle(x, y, radius));
+            appendPolygon(Polygon.createCircle(x, y, radius, numSides));
         }
 
-        /** Draws an ellipse. */
-        public function drawEllipse(x:Number, y:Number, width:Number, height:Number):void
+        /** Draws an ellipse.
+         *
+         * @param x         x-coordinate of bounding box
+         * @param y         y-coordinate of bounding box
+         * @param width     width of the ellipse
+         * @param height    height of the ellipse
+         * @param numSides  the number of lines used to draw the ellipse.
+         *                  If you don't pass anything, Starling will pick a reasonable value.
+         */
+        public function drawEllipse(x:Number, y:Number, width:Number, height:Number, numSides:int = -1):void
         {
             var radiusX:Number = width  / 2.0;
             var radiusY:Number = height / 2.0;
 
-            appendPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY));
+            appendPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY, numSides));
         }
 
         /** Draws a rectangle. */

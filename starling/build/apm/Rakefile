@@ -1,0 +1,118 @@
+require 'fileutils'
+require 'tmpdir'
+require 'json'
+
+PROJ_ROOT = "#{__dir__}/../../.."
+PROJ_DEF = {
+  id: "starling",
+  name: "starling",
+  url: "https://gamua.com/starling",
+  docUrl: "https://doc.starling-framework.org",
+  description: "The Cross Platform Game Engine",
+  type: "swc",
+  version: "...",
+  sourceUrl: "...",
+  dependencies: [],
+  parameters: [],
+  tags: [ "framework", "gpu", "game engine", "game development", "gamedev", "games" ],
+  license: {
+    type: "Simplified BSD",
+    url: "https://github.com/Gamua/Starling-Framework/blob/master/LICENSE.md",
+    public: true
+  },
+}
+
+def get_source_url(name, version)
+  version_parts = version.split(".")
+  version_parts.pop if version_parts.last.to_i == 0
+  short_version = version_parts.join '.'
+  "https://github.com/Gamua/Starling-Framework/releases/download/" +
+    "v#{short_version}/#{name}_#{version}.airpackage"
+end
+
+def get_starling_version(expand=false)
+  version = nil
+  File.open("#{PROJ_ROOT}/starling/build/ant/build.properties", "r") do |f|
+    f.each_line do |line|
+      match = line.match /^version\s*=\s*([\d\.]+)/
+      version = match[1] unless match.nil?
+    end
+  end
+  if expand
+    version_parts = version.split('.')
+    version_parts << '0' unless version_parts.count > 2
+    version_parts.join('.')
+  else
+    version
+  end
+end
+
+def get_project_definition(name, type)
+  starling_version = get_starling_version(true)
+  PROJ_DEF[:id] = name.downcase
+  PROJ_DEF[:name] = name
+  PROJ_DEF[:type] = type
+  PROJ_DEF[:version] = starling_version
+  PROJ_DEF[:sourceUrl] = get_source_url(name, starling_version)
+  PROJ_DEF
+end
+
+def create_package(name, type)
+  Dir.mktmpdir do |dir|
+    Dir.chdir(dir) do
+      project_definition = get_project_definition(name, type)
+      File.write 'package.json', JSON.pretty_generate(project_definition)
+      FileUtils.cp "#{PROJ_ROOT}/README.md", '.'
+      FileUtils.cp "#{PROJ_ROOT}/CHANGELOG.md", '.'
+      yield
+      system "apm build"
+      FileUtils.mv Dir.glob('*.airpackage'), __dir__
+    end
+  end
+end
+
+namespace :apm do
+  namespace :build do
+    desc "Build SWC file"
+    task :swc do
+      Dir.chdir("#{PROJ_ROOT}/starling/build/ant") do
+        system "ant build"
+      end
+    end
+  end
+
+  namespace :package do
+    desc "Create APM package with SWC file"
+    task :swc => 'apm:build:swc' do
+      create_package 'starling', :swc do
+        FileUtils.mkdir_p 'swc'
+        FileUtils.cp_r("#{PROJ_ROOT}/starling/bin/starling.swc", 'swc')
+      end
+    end
+    desc "Create APM package with source"
+    task :src do
+      create_package 'starling-source', :src do
+        FileUtils.cp_r("#{PROJ_ROOT}/starling/src/", '.')
+      end
+    end
+  end
+
+  namespace :publish do
+    desc "Create APM package with SWC file, upload to Github"
+    task :swc => 'apm:package:swc' do
+      short_version = get_starling_version(false)
+      long_version = get_starling_version(true)
+      package_file = "starling_#{long_version}.airpackage"
+      system "gh release upload v#{short_version} #{package_file} --clobber"
+      system "apm publish #{package_file}"
+    end
+    desc "Create APM package with source, upload to Github"
+    task :src => 'apm:package:src' do
+      short_version = get_starling_version(false)
+      long_version = get_starling_version(true)
+      package_file = "starling-source_#{long_version}.airpackage"
+      system "gh release upload v#{short_version} #{package_file} --clobber"
+      system "apm publish #{package_file}"
+    end
+  end
+end

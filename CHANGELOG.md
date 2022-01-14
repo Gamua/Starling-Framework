@@ -1,6 +1,61 @@
 Starling: Changelog
 ===================
 
+version 2.7 - 2021-07-26
+------------------------
+
+- added 'Event.SKIP_FRAME' and showing number of skipped frames in the stats display (#1082)
+- added 'BlendMode.isRegistered()'
+- added 'BlendMode.getAll()'
+- added config files for _Visual Studio Code_ for all sub-projects
+- added small optimization to Polygon 'contains' method (thanks to Adolio!)
+- added parameter 'forcePotTexture' to RenderTexture constructor (thanks to hardcoremore!)
+- added 'AssetManger.unregisterFactory'
+- added optional 'numSides' parameter to Canvas::drawCircle and Canvas::drawEllipse (#1068)
+- added support for 'TextureOptions.onReady' to BitmapTextureFactory and AtfTextureFactory (thanks to esidegallery!)
+- Android back gesture is now ignored by default (via 'starling.discardSystemGestures')
+- updated mobile scaffold for modern requirements
+  - adaptive icon on Android
+  - making use of Android 'res' folder
+  - iOS icon via 'Assets.car'
+  - removed 'Default.png' and variants
+  - prepared notch support - just add 'Application' ANE from distriqt and comment in some code.
+- updated mobile demo project with a new app icon and simplified its build process
+- fixed that a button's minimum hit area size was too big on Desktop (now 16 on Desktop, 44 on mobile) (#1066)
+- fixed erroneous hit tests on buttons with certain overlays
+  (see [forum thread](https://forum.starling-framework.org/d/22337-issue-with-button-in-starling-26))
+- fixed that color of Glow- and DropShadowFilter was not always applied (#1074)
+- fixed that ScreenSetup class didn't work correctly in AIR simulator
+- fixed that context settings were not correctly restored after a context loss
+- removed 'web' demo (doesn't make much sense after Flash Player's end-of-life)
+- removed Gradle build scripts
+  - I personally don't use Gradle, and the Flair Gradle Plugin hasn't been updated for a long time.
+    Thus, I decided to remove those scripts to reduce maintenance efforts.
+    However, if anyone thinks this is a bad idea and/or can help with maintenance, feel free to ping me!
+- removed Travis CI integration
+  - Keeping the Travis build working has always been a challenge, and since changes to Starling aren't happening
+    as often anymore, it's not vital to have Travis look over it.
+- removed Flash Builder project files
+  - Adobe Flash Builder hasn't been updated in years and there is no hope of it coming back anytime soon.
+    Furthermore, I don't have it installed any longer, so I can't keep the project files in shape.
+    Thus, I decided to remove them from the repository altogether.
+
+version 2.6 - 2020-02-10
+------------------------
+
+- added 'ButtonBehavior' class
+- added 'inner' and 'knockout' modes to DropShadowFilter and GlowFilter
+- added 'AssetManager.dequeue' method
+- added missing parameters to 'MeshBatch.addMeshAt'
+- updated Travis script, as Homebrew now keeps casks updated automatically
+- fixed exception when using empty FilterChain (closes #1063)
+- fixed API reference default value for 'nativeOverlayBlocksTouches'
+
+version 2.5.1 - 2019-04-03
+--------------------------
+
+- fixed null reference exception when stats display was enabled before Starling was initialized
+
 version 2.5 - 2019-04-02
 ------------------------
 

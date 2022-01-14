@@ -18,25 +18,29 @@ package
      */
     public class Scene extends Sprite
     {
-        protected var _width:Number;
-        protected var _height:Number;
+        private var _sceneWidth:Number;
+        private var _sceneHeight:Number;
 
-        /** Sets up the screen, i.e. initializes all its display objects.
+        /** Initializes all its display objects.
          *  When this method is called, the scene is already connected to the stage. */
-        public function init(width:Number, height:Number):void
+        public function init():void
+        {}
+
+        /** Called once after 'init', and then again when the device orientation changes.
+         *  (e.g. from portrait to landscape). Override in subclasses! */
+        public function updatePositions():void
+        {}
+
+        /** Called by 'Root' when the size changes.
+         *  'width' and 'height' indicate the safe area size (screen minus cutouts). */
+        public function setSize(width:Number, height:Number):void
         {
-            _width = width;
-            _height = height;
+            _sceneWidth = width;
+            _sceneHeight = height;
+            updatePositions();
         }
 
-        /** Called when the orientation of the device changes (e.g. from portrait to landscape).
-         *  If you don't need auto-orientation support, you can remove the "resizeTo" method here
-         *  and in any subclasses.
-         */
-        public function resizeTo(width:Number, height:Number):void
-        {
-            _width = width;
-            _height = height;
-        }
+        public function get sceneWidth():Number { return _sceneWidth; }
+        public function get sceneHeight():Number { return _sceneHeight; }
     }
 }

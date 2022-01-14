@@ -71,15 +71,15 @@ package starling.assets
      *  <listing>
      *  var appDir:File = File.applicationDirectory;
      *  var assets:AssetManager = new AssetManager();
-     *  
+     *
      *  assets.textureOptions.format = Context3DTextureFormat.BGRA;
      *  assets.enqueue(appDir.resolvePath("textures/32bit"));
-     *  
+     *
      *  assets.textureOptions.format = Context3DTextureFormat.BGRA_PACKED;
      *  assets.enqueue(appDir.resolvePath("textures/16bit"));
-     *  
+     *
      *  assets.loadQueue(...);</listing>
-     * 
+     *
      *  <strong>Nesting</strong>
      *
      *  <p>When you enqueue one or more AssetManagers to another one, the "loadQueue" method will
@@ -95,17 +95,17 @@ package starling.assets
      *  <listing>
      *  var manager:AssetManager = new AssetManager();
      *  var appDir:File = File.applicationDirectory;
-     *  
+     *
      *  var redAssets:AssetManager = new AssetManager();
      *  redAssets.enqueueSingle(appDir.resolvePath("textures/red/"));
-     *  
+     *
      *  var greenAssets:AssetManager = new AssetManager();
      *  greenAssets.enqueueSingle(appDir.resolvePath("textures/green/"));
-     *  
+     *
      *  manager.enqueueSingle(redAssets, "redAssets");
      *  manager.enqueueSingle(greenAssets, "greenAssets");
      *  manager.loadQueue(...); // loads both "red" and "green" assets
-     *  
+     *
      *  // ... later, remove all "red" assets together
      *  manager.removeAssetManager("redAssets");</listing>
      *
@@ -124,6 +124,15 @@ package starling.assets
      *  and 'log', you can customize how assets are named and disposed, and you can forward
      *  any logging to an external logger. To customize the way data is loaded from URLs or
      *  files, you can assign a custom 'DataLoader' instance to the AssetManager.</p>
+     *
+     *  <strong>Extension & mime type for embed assets</strong>
+     *
+     *  <p>In order to enable the automatic detection of the extension & mime type for
+     *  embed assets, the following compiler option is required:
+     *  `-keep-as3-metadata += "Embed"`.</p>
+     *
+     *  <p>This will enable proper assets handling in your custom 'AssetFactory' for
+     *  the embed assets.</p>
      *
      *  @see starling.assets.AssetFactory
      *  @see starling.assets.AssetType
@@ -239,16 +248,31 @@ package starling.assets
                 {
                     var typeXml:XML = describeType(asset);
                     var childNode:XML;
+                    var url:String;
+                    var mimeType:String
 
                     if (_verbose)
                         log("Looking for static embedded assets in '" +
                             (typeXml.@name).split("::").pop() + "'");
 
+                    function processNode(node:XML):void
+                    {
+                        // look for URL & mime type in the Embed metadata
+                        url = findUrlInVariableMetadata(node);
+                        mimeType = findMimeTypeInVariableMetadata(node);
+
+                        // log found properties
+                        if (_verbose && (url || mimeType))
+                            log("Found class with embed information. URL: '" + url + "', mimeType: '" + mimeType + "'");
+
+                        enqueueSingle(asset[node.@name], node.@name, null, getExtensionFromUrl(url), mimeType);
+                    }
+
                     for each (childNode in typeXml.constant.(@type == "Class"))
-                        enqueueSingle(asset[childNode.@name], childNode.@name);
+                        processNode(childNode);
 
                     for each (childNode in typeXml.variable.(@type == "Class"))
-                        enqueueSingle(asset[childNode.@name], childNode.@name);
+                        processNode(childNode);
                 }
                 else if (getQualifiedClassName(asset) == "flash.filesystem::File")
                 {
@@ -275,6 +299,42 @@ package starling.assets
             }
         }
 
+        /** Looks for asset "source" in the Embed metadata.
+         *
+         * <p>This method requires to keep the metadata by using the following compiler option: `-keep-as3-metadata += "Embed"`.</p>
+         * @param variableDeclarationNode the node
+         * @return the found source url or `null`
+         */
+        private function findUrlInVariableMetadata(variableDeclarationNode:XML):String
+        {
+            var embedMetadata:XML;
+            var arg:XML;
+
+            for each (embedMetadata in variableDeclarationNode.metadata.(@name == "Embed"))
+                for each (arg in embedMetadata.arg.(@key == "source"))
+                    return arg.@value;
+
+            return null;
+        }
+
+        /** Looks for asset "mimeType" in the Embed metadata.
+         *
+         * <p>This method requires to keep the metadata by using the following compiler option: `-keep-as3-metadata += "Embed"`.</p>
+         * @param variableDeclarationNode the node
+         * @return the found mime type or `null`
+         */
+        private function findMimeTypeInVariableMetadata(variableDeclarationNode:XML):String
+        {
+            var embedMetadata:XML;
+            var arg:XML;
+
+            for each (embedMetadata in variableDeclarationNode.metadata.(@name == "Embed"))
+                for each (arg in embedMetadata.arg.(@key == "mimeType"))
+                    return arg.@value;
+
+            return null;
+        }
+
         /** Enqueues a single asset with a custom name that can be used to access it later.
          *  If the asset is a texture, you can also add custom texture options.
          *
@@ -285,21 +345,34 @@ package starling.assets
          *  @param options  Custom options that will be used if 'asset' points to texture data.
          *  @return         the name with which the asset was registered.
          */
-        public function enqueueSingle(asset:Object, name:String=null,
-                                      options:TextureOptions=null):String
+        public function enqueueSingle(asset:Object,name:String=null,
+                                      options:TextureOptions=null,
+                                      customExtension:String=null,
+                                      customMimeType:String=null):String
         {
             if (asset is Class)
                 asset = new asset();
 
             var assetReference:AssetReference = new AssetReference(asset);
             assetReference.name = name || getNameFromUrl(assetReference.url) || getUniqueName();
-            assetReference.extension = getExtensionFromUrl(assetReference.url);
+            assetReference.extension = customExtension || getExtensionFromUrl(assetReference.url);
+            assetReference.mimeType = customMimeType;
             assetReference.textureOptions = options || _textureOptions;
             var logName:String = getFilenameFromUrl(assetReference.url) || assetReference.name;
 
             _queue.push(assetReference);
             log("Enqueuing '" + logName + "'");
             return assetReference.name;
+        }
+
+        /** Removes the asset(s) with the given name(s) from the queue. Note that this won't work
+         *  after loading has started, even if these specific assets have not yet been processed. */
+        public function dequeue(...assetNames):void
+        {
+            _queue = _queue.filter(function(asset:AssetReference, i:int, v:*):Boolean
+            {
+                return assetNames.indexOf(asset.name) == -1;
+            });
         }
 
         /** Empties the queue and aborts any pending load operations. */
@@ -861,6 +934,13 @@ package starling.assets
 
             _assetFactories.push(factory);
             _assetFactories.sort(comparePriorities);
+        }
+
+        /** Unregisters the specified AssetFactory. */
+        public function unregisterFactory(factory:AssetFactory):void
+        {
+            var index:int = _assetFactories.indexOf(factory);
+            if (index != -1) _assetFactories.removeAt(index);
         }
 
         private static function comparePriorities(a:Object, b:Object):int
