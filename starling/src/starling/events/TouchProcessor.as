@@ -362,6 +362,7 @@ package starling.events
 
             // purge touches
             _currentTouches.length = 0;
+            _systemGestureTouchID = -1;
 
             while (_queue.length)
                 TouchData.toPool(_queue.pop());
