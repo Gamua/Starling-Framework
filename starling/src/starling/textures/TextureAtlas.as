@@ -10,9 +10,11 @@
 
 package starling.textures
 {
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
 
+    import starling.display.Image;
     import starling.utils.StringUtil;
 
     /** A texture atlas is a collection of many smaller textures in one big image. This class
@@ -71,6 +73,8 @@ package starling.textures
      */
     public class TextureAtlas
     {
+        private static const NAME_REGEX:RegExp = /(.+?)\d+$/; // find text before trailing digits
+
         private var _atlasTexture:Texture;
         private var _subTextures:Dictionary;
         private var _subTextureNames:Vector.<String>;
@@ -78,14 +82,14 @@ package starling.textures
         /** helper objects */
         private static var sNames:Vector.<String> = new <String>[];
         
-        /** Create a texture atlas from a texture by parsing the regions from an XML file. */
-        public function TextureAtlas(texture:Texture, atlasXml:XML=null)
+        /** Create a texture atlas from a texture and atlas data. The second argument typically
+         *  points to an XML file. */
+        public function TextureAtlas(texture:Texture, data:*=null)
         {
             _subTextures = new Dictionary();
             _atlasTexture = texture;
             
-            if (atlasXml)
-                parseAtlasXml(atlasXml);
+            if (data) parseAtlasData(data);
         }
         
         /** Disposes the atlas texture. */
@@ -93,28 +97,39 @@ package starling.textures
         {
             _atlasTexture.dispose();
         }
-        
-        /** This function is called by the constructor and will parse an XML in Starling's 
-         *  default atlas file format. Override this method to create custom parsing logic
-         *  (e.g. to support a different file format). */
+
+        /** Parses the data that's passed as second argument to the constructor.
+         *  Override this method to add support for additional file formats. */
+        protected function parseAtlasData(data:*):void
+        {
+            if (data is XML) parseAtlasXml(data as XML);
+            else throw new ArgumentError("TextureAtlas only supports XML data");
+        }
+
+        /** This function is called by 'parseAtlasData' for XML data. It will parse an XML in
+         *  Starling's default atlas file format. Override this method to create custom parsing
+         *  logic (e.g. to support additional attributes). */
         protected function parseAtlasXml(atlasXml:XML):void
         {
             var scale:Number = _atlasTexture.scale;
             var region:Rectangle = new Rectangle();
             var frame:Rectangle  = new Rectangle();
-            
+            var pivotPoints:Dictionary = new Dictionary();
+
             for each (var subTexture:XML in atlasXml.SubTexture)
             {
                 var name:String        = StringUtil.clean(subTexture.@name);
-                var x:Number           = parseFloat(subTexture.@x) / scale;
-                var y:Number           = parseFloat(subTexture.@y) / scale;
-                var width:Number       = parseFloat(subTexture.@width)  / scale;
-                var height:Number      = parseFloat(subTexture.@height) / scale;
-                var frameX:Number      = parseFloat(subTexture.@frameX) / scale;
-                var frameY:Number      = parseFloat(subTexture.@frameY) / scale;
-                var frameWidth:Number  = parseFloat(subTexture.@frameWidth)  / scale;
-                var frameHeight:Number = parseFloat(subTexture.@frameHeight) / scale;
-                var rotated:Boolean    = parseBool( subTexture.@rotated);
+                var x:Number           = parseFloat(subTexture.@x) / scale || 0.0;
+                var y:Number           = parseFloat(subTexture.@y) / scale || 0.0;
+                var width:Number       = parseFloat(subTexture.@width)  / scale || 0.0;
+                var height:Number      = parseFloat(subTexture.@height) / scale || 0.0;
+                var frameX:Number      = parseFloat(subTexture.@frameX) / scale || 0.0;
+                var frameY:Number      = parseFloat(subTexture.@frameY) / scale || 0.0;
+                var frameWidth:Number  = parseFloat(subTexture.@frameWidth)  / scale || 0.0;
+                var frameHeight:Number = parseFloat(subTexture.@frameHeight) / scale || 0.0;
+                var pivotX:Number      = parseFloat(subTexture.@pivotX) / scale || 0.0;
+                var pivotY:Number      = parseFloat(subTexture.@pivotY) / scale || 0.0;
+                var rotated:Boolean    = StringUtil.parseBoolean(subTexture.@rotated);
 
                 region.setTo(x, y, width, height);
                 frame.setTo(frameX, frameY, frameWidth, frameHeight);
@@ -123,6 +138,29 @@ package starling.textures
                     addRegion(name, region, frame, rotated);
                 else
                     addRegion(name, region, null,  rotated);
+
+                if (pivotX != 0 || pivotY != 0)
+                {
+                    Image.bindPivotPointToTexture(getTexture(name), pivotX, pivotY);
+                    pivotPoints[name] = new Point(pivotX, pivotY);
+                }
+            }
+
+            // Adobe Animate writes pivot points only for the first texture of an animation.
+            // The code below duplicates the pivot points for the rest of them.
+
+            for (var pivotName:String in pivotPoints)
+            {
+                var matches:Array = pivotName.match(NAME_REGEX);
+                if (matches && matches.length > 0)
+                {
+                    var baseName:String = matches[1];
+                    var pivot:Point = pivotPoints[pivotName];
+
+                    for (name in _subTextures)
+                        if (name.indexOf(baseName) == 0 && !(name in pivotPoints))
+                            Image.bindPivotPointToTexture(_subTextures[name], pivot.x, pivot.y);
+                }
             }
         }
         
@@ -195,7 +233,16 @@ package starling.textures
         public function addRegion(name:String, region:Rectangle, frame:Rectangle=null,
                                   rotated:Boolean=false):void
         {
-            _subTextures[name] = new SubTexture(_atlasTexture, region, false, frame, rotated);
+            addSubTexture(name, new SubTexture(_atlasTexture, region, false, frame, rotated));
+        }
+        
+        /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
+        public function addSubTexture(name:String, subTexture:SubTexture):void
+        {
+            if (subTexture.root != _atlasTexture.root)
+                throw new ArgumentError("SubTexture's root must be atlas texture.");
+
+            _subTextures[name] = subTexture;
             _subTextureNames = null;
         }
         
@@ -207,15 +254,19 @@ package starling.textures
             delete _subTextures[name];
             _subTextureNames = null;
         }
+
+        /** Removes all regions with names that start with the given prefix.
+         *  If no arguments are given, all regions will be removed. */
+        public function removeRegions(prefix:String=""):void
+        {
+            for (var name:String in _subTextures)
+            {
+                if (prefix == "" || name.indexOf(prefix) == 0)
+                    removeRegion(name);
+            }
+        }
         
         /** The base texture that makes up the atlas. */
         public function get texture():Texture { return _atlasTexture; }
-        
-        // utility methods
-
-        private static function parseBool(value:String):Boolean
-        {
-            return value.toLowerCase() == "true";
-        }
     }
 }

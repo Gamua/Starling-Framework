@@ -71,8 +71,10 @@ package starling.display
         private var _touchGroup:Boolean;
         
         // helper objects
-        private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sHelperPoint:Point = new Point();
+        private static var sHitTestMatrix:Matrix = new Matrix();
+        private static var sHitTestPoint:Point = new Point();
+        private static var sBoundsMatrix:Matrix = new Matrix();
+        private static var sBoundsPoint:Point = new Point();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sSortBuffer:Vector.<DisplayObject> = new <DisplayObject>[];
         private static var sCacheToken:BatchToken = new BatchToken();
@@ -145,13 +147,13 @@ package starling.display
             }
         }
         
-        /** Removes a child from the container. If the object is not a child, nothing happens. 
-         *  If requested, the child will be disposed right away. */
+        /** Removes a child from the container. If the object is not a child, the method returns
+         *  <code>null</code>. If requested, the child will be disposed right away. */
         public function removeChild(child:DisplayObject, dispose:Boolean=false):DisplayObject
         {
             var childIndex:int = getChildIndex(child);
-            if (childIndex != -1) removeChildAt(childIndex, dispose);
-            return child;
+            if (childIndex != -1) return removeChildAt(childIndex, dispose);
+            else return null;
         }
         
         /** Removes a child at a certain index. The index positions of any display objects above
@@ -173,7 +175,10 @@ package starling.display
                 }
                 
                 child.setParent(null);
-                index = _children.indexOf(child); // index might have changed by event handler
+                if (index >= _children.length || _children[index] != child)
+                {
+                    index = _children.indexOf(child); // index might have changed by event handler
+                }
                 if (index >= 0) _children.removeAt(index);
                 if (dispose) child.dispose();
                 
@@ -290,9 +295,9 @@ package starling.display
             
             if (numChildren == 0)
             {
-                getTransformationMatrix(targetSpace, sHelperMatrix);
-                MatrixUtil.transformCoords(sHelperMatrix, 0.0, 0.0, sHelperPoint);
-                out.setTo(sHelperPoint.x, sHelperPoint.y, 0, 0);
+                getTransformationMatrix(targetSpace, sBoundsMatrix);
+                MatrixUtil.transformCoords(sBoundsMatrix, 0.0, 0.0, sBoundsPoint);
+                out.setTo(sBoundsPoint.x, sBoundsPoint.y, 0, 0);
             }
             else if (numChildren == 1)
             {
@@ -334,11 +339,11 @@ package starling.display
                 var child:DisplayObject = _children[i];
                 if (child.isMask) continue;
 
-                sHelperMatrix.copyFrom(child.transformationMatrix);
-                sHelperMatrix.invert();
+                sHitTestMatrix.copyFrom(child.transformationMatrix);
+                sHitTestMatrix.invert();
 
-                MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
-                target = child.hitTest(sHelperPoint);
+                MatrixUtil.transformCoords(sHitTestMatrix, localX, localY, sHitTestPoint);
+                target = child.hitTest(sHitTestPoint);
 
                 if (target) return _touchGroup ? this : target;
             }
@@ -351,7 +356,10 @@ package starling.display
         {
             var numChildren:int = _children.length;
             var frameID:uint = painter.frameID;
+            var cacheEnabled:Boolean = frameID !=0;
             var selfOrParentChanged:Boolean = _lastParentOrSelfChangeFrameID == frameID;
+
+            painter.pushState();
 
             for (var i:int=0; i<numChildren; ++i)
             {
@@ -359,40 +367,48 @@ package starling.display
 
                 if (child._hasVisibleArea)
                 {
+                    if (i != 0)
+                        painter.restoreState();
+
                     if (selfOrParentChanged)
                         child._lastParentOrSelfChangeFrameID = frameID;
 
                     if (child._lastParentOrSelfChangeFrameID != frameID &&
                         child._lastChildChangeFrameID != frameID &&
-                        child._tokenFrameID == frameID - 1)
+                        child._tokenFrameID == frameID - 1 && cacheEnabled)
                     {
-                        painter.pushState(sCacheToken);
+                        painter.fillToken(sCacheToken);
                         painter.drawFromCache(child._pushToken, child._popToken);
-                        painter.popState(child._popToken);
+                        painter.fillToken(child._popToken);
 
                         child._pushToken.copyFrom(sCacheToken);
                     }
                     else
                     {
-                        var mask:DisplayObject = child._mask;
-                        var filter:FragmentFilter = child._filter;
+                        var pushToken:BatchToken   = cacheEnabled ? child._pushToken : null;
+                        var popToken:BatchToken    = cacheEnabled ? child._popToken  : null;
+                        var filter:FragmentFilter  = child._filter;
+                        var mask:DisplayObject     = child._mask;
 
-                        painter.pushState(child._pushToken);
+                        painter.fillToken(pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
-                        if (mask) painter.drawMask(mask);
+                        if (mask) painter.drawMask(mask, child);
 
                         if (filter) filter.render(painter);
                         else        child.render(painter);
 
-                        if (mask) painter.eraseMask(mask);
+                        if (mask) painter.eraseMask(mask, child);
 
-                        painter.popState(child._popToken);
+                        painter.fillToken(popToken);
                     }
 
-                    child._tokenFrameID = frameID;
+                    if (cacheEnabled)
+                        child._tokenFrameID = frameID;
                 }
             }
+
+            painter.popState();
         }
 
         /** Dispatches an event on all children (recursively). The event must not bubble. */

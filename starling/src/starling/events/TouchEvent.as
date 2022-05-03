@@ -57,7 +57,7 @@ package starling.events
     {
         /** Event type for touch or mouse input. */
         public static const TOUCH:String = "touch";
-        
+
         private var _shiftKey:Boolean;
         private var _ctrlKey:Boolean;
         private var _timestamp:Number;
@@ -67,22 +67,42 @@ package starling.events
         private static var sTouches:Vector.<Touch> = new <Touch>[];
         
         /** Creates a new TouchEvent instance. */
-        public function TouchEvent(type:String, touches:Vector.<Touch>, shiftKey:Boolean=false, 
+        public function TouchEvent(type:String, touches:Vector.<Touch>=null, shiftKey:Boolean=false,
                                    ctrlKey:Boolean=false, bubbles:Boolean=true)
         {
             super(type, bubbles, touches);
-            
+
             _shiftKey = shiftKey;
             _ctrlKey = ctrlKey;
-            _timestamp = -1.0;
             _visitedObjects = new <EventDispatcher>[];
             
-            var numTouches:int=touches.length;
+            updateTimestamp(touches);
+        }
+
+        /** @private */
+        internal function resetTo(type:String, touches:Vector.<Touch>=null, shiftKey:Boolean=false,
+                                  ctrlKey:Boolean=false, bubbles:Boolean=true):TouchEvent
+        {
+            super.reset(type, bubbles, touches);
+
+            _shiftKey = shiftKey;
+            _ctrlKey = ctrlKey;
+            _visitedObjects.length = 0;
+            updateTimestamp(touches);
+
+            return this;
+        }
+
+        private function updateTimestamp(touches:Vector.<Touch>):void
+        {
+            _timestamp = -1.0;
+            var numTouches:int = touches ? touches.length : 0;
+
             for (var i:int=0; i<numTouches; ++i)
                 if (touches[i].timestamp > _timestamp)
                     _timestamp = touches[i].timestamp;
         }
-        
+
         /** Returns a list of touches that originated over a certain target. If you pass an
          *  <code>out</code>-vector, the touches will be added to this vector instead of creating
          *  a new object. */

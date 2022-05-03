@@ -37,6 +37,7 @@ package starling.text
         private var _verticalAlign:String;
         private var _kerning:Boolean;
         private var _leading:Number;
+        private var _letterSpacing:Number;
 
         /** Creates a new TextFormat instance with the given properties. */
         public function TextFormat(font:String="Verdana", size:Number=12, color:uint=0x0,
@@ -48,7 +49,7 @@ package starling.text
             _horizontalAlign = horizontalAlign;
             _verticalAlign = verticalAlign;
             _kerning = true;
-            _leading = 0.0;
+            _letterSpacing = _leading = 0.0;
         }
 
         /** Copies all properties from another TextFormat instance. */
@@ -64,6 +65,7 @@ package starling.text
             _verticalAlign = format._verticalAlign;
             _kerning = format._kerning;
             _leading = format._leading;
+            _letterSpacing = format._letterSpacing;
 
             dispatchEventWith(Event.CHANGE);
         }
@@ -71,7 +73,8 @@ package starling.text
         /** Creates a clone of this instance. */
         public function clone():starling.text.TextFormat
         {
-            var clone:starling.text.TextFormat = new starling.text.TextFormat();
+            var actualClass:Class = Object(this).constructor as Class;
+            var clone:starling.text.TextFormat = new actualClass() as starling.text.TextFormat;
             clone.copyFrom(this);
             return clone;
         }
@@ -103,12 +106,16 @@ package starling.text
             out.align = _horizontalAlign;
             out.kerning = _kerning;
             out.leading = _leading;
+            out.letterSpacing = _letterSpacing;
 
             return out;
         }
 
         /** The name of the font. TrueType fonts will be looked up from embedded fonts and
-         *  system fonts; bitmap fonts must be registered at the TextField class first. */
+         *  system fonts; bitmap fonts must be registered at the TextField class first.
+         *  Beware: If you loaded an embedded font at runtime, you must call
+         *  <code>TextField.updateEmbeddedFonts()</code> for Starling to recognize it.
+         */
         public function get font():String { return _font; }
         public function set font(value:String):void
         {
@@ -226,6 +233,17 @@ package starling.text
             if (value != _leading)
             {
                 _leading = value;
+                dispatchEventWith(Event.CHANGE);
+            }
+        }
+		
+        /** A number representing the amount of space that is uniformly distributed between all characters. @default 0 */
+        public function get letterSpacing():Number { return _letterSpacing; }
+        public function set letterSpacing(value:Number):void
+        {
+            if (value != _letterSpacing)
+            {
+                _letterSpacing = value;
                 dispatchEventWith(Event.CHANGE);
             }
         }

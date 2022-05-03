@@ -12,8 +12,8 @@ package starling.rendering
 {
     import flash.display3D.Context3D;
 
+    import starling.core.Starling;
     import starling.textures.Texture;
-    import starling.textures.TextureSmoothing;
     import starling.utils.RenderUtil;
 
     /** An effect drawing a mesh of textured vertices.
@@ -48,7 +48,7 @@ package starling.rendering
         /** Creates a new FilterEffect instance. */
         public function FilterEffect()
         {
-            _textureSmoothing = TextureSmoothing.BILINEAR;
+            _textureSmoothing = Starling.defaultTextureSmoothing;
         }
 
         /** Override this method if the effect requires a different program depending on the
@@ -68,9 +68,7 @@ package starling.rendering
             if (_texture)
             {
                 var vertexShader:String = STD_VERTEX_SHADER;
-                var fragmentShader:String =
-                    RenderUtil.createAGALTexOperation("oc", "v0", 0, _texture);
-
+                var fragmentShader:String = tex("oc", "v0", 0, _texture);
                 return Program.fromSource(vertexShader, fragmentShader);
             }
             else
@@ -96,7 +94,8 @@ package starling.rendering
 
             if (_texture)
             {
-                RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, _textureRepeat);
+                var repeat:Boolean = _textureRepeat && _texture.root.isPotTexture;
+                RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, repeat);
                 context.setTextureAt(0, _texture.base);
                 vertexFormat.setVertexBufferAt(1, vertexBuffer, "texCoords");
             }
@@ -115,6 +114,19 @@ package starling.rendering
             super.afterDraw(context);
         }
 
+        /** Creates an AGAL source string with a <code>tex</code> operation, including an options
+         *  list with the appropriate format flag. This is just a convenience method forwarding
+         *  to the respective RenderUtil method.
+         *
+         *  @see starling.utils.RenderUtil#createAGALTexOperation()
+         */
+        protected static function tex(resultReg:String, uvReg:String, sampler:int, texture:Texture,
+                                      convertToPmaIfRequired:Boolean=true):String
+        {
+            return RenderUtil.createAGALTexOperation(resultReg, uvReg, sampler, texture,
+                convertToPmaIfRequired);
+        }
+
         /** The data format that this effect requires from the VertexData that it renders:
          *  <code>"position:float2, texCoords:float2"</code> */
         override public function get vertexFormat():VertexDataFormat { return VERTEX_FORMAT; }
@@ -127,10 +139,8 @@ package starling.rendering
         public function get textureSmoothing():String { return _textureSmoothing; }
         public function set textureSmoothing(value:String):void { _textureSmoothing = value; }
 
-        /** Indicates how the pixels of the texture will be wrapped at the edge.
-         *  If enabled, the texture will produce a repeating pattern; otherwise, the outermost
-         *  pixels will repeat. Unfortunately, this only works for power-of-two textures.
-         *  @default false */
+        /** Indicates if pixels at the edges will be repeated or clamped.
+         *  Only works for power-of-two textures. @default false */
         public function get textureRepeat():Boolean { return _textureRepeat; }
         public function set textureRepeat(value:Boolean):void { _textureRepeat = value; }
     }

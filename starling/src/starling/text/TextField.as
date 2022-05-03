@@ -14,6 +14,7 @@ package starling.text
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.text.StyleSheet;
     import flash.utils.Dictionary;
 
     import starling.core.Starling;
@@ -24,15 +25,18 @@ package starling.text
     import starling.display.Sprite;
     import starling.events.Event;
     import starling.rendering.Painter;
+    import starling.styles.MeshStyle;
     import starling.utils.RectangleUtil;
+    import starling.utils.SystemUtil;
 
-    /** A TextField displays text, either using standard true type fonts or custom bitmap fonts.
+    /** A TextField displays text, using either standard true type fonts, custom bitmap fonts,
+     *  or a custom text representation.
      *  
-     *  <p>You can set all properties you are used to, like the font name and size, a color, the 
-     *  horizontal and vertical alignment, etc. The border property is helpful during development, 
-     *  because it lets you see the bounds of the TextField.</p>
+     *  <p>Access the <code>format</code> property to modify the appearance of the text, like the
+     *  font name and size, a color, the horizontal and vertical alignment, etc. The border property
+     *  is useful during development, because it lets you see the bounds of the TextField.</p>
      *  
-     *  <p>There are two types of fonts that can be displayed:</p>
+     *  <p>There are several types of fonts that can be displayed:</p>
      *  
      *  <ul>
      *    <li>Standard TrueType fonts. This renders the text just like a conventional Flash
@@ -43,9 +47,12 @@ package starling.text
      *        That is a font that has its glyphs rendered to a texture atlas. To use it, first 
      *        register the font with the method <code>registerBitmapFont</code>, and then pass 
      *        the font name to the corresponding property of the text field.</li>
-     *  </ul> 
+     *    <li>Custom text compositors. Any class implementing the <code>ITextCompositor</code>
+     *        interface can be used to render text. If the two standard options are not sufficient
+     *        for your needs, such a compositor might do the trick.</li>
+     *  </ul>
      *    
-     *  For bitmap fonts, we recommend one of the following tools:
+     *  <p>For bitmap fonts, we recommend one of the following tools:</p>
      * 
      *  <ul>
      *    <li>Windows: <a href="http://www.angelcode.com/products/bmfont">Bitmap Font Generator</a>
@@ -54,6 +61,9 @@ package starling.text
      *    <li>Mac OS: <a href="http://glyphdesigner.71squared.com">Glyph Designer</a> from 
      *        71squared or <a href="http://http://www.bmglyph.com">bmGlyph</a> (both commercial). 
      *        They support Starling natively.</li>
+     *    <li>Cross-Platform: <a href="http://kvazars.com/littera/">Littera</a> or
+     *        <a href="http://renderhjs.net/shoebox/">ShoeBox</a> are great tools, as well.
+     *        Both are free to use and were built with Adobe AIR.</li>
      *  </ul>
      *
      *  <p>When using a bitmap font, the 'color' property is used to tint the font texture. This
@@ -64,48 +74,55 @@ package starling.text
      *  the intended result.</p>
      *
      *  <strong>Batching of TextFields</strong>
-     *  
+     *
      *  <p>Normally, TextFields will require exactly one draw call. For TrueType fonts, you cannot
-     *  avoid that; bitmap fonts, however, may be batched as long as the <code>batchable</code>
-     *  property is enabled. Since only batchable meshes can make use of Starling's render cache,
-     *  it makes sense to keep that property enabled in most circumstances. Only TextFields that
-     *  are constantly changing (their position relative to the stage, their color, text, etc.)
-     *  and contain are large number of bitmap glyphs should disable batching.</p>
+     *  avoid that; bitmap fonts, however, may be batched if you enable the "batchable" property.
+     *  This makes sense if you have several TextFields with short texts that are rendered one
+     *  after the other (e.g. subsequent children of the same sprite), or if your bitmap font
+     *  texture is in your main texture atlas.</p>
+     *
+     *  <p>The recommendation is to activate "batchable" if it reduces your draw calls (use the
+     *  StatsDisplay to check this) AND if the text fields contain no more than about 15-20
+     *  characters. For longer texts, the batching would take up more CPU time than what is saved
+     *  by avoiding the draw calls.</p>
      */
     public class TextField extends DisplayObjectContainer
     {
-        // the name container with the registered bitmap fonts
-        private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
+        // the name of the "sharedData" container with the registered compositors
+        private static const COMPOSITOR_DATA_NAME:String = "starling.display.TextField.compositors";
 
         private var _text:String;
         private var _options:TextOptions;
         private var _format:TextFormat;
-        private var _autoSize:String;
         private var _textBounds:Rectangle;
         private var _hitArea:Rectangle;
         private var _compositor:ITextCompositor;
         private var _requiresRecomposition:Boolean;
         private var _border:DisplayObjectContainer;
         private var _meshBatch:MeshBatch;
+        private var _customStyle:MeshStyle;
+        private var _defaultStyle:MeshStyle;
+        private var _recomposing:Boolean;
 
         // helper objects
         private static var sMatrix:Matrix = new Matrix();
-        private static var sTrueTypeCompositor:TrueTypeCompositor = new TrueTypeCompositor();
+        private static var sDefaultCompositor:ITextCompositor = new TrueTypeCompositor();
         private static var sDefaultTextureFormat:String = Context3DTextureFormat.BGRA_PACKED;
-        private var _helperFormat:TextFormat = new TextFormat();
 
         /** Create a new text field with the given properties. */
-        public function TextField(width:int, height:int, text:String="", format:TextFormat=null)
+        public function TextField(width:int, height:int, text:String="",
+                                  format:TextFormat=null, options:TextOptions=null)
         {
             _text = text ? text : "";
-            _autoSize = TextFieldAutoSize.NONE;
             _hitArea = new Rectangle(0, 0, width, height);
             _requiresRecomposition = true;
-            _compositor = sTrueTypeCompositor;
-            _options = new TextOptions();
+            _compositor = sDefaultCompositor;
 
             _format = format ? format.clone() : new TextFormat();
             _format.addEventListener(Event.CHANGE, setRequiresRecomposition);
+
+            _options = options ? options.clone() : new TextOptions();
+            _options.addEventListener(Event.CHANGE, setRequiresRecomposition);
 
             _meshBatch = new MeshBatch();
             _meshBatch.touchable = false;
@@ -117,6 +134,7 @@ package starling.text
         public override function dispose():void
         {
             _format.removeEventListener(Event.CHANGE, setRequiresRecomposition);
+            _options.removeEventListener(Event.CHANGE, setRequiresRecomposition);
             _compositor.clearMeshBatch(_meshBatch);
 
             super.dispose();
@@ -135,41 +153,34 @@ package starling.text
         {
             if (_requiresRecomposition)
             {
+                _recomposing = true;
                 _compositor.clearMeshBatch(_meshBatch);
 
-                var font:String = _format.font;
-                var bitmapFont:BitmapFont = getBitmapFont(font);
+                var fontName:String = _format.font;
+                var compositor:ITextCompositor = getCompositor(fontName);
 
-                if (bitmapFont == null && font == BitmapFont.MINI)
+                if (compositor == null && fontName == BitmapFont.MINI)
                 {
-                    bitmapFont = new BitmapFont();
-                    registerBitmapFont(bitmapFont);
+                    compositor = new BitmapFont();
+                    registerCompositor(compositor, fontName);
                 }
 
-                _compositor = bitmapFont ? bitmapFont : sTrueTypeCompositor;
+                _compositor = compositor ? compositor : sDefaultCompositor;
 
                 updateText();
                 updateBorder();
 
                 _requiresRecomposition = false;
+                _recomposing = false;
             }
         }
 
         // font and border rendering
-        
+
         private function updateText():void
         {
             var width:Number  = _hitArea.width;
             var height:Number = _hitArea.height;
-            var format:TextFormat = _helperFormat;
-
-            // By working on a copy of the TextFormat, we make sure that modifications done
-            // within the 'fillMeshBatch' method do not cause any side effects.
-            //
-            // (We cannot use a static variable, because that might lead to problems when
-            //  recreating textures after a context loss.)
-
-            format.copyFrom(_format);
 
             // Horizontal autoSize does not work for HTML text, since it supports custom alignment.
             // What should we do if one line is aligned to the left, another to the right?
@@ -177,11 +188,18 @@ package starling.text
             if (isHorizontalAutoSize && !_options.isHtmlText) width = 100000;
             if (isVerticalAutoSize) height = 100000;
 
+            _meshBatch.x = _meshBatch.y = 0;
             _options.textureScale = Starling.contentScaleFactor;
-            _options.textureFormat = sDefaultTextureFormat;
-            _compositor.fillMeshBatch(_meshBatch, width, height, _text, format, _options);
+            _compositor.fillMeshBatch(_meshBatch, width, height, _text, _format, _options);
 
-            if (_autoSize != TextFieldAutoSize.NONE)
+            if (_customStyle) _meshBatch.style = _customStyle;
+            else
+            {
+                _defaultStyle = _compositor.getDefaultMeshStyle(_defaultStyle, _format, _options);
+                if (_defaultStyle) _meshBatch.style = _defaultStyle;
+            }
+
+            if (_options.autoSize != TextFieldAutoSize.NONE)
             {
                 _textBounds = _meshBatch.getBounds(_meshBatch, _textBounds);
 
@@ -189,12 +207,14 @@ package starling.text
                 {
                     _meshBatch.x = _textBounds.x = -_textBounds.x;
                     _hitArea.width = _textBounds.width;
+                    _textBounds.x = 0;
                 }
 
                 if (isVerticalAutoSize)
                 {
                     _meshBatch.y = _textBounds.y = -_textBounds.y;
                     _hitArea.height = _textBounds.height;
+                    _textBounds.y = 0;
                 }
             }
             else
@@ -225,32 +245,38 @@ package starling.text
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = _format.color;
         }
 
-        private function setRequiresRecomposition():void
+        /** Forces the text to be recomposed before rendering it in the upcoming frame. Any changes
+         *  of the TextField itself will automatically trigger recomposition; changes in its
+         *  parents or the viewport, however, need to be processed manually. For example, you
+         *  might want to force recomposition to fix blurring caused by a scale factor change.
+         */
+        public function setRequiresRecomposition():void
         {
-            _requiresRecomposition = true;
-            setRequiresRedraw();
+            if (!_recomposing)
+            {
+                _requiresRecomposition = true;
+                setRequiresRedraw();
+            }
         }
 
         // properties
-        
+
         private function get isHorizontalAutoSize():Boolean
         {
-            return _autoSize == TextFieldAutoSize.HORIZONTAL ||
-                   _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+            return _options.autoSize == TextFieldAutoSize.HORIZONTAL ||
+                   _options.autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
 
         private function get isVerticalAutoSize():Boolean
         {
-            return _autoSize == TextFieldAutoSize.VERTICAL ||
-                   _autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
+            return _options.autoSize == TextFieldAutoSize.VERTICAL ||
+                   _options.autoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
 
         /** Returns the bounds of the text within the text field. */
         public function get textBounds():Rectangle
         {
-            if (_requiresRecomposition) recompose();
-            if (_textBounds == null) _textBounds = _meshBatch.getBounds(_meshBatch);
-            return _textBounds.clone();
+            return getTextBounds(this);
         }
         
         /** @inheritDoc */
@@ -259,6 +285,15 @@ package starling.text
             if (_requiresRecomposition) recompose();
             getTransformationMatrix(targetSpace, sMatrix);
             return RectangleUtil.getBounds(_hitArea, sMatrix, out);
+        }
+
+        /** Returns the bounds of the text within the text field in the given coordinate space. */
+        public function getTextBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
+        {
+            if (_requiresRecomposition) recompose();
+            if (_textBounds == null) _textBounds = _meshBatch.getBounds(this);
+            getTransformationMatrix(targetSpace, sMatrix);
+            return RectangleUtil.getBounds(_textBounds, sMatrix, out);
         }
         
         /** @inheritDoc */
@@ -275,15 +310,15 @@ package starling.text
             // different to ordinary display objects, changing the size of the text field should 
             // not change the scaling, but make the texture bigger/smaller, while the size 
             // of the text/font stays the same (this applies to the height, as well).
-            
-            _hitArea.width = value;
+
+            _hitArea.width = value / (scaleX || 1.0);
             setRequiresRecomposition();
         }
         
         /** @inheritDoc */
         public override function set height(value:Number):void
         {
-            _hitArea.height = value;
+            _hitArea.height = value / (scaleY || 1.0);
             setRequiresRecomposition();
         }
         
@@ -319,6 +354,12 @@ package starling.text
             _format.copyFrom(value);
         }
 
+        /** The options that describe how the letters of a text should be assembled.
+         *  This class basically collects all the TextField's properties that are needed
+         *  during text composition. Since an instance of 'TextOptions' is passed to the
+         *  constructor, you can pass custom options to the compositor. */
+        protected function get options():TextOptions { return _options; }
+
         /** Draws a border around the edges of the text field. Useful for visual debugging.
          *  @default false */
         public function get border():Boolean { return _border != null; }
@@ -344,48 +385,26 @@ package starling.text
         /** Indicates whether the font size is automatically reduced if the complete text does
          *  not fit into the TextField. @default false */
         public function get autoScale():Boolean { return _options.autoScale; }
-        public function set autoScale(value:Boolean):void
-        {
-            if (_options.autoScale != value)
-            {
-                _options.autoScale = value;
-                setRequiresRecomposition();
-            }
-        }
-        
+        public function set autoScale(value:Boolean):void { _options.autoScale = value; }
+
         /** Specifies the type of auto-sizing the TextField will do.
          *  Note that any auto-sizing will implicitly deactivate all auto-scaling.
          *  @default none */
-        public function get autoSize():String { return _autoSize; }
-        public function set autoSize(value:String):void
-        {
-            if (_autoSize != value)
-            {
-                _autoSize = value;
-                setRequiresRecomposition();
-            }
-        }
+        public function get autoSize():String { return _options.autoSize; }
+        public function set autoSize(value:String):void { _options.autoSize = value; }
 
         /** Indicates if the text should be wrapped at word boundaries if it does not fit into
          *  the TextField otherwise. @default true */
         public function get wordWrap():Boolean { return _options.wordWrap; }
-        public function set wordWrap(value:Boolean):void
-        {
-            if (value != _options.wordWrap)
-            {
-                _options.wordWrap = value;
-                setRequiresRecomposition();
-            }
-        }
-        
+        public function set wordWrap(value:Boolean):void { _options.wordWrap = value; }
+
         /** Indicates if TextField should be batched on rendering.
          *
-         *  <p>Only batchable meshes can profit from the render cache; but batching large meshes
-         *  may take up a lot of CPU time. Thus, for large bitmap font text fields (i.e. many
-         *  glyphs) that are constantly changing (i.e. can't use the render cache anyway), it
-         *  makes sense to deactivate batching.</p>
+         *  <p>This works only with bitmap fonts, and it makes sense only for TextFields with no
+         *  more than 10-15 characters. Otherwise, the CPU costs will exceed any gains you get
+         *  from avoiding the additional draw call.</p>
          *
-         *  @default true
+         *  @default false
          */
         public function get batchable():Boolean { return _meshBatch.batchable; }
         public function set batchable(value:Boolean):void
@@ -395,17 +414,22 @@ package starling.text
 
         /** Indicates if text should be interpreted as HTML code. For a description
          *  of the supported HTML subset, refer to the classic Flash 'TextField' documentation.
-         *  Clickable hyperlinks and external images are not supported. Only works for
+         *  Clickable hyperlinks and images are not supported. Only works for
          *  TrueType fonts! @default false */
         public function get isHtmlText():Boolean { return _options.isHtmlText; }
-        public function set isHtmlText(value:Boolean):void
-        {
-            if (_options.isHtmlText != value)
-            {
-                _options.isHtmlText = value;
-                setRequiresRecomposition();
-            }
-        }
+        public function set isHtmlText(value:Boolean):void { _options.isHtmlText = value; }
+
+        /** An optional style sheet to be used for HTML text. For more information on style
+         *  sheets, please refer to the StyleSheet class in the ActionScript 3 API reference.
+         *  @default null */
+        public function get styleSheet():StyleSheet { return _options.styleSheet; }
+        public function set styleSheet(value:StyleSheet):void { _options.styleSheet = value; }
+
+        /** The padding (in points) that's added to the sides of text that's rendered to a Bitmap.
+         *  If your text is truncated on the sides (which may happen if the font returns incorrect
+         *  bounds), padding can make up for that. Value must be positive. @default 0.0 */
+        public function get padding():Number { return _options.padding; }
+        public function set padding(value:Number):void { _options.padding = value; }
 
         /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
          *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
@@ -413,58 +437,117 @@ package starling.text
         public function get pixelSnapping():Boolean { return _meshBatch.pixelSnapping; }
         public function set pixelSnapping(value:Boolean):void { _meshBatch.pixelSnapping = value }
 
+        /** The mesh style that is used to render the text.
+         *  Note that a style instance may only be used on one mesh at a time. */
+        public function get style():MeshStyle
+        {
+            if (_requiresRecomposition) recompose(); // might change style!
+            return _meshBatch.style;
+        }
+
+        public function set style(value:MeshStyle):void
+        {
+            _customStyle = value;
+            setRequiresRecomposition();
+        }
+
         /** The Context3D texture format that is used for rendering of all TrueType texts.
-         *  The default (<pre>Context3DTextureFormat.BGRA_PACKED</pre>) provides a good
-         *  compromise between quality and memory consumption; use <pre>BGRA</pre> for
-         *  the highest quality. */
+         *  The default provides a good compromise between quality and memory consumption;
+         *  use <pre>Context3DTextureFormat.BGRA</pre> for the highest quality.
+         *
+         *  @default Context3DTextureFormat.BGRA_PACKED */
         public static function get defaultTextureFormat():String { return sDefaultTextureFormat; }
         public static function set defaultTextureFormat(value:String):void
         {
             sDefaultTextureFormat = value;
         }
 
+        /** The default compositor used to arrange the letters of the text.
+         *  If a specific compositor was registered for a font, it takes precedence.
+         *
+         *  @default TrueTypeCompositor
+         */
+        public static function get defaultCompositor():ITextCompositor { return sDefaultCompositor; }
+        public static function set defaultCompositor(value:ITextCompositor):void
+        {
+            sDefaultCompositor = value;
+        }
+
+        /** Updates the list of embedded fonts. Call this method when you loaded a TrueType font
+         *  at runtime so that Starling can recognize it as such. */
+        public static function updateEmbeddedFonts():void
+        {
+            SystemUtil.updateEmbeddedFonts();
+        }
+
+        // compositor registration
+
+        /** Makes a text compositor (like a <code>BitmapFont</code>) available to any TextField in
+         *  the current stage3D context. The font is identified by its name (not case sensitive). */
+        public static function registerCompositor(compositor:ITextCompositor, fontName:String):void
+        {
+            if (fontName == null) throw new ArgumentError("fontName must not be null");
+            compositors[convertToLowerCase(fontName)] = compositor;
+        }
+
+        /** Unregisters the specified text compositor and optionally disposes it. */
+        public static function unregisterCompositor(fontName:String, dispose:Boolean=true):void
+        {
+            fontName = convertToLowerCase(fontName);
+
+            if (dispose && compositors[fontName] != undefined)
+                compositors[fontName].dispose();
+
+            delete compositors[fontName];
+        }
+
+        /** Returns a registered text compositor (or null, if the font has not been registered).
+         *  The <code>fontName</code> is not case sensitive. */
+        public static function getCompositor(fontName:String):ITextCompositor
+        {
+            return compositors[convertToLowerCase(fontName)];
+        }
+
         /** Makes a bitmap font available at any TextField in the current stage3D context.
          *  The font is identified by its <code>name</code> (not case sensitive).
          *  Per default, the <code>name</code> property of the bitmap font will be used, but you
          *  can pass a custom name, as well. @return the name of the font. */
+        [Deprecated(replacement="registerCompositor()")]
         public static function registerBitmapFont(bitmapFont:BitmapFont, name:String=null):String
         {
             if (name == null) name = bitmapFont.name;
-            bitmapFonts[convertToLowerCase(name)] = bitmapFont;
+            registerCompositor(bitmapFont, name);
             return name;
         }
 
         /** Unregisters the bitmap font and, optionally, disposes it. */
+        [Deprecated(replacement="unregisterCompositor()")]
         public static function unregisterBitmapFont(name:String, dispose:Boolean=true):void
         {
-            name = convertToLowerCase(name);
-
-            if (dispose && bitmapFonts[name] != undefined)
-                bitmapFonts[name].dispose();
-
-            delete bitmapFonts[name];
+            unregisterCompositor(name, dispose);
         }
 
-        /** Returns a registered bitmap font (or null, if the font has not been registered).
-         *  The name is not case sensitive. */
+        /** Returns a registered bitmap font compositor (or null, if no compositor has been
+         *  registered with that name, or if it's not a bitmap font). The name is not case
+         *  sensitive. */
         public static function getBitmapFont(name:String):BitmapFont
         {
-            return bitmapFonts[convertToLowerCase(name)];
+            return getCompositor(name) as BitmapFont;
         }
         
-        /** Stores the currently available bitmap fonts. Since a bitmap font will only work
+        /** Stores the currently available text compositors. Since compositors will only work
          *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
-        private static function get bitmapFonts():Dictionary
+        private static function get compositors():Dictionary
         {
-            var fonts:Dictionary = Starling.painter.sharedData[BITMAP_FONT_DATA_NAME] as Dictionary;
+            var compositors:Dictionary = Starling.painter.sharedData[COMPOSITOR_DATA_NAME] as Dictionary;
             
-            if (fonts == null)
+            if (compositors == null)
             {
-                fonts = new Dictionary();
-                Starling.painter.sharedData[BITMAP_FONT_DATA_NAME] = fonts;
+                compositors = new Dictionary();
+                Starling.painter.sharedData[COMPOSITOR_DATA_NAME] = compositors;
             }
             
-            return fonts;
+            return compositors;
         }
 
         // optimization for 'toLowerCase' calls

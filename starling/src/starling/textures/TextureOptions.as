@@ -21,25 +21,38 @@ package starling.textures
         private var _mipMapping:Boolean;
         private var _optimizeForRenderToTexture:Boolean = false;
         private var _premultipliedAlpha:Boolean;
+        private var _forcePotTexture:Boolean;
         private var _onReady:Function = null;
 
         /** Creates a new instance with the given options. */
         public function TextureOptions(scale:Number=1.0, mipMapping:Boolean=false, 
-                                       format:String="bgra", premultipliedAlpha:Boolean=true)
+                                       format:String="bgra", premultipliedAlpha:Boolean=true,
+                                       forcePotTexture:Boolean=false)
         {
             _scale = scale;
             _format = format;
             _mipMapping = mipMapping;
+            _forcePotTexture = forcePotTexture;
             _premultipliedAlpha = premultipliedAlpha;
         }
         
         /** Creates a clone of the TextureOptions object with the exact same properties. */
         public function clone():TextureOptions
         {
-            var clone:TextureOptions = new TextureOptions(_scale, _mipMapping, _format);
-            clone._optimizeForRenderToTexture = _optimizeForRenderToTexture;
-            clone._onReady = _onReady;
+            var clone:TextureOptions = new TextureOptions();
+            clone.copyFrom(this);
             return clone;
+        }
+
+        public function copyFrom(other:TextureOptions):void
+        {
+            _scale = other._scale;
+            _mipMapping = other._mipMapping;
+            _format = other._format;
+            _optimizeForRenderToTexture = other._optimizeForRenderToTexture;
+            _premultipliedAlpha = other._premultipliedAlpha;
+            _forcePotTexture = other._forcePotTexture;
+            _onReady = other._onReady;
         }
 
         /** The scale factor, which influences width and height properties. If you pass '-1',
@@ -63,12 +76,16 @@ package starling.textures
         /** Indicates if the texture will be used as render target. */
         public function get optimizeForRenderToTexture():Boolean { return _optimizeForRenderToTexture; }
         public function set optimizeForRenderToTexture(value:Boolean):void { _optimizeForRenderToTexture = value; }
-     
-        /** A callback that is used only for ATF textures; if it is set, the ATF data will be
-         *  decoded asynchronously. The texture can only be used when the callback has been
-         *  executed. This property is ignored for all other texture types (they are ready
-         *  immediately when the 'Texture.from...' method returns, anyway), and it's only used
-         *  by the <code>Texture.fromData</code> factory method.
+
+        /** Indicates if the underlying Stage3D texture should be created as the power-of-two based
+         *  <code>Texture</code> class instead of the more memory efficient <code>RectangleTexture</code>.
+         *  That might be useful when you need to render the texture with wrap mode <code>repeat</code>.
+         *  @default false */
+        public function get forcePotTexture():Boolean { return _forcePotTexture; }
+        public function set forcePotTexture(value:Boolean):void { _forcePotTexture = value; }
+
+        /** If this value is set, the texture will be loaded asynchronously (if possible).
+         *  The texture can only be used when the callback has been executed.
          *  
          *  <p>This is the expected function definition: 
          *  <code>function(texture:Texture):void;</code></p>

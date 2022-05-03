@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.display.BitmapData;
     import flash.errors.IllegalOperationError;
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -32,8 +33,12 @@ package starling.display
     import starling.rendering.BatchToken;
     import starling.rendering.Painter;
     import starling.utils.Align;
+    import starling.utils.Color;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
+    import starling.utils.Pool;
+    import starling.utils.SystemUtil;
+    import starling.utils.execute;
 
     use namespace starling_internal;
 
@@ -99,35 +104,21 @@ package starling.display
      *  create a matrix that represents the transformation of a point in one coordinate system to 
      *  another.</p> 
      *  
-     *  <strong>Subclassing</strong>
+     *  <strong>Customization</strong>
      *  
-     *  <p>Since DisplayObject is an abstract class, you cannot instantiate it directly, but have 
-     *  to use one of its subclasses instead. There are already a lot of them available, and most 
-     *  of the time they will suffice.</p> 
-     *  
-     *  <p>However, you can create custom subclasses as well. That way, you can create an object
-     *  with a custom render function. You will need to implement the following methods when you 
-     *  subclass DisplayObject:</p>
-     *  
-     *  <ul>
-     *    <li><code>function render(support:RenderSupport):void</code></li>
-     *    <li><code>function getBounds(targetSpace:DisplayObject, 
-     *                                 out:Rectangle=null):Rectangle</code></li>
-     *  </ul>
-     *  
-     *  <p>Have a look at the Quad class for a sample implementation of the 'getBounds' method.
-     *  For a sample on how to write a custom render function, you can have a look at this
-     *  <a href="http://wiki.starling-framework.org/manual/custom_display_objects">article</a>
-     *  in the Starling Wiki.</p> 
-     * 
-     *  <p>When you override the render method, it is important that you call the method
-     *  'finishQuadBatch' of the support object. This forces Starling to render all quads that 
-     *  were accumulated before by different render methods (for performance reasons). Otherwise, 
-     *  the z-ordering will be incorrect.</p> 
-     * 
+     *  <p>DisplayObject is an abstract class, which means you cannot instantiate it directly,
+     *  but have to use one of its many subclasses instead. For leaf nodes, this is typically
+     *  'Mesh' or its subclasses 'Quad' and 'Image'. To customize rendering of these objects,
+     *  you can use fragment filters (via the <code>filter</code>-property on 'DisplayObject')
+     *  or mesh styles (via the <code>style</code>-property on 'Mesh'). Look at the respective
+     *  class documentation for more information.</p>
+     *
      *  @see DisplayObjectContainer
      *  @see Sprite
-     *  @see Stage 
+     *  @see Stage
+     *  @see Mesh
+     *  @see starling.filters.FragmentFilter
+     *  @see starling.styles.MeshStyle
      */
     public class DisplayObject extends EventDispatcher
     {
@@ -148,15 +139,16 @@ package starling.display
         private var _blendMode:String;
         private var _name:String;
         private var _useHandCursor:Boolean;
-        private var _parent:DisplayObjectContainer;
         private var _transformationMatrix:Matrix;
         private var _transformationMatrix3D:Matrix3D;
-        private var _orientationChanged:Boolean;
+        private var _transformationChanged:Boolean;
         private var _is3D:Boolean;
-        private var _isMask:Boolean;
+        private var _maskee:DisplayObject;
+        private var _maskInverted:Boolean = false;
 
         // internal members (for fast access on rendering)
 
+        /** @private */ internal var _parent:DisplayObjectContainer;
         /** @private */ internal var _lastParentOrSelfChangeFrameID:uint;
         /** @private */ internal var _lastChildChangeFrameID:uint;
         /** @private */ internal var _tokenFrameID:uint;
@@ -177,6 +169,7 @@ package starling.display
         private static var sHelperMatrixAlt:Matrix  = new Matrix();
         private static var sHelperMatrix3D:Matrix3D  = new Matrix3D();
         private static var sHelperMatrixAlt3D:Matrix3D  = new Matrix3D();
+        private static var sMaskWarningShown:Boolean = false;
         
         /** @private */ 
         public function DisplayObject()
@@ -201,7 +194,7 @@ package starling.display
             if (_filter) _filter.dispose();
             if (_mask) _mask.dispose();
             removeEventListeners();
-            mask = null; // revert 'isMask' property, just to be sure.
+            mask = null; // clear 'mask._maskee', just to be sure.
         }
         
         /** Removes the object from its parent, if it has one, and optionally disposes it. */
@@ -327,7 +320,8 @@ package starling.display
 
                 var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
                 MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
-                return _mask.hitTest(helperPoint) != null;
+                var isMaskHit:Boolean = _mask.hitTest(helperPoint) != null;
+                return _maskInverted ? !isMaskHit : isMaskHit;
             }
             else return true;
         }
@@ -385,19 +379,120 @@ package starling.display
                                    verticalAlign:String="center"):void
         {
             var bounds:Rectangle = getBounds(this, sHelperRect);
-            setOrientationChanged();
-            
-            if (horizontalAlign == Align.LEFT)        _pivotX = bounds.x;
-            else if (horizontalAlign == Align.CENTER) _pivotX = bounds.x + bounds.width / 2.0;
-            else if (horizontalAlign == Align.RIGHT)  _pivotX = bounds.x + bounds.width;
+
+            if (horizontalAlign == Align.LEFT)        pivotX = bounds.x;
+            else if (horizontalAlign == Align.CENTER) pivotX = bounds.x + bounds.width / 2.0;
+            else if (horizontalAlign == Align.RIGHT)  pivotX = bounds.x + bounds.width;
             else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
             
-            if (verticalAlign == Align.TOP)         _pivotY = bounds.y;
-            else if (verticalAlign == Align.CENTER) _pivotY = bounds.y + bounds.height / 2.0;
-            else if (verticalAlign == Align.BOTTOM) _pivotY = bounds.y + bounds.height;
+            if (verticalAlign == Align.TOP)           pivotY = bounds.y;
+            else if (verticalAlign == Align.CENTER)   pivotY = bounds.y + bounds.height / 2.0;
+            else if (verticalAlign == Align.BOTTOM)   pivotY = bounds.y + bounds.height;
             else throw new ArgumentError("Invalid vertical alignment: " + verticalAlign);
         }
-        
+
+        /** Draws the object into a BitmapData object.
+         *
+         *  <p>This is achieved by drawing the object into the back buffer and then copying the
+         *  pixels of the back buffer into a texture. Beware: image sizes bigger than the back
+         *  buffer are only supported in AIR version 25 or higher and NOT in Flash Player.</p>
+         *
+         *  @param out   If you pass null, the object will be created for you.
+         *               If you pass a BitmapData object, it should have the size of the
+         *               object bounds, multiplied by the current contentScaleFactor.
+         *  @param color The RGB color value with which the bitmap will be initialized.
+         *  @param alpha The alpha value with which the bitmap will be initialized.
+         */
+        public function drawToBitmapData(out:BitmapData=null,
+                                         color:uint=0x0, alpha:Number=0.0):BitmapData
+        {
+            var painter:Painter = Starling.painter;
+            var stage:Stage = Starling.current.stage;
+            var viewPort:Rectangle = Starling.current.viewPort;
+            var stageWidth:Number  = stage.stageWidth;
+            var stageHeight:Number = stage.stageHeight;
+            var scaleX:Number = viewPort.width  / stageWidth;
+            var scaleY:Number = viewPort.height / stageHeight;
+            var backBufferScale:Number = painter.backBufferScaleFactor;
+            var totalScaleX:Number = scaleX * backBufferScale;
+            var totalScaleY:Number = scaleY * backBufferScale;
+            var projectionX:Number, projectionY:Number;
+            var bounds:Rectangle;
+
+            if (this is Stage)
+            {
+                projectionX = viewPort.x < 0 ? -viewPort.x / scaleX : 0.0;
+                projectionY = viewPort.y < 0 ? -viewPort.y / scaleY : 0.0;
+
+                out ||= new BitmapData(painter.backBufferWidth  * backBufferScale,
+                                       painter.backBufferHeight * backBufferScale);
+            }
+            else
+            {
+                bounds = getBounds(_parent, sHelperRect);
+                projectionX = bounds.x;
+                projectionY = bounds.y;
+
+                out ||= new BitmapData(Math.ceil(bounds.width  * totalScaleX),
+                                       Math.ceil(bounds.height * totalScaleY));
+            }
+
+            color = Color.multiply(color, alpha); // premultiply alpha
+
+            painter.pushState();
+            painter.setupContextDefaults();
+            painter.state.renderTarget = null;
+            painter.state.setModelviewMatricesToIdentity();
+            painter.setStateTo(transformationMatrix);
+
+            // Images that are bigger than the current back buffer are drawn in multiple steps.
+
+            var stepX:Number;
+            var stepY:Number = projectionY;
+            var stepWidth:Number  = painter.backBufferWidth  / scaleX;
+            var stepHeight:Number = painter.backBufferHeight / scaleY;
+            var positionInBitmap:Point = Pool.getPoint(0, 0);
+            var boundsInBuffer:Rectangle = Pool.getRectangle(0, 0,
+                    painter.backBufferWidth  * backBufferScale,
+                    painter.backBufferHeight * backBufferScale);
+
+            while (positionInBitmap.y < out.height)
+            {
+                stepX = projectionX;
+                positionInBitmap.x = 0;
+
+                while (positionInBitmap.x < out.width)
+                {
+                    painter.clear(color, alpha);
+                    painter.state.setProjectionMatrix(stepX, stepY, stepWidth, stepHeight,
+                        stageWidth, stageHeight, stage.cameraPosition);
+
+                    if (_mask)   painter.drawMask(mask, this);
+
+                    if (_filter) _filter.render(painter);
+                    else         render(painter);
+
+                    if (_mask)   painter.eraseMask(mask, this);
+
+                    painter.finishMeshBatch();
+                    execute(painter.context.drawToBitmapData, out, boundsInBuffer, positionInBitmap);
+
+                    stepX += stepWidth;
+                    positionInBitmap.x += stepWidth * totalScaleX;
+                }
+
+                stepY += stepHeight;
+                positionInBitmap.y += stepHeight * totalScaleY;
+            }
+
+            painter.popState();
+
+            Pool.putRectangle(boundsInBuffer);
+            Pool.putPoint(positionInBitmap);
+
+            return out;
+        }
+
         // 3D transformation
 
         /** Creates a matrix that represents the transformation from the local coordinate system
@@ -510,7 +605,7 @@ package starling.display
         // internal methods
         
         /** @private */
-        internal function setParent(value:DisplayObjectContainer):void 
+        starling_internal function setParent(value:DisplayObjectContainer):void
         {
             // check for a recursion
             var ancestor:DisplayObject = value;
@@ -523,7 +618,7 @@ package starling.display
             else
                 _parent = value;
         }
-        
+
         /** @private */
         internal function setIs3D(value:Boolean):void
         {
@@ -533,7 +628,7 @@ package starling.display
         /** @private */
         internal function get isMask():Boolean
         {
-            return _isMask;
+            return _maskee != null;
         }
 
         // render cache
@@ -545,66 +640,108 @@ package starling.display
          *  custom mesh styles or any other custom rendering code, call this method if the object
          *  needs to be redrawn.</p>
          *
-         *  <p>If a class does not support the render cache (like <code>Sprite3D</code>),
-         *  it may override <code>supportsRenderCache</code>. That way, the object will be
-         *  redrawn automatically each frame.</p>
+         *  <p>If the object needs to be redrawn just because it does not support the render cache,
+         *  call <code>painter.excludeFromCache()</code> in the object's render method instead.
+         *  That way, Starling's <code>skipUnchangedFrames</code> policy won't be disrupted.</p>
          */
         public function setRequiresRedraw():void
         {
-            var parent:DisplayObject = _parent;
+            var parent:DisplayObject = _parent || _maskee;
             var frameID:int = Starling.frameID;
 
-            _hasVisibleArea = _alpha != 0.0 && _visible && !_isMask && _scaleX != 0.0 && _scaleY != 0.0;
             _lastParentOrSelfChangeFrameID = frameID;
+            _hasVisibleArea = _alpha  != 0.0 && _visible && _maskee == null &&
+                              _scaleX != 0.0 && _scaleY != 0.0;
 
             while (parent && parent._lastChildChangeFrameID != frameID)
             {
                 parent._lastChildChangeFrameID = frameID;
-                parent = parent._parent;
+                parent = parent._parent || parent._maskee;
             }
         }
 
-        /** Indicates if this class supports the render cache.
-         *  Subclasses that need to circumvent the cache have to override this method and call
-         *  <code>updateSupportsRenderCache</code> whenever that boolean changes. Don't forget
-         *  to combine the result with <code>super.supportsRenderCache</code> when overriding
-         *  the method!
-         *
-         *  <p>Note that when a container does not support the render cache, its children will
-         *  still be cached! This just means that batching is interrupted at this object when
-         *  the display tree is traversed.</p>
-         */
-        protected function get supportsRenderCache():Boolean
+        /** Indicates if the object needs to be redrawn in the upcoming frame, i.e. if it has
+         *  changed its location relative to the stage or some other aspect of its appearance
+         *  since it was last rendered. */
+        public function get requiresRedraw():Boolean
         {
-            return _mask == null;
+            var frameID:uint = Starling.frameID;
+
+            return _lastParentOrSelfChangeFrameID == frameID ||
+                   _lastChildChangeFrameID == frameID;
         }
 
-        /** Must be called when support for the render cache changes. The actual value is read
-         *  from the <code>supportsRenderCache</code> property. */
-        protected function updateSupportsRenderCache():void
+        /** @private Makes sure the object is not drawn from cache in the next frame.
+         *  This method is meant to be called only from <code>Painter.finishFrame()</code>,
+         *  since it requires rendering to be concluded. */
+        starling_internal function excludeFromCache():void
         {
-            if (supportsRenderCache)
-                removeEventListener(Event.ENTER_FRAME, onEnterFrameWithoutRenderCache);
-            else
-                addEventListener(Event.ENTER_FRAME, onEnterFrameWithoutRenderCache);
-        }
+            var object:DisplayObject = this;
+            var max:uint = 0xffffffff;
 
-        private function onEnterFrameWithoutRenderCache():void
-        {
-            // by wrapping 'setRequiresRedraw' in a private method, we can make sure that no
-            // subclasses are messing with this event handler.
-
-            setRequiresRedraw();
+            while (object && object._tokenFrameID != max)
+            {
+                object._tokenFrameID = max;
+                object = object._parent;
+            }
         }
 
         // helpers
 
-        private function setOrientationChanged():void
+        /** @private */
+        starling_internal function setTransformationChanged():void
         {
-            _orientationChanged = true;
+            _transformationChanged = true;
             setRequiresRedraw();
         }
-        
+
+        /** @private */
+        starling_internal function updateTransformationMatrices(
+            x:Number, y:Number, pivotX:Number, pivotY:Number, scaleX:Number, scaleY:Number,
+            skewX:Number, skewY:Number, rotation:Number, out:Matrix, out3D:Matrix3D):void
+        {
+            if (skewX == 0.0 && skewY == 0.0)
+            {
+                // optimization: no skewing / rotation simplifies the matrix math
+
+                if (rotation == 0.0)
+                {
+                    out.setTo(scaleX, 0.0, 0.0, scaleY,
+                        x - pivotX * scaleX, y - pivotY * scaleY);
+                }
+                else
+                {
+                    var cos:Number = Math.cos(rotation);
+                    var sin:Number = Math.sin(rotation);
+                    var a:Number   = scaleX *  cos;
+                    var b:Number   = scaleX *  sin;
+                    var c:Number   = scaleY * -sin;
+                    var d:Number   = scaleY *  cos;
+                    var tx:Number  = x - pivotX * a - pivotY * c;
+                    var ty:Number  = y - pivotX * b - pivotY * d;
+
+                    out.setTo(a, b, c, d, tx, ty);
+                }
+            }
+            else
+            {
+                out.identity();
+                out.scale(scaleX, scaleY);
+                MatrixUtil.skew(out, skewX, skewY);
+                out.rotate(rotation);
+                out.translate(x, y);
+
+                if (pivotX != 0.0 || pivotY != 0.0)
+                {
+                    // prepend pivot transformation
+                    out.tx = x - out.a * pivotX - out.c * pivotY;
+                    out.ty = y - out.b * pivotX - out.d * pivotY;
+                }
+            }
+
+            if (out3D) MatrixUtil.convertTo3D(out, out3D);
+        }
+
         private static function findCommonParent(object1:DisplayObject,
                                                  object2:DisplayObject):DisplayObject
         {
@@ -674,7 +811,7 @@ package starling.display
         /** @inheritDoc */
         public override function removeEventListeners(type:String=null):void
         {
-            if ((type == null || type == Event.ENTER_FRAME) && hasEventListener(Event.ENTER_FRAME))
+            if ((type == null || type == Event.ENTER_FRAME) && hasEventListener(Event.ENTER_FRAME))
             {
                 removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
                 removeEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
@@ -707,50 +844,16 @@ package starling.display
          *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix():Matrix
         {
-            if (_orientationChanged)
+            if (_transformationChanged)
             {
-                _orientationChanged = false;
-                
-                if (_skewX == 0.0 && _skewY == 0.0)
-                {
-                    // optimization: no skewing / rotation simplifies the matrix math
-                    
-                    if (_rotation == 0.0)
-                    {
-                        _transformationMatrix.setTo(_scaleX, 0.0, 0.0, _scaleY,
-                            _x - _pivotX * _scaleX, _y - _pivotY * _scaleY);
-                    }
-                    else
-                    {
-                        var cos:Number = Math.cos(_rotation);
-                        var sin:Number = Math.sin(_rotation);
-                        var a:Number   = _scaleX *  cos;
-                        var b:Number   = _scaleX *  sin;
-                        var c:Number   = _scaleY * -sin;
-                        var d:Number   = _scaleY *  cos;
-                        var tx:Number  = _x - _pivotX * a - _pivotY * c;
-                        var ty:Number  = _y - _pivotX * b - _pivotY * d;
-                        
-                        _transformationMatrix.setTo(a, b, c, d, tx, ty);
-                    }
-                }
-                else
-                {
-                    _transformationMatrix.identity();
-                    _transformationMatrix.scale(_scaleX, _scaleY);
-                    MatrixUtil.skew(_transformationMatrix, _skewX, _skewY);
-                    _transformationMatrix.rotate(_rotation);
-                    _transformationMatrix.translate(_x, _y);
-                    
-                    if (_pivotX != 0.0 || _pivotY != 0.0)
-                    {
-                        // prepend pivot transformation
-                        _transformationMatrix.tx = _x - _transformationMatrix.a * _pivotX
-                                                      - _transformationMatrix.c * _pivotY;
-                        _transformationMatrix.ty = _y - _transformationMatrix.b * _pivotX
-                                                      - _transformationMatrix.d * _pivotY;
-                    }
-                }
+                _transformationChanged = false;
+
+                if (_transformationMatrix3D == null && _is3D)
+                    _transformationMatrix3D = new Matrix3D();
+
+                updateTransformationMatrices(
+                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
+                    _transformationMatrix, _transformationMatrix3D);
             }
             
             return _transformationMatrix;
@@ -761,7 +864,7 @@ package starling.display
             const PI_Q:Number = Math.PI / 4.0;
 
             setRequiresRedraw();
-            _orientationChanged = false;
+            _transformationChanged = false;
             _transformationMatrix.copyFrom(matrix);
             _pivotX = _pivotY = 0;
             
@@ -799,12 +902,18 @@ package starling.display
          *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix3D():Matrix3D
         {
-            // this method needs to be overridden in 3D-supporting subclasses (like Sprite3D).
-
             if (_transformationMatrix3D == null)
-                _transformationMatrix3D = new Matrix3D();
+                _transformationMatrix3D = MatrixUtil.convertTo3D(_transformationMatrix);
 
-            return MatrixUtil.convertTo3D(transformationMatrix, _transformationMatrix3D);
+            if (_transformationChanged)
+            {
+                _transformationChanged = false;
+                updateTransformationMatrices(
+                    _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
+                    _transformationMatrix, _transformationMatrix3D);
+            }
+
+            return _transformationMatrix3D;
         }
 
         /** Indicates if this object or any of its parents is a 'Sprite3D' object. */
@@ -843,10 +952,15 @@ package starling.display
         {
             // this method calls 'this.scaleX' instead of changing _scaleX directly.
             // that way, subclasses reacting on size changes need to override only the scaleX method.
-            
-            scaleX = 1.0;
-            var actualWidth:Number = width;
-            if (actualWidth != 0.0) scaleX = value / actualWidth;
+
+            var actualWidth:Number;
+            var scaleIsNaN:Boolean = _scaleX != _scaleX; // avoid 'isNaN' call
+            var scaleIsZero:Boolean = _scaleX < 1e-8 && _scaleX > -1e-8;
+
+            if (scaleIsZero || scaleIsNaN) { scaleX = 1.0; actualWidth = width; }
+            else actualWidth = Math.abs(width / _scaleX);
+
+            if (actualWidth) scaleX = value / actualWidth;
         }
         
         /** The height of the object in pixels.
@@ -855,9 +969,14 @@ package starling.display
         public function get height():Number { return getBounds(_parent, sHelperRect).height; }
         public function set height(value:Number):void
         {
-            scaleY = 1.0;
-            var actualHeight:Number = height;
-            if (actualHeight != 0.0) scaleY = value / actualHeight;
+            var actualHeight:Number;
+            var scaleIsNaN:Boolean  = _scaleY != _scaleY; // avoid 'isNaN' call
+            var scaleIsZero:Boolean = _scaleY < 1e-8 && _scaleY > -1e-8;
+
+            if (scaleIsZero || scaleIsNaN) { scaleY = 1.0; actualHeight = height; }
+            else actualHeight = Math.abs(height / _scaleY);
+
+            if (actualHeight) scaleY = value / actualHeight;
         }
         
         /** The x coordinate of the object relative to the local coordinates of the parent. */
@@ -867,7 +986,7 @@ package starling.display
             if (_x != value)
             {
                 _x = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -878,7 +997,7 @@ package starling.display
             if (_y != value)
             {
                 _y = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -889,7 +1008,7 @@ package starling.display
             if (_pivotX != value)
             {
                 _pivotX = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -900,7 +1019,7 @@ package starling.display
             if (_pivotY != value)
             {
                 _pivotY = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -912,7 +1031,7 @@ package starling.display
             if (_scaleX != value)
             {
                 _scaleX = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -924,7 +1043,7 @@ package starling.display
             if (_scaleY != value)
             {
                 _scaleY = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
 
@@ -942,7 +1061,7 @@ package starling.display
             if (_skewX != value)
             {
                 _skewX = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -955,7 +1074,7 @@ package starling.display
             if (_skewY != value)
             {
                 _skewY = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
         }
         
@@ -969,8 +1088,14 @@ package starling.display
             if (_rotation != value)
             {            
                 _rotation = value;
-                setOrientationChanged();
+                setTransformationChanged();
             }
+        }
+
+        /** @private Indicates if the object is rotated or skewed in any way. */
+        internal function get isRotated():Boolean
+        {
+            return _rotation != 0.0 || _skewX != 0.0 || _skewY != 0.0;
         }
         
         /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
@@ -1017,12 +1142,19 @@ package starling.display
         public function get name():String { return _name; }
         public function set name(value:String):void { _name = value; }
         
-        /** The filter that is attached to the display object. The starling.filters
-         *  package contains several classes that define specific filters you can use. 
-         *  Beware that a filter should NOT be attached to different objects simultaneously (for
-         *  performance reasons). Furthermore, when you set this property to 'null' or
-         *  assign a different filter, the previous filter is NOT disposed automatically
-         *  (since you might want to reuse it). */
+        /** The filter that is attached to the display object. The <code>starling.filters</code>
+         *  package contains several classes that define specific filters you can use. To combine
+         *  several filters, assign an instance of the <code>FilterChain</code> class; to remove
+         *  all filters, assign <code>null</code>.
+         *
+         *  <p>Beware that a filter instance may only be used on one object at a time! Furthermore,
+         *  when you remove or replace a filter, it is NOT disposed automatically (since you might
+         *  want to reuse it on a different object).</p>
+         *
+         *  @default null
+         *  @see starling.filters.FragmentFilter
+         *  @see starling.filters.FilterChain
+         */
         public function get filter():FragmentFilter { return _filter; }
         public function set filter(value:FragmentFilter):void
         {
@@ -1050,12 +1182,16 @@ package starling.display
          *  <p>For rectangular masks, you can use simple quads; for other forms (like circles
          *  or arbitrary shapes) it is recommended to use a 'Canvas' instance.</p>
          *
-         *  <p>Beware that a mask will typically cause at least two additional draw calls:
-         *  one to draw the mask to the stencil buffer and one to erase it. However, if the
+         *  <p><strong>Note:</strong> a mask will typically cause at least two additional draw
+         *  calls: one to draw the mask to the stencil buffer and one to erase it. However, if the
          *  mask object is an instance of <code>starling.display.Quad</code> and is aligned
          *  parallel to the stage axes, rendering will be optimized: instead of using the
          *  stencil buffer, the object will be clipped using the scissor rectangle. That's
          *  faster and reduces the number of draw calls, so make use of this when possible.</p>
+         *
+         *  <p><strong>Note:</strong> AIR apps require the <code>depthAndStencil</code> node
+         *  in the application descriptor XMLs to be enabled! Otherwise, stencil masking won't
+         *  work.</p>
          *
          *  @see Canvas
          *  @default null
@@ -1065,18 +1201,30 @@ package starling.display
         {
             if (_mask != value)
             {
-                if (_mask) _mask._isMask = false;
+                if (!sMaskWarningShown)
+                {
+                    if (!SystemUtil.supportsDepthAndStencil)
+                        trace("[Starling] Full mask support requires 'depthAndStencil'" +
+                              " to be enabled in the application descriptor.");
+
+                    sMaskWarningShown = true;
+                }
+
+                if (_mask) _mask._maskee = null;
                 if (value)
                 {
-                    value._isMask = true;
+                    value._maskee = this;
                     value._hasVisibleArea = false;
                 }
 
                 _mask = value;
                 setRequiresRedraw();
-                updateSupportsRenderCache();
             }
         }
+        
+        /** Indicates if the masked region of this object is set to be inverted.*/
+        public function get maskInverted():Boolean { return _maskInverted; }
+        public function set maskInverted(value:Boolean):void { _maskInverted = value; }
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }

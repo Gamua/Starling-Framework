@@ -12,11 +12,13 @@ package starling.textures
 {
     import flash.display.BitmapData;
     import flash.display3D.textures.TextureBase;
+    import flash.events.ErrorEvent;
     import flash.events.Event;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
+    import flash.utils.setTimeout;
 
     import starling.core.Starling;
     import starling.utils.MathUtil;
@@ -33,6 +35,7 @@ package starling.textures
         private static var sMatrix:Matrix = new Matrix();
         private static var sRectangle:Rectangle = new Rectangle();
         private static var sOrigin:Point = new Point();
+        private static var sAsyncUploadEnabled:Boolean = false;
 
         /** Creates a new instance with the given parameters. */
         public function ConcretePotTexture(base:flash.display3D.textures.Texture, format:String,
@@ -65,11 +68,13 @@ package starling.textures
         }
 
         /** @inheritDoc */
-        override public function uploadBitmapData(data:BitmapData):void
+        override public function uploadBitmapData(data:BitmapData, async:*=null):void
         {
-            potBase.uploadFromBitmapData(data);
-
             var buffer:BitmapData = null;
+            var isAsync:Boolean = async is Function || async === true;
+
+            if (async is Function)
+                _textureReadyCallback = async as Function;
 
             if (data.width != nativeWidth || data.height != nativeHeight)
             {
@@ -77,6 +82,8 @@ package starling.textures
                 buffer.copyPixels(data, data.rect, sOrigin);
                 data = buffer;
             }
+
+            upload(data, 0, isAsync);
 
             if (mipMapping && data.width > 1 && data.height > 1)
             {
@@ -93,7 +100,7 @@ package starling.textures
                     bounds.setTo(0, 0, currentWidth, currentHeight);
                     canvas.fillRect(bounds, 0);
                     canvas.draw(data, matrix, null, null, null, true);
-                    potBase.uploadFromBitmapData(canvas, level++);
+                    upload(canvas, level++, false); // only level 0 supports async
                     matrix.scale(0.5, 0.5);
                     currentWidth  = currentWidth  >> 1;
                     currentHeight = currentHeight >> 1;
@@ -106,6 +113,9 @@ package starling.textures
 
             setDataUploaded();
         }
+
+        /** @inheritDoc */
+        override public function get isPotTexture():Boolean { return true; }
 
         /** @inheritDoc */
         override public function uploadAtfData(data:ByteArray, offset:int = 0, async:* = null):void
@@ -122,10 +132,47 @@ package starling.textures
             setDataUploaded();
         }
 
+        private function upload(source:BitmapData, mipLevel:uint, isAsync:Boolean):void
+        {
+            if (isAsync)
+            {
+                uploadAsync(source, mipLevel);
+                base.addEventListener(Event.TEXTURE_READY, onTextureReady);
+                base.addEventListener(ErrorEvent.ERROR, onTextureReady);
+            }
+            else
+            {
+                potBase.uploadFromBitmapData(source, mipLevel);
+            }
+        }
+
+        private function uploadAsync(source:BitmapData, mipLevel:uint):void
+        {
+            if (sAsyncUploadEnabled)
+            {
+                try { base["uploadFromBitmapDataAsync"](source, mipLevel); }
+                catch (error:Error)
+                {
+                    if (error.errorID == 3708 || error.errorID == 1069)
+                        sAsyncUploadEnabled = false;
+                    else
+                        throw error;
+                }
+            }
+
+            if (!sAsyncUploadEnabled)
+            {
+                setTimeout(base.dispatchEvent, 1, new Event(Event.TEXTURE_READY));
+                potBase.uploadFromBitmapData(source);
+            }
+        }
+
         private function onTextureReady(event:Event):void
         {
             base.removeEventListener(Event.TEXTURE_READY, onTextureReady);
-            execute(_textureReadyCallback, this);
+            base.removeEventListener(ErrorEvent.ERROR, onTextureReady);
+
+            execute(_textureReadyCallback, this, event as ErrorEvent);
             _textureReadyCallback = null;
         }
 
@@ -133,5 +180,9 @@ package starling.textures
         {
             return base as flash.display3D.textures.Texture;
         }
+
+        /** @private */
+        internal static function get asyncUploadEnabled():Boolean { return sAsyncUploadEnabled; }
+        internal static function set asyncUploadEnabled(value:Boolean):void { sAsyncUploadEnabled = value; }
     }
 }

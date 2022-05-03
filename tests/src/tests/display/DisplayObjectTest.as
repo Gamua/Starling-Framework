@@ -18,6 +18,7 @@ package tests.display
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertNotNull;
     import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
     import org.hamcrest.number.closeTo;
 
     import starling.display.Quad;
@@ -222,7 +223,19 @@ package tests.display
             quad.scaleX = 1.0;
             quad.scaleY = 1.0;
             assertThat(quad.width, closeTo(100, E));
-            assertThat(quad.height, closeTo(200, E));            
+            assertThat(quad.height, closeTo(200, E));
+
+            // the same should work with width & height
+            quad = new Quad(100, 200);
+            quad.width = 0;
+            quad.height = 0;
+            assertThat(quad.width, closeTo(0, E));
+            assertThat(quad.height, closeTo(0, E));
+
+            quad.width = 50;
+            quad.height = 100;
+            assertThat(quad.scaleX, closeTo(0.5, E));
+            assertThat(quad.scaleY, closeTo(0.5, E));
         }
         
         [Test]
@@ -449,6 +462,62 @@ package tests.display
             sprite.scale = 0.75;
             assertThat(sprite.scaleX, closeTo(0.75, E));
             assertThat(sprite.scaleY, closeTo(0.75, E));
+        }
+
+        [Test]
+        public function testSetWidthNegativeAndBack():void
+        {
+            // -> https://github.com/Gamua/Starling-Framework/issues/850
+
+            var quad:Quad = new Quad(100, 100);
+
+            quad.width = -10;
+            quad.height = -10;
+
+            assertThat(quad.scaleX, closeTo(-0.1, E));
+            assertThat(quad.scaleY, closeTo(-0.1, E));
+
+            quad.width = 100;
+            quad.height = 100;
+
+            assertThat(quad.scaleX, closeTo(1.0, E));
+            assertThat(quad.scaleY, closeTo(1.0, E));
+        }
+
+        [Test]
+        public function testSetWidthAndHeightToNaNAndBack():void
+        {
+            var quad:Quad = new Quad(100, 200);
+
+            quad.width  = NaN;
+            quad.height = NaN;
+
+            assertTrue(isNaN(quad.width));
+            assertTrue(isNaN(quad.height));
+
+            quad.width = 100;
+            quad.height = 200;
+
+            assertThat(quad.width, closeTo(100, E));
+            assertThat(quad.height, closeTo(200, E));
+        }
+
+        [Test]
+        public function testSetWidthAndHeightToVerySmallValueAndBack():void
+        {
+            var sprite:Sprite = new Sprite();
+            var quad:Quad = new Quad(100, 100);
+            sprite.addChild(quad);
+            sprite.x = sprite.y = 480;
+
+            sprite.width = 2.842170943040401e-14;
+            sprite.width = 100;
+
+            sprite.height = 2.842170943040401e-14;
+            sprite.height = 100;
+
+            assertThat(sprite.width, closeTo(100, E));
+            assertThat(sprite.height, closeTo(100, E));
         }
     }
 }

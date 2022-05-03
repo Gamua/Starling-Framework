@@ -91,5 +91,13 @@ package starling.utils
 
             return string.substring(startPos, endPos + 1);
         }
+
+        /** Returns <code>true</code> if <code>value</code> equals
+         *  <code>true, TRUE, True, or 1</code>.
+         */
+        public static function parseBoolean(value:String):Boolean
+        {
+            return value == "true" || value == "TRUE" || value == "True" || value == "1";
+        }
     }
 }

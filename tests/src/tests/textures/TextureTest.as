@@ -156,5 +156,51 @@ package tests.textures
             assertThat(subTexture.nativeWidth, closeTo(24, E));
             assertThat(subTexture.nativeHeight, closeTo(16, E));
         }
+
+        [Test]
+        public function testScaleModifier():void
+        {
+            var texCoords:Point;
+            var region:Rectangle;
+            var texture:Texture = new MockTexture(32, 16, 2);
+            var subTexture:SubTexture = new SubTexture(texture, null, false, null, false, 0.5);
+
+            // construct texture with scale factor 1
+            assertThat(subTexture.scale, closeTo(1.0, E));
+            assertThat(subTexture.width, closeTo(texture.nativeWidth, E));
+            assertThat(subTexture.height, closeTo(texture.nativeHeight, E));
+            assertThat(subTexture.nativeWidth, closeTo(texture.nativeWidth, E));
+            assertThat(subTexture.nativeHeight, closeTo(texture.nativeHeight, E));
+
+            // and from the one above, back to the original factor of 2
+            var subSubTexture:SubTexture = new SubTexture(subTexture, null, false, null, false, 2.0);
+            assertThat(subSubTexture.scale, closeTo(2.0, E));
+            assertThat(subSubTexture.width, closeTo(texture.width, E));
+            assertThat(subSubTexture.height, closeTo(texture.height, E));
+            assertThat(subSubTexture.nativeWidth, closeTo(texture.nativeWidth, E));
+            assertThat(subSubTexture.nativeHeight, closeTo(texture.nativeHeight, E));
+
+            // now make the resolution of the original texture even higher
+            subTexture = new SubTexture(texture, null, false, null, false, 2);
+            assertThat(subTexture.scale, closeTo(4.0, E));
+            assertThat(subTexture.width, closeTo(texture.width / 2, E));
+            assertThat(subTexture.height, closeTo(texture.height / 2, E));
+            assertThat(subTexture.nativeWidth, closeTo(texture.nativeWidth, E));
+            assertThat(subTexture.nativeHeight, closeTo(texture.nativeHeight, E));
+
+            // test region
+            region = new Rectangle(8, 4, 8, 4);
+            subTexture = new SubTexture(texture, region, false, null, false, 0.5);
+            assertThat(subTexture.width, closeTo(region.width * 2, E));
+            assertThat(subTexture.height, closeTo(region.height * 2, E));
+            assertThat(subTexture.nativeWidth, closeTo(texture.nativeWidth / 2, E));
+            assertThat(subTexture.nativeHeight, closeTo(texture.nativeHeight / 2, E));
+
+            texCoords = subTexture.localToGlobal(0, 0);
+            Helpers.comparePoints(new Point(0.5, 0.5), texCoords);
+
+            texCoords = subTexture.localToGlobal(1, 1);
+            Helpers.comparePoints(new Point(1, 1), texCoords);
+        }
     }
 }

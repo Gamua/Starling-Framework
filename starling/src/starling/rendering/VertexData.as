@@ -23,6 +23,7 @@ package starling.rendering
 
     import starling.core.Starling;
     import starling.errors.MissingContextError;
+    import starling.styles.MeshStyle;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.StringUtil;
@@ -143,7 +144,7 @@ package starling.rendering
          *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
          *  usage of your VertexData instances.</p>
          */
-        public function VertexData(format:*=null, initialCapacity:int=4)
+        public function VertexData(format:*=null, initialCapacity:int=32)
         {
             if (format == null) _format = MeshStyle.VERTEX_FORMAT;
             else if (format is VertexDataFormat) _format = format;
@@ -355,7 +356,7 @@ package starling.rendering
             _rawData.length = numBytes;
             _rawData.writeBytes(sBytes);
 
-            sBytes.clear();
+            sBytes.length = 0;
         }
 
         /** Returns a string representation of the VertexData object,
@@ -367,6 +368,23 @@ package starling.rendering
         }
 
         // read / write attributes
+
+        /** Reads an unsigned integer value from the specified vertex and attribute. */
+        public function getUnsignedInt(vertexID:int, attrName:String):uint
+        {
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
+            return _rawData.readUnsignedInt();
+        }
+
+        /** Writes an unsigned integer value to the specified vertex and attribute. */
+        public function setUnsignedInt(vertexID:int, attrName:String, value:uint):void
+        {
+            if (_numVertices < vertexID + 1)
+                numVertices = vertexID + 1;
+
+            _rawData.position = vertexID * _vertexSize + getAttribute(attrName).offset;
+            _rawData.writeUnsignedInt(value);
+        }
 
         /** Reads a float value from the specified vertex and attribute. */
         public function getFloat(vertexID:int, attrName:String):Number
@@ -1019,7 +1037,7 @@ package starling.rendering
 
         public function set format(value:VertexDataFormat):void
         {
-            if (_format === value) return;
+            if (_format == value) return;
 
             var a:int, i:int, pos:int;
             var srcVertexSize:int = _format.vertexSize;
@@ -1057,10 +1075,13 @@ package starling.rendering
                 }
             }
 
-            _rawData.clear();
+            if (value.vertexSize > _format.vertexSize)
+                _rawData.clear(); // avoid 4k blowup
+
+            _rawData.position = 0;
             _rawData.length = sBytes.length;
             _rawData.writeBytes(sBytes);
-            sBytes.clear();
+            sBytes.length = 0;
 
             _format = value;
             _attributes = _format.attributes;

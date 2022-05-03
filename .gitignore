@@ -28,6 +28,12 @@ out/
 **/.idea/tasks.xml
 **/.idea/dictionaries
 
+# Visual Studio Code
+**/.vscode/settings.json
+
+# Xcode
+xcuserdata/
+
 # Gradle CI
 .gradle/
 build/
@@ -45,3 +51,7 @@ FlexUnitCompilerApplication.as
 
 # Release package
 starling/bin/starling-*.zip
+starling/build/apm/*.airpackage
+
+# ANE dir
+samples/scaffold_mobile/lib/

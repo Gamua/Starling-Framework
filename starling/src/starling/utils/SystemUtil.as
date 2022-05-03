@@ -14,6 +14,8 @@ package starling.utils
     import flash.events.Event;
     import flash.events.EventDispatcher;
     import flash.system.Capabilities;
+    import flash.text.Font;
+    import flash.text.FontStyle;
     import flash.utils.getDefinitionByName;
 
     import starling.errors.AbstractClassError;
@@ -27,6 +29,7 @@ package starling.utils
         private static var sPlatform:String;
         private static var sVersion:String;
         private static var sAIR:Boolean;
+        private static var sEmbeddedFonts:Array = null;
         private static var sSupportsDepthAndStencil:Boolean = true;
         
         /** @private */
@@ -41,7 +44,7 @@ package starling.utils
             sInitialized = true;
             sPlatform = Capabilities.version.substr(0, 3);
             sVersion = Capabilities.version.substr(4);
-            
+
             try
             {
                 var nativeAppClass:Object = getDefinitionByName("flash.desktop::NativeApplication");
@@ -111,30 +114,29 @@ package starling.utils
             return sAIR;
         }
         
-        /** Indicates if the code is executed on a Desktop computer with Windows, OS X or Linux
-         *  operating system. If the method returns 'false', it's probably a mobile device
-         *  or a Smart TV. */
-        public static function get isDesktop():Boolean
-        {
-            initialize();
-            return /(WIN|MAC|LNX)/.exec(sPlatform) != null;
-        }
-        
-        /** Returns the three-letter platform string of the current system. These are
-         *  the most common platforms: <code>WIN, MAC, LNX, IOS, AND, QNX</code>. Except for the
-         *  last one, which indicates "Blackberry", all should be self-explanatory. */
-        public static function get platform():String
-        {
-            initialize();
-            return sPlatform;
-        }
-
         /** Returns the Flash Player/AIR version string. The format of the version number is:
          *  <em>majorVersion,minorVersion,buildNumber,internalBuildNumber</em>. */
         public static function get version():String
         {
             initialize();
             return sVersion;
+        }
+
+        /** Returns the three-letter platform string of the current system. These are
+         *  the most common platforms: <code>WIN, MAC, LNX, IOS, AND, QNX</code>. Except for the
+         *  last one, which indicates "Blackberry", all should be self-explanatory.
+         *
+         *  <p>For debugging purposes, you can also assign a custom value.</p> */
+        public static function get platform():String
+        {
+            initialize();
+            return sPlatform;
+        }
+
+        public static function set platform(value:String):void
+        {
+            initialize();
+            sPlatform = value;
         }
 
         /** Returns the value of the 'initialWindow.depthAndStencil' node of the application
@@ -144,12 +146,87 @@ package starling.utils
             return sSupportsDepthAndStencil;
         }
 
-        /** Indicates if Context3D supports video textures. At the time of this writing,
-         *  video textures are only supported on Windows, OS X and iOS, and only in AIR
-         *  applications (not the Flash Player). */
+        /** Indicates if the current platform and runtime support video textures.  */
         public static function get supportsVideoTexture():Boolean
         {
             return Context3D["supportsVideoTexture"];
+        }
+
+        // embedded fonts
+
+        /** Updates the list of embedded fonts. To be called when a font is loaded at runtime. */
+        public static function updateEmbeddedFonts():void
+        {
+            sEmbeddedFonts = null; // will be updated in 'isEmbeddedFont()'
+        }
+
+        /** Figures out if an embedded font with the specified style is available.
+         *  The fonts are enumerated only once; if you load a font at runtime, be sure to call
+         *  'updateEmbeddedFonts' before calling this method.
+         *
+         *  @param fontName  the name of the font
+         *  @param bold      indicates if the font has a bold style
+         *  @param italic    indicates if the font has an italic style
+         *  @param fontType  the type of the font (one of the constants defined in the FontType class)
+         */
+        public static function isEmbeddedFont(fontName:String, bold:Boolean=false, italic:Boolean=false,
+                                              fontType:String="embedded"):Boolean
+        {
+            if (sEmbeddedFonts == null)
+                sEmbeddedFonts = Font.enumerateFonts(false);
+
+            for each (var font:Font in sEmbeddedFonts)
+            {
+                var style:String = font.fontStyle;
+                var isBold:Boolean = style == FontStyle.BOLD || style == FontStyle.BOLD_ITALIC;
+                var isItalic:Boolean = style == FontStyle.ITALIC || style == FontStyle.BOLD_ITALIC;
+
+                if (fontName == font.fontName && bold == isBold && italic == isItalic &&
+                    fontType == font.fontType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // convenience methods
+
+        /** Indicates if the code is executed on an iOS device, based on the <code>platform</code>
+         *  string. */
+        public static function get isIOS():Boolean
+        {
+            return platform == "IOS";
+        }
+
+        /** Indicates if the code is executed on an Android device, based on the
+         *  <code>platform</code> string. */
+        public static function get isAndroid():Boolean
+        {
+            return platform == "AND";
+        }
+
+        /** Indicates if the code is executed on a Macintosh, based on the <code>platform</code>
+         *  string. */
+        public static function get isMac():Boolean
+        {
+            return platform == "MAC";
+        }
+
+        /** Indicates if the code is executed on Windows, based on the <code>platform</code>
+         *  string. */
+        public static function get isWindows():Boolean
+        {
+            return platform == "WIN";
+        }
+
+        /** Indicates if the code is executed on a Desktop computer with Windows, macOS or Linux
+         *  operating system. If the method returns 'false', it's probably a mobile device
+         *  or a Smart TV. */
+        public static function get isDesktop():Boolean
+        {
+            return platform == "WIN" || platform == "MAC" || platform == "LNX";
         }
     }
 }

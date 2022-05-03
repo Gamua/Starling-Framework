@@ -11,13 +11,13 @@ then
   exit 1
 fi
 
-ASDOC="/Users/redge/Dropbox/Development/library/flash/air/air-20/bin/asdoc"
+ASDOC="/Users/redge/Dropbox/Development/library/air/sdks/air-33/bin/asdoc"
 
 "${ASDOC}" \
   -doc-sources ../src \
   -exclude-classes com.adobe.utils.AGALMiniAssembler \
   -main-title "Starling Framework Reference (v$version)" \
   -window-title "Starling Framework Reference" \
-  -package-description-file "package-descriptions.xml" \
+  -package-description-file "../build/shared/package-descriptions.xml" \
   -strict=false \
   -output html

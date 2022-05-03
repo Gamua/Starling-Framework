@@ -1,20 +1,18 @@
-How to build this Sample
-========================
+About this Demo
+===============
 
-The mobile demo shows some of the features of Starling. It runs on both iOS and Android devices.
+The mobile demo showcases some of the features of Starling. It runs on both iOS and Android devices.
 
-This folder contains just the Startup-code and AIR settings. The rest of the code, as well as the assets, are found in the "demo" folder, and needs to be referenced in your project.
+## Building the project
 
-If you are working with Flash Builder, you can import the project using "File - Import Flash Builder Project". However, the project requires you to set up an Eclipse workspace path pointing to Starling. To do that, enter "Preferences - General - Workspace - Linked Resources" and add a new path variable called STARLING_FRAMEWORK that points to the root of the Starling-Framework directory.
+Users of "IntelliJ IDEA" can open the project that's stored in `starling/build/idea`.
+It has everything set up.
 
-If you are using another IDE, it might unfortunately be a little more complicated. You have to create a project that is based in this folder and add the following source paths to your project:
+Users of "Visual Studio Code" can run this demo like this:
 
-  * '../demo/src' -> the actual code of the demo
-  * '../demo/media' -> the assets of the demo
-  * '../demo/system' -> the system graphics (icons, launch images) of the demo
+1. Install the "ActionScript & MXML" extension from Josh Tynjala and point it to the latest AIR SDK.
+2. Open the project folder in Visual Studio Code.
+3. (Optional) To run on an actual device, adapt the "signingOptions" in `asconfig.json` so that they point to your local development keys from Apple and Google.
+4. Enter the "Run and Debug" menu in the sidebar and start of one of the available configurations.
 
-Starling itself can either be linked via a source path, or by referencing its swc file.
-
-If your IDE doesn't allow adding source paths outside the project root, I recommend you create a new folder where you manually merge the "demo" and "demo_web" folders together. Then add just the "media" and "system" folders to your source paths (that's required so that their contents is added to the compiled application package).
-
-**Note:** You need at least AIR 3.2 to deploy AIR applications on a mobile device. Furthermore, you need the development certificates and profiles (provided by Apple or Google).
+All others, please refer to the documentation of their respective IDE.

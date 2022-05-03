@@ -4,6 +4,8 @@
 package tests.utils
 {
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertTrue;
 
     import starling.utils.StringUtil;
 
@@ -48,6 +50,19 @@ package tests.utils
             assertEquals("hugo", StringUtil.trim(" \nhugo\r "));
             assertEquals("hugo", StringUtil.trim(" \nhugo\r "));
             assertEquals("", StringUtil.trim(" \r \n "));
+        }
+
+        [Test]
+        public function testParseBool():void
+        {
+            assertTrue(StringUtil.parseBoolean("TRUE"));
+            assertTrue(StringUtil.parseBoolean("True"));
+            assertTrue(StringUtil.parseBoolean("true"));
+            assertTrue(StringUtil.parseBoolean("1"));
+            assertFalse(StringUtil.parseBoolean("false"));
+            assertFalse(StringUtil.parseBoolean("abc"));
+            assertFalse(StringUtil.parseBoolean("0"));
+            assertFalse(StringUtil.parseBoolean(""));
         }
     }
 }

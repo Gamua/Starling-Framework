@@ -76,6 +76,8 @@ package tests.display
             assertEquals(child1, returnValue);
             assertNull(child1.parent);
             assertEquals(child2, parent.getChildAt(0));
+            returnValue = parent.removeChild(child1);
+            assertNull(returnValue);
             child1.removeFromParent(); // should *not* throw an exception
             
             returnValue = child2.addChild(child1);

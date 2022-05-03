@@ -10,6 +10,7 @@
 
 package starling.rendering
 {
+    import flash.display3D.Context3DCompareMode;
     import flash.display3D.Context3DTriangleFace;
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;
@@ -19,6 +20,7 @@ package starling.rendering
 
     import starling.display.BlendMode;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
@@ -65,21 +67,32 @@ package starling.rendering
      */
     public class RenderState
     {
-        private var _alpha:Number;
-        private var _blendMode:String;
-        private var _renderTarget:Texture;
-        private var _renderTargetOptions:uint;
-        private var _culling:String;
-        private var _clipRect:Rectangle;
-        private var _onDrawRequired:Function;
+        /** @private */ internal var _alpha:Number;
+        /** @private */ internal var _blendMode:String;
+        /** @private */ internal var _modelviewMatrix:Matrix;
 
-        private var _modelviewMatrix:Matrix;
+        private static const CULLING_VALUES:Vector.<String> = new <String>
+            [Context3DTriangleFace.NONE, Context3DTriangleFace.FRONT,
+             Context3DTriangleFace.BACK, Context3DTriangleFace.FRONT_AND_BACK];
+
+        private static const COMPARE_VALUES:Vector.<String> = new <String>
+            [Context3DCompareMode.ALWAYS,  Context3DCompareMode.NEVER,
+             Context3DCompareMode.LESS,    Context3DCompareMode.LESS_EQUAL,
+             Context3DCompareMode.EQUAL,   Context3DCompareMode.GREATER_EQUAL,
+             Context3DCompareMode.GREATER, Context3DCompareMode.NOT_EQUAL];
+
+        private var _miscOptions:uint;
+        private var _clipRect:Rectangle;
+        private var _renderTarget:Texture;
+        private var _onDrawRequired:Function;
         private var _modelviewMatrix3D:Matrix3D;
         private var _projectionMatrix3D:Matrix3D;
+        private var _projectionMatrix3DRev:uint;
         private var _mvpMatrix3D:Matrix3D;
 
         // helper objects
         private static var sMatrix3D:Matrix3D = new Matrix3D();
+        private static var sProjectionMatrix3DRev:uint = 0;
 
         /** Creates a new render state with the default settings. */
         public function RenderState()
@@ -94,11 +107,14 @@ package starling.rendering
             {
                 var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
                 var nextTarget:TextureBase = renderState._renderTarget ? renderState._renderTarget.base : null;
+                var cullingChanges:Boolean   = (_miscOptions &   0xf00) != (renderState._miscOptions &   0xf00);
+                var depthMaskChanges:Boolean = (_miscOptions &  0xf000) != (renderState._miscOptions &  0xf000);
+                var depthTestChanges:Boolean = (_miscOptions & 0xf0000) != (renderState._miscOptions & 0xf0000);
                 var clipRectChanges:Boolean = _clipRect || renderState._clipRect ?
                     !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
 
-                if (_blendMode != renderState._blendMode || _culling != renderState._culling ||
-                    currentTarget != nextTarget || clipRectChanges)
+                if (_blendMode != renderState._blendMode || currentTarget != nextTarget ||
+                    clipRectChanges || cullingChanges || depthMaskChanges || depthTestChanges)
                 {
                     _onDrawRequired();
                 }
@@ -107,10 +123,14 @@ package starling.rendering
             _alpha = renderState._alpha;
             _blendMode = renderState._blendMode;
             _renderTarget = renderState._renderTarget;
-            _renderTargetOptions = renderState._renderTargetOptions;
-            _culling = renderState._culling;
+            _miscOptions = renderState._miscOptions;
             _modelviewMatrix.copyFrom(renderState._modelviewMatrix);
-            _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
+
+            if (_projectionMatrix3DRev != renderState._projectionMatrix3DRev)
+            {
+                _projectionMatrix3DRev = renderState._projectionMatrix3DRev;
+                _projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
+            }
 
             if (_modelviewMatrix3D || renderState._modelviewMatrix3D)
                 this.modelviewMatrix3D = renderState._modelviewMatrix3D;
@@ -126,9 +146,12 @@ package starling.rendering
             this.alpha = 1.0;
             this.blendMode = BlendMode.NORMAL;
             this.culling = Context3DTriangleFace.NONE;
+            this.depthMask = false;
+            this.depthTest = Context3DCompareMode.ALWAYS;
             this.modelviewMatrix3D = null;
             this.renderTarget = null;
             this.clipRect = null;
+            _projectionMatrix3DRev = 0;
 
             if (_modelviewMatrix) _modelviewMatrix.identity();
             else _modelviewMatrix = new Matrix();
@@ -178,8 +201,17 @@ package starling.rendering
                                             stageWidth:Number=0, stageHeight:Number=0,
                                             cameraPos:Vector3D=null):void
         {
+            _projectionMatrix3DRev = ++sProjectionMatrix3DRev;
             MatrixUtil.createPerspectiveProjectionMatrix(
                     x, y, width, height, stageWidth, stageHeight, cameraPos, _projectionMatrix3D);
+        }
+
+        /** This method needs to be called whenever <code>projectionMatrix3D</code> was changed
+         *  other than via <code>setProjectionMatrix</code>.
+         */
+        public function setProjectionMatrixChanged():void
+        {
+            _projectionMatrix3DRev = ++sProjectionMatrix3DRev;
         }
 
         /** Changes the modelview matrices (2D and, if available, 3D) to identity matrices.
@@ -217,10 +249,15 @@ package starling.rendering
 
         /** Returns the current projection matrix. You can use the method 'setProjectionMatrix3D'
          *  to set it up in an intuitive way.
-         *  CAUTION: Use with care! Each call returns the same instance.
+         *  CAUTION: Use with care! Each call returns the same instance. If you modify the matrix
+         *           in place, you have to call <code>setProjectionMatrixChanged</code>.
          *  @default identity matrix */
         public function get projectionMatrix3D():Matrix3D { return _projectionMatrix3D; }
-        public function set projectionMatrix3D(value:Matrix3D):void { _projectionMatrix3D.copyFrom(value); }
+        public function set projectionMatrix3D(value:Matrix3D):void
+        {
+            setProjectionMatrixChanged();
+            _projectionMatrix3D.copyFrom(value);
+        }
 
         /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
          *  CAUTION: Use with care! Each call returns the same instance. */
@@ -239,7 +276,7 @@ package starling.rendering
          *  @param target     Either a texture or <code>null</code> to render into the back buffer.
          *  @param enableDepthAndStencil  Indicates if depth and stencil testing will be available.
          *                    This parameter affects only texture targets.
-         *  @param antiAlias  The anti-aliasing quality (<code>0</code> meaning: no anti-aliasing).
+         *  @param antiAlias  The anti-aliasing quality (range: <code>0 - 4</code>).
          *                    This parameter affects only texture targets. Note that at the time
          *                    of this writing, AIR supports anti-aliasing only on Desktop.
          */
@@ -248,14 +285,15 @@ package starling.rendering
         {
             var currentTarget:TextureBase = _renderTarget ? _renderTarget.base : null;
             var newTarget:TextureBase = target ? target.base : null;
-            var newOptions:uint = uint(enableDepthAndStencil) | antiAlias << 4;
+            var newOptions:uint = MathUtil.min(antiAlias, 0xf) | uint(enableDepthAndStencil) << 4;
+            var optionsChange:Boolean = newOptions != (_miscOptions & 0xff);
 
-            if (currentTarget != newTarget || _renderTargetOptions != newOptions)
+            if (currentTarget != newTarget || optionsChange)
             {
                 if (_onDrawRequired != null) _onDrawRequired();
 
                 _renderTarget = target;
-                _renderTargetOptions = newOptions;
+                _miscOptions = (_miscOptions & 0xffffff00) | newOptions;
             }
         }
 
@@ -296,17 +334,71 @@ package starling.rendering
             return _renderTarget ? _renderTarget.base : null;
         }
 
+        /** @private */
+        internal function get renderTargetOptions():uint
+        {
+            return _miscOptions & 0xff;
+        }
+
         /** Sets the triangle culling mode. Allows to exclude triangles from rendering based on
          *  their orientation relative to the view plane.
          *  @default Context3DTriangleFace.NONE
          */
-        public function get culling():String { return _culling; }
+        public function get culling():String
+        {
+            var index:int = (_miscOptions & 0xf00) >> 8;
+            return CULLING_VALUES[index];
+        }
+
         public function set culling(value:String):void
         {
-            if (_culling != value)
+            if (this.culling != value)
             {
                 if (_onDrawRequired != null) _onDrawRequired();
-                _culling = value;
+
+                var index:int = CULLING_VALUES.indexOf(value);
+                if (index == -1) throw new ArgumentError("Invalid culling mode");
+
+                _miscOptions = (_miscOptions & 0xfffff0ff) | (index << 8);
+            }
+        }
+
+        /** Enables or disables depth buffer writes.
+         *  @default false
+         */
+        public function get depthMask():Boolean
+        {
+            return (_miscOptions & 0x0000f000) != 0;
+        }
+
+        public function set depthMask(value:Boolean):void
+        {
+            if (depthMask != value)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+                _miscOptions = (_miscOptions & 0xffff0fff) | (uint(value) << 12);
+            }
+        }
+
+        /** Sets type of comparison used for depth testing.
+         *  @default Context3DCompareMode.ALWAYS
+         */
+        public function get depthTest():String
+        {
+            var index:int = (_miscOptions & 0x000f0000) >> 16;
+            return COMPARE_VALUES[index];
+        }
+
+        public function set depthTest(value:String):void
+        {
+            if (depthTest != value)
+            {
+                if (_onDrawRequired != null) _onDrawRequired();
+
+                var index:int = COMPARE_VALUES.indexOf(value);
+                if (index == -1) throw new ArgumentError("Invalid compare mode");
+
+                _miscOptions = (_miscOptions & 0xfff0ffff) | (index << 16);
             }
         }
 
@@ -339,14 +431,14 @@ package starling.rendering
          *  via <code>setRenderTarget</code>. */
         public function get renderTargetAntiAlias():int
         {
-            return _renderTargetOptions >> 4;
+            return _miscOptions & 0xf;
         }
 
         /** Indicates if the render target (set via <code>setRenderTarget</code>)
          *  has its depth and stencil buffers enabled. */
         public function get renderTargetSupportsDepthAndStencil():Boolean
         {
-            return (_renderTargetOptions & 0xf) != 0;
+            return (_miscOptions & 0xf0) != 0;
         }
 
         /** Indicates if there have been any 3D transformations.
@@ -356,7 +448,7 @@ package starling.rendering
         /** @private
          *
          *  This callback is executed whenever a state change requires a draw operation.
-         *  This is the case if blend mode, render target, culling or clipping rectangle
+         *  This is the case if blend mode, render target, depth test, culling or clipping rectangle
          *  are changing. */
         internal function get onDrawRequired():Function { return _onDrawRequired; }
         internal function set onDrawRequired(value:Function):void { _onDrawRequired = value; }

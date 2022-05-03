@@ -13,11 +13,13 @@ package tests.rendering
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertFalse;
     import org.flexunit.asserts.assertNull;
+    import org.flexunit.asserts.assertTrue;
 
+    import starling.display.Mesh;
     import starling.display.Quad;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
-    import starling.rendering.MeshStyle;
+    import starling.styles.MeshStyle;
 
     import tests.StarlingTestCase;
 
@@ -83,5 +85,47 @@ package tests.rendering
                 ++eventCount;
             }
         }
+
+        [Test]
+        public function testDefaultStyle():void
+        {
+            var origStyle:Class = Mesh.defaultStyle;
+            var quad:Quad = new Quad(100, 100);
+            assertTrue(quad.style is origStyle);
+
+            Mesh.defaultStyle = MockStyle;
+
+            quad = new Quad(100, 100);
+            assertTrue(quad.style is MockStyle);
+
+            Mesh.defaultStyle = origStyle;
+        }
+
+        [Test]
+        public function testDefaultStyleFactory():void
+        {
+            var quad:Quad;
+            var origStyle:Class = Mesh.defaultStyle;
+            var origStyleFactory:Function = Mesh.defaultStyleFactory;
+
+            Mesh.defaultStyleFactory = function(mesh:Mesh):MeshStyle { return new MockStyle(); };
+            quad = new Quad(100, 100);
+            assertTrue(quad.style is MockStyle);
+
+            Mesh.defaultStyleFactory = function():MeshStyle { return null; };
+            quad = new Quad(100, 100);
+            assertTrue(quad.style is origStyle);
+
+            Mesh.defaultStyleFactory = null;
+            quad = new Quad(100, 100);
+            assertTrue(quad.style is origStyle);
+
+            Mesh.defaultStyle = origStyle;
+            Mesh.defaultStyleFactory = origStyleFactory;
+        }
     }
 }
+
+import starling.styles.MeshStyle;
+
+class MockStyle extends MeshStyle { }

@@ -73,7 +73,6 @@ package tests
             
             _eventListenerTargets = null;
         }
-        
     }
 }
 

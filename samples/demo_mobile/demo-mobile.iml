@@ -2,17 +2,14 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="demo-mobile">
     <configurations>
-      <configuration name="demo-mobile" target-platform="Mobile" pure-as="true" main-class="Demo_Mobile" output-file="demo_mobile.swf" output-folder="$MODULE_DIR$/out">
+      <configuration name="demo-mobile" target-platform="Mobile" pure-as="true" main-class="Demo" output-file="demo.swf" output-folder="$MODULE_DIR$/out">
         <dependencies>
           <entries>
-            <entry module-name="demo-shared" build-configuration-name="demo-shared">
-              <dependency linkage="Merged" />
-            </entry>
             <entry module-name="starling" build-configuration-name="starling">
               <dependency linkage="Merged" />
             </entry>
           </entries>
-          <sdk name="air-19" />
+          <sdk name="air-33" />
         </dependencies>
         <compiler-options>
           <map>
@@ -20,18 +17,18 @@
           </map>
         </compiler-options>
         <packaging-air-desktop />
-        <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Demo_Mobile-app.xml" package-file-name="Demo_Mobile">
+        <packaging-android enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Demo-app.xml" package-file-name="Demo_Mobile">
           <files-to-package>
-            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/assets" path-in-package="." />
-            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/system" path-in-package="." />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="assets" />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/system" path-in-package="." />
           </files-to-package>
         </packaging-android>
-        <packaging-ios enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Demo_Mobile-app.xml" package-file-name="Demo_Mobile">
+        <packaging-ios enabled="true" use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/src/Demo-app.xml" package-file-name="Demo_Mobile">
           <files-to-package>
-            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/assets" path-in-package="." />
-            <FilePathAndPathInPackage file-path="$MODULE_DIR$/../demo/system" path-in-package="." />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/assets" path-in-package="assets" />
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/system" path-in-package="." />
           </files-to-package>
-          <AirSigningOptions keystore-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/daniel_developer_certificate.p12" provisioning-profile-path="$MODULE_DIR$/../../../../Gamua/Projects/general/iphone_dev_data/iOS_Team_Provisioning_Profile_.mobileprovision" />
+          <AirSigningOptions keystore-path="$MODULE_DIR$/../../../library/ios/daniel_dev_certificate.p12" provisioning-profile-path="$MODULE_DIR$/../../../library/ios/ios_dev_profile.mobileprovision" />
         </packaging-ios>
       </configuration>
     </configurations>
@@ -44,9 +41,8 @@
       <excludeFolder url="file://$MODULE_DIR$/bin-debug" />
       <excludeFolder url="file://$MODULE_DIR$/bin-release" />
     </content>
-    <orderEntry type="jdk" jdkName="air-19" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="jdk" jdkName="air-33" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="starling" exported="" />
-    <orderEntry type="module" module-name="demo-shared" exported="" />
   </component>
 </module>

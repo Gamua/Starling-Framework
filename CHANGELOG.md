@@ -1,6 +1,366 @@
 Starling: Changelog
 ===================
 
+version 2.7 - 2021-07-26
+------------------------
+
+- added 'Event.SKIP_FRAME' and showing number of skipped frames in the stats display (#1082)
+- added 'BlendMode.isRegistered()'
+- added 'BlendMode.getAll()'
+- added config files for _Visual Studio Code_ for all sub-projects
+- added small optimization to Polygon 'contains' method (thanks to Adolio!)
+- added parameter 'forcePotTexture' to RenderTexture constructor (thanks to hardcoremore!)
+- added 'AssetManger.unregisterFactory'
+- added optional 'numSides' parameter to Canvas::drawCircle and Canvas::drawEllipse (#1068)
+- added support for 'TextureOptions.onReady' to BitmapTextureFactory and AtfTextureFactory (thanks to esidegallery!)
+- Android back gesture is now ignored by default (via 'starling.discardSystemGestures')
+- updated mobile scaffold for modern requirements
+  - adaptive icon on Android
+  - making use of Android 'res' folder
+  - iOS icon via 'Assets.car'
+  - removed 'Default.png' and variants
+  - prepared notch support - just add 'Application' ANE from distriqt and comment in some code.
+- updated mobile demo project with a new app icon and simplified its build process
+- fixed that a button's minimum hit area size was too big on Desktop (now 16 on Desktop, 44 on mobile) (#1066)
+- fixed erroneous hit tests on buttons with certain overlays
+  (see [forum thread](https://forum.starling-framework.org/d/22337-issue-with-button-in-starling-26))
+- fixed that color of Glow- and DropShadowFilter was not always applied (#1074)
+- fixed that ScreenSetup class didn't work correctly in AIR simulator
+- fixed that context settings were not correctly restored after a context loss
+- removed 'web' demo (doesn't make much sense after Flash Player's end-of-life)
+- removed Gradle build scripts
+  - I personally don't use Gradle, and the Flair Gradle Plugin hasn't been updated for a long time.
+    Thus, I decided to remove those scripts to reduce maintenance efforts.
+    However, if anyone thinks this is a bad idea and/or can help with maintenance, feel free to ping me!
+- removed Travis CI integration
+  - Keeping the Travis build working has always been a challenge, and since changes to Starling aren't happening
+    as often anymore, it's not vital to have Travis look over it.
+- removed Flash Builder project files
+  - Adobe Flash Builder hasn't been updated in years and there is no hope of it coming back anytime soon.
+    Furthermore, I don't have it installed any longer, so I can't keep the project files in shape.
+    Thus, I decided to remove them from the repository altogether.
+
+version 2.6 - 2020-02-10
+------------------------
+
+- added 'ButtonBehavior' class
+- added 'inner' and 'knockout' modes to DropShadowFilter and GlowFilter
+- added 'AssetManager.dequeue' method
+- added missing parameters to 'MeshBatch.addMeshAt'
+- updated Travis script, as Homebrew now keeps casks updated automatically
+- fixed exception when using empty FilterChain (closes #1063)
+- fixed API reference default value for 'nativeOverlayBlocksTouches'
+
+version 2.5.1 - 2019-04-03
+--------------------------
+
+- fixed null reference exception when stats display was enabled before Starling was initialized
+
+version 2.5 - 2019-04-02
+------------------------
+
+- added 'BezierEasing' class for simple CSS-like transitions (thanks to Rodrigo!)
+- added system gesture recognition - swipes from top or bottom of the screen are now ignored (#861)
+  - configured via new property 'ignoreSystemGestures' on TouchProcessor and Starling
+- added 'Starling.nativeOverlayBlocksTouches' property, which makes native overlay behave more intuitively (#861)
+- added 'stage.getScreenBounds' method
+- added support for SubTextures (atlas textures) to DisplacementMapFilter
+- added 'mapScaleX/Y' properties to the DisplacementMapFilter
+- added standard 'Array' pooling to Pool class
+- added 'ByteArrayUtil.startsWithBytes'; BitmapTextureFactory now checks for JPG, PNG and GIF magic numbers
+- added MP3 magic number check to SoundFactory
+- added HSV / HSL utility methods to 'Color' class (#1035) (thanks to Adolio!)
+- added 'TextureAtlas.removeRegions()' (#1036)
+- added support for enabling/disabling multi-touch at any time (#1048)
+- added new properties and methods to the 'Touch' class
+  - `function getStartLocation(space:DisplayObject, out:Point=null):Point`
+  - `function getMovementSinceStart(space:DisplayObject, out:Point=null):Point`
+  - `function get startGlobalX():Number`
+  - `function get startGlobalY():Number`
+  - `function get duration():Number`
+- enhanced memory management of AssetManager
+- enhanced asset manager verbose output (#1053)
+- enhanced TouchProcessor by pooling raw touch data (#1037)
+- enhanced usefulness of AssetManager's error callback by including the actual asset (#1031) (thanks to aram-ahak!)
+- fixed that stats display didn't align correctly after viewPort changes (#264)
+- fixed that stats display could be cropped when viewPort extended beyond stage bounds (#264)
+- fixed that stats display was not correctly aligned to the right
+- fixed that TrueType text could become blurry when using non-integer content scale factors (#1055)
+- fixed array range checks when accessing filename Regex matches in AssetManager
+- fixed that texture factories did not correctly enter 'onError' callbacks on exceptions during creation
+- fixed that button using a texture with automatic pivot assignment was not scaled correctly when pressed
+- fixed double-dispose of RenderTexture's base texture (#1043)
+- fixed mixed-up JPG/PNG magic numbers
+- fixed missing 'eventStack.pop' call in EventDispatcher (#1038) (thanks to Klug76!)
+- fixed that MovieClip skipped frames in certain floating-point situations
+- fixed that changing stage color did not force redraw
+- fixed that 'onComplete' parameter of 'AssetFactory.create' ignored 'type' parameter
+- fixed that on Windows, an app might render with a blank screen when becoming active (#1032) (thanks to Josh!)
+- fixed API doc sample for nesting AssetManagers (#1030)
+
+version 2.4 - 2018-06-04
+------------------------
+
+- added completely rewritten AssetManager, to be found in the `starling.assets` package
+  - supports custom asset types (in addition to the available textures, sounds, XMLs, etc.)
+  - supports custom asset factories (factories load specific asset types)
+  - supports custom post processors (executed when all assets are loaded)
+  - supports custom data loaders (an object that loads data from local or remote resources)
+  - supports nesting of Asset Managers
+  - supports being used without active Starling instance (for assets that don't require a context)
+  - more intuitive callbacks in the `loadQueue` method
+  - better error handling
+- added support for 8k textures (as added in AIR 29 beta for Desktop targets)
+- added support for the Context3D option 'wantsBestResolutionOnBrowserZoom' via 'Starling.supportBrowserZoom'
+- added optional 'cameraPos' to RenderTexture's draw methods
+- added 'Painter.enableBatchTrimming()' (refs #1023)
+- added workaround for ADL mouse problem on Surface Books (closes #1022) (thanks to Josh!)
+- added ENHANCED stage3D profile to 'auto' profile list (closes #1019)
+- added warning when TextureAtlas or BitmapFont textures are missing
+- added 'copyFrom' method to TextureOptions
+- added warning whenever 'enableErrorChecking' is enabled (closes #1014)
+- optimized memory management by avoiding several 'ByteArray.clear' calls (refs #1027)
+- optimized memory handling in AOT mode by replacing some Vectors with Arrays
+- raised AIR SDK references to version 29
+- fixed Animate CC sprite sheet support by duplicating pivot points across textures with the same prefix (refs #445)
+- fixed that filter and mask on 'this' were ignored by 'DisplayObject.drawToBitmapData'
+- fixed that Juggler.elapsedTime was not raised while juggler was empty
+- fixed floating point problems in texture frame warning
+
+version 2.3 - 2017-12-18
+------------------------
+
+- added multi-channel support for distance field rendering (closes #994)
+- added automatic distance field rendering for TextFields when an appropriate BitmapFont flag is set
+- added 'BitmapFontType' class and appropriate properties to 'BitmapFont'
+- added support for 'BitmapData' to 'Texture.fromEmbeddedAsset' (closes #1011)
+- added 'quality' property to Blur-, DropShadow-, and GlowFilter (refs #1007)
+- added BitmapFont management methods to AssetManager (closes #990)
+- added 'TextField.getTextBounds'
+- added 'Mesh.createDefaultStyle'
+- added 'Tween.animatesProperty' (closes #993)
+- added a setter for 'SystemUtil.platform' for debugging purposes (closes #979)
+- added support for custom file formats in TextureAtlas subclasses
+- added support for custom file formats in BitmapFont subclasses
+- added support for 'pivotX/Y' attributes in texture atlas XML (closes #445)
+- added 'TextureAtlas.registerBitmapFontsWithFontFace' (refs #997, #998)
+- updated AGALMiniAssembler with latest changes from Adobe
+- updated 'Image.automateSetupForTexture' to support multiple setup/release methods per texture (refs #1004)
+- updated default stencil value constant to be public (closes #995)
+- updated 'BitmapFont.arrangeChars' method to be public (refs #996)
+- optimized basic Effect by exchanging 'seq' with 'sge' opcode (refs #983)
+- optimized CompositeFilter by exchanging 'seq' with 'sge' opcode (refs #983)
+- fixed problems when using masks and render textures simultaneously (closes #992)
+- fixed that composite filter sometimes used incorrect texture smoothing
+- fixed resolution quality issue of BlurFilter (closes #1007)
+- fixed strange behavior with special characters in filenames (closes #1006)
+- fixed that adding the same asset with the same name multiple times would dispose the asset
+- fixed outdated documentation (closes #1005)
+- fixed wrong method name in API reference
+- fixed 'isZero' check in width/height assignment
+- fixed that letterSpacing was not applied to BitmapFont (closes #1003)
+- fixed alpha problems in DistanceFieldStyle
+- fixed that missing chars in bitmap fonts could sometimes screw up text composition
+- fixed that auto-scaling of distance field 'softness' didn't take 'contentScaleFactor' into account (refs #828)
+- fixed that BitmapFont was not drawn if lineHeight exceeded TextField height (refs #1002)
+- fixed rare problem that made object stuck at zero width or height
+- fixed that properties of DistanceFieldStyle were not always updated correctly on batching
+- fixed that Image with Scale9Grid forgot color information when temporarily setting scaleX or scaleY to zero
+- fixed stencil reference value access inconsistencies (refs #992)
+- fixed that scaled TrueType TextFields were not rendered in the optimal resolution
+- fixed that an incompatible 'mapRepeat' setting on the DisplacementMapFilter caused an exception (closes #1009)
+- fixed that workaround for black screen after app re-activation was not limited to mobile (refs #987)
+- fixed that TextureMaskStyle did not work on a Samsung Galaxy S8
+- fixed that texture scale was not taken into account for distance field softness
+- fixed that AssetManager did not keep references to atlas and font XMLs when texture was missing
+- fixed that render context could be requested while application was inactive (refs #987)
+
+version 2.2 - 2017-06-27
+------------------------
+
+- added 'DisplayObject.isMaskInverted' (thanks to Ehsan Marufi)
+- added support for stronger blurs with fewer passes to BlurFilter
+- added 'Image.bindScale9GridToTexture' for automated scale9Grid setup (thanks to Kevin Foley)
+- added 'Image.bindPivotPointToTexture' for automated pivot point setup
+- added 'Image.automateSetupForTexture' for automated setup of all the rest ;)
+- added workaround for memory issue on iOS concerning BatchPools
+- added 'padding' to TextField class → allowing injection of 'TextOptions' into TextField
+- added convenience methods and properties to 'Padding' class
+- added 'Painter.setupContextDefaults' and using it in 'DisplayObject.drawToBitmapData'
+- added support for asynchronous bitmap texture uploads (via 'Texture.asyncBitmapUploadEnabled')
+- added support for specifying the alpha value with which the context is cleared each frame
+- added support for overriding 'updateTransformationMatrix' in display objects
+- added methods for quickly checking the current platform in SystemUtil (thanks to Kevin Foley)
+- added 'numSides' parameter in 'Polygon.createEllipse' and 'createCircle' (thanks to Ehsan Marufi)
+- added 'StringUtil.parseBoolean' and using it for XML parsing in TextureAtlas
+- added 'TextureAtlas.addSubTexture' (thanks to Ehsan Marufi)
+- added 'RectangleUtil.extendToWholePixels' and using it to optimize area processed by fragment filter
+- added 'DisplayObject.drawToBitmapData' method
+- added link to new manual to README
+- added iPad support and auto-orientation to scaffold project
+- added 'Field Agent' utility for simple distance field creation
+- added depth test settings to RenderState (thanks to Alexander Mokretsov)
+- added 'styleSheet' property to TextField
+- added color component setter functions to 'Color' class (thanks to Alexander Mokretsov)
+- added 'letterSpacing' property to 'TextFormat' class (thanks to pbalmasov)
+- added 'antiAliasing' property to FragmentFilter
+- changed 'TextField.setRequiresRecomposition' to be public
+- changed that Travis build now always uses the latest AIR SDK
+- changed that Starling now stops with an error if AIR/Flash runtime version is not supported
+- changed 'scaffold_mobile' project to be better suited for current mobile device
+- changed that 'copyFrom' is called before setting the new style in MeshBatch (thanks to Robert Carone)
+- changed IntelliJ IDEA resource utility so it's easier to use
+- changed that 'depthAndStencil' warning is printed out on first use of masks
+- optimized MiniBitmapFont: replaced XML with compressed ByteArray to save space
+- optimized masking: now using depth test to prevent masks from being drawn (thanks to Ehsan Marufi)
+- optimized transformation matrix workflow
+- optimized 'removeEventListener' by avoiding duplicate vector creation (thanks to Josh Tynjala)
+- optimized pushing and popping of state stack in DisplayObjectContainer (thanks to vroad)
+- fixed that objects were not notified if HOVER phase ended due to display list changes
+- fixed possible null reference error in Sprite3D instances
+- fixed that back buffer could be left in unknown state after disabling 'Starling.shareContext'
+- fixed that 'alignPivot' did not force transformation matrix update on Sprite3D
+- fixed that internal 'dispose' was called twice on empty TextField (thanks to 5k0rp)
+- fixed that render context was disposed before the stage (thanks to neuronix)
+- fixed that changing camera settings did not force redraw
+- fixed 'drawToBitmapData' when called on the stage with negative viewPort.x/y
+- fixed that DisplacementMapFilter did not clamp edge pixels
+- fixed that 'copy_resources.rb' script could not handle multiple configurations
+- fixed that helper matrix was not initialized in FragmentFilter (thanks to bwhiting)
+- fixed iPad logic of mobile scaffold
+- fixed that 'Juggler.removeDelayedCalls' didn't remove the id of the delayed call
+- fixed that disposing video texture did not always cut connections to camera and net stream
+- fixed some class references in the API documentation
+- fixed that 'setRequiresRedraw' was not called after resizing native window (thanks to Josh Tynjala)
+- fixed that masking a filtered object with a clipRect did not work
+- fixed exception on rendering of mesh occurring when its style was changed
+- fixed that back buffer sizes below 32x32 lead to an exception (now forcing this minimal size)
+- fixed null pointer exception in Pool.getPoint3D
+
+version 2.1 - 2016-09-29
+------------------------
+
+- added 'DistanceFieldStyle' for signed distance field rendering (fonts!)
+- added 'TrueTypeCompositor' (or rather: made it a public class)
+- added 'defaultCompositor' property to the TextField
+- added support for registering arbitrary text compositors on the 'TextField' class
+- added 'Mesh.fromPolygon' factory method
+- added support for 'scale9Grid' being used as 'scale3Grid' (no longer distorting 'caps')
+- added 'SystemUtil.isEmbeddedFont'
+- added GPU memory information to statistics display (if available)
+- added 'VertexData.get/setUnsignedInt' methods
+- added 'Mesh.defaultStyleFactory'
+- added 'ConcreteTexture.recreateBase' as 'starling_internal' method
+- added workaround for rare stage3D exception when disposing vertex- or index buffer
+- added missing 'setRequiresRedraw' calls in MeshBatch
+- added missing 'setRequiresRedraw' calls in DropShadow- and GlowFilter
+- added convenience property to get Starling instance from stage
+- added file extension to AssetManager's verbose logging
+- added 'padding' property to BitmapFont class
+- added 'autoSize' property to TextOptions class
+- added 'timeScale' property to juggler
+- optimized performance of 'Painter.pushState' and 'Painter.popState'
+- optimized Quad performance by avoiding unnecessary VertexData trimming
+- optimized TouchEvents by using only a single instance for all touch handling
+- optimized render cache logic: cleaner code, better reliability
+- optimized event priorities of CONTEXT3D_CREATE events for better context restoration
+- updated API documentation about anti-aliasing of RenderTextures
+- updated all modules to use AIR 22
+- updated documentation of 'DisplayObject'
+- updated constructor of 'BitmapFont' class for better consistency
+- fixed problems caused by sharing 'Painter' across Starling instances (no longer sharing it)
+- fixed black screen on app-reactivation with 'skipUnchangedFrames' enabled on Android
+- fixed that 'CompositeFilter' clamped layer's alpha value
+- fixed that filters on not completely opaque objects sometimes produced the wrong output
+- fixed that TextField returned correct style only after recomposition
+- fixed that changes did not show up when changing the VertexData of non-batchable MeshBatches
+- fixed invalid texture coordinates on scale9grids with zero-area rows/columns
+- fixed possible null reference exception in 'isNativeDisplayObjectEmpty'
+- fixed that render cache could cause problems when drawing to a RenderTexture
+- fixed memory leak in demo
+- fixed incorrect displacement filter output when target moved outside the stage
+- fixed aliasing on small scales of glow mode (distance field style)
+- fixed link to 'Hiero' in API reference
+- fixed that uniform 'scale' setter on Sprite3D did not update 'scaleZ'
+- fixed some issues with 3D masks
+- fixed that 'BitmapFont.createSprite' ignored value of 'smoothing' property
+- fixed that alpha values > 1 changed color of glow and drop shadow
+- fixed that when moving a container with a mask on one of its children, it lagged behind
+- fixed that GlowFilter worked incorrectly with pure white color
+- fixed mask problems when resizing the viewPort while sharing the render context
+- fixed that display objects became unusable after setting width or height to `NaN` once
+- fixed that main render context was cleared with an alpha of '1' instead of '0'
+- fixed 'jiggling' of DropShadow- and GlowFilter
+- fixed incorrect quad bounds when using skewing
+- fixed that object alpha was not considered in 'RenderTexture.draw'
+- fixed that Painter was not disposed correctly
+
+version 2.0.1 - 2016-04-28
+--------------------------
+
+- added 'bufferUsage' parameters to 'Effect.uploadIndexData/uploadVertexData'
+- fixed that alpha value was ignored by non-tinted TextFields
+- fixed black screen caused by 'skipUnchangedFrames' when app moved into foreground
+- fixed wrong 'textBounds' when using 'TextField.autoSize'
+- fixed that TextField & Button returned wrong width & height when scale was not '1'
+- fixed that filter textures had the wrong size after changing the filter resolution
+- fixed that frame skipping did not work with invisible objects on the native stage
+- fixed that 'statsDisplay' getter was unreliable before Starling was initialized
+- fixed that initial CONTEXT3D_CREATE was not dispatched in shared context situations
+- fixed that setting object dimensions to negative value and back caused wrong scale
+- fixed floating point issue in MovieClip that prevented 'Event.COMPLETE' dispatching
+- fixed that not all properties were duplicated in 'TextureOptions.clone'
+
+version 2.0 - 2016-04-19
+------------------------
+
+- added 'Starling.skipUnchangedFrames' property
+- added 'cache' + 'uncache' + 'isCached' methods to FragmentFilter
+- added 'resolution' + 'textureFormat' + 'textureSmoothing' properties to FragmentFilter
+- added 'VertexDataFormat.extend' method
+- added 'style' properties to TextField and Button
+- added 'Color.interpolate' method
+- added 'DisplayObject.requiresRedraw' getter
+- added 'get/setVertexPosition' methods to Mesh and MeshStyle
+- added 'TextField.updateEmbeddedFonts'
+- added 'premultipliedAlpha' parameter to 'Texture.fromAtfData'
+- added 'Mesh.textureRepeat' and 'MeshStyle.textureRepeat' properties
+- added 'forcePotTexture' options to Texture factory methods
+- added 'AssetManager.forcePotTextures' property
+- added 'scaleModifier' parameter to SubTexture constructor and to 'Texture.fromTexture'
+- added convenience method 'FilterEffect.tex()'
+- added indication that 'skipUnchangedFrames' is effective to the statistics display
+- changed default of 'pixelSnapping' to false, except on TextFields and Buttons
+- changed that 'readjustSize' is now implicitly called on Image when assigning a Scale9Grid
+- changed accessibility of 'TextField.setRequiresRecomposition' to protected
+- changed texture format of mini bitmap font to 'BGRA_PACKED'
+- changed 'mapPoint' property of DisplacementMapFilter into 'mapX' + 'mapY' properties
+- changed how to handle objects that do not support the render cache (via 'excludeFromCache')
+- changed package of 'MeshStyle' to 'starling.styles'
+- changed default of 'MeshBatch.batchable' and 'TextField.batchable' to 'false'
+- changed that 'DisplayObjectContainer.removeChild' now returns null if child is not found
+- optimized index buffer uploading for basic quad data
+- optimized fragment filter passes: last pass can now be rendered directly to back buffer
+- optimized 'scale9Grid' setup
+- optimized rendering of non-tinted meshes
+- optimized width+height setters of DisplayObject
+- optimized access to most frequently used state properties
+- optimized 'SystemUtil.isDesktop'
+- optimized recognition of embedded fonts
+- optimized allocations of SubTextures by FragmentFilter
+- fixed alignment problems with HTML text
+- fixed null reference error in fragment filter
+- fixed that VertexData ByteArrays were cleared too often
+- fixed that PMA conversion in AGAL might try to use a write mask on the output register
+- fixed that alpha value propagated wrongly to objects rendered from cache
+- fixed Tween's carry-over when tween is reset in onComplete-callback
+- fixed bug with TextField autoSize
+- fixed problems with DisplacementMapFilter in 'baselineConstrained' profile
+- fixed bounds offset in 'Texture.setupTextureCoordinates'
+- fixed error that occurred when drawing objects with a filter to a RenderTexture
+- fixed that ENTER_FRAME event could be dispatched twice
+- fixed that maximum back buffer size might be exceeded in software mode + HiDPI
+
 version 2.0 (beta) - 2016-02-29
 -------------------------------
 
@@ -421,7 +781,7 @@ version 1.3 - 2013-01-14
 - added arguments for mipmaps and scale to 'fromBitmap' method (thanks to elsassph)
 - added preloader to demo project
 - added scale parameter to 'Starling.showStatsAt'
-- added support for Event.MOUSE_LEAVE on native stage (thans to jamikado)
+- added support for Event.MOUSE_LEAVE on native stage (thanks to jamikado)
 - added support for Maven builds (thanks to bsideup)
 - added 'contextData' property on Starling instance
 - added 'RenderSupport.assembleAgal'

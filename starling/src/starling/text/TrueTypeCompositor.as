@@ -16,15 +16,19 @@ package starling.text
 
     import starling.display.MeshBatch;
     import starling.display.Quad;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
     import starling.utils.Align;
+    import starling.utils.MathUtil;
+    import starling.utils.SystemUtil;
 
-    /** @private
+    /** This text compositor uses a Flash TextField to render system- or embedded fonts into
+     *  a texture.
      *
-     *  <p>This text compositor uses a Flash TextField to render system- or embedded fonts into
-     *  a texture.</p>
+     *  <p>You typically don't have to instantiate this class. It will be used internally by
+     *  Starling's text fields.</p>
      */
-    internal class TrueTypeCompositor implements ITextCompositor
+    public class TrueTypeCompositor implements ITextCompositor
     {
         // helpers
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -34,6 +38,10 @@ package starling.text
 
         /** Creates a new TrueTypeCompositor instance. */
         public function TrueTypeCompositor()
+        {}
+
+        /** @inheritDoc */
+        public function dispose():void
         {}
 
         /** @inheritDoc */
@@ -62,12 +70,15 @@ package starling.text
             sHelperQuad.readjustSize();
 
             if (format.horizontalAlign == Align.LEFT) sHelperQuad.x = 0;
-            else if (format.horizontalAlign == Align.CENTER) sHelperQuad.x = int((width - texture.width) / 2);
+            else if (format.horizontalAlign == Align.CENTER) sHelperQuad.x = (width - texture.width) / 2.0;
             else sHelperQuad.x = width - texture.width;
 
             if (format.verticalAlign == Align.TOP) sHelperQuad.y = 0;
-            else if (format.verticalAlign == Align.CENTER) sHelperQuad.y = int((height - texture.height) / 2);
+            else if (format.verticalAlign == Align.CENTER) sHelperQuad.y = (height - texture.height) / 2.0;
             else sHelperQuad.y = height - texture.height;
+
+            sHelperQuad.x = snapToPixels(sHelperQuad.x, options.textureScale);
+            sHelperQuad.y = snapToPixels(sHelperQuad.y, options.textureScale);
 
             meshBatch.addMesh(sHelperQuad);
 
@@ -78,20 +89,35 @@ package starling.text
         public function clearMeshBatch(meshBatch:MeshBatch):void
         {
             meshBatch.clear();
-            if (meshBatch.texture) meshBatch.texture.dispose();
+            if (meshBatch.texture)
+            {
+                meshBatch.texture.dispose();
+                meshBatch.texture = null;
+            }
+        }
+
+        /** @private */
+        public function getDefaultMeshStyle(previousStyle:MeshStyle,
+                                            format:TextFormat, options:TextOptions):MeshStyle
+        {
+            return null;
         }
 
         private function renderText(width:Number, height:Number, text:String,
                                     format:TextFormat, options:TextOptions):BitmapDataEx
         {
-            var scaledWidth:Number  = width  * options.textureScale;
-            var scaledHeight:Number = height * options.textureScale;
+            var scale:Number = options.textureScale;
+            var scaledWidth:Number  = width  * scale;
+            var scaledHeight:Number = height * scale;
             var hAlign:String = format.horizontalAlign;
 
             format.toNativeFormat(sNativeFormat);
 
-            sNativeFormat.size = Number(sNativeFormat.size) * options.textureScale;
+            sNativeFormat.size = Number(sNativeFormat.size) * scale;
+            sNativeTextField.embedFonts = SystemUtil.isEmbeddedFont(format.font, format.bold, format.italic);
+            sNativeTextField.styleSheet = null; // only to make sure 'defaultTextFormat' is assignable
             sNativeTextField.defaultTextFormat = sNativeFormat;
+            sNativeTextField.styleSheet = options.styleSheet;
             sNativeTextField.width  = scaledWidth;
             sNativeTextField.height = scaledHeight;
             sNativeTextField.antiAliasType = AntiAliasType.ADVANCED;
@@ -102,22 +128,29 @@ package starling.text
             if (options.isHtmlText) sNativeTextField.htmlText = text;
             else                    sNativeTextField.text     = text;
 
-            sNativeTextField.embedFonts = true;
-
-            // we try embedded fonts first, non-embedded fonts are just a fallback
-            if (sNativeTextField.textWidth == 0.0 || sNativeTextField.textHeight == 0.0)
-                sNativeTextField.embedFonts = false;
-
             if (options.autoScale)
                 autoScaleNativeTextField(sNativeTextField, text, options.isHtmlText);
 
-            var textWidth:Number  = sNativeTextField.textWidth;
-            var textHeight:Number = sNativeTextField.textHeight;
-            var bitmapWidth:int   = Math.ceil(textWidth)  + 4;
-            var bitmapHeight:int  = Math.ceil(textHeight) + 4;
-            var maxTextureSize:int = Texture.maxSize;
             var minTextureSize:int = 1;
-            var offsetX:Number = 0.0;
+            var maxTextureSize:int = Texture.getMaxSize(options.textureFormat);
+            var paddingX:Number = options.padding * scale;
+            var paddingY:Number = options.padding * scale;
+            var textWidth:Number  = sNativeTextField.textWidth  + 4;
+            var textHeight:Number = sNativeTextField.textHeight + 4;
+            var bitmapWidth:int   = Math.ceil(textWidth)  + 2 * paddingX;
+            var bitmapHeight:int  = Math.ceil(textHeight) + 2 * paddingY;
+
+            // if text + padding doesn't fit into the bitmap, reduce padding & cap bitmap size.
+            if (bitmapWidth > scaledWidth)
+            {
+                paddingX = MathUtil.max(0, (scaledWidth - textWidth) / 2);
+                bitmapWidth = Math.ceil(scaledWidth);
+            }
+            if (bitmapHeight > scaledHeight)
+            {
+                paddingY = MathUtil.max(0, (scaledHeight - textHeight) / 2);
+                bitmapHeight = Math.ceil(scaledHeight);
+            }
 
             // HTML text may have its own alignment -> use the complete width
             if (options.isHtmlText) textWidth = bitmapWidth = scaledWidth;
@@ -132,24 +165,27 @@ package starling.text
             }
             else
             {
+                var offsetX:Number = -paddingX;
+                var offsetY:Number = -paddingY;
+
                 if (!options.isHtmlText)
                 {
-                    if      (hAlign == Align.RIGHT)  offsetX =  scaledWidth - textWidth - 4;
-                    else if (hAlign == Align.CENTER) offsetX = (scaledWidth - textWidth - 4) / 2.0;
+                    if      (hAlign == Align.RIGHT)  offsetX =  scaledWidth - textWidth - paddingX;
+                    else if (hAlign == Align.CENTER) offsetX = (scaledWidth - textWidth) / 2.0 - paddingX;
                 }
 
                 // finally: draw TextField to bitmap data
                 var bitmapData:BitmapDataEx = new BitmapDataEx(bitmapWidth, bitmapHeight);
-                sHelperMatrix.setTo(1, 0, 0, 1, -offsetX, 0);
+                sHelperMatrix.setTo(1, 0, 0, 1, -offsetX, -offsetY);
                 bitmapData.draw(sNativeTextField, sHelperMatrix);
-                bitmapData.scale = options.textureScale;
+                bitmapData.scale = scale;
                 sNativeTextField.text = "";
                 return bitmapData;
             }
         }
 
-        private function autoScaleNativeTextField(textField:flash.text.TextField,
-                                                  text:String, isHtmlText:Boolean):void
+        private static function autoScaleNativeTextField(textField:flash.text.TextField,
+                                                         text:String, isHtmlText:Boolean):void
         {
             var textFormat:flash.text.TextFormat = textField.defaultTextFormat;
             var maxTextWidth:int  = textField.width  - 4;
@@ -165,6 +201,16 @@ package starling.text
 
                 if (isHtmlText) textField.htmlText = text;
                 else            textField.text     = text;
+            }
+        }
+
+        private static function snapToPixels(coordinate:Number, scaleFactor:Number):Number
+        {
+            if (coordinate == 0.0 || scaleFactor == 0.0) return coordinate;
+            else
+            {
+                var pixelSize:Number = 1.0 / scaleFactor;
+                return Math.round(coordinate / pixelSize) * pixelSize;
             }
         }
     }

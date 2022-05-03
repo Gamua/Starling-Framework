@@ -14,9 +14,9 @@ package starling.display
 
     import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
     import starling.utils.MatrixUtil;
     import starling.utils.MeshSubset;
 
@@ -63,11 +63,7 @@ package starling.display
             var indexData:IndexData = new IndexData();
 
             super(vertexData, indexData);
-
-            _batchable = true;
         }
-
-        // display object overrides
 
         /** @inheritDoc */
         override public function dispose():void
@@ -76,10 +72,20 @@ package starling.display
             super.dispose();
         }
 
-        /** @inheritDoc */
-        override protected function get supportsRenderCache():Boolean
+        /** This method must be called whenever the mesh's vertex data was changed. Makes
+         *  sure that the vertex buffer is synchronized before rendering, and forces a redraw. */
+        override public function setVertexDataChanged():void
         {
-            return _batchable && super.supportsRenderCache;
+            _vertexSyncRequired = true;
+            super.setVertexDataChanged();
+        }
+
+        /** This method must be called whenever the mesh's index data was changed. Makes
+         *  sure that the index buffer is synchronized before rendering, and forces a redraw. */
+        override public function setIndexDataChanged():void
+        {
+            _indexSyncRequired = true;
+            super.setIndexDataChanged();
         }
 
         private function setVertexAndIndexDataChanged():void
@@ -102,6 +108,8 @@ package starling.display
         /** Removes all geometry. */
         public function clear():void
         {
+            if (_parent) setRequiresRedraw();
+
             _vertexData.numVertices = 0;
             _indexData.numIndices   = 0;
             _vertexSyncRequired = true;
@@ -109,6 +117,9 @@ package starling.display
         }
 
         /** Adds a mesh to the batch by appending its vertices and indices.
+         *
+         *  <p>Note that the first time you add a mesh to the batch, the batch will duplicate its
+         *  MeshStyle. All subsequently added meshes will then be converted to that same style.</p>
          *
          *  @param mesh      the mesh to add to the batch.
          *  @param matrix    transform all vertex positions with a certain matrix. If this
@@ -124,25 +135,7 @@ package starling.display
         public function addMesh(mesh:Mesh, matrix:Matrix=null, alpha:Number=1.0,
                                 subset:MeshSubset=null, ignoreTransformations:Boolean=false):void
         {
-            if (ignoreTransformations) matrix = null;
-            else if (matrix == null) matrix = mesh.transformationMatrix;
-            if (subset == null) subset = sFullMeshSubset;
-
-            var targetVertexID:int = _vertexData.numVertices;
-            var targetIndexID:int  = _indexData.numIndices;
-            var meshStyle:MeshStyle = mesh._style;
-
-            if (targetVertexID == 0)
-                setupFor(mesh);
-
-            meshStyle.batchVertexData(_style, targetVertexID, matrix, subset.vertexID, subset.numVertices);
-            meshStyle.batchIndexData(_style, targetIndexID, targetVertexID - subset.vertexID,
-                subset.indexID, subset.numIndices);
-
-            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
-            if (_batchable) setRequiresRedraw();
-
-            _indexSyncRequired = _vertexSyncRequired = true;
+            addMeshAt(mesh, -1, -1, matrix, alpha, subset, ignoreTransformations);
         }
 
         /** Adds a mesh to the batch by copying its vertices and indices to the given positions.
@@ -153,22 +146,47 @@ package starling.display
          *  <p>It's easiest to only add objects with an identical setup, e.g. only quads.
          *  For the latter, indices are aligned in groups of 6 (one quad requires six indices),
          *  and the vertices in groups of 4 (one vertex for every corner).</p>
+         *
+         *  <p>Note that the first time you add a mesh to the batch, the batch will duplicate its
+         *  MeshStyle. All subsequently added meshes will then be converted to that same style.</p>
+         *
+         *  @param mesh      the mesh to add to the batch.
+         *  @param indexID   the position at which the mesh's indices should be added to the batch.
+         *                   If negative, they will be added at the very end.
+         *  @param vertexID  the position at which the mesh's vertices should be added to the batch.
+         *                   If negative, they will be added at the very end.
+         *  @param matrix    transform all vertex positions with a certain matrix. If this
+         *                   parameter is omitted, <code>mesh.transformationMatrix</code>
+         *                   will be used instead (except if the last parameter is enabled).
+         *  @param alpha     will be multiplied with each vertex' alpha value.
+         *  @param subset    the subset of the mesh you want to add, or <code>null</code> for
+         *                   the complete mesh.
+         *  @param ignoreTransformations   when enabled, the mesh's vertices will be added
+         *                   without transforming them in any way (no matter the value of the
+         *                   <code>matrix</code> parameter).
          */
-        public function addMeshAt(mesh:Mesh, indexID:int, vertexID:int):void
+        public function addMeshAt(mesh:Mesh, indexID:int=-1, vertexID:int=-1,
+                                  matrix:Matrix=null, alpha:Number=1.0,
+                                  subset:MeshSubset=null, ignoreTransformations:Boolean=false):void
         {
-            var numIndices:int = mesh.numIndices;
-            var numVertices:int = mesh.numVertices;
-            var matrix:Matrix = mesh.transformationMatrix;
+            if (ignoreTransformations) matrix = null;
+            else if (matrix == null) matrix = mesh.transformationMatrix;
+            if (subset == null) subset = sFullMeshSubset;
+
+            var oldNumVertices:int = _vertexData.numVertices;
+            var targetVertexID:int = vertexID >= 0 ? vertexID : oldNumVertices;
+            var targetIndexID:int  = indexID  >= 0 ? indexID  : _indexData.numIndices;
             var meshStyle:MeshStyle = mesh._style;
 
-            if (_vertexData.numVertices == 0)
+            if (oldNumVertices == 0)
                 setupFor(mesh);
 
-            meshStyle.batchVertexData(_style, vertexID, matrix, 0, numVertices);
-            meshStyle.batchIndexData(_style, indexID, vertexID, 0, numIndices);
+            meshStyle.batchVertexData(_style, targetVertexID, matrix, subset.vertexID, subset.numVertices);
+            meshStyle.batchIndexData(_style, targetIndexID, targetVertexID - subset.vertexID,
+                subset.indexID, subset.numIndices);
 
-            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, vertexID, numVertices);
-            if (_batchable) setRequiresRedraw();
+            if (alpha != 1.0) _vertexData.scaleAlphas("color", alpha, targetVertexID, subset.numVertices);
+            if (_parent) setRequiresRedraw();
 
             _indexSyncRequired = _vertexSyncRequired = true;
         }
@@ -179,9 +197,15 @@ package starling.display
             var meshStyleType:Class = meshStyle.type;
 
             if (_style.type != meshStyleType)
-                setStyle(new meshStyleType() as MeshStyle, false);
-
-            _style.copyFrom(meshStyle);
+            {
+                var newStyle:MeshStyle = new meshStyleType() as MeshStyle;
+                newStyle.copyFrom(meshStyle);
+                setStyle(newStyle, false);
+            }
+            else
+            {
+                _style.copyFrom(meshStyle);
+            }
         }
 
         /** Indicates if the given mesh instance fits to the current state of the batch.
@@ -221,6 +245,7 @@ package starling.display
                 painter.finishMeshBatch();
                 painter.drawCount += 1;
                 painter.prepareToDraw();
+                painter.excludeFromCache(this);
 
                 if (_vertexSyncRequired) syncVertexBuffer();
                 if (_indexSyncRequired)  syncIndexBuffer();
@@ -241,6 +266,8 @@ package starling.display
 
             _effect = style.createEffect();
             _effect.onRestore = setVertexAndIndexDataChanged;
+
+            setVertexAndIndexDataChanged(); // we've got a new set of buffers!
         }
 
         /** The total number of vertices in the mesh. If you change this to a smaller value,
@@ -248,8 +275,12 @@ package starling.display
          *  vertices! */
         public function set numVertices(value:int):void
         {
-            _vertexData.numVertices = value;
-            _vertexSyncRequired = true;
+            if (_vertexData.numVertices != value)
+            {
+                _vertexData.numVertices = value;
+                _vertexSyncRequired = true;
+                setRequiresRedraw();
+            }
         }
 
         /** The total number of indices in the mesh. If you change this to a smaller value,
@@ -257,27 +288,30 @@ package starling.display
          *  is a multiple of three! */
         public function set numIndices(value:int):void
         {
-            _indexData.numIndices = value;
-            _indexSyncRequired = true;
+            if (_indexData.numIndices != value)
+            {
+                _indexData.numIndices = value;
+                _indexSyncRequired = true;
+                setRequiresRedraw();
+            }
         }
 
         /** Indicates if this object will be added to the painter's batch on rendering,
          *  or if it will draw itself right away.
          *
          *  <p>Only batchable meshes can profit from the render cache; but batching large meshes
-         *  may take up a lot of CPU time. Thus, for meshes that contain a large number of vertices
-         *  or are constantly changing (i.e. can't use the render cache anyway), it makes
-         *  sense to deactivate batching.</p>
+         *  may take up a lot of CPU time. Activate this property only if the batch contains just
+         *  a handful of vertices (say, 20 quads).</p>
          *
-         *  @default true
+         *  @default false
          */
         public function get batchable():Boolean { return _batchable; }
         public function set batchable(value:Boolean):void
         {
-            if (value != _batchable) // self-rendering must disrupt the render cache
+            if (_batchable != value)
             {
                 _batchable = value;
-                updateSupportsRenderCache();
+                setRequiresRedraw();
             }
         }
     }

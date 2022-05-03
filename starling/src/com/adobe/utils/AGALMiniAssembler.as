@@ -189,7 +189,7 @@ package com.adobe.utils
 				var regs:Array;
 				
 				// will match both syntax
-				regs = line.match( /vc\[([vof][acostdip]?)(\d*)?(\.[xyzw](\+\d{1,3})?)?\](\.[xyzw]{1,4})?|([vof][acostdip]?)(\d*)?(\.[xyzw]{1,4})?/gi );
+				regs = line.match( /vc\[([vofi][acostdip]?[d]?)(\d*)?((\.[xyzw])?(\+\d{1,3})?)?\](\.[xyzw]{1,4})?|([vofi][acostdip]?[d]?)(\d*)?(\.[xyzw]{1,4})?/gi );
 				
 				if ( !regs || regs.length != opFound.numRegister )
 				{
@@ -214,7 +214,7 @@ package com.adobe.utils
 						isRelative = true;
 					}
 					
-					var res:Array = regs[j].match( /^\b[A-Za-z]{1,2}/ig );
+					var res:Array = regs[j].match( /^\b[A-Za-z]{1,3}/ig );
 					if ( !res ) 
 					{
 						_error = "error: could not parse operand "+j+" ("+regs[j]+").";
@@ -315,8 +315,8 @@ package com.adobe.utils
 					
 					if ( isRelative )
 					{
-						var relname:Array = relreg[0].match( /[A-Za-z]{1,2}/ig );						
-						var regFoundRel:Register = REGMAP[ relname[0]];						
+						var relname:Array = relreg[0].match( /[A-Za-z]{1,3}/ig );
+						var regFoundRel:Register = REGMAP[ relname[0]];
 						if ( regFoundRel == null )
 						{ 
 							_error = "error: bad index register"; 
@@ -463,9 +463,12 @@ package com.adobe.utils
 			REGMAP[ VI ]	= new Register( VI,	"varying",				0x4,	ignorelimits?1024:(version==1?7:9),		REG_VERT | REG_FRAG | REG_READ | REG_WRITE );			
 			REGMAP[ FC ]	= new Register( FC,	"fragment constant",	0x1,	ignorelimits?1024:(version==1?27:((version==2)?63:199)),		REG_FRAG | REG_READ );
 			REGMAP[ FT ]	= new Register( FT,	"fragment temporary",	0x2,	ignorelimits?1024:(version==1?7:25),		REG_FRAG | REG_WRITE | REG_READ );
-			REGMAP[ FS ]	= new Register( FS,	"texture sampler",		0x5,	ignorelimits?1024:7,						REG_FRAG | REG_READ );
+			REGMAP[ FS ]	= new Register( FS,	"texture sampler",		0x5,	ignorelimits?1024:15,						REG_FRAG | REG_READ );
 			REGMAP[ FO ]	= new Register( FO,	"fragment output",		0x3,	ignorelimits?1024:(version==1?0:3),			REG_FRAG | REG_WRITE );				
 			REGMAP[ FD ]	= new Register( FD,	"fragment depth output",0x6,	ignorelimits?1024:(version==1?-1:0),		REG_FRAG | REG_WRITE );
+			REGMAP[ IID ]	= new Register( IID,"instance id", 			0x7,	ignorelimits?1024:0,						REG_VERT | REG_READ );
+			REGMAP[ VS ]	= new Register( VS,	"vertex texture sampler",		0x5,	ignorelimits?1024:3,						REG_VERT | REG_READ );
+
 			
 			// aliases
 			REGMAP[ "op" ]	= REGMAP[ VO ];
@@ -523,10 +526,14 @@ package com.adobe.utils
 			OPMAP[ SLT ] = new OpCode( SLT, 3, 0x2a, 0 );
 			OPMAP[ SGN ] = new OpCode( SGN, 2, 0x2b, 0 );
 			OPMAP[ SEQ ] = new OpCode( SEQ, 3, 0x2c, 0 );
-			OPMAP[ SNE ] = new OpCode( SNE, 3, 0x2d, 0 );			
+			OPMAP[ SNE ] = new OpCode( SNE, 3, 0x2d, 0 );	
+			OPMAP[ TLD ] = new OpCode( TLD, 3, 0x2e, OP_VERT_ONLY | OP_SPECIAL_TEX );
+
 		
 			
 			SAMPLEMAP[ RGBA ]		= new Sampler( RGBA,		SAMPLER_TYPE_SHIFT,			0 );
+			SAMPLEMAP[ COMPRESSED ]		= new Sampler( COMPRESSED,		SAMPLER_TYPE_SHIFT,			1 );
+			SAMPLEMAP[ COMPRESSEDALPHA ]		= new Sampler( COMPRESSEDALPHA,		SAMPLER_TYPE_SHIFT,			2 );
 			SAMPLEMAP[ DXT1 ]		= new Sampler( DXT1,		SAMPLER_TYPE_SHIFT,			1 );
 			SAMPLEMAP[ DXT5 ]		= new Sampler( DXT5,		SAMPLER_TYPE_SHIFT,			2 );
 			SAMPLEMAP[ VIDEO ]		= new Sampler( VIDEO,		SAMPLER_TYPE_SHIFT,			3 );
@@ -561,7 +568,7 @@ package com.adobe.utils
 		private static const SAMPLEMAP:Dictionary				= new Dictionary();
 		
 		private static const MAX_NESTING:int					= 4;
-		private static const MAX_OPCODES:int					= 2048;
+		private static const MAX_OPCODES:int					= 4096;
 		
 		private static const FRAGMENT:String					= "fragment";
 		private static const VERTEX:String						= "vertex";
@@ -633,7 +640,9 @@ package com.adobe.utils
 		private static const SLT:String							= "slt";
 		private static const SGN:String							= "sgn";
 		private static const SEQ:String							= "seq";
-		private static const SNE:String							= "sne";		
+		private static const SNE:String							= "sne";
+		private static const TLD:String							= "tld";
+
 		
 		// registers
 		private static const VA:String							= "va";
@@ -645,7 +654,10 @@ package com.adobe.utils
 		private static const FT:String							= "ft";
 		private static const FS:String							= "fs";
 		private static const FO:String							= "fo";			
-		private static const FD:String							= "fd"; 
+		private static const FD:String							= "fd";
+		private static const IID:String							= "iid";
+		private static const VS:String							= "vs";
+
 		
 		// samplers
 		private static const D2:String							= "2d";
@@ -670,6 +682,8 @@ package com.adobe.utils
 		private static const REPEAT_U_CLAMP_V:String			= "repeat_u_clamp_v"; //Introduced by Flash 13
 		private static const CLAMP_U_REPEAT_V:String			= "clamp_u_repeat_v"; //Introduced by Flash 13
 		private static const RGBA:String						= "rgba";
+		private static const COMPRESSED:String						= "compressed";
+		private static const COMPRESSEDALPHA:String					= "compressedalpha";
 		private static const DXT1:String						= "dxt1";
 		private static const DXT5:String						= "dxt5";
 		private static const VIDEO:String						= "video";

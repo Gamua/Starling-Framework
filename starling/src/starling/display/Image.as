@@ -11,10 +11,12 @@
 package starling.display
 {
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
 
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
     import starling.utils.Padding;
     import starling.utils.Pool;
     import starling.utils.RectangleUtil;
@@ -32,7 +34,7 @@ package starling.display
      *  the size of the image with the displayed texture.</p>
      *
      *  <p>Furthermore, it adds support for a "Scale9" grid. This splits up the image into
-     *  nine regions, the corners of which will always maintain their original aspect ratio.
+     *  nine regions, the corners of which will always maintain their original size.
      *  The center region stretches in both directions to fill the remaining space; the side
      *  regions will stretch accordingly in either horizontal or vertical direction.</p>
      *
@@ -46,6 +48,8 @@ package starling.display
     {
         private var _scale9Grid:Rectangle;
         private var _tileGrid:Rectangle;
+
+        private static var sAutomators:Dictionary = new Dictionary(true);
 
         // helper objects
         private static var sPadding:Padding = new Padding();
@@ -68,8 +72,8 @@ package starling.display
         /** The current scaling grid that is in effect. If set to null, the image is scaled just
          *  like any other display object; assigning a rectangle will divide the image into a grid
          *  of nine regions, based on the center rectangle. The four corners of this grid will
-         *  always maintain their original aspect ratio; the other regions will stretch accordingly
-         *  (horizontally, vertically, or both) to fill the complete area.
+         *  always maintain their original size; the other regions will stretch (horizontally,
+         *  vertically, or both) to fill the complete area.
          *
          *  <p>Notes:</p>
          *
@@ -77,6 +81,8 @@ package starling.display
          *  <li>Assigning a Scale9 rectangle will change the number of vertices to a maximum of 16
          *  (less if possible) and all vertices will be colored like vertex 0 (the top left vertex).
          *  </li>
+         *  <li>For Scale3-grid behavior, assign a zero size for all but the center row / column.
+         *  This will cause the 'caps' to scale in a way that leaves the aspect ratio intact.</li>
          *  <li>An image can have either a <code>scale9Grid</code> or a <code>tileGrid</code>, but
          *  not both. Assigning one will delete the other.</li>
          *  <li>Changes will only be applied on assignment. To force an update, simply call
@@ -171,8 +177,15 @@ package starling.display
         {
             if (value != texture)
             {
+                if (texture && sAutomators[texture])
+                    sAutomators[texture].onRelease(this);
+
                 super.texture = value;
-                if (_scale9Grid && value) readjustSize();
+
+                if (value && sAutomators[value])
+                    sAutomators[value].onAssign(this);
+                else if (_scale9Grid && value)
+                    readjustSize();
             }
         }
 
@@ -184,6 +197,17 @@ package starling.display
             var frame:Rectangle = texture.frame;
             var absScaleX:Number = scaleX > 0 ? scaleX : -scaleX;
             var absScaleY:Number = scaleY > 0 ? scaleY : -scaleY;
+
+            if (absScaleX == 0.0 || absScaleY == 0) return;
+
+            // If top and bottom row / left and right column are empty, this is actually
+            // a scale3 grid. In that case, we want the 'caps' to maintain their aspect ratio.
+
+            if (MathUtil.isEquivalent(_scale9Grid.width, texture.frameWidth))
+                absScaleY /= absScaleX;
+            else if (MathUtil.isEquivalent(_scale9Grid.height, texture.frameHeight))
+                absScaleX /= absScaleY;
+
             var invScaleX:Number = 1.0 / absScaleX;
             var invScaleY:Number = 1.0 / absScaleY;
             var vertexData:VertexData = this.vertexData;
@@ -261,29 +285,23 @@ package starling.display
             // if the total width / height becomes smaller than the outer columns / rows,
             // we hide the center column / row and scale the rest normally.
 
-            if (sPosCols[1] < 0)
+            if (sPosCols[1] <= 0)
             {
                 correction = textureBounds.width / (textureBounds.width - gridCenter.width) * absScaleX;
                 sPadding.left *= correction;
                 sPosCols[0] *= correction;
-                sPosCols[1]  = 0.0001; // losing the column altogether would mix up texture coords
+                sPosCols[1]  = 0.0;
                 sPosCols[2] *= correction;
             }
 
-            if (sPosRows[1] < 0)
+            if (sPosRows[1] <= 0)
             {
                 correction = textureBounds.height / (textureBounds.height - gridCenter.height) * absScaleY;
                 sPadding.top *= correction;
                 sPosRows[0] *= correction;
-                sPosRows[1]  = 0.0001; // losing the row altogether would mix up texture coords
+                sPosRows[1]  = 0.0;
                 sPosRows[2] *= correction;
             }
-
-            numVertices = setupScale9GridAttributes(sPadding.left, sPadding.top, sPosCols, sPosRows,
-                function(vertexID:int, x:Number, y:Number):void
-                {
-                    vertexData.setPoint(vertexID, "position", x, y);
-                });
 
             // now set the texture coordinates
 
@@ -295,11 +313,8 @@ package starling.display
             sTexRows[2] = sBasRows[2] / pixelBounds.height;
             sTexRows[1] = 1.0 - sTexRows[0] - sTexRows[2];
 
-            setupScale9GridAttributes(0, 0, sTexCols, sTexRows,
-                function(vertexID:int, x:Number, y:Number):void
-                {
-                    texture.setTexCoords(vertexData, vertexID, "texCoords", x, y);
-                });
+            numVertices = setupScale9GridAttributes(
+                sPadding.left, sPadding.top, sPosCols, sPosRows, sTexCols, sTexRows);
 
             // update indices
 
@@ -329,35 +344,65 @@ package starling.display
         }
 
         private function setupScale9GridAttributes(startX:Number, startY:Number,
-                                                   colWidths:Vector.<Number>,
-                                                   rowHeights:Vector.<Number>,
-                                                   callback:Function):int
+                                                   posCols:Vector.<Number>, posRows:Vector.<Number>,
+                                                   texCols:Vector.<Number>, texRows:Vector.<Number>):int
         {
-            var row:int, col:int, colWidth:Number, rowHeight:Number;
+            const posAttr:String = "position";
+            const texAttr:String = "texCoords";
+
+            var row:int, col:int;
+            var colWidthPos:Number, rowHeightPos:Number;
+            var colWidthTex:Number, rowHeightTex:Number;
+            var vertexData:VertexData = this.vertexData;
+            var texture:Texture = this.texture;
             var currentX:Number = startX;
             var currentY:Number = startY;
+            var currentU:Number = 0.0;
+            var currentV:Number = 0.0;
             var vertexID:int = 0;
 
             for (row = 0; row < 3; ++row)
             {
-                rowHeight = rowHeights[row];
-                if (rowHeight > 0)
+                rowHeightPos = posRows[row];
+                rowHeightTex = texRows[row];
+
+                if (rowHeightPos > 0)
                 {
                     for (col = 0; col < 3; ++col)
                     {
-                        colWidth = colWidths[col];
-                        if (colWidth > 0)
+                        colWidthPos = posCols[col];
+                        colWidthTex = texCols[col];
+
+                        if (colWidthPos > 0)
                         {
-                            callback(vertexID++, currentX, currentY);
-                            callback(vertexID++, currentX + colWidth, currentY);
-                            callback(vertexID++, currentX, currentY + rowHeight);
-                            callback(vertexID++, currentX + colWidth, currentY + rowHeight);
-                            currentX += colWidth;
+                            vertexData.setPoint(vertexID, posAttr, currentX, currentY);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU, currentV);
+                            vertexID++;
+
+                            vertexData.setPoint(vertexID, posAttr, currentX + colWidthPos, currentY);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU + colWidthTex, currentV);
+                            vertexID++;
+
+                            vertexData.setPoint(vertexID, posAttr, currentX, currentY + rowHeightPos);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU, currentV + rowHeightTex);
+                            vertexID++;
+
+                            vertexData.setPoint(vertexID, posAttr, currentX + colWidthPos, currentY + rowHeightPos);
+                            texture.setTexCoords(vertexData, vertexID, texAttr, currentU + colWidthTex, currentV + rowHeightTex);
+                            vertexID++;
+
+                            currentX += colWidthPos;
                         }
+
+                        currentU += colWidthTex;
                     }
-                    currentY += rowHeight;
+
+                    currentY += rowHeightPos;
                 }
+
                 currentX = startX;
+                currentU = 0.0;
+                currentV += rowHeightTex;
             }
 
             return vertexID;
@@ -456,5 +501,107 @@ package starling.display
 
             setRequiresRedraw();
         }
+
+        // bindings
+
+        /** Injects code that is called by all instances whenever the given texture is assigned or replaced.
+         *  The new functions will be executed after any existing ones.
+         *
+         *  @param texture    Assignment of this texture instance will lead to the following callback(s) being executed.
+         *  @param onAssign   Called when the texture is assigned. Receives one parameter of type 'Image'.
+         *  @param onRelease  Called when the texture is replaced. Receives one parameter of type 'Image'. (Optional.)
+         */
+        public static function automateSetupForTexture(texture:Texture, onAssign:Function, onRelease:Function=null):void
+        {
+            var automator:SetupAutomator = sAutomators[texture];
+            if (automator) automator.add(onAssign, onRelease);
+            else sAutomators[texture] = new SetupAutomator(onAssign, onRelease);
+        }
+
+        /** Removes all custom setup functions for the given texture, including those created via
+         *  'bindScale9GridToTexture' and 'bindPivotPointToTexture'. */
+        public static function resetSetupForTexture(texture:Texture):void
+        {
+            delete sAutomators[texture];
+        }
+
+        /** Removes specific setup functions for the given texture. */
+        public static function removeSetupForTexture(texture:Texture, onAssign:Function, onRelease:Function=null):void
+        {
+            var automator:SetupAutomator = sAutomators[texture];
+            if (automator) automator.remove(onAssign, onRelease);
+        }
+
+        /** Binds the given scaling grid to the given texture so that any image which displays the texture will
+         *  automatically use the grid. */
+        public static function bindScale9GridToTexture(texture:Texture, scale9Grid:Rectangle):void
+        {
+            automateSetupForTexture(texture,
+                function(image:Image):void { image.scale9Grid = scale9Grid; },
+                function(image:Image):void { image.scale9Grid = null; });
+        }
+
+        /** Binds the given pivot point to the given texture so that any image which displays the texture will
+         *  automatically use the pivot point. */
+        public static function bindPivotPointToTexture(texture:Texture, pivotX:Number, pivotY:Number):void
+        {
+            automateSetupForTexture(texture,
+                function(image:Image):void { image.pivotX = pivotX; image.pivotY = pivotY; },
+                function(image:Image):void { image.pivotX = image.pivotY = 0; });
+        }
+    }
+}
+
+import starling.display.Image;
+import starling.utils.execute;
+
+class SetupAutomator
+{
+    private var _onAssign:Array;
+    private var _onRelease:Array;
+
+    public function SetupAutomator(onAssign:Function, onRelease:Function)
+    {
+        _onAssign = [];
+        _onRelease = [];
+        add(onAssign, onRelease);
+    }
+
+    public function add(onAssign:Function, onRelease:Function):void
+    {
+        if (onAssign != null && _onAssign.indexOf(onAssign) == -1)
+            _onAssign[_onAssign.length] = onAssign;
+
+        if (onRelease != null && _onRelease.indexOf(onRelease) == -1)
+            _onRelease[_onRelease.length] = onRelease;
+    }
+
+    public function remove(onAssign:Function, onRelease:Function):void
+    {
+        if (onAssign != null)
+        {
+            var onAssignIndex:int = _onAssign.indexOf(onAssign);
+            if (onAssignIndex != -1) _onAssign.removeAt(onAssignIndex);
+        }
+
+        if (onRelease != null)
+        {
+            var onReleaseIndex:int = _onRelease.indexOf(onRelease);
+            if (onReleaseIndex != -1) _onRelease.removeAt(onReleaseIndex);
+        }
+    }
+
+    public function onAssign(image:Image):void
+    {
+        var count:int = _onAssign.length;
+        for (var i:int=0; i<count; ++i)
+            execute(_onAssign[i], image);
+    }
+
+    public function onRelease(image:Image):void
+    {
+        var count:int = _onRelease.length;
+        for (var i:int=0; i<count; ++i)
+            execute(_onRelease[i], image);
     }
 }

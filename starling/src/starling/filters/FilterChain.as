@@ -39,6 +39,7 @@ package starling.filters
             }
 
             updatePadding();
+            addEventListener(Event.ENTER_FRAME, onEnterFrame);
         }
 
         /** Disposes the filter chain itself as well as all contained filters. */
@@ -60,23 +61,43 @@ package starling.filters
         }
 
         /** @private */
-        override public function process(painter:Painter, pool:ITexturePool,
+        override public function process(painter:Painter, helper:IFilterHelper,
                                          input0:Texture = null, input1:Texture = null,
                                          input2:Texture = null, input3:Texture = null):Texture
         {
             var numFilters:int = _filters.length;
-            var outTexture:Texture = input0;
-            var inTexture:Texture;
+
+            if (numFilters > 0)
+            {
+                var outTexture:Texture = input0;
+                var inTexture:Texture;
+
+                for (var i:int=0; i<numFilters; ++i)
+                {
+                    inTexture = outTexture;
+                    outTexture = _filters[i].process(painter, helper, inTexture);
+
+                    if (i) helper.putTexture(inTexture);
+                }
+
+                return outTexture;
+            }
+            else
+            {
+                return super.process(painter, helper, input0, input1, input2, input3);
+            }
+        }
+
+        /** @private */
+        override public function get numPasses():int
+        {
+            var numPasses:int = 0;
+            var numFilters:int = _filters.length;
 
             for (var i:int=0; i<numFilters; ++i)
-            {
-                inTexture = outTexture;
-                outTexture = _filters[i].process(painter, pool, inTexture);
+                numPasses += _filters[i].numPasses;
 
-                if (i) pool.putTexture(inTexture);
-            }
-
-            return outTexture;
+            return numPasses || 1;
         }
 
         /** Returns the filter at a certain index. If you pass a negative index,
@@ -141,6 +162,12 @@ package starling.filters
             }
 
             this.padding.copyFrom(sPadding);
+        }
+
+        private function onEnterFrame(event:Event):void
+        {
+            var i:int, numFilters:int = _filters.length;
+            for (i=0; i<numFilters; ++i) _filters[i].dispatchEvent(event);
         }
 
         /** Indicates the current chain length. */

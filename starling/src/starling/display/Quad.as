@@ -17,8 +17,8 @@ package starling.display
     import flash.geom.Vector3D;
 
     import starling.rendering.IndexData;
-    import starling.rendering.MeshStyle;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
     import starling.utils.RectangleUtil;
 
@@ -86,8 +86,12 @@ package starling.display
 
             indexData.numIndices = 0;
             indexData.addQuad(0, 1, 2, 3);
-            vertexData.numVertices = 4;
-            vertexData.trim();
+
+            if (vertexData.numVertices != 4)
+            {
+                vertexData.numVertices = 4;
+                vertexData.trim();
+            }
 
             if (texture)
             {
@@ -119,7 +123,7 @@ package starling.display
             {
                 out.copyFrom(_bounds);
             }
-            else if (targetSpace == parent && rotation == 0.0) // optimization
+            else if (targetSpace == parent && !isRotated) // optimization
             {
                 var scaleX:Number = this.scaleX;
                 var scaleY:Number = this.scaleY;

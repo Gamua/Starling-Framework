@@ -20,8 +20,8 @@ package tests.display
 
     import starling.display.Mesh;
     import starling.rendering.IndexData;
-    import starling.rendering.MeshStyle;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
 
     import tests.Helpers;
@@ -139,6 +139,24 @@ package tests.display
             Helpers.comparePoints(new Point(0, 0), vertexData.getPoint(0, "texCoords"));
             Helpers.comparePoints(new Point(1, 1), vertexData.getPoint(3, "texCoords"));
             Helpers.comparePoints(new Point(0.25,  0.75),  vertexData.getPoint(2, "texCoords"));
+        }
+
+        [Test]
+        public function testVertexPosition():void
+        {
+            var vertexData:VertexData = new VertexData();
+            vertexData.numVertices = 3;
+
+            var indexData:IndexData = new IndexData();
+            indexData.addTriangle(0, 1, 2);
+
+            var mesh:Mesh = new Mesh(vertexData, indexData);
+            mesh.setVertexPosition(1, 1, 0);
+            mesh.setVertexPosition(2, 1, 1);
+
+            Helpers.comparePoints(mesh.getVertexPosition(0), new Point());
+            Helpers.comparePoints(mesh.getVertexPosition(1), new Point(1, 0));
+            Helpers.comparePoints(mesh.getVertexPosition(2), new Point(1, 1));
         }
 
         [Test]

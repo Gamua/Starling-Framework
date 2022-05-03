@@ -10,8 +10,10 @@ package
     import tests.animation.JugglerTest;
     import tests.animation.TweenTest;
     import tests.display.BlendModeTest;
+    import tests.display.ButtonTest;
     import tests.display.DisplayObjectContainerTest;
     import tests.display.DisplayObjectTest;
+    import tests.display.ImageTest;
     import tests.display.MeshTest;
     import tests.display.MovieClipTest;
     import tests.display.QuadTest;
@@ -28,6 +30,7 @@ package
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
     import tests.utils.AssetManagerTest;
+    import tests.utils.ByteArrayUtilTest;
     import tests.utils.ColorTest;
     import tests.utils.MathUtilTest;
     import tests.utils.MatrixUtilTest;
@@ -59,6 +62,7 @@ package
             testsToRun.push(JugglerTest);
             testsToRun.push(MeshTest);
             testsToRun.push(QuadTest);
+            testsToRun.push(ImageTest);
             testsToRun.push(AssetManagerTest);
             testsToRun.push(TweenTest);
             testsToRun.push(DisplayObjectContainerTest);
@@ -82,6 +86,8 @@ package
             testsToRun.push(FilterChainTest);
             testsToRun.push(FragmentFilterTest);
             testsToRun.push(MeshStyleTest);
+            testsToRun.push(ButtonTest);
+            testsToRun.push(ByteArrayUtilTest);
             return testsToRun;
         }
     }

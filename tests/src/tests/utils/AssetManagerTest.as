@@ -14,8 +14,11 @@ package tests.utils
     import flash.utils.ByteArray;
 
     import org.flexunit.asserts.assertEquals;
+    import org.flexunit.asserts.assertFalse;
+    import org.flexunit.asserts.assertNotNull;
     import org.flexunit.asserts.assertNull;
     import org.flexunit.asserts.assertStrictlyEquals;
+    import org.flexunit.asserts.assertTrue;
 
     import starling.events.Event;
     import starling.textures.TextureAtlas;
@@ -41,18 +44,12 @@ package tests.utils
             super.tearDown();
         }
         
-        [Test(expects="ArgumentError")]
-        public function loadQueueWithoutCallback():void
-        {
-            _manager.loadQueue(null);
-        }
-        
         [Test(async)]
         public function loadEmptyQueue():void
         {
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
-                assertEquals(1.0, ratio);
+                assertTrue(true);
             }));
         }
         
@@ -60,7 +57,7 @@ package tests.utils
         public function loadBitmapFromPngFile():void
         {
             _manager.enqueue("../fixtures/image.png");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getTextures("image").length);
             }));
@@ -70,7 +67,7 @@ package tests.utils
         public function loadBitmapFromJpgFile():void
         {
             _manager.enqueue("../fixtures/image.jpg");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getTextures("image").length);
             }));
@@ -80,7 +77,7 @@ package tests.utils
         public function loadBitmapFromGifFile():void
         {
             _manager.enqueue("../fixtures/image.gif");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getTextures("image").length);
             }));
@@ -90,7 +87,7 @@ package tests.utils
         public function loadXmlFromFile():void
         {
             _manager.enqueue("../fixtures/xml.xml");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getXmlNames("xml").length);
             }));
@@ -99,16 +96,24 @@ package tests.utils
         [Test(async)]
         public function loadInvalidXmlFromFile():void
         {
-            handleStarlingEvent(Event.PARSE_ERROR, _manager);
+            var errorCount:int = 0;
+
             _manager.enqueue("../fixtures/invalid.xml");
-            _manager.loadQueue(function(ratio:Number):void { });
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, onComplete), onError);
+
+            function onComplete():void
+            {
+                assertEquals(1, errorCount);
+            }
+
+            function onError(error:String):void { ++errorCount; }
         }
         
         [Test(async)]
         public function loadJsonFromFile():void
         {
             _manager.enqueue("../fixtures/json.json");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getObjectNames("json").length);
             }));
@@ -117,16 +122,24 @@ package tests.utils
         [Test(async)]
         public function loadInvalidJsonFromFile():void
         {
-            handleStarlingEvent(Event.PARSE_ERROR, _manager);
+            var errorCount:int=0;
+
             _manager.enqueue("../fixtures/invalid.json");
-            _manager.loadQueue(function(ratio:Number):void { });
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, onComplete), onError);
+
+            function onComplete():void
+            {
+                assertEquals(1, errorCount);
+            }
+
+            function onError(error:String):void { ++errorCount; }
         }
         
         [Test(async)]
         public function loadSoundFromMp3File():void
         {
             _manager.enqueue("../fixtures/audio.mp3");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getSoundNames("audio").length);
             }));
@@ -136,9 +149,10 @@ package tests.utils
         public function loadTextureAtlasFromFile():void
         {
             _manager.enqueue("../fixtures/atlas.xml");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.enqueueSingle("../fixtures/image.png", "atlas");
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
-                assertEquals("-Enqueuing 'atlas'-Cannot create atlas: texture 'atlas' is missing.", _manager.logRecord);
+                assertEquals(1, _manager.getTextureAtlasNames("atlas").length);
             }));
         }
         
@@ -146,9 +160,10 @@ package tests.utils
         public function loadFontFromFile():void
         {
             _manager.enqueue("../fixtures/font.xml");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.enqueueSingle("../fixtures/image.png", "font");
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
-                assertEquals("-Enqueuing 'font'-Cannot create bitmap font: texture 'font' is missing.", _manager.logRecord);
+                assertEquals(1, _manager.getBitmapFontNames().length);
             }));
         }
         
@@ -156,9 +171,11 @@ package tests.utils
         public function loadByteArrayFromFile():void
         {
             _manager.enqueue("../fixtures/data.txt");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
-                assertEquals(1, _manager.getByteArrayNames("data").length);
+                var bytes:ByteArray = _manager.getByteArray("data");
+                assertNotNull(bytes);
+                assertEquals("data", bytes.readUTFBytes(bytes.length));
             }));
         }
         
@@ -167,7 +184,7 @@ package tests.utils
         {
             _manager.verbose = true;
             _manager.enqueue(EmbeddedXml);
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getXmlNames("Data").length);
             }));
@@ -178,20 +195,19 @@ package tests.utils
         {
             _manager.verbose = true;
             _manager.enqueue(EmbeddedJson);
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
                 assertEquals(1, _manager.getObjectNames("Data").length);
             }));
         }
 
-        [Ignore("Incomplete because to atf.atf file is missing.")]
         [Test(async)]
         public function loadAtfFromByteArray():void
         {
-            _manager.enqueue("../fixtures/atf.atf");
-            _manager.loadQueue(AsyncUtil.asyncHandler(this, function(ratio:Number):void
+            _manager.enqueue("../fixtures/image.atf");
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
             {
-                assertEquals(1, _manager.getTextures("atf").length);
+                assertEquals(1, _manager.getTextures("image").length);
             }));
         }
 
@@ -200,16 +216,16 @@ package tests.utils
         {
             handleStarlingEvent(Event.CANCEL, _manager);
             _manager.purgeQueue();
-            assertEquals(0, _manager.queueLength);
+            assertEquals(0, _manager.numQueuedAssets);
         }
         
         [Test]
         public function textureAsset():void
         {
             const NAME:String = "test_texture";
-            var texture:TextureMock = new TextureMock();
+            var texture:MockTexture = new MockTexture();
             
-            _manager.addTexture(NAME, texture);
+            _manager.addAsset(NAME, texture);
             assertStrictlyEquals(texture, _manager.getTexture(NAME));
             assertEquals(1, _manager.getTextures(NAME).length);
             assertEquals(1, _manager.getTextureNames(NAME).length);
@@ -227,7 +243,7 @@ package tests.utils
             const NAME:String = "test_textureAtlas";
             var atlas:TextureAtlas = new TextureAtlas(null);
             
-            _manager.addTextureAtlas(NAME, atlas);
+            _manager.addAsset(NAME, atlas);
             assertStrictlyEquals(atlas, _manager.getTextureAtlas(NAME));
             assertEquals(1, _manager.getTextureAtlasNames(NAME).length);
             assertEquals(NAME, _manager.getTextureAtlasNames(NAME)[0]);
@@ -243,7 +259,7 @@ package tests.utils
             const NAME:String = "test_sound";
             var sound:Sound = new Sound();
             
-            _manager.addSound(NAME, sound);
+            _manager.addAsset(NAME, sound);
             assertStrictlyEquals(sound, _manager.getSound(NAME));
             assertEquals(1, _manager.getSoundNames(NAME).length);
             assertEquals(NAME, _manager.getSoundNames(NAME)[0]);
@@ -265,7 +281,7 @@ package tests.utils
             const NAME:String = "test_xml";
             var xml:XML = new XML("<test/>");
             
-            _manager.addXml(NAME, xml);
+            _manager.addAsset(NAME, xml);
             assertStrictlyEquals(xml, _manager.getXml(NAME));
             assertEquals(1, _manager.getXmlNames(NAME).length);
             assertEquals(NAME, _manager.getXmlNames(NAME)[0]);
@@ -281,7 +297,7 @@ package tests.utils
             const NAME:String = "test_object";
             var object:Object = {};
             
-            _manager.addObject(NAME, object);
+            _manager.addAsset(NAME, object);
             assertStrictlyEquals(object, _manager.getObject(NAME));
             assertEquals(1, _manager.getObjectNames(NAME).length);
             assertEquals(NAME, _manager.getObjectNames(NAME)[0]);
@@ -297,7 +313,7 @@ package tests.utils
             const NAME:String = "test_bytearray";
             var bytes:ByteArray = new ByteArray();
             
-            _manager.addByteArray(NAME, bytes);
+            _manager.addAsset(NAME, bytes);
             assertStrictlyEquals(bytes, _manager.getByteArray(NAME));
             assertEquals(1, _manager.getByteArrayNames(NAME).length);
             assertEquals(NAME, _manager.getByteArrayNames(NAME)[0]);
@@ -306,42 +322,14 @@ package tests.utils
             assertNull(_manager.getByteArray(NAME));
             assertEquals(0, _manager.getByteArrayNames(NAME).length);
         }
-        
-        [Test]
-        public function getNameForStringAsRawAsset():void
-        {
-            assertEquals("a", _manager.__getName("a"));
-            assertEquals("image", _manager.__getName("image.png"));
-            assertEquals("my image 2", _manager.__getName("my%20image%202.png"));
-        }
-        
-        [Test(expects="ArgumentError")]
-        public function getNameForEmptyStringAsRawAsset():void
-        {
-            _manager.__getName("");
-        }
-        
-        [Test]
-        public function getNameForFileReferenceAsRawAsset():void
-        {
-            assertEquals("a", _manager.__getName(new FileReferenceMock("a")));
-            assertEquals("image", _manager.__getName(new FileReferenceMock("image.png")));
-            assertEquals("my image 2", _manager.__getName(new FileReferenceMock("my%20image%202.png")));
-        }
-        
-        [Test(expects="ArgumentError")]
-        public function getNameForUnsupportedTypeAsRawAsset():void
-        {
-            _manager.__getName({});
-        }
-        
+
         [Test]
         public function getBasenameFromUrl():void
         {
-            assertEquals("a", _manager.__getBasenameFromUrl("a"));
-            assertEquals("image", _manager.__getBasenameFromUrl("image.png"));
-            assertEquals("image", _manager.__getBasenameFromUrl("http://example.com/dir/image.png"));
-            assertNull(_manager.__getBasenameFromUrl("http://example.com/dir/image/"));
+            assertEquals("a", _manager.__getNameFromUrl("a"));
+            assertEquals("image", _manager.__getNameFromUrl("image.png"));
+            assertEquals("image", _manager.__getNameFromUrl("http://example.com/dir/image.png"));
+            assertEquals(null, _manager.__getNameFromUrl("http://example.com/dir/image/"));
         }
         
         [Test]
@@ -349,13 +337,13 @@ package tests.utils
         {
             assertEquals("png", _manager.__getExtensionFromUrl("image.png"));
             assertEquals("png", _manager.__getExtensionFromUrl("http://example.com/dir/image.png"));
-            assertNull(_manager.__getExtensionFromUrl("http://example.com/dir/image/"));
+            assertEquals("", _manager.__getExtensionFromUrl("http://example.com/dir/image/"));
         }
         
         [Test]
         public function enqueueWithName():void
         {
-            _manager.enqueueWithName("a", "b");
+            _manager.enqueueSingle("a", "b");
             assertEquals(1, _manager.numQueuedAssets);
         }
         
@@ -386,61 +374,51 @@ package tests.utils
             _manager.enqueue({});
             assertEquals(0, _manager.numQueuedAssets);
         }
-        
+
+        [Test]
+        public function addSameTextureTwice():void
+        {
+            var texture:MockTexture = new MockTexture();
+            var name:String = "mock";
+
+            _manager.addAsset(name, texture);
+            _manager.addAsset(name, texture);
+
+            assertFalse(texture.isDisposed);
+        }
+
+        [Test(async)]
+        public function dequeueAsset():void
+        {
+            _manager.enqueue("../fixtures/image.png");
+            _manager.enqueue("../fixtures/json.json");
+            _manager.enqueue("../fixtures/data.txt");
+            _manager.enqueue("../fixtures/xml.xml");
+            _manager.dequeue("data", "xml");
+            _manager.loadQueue(AsyncUtil.asyncHandler(this, function():void
+            {
+                assertNotNull(_manager.getTextures("image"));
+                assertNull(_manager.getByteArray("data"));
+                assertNotNull(_manager.getObject("json"));
+                assertNull(_manager.getObject("xml"));
+            }));
+        }
     }
 }
 
-import flash.net.FileReference;
-
-import starling.textures.Texture;
-import starling.utils.AssetManager;
+import starling.assets.AssetManager;
 
 class TestAssetManager extends AssetManager
 {
-    
-    public var logRecord:String = "";
-    
-    public function get queueLength():uint
+    public function __getNameFromUrl(url:String):String
     {
-        return queue.length;
-    }
-    
-    override public function loadQueue(onProgress:Function):void
-    {
-        // onProgress function is hard to test, so onComplete is wrapped with onComplete,
-        // which calls onProgress only if the load is completed (ratio == 1.0).
-        //
-        // If onProgress is set to null, then do not wrap it and pass null to super.
-        
-        var onComplete:Function = function(ratio:Number):void
-        {
-            if (ratio == 1.0) onProgress(ratio);
-        };
-        
-        super.loadQueue(onProgress is Function ? onComplete : onProgress);
-    }
-    
-    override protected function log(message:String):void
-    {
-        logRecord += "-" + message;
-        super.log(message);
-    }
-    
-    public function __getBasenameFromUrl(url:String):String
-    {
-        return getBasenameFromUrl(url);
+        return getNameFromUrl(url);
     }
     
     public function __getExtensionFromUrl(url:String):String
     {
         return getExtensionFromUrl(url);
     }
-    
-    public function __getName(rawAsset:Object):String
-    {
-        return getName(rawAsset);
-    }
-    
 }
 
 class EmbeddedBitmap
@@ -459,28 +437,4 @@ class EmbeddedJson
 {
     [Embed(source="../../../fixtures/json.json", mimeType="application/octet-stream")]
     public static const Data:Class;
-}
-
-class TextureMock extends Texture
-{
-    public function TextureMock()
-    {
-        // do not call super()
-    }
-}
-
-class FileReferenceMock extends FileReference
-{
-    private var _name:String;
-    
-    public function FileReferenceMock(name:String)
-    {
-        super();
-        _name = name;
-    }
-    
-    override public function get name():String
-    {
-        return _name;
-    }
 }

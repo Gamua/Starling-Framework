@@ -91,7 +91,7 @@ package starling.rendering
      *
      *  @see FilterEffect
      *  @see MeshEffect
-     *  @see starling.rendering.MeshStyle
+     *  @see starling.styles.MeshStyle
      *  @see starling.filters.FragmentFilter
      *  @see starling.utils.RenderUtil
      */
@@ -123,7 +123,7 @@ package starling.rendering
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
-                onContextCreated, false, 0, true);
+                onContextCreated, false, 20, true);
         }
 
         /** Purges the index- and vertex-buffers. */
@@ -142,22 +142,32 @@ package starling.rendering
         /** Purges one or both of the vertex- and index-buffers. */
         public function purgeBuffers(vertexBuffer:Boolean=true, indexBuffer:Boolean=true):void
         {
+            // We wrap the dispose calls in a try/catch block to work around a stage3D problem.
+            // Since they are not re-used later, that shouldn't have any evil side effects.
+
             if (_vertexBuffer && vertexBuffer)
             {
-                _vertexBuffer.dispose();
+                try { _vertexBuffer.dispose(); } catch (e:Error) {}
                 _vertexBuffer = null;
             }
 
             if (_indexBuffer && indexBuffer)
             {
-                _indexBuffer.dispose();
+                try { _indexBuffer.dispose(); } catch (e:Error) {}
                 _indexBuffer = null;
             }
         }
 
         /** Uploads the given index data to the internal index buffer. If the buffer is too
-         *  small, a new one is created automatically. */
-        public function uploadIndexData(indexData:IndexData):void
+         *  small, a new one is created automatically.
+         *
+         *  @param indexData   The IndexData instance to upload.
+         *  @param bufferUsage The expected buffer usage. Use one of the constants defined in
+         *                     <code>Context3DBufferUsage</code>. Only used when the method call
+         *                     causes the creation of a new index buffer.
+         */
+        public function uploadIndexData(indexData:IndexData,
+                                        bufferUsage:String="staticDraw"):void
         {
             var numIndices:int = indexData.numIndices;
             var isQuadLayout:Boolean = indexData.useQuadLayout;
@@ -178,15 +188,22 @@ package starling.rendering
             }
             if (_indexBuffer == null)
             {
-                _indexBuffer = indexData.createIndexBuffer(true);
+                _indexBuffer = indexData.createIndexBuffer(true, bufferUsage);
                 _indexBufferSize = numIndices;
                 _indexBufferUsesQuadLayout = isQuadLayout;
             }
         }
 
         /** Uploads the given vertex data to the internal vertex buffer. If the buffer is too
-         *  small, a new one is created automatically. */
-        public function uploadVertexData(vertexData:VertexData):void
+         *  small, a new one is created automatically.
+         *
+         *  @param vertexData  The VertexData instance to upload.
+         *  @param bufferUsage The expected buffer usage. Use one of the constants defined in
+         *                     <code>Context3DBufferUsage</code>. Only used when the method call
+         *                     causes the creation of a new vertex buffer.
+         */
+        public function uploadVertexData(vertexData:VertexData,
+                                         bufferUsage:String="staticDraw"):void
         {
             if (_vertexBuffer)
             {
@@ -197,7 +214,7 @@ package starling.rendering
             }
             if (_vertexBuffer == null)
             {
-                _vertexBuffer = vertexData.createVertexBuffer(true);
+                _vertexBuffer = vertexData.createVertexBuffer(true, bufferUsage);
                 _vertexBufferSize = vertexData.size;
             }
         }
@@ -257,7 +274,7 @@ package starling.rendering
         {
             var vertexShader:String = [
                 "m44 op, va0, vc0", // 4x4 matrix transform to output clipspace
-                "seq v0, va0, va0"  // this is a hack that always produces "1"
+                "sge v0, va0, va0"  // this is a hack that always produces "1"
             ].join("\n");
 
             var fragmentShader:String =

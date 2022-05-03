@@ -372,8 +372,6 @@ package tests.rendering
         public function testSetIsBasicQuadData():void
         {
             var indexData:IndexData = new IndexData();
-
-            indexData.rawData.length = 0; // *hack* to force empty basic quad data array
             indexData.numIndices = 6;
             assertTrue(indexData.useQuadLayout);
             assertEquals(1, indexData.getIndex(3));

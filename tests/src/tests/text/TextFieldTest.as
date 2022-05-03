@@ -3,6 +3,7 @@ package tests.text
     import org.flexunit.asserts.assertEquals;
     import org.flexunit.asserts.assertTrue;
     import org.hamcrest.assertThat;
+    import org.hamcrest.number.closeTo;
     import org.hamcrest.number.greaterThan;
     import org.hamcrest.number.lessThanOrEqualTo;
 
@@ -16,13 +17,40 @@ package tests.text
 
     public class TextFieldTest extends StarlingTestCase
     {
-        private const SUPER_LARGE_TEXT_LENGTH:Number = 3200;
+        private static const E:Number = 0.0001;
+        private static const SUPER_LARGE_TEXT_LENGTH:Number = 3200;
 
         [Test]
         public function testTextField():void
         {
             var textField:TextField = new TextField(240, 50, "test text");
             assertEquals("test text", textField.text);
+        }
+
+        [Test]
+        public function testWidthAndHeight():void
+        {
+            var textField:TextField = new TextField(100, 50, "test");
+
+            assertThat(textField.width,  closeTo(100, E));
+            assertThat(textField.height, closeTo(50, E));
+            assertThat(textField.scaleX, closeTo(1.0, E));
+            assertThat(textField.scaleY, closeTo(1.0, E));
+
+            textField.scale = 0.5;
+
+            assertThat(textField.width, closeTo(50, E));
+            assertThat(textField.height, closeTo(25, E));
+            assertThat(textField.scaleX, closeTo(0.5, E));
+            assertThat(textField.scaleY, closeTo(0.5, E));
+
+            textField.width = 100;
+            textField.height = 50;
+
+            assertThat(textField.width,  closeTo(100, E));
+            assertThat(textField.height, closeTo(50, E));
+            assertThat(textField.scaleX, closeTo(0.5, E));
+            assertThat(textField.scaleY, closeTo(0.5, E));
         }
 
         [Test]
