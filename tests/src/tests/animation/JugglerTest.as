@@ -420,6 +420,16 @@ package tests.animation
         }
 
         [Test]
+        public function testElapsed():void
+        {
+            var juggler:Juggler = new Juggler();
+            assertThat(juggler.elapsedTime, closeTo(0.0, E));
+            juggler.advanceTime(0.25);
+            juggler.advanceTime(0.5);
+            assertThat(juggler.elapsedTime, closeTo(0.75, E));
+        }
+
+        [Test]
         public function testTimeScale():void
         {
             var juggler:Juggler = new Juggler();

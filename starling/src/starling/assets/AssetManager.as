@@ -71,19 +71,19 @@ package starling.assets
      *  <listing>
      *  var appDir:File = File.applicationDirectory;
      *  var assets:AssetManager = new AssetManager();
-     *  
+     *
      *  assets.textureOptions.format = Context3DTextureFormat.BGRA;
      *  assets.enqueue(appDir.resolvePath("textures/32bit"));
-     *  
+     *
      *  assets.textureOptions.format = Context3DTextureFormat.BGRA_PACKED;
      *  assets.enqueue(appDir.resolvePath("textures/16bit"));
-     *  
+     *
      *  assets.loadQueue(...);</listing>
-     * 
+     *
      *  <strong>Nesting</strong>
      *
      *  <p>When you enqueue one or more AssetManagers to another one, the "loadQueue" method will
-     *  oad the Assets of the "child" AssetManager, as well. Later, when accessing assets,
+     *  load the assets of the "child" AssetManager, as well. Later, when accessing assets,
      *  the "parent" AssetManager will return the "child" assets as well - just like it returns,
      *  say, the SubTextures from a contained TextureAtlas.</p>
      *
@@ -95,15 +95,17 @@ package starling.assets
      *  <listing>
      *  var manager:AssetManager = new AssetManager();
      *  var appDir:File = File.applicationDirectory;
-     *  
+     *
      *  var redAssets:AssetManager = new AssetManager();
-     *  manager.enqueueSingle(appDir.resolvePath("textures/red/", "redAssets");
-     *  
+     *  redAssets.enqueueSingle(appDir.resolvePath("textures/red/"));
+     *
      *  var greenAssets:AssetManager = new AssetManager();
-     *  manager.enqueueSingle(appDir.resolvePath("textures/green/", "greenAssets");
-     *  
+     *  greenAssets.enqueueSingle(appDir.resolvePath("textures/green/"));
+     *
+     *  manager.enqueueSingle(redAssets, "redAssets");
+     *  manager.enqueueSingle(greenAssets, "greenAssets");
      *  manager.loadQueue(...); // loads both "red" and "green" assets
-     *  
+     *
      *  // ... later, remove all "red" assets together
      *  manager.removeAssetManager("redAssets");</listing>
      *
@@ -122,6 +124,15 @@ package starling.assets
      *  and 'log', you can customize how assets are named and disposed, and you can forward
      *  any logging to an external logger. To customize the way data is loaded from URLs or
      *  files, you can assign a custom 'DataLoader' instance to the AssetManager.</p>
+     *
+     *  <strong>Extension & mime type for embed assets</strong>
+     *
+     *  <p>In order to enable the automatic detection of the extension & mime type for
+     *  embed assets, the following compiler option is required:
+     *  `-keep-as3-metadata += "Embed"`.</p>
+     *
+     *  <p>This will enable proper assets handling in your custom 'AssetFactory' for
+     *  the embed assets.</p>
      *
      *  @see starling.assets.AssetFactory
      *  @see starling.assets.AssetType
@@ -142,7 +153,7 @@ package starling.assets
         private var _numLostTextures:int;
 
         // Regex for name / extension extraction from URLs.
-        private static const NAME_REGEX:RegExp = /([^?\/\\]+?)(?:\.([\w\-]+))?(?:\?.*)?$/;
+        private static const NAME_REGEX:RegExp = /(([^?\/\\]+?)(?:\.([\w\-]+))?)(?:\?.*)?$/;
 
         // fallback for unnamed assets
         private static const NO_NAME:String = "unnamed";
@@ -158,7 +169,7 @@ package starling.assets
             _verbose = true;
             _textureOptions = new TextureOptions(scaleFactor);
             _queue = new <AssetReference>[];
-            _numConnections = 1;
+            _numConnections = 3;
             _dataLoader = new DataLoader();
             _assetFactories = new <AssetFactory>[];
 
@@ -237,16 +248,31 @@ package starling.assets
                 {
                     var typeXml:XML = describeType(asset);
                     var childNode:XML;
+                    var url:String;
+                    var mimeType:String
 
                     if (_verbose)
                         log("Looking for static embedded assets in '" +
                             (typeXml.@name).split("::").pop() + "'");
 
+                    function processNode(node:XML):void
+                    {
+                        // look for URL & mime type in the Embed metadata
+                        url = findUrlInVariableMetadata(node);
+                        mimeType = findMimeTypeInVariableMetadata(node);
+
+                        // log found properties
+                        if (_verbose && (url || mimeType))
+                            log("Found class with embed information. URL: '" + url + "', mimeType: '" + mimeType + "'");
+
+                        enqueueSingle(asset[node.@name], node.@name, null, getExtensionFromUrl(url), mimeType);
+                    }
+
                     for each (childNode in typeXml.constant.(@type == "Class"))
-                        enqueueSingle(asset[childNode.@name], childNode.@name);
+                        processNode(childNode);
 
                     for each (childNode in typeXml.variable.(@type == "Class"))
-                        enqueueSingle(asset[childNode.@name], childNode.@name);
+                        processNode(childNode);
                 }
                 else if (getQualifiedClassName(asset) == "flash.filesystem::File")
                 {
@@ -273,6 +299,42 @@ package starling.assets
             }
         }
 
+        /** Looks for asset "source" in the Embed metadata.
+         *
+         * <p>This method requires to keep the metadata by using the following compiler option: `-keep-as3-metadata += "Embed"`.</p>
+         * @param variableDeclarationNode the node
+         * @return the found source url or `null`
+         */
+        private function findUrlInVariableMetadata(variableDeclarationNode:XML):String
+        {
+            var embedMetadata:XML;
+            var arg:XML;
+
+            for each (embedMetadata in variableDeclarationNode.metadata.(@name == "Embed"))
+                for each (arg in embedMetadata.arg.(@key == "source"))
+                    return arg.@value;
+
+            return null;
+        }
+
+        /** Looks for asset "mimeType" in the Embed metadata.
+         *
+         * <p>This method requires to keep the metadata by using the following compiler option: `-keep-as3-metadata += "Embed"`.</p>
+         * @param variableDeclarationNode the node
+         * @return the found mime type or `null`
+         */
+        private function findMimeTypeInVariableMetadata(variableDeclarationNode:XML):String
+        {
+            var embedMetadata:XML;
+            var arg:XML;
+
+            for each (embedMetadata in variableDeclarationNode.metadata.(@name == "Embed"))
+                for each (arg in embedMetadata.arg.(@key == "mimeType"))
+                    return arg.@value;
+
+            return null;
+        }
+
         /** Enqueues a single asset with a custom name that can be used to access it later.
          *  If the asset is a texture, you can also add custom texture options.
          *
@@ -283,20 +345,34 @@ package starling.assets
          *  @param options  Custom options that will be used if 'asset' points to texture data.
          *  @return         the name with which the asset was registered.
          */
-        public function enqueueSingle(asset:Object, name:String=null,
-                                      options:TextureOptions=null):String
+        public function enqueueSingle(asset:Object,name:String=null,
+                                      options:TextureOptions=null,
+                                      customExtension:String=null,
+                                      customMimeType:String=null):String
         {
             if (asset is Class)
                 asset = new asset();
 
             var assetReference:AssetReference = new AssetReference(asset);
             assetReference.name = name || getNameFromUrl(assetReference.url) || getUniqueName();
-            assetReference.extension = getExtensionFromUrl(assetReference.url);
+            assetReference.extension = customExtension || getExtensionFromUrl(assetReference.url);
+            assetReference.mimeType = customMimeType;
             assetReference.textureOptions = options || _textureOptions;
+            var logName:String = getFilenameFromUrl(assetReference.url) || assetReference.name;
 
             _queue.push(assetReference);
-            log("Enqueuing '" + assetReference.filename + "'");
+            log("Enqueuing '" + logName + "'");
             return assetReference.name;
+        }
+
+        /** Removes the asset(s) with the given name(s) from the queue. Note that this won't work
+         *  after loading has started, even if these specific assets have not yet been processed. */
+        public function dequeue(...assetNames):void
+        {
+            _queue = _queue.filter(function(asset:AssetReference, i:int, v:*):Boolean
+            {
+                return assetNames.indexOf(asset.name) == -1;
+            });
         }
 
         /** Empties the queue and aborts any pending load operations. */
@@ -310,16 +386,17 @@ package starling.assets
         /** Loads all enqueued assets asynchronously. The 'onComplete' callback will be executed
          *  once all assets have been loaded - even when there have been errors, which are
          *  forwarded to the optional 'onError' callback. The 'onProgress' function will be called
-         *  with a 'ratio' between '0.0' and '1.0' and is also optional.
+         *  with a 'ratio' between '0.0' and '1.0' and is also optional. Furthermore, all
+         *  parameters of all the callbacks are optional.
          *
          *  <p>When you call this method, the manager will save a reference to "Starling.current";
          *  all textures that are loaded will be accessible only from within this instance. Thus,
          *  if you are working with more than one Starling instance, be sure to call
          *  "makeCurrent()" on the appropriate instance before processing the queue.</p>
          *
-         *  @param onComplete   function():void;
-         *  @param onError      function(error:String):void;
-         *  @param onProgress   function(ratio:Number):void;
+         *  @param onComplete   <code>function(manager:AssetManager):void;</code>
+         *  @param onError      <code>function(error:String, asset:AssetReference):void;</code>
+         *  @param onProgress   <code>function(ratio:Number):void;</code>
          */
         public function loadQueue(onComplete:Function,
                                   onError:Function=null, onProgress:Function=null):void
@@ -348,6 +425,7 @@ package starling.assets
             var canceled:Boolean = false;
             var queue:Vector.<AssetReference> = _queue.concat();
             var numAssets:int = queue.length;
+            var numComplete:int = 0;
             var numConnections:int = MathUtil.min(_numConnections, numAssets);
             var assetProgress:Vector.<Number> = new Vector.<Number>(numAssets, true);
             var postProcessors:Vector.<AssetPostProcessor> = new <AssetPostProcessor>[];
@@ -374,30 +452,31 @@ package starling.assets
                         break;
                     }
                 }
-
-                if (j == numAssets)
-                {
-                    postProcessors.sort(comparePriorities);
-                    runPostProcessors();
-                }
             }
 
-            function onAssetLoaded(name:String=null, asset:Object=null):void
+            function onAssetLoaded(name:String=null, asset:Object=null, type:String=null):void
             {
-                if (canceled) disposeAsset(asset);
+                if (canceled && asset) disposeAsset(asset);
                 else
                 {
-                    if (name && asset) addAsset(name, asset);
-                    setTimeout(loadNextAsset, 1);
+                    if (name && asset) addAsset(name, asset, type);
+                    numComplete++;
+
+                    if (numComplete == numAssets)
+                    {
+                        postProcessors.sort(comparePriorities);
+                        setTimeout(runPostProcessors, 1);
+                    }
+                    else setTimeout(loadNextAsset, 1);
                 }
             }
 
-            function onAssetLoadError(error:String):void
+            function onAssetLoadError(error:String, asset:AssetReference):void
             {
                 if (!canceled)
                 {
-                    execute(onError, error);
-                    setTimeout(loadNextAsset, 1);
+                    execute(onError, error, asset);
+                    onAssetLoaded();
                 }
             }
 
@@ -436,7 +515,7 @@ package starling.assets
             {
                 onCanceled();
                 execute(onProgress, 1.0);
-                execute(onComplete);
+                execute(onComplete, self);
             }
         }
 
@@ -445,30 +524,34 @@ package starling.assets
             helper:AssetFactoryHelper, onComplete:Function, onProgress:Function,
             onError:Function, onIntermediateError:Function):void
         {
-            var assetCount:int = queue.length;
-            var asset:AssetReference = queue[index];
+            var referenceCount:int = queue.length;
+            var reference:AssetReference = queue[index];
             progressRatios[index] = 0;
 
-            if (asset.data is String || ("url" in asset.data && asset.data["url"]))
-                _dataLoader.load(asset.data, onLoadComplete, onLoadError, onLoadProgress);
-            else if (asset.data is AssetManager)
-                (asset.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
+            if (reference.url)
+                _dataLoader.load(reference.url, onLoadComplete, onLoadError, onLoadProgress);
+            else if (reference.data is AssetManager)
+                (reference.data as AssetManager).loadQueue(onManagerComplete, onIntermediateError, onLoadProgress);
             else
-                setTimeout(onLoadComplete, 1, asset.data);
+                setTimeout(onLoadComplete, 1, reference.data);
 
-            function onLoadComplete(data:Object, mimeType:String=null):void
+            function onLoadComplete(data:Object, mimeType:String=null,
+                                    name:String=null, extension:String=null):void
             {
                 if (_starling) _starling.makeCurrent();
 
                 onLoadProgress(1.0);
-                asset.data = data;
-                asset.mimeType ||= mimeType;
 
-                var assetFactory:AssetFactory = getFactoryFor(asset);
+                if (data)      reference.data = data;
+                if (name)      reference.name = name;
+                if (extension) reference.extension = extension;
+                if (mimeType)  reference.mimeType = mimeType;
+
+                var assetFactory:AssetFactory = getFactoryFor(reference);
                 if (assetFactory == null)
-                    execute(onAnyError, "Warning: no suitable factory found for '" + asset.name + "'");
+                    execute(onAnyError, "Warning: no suitable factory found for '" + reference.name + "'");
                 else
-                    assetFactory.create(asset, helper, onComplete, onCreateError);
+                    assetFactory.create(reference, helper, onComplete, onFactoryError);
             }
 
             function onLoadProgress(ratio:Number):void
@@ -476,9 +559,9 @@ package starling.assets
                 progressRatios[index] = ratio;
 
                 var totalRatio:Number = 0;
-                var multiplier:Number = 1.0 / assetCount;
+                var multiplier:Number = 1.0 / referenceCount;
 
-                for (var k:int=0; k<assetCount; ++k)
+                for (var k:int=0; k<referenceCount; ++k)
                 {
                     var r:Number = progressRatios[k];
                     if (r > 0) totalRatio += multiplier * r;
@@ -490,23 +573,23 @@ package starling.assets
             function onLoadError(error:String):void
             {
                 onLoadProgress(1.0);
-                execute(onAnyError, "Error loading " + asset.name + ": " + error);
-            }
-
-            function onCreateError(error:String):void
-            {
-                execute(onAnyError, "Error creating " + asset.name + ": " + error);
+                execute(onAnyError, "Error loading " + reference.name + ": " + error);
             }
 
             function onAnyError(error:String):void
             {
                 log(error);
-                execute(onError, error);
+                execute(onError, error, reference);
+            }
+
+            function onFactoryError(error:String):void
+            {
+                execute(onAnyError, "Error creating " + reference.name + ": " + error);
             }
 
             function onManagerComplete():void
             {
-                execute(onComplete, asset.name, asset.data);
+                onComplete(reference.name, reference.data);
             }
         }
 
@@ -853,6 +936,13 @@ package starling.assets
             _assetFactories.sort(comparePriorities);
         }
 
+        /** Unregisters the specified AssetFactory. */
+        public function unregisterFactory(factory:AssetFactory):void
+        {
+            var index:int = _assetFactories.indexOf(factory);
+            if (index != -1) _assetFactories.removeAt(index);
+        }
+
         private static function comparePriorities(a:Object, b:Object):int
         {
             if (a.priority == b.priority) return 0;
@@ -860,6 +950,16 @@ package starling.assets
         }
 
         // helpers
+
+        private function getFilenameFromUrl(url:String):String
+        {
+            if (url)
+            {
+                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                if (matches && matches.length > 1) return matches[1];
+            }
+            return null;
+        }
 
         /** This method is called internally to determine the name under which an asset will be
          *  accessible; override it if you need a custom naming scheme.
@@ -870,7 +970,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 0) return matches[1];
+                if (matches && matches.length > 2) return matches[2];
             }
             return null;
         }
@@ -886,7 +986,7 @@ package starling.assets
             if (url)
             {
                 var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
-                if (matches && matches.length > 1) return matches[2];
+                if (matches && matches.length > 3) return matches[3];
             }
             return "";
         }

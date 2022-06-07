@@ -113,6 +113,22 @@ package starling.display
             register("below", Context3DBlendFactor.ONE_MINUS_DESTINATION_ALPHA, Context3DBlendFactor.DESTINATION_ALPHA);
         }
 
+        /** Returns an array with all currently registered blend modes. */
+        public static function getAll(out:Array=null):Array
+        {
+            out ||= [];
+            if (sBlendModes == null) registerDefaults();
+            for each (var blendMode:BlendMode in sBlendModes)
+                out.insertAt(0, blendMode);
+            return out;
+        }
+
+        /** Returns true if a blend mode with the given name is available. */
+        public static function isRegistered(modeName:String):Boolean
+        {
+            return modeName in sBlendModes;
+        }
+
         // instance methods / properties
 
         /** Sets the appropriate blend factors for source and destination on the current context. */

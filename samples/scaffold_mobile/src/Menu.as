@@ -20,9 +20,9 @@ package
         public function Menu()
         { }
 
-        override public function init(width:Number, height:Number):void
+        override public function init():void
         {
-            super.init(width, height);
+            // Set up objects. 'this.stage' is available, but we don't know the scene size yet.
 
             _textField = new TextField(250, 50, "Game Scaffold");
             _textField.format.setTo("Desyrel", BitmapFont.NATIVE_SIZE, 0xffffff);
@@ -32,23 +32,18 @@ package
             _menuButton.textFormat.setTo("Ubuntu", 16);
             _menuButton.addEventListener(Event.TRIGGERED, onButtonTriggered);
             addChild(_menuButton);
-
-            updatePositions();
         }
 
-        override public function resizeTo(width:Number, height:Number):void
+        override public function updatePositions():void
         {
-            super.resizeTo(width, height);
-            updatePositions();
-        }
+            // Set up positions.
+            // => When this method is called, "sceneWidth" and "sceneHeight" are set.
 
-        private function updatePositions():void
-        {
-            _textField.x = (_width - _textField.width) / 2;
-            _textField.y = _height * 0.1;
+            _textField.x = (sceneWidth - _textField.width) / 2;
+            _textField.y = sceneHeight * 0.1;
 
-            _menuButton.x = (_width - _menuButton.width) / 2;
-            _menuButton.y = _height * 0.9 - _menuButton.height;
+            _menuButton.x = (sceneWidth - _menuButton.width) / 2;
+            _menuButton.y = sceneHeight * 0.9 - _menuButton.height;
         }
         
         private function onButtonTriggered():void

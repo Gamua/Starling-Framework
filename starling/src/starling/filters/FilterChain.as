@@ -66,18 +66,26 @@ package starling.filters
                                          input2:Texture = null, input3:Texture = null):Texture
         {
             var numFilters:int = _filters.length;
-            var outTexture:Texture = input0;
-            var inTexture:Texture;
 
-            for (var i:int=0; i<numFilters; ++i)
+            if (numFilters > 0)
             {
-                inTexture = outTexture;
-                outTexture = _filters[i].process(painter, helper, inTexture);
+                var outTexture:Texture = input0;
+                var inTexture:Texture;
 
-                if (i) helper.putTexture(inTexture);
+                for (var i:int=0; i<numFilters; ++i)
+                {
+                    inTexture = outTexture;
+                    outTexture = _filters[i].process(painter, helper, inTexture);
+
+                    if (i) helper.putTexture(inTexture);
+                }
+
+                return outTexture;
             }
-
-            return outTexture;
+            else
+            {
+                return super.process(painter, helper, input0, input1, input2, input3);
+            }
         }
 
         /** @private */
@@ -89,7 +97,7 @@ package starling.filters
             for (var i:int=0; i<numFilters; ++i)
                 numPasses += _filters[i].numPasses;
 
-            return numPasses;
+            return numPasses || 1;
         }
 
         /** Returns the filter at a certain index. If you pass a negative index,

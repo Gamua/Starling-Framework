@@ -34,12 +34,11 @@ package starling.assets
         /** Accesses a URL (local or remote) and passes the loaded ByteArray to the
          *  'onComplete' callback - or executes 'onError' when the data can't be loaded.
          *
-         *  @param url         Either a String or an URLRequest, or an arbitrary object containing
-         *                     an 'url' property.
+         *  @param url         a string containing an URL.
          *  @param onComplete  function(data:ByteArray, mimeType:String):void;
          *  @param onError     function(error:String):void;
          */
-        public function loadDataFromUrl(url:Object, onComplete:Function, onError:Function):void
+        public function loadDataFromUrl(url:String, onComplete:Function, onError:Function):void
         {
             if (_dataLoader) _dataLoader.load(url, onComplete, onError);
         }

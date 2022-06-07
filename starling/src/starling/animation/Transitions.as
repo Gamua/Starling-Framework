@@ -27,8 +27,15 @@ package starling.animation
      *  <p>You can define your own transitions through the "registerTransition" function. A 
      *  transition function must have the following signature, where <code>ratio</code> is 
      *  in the range 0-1:</p>
-     *  
+     *
      *  <pre>function myTransition(ratio:Number):Number</pre>
+     *
+     *  <p>Also have a look at the "BezierEasing" class, which provides a very easy way of
+     *  adding custom transitions.</p>
+     *
+     *  @see starling.animation.BezierEasing
+     *  @see starling.animation.Juggler
+     *  @see starling.animation.Tween
      */
     public class Transitions
     {        

@@ -281,7 +281,7 @@ package starling.text
                 _helperImage.x = charLocation.x;
                 _helperImage.y = charLocation.y;
                 _helperImage.scale = charLocation.scale;
-                meshBatch.addMesh(_helperImage);
+                meshBatch.addMeshAt(_helperImage);
             }
 
             BitmapCharLocation.rechargePool();

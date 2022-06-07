@@ -172,5 +172,44 @@ package tests.textures
             assertEquals(2, textures[1].width);
             assertEquals(3, textures[2].width);
         }
+
+        [Test]
+        public function testRemoveRegion():void
+        {
+            var texture:Texture = new MockTexture(64, 64);
+            var atlas:TextureAtlas = new TextureAtlas(texture);
+
+            atlas.addRegion("ann", new Rectangle(0, 0, 10, 10));
+            atlas.addRegion("bob", new Rectangle(10, 0, 10, 10));
+
+            atlas.removeRegion("ann");
+
+            assertNull(atlas.getTexture("ann"));
+            assertNotNull(atlas.getTexture("bob"));
+        }
+
+        [Test]
+        public function testRemoveRegions():void
+        {
+            var texture:Texture = new MockTexture(64, 64);
+            var atlas:TextureAtlas = new TextureAtlas(texture);
+
+            atlas.addRegion("albert", new Rectangle(0, 0, 10, 10));
+            atlas.addRegion("anna", new Rectangle(0, 10, 10, 10));
+            atlas.addRegion("bastian", new Rectangle(0, 20, 10, 10));
+            atlas.addRegion("cesar", new Rectangle(0, 30, 10, 10));
+
+            atlas.removeRegions("a");
+
+            assertNull(atlas.getTexture("albert"));
+            assertNull(atlas.getTexture("anna"));
+            assertNotNull(atlas.getTexture("bastian"));
+            assertNotNull(atlas.getTexture("cesar"));
+
+            atlas.removeRegions();
+
+            assertNull(atlas.getTexture("bastian"));
+            assertNull(atlas.getTexture("cesar"));
+        }
     }
 }

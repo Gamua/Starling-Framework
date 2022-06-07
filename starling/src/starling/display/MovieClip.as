@@ -165,7 +165,12 @@ package starling.display
             return _frames[frameID].action;
         }
 
-        /** Sets an action that will be executed whenever a certain frame is reached. */
+        /** Sets an action that will be executed whenever a certain frame is reached.
+         *
+         * @param frameID   The frame at which the action will be executed.
+         * @param action    A callback with two optional parameters:
+         *                  <code>function(movie:MovieClip, frameID:int):void;</code>
+         */
         public function setFrameAction(frameID:int, action:Function):void
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
@@ -284,15 +289,16 @@ package starling.display
             }
 
             var finalFrameID:int = _frames.length - 1;
-            var restTimeInFrame:Number = frame.duration - _currentTime + frame.startTime;
             var dispatchCompleteEvent:Boolean = false;
             var frameAction:Function = null;
             var previousFrameID:int = _currentFrameID;
+            var restTimeInFrame:Number;
             var changedFrame:Boolean;
 
-            while (passedTime >= restTimeInFrame)
+            while (_currentTime + passedTime >= frame.endTime)
             {
                 changedFrame = false;
+                restTimeInFrame = frame.duration - _currentTime + frame.startTime;
                 passedTime -= restTimeInFrame;
                 _currentTime = frame.startTime + frame.duration;
 
@@ -336,12 +342,6 @@ package starling.display
                     advanceTime(passedTime);
                     return;
                 }
-
-                restTimeInFrame = frame.duration;
-
-                // prevent a mean floating point problem (issue #851)
-                if (passedTime + 0.0001 > restTimeInFrame && passedTime - 0.0001 < restTimeInFrame)
-                    passedTime = restTimeInFrame;
             }
 
             if (previousFrameID != _currentFrameID)
@@ -476,4 +476,6 @@ class MovieClipFrame
                     "movie:MovieClip, frameID:int");
         }
     }
+
+    public function get endTime():Number { return startTime + duration; }
 }

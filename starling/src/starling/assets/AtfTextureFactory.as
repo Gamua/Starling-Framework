@@ -4,6 +4,7 @@ package starling.assets
 
     import starling.textures.AtfData;
     import starling.textures.Texture;
+    import starling.utils.execute;
 
     /** This AssetFactory creates texture assets from ATF files. */
     public class AtfTextureFactory extends AssetFactory
@@ -28,15 +29,20 @@ package starling.assets
 
             function createTexture():void
             {
+                var onReady:Function = reference.textureOptions.onReady as Function;
                 reference.textureOptions.onReady = function():void
                 {
+                    execute(onReady, texture);
                     onComplete(reference.name, texture);
                 };
 
-                var texture:Texture = Texture.fromData(reference.data, reference.textureOptions);
+                var texture:Texture = null;
                 var url:String = reference.url;
 
-                if (url)
+                try { texture = Texture.fromData(reference.data, reference.textureOptions); }
+                catch (e:Error) { onError(e.message); }
+
+                if (url && texture)
                 {
                     texture.root.onRestore = function():void
                     {
@@ -45,12 +51,16 @@ package starling.assets
                         {
                             helper.executeWhenContextReady(function():void
                             {
-                                texture.root.uploadAtfData(data);
+                                try { texture.root.uploadAtfData(data); }
+                                catch (e:Error) { helper.log("Texture restoration failed: " + e.message); }
+
                                 helper.onEndRestore();
                             });
                         }, onReloadError);
                     };
                 }
+
+                reference.data = null; // prevent closures from keeping reference
             }
 
             function onReloadError(error:String):void

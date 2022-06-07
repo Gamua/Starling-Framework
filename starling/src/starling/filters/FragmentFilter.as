@@ -26,7 +26,6 @@ package starling.filters
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
     import starling.textures.Texture;
-    import starling.textures.TextureSmoothing;
     import starling.utils.MatrixUtil;
     import starling.utils.Padding;
     import starling.utils.Pool;
@@ -120,7 +119,7 @@ package starling.filters
         {
             _resolution = 1.0;
             _textureFormat = Context3DTextureFormat.BGRA;
-            _textureSmoothing = TextureSmoothing.BILINEAR;
+            _textureSmoothing = Starling.defaultTextureSmoothing;
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,

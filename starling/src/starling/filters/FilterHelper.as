@@ -144,7 +144,7 @@ package starling.filters
         {
             var factor:Number;
             var newScale:Number = _preferredScale;
-            var maxNativeSize:int   = Texture.maxSize;
+            var maxNativeSize:int   = Texture.getMaxSize(_textureFormat);
             var newNativeWidth:int  = getNativeSize(width,  newScale);
             var newNativeHeight:int = getNativeSize(height, newScale);
 

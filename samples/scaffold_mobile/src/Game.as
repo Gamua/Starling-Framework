@@ -14,32 +14,39 @@ package
         public static const GAME_OVER:String = "gameOver";
         
         private var _bird:Image;
+        private var _tweenID:uint = 0;
 
         public function Game()
         { }
         
-        override public function init(width:Number, height:Number):void
+        override public function init():void
         {
-            super.init(width, height);
+            // Set up objects. 'this.stage' is available, but we don't know the scene size yet.
 
             _bird = new Image(Root.assets.getTexture("starling_rocket"));
             _bird.pivotX = _bird.width / 2;
             _bird.pivotY = _bird.height / 2;
-            _bird.x = width / 2;
-            _bird.y = height / 2;
             _bird.addEventListener(TouchEvent.TOUCH, onBirdTouched);
             addChild(_bird);
-            
-            moveBird();
+        }
+
+        override public function updatePositions():void
+        {
+            // Set up positions.
+            // => When this method is called, "sceneWidth" and "sceneHeight" are already set.
+            // => They indicate the available "safe area".
+
+            _bird.x = sceneWidth / 2.0;
+            _bird.y = sceneHeight / 2.0;
+            if (_tweenID == 0) moveBird();
         }
 
         private function moveBird():void
         {
             var scale:Number = Math.random() * 0.8 + 0.2;
-            
-            Starling.juggler.tween(_bird, Math.random() * 0.5 + 0.5, {
-                x: Math.random() * _width,
-                y: Math.random() * _height,
+            _tweenID = Starling.juggler.tween(_bird, Math.random() * 0.5 + 0.5, {
+                x: Math.random() * sceneWidth,
+                y: Math.random() * sceneHeight,
                 scaleX: scale,
                 scaleY: scale,
                 rotation: Math.random() * deg2rad(180) - deg2rad(90),

@@ -4,6 +4,7 @@ package starling.utils
 
     import starling.errors.AbstractClassError;
 
+    /** A utility class containing methods related to the ByteArray class. */
     public class ByteArrayUtil
     {
         /** @private */
@@ -45,6 +46,18 @@ package starling.utils
             }
 
             return false;
+        }
+
+        /** Figures out if a byte array starts with the given bytes.
+         *  Pass an array that contains integers in the range 0-255. */
+        public static function startsWithBytes(byteArray:ByteArray, firstBytes:Array):Boolean
+        {
+            if (firstBytes.length > byteArray.length) return false;
+
+            for (var i:int=0, len:int=firstBytes.length; i<len; ++i)
+                if (byteArray[i] != firstBytes[i]) return false;
+
+            return true;
         }
 
         /** Compares the range of bytes within two byte arrays. */

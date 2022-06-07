@@ -36,7 +36,9 @@ package starling.display
     import starling.utils.Color;
     import starling.utils.MathUtil;
     import starling.utils.MatrixUtil;
+    import starling.utils.Pool;
     import starling.utils.SystemUtil;
+    import starling.utils.execute;
 
     use namespace starling_internal;
 
@@ -392,8 +394,8 @@ package starling.display
         /** Draws the object into a BitmapData object.
          *
          *  <p>This is achieved by drawing the object into the back buffer and then copying the
-         *  pixels of the back buffer into a texture. This also means that the returned bitmap
-         *  data cannot be bigger than the current viewPort.</p>
+         *  pixels of the back buffer into a texture. Beware: image sizes bigger than the back
+         *  buffer are only supported in AIR version 25 or higher and NOT in Flash Player.</p>
          *
          *  @param out   If you pass null, the object will be created for you.
          *               If you pass a BitmapData object, it should have the size of the
@@ -412,6 +414,8 @@ package starling.display
             var scaleX:Number = viewPort.width  / stageWidth;
             var scaleY:Number = viewPort.height / stageHeight;
             var backBufferScale:Number = painter.backBufferScaleFactor;
+            var totalScaleX:Number = scaleX * backBufferScale;
+            var totalScaleY:Number = scaleY * backBufferScale;
             var projectionX:Number, projectionY:Number;
             var bounds:Rectangle;
 
@@ -429,27 +433,62 @@ package starling.display
                 projectionX = bounds.x;
                 projectionY = bounds.y;
 
-                out ||= new BitmapData(Math.ceil(bounds.width  * scaleX * backBufferScale),
-                                       Math.ceil(bounds.height * scaleY * backBufferScale));
+                out ||= new BitmapData(Math.ceil(bounds.width  * totalScaleX),
+                                       Math.ceil(bounds.height * totalScaleY));
             }
 
             color = Color.multiply(color, alpha); // premultiply alpha
 
-            painter.clear(color, alpha);
             painter.pushState();
             painter.setupContextDefaults();
             painter.state.renderTarget = null;
             painter.state.setModelviewMatricesToIdentity();
             painter.setStateTo(transformationMatrix);
-            painter.state.setProjectionMatrix(projectionX, projectionY,
-                painter.backBufferWidth / scaleX, painter.backBufferHeight / scaleY,
-                stageWidth, stageHeight, stage.cameraPosition);
 
-            render(painter);
+            // Images that are bigger than the current back buffer are drawn in multiple steps.
 
-            painter.finishMeshBatch();
-            painter.context.drawToBitmapData(out);
+            var stepX:Number;
+            var stepY:Number = projectionY;
+            var stepWidth:Number  = painter.backBufferWidth  / scaleX;
+            var stepHeight:Number = painter.backBufferHeight / scaleY;
+            var positionInBitmap:Point = Pool.getPoint(0, 0);
+            var boundsInBuffer:Rectangle = Pool.getRectangle(0, 0,
+                    painter.backBufferWidth  * backBufferScale,
+                    painter.backBufferHeight * backBufferScale);
+
+            while (positionInBitmap.y < out.height)
+            {
+                stepX = projectionX;
+                positionInBitmap.x = 0;
+
+                while (positionInBitmap.x < out.width)
+                {
+                    painter.clear(color, alpha);
+                    painter.state.setProjectionMatrix(stepX, stepY, stepWidth, stepHeight,
+                        stageWidth, stageHeight, stage.cameraPosition);
+
+                    if (_mask)   painter.drawMask(mask, this);
+
+                    if (_filter) _filter.render(painter);
+                    else         render(painter);
+
+                    if (_mask)   painter.eraseMask(mask, this);
+
+                    painter.finishMeshBatch();
+                    execute(painter.context.drawToBitmapData, out, boundsInBuffer, positionInBitmap);
+
+                    stepX += stepWidth;
+                    positionInBitmap.x += stepWidth * totalScaleX;
+                }
+
+                stepY += stepHeight;
+                positionInBitmap.y += stepHeight * totalScaleY;
+            }
+
             painter.popState();
+
+            Pool.putRectangle(boundsInBuffer);
+            Pool.putPoint(positionInBitmap);
 
             return out;
         }

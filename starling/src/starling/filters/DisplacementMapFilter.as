@@ -15,7 +15,11 @@ package starling.filters
     import starling.display.Stage;
     import starling.rendering.FilterEffect;
     import starling.rendering.Painter;
+    import starling.textures.SubTexture;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
+    import starling.utils.Pool;
+    import starling.utils.RectangleUtil;
 
     /** The DisplacementMapFilter class uses the pixel values from the specified texture (called
      *  the map texture) to perform a displacement of an object. You can use this filter
@@ -42,16 +46,28 @@ package starling.filters
     {
         private var _mapX:Number;
         private var _mapY:Number;
+        private var _mapScaleX:Number;
+        private var _mapScaleY:Number;
 
         // helpers
         private static var sBounds:Rectangle = new Rectangle();
 
-        /** Creates a new displacement map filter that uses the provided map texture. */
+        /** Creates a new displacement map filter that uses the provided map texture.
+         *
+         * @param mapTexture  The texture containing the displacement map data.
+         * @param componentX  Describes which color channel to use in the map image to displace
+         *                    the x result. Possible values are the BitmapDataChannel constants.
+         * @param componentY  Describes which color channel to use in the map image to displace
+         *                    the y result. Possible values are the BitmapDataChannel constants.
+         * @param scaleX      The multiplier used to scale the x displacement result.
+         * @param scaleY      The multiplier used to scale the y displacement result.
+         */
         public function DisplacementMapFilter(mapTexture:Texture,
                                               componentX:uint=0, componentY:uint=0,
                                               scaleX:Number=0.0, scaleY:Number=0.0)
         {
             _mapX = _mapY = 0;
+            _mapScaleX = _mapScaleY = 1.0;
 
             this.mapTexture = mapTexture;
             this.componentX = componentX;
@@ -82,6 +98,20 @@ package starling.filters
             }
 
             updateVertexData(input0, mapTexture, offsetX, offsetY);
+
+            // To allow map textures from a texture atlas, we need to clamp the map
+            // texture coordinates to the subTexture's region (in its root texture).
+
+            if (mapTexture is SubTexture)
+            {
+                var bounds:Rectangle = Pool.getRectangle(0, 0, 1, 1);
+                RectangleUtil.getBounds(bounds, mapTexture.transformationMatrixToRoot, bounds);
+                dispEffect.clampMapTexCoords(bounds.x, bounds.y, bounds.right, bounds.bottom);
+                Pool.putRectangle(bounds);
+            }
+            else
+                dispEffect.clampMapTexCoords();
+
             return super.process(painter, pool, input0);
         }
 
@@ -97,10 +127,12 @@ package starling.filters
             // The size of input texture and map texture may be different. We need to calculate
             // the right values for the texture coordinates at the filter vertices.
 
-            var mapX:Number = (_mapX + mapOffsetX + padding.left) / mapTexture.width;
-            var mapY:Number = (_mapY + mapOffsetY + padding.top)  / mapTexture.height;
-            var maxU:Number = inputTexture.width  / mapTexture.width;
-            var maxV:Number = inputTexture.height / mapTexture.height;
+            var mapWidth:Number  = MathUtil.max(0.1, mapTexture.width  * _mapScaleX);
+            var mapHeight:Number = MathUtil.max(0.1, mapTexture.height * _mapScaleY);
+            var mapX:Number = (_mapX + mapOffsetX + padding.left) / mapWidth;
+            var mapY:Number = (_mapY + mapOffsetY + padding.top)  / mapHeight;
+            var maxU:Number = inputTexture.width  / mapWidth;
+            var maxV:Number = inputTexture.height / mapHeight;
 
             mapTexture.setTexCoords(vertexData, 0, "mapTexCoords", -mapX, -mapY);
             mapTexture.setTexCoords(vertexData, 1, "mapTexCoords", -mapX + maxU, -mapY);
@@ -172,6 +204,14 @@ package starling.filters
         public function get mapY():Number { return _mapY; }
         public function set mapY(value:Number):void { _mapY = value; setRequiresRedraw(); }
 
+        /** The horizontal scale applied to the map texture. @default 1 */
+        public function get mapScaleX():Number { return _mapScaleX; }
+        public function set mapScaleX(value:Number):void { _mapScaleX = value; setRequiresRedraw(); }
+
+        /** The vertical scale applied to the map texture. @default 1 */
+        public function get mapScaleY():Number { return _mapScaleY; }
+        public function set mapScaleY(value:Number):void { _mapScaleY = value; setRequiresRedraw(); }
+
         /** The texture that will be used to calculate displacement. */
         public function get mapTexture():Texture { return dispEffect.mapTexture; }
         public function set mapTexture(value:Texture):void
@@ -226,10 +266,11 @@ class DisplacementMapEffect extends FilterEffect
     private var _componentY:uint;
     private var _scaleX:Number;
     private var _scaleY:Number;
+    private var _mapClamp:Vector.<Number>;
 
     // helper objects
     private static var sOffset:Vector.<Number>  = new <Number>[0.5, 0.5, 0.0, 0.0];
-    private static var sClampUV:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+    private static var sInputClamp:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
     private static var sMatrix:Matrix3D = new Matrix3D();
     private static var sMatrixData:Vector.<Number> =
         new <Number>[0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0];
@@ -238,6 +279,7 @@ class DisplacementMapEffect extends FilterEffect
     {
         _componentX = _componentY = 0;
         _scaleX = _scaleY = 0;
+        _mapClamp = new <Number>[0.0, 0.0, 1.0, 1.0];
     }
 
     override protected function createProgram():Program
@@ -258,21 +300,34 @@ class DisplacementMapEffect extends FilterEffect
             // v0:    input texCoords
             // v1:    map texCoords
             // fc0:   offset (0.5, 0.5)
-            // fc1:   clampUV (max value for U and V, stored in x and y)
-            // fc2-5: matrix
+            // fc1:   clampUV_input (max value for U and V, stored in x and y)
+            // fc2:   clampUV_map (x: min_x, y: min_y, z: max_x, w: max_y)
+            // fc3-6: matrix
 
-            var fragmentShader:String = [
-                tex("ft0", "v1", 1, _mapTexture, false), // read map texture
+            var fragmentShaderLines:Array = [];
+
+            if (mapRepeatActual)
+                fragmentShaderLines.push(
+                    tex("ft0", "v1", 1, _mapTexture, false) // read map texture
+                );
+            else
+                fragmentShaderLines.push(
+                    "max ft4, v1, fc2",           // clamp map texture coords (left / top)
+                    "min ft4.xy, ft4.xy, fc2.zw", // clamp map texture coords (right / bottom)
+                    tex("ft0", "ft4", 1, _mapTexture, false) // read map texture
+                );
+
+            fragmentShaderLines.push(
                 "sub ft1, ft0, fc0",          // subtract 0.5 -> range [-0.5, 0.5]
                 "mul ft1.xy, ft1.xy, ft0.ww", // zero displacement when alpha == 0
-                "m44 ft2, ft1, fc2",          // multiply matrix with displacement values
+                "m44 ft2, ft1, fc3",          // multiply matrix with displacement values
                 "add ft3,  v0, ft2",          // add displacement values to texture coords
                 "sat ft3.xy, ft3.xy",         // move texture coords into range 0-1
                 "min ft3.xy, ft3.xy, fc1.xy", // move texture coords into range 0-maxUV
                 tex("oc", "ft3", 0, texture)  // read input texture at displaced coords
-            ].join("\n");
+            );
 
-            return Program.fromSource(vertexShader, fragmentShader);
+            return Program.fromSource(vertexShader, fragmentShaderLines.join("\n"));
         }
         else return super.createProgram();
     }
@@ -292,15 +347,15 @@ class DisplacementMapEffect extends FilterEffect
 
             getMapMatrix(sMatrix);
 
-            sClampUV[0] = texture.width  / texture.root.width  - 0.5 / texture.root.nativeWidth;
-            sClampUV[1] = texture.height / texture.root.height - 0.5 / texture.root.nativeHeight;
-            var mapRepeat:Boolean = _mapRepeat && _mapTexture.root.isPotTexture;
+            sInputClamp[0] = texture.width  / texture.root.width  - 0.5 / texture.root.nativeWidth;
+            sInputClamp[1] = texture.height / texture.root.height - 0.5 / texture.root.nativeHeight;
 
             vertexFormat.setVertexBufferAt(2, vertexBuffer, "mapTexCoords");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, sOffset);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, sClampUV);
-            context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 2, sMatrix, true);
-            RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, mapRepeat);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, sInputClamp);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 2, _mapClamp);
+            context.setProgramConstantsFromMatrix(Context3DProgramType.FRAGMENT, 3, sMatrix, true);
+            RenderUtil.setSamplerStateAt(1, _mapTexture.mipMapping, textureSmoothing, mapRepeatActual);
             context.setTextureAt(1, _mapTexture.base);
         }
     }
@@ -319,6 +374,11 @@ class DisplacementMapEffect extends FilterEffect
     override public function get vertexFormat():VertexDataFormat
     {
         return VERTEX_FORMAT;
+    }
+
+    override protected function get programVariantName():uint
+    {
+        return super.programVariantName | (mapRepeatActual ? 1 << 4 : 0);
     }
 
     /** This matrix maps RGBA values of the map texture to UV-offsets in the input texture. */
@@ -350,6 +410,18 @@ class DisplacementMapEffect extends FilterEffect
         out.copyRawDataFrom(sMatrixData);
 
         return out;
+    }
+
+    private function get mapRepeatActual():Boolean
+    {
+        return _mapRepeat && _mapTexture.root.isPotTexture;
+    }
+
+    public function clampMapTexCoords(xMin:Number = 0.0, yMin:Number = 0.0,
+                                      xMax:Number = 1.0, yMax:Number = 1.0):void
+    {
+        _mapClamp[0] = xMin; _mapClamp[1] = yMin;
+        _mapClamp[2] = xMax; _mapClamp[3] = yMax;
     }
 
     // properties

@@ -1,6 +1,132 @@
 Starling: Changelog
 ===================
 
+version 2.7 - 2021-07-26
+------------------------
+
+- added 'Event.SKIP_FRAME' and showing number of skipped frames in the stats display (#1082)
+- added 'BlendMode.isRegistered()'
+- added 'BlendMode.getAll()'
+- added config files for _Visual Studio Code_ for all sub-projects
+- added small optimization to Polygon 'contains' method (thanks to Adolio!)
+- added parameter 'forcePotTexture' to RenderTexture constructor (thanks to hardcoremore!)
+- added 'AssetManger.unregisterFactory'
+- added optional 'numSides' parameter to Canvas::drawCircle and Canvas::drawEllipse (#1068)
+- added support for 'TextureOptions.onReady' to BitmapTextureFactory and AtfTextureFactory (thanks to esidegallery!)
+- Android back gesture is now ignored by default (via 'starling.discardSystemGestures')
+- updated mobile scaffold for modern requirements
+  - adaptive icon on Android
+  - making use of Android 'res' folder
+  - iOS icon via 'Assets.car'
+  - removed 'Default.png' and variants
+  - prepared notch support - just add 'Application' ANE from distriqt and comment in some code.
+- updated mobile demo project with a new app icon and simplified its build process
+- fixed that a button's minimum hit area size was too big on Desktop (now 16 on Desktop, 44 on mobile) (#1066)
+- fixed erroneous hit tests on buttons with certain overlays
+  (see [forum thread](https://forum.starling-framework.org/d/22337-issue-with-button-in-starling-26))
+- fixed that color of Glow- and DropShadowFilter was not always applied (#1074)
+- fixed that ScreenSetup class didn't work correctly in AIR simulator
+- fixed that context settings were not correctly restored after a context loss
+- removed 'web' demo (doesn't make much sense after Flash Player's end-of-life)
+- removed Gradle build scripts
+  - I personally don't use Gradle, and the Flair Gradle Plugin hasn't been updated for a long time.
+    Thus, I decided to remove those scripts to reduce maintenance efforts.
+    However, if anyone thinks this is a bad idea and/or can help with maintenance, feel free to ping me!
+- removed Travis CI integration
+  - Keeping the Travis build working has always been a challenge, and since changes to Starling aren't happening
+    as often anymore, it's not vital to have Travis look over it.
+- removed Flash Builder project files
+  - Adobe Flash Builder hasn't been updated in years and there is no hope of it coming back anytime soon.
+    Furthermore, I don't have it installed any longer, so I can't keep the project files in shape.
+    Thus, I decided to remove them from the repository altogether.
+
+version 2.6 - 2020-02-10
+------------------------
+
+- added 'ButtonBehavior' class
+- added 'inner' and 'knockout' modes to DropShadowFilter and GlowFilter
+- added 'AssetManager.dequeue' method
+- added missing parameters to 'MeshBatch.addMeshAt'
+- updated Travis script, as Homebrew now keeps casks updated automatically
+- fixed exception when using empty FilterChain (closes #1063)
+- fixed API reference default value for 'nativeOverlayBlocksTouches'
+
+version 2.5.1 - 2019-04-03
+--------------------------
+
+- fixed null reference exception when stats display was enabled before Starling was initialized
+
+version 2.5 - 2019-04-02
+------------------------
+
+- added 'BezierEasing' class for simple CSS-like transitions (thanks to Rodrigo!)
+- added system gesture recognition - swipes from top or bottom of the screen are now ignored (#861)
+  - configured via new property 'ignoreSystemGestures' on TouchProcessor and Starling
+- added 'Starling.nativeOverlayBlocksTouches' property, which makes native overlay behave more intuitively (#861)
+- added 'stage.getScreenBounds' method
+- added support for SubTextures (atlas textures) to DisplacementMapFilter
+- added 'mapScaleX/Y' properties to the DisplacementMapFilter
+- added standard 'Array' pooling to Pool class
+- added 'ByteArrayUtil.startsWithBytes'; BitmapTextureFactory now checks for JPG, PNG and GIF magic numbers
+- added MP3 magic number check to SoundFactory
+- added HSV / HSL utility methods to 'Color' class (#1035) (thanks to Adolio!)
+- added 'TextureAtlas.removeRegions()' (#1036)
+- added support for enabling/disabling multi-touch at any time (#1048)
+- added new properties and methods to the 'Touch' class
+  - `function getStartLocation(space:DisplayObject, out:Point=null):Point`
+  - `function getMovementSinceStart(space:DisplayObject, out:Point=null):Point`
+  - `function get startGlobalX():Number`
+  - `function get startGlobalY():Number`
+  - `function get duration():Number`
+- enhanced memory management of AssetManager
+- enhanced asset manager verbose output (#1053)
+- enhanced TouchProcessor by pooling raw touch data (#1037)
+- enhanced usefulness of AssetManager's error callback by including the actual asset (#1031) (thanks to aram-ahak!)
+- fixed that stats display didn't align correctly after viewPort changes (#264)
+- fixed that stats display could be cropped when viewPort extended beyond stage bounds (#264)
+- fixed that stats display was not correctly aligned to the right
+- fixed that TrueType text could become blurry when using non-integer content scale factors (#1055)
+- fixed array range checks when accessing filename Regex matches in AssetManager
+- fixed that texture factories did not correctly enter 'onError' callbacks on exceptions during creation
+- fixed that button using a texture with automatic pivot assignment was not scaled correctly when pressed
+- fixed double-dispose of RenderTexture's base texture (#1043)
+- fixed mixed-up JPG/PNG magic numbers
+- fixed missing 'eventStack.pop' call in EventDispatcher (#1038) (thanks to Klug76!)
+- fixed that MovieClip skipped frames in certain floating-point situations
+- fixed that changing stage color did not force redraw
+- fixed that 'onComplete' parameter of 'AssetFactory.create' ignored 'type' parameter
+- fixed that on Windows, an app might render with a blank screen when becoming active (#1032) (thanks to Josh!)
+- fixed API doc sample for nesting AssetManagers (#1030)
+
+version 2.4 - 2018-06-04
+------------------------
+
+- added completely rewritten AssetManager, to be found in the `starling.assets` package
+  - supports custom asset types (in addition to the available textures, sounds, XMLs, etc.)
+  - supports custom asset factories (factories load specific asset types)
+  - supports custom post processors (executed when all assets are loaded)
+  - supports custom data loaders (an object that loads data from local or remote resources)
+  - supports nesting of Asset Managers
+  - supports being used without active Starling instance (for assets that don't require a context)
+  - more intuitive callbacks in the `loadQueue` method
+  - better error handling
+- added support for 8k textures (as added in AIR 29 beta for Desktop targets)
+- added support for the Context3D option 'wantsBestResolutionOnBrowserZoom' via 'Starling.supportBrowserZoom'
+- added optional 'cameraPos' to RenderTexture's draw methods
+- added 'Painter.enableBatchTrimming()' (refs #1023)
+- added workaround for ADL mouse problem on Surface Books (closes #1022) (thanks to Josh!)
+- added ENHANCED stage3D profile to 'auto' profile list (closes #1019)
+- added warning when TextureAtlas or BitmapFont textures are missing
+- added 'copyFrom' method to TextureOptions
+- added warning whenever 'enableErrorChecking' is enabled (closes #1014)
+- optimized memory management by avoiding several 'ByteArray.clear' calls (refs #1027)
+- optimized memory handling in AOT mode by replacing some Vectors with Arrays
+- raised AIR SDK references to version 29
+- fixed Animate CC sprite sheet support by duplicating pivot points across textures with the same prefix (refs #445)
+- fixed that filter and mask on 'this' were ignored by 'DisplayObject.drawToBitmapData'
+- fixed that Juggler.elapsedTime was not raised while juggler was empty
+- fixed floating point problems in texture frame warning
+
 version 2.3 - 2017-12-18
 ------------------------
 

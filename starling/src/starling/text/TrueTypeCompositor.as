@@ -70,12 +70,15 @@ package starling.text
             sHelperQuad.readjustSize();
 
             if (format.horizontalAlign == Align.LEFT) sHelperQuad.x = 0;
-            else if (format.horizontalAlign == Align.CENTER) sHelperQuad.x = int((width - texture.width) / 2);
+            else if (format.horizontalAlign == Align.CENTER) sHelperQuad.x = (width - texture.width) / 2.0;
             else sHelperQuad.x = width - texture.width;
 
             if (format.verticalAlign == Align.TOP) sHelperQuad.y = 0;
-            else if (format.verticalAlign == Align.CENTER) sHelperQuad.y = int((height - texture.height) / 2);
+            else if (format.verticalAlign == Align.CENTER) sHelperQuad.y = (height - texture.height) / 2.0;
             else sHelperQuad.y = height - texture.height;
+
+            sHelperQuad.x = snapToPixels(sHelperQuad.x, options.textureScale);
+            sHelperQuad.y = snapToPixels(sHelperQuad.y, options.textureScale);
 
             meshBatch.addMesh(sHelperQuad);
 
@@ -129,7 +132,7 @@ package starling.text
                 autoScaleNativeTextField(sNativeTextField, text, options.isHtmlText);
 
             var minTextureSize:int = 1;
-            var maxTextureSize:int = Texture.maxSize;
+            var maxTextureSize:int = Texture.getMaxSize(options.textureFormat);
             var paddingX:Number = options.padding * scale;
             var paddingY:Number = options.padding * scale;
             var textWidth:Number  = sNativeTextField.textWidth  + 4;
@@ -181,8 +184,8 @@ package starling.text
             }
         }
 
-        private function autoScaleNativeTextField(textField:flash.text.TextField,
-                                                  text:String, isHtmlText:Boolean):void
+        private static function autoScaleNativeTextField(textField:flash.text.TextField,
+                                                         text:String, isHtmlText:Boolean):void
         {
             var textFormat:flash.text.TextFormat = textField.defaultTextFormat;
             var maxTextWidth:int  = textField.width  - 4;
@@ -198,6 +201,16 @@ package starling.text
 
                 if (isHtmlText) textField.htmlText = text;
                 else            textField.text     = text;
+            }
+        }
+
+        private static function snapToPixels(coordinate:Number, scaleFactor:Number):Number
+        {
+            if (coordinate == 0.0 || scaleFactor == 0.0) return coordinate;
+            else
+            {
+                var pixelSize:Number = 1.0 / scaleFactor;
+                return Math.round(coordinate / pixelSize) * pixelSize;
             }
         }
     }

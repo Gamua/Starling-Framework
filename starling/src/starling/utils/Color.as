@@ -13,7 +13,12 @@ package starling.utils
     import starling.errors.AbstractClassError;
 
     /** A utility class containing predefined colors and methods converting between different
-     *  color representations. */
+     *  color representations.
+     *
+     *  <p>The HSL and HSV calculations conform to theory and implementation found on
+     *  <a href="https://en.wikipedia.org/wiki/HSL_and_HSV">Wikipedia</a> and
+     *  <a href="https://www.rapidtables.com/convert/color/">rapidtables.com</a>.</p>
+     */
     public class Color
     {
         public static const WHITE:uint   = 0xffffff;
@@ -81,6 +86,127 @@ package starling.utils
         public static function argb(alpha:int, red:int, green:int, blue:int):uint
         {
             return (alpha << 24) | (red << 16) | (green << 8) | blue;
+        }
+
+        /** Creates an RGB color from hue, saturation and value (brightness).
+         *  Assumes hue, saturation, and value are contained in the range [0, 1].
+         */
+        public static function hsv(hue:Number, saturation:Number, value:Number):uint
+        {
+            var r:Number, g:Number, b:Number;
+            var i:Number = Math.floor(hue * 6);
+            var f:Number = hue * 6 - i;
+            var p:Number = value * (1 - saturation);
+            var q:Number = value * (1 - f * saturation);
+            var t:Number = value * (1 - (1 - f) * saturation);
+
+            switch (int(i % 6))
+            {
+                case 0: r = value; g = t; b = p; break;
+                case 1: r = q; g = value; b = p; break;
+                case 2: r = p; g = value; b = t; break;
+                case 3: r = p; g = q; b = value; break;
+                case 4: r = t; g = p; b = value; break;
+                case 5: r = value; g = p; b = q; break;
+            }
+
+            return rgb(Math.ceil(r * 255), Math.ceil(g * 255), Math.ceil(b * 255));
+        }
+
+        /** Creates an RGB color from hue, saturation and lightness.
+         *  Assumes hue, saturation, and lightness are contained in the range [0, 1].
+         */
+         public static function hsl(hue:Number, saturation:Number, lightness:Number):uint
+        {
+            var r:Number, g:Number, b:Number;
+            var c:Number = (1.0 - Math.abs(2.0 * lightness - 1.0)) * saturation;
+            var h2:Number = hue * 6.0;
+            var x:Number = c * (1.0 - Math.abs(h2 % 2 - 1.0));
+            var m:Number = lightness - c / 2.0;
+
+            switch (int(h2 % 6))
+            {
+                case 0: r = c + m; g = x + m; b = m; break;
+                case 1: r = x + m; g = c + m; b = m; break;
+                case 2: r = m; g = c + m; b = x + m; break;
+                case 3: r = m; g = x + m; b = c + m; break;
+                case 4: r = x + m; g = m; b = c + m; break;
+                case 5: r = c + m; g = m; b = x + m; break;
+            }
+
+            return rgb(Math.ceil(r * 255), Math.ceil(g * 255), Math.ceil(b * 255));
+        }
+
+        /** Converts an RGB color into a vector with HSV components.
+         *
+         *  @param rgb  the standard RGB color
+         *  @param hsv  a vector to be used for the result; passing null will create a new one.
+         *  @return     a vector containing hue, saturation, and value, in this order. Range: [0..1]
+         */
+        public static function rgbToHsv(rgb:uint, hsv:Vector.<Number>=null):Vector.<Number>
+        {
+            if (hsv == null) hsv = new Vector.<Number>(3, true);
+
+            var r:Number = Color.getRed(rgb)   / 255.0;
+            var g:Number = Color.getGreen(rgb) / 255.0;
+            var b:Number = Color.getBlue(rgb)  / 255.0;
+            var cMax:Number = Math.max(r, g, b);
+            var cMin:Number = Math.min(r, g, b);
+            var delta:Number = cMax - cMin;
+
+            // hue
+            if (delta == 0)     hsv[0] = 0;
+            else if (cMax == r) hsv[0] = (((g - b) / delta) % 6) / 6.0;
+            else if (cMax == g) hsv[0] = ((b - r) / delta + 2) / 6.0;
+            else if (cMax == b) hsv[0] = ((r - g) / delta + 4) / 6.0;
+
+            // normalize [0..1]
+            while (hsv[0] <  0.0) hsv[0] += 1.0;
+            while (hsv[0] >= 1.0) hsv[0] -= 1.0;
+
+            // value / brightness
+            hsv[2] = cMax;
+
+            // saturation
+            hsv[1] = cMax == 0 ? 0 : delta / cMax;
+
+            return hsv;
+        }
+
+        /** Converts an RGB color into a vector with HSV components.
+         *
+         *  @param rgb  the standard RGB color
+         *  @param hsl  a vector to be used for the result; passing null will create a new one.
+         *  @return     a vector containing hue, saturation, and lightness, in this order. Range: [0..1]
+         */
+        public static function rgbToHsl(rgb:uint, hsl:Vector.<Number>=null):Vector.<Number>
+        {
+            if (hsl == null) hsl = new Vector.<Number>(3, true);
+
+            var r:Number = Color.getRed(rgb)   / 255.0;
+            var g:Number = Color.getGreen(rgb) / 255.0;
+            var b:Number = Color.getBlue(rgb)  / 255.0;
+            var cMax:Number = Math.max(r, g, b);
+            var cMin:Number = Math.min(r, g, b);
+            var delta:Number = cMax - cMin;
+
+            // hue
+            if (delta == 0)     hsl[0] = 0;
+            else if (cMax == r) hsl[0] = (((g - b) / delta) % 6) / 6.0;
+            else if (cMax == g) hsl[0] = ((b - r) / delta + 2) / 6.0;
+            else if (cMax == b) hsl[0] = ((r - g) / delta + 4) / 6.0;
+
+            // normalize [0..1]
+            while (hsl[0] <  0.0) hsl[0] += 1.0;
+            while (hsl[0] >= 1.0) hsl[0] -= 1.0;
+
+            // lightness
+            hsl[2] = (cMax + cMin) * 0.5;
+
+            // saturation
+            hsl[1] = delta == 0 ? 0 : delta / (1.0 - Math.abs(2.0 * hsl[2] - 1.0));
+
+            return hsl;
         }
 
         /** Converts a color to a vector containing the RGBA components (in this order) scaled

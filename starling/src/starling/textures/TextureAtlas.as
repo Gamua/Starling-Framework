@@ -254,6 +254,17 @@ package starling.textures
             delete _subTextures[name];
             _subTextureNames = null;
         }
+
+        /** Removes all regions with names that start with the given prefix.
+         *  If no arguments are given, all regions will be removed. */
+        public function removeRegions(prefix:String=""):void
+        {
+            for (var name:String in _subTextures)
+            {
+                if (prefix == "" || name.indexOf(prefix) == 0)
+                    removeRegion(name);
+            }
+        }
         
         /** The base texture that makes up the atlas. */
         public function get texture():Texture { return _atlasTexture; }

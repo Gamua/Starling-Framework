@@ -356,7 +356,7 @@ package starling.rendering
             _rawData.length = numBytes;
             _rawData.writeBytes(sBytes);
 
-            sBytes.clear();
+            sBytes.length = 0;
         }
 
         /** Returns a string representation of the VertexData object,
@@ -1037,7 +1037,7 @@ package starling.rendering
 
         public function set format(value:VertexDataFormat):void
         {
-            if (_format === value) return;
+            if (_format == value) return;
 
             var a:int, i:int, pos:int;
             var srcVertexSize:int = _format.vertexSize;
@@ -1075,10 +1075,13 @@ package starling.rendering
                 }
             }
 
-            _rawData.clear();
+            if (value.vertexSize > _format.vertexSize)
+                _rawData.clear(); // avoid 4k blowup
+
+            _rawData.position = 0;
             _rawData.length = sBytes.length;
             _rawData.writeBytes(sBytes);
-            sBytes.clear();
+            sBytes.length = 0;
 
             _format = value;
             _attributes = _format.attributes;

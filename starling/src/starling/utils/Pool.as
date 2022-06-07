@@ -35,6 +35,7 @@ package starling.utils
         private static var sMatrices:Vector.<Matrix> = new <Matrix>[];
         private static var sMatrices3D:Vector.<Matrix3D> = new <Matrix3D>[];
         private static var sRectangles:Vector.<Rectangle> = new <Rectangle>[];
+        private static var sArrays:Vector.<Array> = new <Array>[];
 
         /** @private */
         public function Pool() { throw new AbstractClassError(); }
@@ -138,6 +139,21 @@ package starling.utils
         public static function putRectangle(rectangle:Rectangle):void
         {
             if (rectangle) sRectangles[sRectangles.length] = rectangle;
+        }
+
+        /** Retrieves an Array instance from the pool. */
+        public static function getArray():Array
+        {
+            if (sArrays.length == 0) return [];
+            else return sArrays.pop();
+        }
+
+        /** Stores an Array instance in the pool (after purging it).
+         *  Don't keep any references to the array after moving it to the pool! */
+        public static function putArray(array:Array):void
+        {
+            array.length = 0;
+            sArrays[sArrays.length] = array;
         }
     }
 }

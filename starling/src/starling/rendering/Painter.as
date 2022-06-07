@@ -93,6 +93,7 @@ package starling.rendering
         private var _stencilReferenceValues:Dictionary;
         private var _clipRectStack:Vector.<Rectangle>;
         private var _batchCacheExclusions:Vector.<DisplayObject>;
+        private var _batchTrimInterval:int = 250;
 
         private var _batchProcessor:BatchProcessor;
         private var _batchProcessorCurr:BatchProcessor; // current  processor
@@ -215,9 +216,12 @@ package starling.rendering
          *                                be enabled. Note that on AIR, you also have to enable
          *                                this setting in the app-xml (application descriptor);
          *                                otherwise, this setting will be silently ignored.
+         * @param supportBrowserZoom      if enabled, zooming a website will adapt the size of
+         *                                the back buffer.
          */
         public function configureBackBuffer(viewPort:Rectangle, contentScaleFactor:Number,
-                                            antiAlias:int, enableDepthAndStencil:Boolean):void
+                                            antiAlias:int, enableDepthAndStencil:Boolean,
+                                            supportBrowserZoom:Boolean=false):void
         {
             if (!_shareContext)
             {
@@ -241,8 +245,8 @@ package starling.rendering
                 _stage3D.x = viewPort.x;
                 _stage3D.y = viewPort.y;
 
-                _context.configureBackBuffer(viewPort.width, viewPort.height,
-                    antiAlias, enableDepthAndStencil, contentScaleFactor != 1.0);
+                _context.configureBackBuffer(viewPort.width, viewPort.height, antiAlias,
+                    enableDepthAndStencil, contentScaleFactor != 1.0, supportBrowserZoom);
             }
 
             _backBufferWidth  = viewPort.width;
@@ -564,11 +568,31 @@ package starling.rendering
             _batchProcessor.finishBatch();
         }
 
+        /** Indicate how often the internally used batches are being trimmed to save memory.
+         *
+         *  <p>While rendering, the internally used MeshBatches are used in a different way in each
+         *  frame. To save memory, they should be trimmed every once in a while. This method defines
+         *  how often that happens, if at all. (Default: enabled = true, interval = 250)</p>
+         *
+         *  @param enabled   If trimming happens at all. Only disable temporarily!
+         *  @param interval  The number of frames between each trim operation.
+         */
+        public function enableBatchTrimming(enabled:Boolean=true, interval:int=250):void
+        {
+            _batchTrimInterval = enabled ? interval : 0;
+        }
+
         /** Completes all unfinished batches, cleanup procedures. */
         public function finishFrame():void
         {
-            if (_frameID %  99 == 0) _batchProcessorCurr.trim(); // odd number -> alternating processors
-            if (_frameID % 150 == 0) _batchProcessorSpec.trim();
+            if (_batchTrimInterval > 0)
+            {
+                const baseInterval:int = _batchTrimInterval | 0x1; // odd number -> alternating processors
+                const specInterval:int = _batchTrimInterval * 1.5;
+
+                if (_frameID % baseInterval == 0) _batchProcessorCurr.trim();
+                if (_frameID % specInterval == 0) _batchProcessorSpec.trim();
+            }
 
             _batchProcessor.finishBatch();
             _batchProcessor = _batchProcessorSpec; // no cache between frames
@@ -824,6 +848,18 @@ package starling.rendering
             }
         }
 
+        /** Refreshes the values of "backBufferWidth" and "backBufferHeight" from the current
+         *  context dimensions and stores the given "backBufferScaleFactor". This method is
+         *  called by Starling when the browser zoom factor changes (in case "supportBrowserZoom"
+         *  is enabled).
+         */
+        public function refreshBackBufferSize(scaleFactor:Number):void
+        {
+            _backBufferWidth = _context.backBufferWidth;
+            _backBufferHeight = _context.backBufferHeight;
+            _backBufferScaleFactor = scaleFactor;
+        }
+
         // properties
         
         /** Indicates the number of stage3D draw calls. */
@@ -917,14 +953,14 @@ package starling.rendering
 
         /** Returns the current width of the back buffer. In most cases, this value is in pixels;
          *  however, if the app is running on an HiDPI display with an activated
-         *  'supportHighResolutions' setting, you have to multiply with 'backBufferPixelsPerPoint'
+         *  'supportHighResolutions' setting, you have to multiply with 'backBufferScaleFactor'
          *  for the actual pixel count. Alternatively, use the Context3D-property with the
          *  same name: it will return the exact pixel values. */
         public function get backBufferWidth():int { return _backBufferWidth; }
 
         /** Returns the current height of the back buffer. In most cases, this value is in pixels;
          *  however, if the app is running on an HiDPI display with an activated
-         *  'supportHighResolutions' setting, you have to multiply with 'backBufferPixelsPerPoint'
+         *  'supportHighResolutions' setting, you have to multiply with 'backBufferScaleFactor'
          *  for the actual pixel count. Alternatively, use the Context3D-property with the
          *  same name: it will return the exact pixel values. */
         public function get backBufferHeight():int { return _backBufferHeight; }
