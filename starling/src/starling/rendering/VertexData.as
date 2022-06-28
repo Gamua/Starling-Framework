@@ -488,8 +488,10 @@ package starling.rendering
         {
             var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
             _rawData.position = vertexID * _vertexSize + offset;
-            var rgba:uint = switchEndian(_rawData.readUnsignedInt());
+            _rawData.endian = Endian.BIG_ENDIAN; // colors are always stored in big endian
+            var rgba:uint = _rawData.readUnsignedInt();
             if (_premultipliedAlpha) rgba = unmultiplyAlpha(rgba);
+            _rawData.endian = Endian.LITTLE_ENDIAN;
             return (rgba >> 8) & 0xffffff;
         }
 
@@ -507,9 +509,8 @@ package starling.rendering
         public function getAlpha(vertexID:int, attrName:String="color"):Number
         {
             var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
-            _rawData.position = vertexID * _vertexSize + offset;
-            var rgba:uint = switchEndian(_rawData.readUnsignedInt());
-            return (rgba & 0xff) / 255.0;
+            var position:int = vertexID * _vertexSize + offset + 3;
+            return _rawData[position] / 255.0;
         }
 
         /** Writes the given alpha value to the specified vertex and attribute (range 0-1). */
@@ -670,6 +671,8 @@ package starling.rendering
         {
             if (updateData && value != _premultipliedAlpha)
             {
+                _rawData.endian = Endian.BIG_ENDIAN;
+
                 for (var i:int=0; i<_numAttributes; ++i)
                 {
                     var attribute:VertexDataAttribute = _attributes[i];
@@ -682,16 +685,18 @@ package starling.rendering
                         for (var j:int=0; j<_numVertices; ++j)
                         {
                             _rawData.position = pos;
-                            oldColor = switchEndian(_rawData.readUnsignedInt());
+                            oldColor = _rawData.readUnsignedInt();
                             newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
 
                             _rawData.position = pos;
-                            _rawData.writeUnsignedInt(switchEndian(newColor));
+                            _rawData.writeUnsignedInt(newColor);
 
                             pos += _vertexSize;
                         }
                     }
                 }
+
+                _rawData.endian = Endian.LITTLE_ENDIAN;
             }
 
             _premultipliedAlpha = value;
@@ -786,6 +791,7 @@ package starling.rendering
                 numVertices = _numVertices - vertexID;
 
             _tinted = true; // factor must be != 1, so there's definitely tinting.
+            _rawData.endian = Endian.BIG_ENDIAN; // we're only manipulating color data here
 
             var i:int;
             var offset:int = attrName == "color" ? _colOffset : getAttribute(attrName).offset;
@@ -807,16 +813,18 @@ package starling.rendering
                 else
                 {
                     _rawData.position = colorPos;
-                    rgba = unmultiplyAlpha(switchEndian(_rawData.readUnsignedInt()));
+                    rgba = unmultiplyAlpha(_rawData.readUnsignedInt());
                     rgba = (rgba & 0xffffff00) | (int(alpha * 255.0) & 0xff);
                     rgba = premultiplyAlpha(rgba);
 
                     _rawData.position = colorPos;
-                    _rawData.writeUnsignedInt(switchEndian(rgba));
+                    _rawData.writeUnsignedInt(rgba);
                 }
 
                 colorPos += _vertexSize;
             }
+
+            _rawData.endian = Endian.LITTLE_ENDIAN;
         }
 
         /** Writes the given RGB and alpha values to the specified vertices. */
@@ -841,14 +849,17 @@ package starling.rendering
             if (_premultipliedAlpha && alpha != 1.0) rgba = premultiplyAlpha(rgba);
 
             _rawData.position = vertexID * _vertexSize + offset;
-            _rawData.writeUnsignedInt(switchEndian(rgba));
+            _rawData.endian = Endian.BIG_ENDIAN; // colors are stored as big endian!
+            _rawData.writeUnsignedInt(rgba);
 
             while (pos < endPos)
             {
                 _rawData.position = pos;
-                _rawData.writeUnsignedInt(switchEndian(rgba));
+                _rawData.writeUnsignedInt(rgba);
                 pos += _vertexSize;
             }
+
+            _rawData.endian = Endian.LITTLE_ENDIAN;
         }
 
         // format helpers
@@ -932,6 +943,8 @@ package starling.rendering
             return null;
         }
 
+        /*
+        // Currently not in use.
         [Inline]
         private static function switchEndian(value:uint):uint
         {
@@ -940,6 +953,7 @@ package starling.rendering
                    ((value >> 16) & 0xff) <<  8 |
                    ((value >> 24) & 0xff);
         }
+        */
 
         private static function premultiplyAlpha(rgba:uint):uint
         {
