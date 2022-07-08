@@ -115,9 +115,9 @@ package starling.animation
 
         /** Marks the cell used by the object as "free".
          *
-         * <p>This method does not actually remove the object from the list to not alterate it
-         * (in case it is currently being browsed). The cell will be fully cleaned & re-used
-         * on the next call to 'advanceTime'.</p>
+         * <p>This method leaves an empty slot in the object list, just in case it is currently
+         * being iterated over. The cell will be fully cleaned & re-used on the next call to
+         * 'advanceTime'.</p>
          *
          * <p>Important: a valid index must be used here.</p>
          *
