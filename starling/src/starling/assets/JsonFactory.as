@@ -18,7 +18,8 @@ package starling.assets
         override public function canHandle(reference:AssetReference):Boolean
         {
             return super.canHandle(reference) || (reference.data is ByteArray &&
-                ByteArrayUtil.startsWithString(reference.data as ByteArray, "{"));
+                (ByteArrayUtil.startsWithString(reference.data as ByteArray, "{")
+                || ByteArrayUtil.startsWithString(reference.data as ByteArray, "[")));
         }
 
         /** @inheritDoc */
