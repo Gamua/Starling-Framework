@@ -219,12 +219,22 @@ package starling.animation
         /** Removes all objects at once. */
         public function purge():void
         {
+            var i:int;
+
+            // if possible, request removals through events
+            // this ensures that tweens from the pool are properly returned
+            for (i=_objects.length-1; i>=0; --i)
+            {
+                var dispatcher:EventDispatcher = _objects[i] as EventDispatcher;
+                if (dispatcher) dispatcher.dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
+            }
+
+            // remove the remaining objects
             // the object vector is not purged right away, because if this method is called
             // from an 'advanceTime' call, this would make the loop crash. Instead, the
             // vector is filled with 'null' values. They will be cleaned up on the next call
             // to 'advanceTime'.
-
-            for (var i:int=_objects.length-1; i>=0; --i)
+            for (i=_objects.length-1; i>=0; --i)
                 removeByIndex(i);
         }
 
@@ -314,13 +324,16 @@ package starling.animation
                     throw new ArgumentError("Invalid property: " + property);
             }
 
-            tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
+            tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenRemoveRequested);
             return add(tween);
         }
 
-        private function onPooledTweenComplete(event:Event):void
+        private function onPooledTweenRemoveRequested(event:Event):void
         {
+            // return the tween to the pool
             Tween.starling_internal::toPool(event.target as Tween);
+
+            // note: no need to actually remove the tween here, the Juggler will already take care of that.
         }
 
         /** Advances all objects by a certain time (in seconds). */
