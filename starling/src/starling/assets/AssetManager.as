@@ -955,7 +955,7 @@ package starling.assets
         {
             if (url)
             {
-                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                var matches:Array = matchRegEx(url);
                 if (matches && matches.length > 1) return matches[1];
             }
             return null;
@@ -969,7 +969,7 @@ package starling.assets
         {
             if (url)
             {
-                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                var matches:Array = matchRegEx(url);
                 if (matches && matches.length > 2) return matches[2];
             }
             return null;
@@ -985,10 +985,15 @@ package starling.assets
         {
             if (url)
             {
-                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                var matches:Array = matchRegEx(url);
                 if (matches && matches.length > 3) return matches[3];
             }
             return "";
+        }
+        
+        protected function matchRegEx(url:String):Array
+        {
+            return NAME_REGEX.exec(decodeURIComponent(url));
         }
 
         /** Disposes the given asset. ByteArrays are cleared, XMLs are disposed using
