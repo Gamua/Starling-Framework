@@ -77,7 +77,7 @@ package starling.animation
             if (object && !contains(object))
             {
                 var dispatcher:EventDispatcher = object as EventDispatcher;
-                if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+                if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemoveRequested);
 
                 _objects[_objects.length] = object;
                 _objectIDs[_objectIDs.length] = objectID;
@@ -129,13 +129,17 @@ package starling.animation
             var object:IAnimatable = _objects[index];
             var objectID:uint = _objectIDs[index];
 
-            // remove the event listener
-            var dispatcher:EventDispatcher = object as EventDispatcher;
-            if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-
             // free the cell
             _objects[index] = null;
             _objectIDs[index] = 0;
+
+            // remove the event listener and dispatch removed event
+            var dispatcher:EventDispatcher = object as EventDispatcher;
+            if (dispatcher)
+            {
+                dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemoveRequested);
+                dispatcher.dispatchEventWith(Event.REMOVED_FROM_JUGGLER);
+            }
 
             return objectID;
         }
@@ -240,7 +244,7 @@ package starling.animation
             if (call == null) throw new ArgumentError("call must not be null");
 
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, delay, args);
-            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
+            delayedCall.addEventListener(Event.REMOVED_FROM_JUGGLER, onPooledDelayedCallRemovedFromJuggler);
             return add(delayedCall);
         }
 
@@ -256,11 +260,11 @@ package starling.animation
 
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, interval, args);
             delayedCall.repeatCount = repeatCount;
-            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
+            delayedCall.addEventListener(Event.REMOVED_FROM_JUGGLER, onPooledDelayedCallRemovedFromJuggler);
             return add(delayedCall);
         }
 
-        private function onPooledDelayedCallComplete(event:Event):void
+        private function onPooledDelayedCallRemovedFromJuggler(event:Event):void
         {
             DelayedCall.starling_internal::toPool(event.target as DelayedCall);
         }
@@ -314,11 +318,11 @@ package starling.animation
                     throw new ArgumentError("Invalid property: " + property);
             }
 
-            tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
+            tween.addEventListener(Event.REMOVED_FROM_JUGGLER, onPooledTweenRemovedFromJuggler);
             return add(tween);
         }
 
-        private function onPooledTweenComplete(event:Event):void
+        private function onPooledTweenRemovedFromJuggler(event:Event):void
         {
             Tween.starling_internal::toPool(event.target as Tween);
         }
@@ -377,7 +381,7 @@ package starling.animation
             }
         }
 
-        private function onRemove(event:Event):void
+        private function onRemoveRequested(event:Event):void
         {
             var objectID:uint = remove(event.target as IAnimatable);
 
