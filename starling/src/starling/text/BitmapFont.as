@@ -469,6 +469,8 @@ package starling.text
             
             if (vAlign == Align.BOTTOM)      yOffset =  containerHeight - bottom;
             else if (vAlign == Align.CENTER) yOffset = (containerHeight - bottom) / 2;
+
+            if (yOffset < 0.0) yOffset = 0.0;
             
             for (var lineID:int=0; lineID<numLines; ++lineID)
             {
