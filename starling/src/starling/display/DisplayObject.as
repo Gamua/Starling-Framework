@@ -1224,7 +1224,14 @@ package starling.display
         
         /** Indicates if the masked region of this object is set to be inverted.*/
         public function get maskInverted():Boolean { return _maskInverted; }
-        public function set maskInverted(value:Boolean):void { _maskInverted = value; }
+        public function set maskInverted(value:Boolean):void
+        {
+            if (value != _maskInverted)
+            {
+                _maskInverted = value;
+                setRequiresRedraw();
+            }
+        }
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }
