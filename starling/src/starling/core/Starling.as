@@ -1222,7 +1222,7 @@ package starling.core
 
         /** The default texture smoothing value of 'Starling.current', or 'bilinear'.
          *  @default "bilinear" */
-        public static function get defaultTextureSmoothing():String
+        public static function get currentDefaultTextureSmoothing():String
         {
             return sCurrent ? sCurrent._defaultTextureSmoothing : TextureSmoothing.BILINEAR;
         }
