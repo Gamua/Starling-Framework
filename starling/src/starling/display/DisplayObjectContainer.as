@@ -358,6 +358,7 @@ package starling.display
             var frameID:uint = painter.frameID;
             var cacheEnabled:Boolean = frameID !=0;
             var selfOrParentChanged:Boolean = _lastParentOrSelfChangeFrameID == frameID;
+            var sharesMaskWithPreviousObject:Boolean = false;
 
             painter.pushState();
 
@@ -393,12 +394,34 @@ package starling.display
                         painter.fillToken(pushToken);
                         painter.setStateTo(child.transformationMatrix, child.alpha, child.blendMode);
 
-                        if (mask) painter.drawMask(mask, child);
+                        if (mask)
+                        {
+                            if (sharesMaskWithPreviousObject)
+                                painter.excludeFromCache(child);
+                            else
+                                painter.drawMask(mask, child);
+                        }
 
                         if (filter) filter.render(painter);
                         else        child.render(painter);
 
-                        if (mask) painter.eraseMask(mask, child);
+                        if (mask)
+                        {
+                            var nextChild:DisplayObject =
+                                    i >= numChildren - 1 ? null : _children[i + 1];
+
+                            if (nextChild != null && nextChild._mask == mask &&
+                                nextChild.maskInverted == child.maskInverted &&
+                                nextChild._hasVisibleArea)
+                            {
+                                sharesMaskWithPreviousObject = true;
+                            }
+                            else
+                            {
+                                sharesMaskWithPreviousObject = false;
+                                painter.eraseMask(mask, child);
+                            }
+                        }
 
                         painter.fillToken(popToken);
                     }
