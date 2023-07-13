@@ -126,6 +126,7 @@ package starling.display
         /** Returns true if a blend mode with the given name is available. */
         public static function isRegistered(modeName:String):Boolean
         {
+			if (sBlendModes == null) registerDefaults();
             return modeName in sBlendModes;
         }
 

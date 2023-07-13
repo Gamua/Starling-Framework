@@ -119,7 +119,7 @@ package starling.filters
         {
             _resolution = 1.0;
             _textureFormat = Context3DTextureFormat.BGRA;
-            _textureSmoothing = Starling.defaultTextureSmoothing;
+            _textureSmoothing = Starling.currentDefaultTextureSmoothing;
 
             // Handle lost context (using conventional Flash event for weak listener support)
             Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,

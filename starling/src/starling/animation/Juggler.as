@@ -10,8 +10,6 @@
 
 package starling.animation
 {
-    import flash.utils.Dictionary;
-
     import starling.core.starling_internal;
     import starling.events.Event;
     import starling.events.EventDispatcher;
@@ -49,7 +47,7 @@ package starling.animation
     public class Juggler implements IAnimatable
     {
         private var _objects:Vector.<IAnimatable>;
-        private var _objectIDs:Dictionary;
+        private var _objectIDs:Vector.<uint>;
         private var _elapsedTime:Number;
         private var _timeScale:Number;
 
@@ -61,7 +59,7 @@ package starling.animation
             _elapsedTime = 0;
             _timeScale = 1.0;
             _objects = new <IAnimatable>[];
-            _objectIDs = new Dictionary(true);
+            _objectIDs = new <uint>[];
         }
 
         /** Adds an object to the juggler.
@@ -76,13 +74,13 @@ package starling.animation
 
         private function addWithID(object:IAnimatable, objectID:uint):uint
         {
-            if (object && !(object in _objectIDs))
+            if (object && !contains(object))
             {
                 var dispatcher:EventDispatcher = object as EventDispatcher;
-                if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
+                if (dispatcher) dispatcher.addEventListener(Event.REMOVE_FROM_JUGGLER, onRemoveRequested);
 
                 _objects[_objects.length] = object;
-                _objectIDs[object] = objectID;
+                _objectIDs[_objectIDs.length] = objectID;
 
                 return objectID;
             }
@@ -92,7 +90,7 @@ package starling.animation
         /** Determines if an object has been added to the juggler. */
         public function contains(object:IAnimatable):Boolean
         {
-            return object in _objectIDs;
+            return _objects.indexOf(object) != -1;
         }
 
         /** Returns true if there is currently no object being juggled. */
@@ -108,18 +106,39 @@ package starling.animation
          */
         public function remove(object:IAnimatable):uint
         {
-            var objectID:uint = 0;
+            var objectIndex:int = _objects.indexOf(object);
+            if (objectIndex != -1)
+                return removeByIndex(objectIndex);
 
-            if (object && object in _objectIDs)
+            return 0;
+        }
+
+        /** Marks the cell used by the object as "free".
+         *
+         * <p>This method leaves an empty slot in the object list, just in case it is currently
+         * being iterated over. The cell will be fully cleaned & re-used on the next call to
+         * 'advanceTime'.</p>
+         *
+         * <p>Important: a valid index must be used here.</p>
+         *
+         * @return The id of "removed" object.
+         */
+        private function removeByIndex(index:int):uint
+        {
+            // get properties
+            var object:IAnimatable = _objects[index];
+            var objectID:uint = _objectIDs[index];
+
+            // free the cell
+            _objects[index] = null;
+            _objectIDs[index] = 0;
+
+            // remove the event listener and dispatch removed event
+            var dispatcher:EventDispatcher = object as EventDispatcher;
+            if (dispatcher)
             {
-                var dispatcher:EventDispatcher = object as EventDispatcher;
-                if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-
-                var index:int = _objects.indexOf(object);
-                _objects[index] = null;
-
-                objectID = _objectIDs[object];
-                delete _objectIDs[object];
+                dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemoveRequested);
+                dispatcher.dispatchEventWith(Event.REMOVED_FROM_JUGGLER);
             }
 
             return objectID;
@@ -138,16 +157,9 @@ package starling.animation
          */
         public function removeByID(objectID:uint):uint
         {
-            for (var i:int=_objects.length-1; i>=0; --i)
-            {
-                var object:IAnimatable = _objects[i];
-
-                if (_objectIDs[object] == objectID)
-                {
-                    remove(object);
-                    return objectID;
-                }
-            }
+            var objectIndex:int = _objectIDs.indexOf(objectID);
+            if (objectIndex != -1)
+                return removeByIndex(objectIndex);
 
             return 0;
         }
@@ -161,11 +173,7 @@ package starling.animation
             {
                 var tween:Tween = _objects[i] as Tween;
                 if (tween && tween.target == target)
-                {
-                    tween.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-                    _objects[i] = null;
-                    delete _objectIDs[tween];
-                }
+                    removeByIndex(i);
             }
         }
 
@@ -178,11 +186,7 @@ package starling.animation
             {
                 var delayedCall:DelayedCall = _objects[i] as DelayedCall;
                 if (delayedCall && delayedCall.callback == callback)
-                {
-                    delayedCall.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-                    _objects[i] = null;
-                    delete _objectIDs[delayedCall];
-                }
+                    removeByIndex(i);
             }
         }
 
@@ -225,13 +229,7 @@ package starling.animation
             // to 'advanceTime'.
 
             for (var i:int=_objects.length-1; i>=0; --i)
-            {
-                var object:IAnimatable = _objects[i];
-                var dispatcher:EventDispatcher = object as EventDispatcher;
-                if (dispatcher) dispatcher.removeEventListener(Event.REMOVE_FROM_JUGGLER, onRemove);
-                _objects[i] = null;
-                delete _objectIDs[object];
-            }
+                removeByIndex(i);
         }
 
         /** Delays the execution of a function until <code>delay</code> seconds have passed.
@@ -246,7 +244,7 @@ package starling.animation
             if (call == null) throw new ArgumentError("call must not be null");
 
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, delay, args);
-            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
+            delayedCall.addEventListener(Event.REMOVED_FROM_JUGGLER, onPooledDelayedCallRemovedFromJuggler);
             return add(delayedCall);
         }
 
@@ -262,11 +260,11 @@ package starling.animation
 
             var delayedCall:DelayedCall = DelayedCall.starling_internal::fromPool(call, interval, args);
             delayedCall.repeatCount = repeatCount;
-            delayedCall.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledDelayedCallComplete);
+            delayedCall.addEventListener(Event.REMOVED_FROM_JUGGLER, onPooledDelayedCallRemovedFromJuggler);
             return add(delayedCall);
         }
 
-        private function onPooledDelayedCallComplete(event:Event):void
+        private function onPooledDelayedCallRemovedFromJuggler(event:Event):void
         {
             DelayedCall.starling_internal::toPool(event.target as DelayedCall);
         }
@@ -320,11 +318,11 @@ package starling.animation
                     throw new ArgumentError("Invalid property: " + property);
             }
 
-            tween.addEventListener(Event.REMOVE_FROM_JUGGLER, onPooledTweenComplete);
+            tween.addEventListener(Event.REMOVED_FROM_JUGGLER, onPooledTweenRemovedFromJuggler);
             return add(tween);
         }
 
-        private function onPooledTweenComplete(event:Event):void
+        private function onPooledTweenRemovedFromJuggler(event:Event):void
         {
             Tween.starling_internal::toPool(event.target as Tween);
         }
@@ -348,13 +346,16 @@ package starling.animation
             for (i=0; i<numObjects; ++i)
             {
                 var object:IAnimatable = _objects[i];
+
                 if (object)
                 {
                     // shift objects into empty slots along the way
                     if (currentIndex != i)
                     {
                         _objects[currentIndex] = object;
+                        _objectIDs[currentIndex] = _objectIDs[i];
                         _objects[i] = null;
+                        _objectIDs[i] = 0;
                     }
 
                     object.advanceTime(time);
@@ -367,13 +368,20 @@ package starling.animation
                 numObjects = _objects.length; // count might have changed!
 
                 while (i < numObjects)
-                    _objects[int(currentIndex++)] = _objects[int(i++)];
+                {
+                    _objects[currentIndex] = _objects[i];
+                    _objectIDs[currentIndex] = _objectIDs[i];
+
+                    currentIndex++;
+                    i++;
+                }
 
                 _objects.length = currentIndex;
+                _objectIDs.length = currentIndex;
             }
         }
 
-        private function onRemove(event:Event):void
+        private function onRemoveRequested(event:Event):void
         {
             var objectID:uint = remove(event.target as IAnimatable);
 

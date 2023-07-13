@@ -955,7 +955,7 @@ package starling.assets
         {
             if (url)
             {
-                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                var matches:Array = matchRegEx(url);
                 if (matches && matches.length > 1) return matches[1];
             }
             return null;
@@ -969,7 +969,7 @@ package starling.assets
         {
             if (url)
             {
-                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                var matches:Array = matchRegEx(url);
                 if (matches && matches.length > 2) return matches[2];
             }
             return null;
@@ -985,10 +985,23 @@ package starling.assets
         {
             if (url)
             {
-                var matches:Array = NAME_REGEX.exec(decodeURIComponent(url));
+                var matches:Array = matchRegEx(url);
                 if (matches && matches.length > 3) return matches[3];
             }
             return "";
+        }
+
+        /** This method extracts an assets name and extension from an url (which can point to
+         *  a remote or local resource). It's called by `getName-` and `getExtensionFromUrl`.
+         *
+         * @param url to a local or remote resource
+         * @return An array, in which element 0 contains the complete matching substring,
+         *         and elements 1 to 3 contain the complete filename, the base name, and the
+         *         file extension, respectively.
+         */
+        protected function matchRegEx(url:String):Array
+        {
+            return NAME_REGEX.exec(decodeURIComponent(url));
         }
 
         /** Disposes the given asset. ByteArrays are cleared, XMLs are disposed using
