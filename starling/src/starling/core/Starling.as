@@ -442,6 +442,10 @@ package starling.core
             var doRedraw:Boolean = _stage.requiresRedraw || mustAlwaysRender;
             if (doRedraw)
             {
+                // setup next frame before the RENDER event to take into account all draw calls
+                // that could happen in reaction of the event.
+                _painter.nextFrame();
+
                 dispatchEventWith(starling.events.Event.RENDER);
 
                 var shareContext:Boolean = _painter.shareContext;
@@ -449,7 +453,6 @@ package starling.core
                 var scaleY:Number = _viewPort.height / _stage.stageHeight;
                 var stageColor:uint = _stage.color;
 
-                _painter.nextFrame();
                 _painter.pixelSize = 1.0 / contentScaleFactor;
                 _painter.state.setProjectionMatrix(
                     _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
