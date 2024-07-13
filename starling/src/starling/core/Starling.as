@@ -429,7 +429,8 @@ package starling.core
          *
          *  <p>This method also dispatches an <code>Event.RENDER</code>-event on the Starling
          *  instance. That's the last opportunity to make changes before the display list is
-         *  rendered.</p> */
+         *  rendered. When the rendering is completed, this method dispatches an
+         *  <code>Event.RENDER_COMPLETE</code>-event on the Starling instance too.</p> */
         public function render():void
         {
             if (!contextValid)
@@ -466,6 +467,8 @@ package starling.core
 
                 if (!shareContext)
                     _painter.present();
+
+                 dispatchEventWith(starling.events.Event.RENDER_COMPLETE);
             }
             else
                 dispatchEventWith(starling.events.Event.SKIP_FRAME);
