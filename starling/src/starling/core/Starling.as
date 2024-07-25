@@ -429,7 +429,8 @@ package starling.core
          *
          *  <p>This method also dispatches an <code>Event.RENDER</code>-event on the Starling
          *  instance. That's the last opportunity to make changes before the display list is
-         *  rendered.</p> */
+         *  rendered. When the rendering is completed, this method dispatches an
+         *  <code>Event.RENDER_COMPLETE</code>-event on the Starling instance too.</p> */
         public function render():void
         {
             if (!contextValid)
@@ -441,6 +442,10 @@ package starling.core
             var doRedraw:Boolean = _stage.requiresRedraw || mustAlwaysRender;
             if (doRedraw)
             {
+                // setup next frame before the RENDER event to take into account all draw calls
+                // that could happen in reaction of the event.
+                _painter.nextFrame();
+
                 dispatchEventWith(starling.events.Event.RENDER);
 
                 var shareContext:Boolean = _painter.shareContext;
@@ -448,7 +453,6 @@ package starling.core
                 var scaleY:Number = _viewPort.height / _stage.stageHeight;
                 var stageColor:uint = _stage.color;
 
-                _painter.nextFrame();
                 _painter.pixelSize = 1.0 / contentScaleFactor;
                 _painter.state.setProjectionMatrix(
                     _viewPort.x < 0 ? -_viewPort.x / scaleX : 0.0,
@@ -466,6 +470,8 @@ package starling.core
 
                 if (!shareContext)
                     _painter.present();
+
+                 dispatchEventWith(starling.events.Event.RENDER_COMPLETE);
             }
             else
                 dispatchEventWith(starling.events.Event.SKIP_FRAME);
