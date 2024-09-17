@@ -305,6 +305,7 @@ package starling.display
             }
             else
             {
+                var sizedChildrenCount:uint = 0;
                 var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
                 var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
 
@@ -312,13 +313,29 @@ package starling.display
                 {
                     _children[i].getBounds(targetSpace, out);
 
+                    // ignore child with no size
+                    if (out.width == 0 && out.height == 0)
+                        continue;
+
+                    ++sizedChildrenCount;
                     if (minX > out.x)      minX = out.x;
                     if (maxX < out.right)  maxX = out.right;
                     if (minY > out.y)      minY = out.y;
                     if (maxY < out.bottom) maxY = out.bottom;
                 }
 
-                out.setTo(minX, minY, maxX - minX, maxY - minY);
+                // all children have no size
+                if (sizedChildrenCount == 0)
+                {
+                    getTransformationMatrix(targetSpace, sBoundsMatrix);
+                    MatrixUtil.transformCoords(sBoundsMatrix, 0.0, 0.0, sBoundsPoint);
+                    out.setTo(sBoundsPoint.x, sBoundsPoint.y, 0, 0);
+                }
+                // at least one child is sized
+                else
+                {
+                    out.setTo(minX, minY, maxX - minX, maxY - minY);
+                }
             }
             
             return out;
