@@ -1,4 +1,4 @@
-> **NOTE:**  This source is for targetting Flash Player, while it's no longer available it is provided for archival reasons, as it can be useful reference for people working on Flash Player emulators (e.g. Ruffle, AwayFL) or people making content targetting said emulators.
+> **NOTE:**  This source is for targetting Flash Player. While Flash Player itself is no longer available, this source is provided for archival reason, as it can be useful reference for people working on Flash Player emulators like Ruffle or AwayFL and as reference for people making content targetting said emulators.
 
 How to build this Sample
 ========================
