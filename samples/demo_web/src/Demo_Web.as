@@ -15,10 +15,8 @@ package
     // If you set this class as your 'default application', it will run without a preloader.
     // To use a preloader, see 'Demo_Web_Preloader.as'.
 
-    // This project requires the sources of the "demo" project. Add them either by
-    // referencing the "demo/src" directory as a "source path", or by copying the files.
-    // The "media" folder of this project has to be added to its "source paths" as well,
-    // to make sure the icon and startup images are added to the compiled mobile app.
+    // This project requires the sources of the "demo_mobile" project. Add them either by
+    // referencing the "demo_mobile/src" directory as a "source path", or by copying the files.
     
     [SWF(width="320", height="480", frameRate="60", backgroundColor="#222222")]
     public class Demo_Web extends Sprite
