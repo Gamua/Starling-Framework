@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"output": "bin-debug/Demo_Web.swf",
+		"source-path": [
+			"src",
+			"../demo_mobile/src",
+			"../demo_mobile/assets",
+			"../demo_mobile/system",
+			"../../starling/src"
+		]
+	},
+	"mainClass": "Demo_Web_Preloader",
+	"copySourcePathAssets": false,
+	"additionalOptions": "-locale en_US -frame StartupFrame Demo_Web"
+}
