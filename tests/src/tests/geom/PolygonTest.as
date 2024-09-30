@@ -47,6 +47,16 @@ package tests.geom
         }
 
         [Test]
+        public function testConstructorWithVectorCoords():void
+        {
+            var polygon:Polygon = Polygon.fromVector(new <Number>[0, 1, 2, 3, 4, 5]);
+            assertEquals(3, polygon.numVertices);
+            Helpers.comparePoints(new Point(0, 1), polygon.getVertex(0));
+            Helpers.comparePoints(new Point(2, 3), polygon.getVertex(1));
+            Helpers.comparePoints(new Point(4, 5), polygon.getVertex(2));
+        }
+
+        [Test]
         public function testClone():void
         {
             var polygon:Polygon = new Polygon([0, 1,  2, 3,  4, 5]);

@@ -283,6 +283,14 @@ package starling.geom
 
         // factory methods
 
+        /** Creates a Polygon with the given coordinates as a Vector ('x' and 'y' alternating). */
+        public static function fromVector(vector:Vector.<Number>):Polygon
+        {
+            var polygon:Polygon = new Polygon();
+            polygon._coords = vector;
+            return polygon;
+        }
+
         /** Creates an ellipse with optimized implementations of triangulation, hitTest, etc. */
         public static function createEllipse(x:Number, y:Number, radiusX:Number, radiusY:Number, numSides:int = -1):Polygon
         {
