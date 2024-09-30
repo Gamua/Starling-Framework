@@ -14,6 +14,6 @@ To run Starling's unit tests, you need libraries from both "FlexUnit" and from t
 
 You don't need Flex for normal Starling development, so you probably don't have those libraries at hand. For your convenience, I put together an archive with all the required SWC files. You can download it here:
 
-http://goo.gl/KypNQT
+[flexunit-libs.zip](https://web.tresorit.com/l/s7A6a#OWZQvIcWhJAwKFS1mpoFYQ)
 
 Put those files into the "libs" directory, and you're good to go.
