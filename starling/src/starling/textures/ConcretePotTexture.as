@@ -90,23 +90,20 @@ package starling.textures
                 var currentWidth:int  = data.width  >> 1;
                 var currentHeight:int = data.height >> 1;
                 var level:int = 1;
-                var canvas:BitmapData = new BitmapData(currentWidth, currentHeight, true, 0);
-                var bounds:Rectangle = sRectangle;
                 var matrix:Matrix = sMatrix;
                 matrix.setTo(0.5, 0.0, 0.0, 0.5, 0.0, 0.0);
 
                 while (currentWidth >= 1 || currentHeight >= 1)
                 {
-                    bounds.setTo(0, 0, currentWidth, currentHeight);
-                    canvas.fillRect(bounds, 0);
+                    var canvas:BitmapData = new BitmapData(Math.max(1, currentWidth), Math.max(1, currentHeight), true, 0);
                     canvas.draw(data, matrix, null, null, null, true);
                     upload(canvas, level++, false); // only level 0 supports async
                     matrix.scale(0.5, 0.5);
                     currentWidth  = currentWidth  >> 1;
                     currentHeight = currentHeight >> 1;
+                    canvas.dispose();
                 }
 
-                canvas.dispose();
             }
 
             if (buffer) buffer.dispose();
