@@ -89,6 +89,7 @@ package starling.textures
             {
                 var currentWidth:int  = data.width  >> 1;
                 var currentHeight:int = data.height >> 1;
+                var last_canvas:BitmapData = null;
                 var level:int = 1;
                 var matrix:Matrix = sMatrix;
                 matrix.setTo(0.5, 0.0, 0.0, 0.5, 0.0, 0.0);
@@ -96,12 +97,20 @@ package starling.textures
                 while (currentWidth >= 1 || currentHeight >= 1)
                 {
                     var canvas:BitmapData = new BitmapData(Math.max(1, currentWidth), Math.max(1, currentHeight), true, 0);
-                    canvas.draw(data, matrix, null, null, null, true);
+                    if (level == 1) {
+                     canvas.draw(data, matrix, null, null, null, true);
+                    } else {
+                     canvas.draw(last_canvas, matrix, null, null, null, true);
+                     last_canvas.dispose();
+                    }
+                    last_canvas = canvas;
                     upload(canvas, level++, false); // only level 0 supports async
-                    matrix.scale(0.5, 0.5);
                     currentWidth  = currentWidth  >> 1;
                     currentHeight = currentHeight >> 1;
-                    canvas.dispose();
+                }
+                
+                if (last_canvas != null) {
+                    last_canvas.dispose();
                 }
 
             }
