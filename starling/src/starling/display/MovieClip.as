@@ -49,6 +49,7 @@ package starling.display
         private var _currentTime:Number;
         private var _currentFrameID:int;
         private var _loop:Boolean;
+		private var _returnPlay:Boolean;
         private var _playing:Boolean;
         private var _muted:Boolean;
         private var _wasStopped:Boolean;
@@ -102,7 +103,10 @@ package starling.display
         {
             if (frameID < 0 || frameID > numFrames) throw new ArgumentError("Invalid frame id");
             if (duration < 0) duration = _defaultFrameDuration;
-
+			
+			var returnPlayActive:Boolean = returnPlay;
+			if (returnPlayActive) returnPlay = false;
+			
             var frame:MovieClipFrame = new MovieClipFrame(texture, duration);
             frame.sound = sound;
             _frames.insertAt(frameID, frame);
@@ -113,8 +117,9 @@ package starling.display
                 var prevDuration:Number  = frameID > 0 ? _frames[frameID - 1].duration  : 0.0;
                 frame.startTime = prevStartTime + prevDuration;
             }
-            else
-                updateStartTimes();
+            else updateStartTimes();
+			
+			if (returnPlayActive) returnPlay = true;
         }
         
         /** Removes the frame at a certain ID. The successors will move down. */
@@ -122,11 +127,14 @@ package starling.display
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
             if (numFrames == 1) throw new IllegalOperationError("Movie clip must not be empty");
-
+			
+			var returnPlayActive:Boolean = returnPlay;
+			if (returnPlayActive) returnPlay = false;
+			
             _frames.removeAt(frameID);
 
-            if (frameID != numFrames)
-                updateStartTimes();
+            if (frameID != numFrames) updateStartTimes();
+			if (returnPlayActive) returnPlay = true;
         }
         
         /** Returns the texture of a certain frame. */
@@ -353,12 +361,15 @@ package starling.display
         // properties
 
         /** The total number of frames. */
-        public function get numFrames():int { return _frames.length; }
+        public function get numFrames():int
+		{
+			if (!_returnPlay) { return _frames.length } else { return _frames.length * 0.5 };
+		}
         
         /** The total duration of the clip in seconds. */
         public function get totalTime():Number 
         {
-            var lastFrame:MovieClipFrame = _frames[_frames.length-1];
+			var lastFrame:MovieClipFrame = (!_returnPlay) ? _frames[_frames.length-1] : _frames[(_frames.length * 0.5) - 1];
             return lastFrame.startTime + lastFrame.duration;
         }
         
@@ -383,6 +394,33 @@ package starling.display
         public function get loop():Boolean { return _loop; }
         public function set loop(value:Boolean):void { _loop = value; }
         
+		/** Indicates if the clip should play forwards, then in reverse. @default false */
+		public function get returnPlay():Boolean { return _returnPlay; }
+		public function set returnPlay(value:Boolean):void {
+			if (_returnPlay != value)
+			{		
+				var numFrames:int = _frames.length;
+				
+				if (value)
+				{
+					for (var i:int = numFrames - 1; i >= 0; i--)
+					{
+						addFrame(_frames[i].texture, _frames[i].sound, _frames[i].duration);
+					}					
+					_returnPlay = true;
+				} else {
+					_returnPlay = false;
+					var halfNumFrames:int = numFrames * 0.5;
+					if (_currentFrameID >= halfNumFrames) currentFrame = ((numFrames * 0.5) - (_currentFrameID - (numFrames * 0.5))) - 1;
+					
+					for (i = numFrames - 1; i >= halfNumFrames; i--)
+					{
+						removeFrameAt(i);
+					}
+				}
+			}
+		}
+		
         /** If enabled, no new sounds will be started during playback. Sounds that are already
          *  playing are not affected. */
         public function get muted():Boolean { return _muted; }
@@ -393,7 +431,11 @@ package starling.display
         public function set soundTransform(value:SoundTransform):void { _soundTransform = value; }
 
         /** The index of the frame that is currently displayed. */
-        public function get currentFrame():int { return _currentFrameID; }
+        public function get currentFrame():int {
+			if (!_returnPlay) return _currentFrameID;
+			if (_currentFrameID < _frames.length * 0.5) return _currentFrameID;
+			return numFrames - (_currentFrameID - numFrames) - 1;
+		}
         public function set currentFrame(value:int):void
         {
             if (value < 0 || value >= numFrames) throw new ArgumentError("Invalid frame id");
