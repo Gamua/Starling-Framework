@@ -23,6 +23,7 @@ package starling.display
     import starling.rendering.BatchToken;
     import starling.rendering.Painter;
     import starling.utils.MatrixUtil;
+    import starling.utils.Pool;
 
     use namespace starling_internal;
     
@@ -72,7 +73,6 @@ package starling.display
         
         // helper objects
         private static var sHitTestMatrix:Matrix = new Matrix();
-        private static var sHitTestPoint:Point = new Point();
         private static var sBoundsMatrix:Matrix = new Matrix();
         private static var sBoundsPoint:Point = new Point();
         private static var sBroadcastListeners:Vector.<DisplayObject> = new <DisplayObject>[];
@@ -359,8 +359,10 @@ package starling.display
                 sHitTestMatrix.copyFrom(child.transformationMatrix);
                 sHitTestMatrix.invert();
 
-                MatrixUtil.transformCoords(sHitTestMatrix, localX, localY, sHitTestPoint);
-                target = child.hitTest(sHitTestPoint);
+                var childCoords = Pool.getPoint();
+                MatrixUtil.transformCoords(sHitTestMatrix, localX, localY, childCoords);
+                target = child.hitTest(childCoords);
+                Pool.putPoint(childCoords);
 
                 if (target) return _touchGroup ? this : target;
             }

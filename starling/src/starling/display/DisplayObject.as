@@ -161,7 +161,6 @@ package starling.display
         // helper objects
 
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
-        private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
         private static var sHelperPointAlt3D:Vector3D = new Vector3D();
         private static var sHelperRect:Rectangle = new Rectangle();
@@ -318,9 +317,11 @@ package starling.display
                     sHelperMatrixAlt.invert();
                 }
 
-                var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
-                MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
-                var isMaskHit:Boolean = _mask.hitTest(helperPoint) != null;
+                var maskCoords = Pool.getPoint();
+                MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, maskCoords);
+                var isMaskHit:Boolean = _mask.hitTest(maskCoords) != null;
+                Pool.putPoint(maskCoords);
+
                 return _maskInverted ? !isMaskHit : isMaskHit;
             }
             else return true;
