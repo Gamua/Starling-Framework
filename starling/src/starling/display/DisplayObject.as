@@ -287,6 +287,12 @@ package starling.display
         {
             throw new AbstractMethodError();
         }
+
+        /** Same as getBounds but only for visible objects (visible = true) */
+        public function getVisibleBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
+        {
+            throw new AbstractMethodError();
+        }
         
         /** Returns the object that is found topmost beneath a point in local coordinates, or nil
          *  if the test fails. Untouchable and invisible objects will cause the test to fail. */

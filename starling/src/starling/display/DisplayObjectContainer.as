@@ -342,6 +342,61 @@ package starling.display
         }
 
         /** @inheritDoc */
+        public override function getVisibleBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
+        {
+            if (resultRect == null) resultRect = new Rectangle();
+
+            var numChildren:int = this.numChildren;
+
+            if (numChildren == 0)
+            {
+                getTransformationMatrix(targetSpace, sBoundsMatrix);
+                MatrixUtil.transformCoords(sBoundsMatrix, 0.0, 0.0, sBoundsPoint);
+                resultRect.setTo(sBoundsPoint.x, sBoundsPoint.y, 0, 0);
+            }
+            else
+            {
+                var visibleSizedChildrenCount:uint = 0;
+                var minX:Number = Number.MAX_VALUE, maxX:Number = -Number.MAX_VALUE;
+                var minY:Number = Number.MAX_VALUE, maxY:Number = -Number.MAX_VALUE;
+
+                for (var i:int=0; i<numChildren; ++i)
+                {
+                    var child:DisplayObject = getChildAt(i);
+                    if (child.visible)
+                    {
+                        child.getBounds(targetSpace, resultRect);
+
+                        // ignore child with no size
+                        if (resultRect.width == 0 && resultRect.height == 0)
+                            continue;
+
+                        visibleSizedChildrenCount++;
+                        if (minX > resultRect.x) minX = resultRect.x;
+                        if (maxX < resultRect.right) maxX = resultRect.right;
+                        if (minY > resultRect.y) minY = resultRect.y;
+                        if (maxY < resultRect.bottom) maxY = resultRect.bottom;
+                    }
+                }
+
+                // all visible children have no size
+                if (visibleSizedChildrenCount == 0)
+                {
+                    getTransformationMatrix(targetSpace, sBoundsMatrix);
+                    MatrixUtil.transformCoords(sBoundsMatrix, 0.0, 0.0, sBoundsPoint);
+                    resultRect.setTo(sBoundsPoint.x, sBoundsPoint.y, 0, 0);
+                }
+                // at least one visible child is sized
+                else
+                {
+                    resultRect.setTo(minX, minY, maxX - minX, maxY - minY);
+                }
+            }
+
+            return resultRect;
+        }
+
+        /** @inheritDoc */
         public override function hitTest(localPoint:Point):DisplayObject
         {
             if (!visible || !touchable || !hitTestMask(localPoint)) return null;

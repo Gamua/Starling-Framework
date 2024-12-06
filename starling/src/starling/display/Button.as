@@ -266,6 +266,13 @@ package starling.display
             _textField.style = value;
         }
 
+        /** Get access to button's TextField object */
+        public function get textField():TextField
+        {
+            if (_textField == null) createTextField();
+            return _textField;
+        }
+
         /** The style that is used to render the button.
          *  Note that a style instance may only be used on one mesh at a time. */
         public function get style():MeshStyle { return _body.style; }
