@@ -1,59 +1,48 @@
 package tests.text
 {
-    import org.flexunit.asserts.assertEquals;
-    import org.flexunit.asserts.assertTrue;
-    import org.hamcrest.assertThat;
-    import org.hamcrest.number.closeTo;
-    import org.hamcrest.number.greaterThan;
-    import org.hamcrest.number.lessThanOrEqualTo;
-
     import starling.display.MeshBatch;
     import starling.text.TextField;
     import starling.text.TextFieldAutoSize;
     import starling.text.TextFormat;
     import starling.textures.Texture;
+    import starling.unit.UnitTest;
 
-    import tests.StarlingTestCase;
-
-    public class TextFieldTest extends StarlingTestCase
+    public class TextFieldTest extends UnitTest
     {
         private static const E:Number = 0.0001;
         private static const SUPER_LARGE_TEXT_LENGTH:Number = 3200;
 
-        [Test]
         public function testTextField():void
         {
             var textField:TextField = new TextField(240, 50, "test text");
-            assertEquals("test text", textField.text);
+            assertEqual("test text", textField.text);
         }
 
-        [Test]
         public function testWidthAndHeight():void
         {
             var textField:TextField = new TextField(100, 50, "test");
 
-            assertThat(textField.width,  closeTo(100, E));
-            assertThat(textField.height, closeTo(50, E));
-            assertThat(textField.scaleX, closeTo(1.0, E));
-            assertThat(textField.scaleY, closeTo(1.0, E));
+            assertEquivalent(textField.width,  100);
+            assertEquivalent(textField.height, 50);
+            assertEquivalent(textField.scaleX, 1.0);
+            assertEquivalent(textField.scaleY, 1.0);
 
             textField.scale = 0.5;
 
-            assertThat(textField.width, closeTo(50, E));
-            assertThat(textField.height, closeTo(25, E));
-            assertThat(textField.scaleX, closeTo(0.5, E));
-            assertThat(textField.scaleY, closeTo(0.5, E));
+            assertEquivalent(textField.width, 50);
+            assertEquivalent(textField.height, 25);
+            assertEquivalent(textField.scaleX, 0.5);
+            assertEquivalent(textField.scaleY, 0.5);
 
             textField.width = 100;
             textField.height = 50;
 
-            assertThat(textField.width,  closeTo(100, E));
-            assertThat(textField.height, closeTo(50, E));
-            assertThat(textField.scaleX, closeTo(0.5, E));
-            assertThat(textField.scaleY, closeTo(0.5, E));
+            assertEquivalent(textField.width,  100);
+            assertEquivalent(textField.height, 50);
+            assertEquivalent(textField.scaleX, 0.5);
+            assertEquivalent(textField.scaleY, 0.5);
         }
 
-        [Test]
         public function testLargeTextField():void
         {
             var maxTextureSize:int = Texture.maxSize;
@@ -61,13 +50,11 @@ package tests.text
             var textField:TextField = new TextField(500, 50, sampleText);
             textField.format = new TextFormat("_sans", 32);
             textField.autoSize = TextFieldAutoSize.VERTICAL;
-
-            assertThat(textField.height, greaterThan(maxTextureSize));
+            assert(textField.height > maxTextureSize);
 
             var textureSize:Texture = mainTextureFromTextField(textField);
             assertTrue(textureSize);
-            assertThat(textureSize ? textureSize.height * textureSize.scale : 0,
-                    lessThanOrEqualTo(maxTextureSize));
+            assert(textureSize ? textureSize.height * textureSize.scale : 0 <= maxTextureSize);
         }
 
         /** Creates a sample text longer than 'leastLength'. */

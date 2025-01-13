@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<application xmlns="http://ns.adobe.com/air/application/51.1">
+    <id>com.gamua.starling.tests</id>
+    <filename>Starling-Tests</filename>
+    <name>Starling Tests</name>
+    <versionNumber>1.0.0</versionNumber>
+    <initialWindow>
+        <content>SWF file name is set automatically at compile time</content>
+        <visible>true</visible>
+        <renderMode>direct</renderMode>
+        <depthAndStencil>true</depthAndStencil>
+        <requestedDisplayResolution>high</requestedDisplayResolution>
+    </initialWindow>
+</application>

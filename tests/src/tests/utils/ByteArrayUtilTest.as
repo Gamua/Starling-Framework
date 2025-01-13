@@ -2,18 +2,11 @@ package tests.utils
 {
     import flash.utils.ByteArray;
 
-    import org.flexunit.asserts.assertFalse;
-
-    import org.flexunit.asserts.assertTrue;
-
+    import starling.unit.UnitTest;
     import starling.utils.ByteArrayUtil;
 
-    public class ByteArrayUtilTest
+    public class ByteArrayUtilTest extends UnitTest
     {
-        public function ByteArrayUtilTest()
-        { }
-
-        [Test]
         public function testStartsWith():void
         {
             var byteArray:ByteArray = new ByteArray();
@@ -23,7 +16,6 @@ package tests.utils
             assertFalse(ByteArrayUtil.startsWithString(byteArray, "<Holla"));
         }
 
-        [Test]
         public function testStartsWithBytes():void
         {
             var byteArray:ByteArray = new ByteArray();
@@ -36,7 +28,6 @@ package tests.utils
             assertFalse(ByteArrayUtil.startsWithBytes(byteArray, [0xaa, 0xbb, 0xc1]));
         }
 
-        [Test]
         public function testCompare():void
         {
             var a:ByteArray = new ByteArray();

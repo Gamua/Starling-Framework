@@ -10,22 +10,15 @@
 
 package tests.rendering
 {
-    import org.flexunit.asserts.assertEquals;
-    import org.flexunit.asserts.assertFalse;
-    import org.flexunit.asserts.assertNull;
-    import org.flexunit.asserts.assertTrue;
-
     import starling.display.Mesh;
     import starling.display.Quad;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.styles.MeshStyle;
+    import starling.unit.UnitTest;
 
-    import tests.StarlingTestCase;
-
-    public class MeshStyleTest extends StarlingTestCase
+    public class MeshStyleTest extends UnitTest
     {
-        [Test]
         public function testAssignment():void
         {
             var quad0:Quad = new Quad(100, 100);
@@ -34,21 +27,20 @@ package tests.rendering
             var meshStyleType:Class = (new MeshStyle()).type;
 
             quad0.style = style;
-            assertEquals(style, quad0.style);
-            assertEquals(style.target, quad0);
+            assertEqual(style, quad0.style);
+            assertEqual(style.target, quad0);
 
             quad1.style = style;
-            assertEquals(style, quad1.style);
-            assertEquals(style.target, quad1);
+            assertEqual(style, quad1.style);
+            assertEqual(style.target, quad1);
             assertFalse(quad0.style == style);
-            assertEquals(quad0.style.type, meshStyleType);
+            assertEqual(quad0.style.type, meshStyleType);
 
             quad1.style = null;
-            assertEquals(quad1.style.type, meshStyleType);
+            assertEqual(quad1.style.type, meshStyleType);
             assertNull(style.target);
         }
 
-        [Test]
         public function testEnterFrameEvent():void
         {
             var eventCount:int = 0;
@@ -59,26 +51,26 @@ package tests.rendering
 
             style.addEventListener(Event.ENTER_FRAME, onEvent);
             quad0.dispatchEvent(event);
-            assertEquals(0, eventCount);
+            assertEqual(0, eventCount);
 
             quad0.style = style;
             quad0.dispatchEvent(event);
-            assertEquals(1, eventCount);
+            assertEqual(1, eventCount);
 
             quad0.dispatchEvent(event);
-            assertEquals(2, eventCount);
+            assertEqual(2, eventCount);
 
             quad1.style = style;
             quad0.dispatchEvent(event);
-            assertEquals(2, eventCount);
+            assertEqual(2, eventCount);
 
             quad0.style = style;
             quad0.dispatchEvent(event);
-            assertEquals(3, eventCount);
+            assertEqual(3, eventCount);
 
             style.removeEventListener(Event.ENTER_FRAME, onEvent);
             quad0.dispatchEvent(event);
-            assertEquals(3, eventCount);
+            assertEqual(3, eventCount);
 
             function onEvent(event:EnterFrameEvent):void
             {
@@ -86,7 +78,6 @@ package tests.rendering
             }
         }
 
-        [Test]
         public function testDefaultStyle():void
         {
             var origStyle:Class = Mesh.defaultStyle;
@@ -101,7 +92,6 @@ package tests.rendering
             Mesh.defaultStyle = origStyle;
         }
 
-        [Test]
         public function testDefaultStyleFactory():void
         {
             var quad:Quad;
