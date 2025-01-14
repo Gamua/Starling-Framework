@@ -2,9 +2,9 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="starling">
     <configurations>
-      <configuration name="starling" pure-as="true" output-type="Library" output-file="starling.swc" output-folder="$MODULE_DIR$/bin-debug">
-        <dependencies target-player="32.0">
-          <sdk name="air-33" />
+      <configuration name="starling" target-platform="Desktop" pure-as="true" output-type="Library" output-file="starling.swc" output-folder="$MODULE_DIR$/bin-debug">
+        <dependencies>
+          <sdk name="AIRSDK_51.1.3" />
         </dependencies>
         <compiler-options />
         <packaging-air-desktop />
@@ -23,7 +23,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/doc" />
     </content>
-    <orderEntry type="jdk" jdkName="air-33" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="jdk" jdkName="AIRSDK_51.1.3" jdkType="Flex SDK Type (new)" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
