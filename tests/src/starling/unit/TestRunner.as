@@ -46,6 +46,12 @@ package starling.unit
                 _tests.push([testClass, methodName]);
         }
 
+        public function addAll(testClasses:Array):void
+        {
+            for each (var testClass:Class in testClasses)
+                add(testClass);
+        }
+
         public function runNext():String
         {
             if (_waiting) return STATUS_WAITING;
