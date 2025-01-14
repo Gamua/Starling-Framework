@@ -10,6 +10,7 @@ package
     import tests.animation.DelayedCallTest;
     import tests.animation.JugglerTest;
     import tests.animation.TweenTest;
+    import tests.assets.AssetManagerTest;
     import tests.display.BlendModeTest;
     import tests.display.ButtonTest;
     import tests.display.DisplayObjectContainerTest;
@@ -30,7 +31,6 @@ package
     import tests.text.TextFieldTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
-    import tests.utils.AssetManagerTest;
     import tests.utils.ByteArrayUtilTest;
     import tests.utils.ColorTest;
     import tests.utils.MathUtilTest;
@@ -61,6 +61,9 @@ package
             runner.add(DelayedCallTest);
             runner.add(JugglerTest);
             runner.add(TweenTest);
+
+            // assets
+            runner.add(AssetManagerTest);
 
             // display
             runner.add(BlendModeTest);
@@ -97,7 +100,6 @@ package
             runner.add(TextureTest);
 
             // utils
-            runner.add(AssetManagerTest);
             runner.add(ByteArrayUtilTest);
             runner.add(ColorTest);
             runner.add(MathUtilTest);

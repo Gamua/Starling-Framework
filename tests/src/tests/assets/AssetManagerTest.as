@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests.utils
+package tests.assets
 {
     import flash.media.Sound;
     import flash.utils.ByteArray;
