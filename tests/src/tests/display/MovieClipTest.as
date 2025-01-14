@@ -324,13 +324,18 @@ package tests.display
             var numFrames:int = 4;
             var frames:Vector.<Texture> = createFrames(numFrames);
             var movie:MovieClip = new MovieClip(frames, 5);
+            assertEquivalent(movie.totalTime, 0.8);
+
             movie.setFrameDuration(0, 0.4);
+            assertEquivalent(movie.totalTime, 1.0);
+
             movie.play();
 
             for (i=0; i<numFrames; ++i)
                 assertEqual(movie.getFrameTexture(i), frames[i]);
 
             movie.advanceTime(0.5);
+            assertEquivalent(movie.currentTime, 0.5);
             movie.reverseFrames();
 
             for (i=0; i<numFrames; ++i)
