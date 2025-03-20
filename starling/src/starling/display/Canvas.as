@@ -15,6 +15,7 @@ package starling.display
     import starling.geom.Polygon;
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
+    import starling.utils.rad2deg;
 
     /** A display object supporting basic vector drawing functionality. In its current state,
      *  the main use of this class is to provide a range of forms that can be used as masks.
@@ -24,7 +25,7 @@ package starling.display
         private var _polygons:Vector.<Polygon>;
         private var _fillColor:uint;
         private var _fillAlpha:Number;
-        private var _paths:Vector.<Vector.<Number>> = new Vector.<Vector.<Number>>(0);
+        private var _currentPath:Vector.<Number>;
 
 
         /** Creates a new (empty) Canvas. Call one or more of the 'draw' methods to add content. */
@@ -67,7 +68,7 @@ package starling.display
          */
         public function drawCircle(x:Number, y:Number, radius:Number, numSides:int = -1):void
         {
-            appendPolygon(Polygon.createCircle(x, y, radius, numSides));
+            drawPolygon(Polygon.createCircle(x, y, radius, numSides));
         }
 
         /** Draws an ellipse.
@@ -84,19 +85,13 @@ package starling.display
             var radiusX:Number = width  / 2.0;
             var radiusY:Number = height / 2.0;
 
-            appendPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY, numSides));
+            drawPolygon(Polygon.createEllipse(x + radiusX, y + radiusY, radiusX, radiusY, numSides));
         }
 
         /** Draws a rectangle. */
         public function drawRectangle(x:Number, y:Number, width:Number, height:Number):void
         {
-            appendPolygon(Polygon.createRectangle(x, y, width, height));
-        }
-
-        /** Draws an arbitrary polygon. */
-        public function drawPolygon(polygon:Polygon):void
-        {
-            appendPolygon(polygon);
+            drawPolygon(Polygon.createRectangle(x, y, width, height));
         }
 
         /** Specifies a simple one-color fill that subsequent calls to drawing methods
@@ -117,37 +112,35 @@ package starling.display
         public function moveTo(x:Number, y:Number):void
         {
             // TODO: Check if previous path is open and force close it if so
-            const curPath:Vector.<Number> = new Vector.<Number>();
-            curPath.push(x);
-            curPath.push(y);
-            _paths.push(curPath);
+            _currentPath = new Vector.<Number>();
+            _currentPath.push(x);
+            _currentPath.push(y);
         }
-
+        
+        // TODO: This is too simple for strokes, only works for fills
         public function lineTo(x:Number, y:Number):void
         {
-            if(_paths[_paths.length - 1].length == 0)
+            if(_currentPath.length == 0)
             {
-                curPath.push(0);
-                curPath.push(0);
+                _currentPath.push(0);
+                _currentPath.push(0);
             }
-            const curPath:Vector.<Number> = _paths[_paths.length - 1];
-            curPath.push(x);
-            curPath.push(y);
-            checkIfClosed();
+            _currentPath.push(x);
+            _currentPath.push(y);
+            drawPathIfClosed();
         }
 
         public function curveTo(controlX:Number, controlY:Number, anchorX:Number, anchorY:Number):void
         {
-            if(_paths[_paths.length - 1].length == 0)
+            if(_currentPath.length == 0)
             {
-                curPath.push(0);
-                curPath.push(0);
+                _currentPath.push(0);
+                _currentPath.push(0);
             }
-            const curPath:Vector.<Number> = _paths[_paths.length - 1];
-            const lastX:Number = curPath[curPath.length - 2];
-            const lastY:Number = curPath[curPath.length - 1];
-            tesselateCurve(lastX, lastY, controlX, controlY, anchorX, anchorY, curPath);
-            checkIfClosed();
+            const lastX:Number = _currentPath[_currentPath.length - 2];
+            const lastY:Number = _currentPath[_currentPath.length - 1];
+            tesselateCurve(lastX, lastY, controlX, controlY, anchorX, anchorY, _currentPath);
+            drawPathIfClosed();
         }
         
         /**   Func to tesselate a quadratic Curve using recursion, used in curveTo 
@@ -157,7 +150,6 @@ package starling.display
         private static function tesselateCurve(startx:Number, starty:Number, cx:Number, cy:Number, endx:Number, 
                                               endy:Number, array_out:Vector.<Number>, iterationCnt:Number = 0):void
         {
-            const RADIANS_TO_DEGREES:Number = 180 / Math.PI;
             const maxIterations:Number = 6;
             const minAngle:Number = 1;
             const minLengthSqr:Number = 1;
@@ -191,8 +183,8 @@ package starling.display
             }
 
             // calculate angle between segments
-            const angle_1:Number = Math.atan2(cy - starty, cx - startx) * RADIANS_TO_DEGREES;
-            const angle_2:Number = Math.atan2(endy - cy, endx - cx) * RADIANS_TO_DEGREES;
+            const angle_1:Number = rad2deg(Math.atan2(cy - starty, cx - startx));
+            const angle_2:Number = rad2deg(Math.atan2(endy - cy, endx - cx));
             var angle_delta:Number = angle_2 - angle_1;
 
             // make sure angle is in range -180 - 180
@@ -220,15 +212,13 @@ package starling.display
             tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, iterationCnt);
         }
 
-        private function checkIfClosed():void
-        {
-            const curPath:Vector.<Number> = _paths[_paths.length - 1];
+        private function drawPathIfClosed():void
+        {            
+            const lastX:Number = _currentPath[_currentPath.length - 2];
+            const lastY:Number = _currentPath[_currentPath.length - 1];
             
-            const lastX:Number = curPath[curPath.length - 2];
-            const lastY:Number = curPath[curPath.length - 1];
-            
-            if (lastX == curPath[0]&& lastY == curPath[1])
-                this.drawPolygon(Polygon.fromVector(_paths[_paths.length - 1]));
+            if (lastX == _currentPath[0] && lastY == _currentPath[1])
+                this.drawPolygon(Polygon.fromVector(_currentPath);
         }
 
         /** Removes all existing vertices. */
@@ -238,7 +228,8 @@ package starling.display
             _polygons.length = 0;
         }
 
-        private function appendPolygon(polygon:Polygon):void
+        /** Draws an arbitrary polygon. */
+        public function drawPolygon(polygon:Polygon):void
         {
             var vertexData:VertexData = new VertexData();
             var indexData:IndexData = new IndexData(polygon.numTriangles * 3);
