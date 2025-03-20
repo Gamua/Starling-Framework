@@ -218,7 +218,7 @@ package starling.display
             const lastY:Number = _currentPath[_currentPath.length - 1];
             
             if (lastX == _currentPath[0] && lastY == _currentPath[1])
-                this.drawPolygon(Polygon.fromVector(_currentPath);
+                this.drawPolygon(Polygon.fromVector(_currentPath));
         }
 
         /** Removes all existing vertices. */
