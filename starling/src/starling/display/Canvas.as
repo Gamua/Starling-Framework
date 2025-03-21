@@ -194,18 +194,15 @@ package starling.display
                             case GraphicsPathCommand.LINE_TO:
                                 this.lineTo(data[i], data[i + 1]);
                                 i += 2;
-
                                 break;
 
                             case GraphicsPathCommand.CURVE_TO:
                                 this.curveTo(data[i], data[i + 1], data[i + 2], data[i + 3]);
                                 i += 4;
-
                                 break;
 
                             default:
                                 trace("[Starling] Canvas.drawGraphicsData: Unimplemented Command in Graphics Path of type", command);
-
                                 break;
                         }
                     }
