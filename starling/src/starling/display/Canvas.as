@@ -33,7 +33,6 @@ package starling.display
         private var _fillAlpha:Number;
         private var _currentPath:Vector.<Number>;
 
-
         /** Creates a new (empty) Canvas. Call one or more of the 'draw' methods to add content. */
         public function Canvas()
         {
