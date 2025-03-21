@@ -109,6 +109,11 @@ package starling.display
             _fillAlpha = 1.0;
         }
 
+        /** Moves the current drawing position to (x, y).
+         *  
+         * @param x         A number that indicates the horizontal position relative to the registration point of the parent display object (in pixels).  
+         * @param y         A number that indicates the vertical position relative to the registration point of the parent display object (in pixels). 
+         */
         public function moveTo(x:Number, y:Number):void
         {
             // TODO: Check if previous path is open and force close it if so
@@ -117,9 +122,14 @@ package starling.display
             _currentPath.push(y);
         }
         
-        // TODO: This is too simple for strokes, only works for fills
+        /** Draws a line using the current line style from the current drawing position to (x, y); the current drawing position is then set to (x, y).
+         * 
+         * @param x         A number that indicates the horizontal position relative to the registration point of the parent display object (in pixels). 
+         * @param y         A number that indicates the vertical position relative to the registration point of the parent display object (in pixels).
+         */
         public function lineTo(x:Number, y:Number):void
         {
+            // TODO: This implementation too simple for strokes, only works for fills
             if(_currentPath.length == 0)
             {
                 _currentPath.push(0);
@@ -130,6 +140,13 @@ package starling.display
             drawPathIfClosed();
         }
 
+        /**  Draws a quadratic Bezier curve using the current line style from the current drawing position to (anchorX, anchorY) and using the control point that (controlX, controlY) specifies.
+         *  
+         * @param controlX        A number that specifies the horizontal position of the control point relative to the registration point of the parent display object.
+         * @param controlY        A number that specifies the vertical position of the control point relative to the registration point of the parent display object.
+         * @param anchorX         A number that specifies the horizontal position of the next anchor point relative to the registration point of the parent display object.  
+         * @param anchorY         A number that specifies the vertical position of the next anchor point relative to the registration point of the parent display object. 
+         */
         public function curveTo(controlX:Number, controlY:Number, anchorX:Number, anchorY:Number):void
         {
             if(_currentPath.length == 0)
