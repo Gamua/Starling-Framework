@@ -17,7 +17,7 @@ package starling.display
     import flash.display.GraphicsPathCommand;
     import flash.display.GraphicsEndFill;
     import flash.geom.Point;
-    
+
     import starling.geom.Polygon;
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
