@@ -10,8 +10,14 @@
 
 package starling.display
 {
+    
+    import flash.display.IGraphicsData;
+    import flash.display.GraphicsSolidFill;
+    import flash.display.GraphicsPath;
+    import flash.display.GraphicsPathCommand;
+    import flash.display.GraphicsEndFill;
     import flash.geom.Point;
-
+    
     import starling.geom.Polygon;
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
@@ -160,12 +166,87 @@ package starling.display
             drawPathIfClosed();
         }
         
+        /**  Submits a series of IGraphicsData instances for drawing. 
+        *
+        * @param graphicsData      A Vector containing graphics objects, each of which much implement the flash.display.IGraphicsData interface.
+        */
+        public function drawGraphicsData(graphicsData:Vector.<IGraphicsData>):void
+        {
+            //var start:int = getTimer();
+            for each (var graphicsProperties:IGraphicsData in graphicsData)
+            {
+                if (graphicsProperties is GraphicsSolidFill)
+                    this.beginFill(GraphicsSolidFill(graphicsProperties).color, GraphicsSolidFill(graphicsProperties).alpha);
+                else if (graphicsProperties is GraphicsPath)
+                {
+                    var i:int = 0;
+                    var data:Vector.<Number> = GraphicsPath(graphicsProperties).data;
+
+                    for each (var command:int in GraphicsPath(graphicsProperties).commands)
+                    {
+                        switch (command)
+                        {
+                            case GraphicsPathCommand.MOVE_TO:
+                                this.moveTo(data[i], data[i + 1]);
+                                i += 2;
+                                break;
+
+                            case GraphicsPathCommand.LINE_TO:
+                                this.lineTo(data[i], data[i + 1]);
+                                i += 2;
+
+                                break;
+
+                            case GraphicsPathCommand.CURVE_TO:
+                                this.curveTo(data[i], data[i + 1], data[i + 2], data[i + 3]);
+                                i += 4;
+
+                                break;
+
+                            default:
+                                trace("[Starling] Canvas.drawGraphicsData: Unimplemented Command in Graphics Path of type", command);
+
+                                break;
+                        }
+                    }
+                }
+                else if (graphicsProperties is GraphicsEndFill)
+                    this.endFill();
+                else
+                    trace("[Starling] Canvas.drawGraphicsData: Unimplemented Graphics Data in input:", graphicsProperties, "at index", graphicsData.indexOf(graphicsProperties));
+
+            }
+            // trace("Took " + (getTimer() - start) + " ms");
+        }
+
+        /** Removes all existing vertices. */
+        public function clear():void
+        {
+            removeChildren(0, -1, true);
+            _polygons.length = 0;
+        }
+
+        /** Draws an arbitrary polygon. */
+        public function drawPolygon(polygon:Polygon):void
+        {
+            var vertexData:VertexData = new VertexData();
+            var indexData:IndexData = new IndexData(polygon.numTriangles * 3);
+
+            polygon.triangulate(indexData);
+            polygon.copyToVertexData(vertexData);
+
+            vertexData.colorize("color", _fillColor, _fillAlpha);
+
+            addChild(new Mesh(vertexData, indexData));
+            _polygons[_polygons.length] = polygon;
+        }
+
         /**   Func to tesselate a quadratic Curve using recursion, used in curveTo 
          *    Function converted to AS3 from AwayJS
          *    https://github.com/awayjs/graphics/blob/19c9c9912d0254934ba54c9b7049d1b898bf97f2/lib/draw/GraphicsFactoryHelper.ts#L376-L468
          */
         private static function tesselateCurve(startx:Number, starty:Number, cx:Number, cy:Number, endx:Number, 
-                                              endy:Number, array_out:Vector.<Number>, iterationCnt:Number = 0):void
+                                               endy:Number, array_out:Vector.<Number>, iterationCnt:Number = 0):void
         {
             const maxIterations:Number = 6;
             const minAngle:Number = 1;
@@ -236,28 +317,6 @@ package starling.display
             
             if (lastX == _currentPath[0] && lastY == _currentPath[1])
                 this.drawPolygon(Polygon.fromVector(_currentPath));
-        }
-
-        /** Removes all existing vertices. */
-        public function clear():void
-        {
-            removeChildren(0, -1, true);
-            _polygons.length = 0;
-        }
-
-        /** Draws an arbitrary polygon. */
-        public function drawPolygon(polygon:Polygon):void
-        {
-            var vertexData:VertexData = new VertexData();
-            var indexData:IndexData = new IndexData(polygon.numTriangles * 3);
-
-            polygon.triangulate(indexData);
-            polygon.copyToVertexData(vertexData);
-
-            vertexData.colorize("color", _fillColor, _fillAlpha);
-
-            addChild(new Mesh(vertexData, indexData));
-            _polygons[_polygons.length] = polygon;
         }
     }
 }
