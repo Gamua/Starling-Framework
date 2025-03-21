@@ -10,40 +10,33 @@
 
 package tests.utils
 {
-    import org.flexunit.asserts.assertEquals;
-    import org.flexunit.asserts.assertFalse;
-    import org.flexunit.asserts.assertNull;
-    import org.flexunit.asserts.assertTrue;
-
+    import starling.unit.UnitTest;
     import starling.utils.Align;
     import starling.utils.ScaleMode;
     import starling.utils.deg2rad;
     import starling.utils.execute;
     import starling.utils.rad2deg;
 
-    public class UtilsTest
+    public class UtilsTest extends UnitTest
     {
-        [Test]
         public function testRad2Deg():void
         {
-            assertEquals(  0.0, rad2deg(0));
-            assertEquals( 90.0, rad2deg(Math.PI / 2.0));
-            assertEquals(180.0, rad2deg(Math.PI));
-            assertEquals(270.0, rad2deg(Math.PI / 2.0 * 3.0));
-            assertEquals(360.0, rad2deg(2 * Math.PI));
+            assertEqual(  0.0, rad2deg(0));
+            assertEqual( 90.0, rad2deg(Math.PI / 2.0));
+            assertEqual(180.0, rad2deg(Math.PI));
+            assertEqual(270.0, rad2deg(Math.PI / 2.0 * 3.0));
+            assertEqual(360.0, rad2deg(2 * Math.PI));
         }
-        
-        [Test]
+
         public function testDeg2Rad():void
         {
-            assertEquals(0.0, deg2rad(0));
-            assertEquals(Math.PI / 2.0, deg2rad(90.0));
-            assertEquals(Math.PI, deg2rad(180.0));
-            assertEquals(Math.PI / 2.0 * 3.0, deg2rad(270.0));
-            assertEquals(2 * Math.PI, deg2rad(360.0));
-        } 
+            assertEqual(0.0, deg2rad(0));
+            assertEqual(Math.PI / 2.0, deg2rad(90.0));
+            assertEqual(Math.PI, deg2rad(180.0));
+            assertEqual(Math.PI / 2.0 * 3.0, deg2rad(270.0));
+            assertEqual(2 * Math.PI, deg2rad(360.0));
+        }
 
-        [Test]
         public function testExecute():void
         {
             execute(funcOne, "a", "b");
@@ -52,18 +45,17 @@ package tests.utils
 
             function funcOne(a:String, b:String):void
             {
-                assertEquals("a", a);
-                assertEquals("b", b);
+                assertEqual("a", a);
+                assertEqual("b", b);
             }
 
             function funcTwo(a:String, b:String):void
             {
-                assertEquals("a", a);
+                assertEqual("a", a);
                 assertNull(b);
             }
         }
-        
-        [Test]
+
         public function testAlignIsValid():void
         {
             assertTrue(Align.isValid(Align.CENTER));
@@ -73,8 +65,7 @@ package tests.utils
             assertTrue(Align.isValid(Align.BOTTOM));
             assertFalse(Align.isValid("invalid value"));
         }
-        
-        [Test]
+
         public function testAlignIsValidVertical():void
         {
             assertTrue(Align.isValidVertical(Align.BOTTOM));
@@ -84,7 +75,6 @@ package tests.utils
             assertFalse(Align.isValidVertical(Align.RIGHT));
         }
 
-        [Test]
         public function testAlignIsValidHorizontal():void
         {
             assertTrue(Align.isValidHorizontal(Align.LEFT));
@@ -93,8 +83,7 @@ package tests.utils
             assertFalse(Align.isValidHorizontal(Align.TOP));
             assertFalse(Align.isValidHorizontal(Align.BOTTOM));
         }
-        
-        [Test]
+
         public function testScaleModeIsValid():void
         {
             assertTrue(ScaleMode.isValid(ScaleMode.NO_BORDER));

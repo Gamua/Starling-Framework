@@ -1056,7 +1056,7 @@ package starling.assets
         public function get numConnections():int { return _numConnections; }
         public function set numConnections(value:int):void
         {
-            _numConnections = MathUtil.min(1, value);
+            _numConnections = MathUtil.max(1, value);
         }
 
         /** Textures will be created with the options set up in this object at the time of

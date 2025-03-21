@@ -44,68 +44,68 @@ package starling.display
 
     /** Dispatched when an object is added to a parent. */
     [Event(name="added", type="starling.events.Event")]
-    
+
     /** Dispatched when an object is connected to the stage (directly or indirectly). */
     [Event(name="addedToStage", type="starling.events.Event")]
-    
+
     /** Dispatched when an object is removed from its parent. */
     [Event(name="removed", type="starling.events.Event")]
-    
-    /** Dispatched when an object is removed from the stage and won't be rendered any longer. */ 
+
+    /** Dispatched when an object is removed from the stage and won't be rendered any longer. */
     [Event(name="removedFromStage", type="starling.events.Event")]
-    
-    /** Dispatched once every frame on every object that is connected to the stage. */ 
+
+    /** Dispatched once every frame on every object that is connected to the stage. */
     [Event(name="enterFrame", type="starling.events.EnterFrameEvent")]
-    
+
     /** Dispatched when an object is touched. Bubbles. */
     [Event(name="touch", type="starling.events.TouchEvent")]
-    
+
     /** Dispatched when a key on the keyboard is released. */
     [Event(name="keyUp", type="starling.events.KeyboardEvent")]
-    
+
     /** Dispatched when a key on the keyboard is pressed. */
     [Event(name="keyDown", type="starling.events.KeyboardEvent")]
-    
+
     /**
-     *  The DisplayObject class is the base class for all objects that are rendered on the 
+     *  The DisplayObject class is the base class for all objects that are rendered on the
      *  screen.
-     *  
-     *  <p><strong>The Display Tree</strong></p> 
-     *  
+     *
+     *  <p><strong>The Display Tree</strong></p>
+     *
      *  <p>In Starling, all displayable objects are organized in a display tree. Only objects that
-     *  are part of the display tree will be displayed (rendered).</p> 
-     *   
+     *  are part of the display tree will be displayed (rendered).</p>
+     *
      *  <p>The display tree consists of leaf nodes (Image, Quad) that will be rendered directly to
      *  the screen, and of container nodes (subclasses of "DisplayObjectContainer", like "Sprite").
      *  A container is simply a display object that has child nodes - which can, again, be either
-     *  leaf nodes or other containers.</p> 
-     *  
+     *  leaf nodes or other containers.</p>
+     *
      *  <p>At the base of the display tree, there is the Stage, which is a container, too. To create
      *  a Starling application, you create a custom Sprite subclass, and Starling will add an
      *  instance of this class to the stage.</p>
-     *  
+     *
      *  <p>A display object has properties that define its position in relation to its parent
-     *  (x, y), as well as its rotation and scaling factors (scaleX, scaleY). Use the 
-     *  <code>alpha</code> and <code>visible</code> properties to make an object translucent or 
+     *  (x, y), as well as its rotation and scaling factors (scaleX, scaleY). Use the
+     *  <code>alpha</code> and <code>visible</code> properties to make an object translucent or
      *  invisible.</p>
-     *  
+     *
      *  <p>Every display object may be the target of touch events. If you don't want an object to be
      *  touchable, you can disable the "touchable" property. When it's disabled, neither the object
      *  nor its children will receive any more touch events.</p>
-     *    
+     *
      *  <strong>Transforming coordinates</strong>
-     *  
+     *
      *  <p>Within the display tree, each object has its own local coordinate system. If you rotate
-     *  a container, you rotate that coordinate system - and thus all the children of the 
+     *  a container, you rotate that coordinate system - and thus all the children of the
      *  container.</p>
-     *  
-     *  <p>Sometimes you need to know where a certain point lies relative to another coordinate 
-     *  system. That's the purpose of the method <code>getTransformationMatrix</code>. It will  
-     *  create a matrix that represents the transformation of a point in one coordinate system to 
-     *  another.</p> 
-     *  
+     *
+     *  <p>Sometimes you need to know where a certain point lies relative to another coordinate
+     *  system. That's the purpose of the method <code>getTransformationMatrix</code>. It will
+     *  create a matrix that represents the transformation of a point in one coordinate system to
+     *  another.</p>
+     *
      *  <strong>Customization</strong>
-     *  
+     *
      *  <p>DisplayObject is an abstract class, which means you cannot instantiate it directly,
      *  but have to use one of its many subclasses instead. For leaf nodes, this is typically
      *  'Mesh' or its subclasses 'Quad' and 'Image'. To customize rendering of these objects,
@@ -123,7 +123,7 @@ package starling.display
     public class DisplayObject extends EventDispatcher
     {
         // private members
-        
+
         private var _x:Number;
         private var _y:Number;
         private var _pivotX:Number;
@@ -161,7 +161,6 @@ package starling.display
         // helper objects
 
         private static var sAncestors:Vector.<DisplayObject> = new <DisplayObject>[];
-        private static var sHelperPoint:Point = new Point();
         private static var sHelperPoint3D:Vector3D = new Vector3D();
         private static var sHelperPointAlt3D:Vector3D = new Vector3D();
         private static var sHelperRect:Rectangle = new Rectangle();
@@ -170,24 +169,24 @@ package starling.display
         private static var sHelperMatrix3D:Matrix3D  = new Matrix3D();
         private static var sHelperMatrixAlt3D:Matrix3D  = new Matrix3D();
         private static var sMaskWarningShown:Boolean = false;
-        
-        /** @private */ 
+
+        /** @private */
         public function DisplayObject()
         {
-            if (Capabilities.isDebugger && 
+            if (Capabilities.isDebugger &&
                 getQualifiedClassName(this) == "starling.display::DisplayObject")
             {
                 throw new AbstractClassError();
             }
-            
+
             _x = _y = _pivotX = _pivotY = _rotation = _skewX = _skewY = 0.0;
             _scaleX = _scaleY = _alpha = 1.0;
             _visible = _touchable = _hasVisibleArea = true;
             _blendMode = BlendMode.AUTO;
             _transformationMatrix = new Matrix();
         }
-        
-        /** Disposes all resources of the display object. 
+
+        /** Disposes all resources of the display object.
           * GPU buffers are released, event listeners are removed, filters and masks are disposed. */
         public function dispose():void
         {
@@ -196,26 +195,26 @@ package starling.display
             removeEventListeners();
             mask = null; // clear 'mask._maskee', just to be sure.
         }
-        
+
         /** Removes the object from its parent, if it has one, and optionally disposes it. */
         public function removeFromParent(dispose:Boolean=false):void
         {
             if (_parent) _parent.removeChild(this, dispose);
             else if (dispose) this.dispose();
         }
-        
-        /** Creates a matrix that represents the transformation from the local coordinate system 
+
+        /** Creates a matrix that represents the transformation from the local coordinate system
          *  to another. If you pass an <code>out</code>-matrix, the result will be stored in this
          *  matrix instead of creating a new object. */
-        public function getTransformationMatrix(targetSpace:DisplayObject, 
+        public function getTransformationMatrix(targetSpace:DisplayObject,
                                                 out:Matrix=null):Matrix
         {
             var commonParent:DisplayObject;
             var currentObject:DisplayObject;
-            
+
             if (out) out.identity();
             else out = new Matrix();
-            
+
             if (targetSpace == this)
             {
                 return out;
@@ -229,42 +228,42 @@ package starling.display
             {
                 // targetCoordinateSpace 'null' represents the target space of the base object.
                 // -> move up from this to base
-                
+
                 currentObject = this;
                 while (currentObject != targetSpace)
                 {
                     out.concat(currentObject.transformationMatrix);
                     currentObject = currentObject._parent;
                 }
-                
+
                 return out;
             }
             else if (targetSpace._parent == this) // optimization
             {
                 targetSpace.getTransformationMatrix(this, out);
                 out.invert();
-                
+
                 return out;
             }
-            
+
             // 1. find a common parent of this and the target space
-            
+
             commonParent = findCommonParent(this, targetSpace);
-            
+
             // 2. move up from this to common parent
-            
+
             currentObject = this;
             while (currentObject != commonParent)
             {
                 out.concat(currentObject.transformationMatrix);
                 currentObject = currentObject._parent;
             }
-            
+
             if (commonParent == targetSpace)
                 return out;
-            
+
             // 3. now move up from target until we reach the common parent
-            
+
             sHelperMatrix.identity();
             currentObject = targetSpace;
             while (currentObject != commonParent)
@@ -272,23 +271,23 @@ package starling.display
                 sHelperMatrix.concat(currentObject.transformationMatrix);
                 currentObject = currentObject._parent;
             }
-            
+
             // 4. now combine the two matrices
-            
+
             sHelperMatrix.invert();
             out.concat(sHelperMatrix);
-            
+
             return out;
         }
-        
-        /** Returns a rectangle that completely encloses the object as it appears in another 
+
+        /** Returns a rectangle that completely encloses the object as it appears in another
          *  coordinate system. If you pass an <code>out</code>-rectangle, the result will be
          *  stored in this rectangle instead of creating a new object. */
         public function getBounds(targetSpace:DisplayObject, out:Rectangle=null):Rectangle
         {
             throw new AbstractMethodError();
         }
-        
+
         /** Returns the object that is found topmost beneath a point in local coordinates, or nil
          *  if the test fails. Untouchable and invisible objects will cause the test to fail. */
         public function hitTest(localPoint:Point):DisplayObject
@@ -298,7 +297,7 @@ package starling.display
 
             // if we've got a mask and the hit occurs outside, fail
             if (_mask && !hitTestMask(localPoint)) return null;
-            
+
             // otherwise, check bounding box
             if (getBounds(this, sHelperRect).containsPoint(localPoint)) return this;
             else return null;
@@ -318,9 +317,11 @@ package starling.display
                     sHelperMatrixAlt.invert();
                 }
 
-                var helperPoint:Point = localPoint == sHelperPoint ? new Point() : sHelperPoint;
-                MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, helperPoint);
-                var isMaskHit:Boolean = _mask.hitTest(helperPoint) != null;
+                var maskCoords:Point = Pool.getPoint();
+                MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, maskCoords);
+                var isMaskHit:Boolean = _mask.hitTest(maskCoords) != null;
+                Pool.putPoint(maskCoords);
+
                 return _maskInverted ? !isMaskHit : isMaskHit;
             }
             else return true;
@@ -342,7 +343,7 @@ package starling.display
                 return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, out);
             }
         }
-        
+
         /** Transforms a point from global (stage) coordinates to the local coordinate system.
          *  If you pass an <code>out</code>-point, the result will be stored in this point instead
          *  of creating a new object. */
@@ -361,7 +362,7 @@ package starling.display
                 return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, out);
             }
         }
-        
+
         /** Renders the display object with the help of a painter object. Never call this method
          *  directly, except from within another render method.
          *
@@ -372,9 +373,9 @@ package starling.display
         {
             throw new AbstractMethodError();
         }
-        
+
         /** Moves the pivot point to a certain position within the local coordinate system
-         *  of the object. If you pass no arguments, it will be centered. */ 
+         *  of the object. If you pass no arguments, it will be centered. */
         public function alignPivot(horizontalAlign:String="center",
                                    verticalAlign:String="center"):void
         {
@@ -384,7 +385,7 @@ package starling.display
             else if (horizontalAlign == Align.CENTER) pivotX = bounds.x + bounds.width / 2.0;
             else if (horizontalAlign == Align.RIGHT)  pivotX = bounds.x + bounds.width;
             else throw new ArgumentError("Invalid horizontal alignment: " + horizontalAlign);
-            
+
             if (verticalAlign == Align.TOP)           pivotY = bounds.y;
             else if (verticalAlign == Align.CENTER)   pivotY = bounds.y + bounds.height / 2.0;
             else if (verticalAlign == Align.BOTTOM)   pivotY = bounds.y + bounds.height;
@@ -603,7 +604,7 @@ package starling.display
         }
 
         // internal methods
-        
+
         /** @private */
         starling_internal function setParent(value:DisplayObjectContainer):void
         {
@@ -611,7 +612,7 @@ package starling.display
             var ancestor:DisplayObject = value;
             while (ancestor != this && ancestor != null)
                 ancestor = ancestor._parent;
-            
+
             if (ancestor == this)
                 throw new ArgumentError("An object cannot be added as a child to itself or one " +
                                         "of its children (or children's children, etc.)");
@@ -773,15 +774,15 @@ package starling.display
             else
                 super.dispatchEvent(event);
         }
-        
+
         // enter frame event optimization
-        
+
         // To avoid looping through the complete display tree each frame to find out who's
         // listening to ENTER_FRAME events, we manage a list of them manually in the Stage class.
         // We need to take care that (a) it must be dispatched only when the object is
         // part of the stage, (b) it must not cause memory leaks when the user forgets to call
         // dispose and (c) there might be multiple listeners for this event.
-        
+
         /** @inheritDoc */
         public override function addEventListener(type:String, listener:Function):void
         {
@@ -791,15 +792,15 @@ package starling.display
                 addEventListener(Event.REMOVED_FROM_STAGE, removeEnterFrameListenerFromStage);
                 if (this.stage) addEnterFrameListenerToStage();
             }
-            
+
             super.addEventListener(type, listener);
         }
-        
+
         /** @inheritDoc */
         public override function removeEventListener(type:String, listener:Function):void
         {
             super.removeEventListener(type, listener);
-            
+
             if (type == Event.ENTER_FRAME && !hasEventListener(type))
             {
                 removeEventListener(Event.ADDED_TO_STAGE, addEnterFrameListenerToStage);
@@ -807,7 +808,7 @@ package starling.display
                 removeEnterFrameListenerFromStage();
             }
         }
-        
+
         /** @inheritDoc */
         public override function removeEventListeners(type:String=null):void
         {
@@ -820,27 +821,27 @@ package starling.display
 
             super.removeEventListeners(type);
         }
-        
+
         private function addEnterFrameListenerToStage():void
         {
             Starling.current.stage.addEnterFrameListener(this);
         }
-        
+
         private function removeEnterFrameListenerFromStage():void
         {
             Starling.current.stage.removeEnterFrameListener(this);
         }
-        
+
         // properties
- 
+
         /** The transformation matrix of the object relative to its parent.
-         * 
-         *  <p>If you assign a custom transformation matrix, Starling will try to figure out  
+         *
+         *  <p>If you assign a custom transformation matrix, Starling will try to figure out
          *  suitable values for <code>x, y, scaleX, scaleY,</code> and <code>rotation</code>.
-         *  However, if the matrix was created in a different way, this might not be possible. 
-         *  In that case, Starling will apply the matrix, but not update the corresponding 
+         *  However, if the matrix was created in a different way, this might not be possible.
+         *  In that case, Starling will apply the matrix, but not update the corresponding
          *  properties.</p>
-         * 
+         *
          *  <p>CAUTION: not a copy, but the actual object!</p> */
         public function get transformationMatrix():Matrix
         {
@@ -855,7 +856,7 @@ package starling.display
                     _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
                     _transformationMatrix, _transformationMatrix3D);
             }
-            
+
             return _transformationMatrix;
         }
 
@@ -867,10 +868,10 @@ package starling.display
             _transformationChanged = false;
             _transformationMatrix.copyFrom(matrix);
             _pivotX = _pivotY = 0;
-            
+
             _x = matrix.tx;
             _y = matrix.ty;
-            
+
             _skewX = Math.atan(-matrix.c / matrix.d);
             _skewY = Math.atan( matrix.b / matrix.a);
 
@@ -893,7 +894,7 @@ package starling.display
                 _rotation = 0;
             }
         }
-        
+
         /** The 3D transformation matrix of the object relative to its parent.
          *
          *  <p>For 2D objects, this property returns just a 3D version of the 2D transformation
@@ -926,24 +927,24 @@ package starling.display
         {
             if (value == _useHandCursor) return;
             _useHandCursor = value;
-            
+
             if (_useHandCursor)
                 addEventListener(TouchEvent.TOUCH, onTouch);
             else
                 removeEventListener(TouchEvent.TOUCH, onTouch);
         }
-        
+
         private function onTouch(event:TouchEvent):void
         {
             Mouse.cursor = event.interactsWith(this) ? MouseCursor.BUTTON : MouseCursor.AUTO;
         }
-        
+
         /** The bounds of the object relative to the local coordinates of the parent. */
         public function get bounds():Rectangle
         {
             return getBounds(_parent);
         }
-        
+
         /** The width of the object in pixels.
          *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
          *  be accurate until the object is part of the display list. */
@@ -962,7 +963,7 @@ package starling.display
 
             if (actualWidth) scaleX = value / actualWidth;
         }
-        
+
         /** The height of the object in pixels.
          *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
          *  be accurate until the object is part of the display list. */
@@ -978,21 +979,21 @@ package starling.display
 
             if (actualHeight) scaleY = value / actualHeight;
         }
-        
+
         /** The x coordinate of the object relative to the local coordinates of the parent. */
         public function get x():Number { return _x; }
-        public function set x(value:Number):void 
-        { 
+        public function set x(value:Number):void
+        {
             if (_x != value)
             {
                 _x = value;
                 setTransformationChanged();
             }
         }
-        
+
         /** The y coordinate of the object relative to the local coordinates of the parent. */
         public function get y():Number { return _y; }
-        public function set y(value:Number):void 
+        public function set y(value:Number):void
         {
             if (_y != value)
             {
@@ -1000,10 +1001,10 @@ package starling.display
                 setTransformationChanged();
             }
         }
-        
+
         /** The x coordinate of the object's origin in its own coordinate space (default: 0). */
         public function get pivotX():Number { return _pivotX; }
-        public function set pivotX(value:Number):void 
+        public function set pivotX(value:Number):void
         {
             if (_pivotX != value)
             {
@@ -1011,35 +1012,35 @@ package starling.display
                 setTransformationChanged();
             }
         }
-        
+
         /** The y coordinate of the object's origin in its own coordinate space (default: 0). */
         public function get pivotY():Number { return _pivotY; }
-        public function set pivotY(value:Number):void 
-        { 
+        public function set pivotY(value:Number):void
+        {
             if (_pivotY != value)
             {
                 _pivotY = value;
                 setTransformationChanged();
             }
         }
-        
+
         /** The horizontal scale factor. '1' means no scale, negative values flip the object.
          *  @default 1 */
         public function get scaleX():Number { return _scaleX; }
-        public function set scaleX(value:Number):void 
-        { 
+        public function set scaleX(value:Number):void
+        {
             if (_scaleX != value)
             {
                 _scaleX = value;
                 setTransformationChanged();
             }
         }
-        
+
         /** The vertical scale factor. '1' means no scale, negative values flip the object.
          *  @default 1 */
         public function get scaleY():Number { return _scaleY; }
-        public function set scaleY(value:Number):void 
-        { 
+        public function set scaleY(value:Number):void
+        {
             if (_scaleY != value)
             {
                 _scaleY = value;
@@ -1051,42 +1052,42 @@ package starling.display
          *  value of 'scaleX' (even if the scaling values are different). @default 1 */
         public function get scale():Number { return scaleX; }
         public function set scale(value:Number):void { scaleX = scaleY = value; }
-        
+
         /** The horizontal skew angle in radians. */
         public function get skewX():Number { return _skewX; }
-        public function set skewX(value:Number):void 
+        public function set skewX(value:Number):void
         {
             value = MathUtil.normalizeAngle(value);
-            
+
             if (_skewX != value)
             {
                 _skewX = value;
                 setTransformationChanged();
             }
         }
-        
+
         /** The vertical skew angle in radians. */
         public function get skewY():Number { return _skewY; }
-        public function set skewY(value:Number):void 
+        public function set skewY(value:Number):void
         {
             value = MathUtil.normalizeAngle(value);
-            
+
             if (_skewY != value)
             {
                 _skewY = value;
                 setTransformationChanged();
             }
         }
-        
-        /** The rotation of the object in radians. (In Starling, all angles are measured 
+
+        /** The rotation of the object in radians. (In Starling, all angles are measured
          *  in radians.) */
         public function get rotation():Number { return _rotation; }
-        public function set rotation(value:Number):void 
+        public function set rotation(value:Number):void
         {
             value = MathUtil.normalizeAngle(value);
 
             if (_rotation != value)
-            {            
+            {
                 _rotation = value;
                 setTransformationChanged();
             }
@@ -1097,10 +1098,10 @@ package starling.display
         {
             return _rotation != 0.0 || _skewX != 0.0 || _skewY != 0.0;
         }
-        
+
         /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
         public function get alpha():Number { return _alpha; }
-        public function set alpha(value:Number):void 
+        public function set alpha(value:Number):void
         {
             if (value != _alpha)
             {
@@ -1108,7 +1109,7 @@ package starling.display
                 setRequiresRedraw();
             }
         }
-        
+
         /** The visibility of the object. An invisible object will be untouchable. */
         public function get visible():Boolean { return _visible; }
         public function set visible(value:Boolean):void
@@ -1119,14 +1120,14 @@ package starling.display
                 setRequiresRedraw();
             }
         }
-        
+
         /** Indicates if this object (and its children) will receive touch events. */
         public function get touchable():Boolean { return _touchable; }
         public function set touchable(value:Boolean):void { _touchable = value; }
-        
-        /** The blend mode determines how the object is blended with the objects underneath. 
+
+        /** The blend mode determines how the object is blended with the objects underneath.
          *   @default auto
-         *   @see starling.display.BlendMode */ 
+         *   @see starling.display.BlendMode */
         public function get blendMode():String { return _blendMode; }
         public function set blendMode(value:String):void
         {
@@ -1136,12 +1137,12 @@ package starling.display
                 setRequiresRedraw();
             }
         }
-        
-        /** The name of the display object (default: null). Used by 'getChildByName()' of 
+
+        /** The name of the display object (default: null). Used by 'getChildByName()' of
          *  display object containers. */
         public function get name():String { return _name; }
         public function set name(value:String):void { _name = value; }
-        
+
         /** The filter that is attached to the display object. The <code>starling.filters</code>
          *  package contains several classes that define specific filters you can use. To combine
          *  several filters, assign an instance of the <code>FilterChain</code> class; to remove
@@ -1221,7 +1222,7 @@ package starling.display
                 setRequiresRedraw();
             }
         }
-        
+
         /** Indicates if the masked region of this object is set to be inverted.*/
         public function get maskInverted():Boolean { return _maskInverted; }
         public function set maskInverted(value:Boolean):void
@@ -1235,7 +1236,7 @@ package starling.display
 
         /** The display object container that contains this display object. */
         public function get parent():DisplayObjectContainer { return _parent; }
-        
+
         /** The topmost object in the display tree the object is part of. */
         public function get base():DisplayObject
         {
@@ -1243,8 +1244,8 @@ package starling.display
             while (currentObject._parent) currentObject = currentObject._parent;
             return currentObject;
         }
-        
-        /** The root object the display object is connected to (i.e. an instance of the class 
+
+        /** The root object the display object is connected to (i.e. an instance of the class
          *  that was passed to the Starling constructor), or null if the object is not connected
          *  to the stage. */
         public function get root():DisplayObject
@@ -1255,11 +1256,11 @@ package starling.display
                 if (currentObject._parent is Stage) return currentObject;
                 else currentObject = currentObject.parent;
             }
-            
+
             return null;
         }
-        
-        /** The stage the display object is connected to, or null if it is not connected 
+
+        /** The stage the display object is connected to, or null if it is not connected
          *  to the stage. */
         public function get stage():Stage { return this.base as Stage; }
     }

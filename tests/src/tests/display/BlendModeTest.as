@@ -12,28 +12,23 @@ package tests.display
 {
     import flash.display3D.Context3DBlendFactor;
 
-    import org.flexunit.assertThat;
-    import org.flexunit.asserts.assertEquals;
-    import org.hamcrest.object.equalTo;
-
     import starling.display.BlendMode;
+    import starling.unit.UnitTest;
 
-    public class BlendModeTest
+    public class BlendModeTest extends UnitTest
     {
-        [Test]
         public function testRegisterBlendMode():void
         {
             var name:String = "test";
             var srcFactor:String = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
             var dstFactor:String = Context3DBlendFactor.DESTINATION_COLOR;
-            
+
             BlendMode.register(name, srcFactor, dstFactor);
 
-            assertEquals(srcFactor, BlendMode.get(name).sourceFactor);
-            assertEquals(dstFactor, BlendMode.get(name).destinationFactor);
+            assertEqual(srcFactor, BlendMode.get(name).sourceFactor);
+            assertEqual(dstFactor, BlendMode.get(name).destinationFactor);
         }
 
-        [Test]
         public function testGetAllBlendModes():void
         {
             var name:String = "test";
@@ -50,8 +45,8 @@ package tests.display
             };
 
             var modes:Array = BlendMode.getAll();
-            assertThat(modes.filter(modeFilter("test")).length, equalTo(1));
-            assertThat(modes.filter(modeFilter("normal")).length, equalTo(1));
+            assertEqual(modes.filter(modeFilter("test")).length, 1);
+            assertEqual(modes.filter(modeFilter("normal")).length, 1);
         }
     }
 }

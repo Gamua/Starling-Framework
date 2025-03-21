@@ -1,19 +1,11 @@
-To run Starling's unit tests, you need libraries from both "FlexUnit" and from the "Flex SDK":
+# Unit Tests
 
-    flexunit-4.2.0-20140410-as3_4.12.0.swc
-    flexunit-aircilistener-4.2.0-20140410-4.12.0.swc
-    flexunit-cilistener-4.2.0-20140410-4.12.0.swc
-    flexunit-flexcoverlistener-4.2.0-20140410-4.12.0.swc
-    flexunit-uilistener-4.2.0-20140410-4.12.0.swc
-    flexunitextended.swc
-    fluint-extensions-4.2.0-20140410-4.12.0.swc
-    hamcrest-as3-flex-1.1.3.swc → from turnkey/libs inside the FlexUnit download
-    framework.swc → from the Flex SDK
+In the past, unit tests relied on old `FlexUnit` libraries, but those are no longer officially available.
+To get rid of this dependency, I created a couple of lightweight test classes that together make up `starling.unit`.
+Those classes are currently simply a part of the `src` directory – but if there's interest, we could put them into a separate library, too.
 
-(Note that you must not add "flexunit-4.2.0-...-flex_4.12.0.swc" if you're working with the AIR SDK, otherwise you'll get errors.)
+In any case, this means that it's now really easy to run the tests.
+Simply compile this project just like any other AIR project, e.g. just as Desktop AIR app.
+The unit tests will start immediately when that app is launched.
 
-You don't need Flex for normal Starling development, so you probably don't have those libraries at hand. For your convenience, I put together an archive with all the required SWC files. You can download it here:
-
-http://goo.gl/KypNQT
-
-Put those files into the "libs" directory, and you're good to go.
+Edit the class `TestSuite` to focus on specific unit tests, e.g. by commenting out any tests you're not interested in.

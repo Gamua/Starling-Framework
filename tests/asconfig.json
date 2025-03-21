@@ -1,0 +1,20 @@
+{
+	"config": "air",
+	"compilerOptions": {
+		"output": "out/tests.swf",
+		"source-path": [
+			"src",
+			"../starling/src"
+		]
+	},
+	"mainClass": "Startup",
+	"application": "src/UnitTest-app.xml",
+	"airOptions": {
+		"files": [
+			{
+				"file": "fixtures",
+				"path": "fixtures"
+			}
+		]
+	}
+}

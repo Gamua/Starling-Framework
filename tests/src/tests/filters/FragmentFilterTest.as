@@ -10,18 +10,14 @@
 
 package tests.filters
 {
-    import org.flexunit.asserts.assertEquals;
-
     import starling.display.Sprite;
     import starling.events.EnterFrameEvent;
     import starling.events.Event;
     import starling.filters.FragmentFilter;
+    import starling.unit.UnitTest;
 
-    import tests.StarlingTestCase;
-
-    public class FragmentFilterTest extends StarlingTestCase
+    public class FragmentFilterTest extends UnitTest
     {
-        [Test]
         public function testEnterFrameEvent():void
         {
             var eventCount:int = 0;
@@ -32,26 +28,26 @@ package tests.filters
 
             filter.addEventListener(Event.ENTER_FRAME, onEvent);
             sprite.dispatchEvent(event);
-            assertEquals(0, eventCount);
+            assertEqual(0, eventCount);
 
             sprite.filter = filter;
             sprite.dispatchEvent(event);
-            assertEquals(1, eventCount);
+            assertEqual(1, eventCount);
 
             sprite.dispatchEvent(event);
-            assertEquals(2, eventCount);
+            assertEqual(2, eventCount);
 
             sprite2.filter = filter;
             sprite.dispatchEvent(event);
-            assertEquals(2, eventCount);
+            assertEqual(2, eventCount);
 
             sprite.filter = filter;
             sprite.dispatchEvent(event);
-            assertEquals(3, eventCount);
+            assertEqual(3, eventCount);
 
             filter.removeEventListener(Event.ENTER_FRAME, onEvent);
             sprite.dispatchEvent(event);
-            assertEquals(3, eventCount);
+            assertEqual(3, eventCount);
 
             function onEvent(event:EnterFrameEvent):void
             {

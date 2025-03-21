@@ -27,13 +27,15 @@ package starling.rendering
         private var _currentStyleType:Class;
         private var _onBatchComplete:Function;
         private var _cacheToken:BatchToken;
+        private var _frameFinished:Boolean;
 
         // helper objects
         private static var sMeshSubset:MeshSubset = new MeshSubset();
 
         /** Creates a new batch processor. */
-        public function BatchProcessor()
+        public function BatchProcessor(onBatchComplete:Function)
         {
+            _onBatchComplete = onBatchComplete;
             _batches = new <MeshBatch>[];
             _batchPool = new BatchPool();
             _cacheToken = new BatchToken();
@@ -118,7 +120,14 @@ package starling.rendering
             }
         }
 
-        /** Clears all batches and adds them to a pool so they can be reused later. */
+        /** Calls 'finishBatch()' and sets 'frameFinished' to true. */
+        public function finishFrame():void
+        {
+            finishBatch();
+            _frameFinished = true;
+        }
+
+        /** Clears all batches and adds them to a pool so they can be reused later. Resets `_frameFinished`.  */
         public function clear():void
         {
             var numBatches:int = _batches.length;
@@ -130,6 +139,7 @@ package starling.rendering
             _currentBatch = null;
             _currentStyleType = null;
             _cacheToken.reset();
+            _frameFinished = false;
         }
 
         /** Returns the batch at a certain index. */
@@ -156,6 +166,9 @@ package starling.rendering
 
         /** The number of batches currently stored in the BatchProcessor. */
         public function get numBatches():int { return _batches.length; }
+
+        /** Indicates if the processed frame is complete, i.e. 'finishFrame()' has been called. */
+        public function get frameFinished():Boolean { return _frameFinished; }
 
         /** This callback is executed whenever a batch is finished and replaced by a new one.
          *  The finished MeshBatch is passed to the callback. Typically, this callback is used

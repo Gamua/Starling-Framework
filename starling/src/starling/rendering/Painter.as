@@ -129,7 +129,7 @@ package starling.rendering
         private static var sMeshSubset:MeshSubset = new MeshSubset();
 
         // construction
-        
+
         /** Creates a new Painter object. Normally, it's not necessary to create any custom
          *  painters; instead, use the global painter found on the Starling instance. */
         public function Painter(stage3D:Stage3D)
@@ -144,14 +144,9 @@ package starling.rendering
             _stencilReferenceValues = new Dictionary(true);
             _clipRectStack = new <Rectangle>[];
 
-            _batchProcessorCurr = new BatchProcessor();
-            _batchProcessorCurr.onBatchComplete = drawBatch;
-
-            _batchProcessorPrev = new BatchProcessor();
-            _batchProcessorPrev.onBatchComplete = drawBatch;
-
-            _batchProcessorSpec = new BatchProcessor();
-            _batchProcessorSpec.onBatchComplete = drawBatch;
+            _batchProcessorCurr = new BatchProcessor(drawBatch);
+            _batchProcessorPrev = new BatchProcessor(drawBatch);
+            _batchProcessorSpec = new BatchProcessor(drawBatch);
 
             _batchProcessor = _batchProcessorCurr;
             _batchCacheExclusions = new Vector.<DisplayObject>();
@@ -162,7 +157,7 @@ package starling.rendering
             _stateStackPos = -1;
             _stateStackLength = 0;
         }
-        
+
         /** Disposes all mesh batches, programs, and - if it is not being shared -
          *  the render context. */
         public function dispose():void
@@ -548,7 +543,7 @@ package starling.rendering
         }
 
         // mesh rendering
-        
+
         /** Adds a mesh to the current batch of unrendered meshes. If the current batch is not
          *  compatible with the mesh, all previous meshes are rendered at once and the batch
          *  is cleared.
@@ -594,7 +589,7 @@ package starling.rendering
                 if (_frameID % specInterval == 0) _batchProcessorSpec.trim();
             }
 
-            _batchProcessor.finishBatch();
+            _batchProcessor.finishFrame();
             _batchProcessor = _batchProcessorSpec; // no cache between frames
             processCacheExclusions();
         }
@@ -652,6 +647,11 @@ package starling.rendering
 
             if (!startToken.equals(endToken))
             {
+                if (!_batchProcessorPrev.frameFinished) {
+                    trace("Encountered invalid batch processor → skipping draw operation.")
+                    return;
+                }
+
                 pushState();
 
                 for (var i:int = startToken.batchID; i <= endToken.batchID; ++i)
@@ -861,7 +861,7 @@ package starling.rendering
         }
 
         // properties
-        
+
         /** Indicates the number of stage3D draw calls. */
         public function get drawCount():int { return _drawCount; }
         public function set drawCount(value:int):void { _drawCount = value; }

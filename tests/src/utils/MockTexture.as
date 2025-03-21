@@ -8,7 +8,7 @@
 //
 // =================================================================================================
 
-package tests.utils
+package utils
 {
     import starling.textures.ConcreteTexture;
 

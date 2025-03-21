@@ -10,24 +10,20 @@
 
 package tests.display
 {
-    import org.flexunit.asserts.assertEquals;
-    import org.flexunit.asserts.assertFalse;
-    import org.flexunit.asserts.assertTrue;
-
     import starling.display.Sprite;
     import starling.display.Sprite3D;
+    import starling.unit.UnitTest;
 
-    public class Sprite3DTest
+    public class Sprite3DTest extends UnitTest
     {
-        [Test]
         public function testBasicProperties():void
         {
             var sprite:Sprite3D = new Sprite3D();
-            assertEquals(0, sprite.numChildren);
-            assertEquals(0, sprite.rotationX);
-            assertEquals(0, sprite.rotationY);
-            assertEquals(0, sprite.pivotZ);
-            assertEquals(0, sprite.z);
+            assertEqual(0, sprite.numChildren);
+            assertEqual(0, sprite.rotationX);
+            assertEqual(0, sprite.rotationY);
+            assertEqual(0, sprite.pivotZ);
+            assertEqual(0, sprite.z);
 
             sprite.addChild(new Sprite());
             sprite.rotationX = 2;
@@ -35,14 +31,13 @@ package tests.display
             sprite.pivotZ = 4;
             sprite.z = 5;
 
-            assertEquals(1, sprite.numChildren);
-            assertEquals(2, sprite.rotationX);
-            assertEquals(3, sprite.rotationY);
-            assertEquals(4, sprite.pivotZ);
-            assertEquals(5, sprite.z);
+            assertEqual(1, sprite.numChildren);
+            assertEqual(2, sprite.rotationX);
+            assertEqual(3, sprite.rotationY);
+            assertEqual(4, sprite.pivotZ);
+            assertEqual(5, sprite.z);
         }
 
-        [Test]
         public function testIs3D():void
         {
             var sprite3D:Sprite3D = new Sprite3D();

@@ -58,11 +58,15 @@ package starling.animation
         private var _onUpdate:Function;
         private var _onRepeat:Function;
         private var _onComplete:Function;
+        private var _onRepeatStart:Function;
+        private var _onRepeatFinish:Function;
         
         private var _onStartArgs:Array;
         private var _onUpdateArgs:Array;
         private var _onRepeatArgs:Array;
         private var _onCompleteArgs:Array;
+        private var _onRepeatStartArgs:Array;
+        private var _onRepeatFinishArgs:Array;
         
         private var _totalTime:Number;
         private var _currentTime:Number;
@@ -72,6 +76,7 @@ package starling.animation
         private var _nextTween:Tween;
         private var _repeatCount:int;
         private var _repeatDelay:Number;
+        private var _repeatReverseDelay:Number;
         private var _reverse:Boolean;
         private var _currentCycle:int;
         
@@ -93,9 +98,9 @@ package starling.animation
             _currentTime = 0.0;
             _totalTime = Math.max(0.0001, time);
             _progress = 0.0;
-            _delay = _repeatDelay = 0.0;
-            _onStart = _onUpdate = _onRepeat = _onComplete = null;
-            _onStartArgs = _onUpdateArgs = _onRepeatArgs = _onCompleteArgs = null;
+            _delay = _repeatDelay = _repeatReverseDelay = 0.0;
+            _onStart = _onUpdate = _onRepeat = _onComplete = _onRepeatStart = _onRepeatFinish = null;
+            _onStartArgs = _onUpdateArgs = _onRepeatArgs = _onCompleteArgs = _onRepeatStartArgs = _onRepeatFinishArgs = null;
             _roundToInt = _reverse = false;
             _repeatCount = 1;
             _currentCycle = -1;
@@ -195,6 +200,11 @@ package starling.animation
                 if (_onStart != null) _onStart.apply(this, _onStartArgs);
             }
 
+            if (previousTime <= 0 && _currentTime > 0)
+            {
+                if(_onRepeatStart != null) _onRepeatStart.apply(this, _onRepeatStartArgs);
+            }
+
             var ratio:Number = _currentTime / _totalTime;
             var reversed:Boolean = _reverse && (_currentCycle % 2 == 1);
             var numProperties:int = _startValues.length;
@@ -216,10 +226,18 @@ package starling.animation
             {
                 if (_repeatCount == 0 || _repeatCount > 1)
                 {
-                    _currentTime = -_repeatDelay;
+                    if(reversed)
+                    {
+                        _currentTime = -_repeatReverseDelay;
+                    }
+                    else
+                    {
+                        _currentTime = -_repeatDelay;
+                    }
                     _currentCycle++;
                     if (_repeatCount > 1) _repeatCount--;
                     if (_onRepeat != null) _onRepeat.apply(this, _onRepeatArgs);
+                    if (_onRepeatFinish != null) _onRepeatFinish.apply(this, _onRepeatFinishArgs);
                 }
                 else
                 {
@@ -232,6 +250,7 @@ package starling.animation
                     // executing 'onComplete'.
                     dispatchEventWith(Event.REMOVE_FROM_JUGGLER);
                     if (onComplete != null) onComplete.apply(this, onCompleteArgs);
+                    if (_onRepeatFinish != null) _onRepeatFinish.apply(this, _onRepeatFinishArgs);
                     if (_currentTime == 0) carryOverTime = 0; // tween was reset
                 }
             }
@@ -382,6 +401,10 @@ package starling.animation
         /** The amount of time to wait between repeat cycles (in seconds). @default 0 */
         public function get repeatDelay():Number { return _repeatDelay; }
         public function set repeatDelay(value:Number):void { _repeatDelay = value; }
+
+        /** The amount of time to wait between repeat cycles if uses 'reverse' cicle (in seconds). @default 0 */
+        public function get repeatReverseDelay():Number { return _repeatReverseDelay; }
+        public function set repeatReverseDelay(value:Number):void { _repeatReverseDelay = value; }
         
         /** Indicates if the tween should be reversed when it is repeating. If enabled, 
          *  every second repetition will be reversed. @default false */
@@ -404,6 +427,14 @@ package starling.animation
          *  (except the last, which will trigger 'onComplete'). */
         public function get onRepeat():Function { return _onRepeat; }
         public function set onRepeat(value:Function):void { _onRepeat = value; }
+
+        /** A function that will be called each time the tween starts one repetition */
+        public function get onRepeatStart():Function { return _onRepeatStart; }
+        public function set onRepeatStart(value:Function):void { _onRepeatStart = value; }
+
+        /** A function that will be called each time the tween finishes one repetition */
+        public function get onRepeatFinish():Function { return _onRepeatFinish; }
+        public function set onRepeatFinish(value:Function):void { _onRepeatFinish = value; }
         
         /** A function that will be called when the tween is complete. */
         public function get onComplete():Function { return _onComplete; }
@@ -420,6 +451,14 @@ package starling.animation
         /** The arguments that will be passed to the 'onRepeat' function. */
         public function get onRepeatArgs():Array { return _onRepeatArgs; }
         public function set onRepeatArgs(value:Array):void { _onRepeatArgs = value; }
+
+        /** The arguments that will be passed to the 'onRepeatStart' function. */
+        public function get onRepeatStartArgs():Array { return _onRepeatStartArgs; }
+        public function set onRepeatStartArgs(value:Array):void { _onRepeatStartArgs = value; }
+
+        /** The arguments that will be passed to the 'onRepeatFinish' function. */
+        public function get onRepeatFinishArgs():Array { return _onRepeatFinishArgs; }
+        public function set onRepeatFinishArgs(value:Array):void { _onRepeatFinishArgs = value; }
         
         /** The arguments that will be passed to the 'onComplete' function. */
         public function get onCompleteArgs():Array { return _onCompleteArgs; }
@@ -446,8 +485,8 @@ package starling.animation
         starling_internal static function toPool(tween:Tween):void
         {
             // reset any object-references, to make sure we don't prevent any garbage collection
-            tween._onStart = tween._onUpdate = tween._onRepeat = tween._onComplete = null;
-            tween._onStartArgs = tween._onUpdateArgs = tween._onRepeatArgs = tween._onCompleteArgs = null;
+            tween._onStart = tween._onUpdate = tween._onRepeat = tween._onComplete = tween._onRepeatStart = tween._onRepeatFinish = null;
+            tween._onStartArgs = tween._onUpdateArgs = tween._onRepeatArgs = tween._onCompleteArgs = tween._onRepeatStartArgs = tween._onRepeatFinishArgs = null;
             tween._target = null;
             tween._transitionFunc = null;
             tween.removeEventListeners();

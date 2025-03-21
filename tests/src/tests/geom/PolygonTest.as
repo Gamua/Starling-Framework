@@ -12,52 +12,50 @@ package tests.geom
 {
     import flash.geom.Point;
 
-    import org.flexunit.assertThat;
-    import org.flexunit.asserts.assertEquals;
-    import org.flexunit.asserts.assertFalse;
-    import org.flexunit.asserts.assertTrue;
-    import org.hamcrest.number.closeTo;
-
     import starling.geom.Polygon;
+    import starling.unit.UnitTest;
 
-    import tests.Helpers;
-
-    public class PolygonTest
+    public class PolygonTest extends UnitTest
     {
         private static const E:Number = 0.0001;
 
-        [Test]
         public function testConstructorWithPoints():void
         {
             var polygon:Polygon = new Polygon([new Point(0, 1), new Point(2, 3), new Point(4, 5)]);
-            assertEquals(3, polygon.numVertices);
-            Helpers.comparePoints(new Point(0, 1), polygon.getVertex(0));
-            Helpers.comparePoints(new Point(2, 3), polygon.getVertex(1));
-            Helpers.comparePoints(new Point(4, 5), polygon.getVertex(2));
+            assertEqual(3, polygon.numVertices);
+            assertEqualPoints(new Point(0, 1), polygon.getVertex(0));
+            assertEqualPoints(new Point(2, 3), polygon.getVertex(1));
+            assertEqualPoints(new Point(4, 5), polygon.getVertex(2));
         }
 
-        [Test]
         public function testConstructorWithCoords():void
         {
             var polygon:Polygon = new Polygon([0, 1,  2, 3,  4, 5]);
-            assertEquals(3, polygon.numVertices);
-            Helpers.comparePoints(new Point(0, 1), polygon.getVertex(0));
-            Helpers.comparePoints(new Point(2, 3), polygon.getVertex(1));
-            Helpers.comparePoints(new Point(4, 5), polygon.getVertex(2));
+            assertEqual(3, polygon.numVertices);
+            assertEqualPoints(new Point(0, 1), polygon.getVertex(0));
+            assertEqualPoints(new Point(2, 3), polygon.getVertex(1));
+            assertEqualPoints(new Point(4, 5), polygon.getVertex(2));
         }
 
-        [Test]
+        public function testConstructorWithVectorCoords():void
+        {
+            var polygon:Polygon = Polygon.fromVector(new <Number>[0, 1, 2, 3, 4, 5]);
+            assertEqual(3, polygon.numVertices);
+            assertEqualPoints(new Point(0, 1), polygon.getVertex(0));
+            assertEqualPoints(new Point(2, 3), polygon.getVertex(1));
+            assertEqualPoints(new Point(4, 5), polygon.getVertex(2));
+        }
+
         public function testClone():void
         {
             var polygon:Polygon = new Polygon([0, 1,  2, 3,  4, 5]);
             var clone:Polygon = polygon.clone();
-            assertEquals(3, clone.numVertices);
-            Helpers.comparePoints(new Point(0, 1), clone.getVertex(0));
-            Helpers.comparePoints(new Point(2, 3), clone.getVertex(1));
-            Helpers.comparePoints(new Point(4, 5), clone.getVertex(2));
+            assertEqual(3, clone.numVertices);
+            assertEqualPoints(new Point(0, 1), clone.getVertex(0));
+            assertEqualPoints(new Point(2, 3), clone.getVertex(1));
+            assertEqualPoints(new Point(4, 5), clone.getVertex(2));
         }
 
-        [Test]
         public function testTriangulate():void
         {
             // 0-------1
@@ -78,10 +76,9 @@ package tests.geom
             var indices:Vector.<uint> = polygon.triangulate().toVector();
             var expected:Vector.<uint> = new <uint>[1,2,3, 1,3,4, 0,1,4, 0,4,5];
 
-            Helpers.compareVectorsOfUints(indices, expected);
+            assertEqualVectorsOfUints(indices, expected);
         }
 
-        [Test]
         public function testTriangulateFewPoints():void
         {
             var p0:Point = new Point(0, 0);
@@ -89,16 +86,15 @@ package tests.geom
             var p2:Point = new Point(0, 1);
 
             var polygon:Polygon = new Polygon([p0]);
-            assertEquals(0, polygon.triangulate().numIndices);
+            assertEqual(0, polygon.triangulate().numIndices);
 
             polygon.addVertices(p1);
-            assertEquals(0, polygon.triangulate().numIndices);
+            assertEqual(0, polygon.triangulate().numIndices);
 
             polygon.addVertices(p2);
-            assertEquals(3, polygon.triangulate().numIndices);
+            assertEqual(3, polygon.triangulate().numIndices);
         }
 
-        [Test]
         public function testTriangulateNonSimplePolygon():void
         {
             // 0---1
@@ -118,10 +114,9 @@ package tests.geom
             var indices:Vector.<uint> = polygon.triangulate().toVector();
             var expected:Vector.<uint> = new <uint>[0,1,2, 0,2,3];
 
-            Helpers.compareVectorsOfUints(indices, expected);
+            assertEqualVectorsOfUints(indices, expected);
         }
 
-        [Test]
         public function testInside():void
         {
             var polygon:Polygon;
@@ -162,7 +157,6 @@ package tests.geom
             assertFalse(polygon.contains(5, 3));
         }
 
-        [Test]
         public function testIsConvex():void
         {
             var polygon:Polygon;
@@ -210,7 +204,6 @@ package tests.geom
             assertFalse(polygon.isConvex);
         }
 
-        [Test]
         public function testArea():void
         {
             var polygon:Polygon;
@@ -225,7 +218,7 @@ package tests.geom
             p2 = new Point(0, 1);
 
             polygon = new Polygon([p0, p1, p2]);
-            assertThat(polygon.area, closeTo(0.5, E));
+            assertEquivalent(polygon.area, 0.5);
 
             // 0--1
             // |  |
@@ -235,18 +228,17 @@ package tests.geom
             p3 = new Point(0, 1);
 
             polygon = new Polygon([p0, p1, p2, p3]);
-            assertThat(polygon.area, closeTo(1.0, E));
+            assertEquivalent(polygon.area, 1.0);
 
             // 0--1
 
             polygon = new Polygon([p0, p1]);
-            assertThat(polygon.area, closeTo(0.0, E));
+            assertEquivalent(polygon.area, 0.0);
 
             polygon = new Polygon([p0]);
-            assertThat(polygon.area, closeTo(0.0, E));
+            assertEquivalent(polygon.area, 0.0);
         }
 
-        [Test]
         public function testReverse():void
         {
             var p0:Point = new Point(0, 1);
@@ -256,17 +248,16 @@ package tests.geom
             var polygon:Polygon = new Polygon([p0]);
             polygon.reverse();
 
-            Helpers.comparePoints(polygon.getVertex(0), p0);
+            assertEqualPoints(polygon.getVertex(0), p0);
 
             polygon.addVertices(p1, p2);
             polygon.reverse();
 
-            Helpers.comparePoints(polygon.getVertex(0), p2);
-            Helpers.comparePoints(polygon.getVertex(1), p1);
-            Helpers.comparePoints(polygon.getVertex(2), p0);
+            assertEqualPoints(polygon.getVertex(0), p2);
+            assertEqualPoints(polygon.getVertex(1), p1);
+            assertEqualPoints(polygon.getVertex(2), p0);
         }
 
-        [Test]
         public function testIsSimple():void
         {
             var polygon:Polygon;
@@ -306,25 +297,24 @@ package tests.geom
             assertFalse(polygon.isSimple);
         }
 
-        [Test]
         public function testResize():void
         {
             var polygon:Polygon = new Polygon([0, 1, 2, 3]);
-            assertEquals(2, polygon.numVertices);
+            assertEqual(2, polygon.numVertices);
 
             polygon.numVertices = 1;
-            assertEquals(1, polygon.numVertices);
+            assertEqual(1, polygon.numVertices);
 
             polygon.numVertices = 0;
-            assertEquals(0, polygon.numVertices);
+            assertEqual(0, polygon.numVertices);
 
             polygon.numVertices = 2;
-            assertEquals(2, polygon.numVertices);
+            assertEqual(2, polygon.numVertices);
 
-            assertEquals(0, polygon.getVertex(0).x);
-            assertEquals(0, polygon.getVertex(0).y);
-            assertEquals(0, polygon.getVertex(1).x);
-            assertEquals(0, polygon.getVertex(1).y);
+            assertEqual(0, polygon.getVertex(0).x);
+            assertEqual(0, polygon.getVertex(0).y);
+            assertEqual(0, polygon.getVertex(1).x);
+            assertEqual(0, polygon.getVertex(1).y);
         }
 
     }
