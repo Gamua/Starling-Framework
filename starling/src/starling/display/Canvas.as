@@ -176,7 +176,7 @@ package starling.display
                 var graphicsProperties:IGraphicsData = graphicsData[graphPropIndex];
 
                 if (graphicsProperties is GraphicsSolidFill)
-                    this.beginFill((graphicsProperties as GraphicsSolidFill).color, (graphicsProperties as GraphicsSolidFill).alpha);
+                    beginFill((graphicsProperties as GraphicsSolidFill).color, (graphicsProperties as GraphicsSolidFill).alpha);
 
                 else if (graphicsProperties is GraphicsPath)
                 {
@@ -189,17 +189,17 @@ package starling.display
                         switch (command)
                         {
                             case GraphicsPathCommand.MOVE_TO:
-                                this.moveTo(data[i], data[i + 1]);
+                                moveTo(data[i], data[i + 1]);
                                 i += 2;
                                 break;
 
                             case GraphicsPathCommand.LINE_TO:
-                                this.lineTo(data[i], data[i + 1]);
+                                lineTo(data[i], data[i + 1]);
                                 i += 2;
                                 break;
 
                             case GraphicsPathCommand.CURVE_TO:
-                                this.curveTo(data[i], data[i + 1], data[i + 2], data[i + 3]);
+                                curveTo(data[i], data[i + 1], data[i + 2], data[i + 3]);
                                 i += 4;
                                 break;
 
@@ -211,7 +211,7 @@ package starling.display
                 }
 
                 else if (graphicsProperties is GraphicsEndFill)
-                    this.endFill();
+                    endFill();
 
                 else
                     trace("[Starling] Canvas.drawGraphicsData: Unimplemented Graphics Data in input:", graphicsProperties, "at index", graphicsData.indexOf(graphicsProperties));
@@ -315,7 +315,7 @@ package starling.display
             const lastY:Number = _currentPath[_currentPath.length - 1];
             
             if (lastX == _currentPath[0] && lastY == _currentPath[1])
-                this.drawPolygon(Polygon.fromVector(_currentPath));
+                drawPolygon(Polygon.fromVector(_currentPath));
         }
     }
 }
