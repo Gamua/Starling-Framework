@@ -172,8 +172,9 @@ package starling.display
         public function drawGraphicsData(graphicsData:Vector.<IGraphicsData>):void
         {
             //var start:int = getTimer();
-            for each (var graphicsProperties:IGraphicsData in graphicsData)
+            for(var graphPropIndex:uint = 0; graphPropIndex < graphicsData.length; graphPropIndex++)
             {
+                var graphicsProperties:IGraphicsData = graphicsData[graphPropIndex];
                 if (graphicsProperties is GraphicsSolidFill)
                     this.beginFill(GraphicsSolidFill(graphicsProperties).color, GraphicsSolidFill(graphicsProperties).alpha);
                 else if (graphicsProperties is GraphicsPath)
@@ -181,8 +182,9 @@ package starling.display
                     var i:int = 0;
                     var data:Vector.<Number> = GraphicsPath(graphicsProperties).data;
 
-                    for each (var command:int in GraphicsPath(graphicsProperties).commands)
+                    for (var commandIndex:uint = 0; commandIndex < GraphicsPath(graphicsProperties).commands.length; commandIndex++)
                     {
+                        var command:int = GraphicsPath(graphicsProperties).commands[commandIndex]
                         switch (command)
                         {
                             case GraphicsPathCommand.MOVE_TO:
