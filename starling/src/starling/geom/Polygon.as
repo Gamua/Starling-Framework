@@ -178,9 +178,7 @@ package starling.geom
                 var indexes:Vector.<uint> = Earcut.earcut(this._coords);
                 if(!indexData) new IndexData(indexes.length)
                 for (var triIndex:uint = 0; triIndex < indexes.length/3; triIndex++)
-                {
-                    indexData.addTriangle(indexes[triIndex*3], indexes[triIndex*3+1], indexes[triIndex*3+2])
-                }
+                    indexData.addTriangle(indexes[triIndex*3], indexes[triIndex*3+1], indexes[triIndex*3+2]);
                 return indexData;
             }
 
