@@ -79,9 +79,48 @@ package tests.geom
             assertEqualVectorsOfUints(indices, expected);
         }
 
+        public function testTriangulateEarcut():void
+        {
+            // 0-------1
+            // |       |
+            // 5----4  |
+            //      |  |
+            //      |  |
+            //      3--2
+            Polygon.useEarcut = true;
+            var p0:Point = new Point(0, 0);
+            var p1:Point = new Point(4, 0);
+            var p2:Point = new Point(4, 4);
+            var p3:Point = new Point(3, 4);
+            var p4:Point = new Point(3, 1);
+            var p5:Point = new Point(0, 1);
+
+            var polygon:Polygon = new Polygon([p0, p1, p2, p3, p4, p5]);
+            var indices:Vector.<uint> = polygon.triangulate().toVector();
+            var expected:Vector.<uint> = new <uint>[4,5,0, 1,2,3, 4,0,1, 1,3,4];
+
+            assertEqualVectorsOfUints(indices, expected);
+        }
+
         public function testTriangulateFewPoints():void
         {
-            Polygon.useEarcut = false;
+            var p0:Point = new Point(0, 0);
+            var p1:Point = new Point(1, 0);
+            var p2:Point = new Point(0, 1);
+
+            var polygon:Polygon = new Polygon([p0]);
+            assertEqual(0, polygon.triangulate().numIndices);
+
+            polygon.addVertices(p1);
+            assertEqual(0, polygon.triangulate().numIndices);
+
+            polygon.addVertices(p2);
+            assertEqual(3, polygon.triangulate().numIndices);
+        }
+
+        public function testTriangulateFewPointsEarcut():void
+        {
+            Polygon.useEarcut = true;
             var p0:Point = new Point(0, 0);
             var p1:Point = new Point(1, 0);
             var p2:Point = new Point(0, 1);
@@ -114,7 +153,29 @@ package tests.geom
             var polygon:Polygon = new Polygon([p0, p1, p2, p3]);
             var indices:Vector.<uint> = polygon.triangulate().toVector();
             var expected:Vector.<uint> = new <uint>[0,1,2, 0,2,3];
+            
+            assertEqualVectorsOfUints(indices, expected);
+        }
 
+        public function testTriangulateNonSimplePolygonEarcut():void
+        {
+            // 0---1
+            //  \ /
+            //   X
+            //  / \
+            // 2---3
+
+            // The triangulation won't be meaningful, but at least it should work.
+            Polygon.useEarcut = true;
+            var p0:Point = new Point(0, 0);
+            var p1:Point = new Point(1, 0);
+            var p2:Point = new Point(0, 1);
+            var p3:Point = new Point(1, 1);
+
+            var polygon:Polygon = new Polygon([p0, p1, p2, p3]);
+            var indices:Vector.<uint> = polygon.triangulate().toVector();
+            var expected:Vector.<uint> = new <uint>[0,3,2];
+            
             assertEqualVectorsOfUints(indices, expected);
         }
 
