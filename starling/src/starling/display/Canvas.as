@@ -171,12 +171,13 @@ package starling.display
         */
         public function drawGraphicsData(graphicsData:Vector.<IGraphicsData>):void
         {
-            //var start:int = getTimer();
             for(var graphPropIndex:uint = 0; graphPropIndex < graphicsData.length; graphPropIndex++)
             {
                 var graphicsProperties:IGraphicsData = graphicsData[graphPropIndex];
+
                 if (graphicsProperties is GraphicsSolidFill)
                     this.beginFill(GraphicsSolidFill(graphicsProperties).color, GraphicsSolidFill(graphicsProperties).alpha);
+
                 else if (graphicsProperties is GraphicsPath)
                 {
                     var i:int = 0;
@@ -184,7 +185,7 @@ package starling.display
 
                     for (var commandIndex:uint = 0; commandIndex < GraphicsPath(graphicsProperties).commands.length; commandIndex++)
                     {
-                        var command:int = GraphicsPath(graphicsProperties).commands[commandIndex]
+                        var command:int = GraphicsPath(graphicsProperties).commands[commandIndex];
                         switch (command)
                         {
                             case GraphicsPathCommand.MOVE_TO:
@@ -208,13 +209,13 @@ package starling.display
                         }
                     }
                 }
+
                 else if (graphicsProperties is GraphicsEndFill)
                     this.endFill();
+
                 else
                     trace("[Starling] Canvas.drawGraphicsData: Unimplemented Graphics Data in input:", graphicsProperties, "at index", graphicsData.indexOf(graphicsProperties));
-
             }
-            // trace("Took " + (getTimer() - start) + " ms");
         }
 
         /** Removes all existing vertices. */
