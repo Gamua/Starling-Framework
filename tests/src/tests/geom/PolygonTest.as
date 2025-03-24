@@ -64,7 +64,7 @@ package tests.geom
             //      |  |
             //      |  |
             //      3--2
-
+            Polygon.useEarcut = false;
             var p0:Point = new Point(0, 0);
             var p1:Point = new Point(4, 0);
             var p2:Point = new Point(4, 4);
@@ -81,6 +81,7 @@ package tests.geom
 
         public function testTriangulateFewPoints():void
         {
+            Polygon.useEarcut = false;
             var p0:Point = new Point(0, 0);
             var p1:Point = new Point(1, 0);
             var p2:Point = new Point(0, 1);
@@ -104,7 +105,7 @@ package tests.geom
             // 2---3
 
             // The triangulation won't be meaningful, but at least it should work.
-
+            Polygon.useEarcut = false;
             var p0:Point = new Point(0, 0);
             var p1:Point = new Point(1, 0);
             var p2:Point = new Point(0, 1);
