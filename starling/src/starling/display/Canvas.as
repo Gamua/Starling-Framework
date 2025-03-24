@@ -176,16 +176,16 @@ package starling.display
                 var graphicsProperties:IGraphicsData = graphicsData[graphPropIndex];
 
                 if (graphicsProperties is GraphicsSolidFill)
-                    this.beginFill(GraphicsSolidFill(graphicsProperties).color, GraphicsSolidFill(graphicsProperties).alpha);
+                    this.beginFill((graphicsProperties as GraphicsSolidFill).color, (graphicsProperties as GraphicsSolidFill).alpha);
 
                 else if (graphicsProperties is GraphicsPath)
                 {
                     var i:int = 0;
-                    var data:Vector.<Number> = GraphicsPath(graphicsProperties).data;
+                    var data:Vector.<Number> = (graphicsProperties as GraphicsPath).data;
 
-                    for (var commandIndex:uint = 0; commandIndex < GraphicsPath(graphicsProperties).commands.length; commandIndex++)
+                    for (var commandIndex:uint = 0; commandIndex < (graphicsProperties as GraphicsPath).commands.length; commandIndex++)
                     {
-                        var command:int = GraphicsPath(graphicsProperties).commands[commandIndex];
+                        var command:int = (graphicsProperties as GraphicsPath).commands[commandIndex];
                         switch (command)
                         {
                             case GraphicsPathCommand.MOVE_TO:
