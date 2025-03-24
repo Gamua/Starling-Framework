@@ -171,7 +171,8 @@ package starling.display
         */
         public function drawGraphicsData(graphicsData:Vector.<IGraphicsData>):void
         {
-            for(var graphPropIndex:uint = 0; graphPropIndex < graphicsData.length; graphPropIndex++)
+            var graphicsDataLength:int = graphicsData.length;
+            for(var graphPropIndex:int = 0; graphPropIndex < graphicsDataLength; graphPropIndex++)
             {
                 var graphicsProperties:IGraphicsData = graphicsData[graphPropIndex];
 
@@ -183,7 +184,8 @@ package starling.display
                     var i:int = 0;
                     var data:Vector.<Number> = (graphicsProperties as GraphicsPath).data;
 
-                    for (var commandIndex:uint = 0; commandIndex < (graphicsProperties as GraphicsPath).commands.length; commandIndex++)
+                    var commandLength:int = (graphicsProperties as GraphicsPath).commands.length;
+                    for (var commandIndex:int = 0; commandIndex < commandLength; commandIndex++)
                     {
                         var command:int = (graphicsProperties as GraphicsPath).commands[commandIndex];
                         switch (command)
