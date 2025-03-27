@@ -17,6 +17,7 @@ package starling.geom
     import starling.rendering.VertexData;
     import starling.utils.MathUtil;
     import starling.utils.Pool;
+    import starling.utils.Earcut;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
      *  line segments.
@@ -29,6 +30,13 @@ package starling.geom
     public class Polygon
     {
         private var _coords:Vector.<Number>;
+
+        /* Dictates if Polygon.triangulate() should use the Earcut ear-clipping polygon triangulation library
+         * that is bundled with Starling or old ear-clipping triangulation that used to be the default.
+         * In most cases you want to keep this on as Earcut has much better output and speed than the old triangulation,
+         * turn it off only if you have issues not seen in the old triangulation (altough there shouldn't be any)
+         */
+        public static var useEarcut:Boolean = true;
 
         // Helper object
         private static var sRestIndices:Vector.<uint> = new <uint>[];
@@ -165,6 +173,19 @@ package starling.geom
          *  Otherwise, a new instance will be created.</p> */
         public function triangulate(indexData:IndexData=null, offset:int=0):IndexData
         {
+            if(useEarcut) 
+            {
+                
+                var indexes:Vector.<uint> = Earcut.earcut(this._coords);
+                if (indexData == null) indexData = new IndexData(indexes.length);
+                if(indexes.length < 3) return indexData
+
+                var triangleCount:int = indexes.length/3;
+                for (var triIndex:int = 0; triIndex < triangleCount; triIndex++)
+                    indexData.addTriangle(indexes[triIndex*3], indexes[triIndex*3+1], indexes[triIndex*3+2]);
+                return indexData;
+            }
+
             // Algorithm "Ear clipping method" described here:
             // -> https://en.wikipedia.org/wiki/Polygon_triangulation
             //
