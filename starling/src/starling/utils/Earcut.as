@@ -58,7 +58,7 @@ package starling.utils
 {
     /**
      * An ActionScript 3.0 port of the Earcut ear-clipping tesselation library by Mapbox 
-     * Original Library: https://github.com/mapbox/earcut/releases/tag/v3.0.1
+     * Original Library: https://github.com/mapbox/earcut/releases/tag/v3.0.2
      */
     public final class Earcut
     {
@@ -88,10 +88,10 @@ package starling.utils
 
             // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
             if (vertices.length > 80 * dimensions) {
-                minX = Infinity;
-                minY = Infinity;
-                var maxX:Number = -Infinity;
-                var maxY:Number = -Infinity;
+                minX = vertices[0];
+                minY = vertices[1];
+                var maxX:Number = minX;
+                var maxY:Number = minY;
 
                 for (var i:int = dimensions; i < outerLen; i += dimensions) {
                     const x:Number = vertices[i];
