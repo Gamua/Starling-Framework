@@ -110,6 +110,16 @@ package starling.display
         /** Resets the color to 'white' and alpha to '1'. */
         public function endFill():void
         {
+            if(_currentPath.length > 0) {
+                const lastX:Number = _currentPath[_currentPath.length - 2];
+                const lastY:Number = _currentPath[_currentPath.length - 1];
+
+                if (lastX != _currentPath[0] && lastY != _currentPath[1])
+                {
+                    lineTo(_currentPath[0], _currentPath[1]);
+                    drawPathIfClosed();
+                }
+            }
             _fillColor = 0xffffff;
             _fillAlpha = 1.0;
         }
