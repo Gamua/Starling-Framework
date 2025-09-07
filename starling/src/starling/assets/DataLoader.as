@@ -65,6 +65,7 @@ package starling.assets
             loader.dataFormat = URLLoaderDataFormat.BINARY;
             loader.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
             loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onLoadError);
+            loader.addEventListener(SecurityErrorEvent.CERTIFICATE_ERROR, onLoadError);
             loader.addEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
             loader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
             loader.addEventListener(Event.COMPLETE, onLoadComplete);
@@ -106,6 +107,7 @@ package starling.assets
             {
                 loader.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
                 loader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onLoadError);
+                loader.removeEventListener(SecurityErrorEvent.CERTIFICATE_ERROR, onLoadError);
                 loader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                 loader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 loader.removeEventListener(Event.COMPLETE, onLoadComplete);
