@@ -26,8 +26,9 @@ package starling.assets
      */
     public class DataLoader
     {
-        // This HTTPStatusEvent is only available in AIR
+        // Event types that are only available in AIR
         private static const HTTP_RESPONSE_STATUS:String = "httpResponseStatus";
+        private static const CERTIFICATE_ERROR:String = "certificateError";
 
         private var _urlLoaders:Dictionary;
 
@@ -65,7 +66,7 @@ package starling.assets
             loader.dataFormat = URLLoaderDataFormat.BINARY;
             loader.addEventListener(IOErrorEvent.IO_ERROR, onLoadError);
             loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onLoadError);
-            loader.addEventListener(SecurityErrorEvent.CERTIFICATE_ERROR, onLoadError);
+            loader.addEventListener(CERTIFICATE_ERROR, onLoadError);
             loader.addEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
             loader.addEventListener(ProgressEvent.PROGRESS, onLoadProgress);
             loader.addEventListener(Event.COMPLETE, onLoadComplete);
@@ -107,7 +108,7 @@ package starling.assets
             {
                 loader.removeEventListener(IOErrorEvent.IO_ERROR, onLoadError);
                 loader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onLoadError);
-                loader.removeEventListener(SecurityErrorEvent.CERTIFICATE_ERROR, onLoadError);
+                loader.removeEventListener(CERTIFICATE_ERROR, onLoadError);
                 loader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
                 loader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
                 loader.removeEventListener(Event.COMPLETE, onLoadComplete);
