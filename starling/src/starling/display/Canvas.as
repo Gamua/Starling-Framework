@@ -110,7 +110,7 @@ package starling.display
         /** Resets the color to 'white' and alpha to '1'. */
         public function endFill():void
         {
-            if(_currentPath.length > 0) {
+            if(_currentPath && _currentPath.length > 0) {
                 const lastX:Number = _currentPath[_currentPath.length - 2];
                 const lastY:Number = _currentPath[_currentPath.length - 1];
 
