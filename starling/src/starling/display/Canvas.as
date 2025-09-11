@@ -99,6 +99,12 @@ package starling.display
             drawPolygon(Polygon.createRectangle(x, y, width, height));
         }
 
+        /** Draws a rectangle with rounded corners. */
+        public function drawRoundRectangle(x:Number, y:Number, width:Number, height:Number, ellipseWidth:Number, ellipseHeight:Number = NaN):void
+        {
+            drawPolygon(Polygon.createRoundRectangle(x, y, width, height, ellipseWidth, ellipseHeight));
+        }
+
         /** Specifies a simple one-color fill that subsequent calls to drawing methods
          *  (such as <code>drawCircle()</code>) will use. */
         public function beginFill(color:uint=0xffffff, alpha:Number=1.0):void
