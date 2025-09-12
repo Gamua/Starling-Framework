@@ -151,7 +151,13 @@ package starling.display
         public function lineTo(x:Number, y:Number):void
         {
             // TODO: This implementation too simple for strokes, only works for fills
-            if(_currentPath.length == 0)
+            if(_currentPath == null)
+            {
+                _currentPath = new Vector.<Number>();
+                _currentPath.push(0);
+                _currentPath.push(0);
+            }
+            else if(_currentPath.length == 0)
             {
                 _currentPath.push(0);
                 _currentPath.push(0);
@@ -170,7 +176,13 @@ package starling.display
          */
         public function curveTo(controlX:Number, controlY:Number, anchorX:Number, anchorY:Number):void
         {
-            if(_currentPath.length == 0)
+            if(_currentPath == null)
+            {
+                _currentPath = new Vector.<Number>();
+                _currentPath.push(0);
+                _currentPath.push(0);
+            }
+            else if(_currentPath.length == 0)
             {
                 _currentPath.push(0);
                 _currentPath.push(0);
