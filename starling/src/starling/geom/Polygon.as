@@ -331,6 +331,14 @@ package starling.geom
             return new Rectangle(x, y, width, height);
         }
 
+        /** Creates a rectangle with rounded corners with optimized implementations of triangulation, hitTest, etc. */
+        public static function createRoundRectangle(x:Number, y:Number,
+                                               width:Number, height:Number,
+                                               ellipseWidth:Number, ellipseHeight:Number = NaN):Polygon
+        {
+            return new RoundRectangle(x, y, width, height, ellipseWidth, ellipseHeight);
+        }
+
         // helpers
 
         /** Calculates if the area of the triangle a->b->c is to on the right-hand side of a->b. */
@@ -629,6 +637,167 @@ class Rectangle extends ImmutablePolygon
     override public function get area():Number
     {
         return _width * _height;
+    }
+
+    override public function get isSimple():Boolean
+    {
+        return true;
+    }
+
+    override public function get isConvex():Boolean
+    {
+        return true;
+    }
+}
+
+class RoundRectangle extends ImmutablePolygon
+{
+    private var _x:Number;
+    private var _y:Number;
+    private var _width:Number;
+    private var _height:Number;
+    private var _radiusX:Number;
+    private var _radiusY:Number;
+
+    public function RoundRectangle(x:Number, y:Number, width:Number, height:Number, radiusX:Number, radiusY:Number)
+    {
+        _x = x;
+        _y = y;
+        _width = width;
+        _height = height;
+        _radiusX = radiusX;
+        _radiusY = isNaN(radiusY) ? radiusX : radiusY;
+
+        super(getVertices());
+    }
+
+    private function getNumVerticesPerCorner():int
+    {
+		var numVerticesPerCorner:int = Math.ceil(Math.PI * (_radiusX + _radiusY) / 16.0);
+		if (numVerticesPerCorner < 3)
+		{
+			numVerticesPerCorner = 3;
+		}
+        return numVerticesPerCorner;
+    }
+
+    private function getVertices():Array
+    {
+        var numVerticesPerCorner:int = getNumVerticesPerCorner();
+        var numVertices:int = numVerticesPerCorner * 4;
+
+        var vertices:Array = [];
+        var angleDelta:Number = (Math.PI / 2.0) / (numVerticesPerCorner - 1);
+        var angle:Number = 0.0;
+		var offsetX:Number = _width - _radiusX - _radiusX;
+		var offsetY:Number = _height - _radiusY - _radiusY;
+		var horizontal:Boolean = true;
+
+        var j:int = 0;
+		var len:int = numVerticesPerCorner;
+		for (var i:int = 0; i < 4; i++)
+		{
+			while (j < len)
+			{
+				vertices[j * 2] = offsetX + Math.cos(angle) * _radiusX + _x + _radiusX;
+				vertices[j * 2 + 1] = offsetY + Math.sin(angle) * _radiusY + _y + _radiusY;
+				angle += angleDelta;
+				j++;
+            }
+			angle -= angleDelta;
+			if (horizontal)
+			{
+				if (offsetX == 0.0)
+				{
+					offsetX = _width - _radiusX - _radiusX;
+				}
+				else
+				{
+					offsetX = 0.0;
+				}
+			}
+			else
+			{
+				if (offsetY == 0.0)
+				{
+					offsetY = _height - _radiusY - _radiusY;
+				}
+				else
+				{
+					offsetY = 0.0;
+				}
+			}
+			horizontal = !horizontal;
+			len += numVerticesPerCorner;
+        }
+
+        return vertices;
+    }
+
+    override public function triangulate(indexData:IndexData=null, offset:int=0):IndexData
+    {
+        var numVerticesPerCorner:int = getNumVerticesPerCorner();
+        var numVertices:int = numVerticesPerCorner * 4;
+        var numTriangles:int = numVertices - 2;
+
+        if (indexData == null) indexData = new IndexData(numTriangles * 3);
+
+		for (var i:int = 0; i < numTriangles; i++)
+		{
+            indexData.addTriangle(0, i + 1, i + 2);
+		}
+
+        return indexData;
+    }
+
+    override public function contains(x:Number, y:Number):Boolean
+    {
+        // check if completely outside bounds
+        if (x < _x || y < _y || x > (_x + _width) || y > (_y + _height))
+        {
+            return false;
+        }
+
+        // check if in center rectangles
+        if (x >= (_x + _radiusX) && x <= (_x + _width - _radiusX))
+        {
+            return true;
+        }
+        if (y >= (_y + _radiusY) && y <= (_y + _height - _radiusY))
+        {
+            return true;
+        }
+
+        // finally, check if within corners
+        var centerX:Number;
+        var centerY:Number;
+        if (x < _x + _radiusX) {
+            // left
+            centerX = _x + _radiusX;
+        } else {
+            // right
+            centerX = _x + _width - _radiusX;
+        }
+        if (y < _y + _radiusY) {
+            // top
+            centerY = _y + _radiusY;
+        } else {
+            // bottom
+            centerY = _y + _height - _radiusY;
+        }
+
+        var vx:Number = x - centerX;
+        var vy:Number = y - centerY;
+
+        var a:Number = vx / _radiusX;
+        var b:Number = vy / _radiusY;
+
+        return a * a + b * b <= 1;
+    }
+
+    override public function get area():Number
+    {
+        return (_width * _height) - (4.0 - Math.PI) * _radiusX * _radiusY;
     }
 
     override public function get isSimple():Boolean
