@@ -45,6 +45,8 @@ package starling.styles
             sMaxTextures = value > MAX_NUM_TEXTURES ? MAX_NUM_TEXTURES : value;
         }
 
+        public function MultiTextureStyle() {}
+
         /** @private */
         override public function copyFrom(meshStyle:MeshStyle):void
         {

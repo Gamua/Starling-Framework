@@ -125,14 +125,14 @@ package starling.assets
      *  any logging to an external logger. To customize the way data is loaded from URLs or
      *  files, you can assign a custom 'DataLoader' instance to the AssetManager.</p>
      *
-     *  <strong>Extension & mime type for embed assets</strong>
+     *  <strong>Extension and mime type for embedded assets</strong>
      *
-     *  <p>In order to enable the automatic detection of the extension & mime type for
-     *  embed assets, the following compiler option is required:
+     *  <p>In order to enable the automatic detection of the extension and mime type for
+     *  embedded assets, the following compiler option is required:
      *  `-keep-as3-metadata += "Embed"`.</p>
      *
      *  <p>This will enable proper assets handling in your custom 'AssetFactory' for
-     *  the embed assets.</p>
+     *  the embedded assets.</p>
      *
      *  @see starling.assets.AssetFactory
      *  @see starling.assets.AssetType

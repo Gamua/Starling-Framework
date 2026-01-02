@@ -200,7 +200,7 @@ package starling.core
     public class Starling extends EventDispatcher
     {
         /** The version of the Starling framework. */
-        public static const VERSION:String = "2.7";
+        public static const VERSION:String = "2.8";
 
         // members
 
@@ -891,7 +891,7 @@ package starling.core
 
         /** The default texture smoothing. This value will be used as the default value when
          *  creating 'MeshStyle', 'FragmentFilter' or 'FilterEffect'.
-         *  Changing it won't have any impact on the existing meshes & filters.
+         *  Changing it won't have any impact on the existing meshes and filters.
          *  @default "bilinear" */
         public function get defaultTextureSmoothing():String { return _defaultTextureSmoothing; }
         public function set defaultTextureSmoothing(value:String):void

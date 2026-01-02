@@ -1,6 +1,32 @@
 Starling: Changelog
 ===================
 
+version 2.8 - 2026-01-01
+------------------------
+
+- added 'MultiTextureStyle' for batching multiple textures in a single draw call (#1133) (thanks to johnridges and Fancy2209!)
+- added vector drawing APIs to Canvas, including 'drawGraphicsData', curves, and path support (#1121) (thanks to Fancy2209!)
+- added Earcut-based triangulation for Polygon, including offset support (#1123, #1128) (thanks to Fancy2209!)
+- added 'Starling.defaultTextureSmoothing' to configure default texture smoothing globally (#1092) (thanks to Adolio!)
+- added new tween hooks: 'onRepeatStart', 'onRepeatFinish', and 'repeatReverseDelay' (#1117) (thanks to Mintonist!)
+- added 'Event.RENDER_COMPLETE' and adjusted 'Event.RENDER' dispatch timing (#1109) (thanks to Adolio!)
+- added 'Event.REMOVED_FROM_JUGGLER' and 'Juggler.isEmpty'; pooled tweens are released when purging (#1103) (thanks to Adolio!)
+- added support for root JSON arrays in JsonFactory (#1100) (thanks to Adolio!)
+- added detection of extension and MIME type for embedded assets in AssetManager (#1090) (thanks to Adolio!)
+- added polygon factory method that accepts vectors (#1113)
+- added 'Canvas.drawRoundRectangle()' method (#1136) (thanks to Josh!)
+- replaced FlexUnit libraries with simple, home made unit test classes
+- optimized mipmap generation for ConcretePotTexture and fixed mip sizes (#1115) (thanks to zach-xhx!)
+- optimized mask handling: faster reuse of identical masks, plus fixes for hit-test and 'maskInverted' redraw issues (#1106, #1116) (thanks to MatseFR!)
+- optimized 'removeChild' performance (#1093) (thanks to HaimZik!)
+- fixed some state exceptions in Canvas (#1135, #1137) (thanks to Josh!)
+- fixed bounds computation for DisplayObjectContainer with zero-size children (#1110) (thanks to Adolio!)
+- fixed rare BatchProcessor RangeError
+- fixed MovieClip 'currentTime' after reversing frames
+- fixed BitmapFont glyphs exceeding the top of TextField when the line height is larger
+- fixed 'BlendMode.isRegistered' error when called early (thanks to MatseFR!)
+- fixed AssetManager 'numConnections' setter and certificate error handling in DataLoader (#1120, #1129)
+
 version 2.7 - 2021-07-26
 ------------------------
 
