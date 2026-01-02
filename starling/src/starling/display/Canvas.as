@@ -10,7 +10,7 @@
 
 package starling.display
 {
-    
+
     import flash.display.IGraphicsData;
     import flash.display.GraphicsSolidFill;
     import flash.display.GraphicsPath;
@@ -29,14 +29,15 @@ package starling.display
     public class Canvas extends DisplayObjectContainer
     {
         private var _polygons:Vector.<Polygon>;
+        private var _currentPath:Vector.<Number>;
         private var _fillColor:uint;
         private var _fillAlpha:Number;
-        private var _currentPath:Vector.<Number>;
 
         /** Creates a new (empty) Canvas. Call one or more of the 'draw' methods to add content. */
         public function Canvas()
         {
             _polygons  = new <Polygon>[];
+            _currentPath = new Vector.<Number>();
             _fillColor = 0xffffff;
             _fillAlpha = 1.0;
             touchGroup = true;
@@ -46,6 +47,7 @@ package starling.display
         public override function dispose():void
         {
             _polygons.length = 0;
+            _currentPath.length = 0;
             super.dispose();
         }
 
@@ -109,6 +111,7 @@ package starling.display
          *  (such as <code>drawCircle()</code>) will use. */
         public function beginFill(color:uint=0xffffff, alpha:Number=1.0):void
         {
+            closeCurrentPathIfNeeded();
             _fillColor = color;
             _fillAlpha = alpha;
         }
@@ -116,63 +119,50 @@ package starling.display
         /** Resets the color to 'white' and alpha to '1'. */
         public function endFill():void
         {
-            if(_currentPath && _currentPath.length > 0) {
-                const lastX:Number = _currentPath[_currentPath.length - 2];
-                const lastY:Number = _currentPath[_currentPath.length - 1];
-
-                if (lastX != _currentPath[0] && lastY != _currentPath[1])
-                {
-                    lineTo(_currentPath[0], _currentPath[1]);
-                    drawPathIfClosed();
-                }
-            }
+            closeCurrentPathIfNeeded(true);
             _fillColor = 0xffffff;
             _fillAlpha = 1.0;
         }
 
         /** Moves the current drawing position to (x, y).
-         *  
-         * @param x         A number that indicates the horizontal position relative to the registration point of the parent display object (in pixels).  
-         * @param y         A number that indicates the vertical position relative to the registration point of the parent display object (in pixels). 
+         *
+         * @param x  A number that indicates the horizontal position relative to the registration point of the parent display object (in pixels).
+         * @param y  A number that indicates the vertical position relative to the registration point of the parent display object (in pixels).
          */
         public function moveTo(x:Number, y:Number):void
         {
-            // TODO: Check if previous path is open and force close it if so
-            _currentPath = new Vector.<Number>();
-            _currentPath.push(x);
-            _currentPath.push(y);
+            // If a previous path is still open, close it automatically before starting a new one.
+            // This matches Flash's Graphics behavior, where a new MOVE_TO implicitly ends the
+            // current sub-path.
+            closeCurrentPathIfNeeded();
+
+            _currentPath.length = 0;
+            _currentPath.push(x, y);
         }
-        
+
         /** Draws a line using the current line style from the current drawing position to (x, y); the current drawing position is then set to (x, y).
-         * 
-         * @param x         A number that indicates the horizontal position relative to the registration point of the parent display object (in pixels). 
-         * @param y         A number that indicates the vertical position relative to the registration point of the parent display object (in pixels).
+         *
+         * @param x  A number that indicates the horizontal position relative to the registration point of the parent display object (in pixels).
+         * @param y  A number that indicates the vertical position relative to the registration point of the parent display object (in pixels).
          */
         public function lineTo(x:Number, y:Number):void
         {
-            // TODO: This implementation too simple for strokes, only works for fills
-            if(_currentPath == null)
+            // TODO: This implementation is too simple for strokes, only works for fills
+            if(_currentPath.length == 0)
             {
-                _currentPath = new Vector.<Number>();
-                _currentPath.push(0);
-                _currentPath.push(0);
+                // Behave like Flash's Graphics: if there's no current point, start at (0, 0).
+                _currentPath.push(0.0, 0.0);
             }
-            else if(_currentPath.length == 0)
-            {
-                _currentPath.push(0);
-                _currentPath.push(0);
-            }
-            _currentPath.push(x);
-            _currentPath.push(y);
+            _currentPath.push(x, y);
             drawPathIfClosed();
         }
 
         /**  Draws a quadratic Bezier curve using the current line style from the current drawing position to (anchorX, anchorY) and using the control point that (controlX, controlY) specifies.
-         *  
-         * @param controlX        A number that specifies the horizontal position of the control point relative to the registration point of the parent display object.
-         * @param controlY        A number that specifies the vertical position of the control point relative to the registration point of the parent display object.
-         * @param anchorX         A number that specifies the horizontal position of the next anchor point relative to the registration point of the parent display object.  
-         * @param anchorY         A number that specifies the vertical position of the next anchor point relative to the registration point of the parent display object. 
+         *
+         * @param controlX  A number that specifies the horizontal position of the control point relative to the registration point of the parent display object.
+         * @param controlY  A number that specifies the vertical position of the control point relative to the registration point of the parent display object.
+         * @param anchorX   A number that specifies the horizontal position of the next anchor point relative to the registration point of the parent display object.
+         * @param anchorY   A number that specifies the vertical position of the next anchor point relative to the registration point of the parent display object.
          */
         public function curveTo(controlX:Number, controlY:Number, anchorX:Number, anchorY:Number):void
         {
@@ -184,16 +174,41 @@ package starling.display
             }
             else if(_currentPath.length == 0)
             {
-                _currentPath.push(0);
-                _currentPath.push(0);
+                // Behave like Flash's Graphics: if there's no current point, start at (0, 0).
+                _currentPath.push(0.0, 0.0);
             }
             const lastX:Number = _currentPath[_currentPath.length - 2];
             const lastY:Number = _currentPath[_currentPath.length - 1];
             tesselateCurve(lastX, lastY, controlX, controlY, anchorX, anchorY, _currentPath);
             drawPathIfClosed();
         }
-        
-        /**  Submits a series of IGraphicsData instances for drawing. 
+        /** Closes the current path if it contains an unfinished polygon.
+         *  @param forceClose If true, a closing segment to the start point is added when needed.
+         */
+        private function closeCurrentPathIfNeeded(forceClose:Boolean = false):void
+        {
+            if (_currentPath.length < 6) // fewer than 3 points -> nothing meaningful to close
+                return;
+
+            const firstX:Number = _currentPath[0];
+            const firstY:Number = _currentPath[1];
+            const lastX:Number  = _currentPath[_currentPath.length - 2];
+            const lastY:Number  = _currentPath[_currentPath.length - 1];
+            const isClosed:Boolean = (lastX == firstX && lastY == firstY);
+
+            if (!isClosed && forceClose)
+            {
+                _currentPath.push(firstX, firstY);
+            }
+
+            // If we are closed now (either already or by force), draw it once.
+            drawPathIfClosed();
+
+            // If the path was open and we did not force-close it, leave it untouched.
+            // (This allows continuing the same path across multiple operations.)
+        }
+
+        /**  Submits a series of IGraphicsData instances for drawing.
         *
         * @param graphicsData      A Vector containing graphics objects, each of which much implement the flash.display.IGraphicsData interface.
         */
@@ -244,7 +259,8 @@ package starling.display
                     endFill();
 
                 else
-                    trace("[Starling] Canvas.drawGraphicsData: Unimplemented Graphics Data in input:", graphicsProperties, "at index", graphicsData.indexOf(graphicsProperties));
+                    trace("[Starling] Canvas.drawGraphicsData: Unimplemented Graphics Data in input: ",
+                    graphicsProperties, " at index ", graphicsData.indexOf(graphicsProperties));
             }
         }
 
@@ -270,11 +286,10 @@ package starling.display
             _polygons[_polygons.length] = polygon;
         }
 
-        /**   Func to tesselate a quadratic Curve using recursion, used in curveTo 
-         *    Function converted to AS3 from AwayJS
+        /**   Func to tesselate a quadratic Curve using recursion, used in curveTo; converted to AS3 from AwayJS.
          *    https://github.com/awayjs/graphics/blob/19c9c9912d0254934ba54c9b7049d1b898bf97f2/lib/draw/GraphicsFactoryHelper.ts#L376-L468
          */
-        private static function tesselateCurve(startx:Number, starty:Number, cx:Number, cy:Number, endx:Number, 
+        private static function tesselateCurve(startx:Number, starty:Number, cx:Number, cy:Number, endx:Number,
                                                endy:Number, array_out:Vector.<Number>, iterationCnt:Number = 0):void
         {
             const maxIterations:Number = 6;
@@ -340,12 +355,23 @@ package starling.display
         }
 
         private function drawPathIfClosed():void
-        {            
+        {
+            if (_currentPath.length < 4) return; // need at least two points
+
             const lastX:Number = _currentPath[_currentPath.length - 2];
             const lastY:Number = _currentPath[_currentPath.length - 1];
-            
+
             if (lastX == _currentPath[0] && lastY == _currentPath[1])
-                drawPolygon(Polygon.fromVector(_currentPath));
+            {
+                // Create a copy so we can safely clear the path afterwards.
+                // Important: Polygon.fromVector() keeps a reference to the passed Vector (for
+                // performance / to avoid allocations). If we passed '_currentPath' directly and
+                // then cleared/reused it, we'd also modify the polygon's internal coordinates.
+                var pathCopy:Vector.<Number> = _currentPath.concat();
+                _currentPath.length = 0;
+
+                drawPolygon(Polygon.fromVector(pathCopy));
+            }
         }
     }
 }
