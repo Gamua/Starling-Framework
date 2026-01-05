@@ -119,7 +119,7 @@ package starling.display
         /** Resets the color to 'white' and alpha to '1'. */
         public function endFill():void
         {
-            closeCurrentPathIfNeeded(true);
+            closeCurrentPathIfNeeded();
             _fillColor = 0xffffff;
             _fillAlpha = 1.0;
         }
@@ -166,13 +166,7 @@ package starling.display
          */
         public function curveTo(controlX:Number, controlY:Number, anchorX:Number, anchorY:Number):void
         {
-            if(_currentPath == null)
-            {
-                _currentPath = new Vector.<Number>();
-                _currentPath.push(0);
-                _currentPath.push(0);
-            }
-            else if(_currentPath.length == 0)
+            if (_currentPath.length == 0)
             {
                 // Behave like Flash's Graphics: if there's no current point, start at (0, 0).
                 _currentPath.push(0.0, 0.0);
@@ -182,10 +176,8 @@ package starling.display
             tesselateCurve(lastX, lastY, controlX, controlY, anchorX, anchorY, _currentPath);
             drawPathIfClosed();
         }
-        /** Closes the current path if it contains an unfinished polygon.
-         *  @param forceClose If true, a closing segment to the start point is added when needed.
-         */
-        private function closeCurrentPathIfNeeded(forceClose:Boolean = false):void
+        /** Closes the current path if it contains an unfinished polygon. */
+        private function closeCurrentPathIfNeeded():void
         {
             if (_currentPath.length < 6) // fewer than 3 points -> nothing meaningful to close
                 return;
@@ -194,18 +186,15 @@ package starling.display
             const firstY:Number = _currentPath[1];
             const lastX:Number  = _currentPath[_currentPath.length - 2];
             const lastY:Number  = _currentPath[_currentPath.length - 1];
-            const isClosed:Boolean = (lastX == firstX && lastY == firstY);
+            const isClosed:Boolean = lastX == firstX && lastY == firstY;
 
-            if (!isClosed && forceClose)
+            if (!isClosed)
             {
                 _currentPath.push(firstX, firstY);
             }
 
-            // If we are closed now (either already or by force), draw it once.
+            // Now draw and reset the path ('drawPathIfClosed' clears '_currentPath').
             drawPathIfClosed();
-
-            // If the path was open and we did not force-close it, leave it untouched.
-            // (This allows continuing the same path across multiple operations.)
         }
 
         /**  Submits a series of IGraphicsData instances for drawing.
@@ -269,6 +258,7 @@ package starling.display
         {
             removeChildren(0, -1, true);
             _polygons.length = 0;
+            _currentPath.length = 0;
         }
 
         /** Draws an arbitrary polygon. */
@@ -371,6 +361,11 @@ package starling.display
                 _currentPath.length = 0;
 
                 drawPolygon(Polygon.fromVector(pathCopy));
+
+                // Keep the current position at the end of the closed path.
+                // This matches Flash Graphics semantics: subsequent lineTo/curveTo calls continue
+                // from the last point (which equals the start point after closing).
+                _currentPath.push(lastX, lastY);
             }
         }
     }
