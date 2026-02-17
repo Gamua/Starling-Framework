@@ -10,7 +10,7 @@ jobs:
 
       - uses: joshtynjala/setup-adobe-air-action@v2
         with:
-          air-version: "51.1"
+          air-version: "51.2"
           accept-license: true
 
       - uses: actions/setup-node@v6
