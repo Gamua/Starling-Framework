@@ -446,8 +446,8 @@ class MovieFrame
     {
         if (action == null) throw new ArgumentError("action cannot be null");
         if (_actions == null) _actions = new <Function>[];
-        if (_actions.length-1 < index) _actions.length = index;
-        if (_actions.indexOf(action) == -1) _actions[index] = action;
+        if (_actions.length-1 < index) _actions.length = index+1;
+        if (_actions.indexOf(action) == -1) _actions.insertAt(index, action);
     }
 
     public function removeAction(action:Function):void
