@@ -207,10 +207,10 @@ package starling.display
 
         /** The SoundTransform object used for playback of all frame sounds. @default null */
         public function get soundTransform():SoundTransform { return _behavior.soundTransform; }
-        public function set soundTransform(value:SoundTransform):void { _behavior._soundTransform = value; }
+        public function set soundTransform(value:SoundTransform):void { _behavior.soundTransform = value; }
 
         /** The index of the frame that is currently displayed. */
-        public function get currentFrame():int { return _behavior._currentFrame; }
+        public function get currentFrame():int { return _behavior.currentFrame; }
         public function set currentFrame(value:int):void { _behavior.currentFrame = value; }
 
         /** The default number of frames per second. Individual frames can have different

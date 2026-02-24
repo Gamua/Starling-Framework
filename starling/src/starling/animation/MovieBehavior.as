@@ -130,6 +130,16 @@ package starling.animation
             getFrameAt(index).addAction(action);
         }
 
+        public function getFrameActionAt(frame:int, index:int):Function
+        {
+            return getFrameAt(frame).getActionAt(index);
+        }
+
+        public function setFrameActionAt(frame:int, index:int, action:Function):void
+        {
+            getFrameAt(frame).setActionAt(index, action);
+        }
+
         public function removeFrameAction(index:int, action:Function):void
         {
             getFrameAt(index).removeAction(action);
@@ -319,7 +329,7 @@ package starling.animation
         /** The total duration of the clip in seconds. */
         public function get totalTime():Number
         {
-            var lastFrame:MovieClipFrame = _frames[_frames.length-1];
+            var lastFrame:MovieFrame = _frames[_frames.length-1];
             return lastFrame.startTime + lastFrame.duration;
         }
         /** The time that has passed since the clip was started (each loop starts at zero). */
@@ -404,16 +414,28 @@ class MovieFrame
     private var _actions:Vector.<Function>;
     public var duration:Number;
     public var startTime:Number;
+    public var sound:Sound;
 
-    public function MovieFrame(duration:Number, startTime:Number)
+    public function MovieFrame(duration:Number=0.1, startTime:Number=0)
     {
         this.duration = duration;
         this.startTime = startTime;
     }
 
+    public function playSound(transform:SoundTransform):void
+    {
+        if (sound) sound.play(0, 0, transform);
+    }
+
     public function addAction(action:Function):void
     {
         setActionAt(_actions.length, action);
+    }
+
+    public function getActionAt(frameID:int):Function
+    {
+        if (_actions == null) _actions = new <Function>[];
+        return _actions[frameID];
     }
 
     public function setActionAt(frameID:int, action:Function):void
