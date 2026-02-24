@@ -437,16 +437,17 @@ class MovieFrame
         setActionAt(_actions.length, action);
     }
 
-    public function getActionAt(frameID:int):Function
+    public function getActionAt(index:int):Function
     {
-        return _actions[frameID];
+        return _actions[index];
     }
 
-    public function setActionAt(frameID:int, action:Function):void
+    public function setActionAt(index:int, action:Function):void
     {
         if (action == null) throw new ArgumentError("action cannot be null");
         if (_actions == null) _actions = new <Function>[];
-        if (_actions.indexOf(action) == -1) _actions[frameID] = action;
+        if (_actions.length-1 < index) _actions.length = index;
+        if (_actions.indexOf(action) == -1) _actions[index] = action;
     }
 
     public function removeAction(action:Function):void
