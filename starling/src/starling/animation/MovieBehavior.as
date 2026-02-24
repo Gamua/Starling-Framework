@@ -422,6 +422,7 @@ class MovieFrame
 
     public function MovieFrame(duration:Number=0.1, startTime:Number=0)
     {
+        this._actions = new <Function>[];
         this.duration = duration;
         this.startTime = startTime;
     }
@@ -438,7 +439,6 @@ class MovieFrame
 
     public function getActionAt(frameID:int):Function
     {
-        if (_actions == null) _actions = new <Function>[];
         return _actions[frameID];
     }
 
