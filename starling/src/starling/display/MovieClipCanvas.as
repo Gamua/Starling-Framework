@@ -74,11 +74,12 @@ package starling.display
         public static function fromMovieClip(source:flash.display.MovieClip):MovieClipCanvas
         {
             private var canvases:Vector.<Canvas> = new Vector.<Canvas>(source.totalFrames, true);
-            for(var i:uint = 0; i < starlingFlight.totalFrames; i++)
+            for(var i:uint = 0; i < source.totalFrames; i++)
 			{
-				starlingFlight.gotoAndStop(i+1);
-				animFrames[i] = new Canvas();
-				animFrames[i].drawGraphicsData(starlingFlight.graphics.readGraphicsData());
+				source.gotoAndStop(i+1);
+				canvases[i] = new Canvas();
+                // TODO: Handle children
+				canvases[i].drawGraphicsData(source.graphics.readGraphicsData(false));
 			}
 
         }
