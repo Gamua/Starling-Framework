@@ -1,5 +1,6 @@
 package starling.animation
 {
+    import flash.errors.IllegalOperationError;
     import flash.media.Sound;
     import flash.media.SoundTransform;
 
