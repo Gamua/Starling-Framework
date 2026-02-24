@@ -408,6 +408,9 @@ package starling.animation
     }
 }
 
+import flash.media.Sound;
+import flash.media.SoundTransform;
+
 import starling.display.DisplayObject;
 
 class MovieFrame
