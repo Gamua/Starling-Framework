@@ -152,7 +152,7 @@ package starling.display
         public function getFrameAction(frameID:int):Function
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            return _behavior.getFrameAt(frameID).actions[0];
+            return _behavior.getFrameActionAt(frameID, 0);
         }
 
         /** Sets an action that will be executed whenever a certain frame is reached.
