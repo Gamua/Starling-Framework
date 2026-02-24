@@ -417,6 +417,7 @@ class MovieFrame
     }
 
     public function setActionAt(frameID:int, action:Function):void
+    {
         if (action == null) throw new ArgumentError("action cannot be null");
         if (_actions == null) _actions = new <Function>[];
         if (_actions.indexOf(action) == -1) _actions[frameID] = action;
