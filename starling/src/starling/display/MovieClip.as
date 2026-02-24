@@ -176,7 +176,7 @@ package starling.display
         /** Sets the duration of a certain frame (in seconds). */
         public function setFrameDuration(frameID:int, duration:Number):void
         {
-            return _behavior.setFrameDuration(frameID, duration);
+            _behavior.setFrameDuration(frameID, duration);
         }
 
         /** Reverses the order of all frames, making the clip run from end to start.
@@ -190,7 +190,7 @@ package starling.display
         // playback methods
 
         /** Starts playback. Beware that the clip has to be added to a juggler, too! */
-        public function play():void { _behavior.play() = true; }
+        public function play():void { _behavior.play(); }
 
         /** Pauses playback. */
         public function pause():void { _behavior.pause(); }
@@ -242,9 +242,9 @@ package starling.display
 
         /** Indicates if the clip is still playing. Returns <code>false</code> when the end
          *  is reached. */
-        public function get isPlaying():Boolean { _behavior.isPlaying; }
+        public function get isPlaying():Boolean { return _behavior.isPlaying; }
 
         /** Indicates if a (non-looping) movie has come to its end. */
-        public function get isComplete():Boolean { _behavior.isComplete; }
+        public function get isComplete():Boolean { return _behavior.isComplete; }
     }
 }

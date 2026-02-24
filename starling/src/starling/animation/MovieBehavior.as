@@ -10,7 +10,7 @@ package starling.animation
     import starling.utils.MathUtil;
 
     /** Encapsulated the logic for time and frame logic for MovieClips and similar classes. */
-    internal class MovieBehavior extends EventDispatcher implements IAnimatable
+    public class MovieBehavior extends EventDispatcher implements IAnimatable
     {
         private var _frames:Vector.<MovieFrame>;
         private var _defaultFrameDuration:Number;
