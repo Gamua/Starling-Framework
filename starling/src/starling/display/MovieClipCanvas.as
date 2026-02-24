@@ -52,7 +52,12 @@ package starling.display
         {
             if (canvas.length > 0)
             {
-                addChild(canvas[0]);
+                for(var i:uint = 0; i < canvas.length; i++)
+                {
+                    addChild(canvas[i]);
+                    canvas[i].visible = false;
+                }
+                canvas[0].visible = false;
                 _previousFrame = 0;
                 _canvas = canvas;
                 _behavior = new MovieBehavior(this, onFrameChanged, fps);
@@ -72,8 +77,8 @@ package starling.display
 
         private function onFrameChanged(frameIndex:int):void
         {
-            removeChild(_canvas[_previousFrame]);
-            addChild(_canvas[frameIndex]);
+            _canvas[_previousFrame].visible = false;
+            _canvas[frameIndex].visible = true;
             _previousFrame = frameIndex;
         }
 
