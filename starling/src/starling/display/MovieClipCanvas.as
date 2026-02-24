@@ -57,7 +57,7 @@ package starling.display
                     addChild(canvas[i]);
                     canvas[i].visible = false;
                 }
-                canvas[0].visible = false;
+                canvas[0].visible = true;
                 _previousFrame = 0;
                 _canvas = canvas;
                 _behavior = new MovieBehavior(this, onFrameChanged, fps);
