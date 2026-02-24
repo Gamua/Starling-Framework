@@ -439,7 +439,7 @@ class MovieFrame
 
     public function getActionAt(index:int):Function
     {
-        if (index < 1) index = 0;
+        if (index < 1) index = 1;
         return _actions[index-1];
     }
 
@@ -447,7 +447,7 @@ class MovieFrame
     {
         if (action == null) throw new ArgumentError("action cannot be null");
         if (_actions == null) _actions = new <Function>[];
-        if (index < 1) index = 0;
+        if (index < 1) index = 1;
         if (_actions.length < index) _actions.length = index;
         if (_actions.indexOf(action) == -1) _actions[index-1] = action;
     }
