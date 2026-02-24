@@ -139,7 +139,7 @@ package starling.display
 
         public function removeFrameActions(index:int):void
         {
-            _behavior.removeFrameActions();
+            _behavior.removeFrameActions(index);
         }
 
         public function getFrameActions(frameID:int):Vector.<Function>

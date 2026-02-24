@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.display.MovieClip;
     import flash.errors.IllegalOperationError;
     import flash.media.Sound;
     import flash.media.SoundTransform;
@@ -21,7 +22,7 @@ package starling.display
     /** Dispatched whenever the movie has displayed its last frame. */
     [Event(name="complete", type="starling.events.Event")]
 
-    /** A MovieClip is a simple way to display an animation depicted by a list of canvas.
+    /** A MovieClipCanvas is a simple way to display an animation depicted by a list of canvas.
      *
      *  <p>Pass the frames of the movie in a vector of canvas to the constructor. The movie clip
      *  will have the width and height of the first frame.
@@ -42,24 +43,24 @@ package starling.display
      */
     public class MovieClipCanvas extends Sprite implements IAnimatable
     {
-        private var _canvas:Vector.<Canvas>;
+        private var _canvases:Vector.<Canvas>;
         private var _behavior:MovieBehavior;
         private var _previousFrame:int;
 
         /** Creates a movie clip from the provided canvas and with the specified default framerate.
          *  The movie will have the size of the first frame. */
-        public function MovieClipCanvas(canvas:Vector.<Canvas>, fps:Number=12)
+        public function MovieClipCanvas(canvases:Vector.<Canvas>, fps:Number=12)
         {
-            if (canvas.length > 0)
+            if (canvases.length > 0)
             {
-                for(var i:uint = 0; i < canvas.length; i++)
+                for(var i:uint = 0; i < canvases.length; i++)
                 {
-                    addChild(canvas[i]);
-                    canvas[i].visible = false;
+                    addChild(canvases[i]);
+                    canvases[i].visible = false;
                 }
-                canvas[0].visible = true;
+                canvases[0].visible = true;
                 _previousFrame = 0;
-                _canvas = canvas;
+                _canvases = canvases;
                 _behavior = new MovieBehavior(this, onFrameChanged, fps);
                 _behavior.numFrames = canvas.length;
                 _behavior.addEventListener(Event.COMPLETE, onComplete);
@@ -70,6 +71,18 @@ package starling.display
             }
         }
 
+        public static function fromMovieClip(source:flash.display.MovieClip):MovieClipCanvas
+        {
+            private var canvases:Vector.<Canvas> = new Vector.<Canvas>(source.totalFrames, true);
+            for(var i:uint = 0; i < starlingFlight.totalFrames; i++)
+			{
+				starlingFlight.gotoAndStop(i+1);
+				animFrames[i] = new Canvas();
+				animFrames[i].drawGraphicsData(starlingFlight.graphics.readGraphicsData());
+			}
+
+        }
+
         private function onComplete():void
         {
             dispatchEventWith(Event.COMPLETE);
@@ -77,8 +90,8 @@ package starling.display
 
         private function onFrameChanged(frameIndex:int):void
         {
-            _canvas[_previousFrame].visible = false;
-            _canvas[frameIndex].visible = true;
+            _canvases[_previousFrame].visible = false;
+            _canvases[frameIndex].visible = true;
             _previousFrame = frameIndex;
         }
 
@@ -96,13 +109,13 @@ package starling.display
                                    duration:Number=-1):void
         {
             _behavior.addFrameAt(frameID, sound, duration)
-            _canvas.insertAt(frameID, canvas);
+            _canvases.insertAt(frameID, canvas);
         }
 
         /** Removes the frame at a certain ID. The successors will move down. */
         public function removeFrameAt(frameID:int):void
         {
-            _canvas.removeAt(frameID);
+            _canvases.removeAt(frameID);
             _behavior.removeFrameAt(frameID);
         }
 
@@ -110,14 +123,14 @@ package starling.display
         public function getFrameCanvas(frameID:int):Canvas
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            return _canvas[frameID];
+            return _canvases[frameID];
         }
 
         /** Sets the canvas of a certain frame. */
         public function setFrameCanvas(frameID:int, canvas:Canvas):void
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            _canvas[frameID] = canvas;
+            _canvases[frameID] = canvas;
         }
 
         /** Returns the sound of a certain frame. */
@@ -145,7 +158,7 @@ package starling.display
 
         public function removeFrameActions(index:int):void
         {
-            _behavior.removeFrameActions();
+            _behavior.removeFrameActions(index);
         }
 
         public function getFrameActions(frameID:int):Vector.<Function>
@@ -169,7 +182,7 @@ package starling.display
          *  Makes sure that the currently visible frame stays the same. */
         public function reverseFrames():void
         {
-            _canvas.reverse();
+            _canvases.reverse();
             _behavior.reverseFrames();
         }
 
