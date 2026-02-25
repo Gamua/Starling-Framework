@@ -59,7 +59,7 @@ package starling.display
                     canvases[i].visible = false;
                 }
                 canvases[0].visible = true;
-                _previousFrame = 0;
+                _previousFrame = 1;
                 _canvases = canvases;
                 _behavior = new MovieBehavior(this, onFrameChanged, fps);
                 _behavior.numFrames = canvas.length;
@@ -91,8 +91,8 @@ package starling.display
 
         private function onFrameChanged(frameIndex:int):void
         {
-            _canvases[_previousFrame].visible = false;
-            _canvases[frameIndex].visible = true;
+            _canvases[_previousFrame-1].visible = false;
+            _canvases[frameIndex-1].visible = true;
             _previousFrame = frameIndex;
         }
 
