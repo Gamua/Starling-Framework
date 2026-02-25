@@ -330,7 +330,7 @@ package starling.animation
             value = MathUtil.clamp(value, 0, totalTime);
 
             var prevFrame:int = _currentFrame;
-            _currentFrame = value / _defaultFrameDuration;
+            _currentFrame = Math.min(numFrames-1, value / _defaultFrameDuration);
             _currentTime = value;
 
             if (prevFrame != _currentFrame)
@@ -370,7 +370,7 @@ package starling.animation
         public function get currentFrame():int { return _currentFrame; }
         public function set currentFrame(value:int):void
         {
-            value = MathUtil.clamp(value, 0, numFrames);
+            value = MathUtil.clamp(value, 0, numFrames-1);
 
             var prevFrame:int = _currentFrame;
             _currentTime = _defaultFrameDuration * value;
