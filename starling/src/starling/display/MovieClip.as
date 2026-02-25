@@ -164,7 +164,10 @@ package starling.display
         [Deprecated(since = "2.8.1", replacement = "addFrameAction")]
         public function setFrameAction(frameID:int, action:Function):void
         {
-            _behavior.addFrameAction(frameID, action);
+            if(action)
+                _behavior.addFrameAction(frameID, action);
+            else
+                _behavior.removeFrameAction(frameID, action);
         }
 
         /** Returns the duration of a certain frame (in seconds). */
