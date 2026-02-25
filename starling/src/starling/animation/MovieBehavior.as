@@ -455,7 +455,7 @@ class MovieFrame
             {
                 var action:Function = _actions[i];
                 var numArgs:int = action.length;
-                trace("MovieBehavior::executeActions", target.currentFrame, frameID);
+                trace("MovieBehavior::executeActions", target["currentFrame"], frameID);
 
                 if (numArgs == 0) action();
                 else if (numArgs == 1) action(target);
