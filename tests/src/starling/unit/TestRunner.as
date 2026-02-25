@@ -93,14 +93,21 @@ package starling.unit
             {
                 var method:Function = test[methodName];
                 var async:Boolean = method.length != 0;
-                if (async)
+                try
                 {
-                    method(tearDown);
+                    if (async)
+                    {
+                        method(tearDown);
+                    }
+                    else
+                    {
+                        method();
+                        tearDown();
+                    }
                 }
-                else
+                catch(e:Error)
                 {
-                    method();
-                    tearDown();
+                    _assertFunction(false, "Exception Thrown:" + e.message + "\n" + e.getStackTrace())
                 }
             }
 
