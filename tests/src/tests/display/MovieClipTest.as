@@ -385,25 +385,6 @@ package tests.display
 
         public function testBasicFrameActions():void
         {
-            function onFrame(movieParam:MovieClip, frameID:int):void
-            {
-                actionCount++;
-                assertEqual(movie, movieParam);
-                assertEqual(frameID, movie.currentFrame);
-                assertEquivalent(movie.currentTime, frameID / numFrames);
-            }
-
-            function pauseMovie():void
-            {
-                movie.pause();
-            }
-
-            function onComplete():void
-            {
-                assertEquivalent(movie.currentTime, movie.totalTime);
-                completeCount++;
-            }
-
             var actionCount:int = 0;
             var completeCount:int = 0;
 
@@ -470,6 +451,25 @@ package tests.display
             assertEqual(9, actionCount);
             movie.advanceTime(0.1);
             assertEqual(9, actionCount);
+
+            function onFrame(movieParam:MovieClip, frameID:int):void
+            {
+                actionCount++;
+                assertEqual(movie, movieParam);
+                assertEqual(frameID, movie.currentFrame);
+                assertEquivalent(movie.currentTime, frameID / numFrames);
+            }
+
+            function pauseMovie():void
+            {
+                movie.pause();
+            }
+
+            function onComplete():void
+            {
+                assertEquivalent(movie.currentTime, movie.totalTime);
+                completeCount++;
+            }
         }
 
         public function testFloatingPointIssue():void
