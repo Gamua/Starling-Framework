@@ -73,7 +73,8 @@ package starling.display
 
         private function onFrameChanged(frameIndex:int):void
         {
-            texture = _textures[frameIndex-1];
+            trace("onFrameChanged", frameIndex);
+            texture = _textures[frameIndex];
         }
 
         // frame manipulation

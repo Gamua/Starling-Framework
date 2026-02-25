@@ -91,8 +91,8 @@ package starling.display
 
         private function onFrameChanged(frameIndex:int):void
         {
-            _canvases[_previousFrame-1].visible = false;
-            _canvases[frameIndex-1].visible = true;
+            _canvases[_previousFrame].visible = false;
+            _canvases[frameIndex].visible = true;
             _previousFrame = frameIndex;
         }
 
