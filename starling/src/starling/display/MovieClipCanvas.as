@@ -10,6 +10,7 @@
 
 package starling.display
 {
+    import flash.display.MovieClip;
     import flash.errors.IllegalOperationError;
     import flash.media.Sound;
     import flash.media.SoundTransform;
@@ -17,17 +18,14 @@ package starling.display
     import starling.animation.IAnimatable;
     import starling.animation.MovieBehavior;
     import starling.events.Event;
-    import starling.textures.Texture;
 
     /** Dispatched whenever the movie has displayed its last frame. */
     [Event(name="complete", type="starling.events.Event")]
 
-    /** A MovieClip is a simple way to display an animation depicted by a list of textures.
+    /** A MovieClipCanvas is a simple way to display an animation depicted by a list of canvas.
      *
-     *  <p>Pass the frames of the movie in a vector of textures to the constructor. The movie clip
-     *  will have the width and height of the first frame. If you group your frames with the help
-     *  of a texture atlas (which is recommended), use the <code>getTextures</code>-method of the
-     *  atlas to receive the textures in the correct (alphabetic) order.</p>
+     *  <p>Pass the frames of the movie in a vector of canvas to the constructor. The movie clip
+     *  will have the width and height of the first frame.
      *
      *  <p>You can specify the desired framerate via the constructor. You can, however, manually
      *  give each frame a custom duration. You can also play a sound whenever a certain frame
@@ -41,29 +39,49 @@ package starling.display
      *  <code>advanceTime</code> method called regularly) to run. The movie will dispatch
      *  an event of type "Event.COMPLETE" whenever it has displayed its last frame.</p>
      *
-     *  @see starling.textures.TextureAtlas
+     *  @see starling.display.Canvas
      */
-    public class MovieClip extends Image implements IAnimatable
+    public class MovieClipCanvas extends Sprite implements IAnimatable
     {
-        private var _textures:Vector.<Texture>;
+        private var _canvases:Vector.<Canvas>;
         private var _behavior:MovieBehavior;
+        private var _previousFrame:int;
 
-        /** Creates a movie clip from the provided textures and with the specified default framerate.
+        /** Creates a movie clip from the provided canvas and with the specified default framerate.
          *  The movie will have the size of the first frame. */
-        public function MovieClip(textures:Vector.<Texture>, fps:Number=12)
+        public function MovieClipCanvas(canvases:Vector.<Canvas>, fps:Number=12)
         {
-            if (textures.length > 0)
+            if (canvases.length > 0)
             {
-                super(textures[0]);
-                _textures = textures;
+                for(var i:uint = 0; i < canvases.length; i++)
+                {
+                    addChild(canvases[i]);
+                    canvases[i].visible = false;
+                }
+                canvases[0].visible = true;
+                _previousFrame = 1;
+                _canvases = canvases;
                 _behavior = new MovieBehavior(this, onFrameChanged, fps);
-                _behavior.numFrames = textures.length;
+                _behavior.numFrames = canvas.length;
                 _behavior.addEventListener(Event.COMPLETE, onComplete);
             }
             else
             {
-                throw new ArgumentError("Empty texture array");
+                throw new ArgumentError("Empty canvas array");
             }
+        }
+
+        public static function fromMovieClip(source:flash.display.MovieClip):MovieClipCanvas
+        {
+            private var canvases:Vector.<Canvas> = new Vector.<Canvas>(source.totalFrames, true);
+            for(var i:uint = 0; i < source.totalFrames; i++)
+			{
+				source.gotoAndStop(i+1);
+				canvases[i] = new Canvas();
+                // TODO: Handle children
+				canvases[i].drawGraphicsData(source.graphics.readGraphicsData(false));
+			}
+
         }
 
         private function onComplete():void
@@ -73,46 +91,47 @@ package starling.display
 
         private function onFrameChanged(frameIndex:int):void
         {
-            trace("onFrameChanged", frameIndex);
-            texture = _textures[frameIndex];
+            _canvases[_previousFrame].visible = false;
+            _canvases[frameIndex].visible = true;
+            _previousFrame = frameIndex;
         }
 
         // frame manipulation
 
         /** Adds an additional frame, optionally with a sound and a custom duration. If the
          *  duration is omitted, the default framerate is used (as specified in the constructor). */
-        public function addFrame(texture:Texture, sound:Sound=null, duration:Number=-1):void
+        public function addFrame(canvas:Canvas, sound:Sound=null, duration:Number=-1):void
         {
-            addFrameAt(numFrames, texture, sound, duration);
+            addFrameAt(numFrames, canvas, sound, duration);
         }
 
         /** Adds a frame at a certain index, optionally with a sound and a custom duration. */
-        public function addFrameAt(frameID:int, texture:Texture, sound:Sound=null,
+        public function addFrameAt(frameID:int, canvas:Canvas, sound:Sound=null,
                                    duration:Number=-1):void
         {
             _behavior.addFrameAt(frameID, sound, duration)
-            _textures.insertAt(frameID, texture);
+            _canvases.insertAt(frameID, canvas);
         }
 
         /** Removes the frame at a certain ID. The successors will move down. */
         public function removeFrameAt(frameID:int):void
         {
-            _textures.removeAt(frameID);
+            _canvases.removeAt(frameID);
             _behavior.removeFrameAt(frameID);
         }
 
-        /** Returns the texture of a certain frame. */
-        public function getFrameTexture(frameID:int):Texture
+        /** Returns the canvas of a certain frame. */
+        public function getFrameCanvas(frameID:int):Canvas
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            return _textures[frameID];
+            return _canvases[frameID];
         }
 
-        /** Sets the texture of a certain frame. */
-        public function setFrameTexture(frameID:int, texture:Texture):void
+        /** Sets the canvas of a certain frame. */
+        public function setFrameCanvas(frameID:int, canvas:Canvas):void
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            _textures[frameID] = texture;
+            _canvases[frameID] = canvas;
         }
 
         /** Returns the sound of a certain frame. */
@@ -148,29 +167,6 @@ package starling.display
             return _behavior.getFrameActions(frameID);
         }
 
-        /** Returns the method that is executed at a certain frame. */
-        [Deprecated(since = "2.8.1", replacement = "getFrameActions")]
-        public function getFrameAction(frameID:int):Function
-        {
-            if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            return _behavior.getFrameActions(frameID)[0];
-        }
-
-        /** Sets an action that will be executed whenever a certain frame is reached.
-         *
-         * @param frameID   The frame at which the action will be executed.
-         * @param action    A callback with two optional parameters:
-         *                  <code>function(movie:MovieClip, frameID:int):void;</code>
-         */
-        [Deprecated(since = "2.8.1", replacement = "addFrameAction")]
-        public function setFrameAction(frameID:int, action:Function):void
-        {
-            if(action)
-                _behavior.addFrameAction(frameID, action);
-            else
-                _behavior.removeFrameAction(frameID, action);
-        }
-
         /** Returns the duration of a certain frame (in seconds). */
         public function getFrameDuration(frameID:int):Number
         {
@@ -187,7 +183,7 @@ package starling.display
          *  Makes sure that the currently visible frame stays the same. */
         public function reverseFrames():void
         {
-            _textures.reverse();
+            _canvases.reverse();
             _behavior.reverseFrames();
         }
 
@@ -250,5 +246,7 @@ package starling.display
 
         /** Indicates if a (non-looping) movie has come to its end. */
         public function get isComplete():Boolean { return _behavior.isComplete; }
+
+        override 
     }
 }
