@@ -81,7 +81,11 @@ package starling.unit
             var test:UnitTest = new testClass() as UnitTest;
             test.assertFunction = _assertFunction;
 
-            setUp();
+            try {
+                setUp();
+            } catch(e:Error) {
+                test.assertFunction(false, "Test Threw Exception: " + e + "\n" + e.getStackTrace());
+            }
 
             function setUp():void
             {
@@ -93,21 +97,14 @@ package starling.unit
             {
                 var method:Function = test[methodName];
                 var async:Boolean = method.length != 0;
-                try
+                if (async)
                 {
-                    if (async)
-                    {
-                        method(tearDown);
-                    }
-                    else
-                    {
-                        method();
-                        tearDown();
-                    }
+                    method(tearDown);
                 }
-                catch(e:Error)
+                else
                 {
-                    _assertFunction(false, "Exception Thrown:" + e.message + "\n" + e.getStackTrace())
+                    method();
+                    tearDown();
                 }
             }
 
