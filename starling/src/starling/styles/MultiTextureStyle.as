@@ -11,6 +11,8 @@
 package starling.styles
 {
     import flash.geom.Matrix;
+	import starling.core.Starling;
+	import starling.textures.ConcreteTexture;
 
     import starling.display.Mesh;
     import starling.rendering.MeshEffect;
@@ -28,8 +30,10 @@ package starling.styles
         public static const VERTEX_FORMAT:VertexDataFormat =
             MeshStyle.VERTEX_FORMAT.extend("texture:float1");
 
+		private static var _MAX_NUM_TEXTURES:int = 5;
+		
         /** Maximum number of textures that can be batched. */
-        public static const MAX_NUM_TEXTURES:int = 5;
+        public static function get MAX_NUM_TEXTURES():int { return _MAX_NUM_TEXTURES; }
 
         private var _dirty:Boolean = true;
         private const _textures:Vector.<Texture> = new Vector.<Texture>();
@@ -41,11 +45,36 @@ package starling.styles
         public static function get maxTextures():int { return sMaxTextures; }
         public static function set maxTextures(value:int):void
         {
+			if (!_initDone) init();
             value = value < 1 ? 1 : value;
-            sMaxTextures = value > MAX_NUM_TEXTURES ? MAX_NUM_TEXTURES : value;
+            sMaxTextures = value > _MAX_NUM_TEXTURES ? _MAX_NUM_TEXTURES : value;
         }
+		
+		private static var _TEXTURE_INDEX_FACTOR:Number;
+		
+		private static var _initDone:Boolean = false;
+		public static function init():void
+		{
+			if (_initDone) return;
+			
+			if (Starling.current.profile.indexOf("baseline") != -1)
+			{
+				_MAX_NUM_TEXTURES = 5;
+				_TEXTURE_INDEX_FACTOR = 4.0;
+			}
+			else
+			{
+				_MAX_NUM_TEXTURES = 16;
+				_TEXTURE_INDEX_FACTOR = 1.0;
+			}
+			
+			_initDone = true;
+		}
 
-        public function MultiTextureStyle() {}
+        public function MultiTextureStyle() 
+		{
+			if (!_initDone) init();
+		}
 
         /** @private */
         override public function copyFrom(meshStyle:MeshStyle):void
@@ -120,11 +149,14 @@ package starling.styles
                                                  numVertices:int = -1):void
         {
             var i:int;
+			var count:int;
 
             if (matrix && _dirty)
             {
-                for (i = 0; i < vertexData.numVertices; i++)
+				count = vertexData.numVertices;
+				for (i = 0; i < count; i++)
                     vertexData.setFloat(i, "texture", 0);
+                
                 _dirty = false;
             }
 
@@ -135,8 +167,8 @@ package starling.styles
             if (mtTarget)
             {
                 var dirty:Boolean = false;
-
-                for (i = 0; i < numTextures; i++)
+				count = numTextures;
+                for (i = 0; i < count; i++)
                 {
                     const texture:Texture = getTexture(i);
                     var textureIndexOnTarget:int = mtTarget.getTextureIndex(texture);
@@ -161,12 +193,12 @@ package starling.styles
                     for (i = 0; i < numVertices; i++)
                     {
                         const sourceTexID:int = Math.round(targetVertexData.getFloat(targetVertexID + i,
-                            "texture") * 4);
+                            "texture") * _TEXTURE_INDEX_FACTOR);
                         const targetTexID:int = sTextureIndexMap[sourceTexID];
 
                         if (sourceTexID != targetTexID)
                             targetVertexData.setFloat(targetVertexID + i, "texture",
-                                targetTexID / 4);
+                                targetTexID / _TEXTURE_INDEX_FACTOR);
                     }
                 }
             }
@@ -188,8 +220,11 @@ package starling.styles
         // in the list.
         private function getTextureIndex(texture:Texture):int
         {
-            for (var i:int = 0; i < numTextures; i++)
-                if (getTexture(i).root == texture.root) return i;
+			if (this.texture.root == texture) return 0;
+			const count:int = _textures.length;
+			for (var i:int = 0; i < count; i++)
+				if (_textures[i] == texture) return i + 1;
+			
             return -1;
         }
 
@@ -197,7 +232,7 @@ package starling.styles
         [Inline]
         private function getTexture(index:int):Texture
         {
-            return index > 0 ? _textures[index - 1] : texture;
+            return index > 0 ? _textures[index - 1] : texture.root;
         }
 
         // Returns the length of the shared texture list.
@@ -227,14 +262,31 @@ class MultiTextureEffect extends MeshEffect
 
     private var _isBaseline:Boolean;
 
-    private static const kTextureIndices:Vector.<Number> = new <Number>[
+    private static const baselineTextureIndices:Vector.<Number> = new <Number>[
         0.125, 0.375, 0.625, 0.875,
         1, 0, 0, 0
     ];
+	
+	private static const textureIndices:Vector.<Number> = new <Number>[
+		0.5, 1.5, 2.5, 3.5,
+		4.5, 5.5, 6.5, 7.5,
+		8.5, 9.5, 10.5, 11.5,
+		12.5, 13.5, 14.5, 15.5
+	];
+	
+	private var _multiTexturingConstants:Vector.<Number>;
 
     public function MultiTextureEffect()
     {
         _isBaseline = Starling.current.profile.indexOf("baseline") != -1;
+		if (_isBaseline) 
+		{
+			_multiTexturingConstants = baselineTextureIndices;
+		}
+		else
+		{
+			_multiTexturingConstants = textureIndices;
+		}
     }
 
     override protected function get programVariantName():uint
@@ -242,7 +294,8 @@ class MultiTextureEffect extends MeshEffect
         var bits:uint = super.programVariantName;
 
         for (var i:int = 0; i < textures.length; i++)
-            bits |= RenderUtil.getTextureVariantBits(textures[i]) << (4 * i + 4);
+			bits |= RenderUtil.getTextureVariantBits(textures[i]) << (i + 4);
+        
         return bits;
     }
 
@@ -307,51 +360,12 @@ class MultiTextureEffect extends MeshEffect
             }
             else
             {
-                if (length > 1)
-                {
-                    fragmentShader.push(
-                        "slt ft4, v2.xxxx, fc0",
-                        "sub ft6, fc1.xxxx, ft4",
-                        "min ft6.xyz, ft6.xyz, ft4.yzw",
-                        "ifg ft4.x, fc0.z",
-                        tex("ft5", "v0", 0, texture),
-                        "eif",
-                        "ifg ft6.x, fc0.z",
-                        tex("ft5", "v0", 1, textures[0]),
-                        "eif",
-                        "ifg ft6.y, fc0.z",
-                        tex("ft5", "v0", 2, textures[1]),
-                        "eif"
-                    );
-                    if (length > 2)
-                    {
-                        fragmentShader.push(
-                            "ifg ft6.z, fc0.z",
-                            tex("ft5", "v0", 3, textures[2]),
-                            "eif"
-                        );
-                        if (length > 3)
-                        {
-                            fragmentShader.push(
-                                "ifg ft6.w, fc0.z",
-                                tex("ft5", "v0", 4, textures[3]),
-                                "eif"
-                            );
-                        }
-                    }
-                }
-                else
-                {
-                    fragmentShader.push(
-                        "ifl v2.x, fc0.x",
-                        tex("ft5", "v0", 0, texture),
-                        "els",
-                        tex("ft5", "v0", 1, textures[0]),
-                        "eif"
-                    );
-                }
+				textures.unshift(texture); // add base texture temporarily
+				multiTex(fragmentShader, textures);
+				textures.shift(); // remove base texture
+				
                 fragmentShader.push(
-                    "mul oc, ft5, v1"       // multiply color with texel color
+                    "mul oc, ft0, v1"       // multiply color with texel color
                 );
             }
             return Program.fromSource(vertexShader, fragmentShader.join("\n"),
@@ -360,6 +374,69 @@ class MultiTextureEffect extends MeshEffect
 
         return super.createProgram();
     }
+	
+	protected function multiTex(data:Vector.<String>, textures:Vector.<Texture>, numTextures:int = 0, textureOffset:int = 0, textureRegister:String = "ft0", textureIndexSource:String = "v2.x", constantsStartIndex:int = 0):void
+	{
+		if (numTextures == 0) numTextures = textures.length;
+		
+		if (numTextures <= 2)
+		{
+			if (numTextures == 2)
+			{
+				checkTexIndex(data, textureOffset, textureIndexSource, constantsStartIndex);
+				data[data.length] = RenderUtil.createAGALTexOperation(textureRegister, "v0", textureOffset, textures[textureOffset]);
+				data[data.length] = "els";
+				data[data.length] = RenderUtil.createAGALTexOperation(textureRegister, "v0", textureOffset + 1, textures[textureOffset + 1]);
+				data[data.length] = "eif";
+			}
+			else
+			{
+				data[data.length] = RenderUtil.createAGALTexOperation(textureRegister, "v0", textureOffset, textures[textureOffset]);
+			}
+		}
+		else
+		{
+			var halfNumTextures:int = Math.ceil(numTextures / 2);
+			var remainingTextures:int = numTextures - halfNumTextures;
+			
+			checkTexIndex(data, textureOffset + halfNumTextures - 1, textureIndexSource, constantsStartIndex);
+			multiTex(data, textures, halfNumTextures, textureOffset, textureRegister, textureIndexSource, constantsStartIndex);
+			data[data.length] = "els";
+			multiTex(data, textures, remainingTextures, textureOffset + halfNumTextures, textureRegister, textureIndexSource, constantsStartIndex);
+			data[data.length] = "eif";
+		}
+	}
+	
+	protected function checkTexIndex(data:Vector.<String>, textureNum:int, textureIndexSource:String, constantsStartIndex:int):void
+	{
+		var constantIndex:int = constantsStartIndex + Math.floor(textureNum / 4);
+		var constantSubIndex:int = textureNum % 4;
+		var constant:String;
+		
+		switch (constantSubIndex)
+		{
+			case 0 :
+				constant = " fc" + constantIndex + ".x";
+				break;
+			
+			case 1 :
+				constant = " fc" + constantIndex + ".y";
+				break;
+			
+			case 2 :
+				constant = " fc" + constantIndex + ".z";
+				break;
+			
+			case 3 :
+				constant = " fc" + constantIndex + ".w";
+				break;
+			
+			default :
+				throw new Error("incorrect constant sub index");
+		}
+		
+		data[data.length] = "ifl " + textureIndexSource + constant;
+	}
 
     override protected function beforeDraw(context:Context3D):void
     {
@@ -379,7 +456,7 @@ class MultiTextureEffect extends MeshEffect
             }
             vertexFormat.setVertexBufferAt(3, vertexBuffer, "texture");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT,
-                0, kTextureIndices, length > 1 || _isBaseline ? -1 : 1);
+                0, _multiTexturingConstants, Math.ceil((length + 1) / 4));
         }
     }
 
