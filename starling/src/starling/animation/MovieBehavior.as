@@ -410,7 +410,7 @@ class MovieFrame
     public var startTime:Number;
     public var sound:Sound;
 
-    public function MovieFrame()
+    public function MovieFrame(duration:Number=0.1, startTime:Number=0)
     {
         this.duration = duration;
         this.startTime = startTime;
