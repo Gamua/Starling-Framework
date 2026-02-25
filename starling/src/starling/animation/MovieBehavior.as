@@ -131,16 +131,6 @@ package starling.animation
             getFrameAt(index).addAction(action);
         }
 
-        public function getFrameActionAt(frame:int, index:int):Function
-        {
-            return getFrameAt(frame).getActionAt(index);
-        }
-
-        public function setFrameActionAt(frame:int, index:int, action:Function):void
-        {
-            getFrameAt(frame).setActionAt(index, action);
-        }
-
         public function removeFrameAction(index:int, action:Function):void
         {
             getFrameAt(index).removeAction(action);
@@ -289,7 +279,6 @@ package starling.animation
                 frame = _frames[_currentFrame];
                 numActions = frame.numActions;
 
-
                 if (changedFrame)
                     frame.playSound(_soundTransform);
 
@@ -333,6 +322,7 @@ package starling.animation
             var lastFrame:MovieFrame = _frames[_frames.length-1];
             return lastFrame.startTime + lastFrame.duration;
         }
+
         /** The time that has passed since the clip was started (each loop starts at zero). */
         public function get currentTime():Number { return _currentTime; }
         public function set currentTime(value:Number):void
@@ -420,9 +410,8 @@ class MovieFrame
     public var startTime:Number;
     public var sound:Sound;
 
-    public function MovieFrame(duration:Number=0.1, startTime:Number=0)
+    public function MovieFrame()
     {
-        this._actions = new <Function>[];
         this.duration = duration;
         this.startTime = startTime;
     }
@@ -434,22 +423,9 @@ class MovieFrame
 
     public function addAction(action:Function):void
     {
-        setActionAt(_actions.length, action);
-    }
-
-    public function getActionAt(index:int):Function
-    {
-        if (index < 1) index = 1;
-        return _actions[index-1];
-    }
-
-    public function setActionAt(index:int, action:Function):void
-    {
         if (action == null) throw new ArgumentError("action cannot be null");
         if (_actions == null) _actions = new <Function>[];
-        if (index < 1) index = 1;
-        if (_actions.length < index) _actions.length = index;
-        if (_actions.indexOf(action) == -1) _actions[index-1] = action;
+        if (_actions.indexOf(action) == -1) _actions[_actions.length] = action;
     }
 
     public function removeAction(action:Function):void

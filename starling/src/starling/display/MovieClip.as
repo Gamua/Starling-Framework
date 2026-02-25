@@ -152,7 +152,7 @@ package starling.display
         public function getFrameAction(frameID:int):Function
         {
             if (frameID < 0 || frameID >= numFrames) throw new ArgumentError("Invalid frame id");
-            return _behavior.getFrameActionAt(frameID, 0);
+            return _behavior.getFrameActions(frameID)[0];
         }
 
         /** Sets an action that will be executed whenever a certain frame is reached.
@@ -164,7 +164,7 @@ package starling.display
         [Deprecated(since = "2.8.1", replacement = "addFrameAction")]
         public function setFrameAction(frameID:int, action:Function):void
         {
-            _behavior.setFrameActionAt(frameID, 0, action);
+            _behavior.addFrameAction(frameID, action);
         }
 
         /** Returns the duration of a certain frame (in seconds). */
