@@ -456,7 +456,7 @@ class MultiTextureEffect extends MeshEffect
             }
             vertexFormat.setVertexBufferAt(3, vertexBuffer, "texture");
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT,
-                0, _multiTexturingConstants, Math.ceil((length + 1) / 4));
+                0, _multiTexturingConstants, _isBaseline ? -1 : Math.ceil((length + 1) / 4));
         }
     }
 
