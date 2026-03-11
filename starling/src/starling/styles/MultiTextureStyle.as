@@ -21,7 +21,7 @@ package starling.styles
     import starling.rendering.VertexDataFormat;
     import starling.textures.Texture;
 
-    /** Provides a way to batch up to 5 (baseline profile) or 16 different textures in one draw call, at the cost of more complex custom Fragment Shaders
+    /** Provides a way to batch up to 5 (baseline profiles) or 16 different textures in one draw call, at the cost of more complex custom Fragment Shaders
      *  To use this, set Mesh.defaultStyle to MultiTextureStyle (ideally before Starling is initialised!)
      **/
     public class MultiTextureStyle extends MeshStyle
