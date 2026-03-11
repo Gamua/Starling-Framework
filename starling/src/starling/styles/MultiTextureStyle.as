@@ -21,7 +21,7 @@ package starling.styles
     import starling.rendering.VertexDataFormat;
     import starling.textures.Texture;
 
-    /** Provides a way to batch up to 4 different textures in one draw call, at the cost of more complex custom Fragment Shaders
+    /** Provides a way to batch up to 5 (baseline profile) or 16 different textures in one draw call, at the cost of more complex custom Fragment Shaders
      *  To use this, set Mesh.defaultStyle to MultiTextureStyle (ideally before Starling is initialised!)
      **/
     public class MultiTextureStyle extends MeshStyle
@@ -32,7 +32,13 @@ package starling.styles
 
 		private static var _MAX_NUM_TEXTURES:int = 5;
 		
-        /** Maximum number of textures that can be batched. */
+		/**
+		 * Maximum number of textures that can be batched.
+		 * Default value is 5 (which is the absolute max with baseline profile)
+		 * until <code>MultiTextureStyle.init()</code> has been called with Starling started
+		 * You can call it manually if you want/need, otherwise it will be called by the
+		 * first MultiTextureStyle instance created.
+		 */
         public static function get MAX_NUM_TEXTURES():int { return _MAX_NUM_TEXTURES; }
 
         private var _dirty:Boolean = true;
@@ -46,8 +52,19 @@ package starling.styles
         public static function set maxTextures(value:int):void
         {
 			if (!_initDone) init();
-            value = value < 1 ? 1 : value;
-            sMaxTextures = value > _MAX_NUM_TEXTURES ? _MAX_NUM_TEXTURES : value;
+			
+			if (!_initDone)
+			{
+				// we don't know the profile yet, allow a max value of 16 (absolute max on non-baseline profile)
+				// that number might be reduced when we can finally check profile
+				value = value < 1 ? 1 : value > 16 ? 16 : value;
+				sMaxTextures = value;
+			}
+			else
+			{
+				value = value < 1 ? 1 : value;
+				sMaxTextures = value > _MAX_NUM_TEXTURES ? _MAX_NUM_TEXTURES : value;
+			}
         }
 		
 		private static var _TEXTURE_INDEX_FACTOR:Number;
@@ -56,6 +73,7 @@ package starling.styles
 		public static function init():void
 		{
 			if (_initDone) return;
+			if (Starling.current == null) return;
 			
 			if (Starling.current.profile.indexOf("baseline") != -1)
 			{
@@ -67,6 +85,8 @@ package starling.styles
 				_MAX_NUM_TEXTURES = 16;
 				_TEXTURE_INDEX_FACTOR = 1.0;
 			}
+			
+			if (sMaxTextures > _MAX_NUM_TEXTURES) sMaxTextures = _MAX_NUM_TEXTURES;
 			
 			_initDone = true;
 		}
