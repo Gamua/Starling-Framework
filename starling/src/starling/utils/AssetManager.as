@@ -808,6 +808,7 @@ package starling.utils
                     {
                         cancel();
                         onProgress(1.0);
+                        onProgress = null;
                     }
                 }, 1);
             }
