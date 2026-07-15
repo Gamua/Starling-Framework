@@ -280,6 +280,7 @@ package starling.core
             _rootClass = rootClass;
             _viewPort = viewPort;
             _previousViewPort = new Rectangle();
+            _clippedViewPort = new Rectangle();
             _stage = new Stage(viewPort.width, viewPort.height, stage.color);
             _nativeOverlay = new Sprite();
             _nativeStage = stage;
