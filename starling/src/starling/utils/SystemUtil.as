@@ -28,6 +28,7 @@ package starling.utils
         private static var sWaitingCalls:Array = [];
         private static var sPlatform:String;
         private static var sVersion:String;
+        private static var sApplicationVersion:String;
         private static var sAIR:Boolean;
         private static var sEmbeddedFonts:Array = null;
         private static var sSupportsDepthAndStencil:Boolean = true;
@@ -58,6 +59,7 @@ package starling.utils
                 var ds:String = appDescriptor.ns::initialWindow.ns::depthAndStencil.toString().toLowerCase();
 
                 sSupportsDepthAndStencil = (ds == "true");
+                sApplicationVersion = appDescriptor.ns::versionNumber;
                 sAIR = true;
             }
             catch (e:Error)
@@ -120,6 +122,13 @@ package starling.utils
         {
             initialize();
             return sVersion;
+        }
+        
+        /** Returns the application version number setup in the <em>*-app.xml</em>. */
+        public static function get applicationVersion():String
+        {
+            initialize();
+            return sApplicationVersion;
         }
 
         /** Returns the three-letter platform string of the current system. These are
