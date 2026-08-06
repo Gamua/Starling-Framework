@@ -145,9 +145,9 @@ package starling.filters
             var bA:Number = amount * b;
 
             concatValues(
-                q + rA * LUMA_R, rA * LUMA_G, rA * LUMA_B, 0, 0,
-                gA * LUMA_R, q + gA * LUMA_G, gA * LUMA_B, 0, 0,
-                bA * LUMA_R, bA * LUMA_G, q + bA * LUMA_B, 0, 0,
+                q + rA , rA , rA , 0, 0,
+                gA , q + gA , gA , 0, 0,
+                bA , bA , q + bA , 0, 0,
                 0, 0, 0, 1, 0);
         }
 
