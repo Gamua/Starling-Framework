@@ -30,13 +30,6 @@ package starling.animation
      */
     public class BezierEasing
     {
-        private static const NEWTON_ITERATIONS:int = 4;
-        private static const NEWTON_MIN_SLOPE:Number = 0.001;
-        private static const SUBDIVISION_PRECISION:Number = 0.0000001;
-        private static const SUBDIVISION_MAX_ITERATIONS:int = 10;
-        private static const SPLINE_TABLE_SIZE:int = 11;
-        private static const SAMPLE_STEP_SIZE:Number = 1.0 / (SPLINE_TABLE_SIZE - 1.0);
-
         /** @private */
         public function BezierEasing() { throw new AbstractClassError(); }
 
@@ -62,83 +55,55 @@ package starling.animation
             if (x1 == y1 && x2 == y2)
                 return linearEasing;
 
-            var sampleValues:Array = []; // pre-computed samples table
-
-            for (var i:int = 0; i < SPLINE_TABLE_SIZE; ++i)
-                sampleValues[i] = calcBezier(i * SAMPLE_STEP_SIZE, x1, x2);
+            // x(t) = ((2a * t + 3b) * t + 3c) * t, y(t) = ((ay * t + by) * t + cy) * t
+            var a:Number = (3 * x1 - 3 * x2 + 1) / 2;
+            var b:Number = x2 - 2 * x1;
+            var c:Number = x1;
+            var ay:Number = 3 * y1 - 3 * y2 + 1;
+            var by:Number = 3 * (y2 - 2 * y1);
+            var cy:Number = 3 * y1;
 
             return bezierEasing;
 
-            function getTForX(x:Number):Number
-            {
-                var intervalStart:Number = 0.0;
-                var currentSample:int = 1;
-                var lastSample:int = SPLINE_TABLE_SIZE - 1;
-
-                for (; currentSample != lastSample && sampleValues[currentSample] <= x; ++currentSample)
-                    intervalStart += SAMPLE_STEP_SIZE;
-
-                --currentSample;
-
-                // interpolate to provide an initial guess for t
-                var dist:Number = (x - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
-                var guessForT:Number = intervalStart + dist * SAMPLE_STEP_SIZE;
-
-                var initialSlope:Number = getSlope(guessForT, x1, x2);
-                if (initialSlope >= NEWTON_MIN_SLOPE)
-                    return newtonRaphsonIterate(x, guessForT, x1, x2);
-                else if (initialSlope === 0.0)
-                    return guessForT;
-                else
-                    return binarySubdivide(x, intervalStart, intervalStart + SAMPLE_STEP_SIZE, x1, x2);
-            }
-
             function bezierEasing(ratio:Number):Number
             {
-                if (ratio == 0) return 0;
-                else if (ratio == 1) return 1;
-                else return calcBezier(getTForX(ratio), y1, y2);
+                // ratio outside (0, 1) saturates to 0 / 1
+                if (ratio <= 0) return 0;
+                else if (ratio >= 1) return 1;
+                else if (isNaN(ratio)) return ratio;
+                var t:Number = solveTForX(ratio, a, b, c);
+                return ((ay * t + by) * t + cy) * t;
             }
         }
 
-        // Returns x(t) given t, x1, and x2, or y(t) given t, y1, and y2.
-        private static function calcBezier(t:Number, a1:Number, a2:Number):Number
+        // Solves x(t) = ((2a * t + 3b) * t + 3c) * t = x for t, with x in (0, 1):
+        // u = 1/t is the largest real root of x·u³ − 3c·u² − 3b·u − 2a = 0
+        private static function solveTForX(x:Number, a:Number, b:Number, c:Number):Number
         {
-            return (((1 - 3 * a2 + 3 * a1) * t + (3 * a2 - 6 * a1)) * t + (3 * a1)) * t;
-        }
-
-        // Returns dx/dt given t, x1, and x2, or dy/dt given t, y1, and y2.
-        private static function getSlope(t:Number, a1:Number, a2:Number):Number
-        {
-            return 3 * (1 - 3 * a2 + 3 * a1) * t * t + 2 * (3 * a2 - 6 * a1) * t + (3 * a1);
-        }
-
-        private static function binarySubdivide(ratio:Number, a:Number, b:Number, x1:Number, x2:Number):Number
-        {
-            var currentX:Number, t:Number, i:uint = 0;
-
-            do
+            var j:Number = 1 / Math.max(c, Math.sqrt(x));
+            var k:Number = x * j;
+            var l:Number = k * j;
+            var s:Number = c * j;
+            var q:Number = b * l;
+            var m:Number = s * s + q;
+            var h:Number = -s * (s * s + 1.5 * q) - a * k * l;
+            var d:Number = h * h - m * m * m;
+            var v:Number;
+            if (m == 0 || d > 1e-12 * h * h)
             {
-                t = a + (b - a) / 2;
-                currentX = calcBezier(t, x1, x2) - ratio;
-                if (currentX > 0) b = t;
-                else a = t;
+                // one real root (Cardano)
+                var w:Number = h < 0 ? h - Math.sqrt(d) : h + Math.sqrt(d);
+                var u:Number = w < 0 ? Math.pow(-w, 1 / 3) : -Math.pow(w, 1 / 3);
+                v = u + m / u;
+                if (isNaN(v)) v = 0; // triple root (m = h = 0)
             }
-            while (Math.abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
-
-            return t;
-        }
-
-        private static function newtonRaphsonIterate(x:Number, t:Number, x1:Number, x2:Number):Number
-        {
-            for (var i:int = 0; i < NEWTON_ITERATIONS; ++i)
+            else
             {
-                var currentSlope:Number = getSlope(t, x1, x2);
-                if (currentSlope == 0.0) return t;
-                var currentX:Number = calcBezier(t, x1, x2) - x;
-                t -= currentX / currentSlope;
+                // three real roots, take the largest
+                var r:Number = Math.sqrt(m);
+                v = 2 * r * Math.cos(Math.acos(Math.max(-1, Math.min(1, -h / (m * r)))) / 3);
             }
-            return t;
+            return Math.min(1, k / (v + s));
         }
 
         private static function linearEasing(ratio:Number):Number { return ratio; }
