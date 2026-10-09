@@ -173,7 +173,6 @@ package tests.assets
 
         public function testLoadXmlFromByteArray(onComplete:Function):void
         {
-            _manager.verbose = true;
             _manager.enqueue(EmbeddedXml);
             _manager.loadQueue(function():void
             {
@@ -184,7 +183,6 @@ package tests.assets
 
         public function testLoadJsonFromByteArray(onComplete:Function):void
         {
-            _manager.verbose = true;
             _manager.enqueue(EmbeddedJson);
             _manager.loadQueue(function():void
             {
