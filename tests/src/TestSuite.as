@@ -7,6 +7,7 @@ package
     import starling.unit.TestGui;
     import starling.unit.TestRunner;
 
+    import tests.animation.BezierEasingTest;
     import tests.animation.DelayedCallTest;
     import tests.animation.JugglerTest;
     import tests.animation.TweenTest;
@@ -58,6 +59,7 @@ package
             var runner:TestRunner = new TestRunner();
 
             // animation
+            runner.add(BezierEasingTest);
             runner.add(DelayedCallTest);
             runner.add(JugglerTest);
             runner.add(TweenTest);
