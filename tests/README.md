@@ -9,3 +9,5 @@ Simply compile this project just like any other AIR project, e.g. just as Deskto
 The unit tests will start immediately when that app is launched.
 
 Edit the class `TestSuite` to focus on specific unit tests, e.g. by commenting out any tests you're not interested in.
+
+To run the tests from the terminal (e.g. on a CI server), use `run.sh`. It needs the AIR SDK, either via the `AIR_HOME` environment variable or with its `bin` folder on the `PATH`. The exit code tells you if all tests passed.
