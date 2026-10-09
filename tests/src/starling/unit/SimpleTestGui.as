@@ -44,7 +44,11 @@ package starling.unit
             {
                 var nativeAppClass:Object = getDefinitionByName("flash.desktop::NativeApplication");
                 var nativeApp:Object = nativeAppClass["nativeApplication"];
-                setTimeout(nativeApp.exit, 5000, (testCount == successCount) ? 0 : 1);
+                var descriptor:XML = nativeApp.applicationDescriptor;
+
+                // Give users time to read the result, unless the window is hidden (see 'run.sh').
+                var delay:int = descriptor..*::visible == "true" ? 5000 : 0;
+                setTimeout(nativeApp.exit, delay, (testCount == successCount) ? 0 : 1);
             }
         }
 
