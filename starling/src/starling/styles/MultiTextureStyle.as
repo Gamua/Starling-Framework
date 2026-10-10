@@ -139,7 +139,8 @@ package starling.styles
                 var targetVertexData:VertexData = mtTarget.vertexData;
                 var sourceVertexData:VertexData = this.vertexData;
                 var numTextures:int = _textures.length;
-                var sourceTexID:int, targetTexID:int;
+                var isIdentity:Boolean = true;
+                var sourceTexID:int;
                 var i:int;
 
                 if (numVertices < 0)
@@ -160,23 +161,28 @@ package starling.styles
                     }
 
                     sTextureIndexMap[i] = textureIndexOnTarget;
+                    isIdentity &&= i == textureIndexOnTarget;
                 }
 
-                for (i = 0; i < numVertices; ++i)
+                // The vertices were copied with their indices; that's already correct if the
+                // textures keep their positions on the target (the common case, e.g. with a
+                // single atlas or with the render cache). An untextured mesh doesn't store the
+                // index -1 in its own vertices, though.
+
+                if (numTextures == 0)
                 {
-                    // TODO: this runs per vertex every frame. For the common case of a mesh using
-                    // a single texture, the source index is uniform - we could determine it once
-                    // and skip the per-vertex reads (or skip entirely when the remap is identity),
-                    // instead of tracking per-texture vertex regions.
-
-                    if (numTextures == 0) sourceTexID = -1;
-                    else sourceTexID = sourceVertexData.getFloat(vertexID + i, "texture");
-
-                    if (sourceTexID == -1) targetTexID = -1;
-                    else targetTexID = sTextureIndexMap[sourceTexID];
-
-                    if (sourceTexID == -1 || sourceTexID != targetTexID)
-                        targetVertexData.setFloat(targetVertexID + i, "texture", targetTexID);
+                    for (i = 0; i < numVertices; ++i)
+                        targetVertexData.setFloat(targetVertexID + i, "texture", -1);
+                }
+                else if (!isIdentity)
+                {
+                    for (i = 0; i < numVertices; ++i)
+                    {
+                        sourceTexID = sourceVertexData.getFloat(vertexID + i, "texture");
+                        if (sourceTexID != -1)
+                            targetVertexData.setFloat(targetVertexID + i, "texture",
+                                sTextureIndexMap[sourceTexID]);
+                    }
                 }
 
                 sTextureIndexMap.length = 0;
