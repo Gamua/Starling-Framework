@@ -1,7 +1,6 @@
 package starling.unit
 {
     import flash.utils.getDefinitionByName;
-    import flash.utils.setTimeout;
 
     import starling.display.Sprite;
     import starling.text.TextField;
@@ -46,9 +45,10 @@ package starling.unit
                 var nativeApp:Object = nativeAppClass["nativeApplication"];
                 var descriptor:XML = nativeApp.applicationDescriptor;
 
-                // Give users time to read the result, unless the window is hidden (see 'run.sh').
-                var delay:int = descriptor..*::visible == "true" ? 5000 : 0;
-                setTimeout(nativeApp.exit, delay, (testCount == successCount) ? 0 : 1);
+                // A hidden window means an automated run (see 'run.sh' and the CI workflow),
+                // which needs the exit code. Otherwise, users want to read the results.
+                if (descriptor..*::visible != "true")
+                    nativeApp.exit((testCount == successCount) ? 0 : 1);
             }
         }
 

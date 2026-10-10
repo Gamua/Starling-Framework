@@ -21,5 +21,17 @@ jobs:
         run: npm i -g asconfigc && cd tests && asconfigc --debug=true --sdk=$env:AIR_HOME
 
       - name: Run Tests
-        run: cd tests/out && adl UnitTest-app.xml
+        shell: bash
+        run: |
+          # a hidden window makes the test app exit with the result code when it's done
+          sed -i 's|<visible>true</visible>|<visible>false</visible>|' tests/out/UnitTest-app.xml
+          cd tests/out && adl UnitTest-app.xml
+
+      - name: Upload golden image failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: tests/out/golden-failures
+          if-no-files-found: ignore
           
