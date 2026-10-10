@@ -13,19 +13,9 @@ jobs:
           air-version: "51.2"
           accept-license: true
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: latest
-
-      - name: Install asconfigc and compile swf
-        run: npm i -g asconfigc && cd tests && asconfigc --debug=true --sdk=$env:AIR_HOME
-
       - name: Run Tests
         shell: bash
-        run: |
-          # a hidden window makes the test app exit with the result code when it's done
-          sed -i 's|<visible>true</visible>|<visible>false</visible>|' tests/out/UnitTest-app.xml
-          cd tests/out && adl UnitTest-app.xml
+        run: tests/run.sh
 
       - name: Upload golden image failures
         if: failure()
