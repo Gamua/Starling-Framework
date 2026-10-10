@@ -3,6 +3,8 @@
 # Builds the unit tests and runs them in the AIR Debug Launcher, without IDE or visible window.
 # The exit code is 0 if all tests passed. Requires the AIR SDK: set AIR_HOME to its
 # root folder, or put its 'bin' folder on the PATH.
+#
+# Pass '--record' to (re)write the golden images in 'fixtures/golden' instead of comparing them.
 
 set -e
 cd "$(dirname "$0")"
@@ -11,7 +13,7 @@ BIN="${AIR_HOME:+$AIR_HOME/bin/}"
 OUT=out
 
 mkdir -p "$OUT"
-rm -rf "$OUT/fixtures"
+rm -rf "$OUT/fixtures" "$OUT/golden-failures"
 cp -R fixtures "$OUT/fixtures"
 # the window stays hidden; Starling still gets its Stage3D context
 sed -e 's|<content>.*</content>|<content>tests.swf</content>|' \
@@ -23,4 +25,4 @@ sed -e 's|<content>.*</content>|<content>tests.swf</content>|' \
     -output="$OUT/tests.swf" src/Startup.as > /dev/null  # errors still show up via stderr
 
 # hides a macOS font notice that AIR triggers on startup
-"${BIN}adl" "$OUT/UnitTest-app.xml" "$OUT" 2> >(grep -v 'CoreText registered' >&2)
+"${BIN}adl" "$OUT/UnitTest-app.xml" "$OUT" -- "$@" 2> >(grep -v 'CoreText registered' >&2)

@@ -3,6 +3,7 @@ package
     import starling.core.Starling;
     import starling.display.Sprite;
     import starling.display.Stage;
+    import starling.unit.GoldenImageStore;
     import starling.unit.SimpleTestGui;
     import starling.unit.TestGui;
     import starling.unit.TestRunner;
@@ -25,6 +26,7 @@ package
     import tests.filters.FilterChainTest;
     import tests.filters.FragmentFilterTest;
     import tests.geom.PolygonTest;
+    import tests.rendering.GoldenImageTest;
     import tests.rendering.IndexDataTest;
     import tests.rendering.MeshStyleTest;
     import tests.rendering.VertexDataFormatTest;
@@ -32,6 +34,8 @@ package
     import tests.text.TextFieldTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
+    import tests.unit.GoldenImageStoreTest;
+    import tests.unit.ImageDiffTest;
     import tests.utils.ByteArrayUtilTest;
     import tests.utils.ColorTest;
     import tests.utils.MathUtilTest;
@@ -42,21 +46,24 @@ package
 
     public class TestSuite extends Sprite
     {
-        private var _testRunner:TestRunner;
-        private var _testGui:TestGui;
-
-        public function TestSuite()
+        public function start(goldenImageStore:GoldenImageStore, recordGoldenImages:Boolean):void
         {
-            _testRunner = createTestRunner();
-            _testGui = createTestGui(_testRunner);
+            if (numChildren != 0)
+            {
+                trace("[TestSuite] Tests are already running.");
+                return;
+            }
 
-            addChild(_testGui);
-            _testGui.start();
+            var testRunner:TestRunner = createTestRunner(goldenImageStore, recordGoldenImages);
+            var testGui:TestGui = createTestGui(testRunner);
+            addChild(testGui);
+            testGui.start();
         }
 
-        private function createTestRunner():TestRunner
+        private function createTestRunner(goldenImageStore:GoldenImageStore,
+                                          recordGoldenImages:Boolean):TestRunner
         {
-            var runner:TestRunner = new TestRunner();
+            var runner:TestRunner = new TestRunner(goldenImageStore, recordGoldenImages);
 
             // animation
             runner.add(BezierEasingTest);
@@ -89,6 +96,7 @@ package
             runner.add(PolygonTest);
 
             // rendering
+            runner.add(GoldenImageTest);
             runner.add(IndexDataTest);
             runner.add(MeshStyleTest);
             runner.add(VertexDataFormatTest);
@@ -100,6 +108,10 @@ package
             // textures
             runner.add(TextureAtlasTest);
             runner.add(TextureTest);
+
+            // unit
+            runner.add(GoldenImageStoreTest);
+            runner.add(ImageDiffTest);
 
             // utils
             runner.add(ByteArrayUtilTest);
@@ -119,7 +131,7 @@ package
             var stage:Stage = Starling.current.stage;
             var width:int = stage.stageWidth - 2 * padding;
             var height:int = stage.stageHeight - 2 * padding;
-            var gui:TestGui = new SimpleTestGui(_testRunner, width, height);
+            var gui:TestGui = new SimpleTestGui(testRunner, width, height);
             gui.x = gui.y = padding;
             return gui;
         }

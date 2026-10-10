@@ -11,3 +11,5 @@ The unit tests will start immediately when that app is launched.
 Edit the class `TestSuite` to focus on specific unit tests, e.g. by commenting out any tests you're not interested in.
 
 To run the tests from the terminal, use `run.sh`. It runs them in a hidden window and prints the log to the console. It needs the AIR SDK, either via the `AIR_HOME` environment variable or with its `bin` folder on the `PATH`. The exit code tells you if all tests passed.
+
+Rendering features are tested with golden images (see `GoldenImageTest`): the output is compared with the reference images in `fixtures/golden`. On a mismatch, the actual image and a diff (differing pixels in red) are saved to `out/golden-failures`. After an intended change in the output, run `./run.sh --record` to update the goldens, check them visually, and commit them.

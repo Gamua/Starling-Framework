@@ -7,10 +7,16 @@ package starling.unit
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
     import flash.geom.Matrix;
+    import flash.display.BitmapData;
+
+    import starling.display.DisplayObject;
+    import starling.utils.StringUtil;
 
     public class UnitTest
     {
         private var _assertFunction:Function;
+        private var _goldenImageStore:GoldenImageStore;
+        private var _recordGoldenImages:Boolean;
 
         public function UnitTest()
         { }
@@ -113,6 +119,12 @@ package starling.unit
         internal function get assertFunction():Function { return _assertFunction; }
         internal function set assertFunction(value:Function):void { _assertFunction = value; }
 
+        internal function get goldenImageStore():GoldenImageStore { return _goldenImageStore; }
+        internal function set goldenImageStore(value:GoldenImageStore):void { _goldenImageStore = value; }
+
+        internal function get recordGoldenImages():Boolean { return _recordGoldenImages; }
+        internal function set recordGoldenImages(value:Boolean):void { _recordGoldenImages = value; }
+
         // more specific assert methods
 
         protected function assertEqualRectangles(rect1:Rectangle, rect2:Rectangle,
@@ -191,6 +203,63 @@ package starling.unit
             assertEquivalent(matrix1.d,  matrix2.d, e);
             assertEquivalent(matrix1.tx, matrix2.tx, e);
             assertEquivalent(matrix1.ty, matrix2.ty, e);
+        }
+
+        /** Renders the object and compares it with the golden image of the given name.
+         *  On a mismatch, the actual and diff images are saved to the failure directory.
+         *  'threshold' is the maximum channel delta that is ignored, 'maxDiffRatio' the share
+         *  of pixels that may exceed it. The defaults should tolerate minor GPU differences. */
+        protected function assertMatchesGolden(object:DisplayObject, name:String,
+                                               onComplete:Function, threshold:int=4,
+                                               maxDiffRatio:Number=0.0025):void
+        {
+            if (_goldenImageStore == null)
+            {
+                fail("No golden image store configured (see 'TestRunner' constructor)");
+                onComplete();
+                return;
+            }
+
+            // an opaque background avoids precision loss from premultiplied alpha
+            var actual:BitmapData = object.drawToBitmapData(null, 0x0, 1.0);
+
+            if (_recordGoldenImages)
+            {
+                _goldenImageStore.save(name, actual);
+                succeed("Recorded golden image '" + name + "'");
+                onComplete();
+                return;
+            }
+
+            _goldenImageStore.load(name, function(expected:BitmapData):void
+            {
+                if (expected == null)
+                {
+                    _goldenImageStore.saveFailure(name, actual, null);
+                    fail("Missing golden image '" + name + "' (use 'run.sh --record')");
+                }
+                else if (expected.width != actual.width || expected.height != actual.height)
+                {
+                    _goldenImageStore.saveFailure(name, actual, null);
+                    fail(StringUtil.format("Golden image '{0}' is {1}x{2}, but actual is {3}x{4}",
+                        name, expected.width, expected.height, actual.width, actual.height));
+                }
+                else
+                {
+                    var result:ImageDiff = ImageDiff.compare(expected, actual, threshold);
+                    var diffRatio:Number = result.numDiffPixels / (actual.width * actual.height);
+                    if (diffRatio > maxDiffRatio)
+                    {
+                        _goldenImageStore.saveFailure(name, actual, result.image);
+                        fail(StringUtil.format(
+                            "Golden image '{0}' differs in {1} pixels ({2}%, max. channel delta: {3})",
+                            name, result.numDiffPixels, (diffRatio * 100).toFixed(2), result.maxDelta));
+                    }
+                    else succeed("Golden image '" + name + "' matches");
+                }
+
+                onComplete();
+            });
         }
 
         // helpers

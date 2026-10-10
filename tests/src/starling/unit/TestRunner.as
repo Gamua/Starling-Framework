@@ -14,11 +14,18 @@ package starling.unit
         private var _tests:Array;
         private var _logFunction:Function;
         private var _assertFunction:Function;
+        private var _goldenImageStore:GoldenImageStore;
+        private var _recordGoldenImages:Boolean;
         private var _currentTestIndex:int;
         private var _waiting:Boolean;
 
-        public function TestRunner()
+        /** @param goldenImageStore    required by tests that use 'assertMatchesGolden'.
+         *  @param recordGoldenImages  if enabled, golden images are written instead of compared. */
+        public function TestRunner(goldenImageStore:GoldenImageStore=null,
+                                   recordGoldenImages:Boolean=false)
         {
+            _goldenImageStore = goldenImageStore;
+            _recordGoldenImages = recordGoldenImages;
             _tests = [];
             _currentTestIndex = 0;
             _waiting = false;
@@ -80,6 +87,8 @@ package starling.unit
 
             var test:UnitTest = new testClass() as UnitTest;
             test.assertFunction = _assertFunction;
+            test.goldenImageStore = _goldenImageStore;
+            test.recordGoldenImages = _recordGoldenImages;
 
             setUp();
 
