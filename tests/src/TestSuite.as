@@ -23,10 +23,11 @@ package
     import tests.display.QuadTest;
     import tests.display.Sprite3DTest;
     import tests.events.EventTest;
+    import tests.filters.BlurFilterTest;
+    import tests.filters.ColorMatrixFilterTest;
     import tests.filters.FilterChainTest;
     import tests.filters.FragmentFilterTest;
     import tests.geom.PolygonTest;
-    import tests.rendering.GoldenImageTest;
     import tests.rendering.IndexDataTest;
     import tests.rendering.MeshStyleTest;
     import tests.rendering.VertexDataFormatTest;
@@ -89,6 +90,8 @@ package
             runner.add(EventTest);
 
             // filters
+            runner.add(BlurFilterTest);
+            runner.add(ColorMatrixFilterTest);
             runner.add(FilterChainTest);
             runner.add(FragmentFilterTest);
 
@@ -96,7 +99,6 @@ package
             runner.add(PolygonTest);
 
             // rendering
-            runner.add(GoldenImageTest);
             runner.add(IndexDataTest);
             runner.add(MeshStyleTest);
             runner.add(VertexDataFormatTest);

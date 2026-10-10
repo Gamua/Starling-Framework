@@ -13,10 +13,29 @@ package tests.display
     import flash.display3D.Context3DBlendFactor;
 
     import starling.display.BlendMode;
+    import starling.display.Image;
+    import starling.display.Quad;
+    import starling.display.Sprite;
     import starling.unit.UnitTest;
+
+    import utils.GoldenFixture;
 
     public class BlendModeTest extends UnitTest
     {
+        private var _fixture:GoldenFixture;
+
+        override public function setUp():void
+        {
+            super.setUp();
+            _fixture = new GoldenFixture();
+        }
+
+        override public function tearDown():void
+        {
+            _fixture.dispose();
+            super.tearDown();
+        }
+
         public function testRegisterBlendMode():void
         {
             var name:String = "test";
@@ -47,6 +66,29 @@ package tests.display
             var modes:Array = BlendMode.getAll();
             assertEqual(modes.filter(modeFilter("test")).length, 1);
             assertEqual(modes.filter(modeFilter("normal")).length, 1);
+        }
+
+        public function testRendering(onComplete:Function):void
+        {
+            var canvas:Sprite = _fixture.createCanvas();
+            var blendModes:Array = [BlendMode.NORMAL, BlendMode.ADD, BlendMode.MULTIPLY, BlendMode.SCREEN];
+
+            var background:Image = new Image(_fixture.checkerboardTexture);
+            background.width = _fixture.width;
+            background.height = _fixture.height;
+            canvas.addChild(background);
+
+            for (var i:int = 0; i < blendModes.length; ++i)
+            {
+                var quad:Quad = new Quad(48, 48, 0x4080ff);
+                quad.alpha = 0.7;
+                quad.blendMode = blendModes[i];
+                quad.x = 8 + (i % 2) * 64;
+                quad.y = 8 + int(i / 2) * 64;
+                canvas.addChild(quad);
+            }
+
+            assertMatchesGolden(canvas, "display/blend-modes", onComplete);
         }
     }
 }

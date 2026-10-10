@@ -14,16 +14,34 @@ package tests.display
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
+    import starling.display.Canvas;
+    import starling.display.Image;
     import starling.display.Quad;
     import starling.display.Sprite;
     import starling.display.Stage;
+    import starling.unit.UnitTest;
     import starling.utils.Align;
     import starling.utils.deg2rad;
-    import starling.unit.UnitTest;
+
+    import utils.GoldenFixture;
 
     public class DisplayObjectTest extends UnitTest
     {
         private static const E:Number = 0.0001;
+
+        private var _fixture:GoldenFixture;
+
+        override public function setUp():void
+        {
+            super.setUp();
+            _fixture = new GoldenFixture();
+        }
+
+        override public function tearDown():void
+        {
+            _fixture.dispose();
+            super.tearDown();
+        }
 
         public function testBase():void
         {
@@ -489,6 +507,26 @@ package tests.display
 
             assertEquivalent(sprite.width, 100);
             assertEquivalent(sprite.height, 100);
+        }
+
+        public function testMaskRendering(onComplete:Function):void
+        {
+            var canvas:Sprite = _fixture.createCanvas();
+
+            var mask:Canvas = new Canvas();
+            mask.drawCircle(_fixture.width / 2, _fixture.height / 2, 50);
+
+            var image:Image = new Image(_fixture.checkerboardTexture);
+            image.width = _fixture.width;
+            image.height = _fixture.height;
+
+            // the mask is placed in the local space of the masked object, which is unscaled here
+            var content:Sprite = new Sprite();
+            content.addChild(image);
+            content.mask = mask;
+            canvas.addChild(content);
+
+            assertMatchesGolden(canvas, "display/mask", onComplete);
         }
     }
 }

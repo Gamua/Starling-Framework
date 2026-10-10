@@ -19,11 +19,26 @@ package tests.display
     import starling.unit.UnitTest;
     import starling.utils.Color;
 
+    import utils.GoldenFixture;
     import utils.MockTexture;
 
     public class QuadTest extends UnitTest
     {
         private static const E:Number = 0.0001;
+
+        private var _fixture:GoldenFixture;
+
+        override public function setUp():void
+        {
+            super.setUp();
+            _fixture = new GoldenFixture();
+        }
+
+        override public function tearDown():void
+        {
+            _fixture.dispose();
+            super.tearDown();
+        }
 
         public function testQuad():void
         {
@@ -135,6 +150,28 @@ package tests.display
 
             assertEquivalent(quad.width, newWidth);
             assertEquivalent(quad.height, newHeight);
+        }
+
+        public function testRendering(onComplete:Function):void
+        {
+            var canvas:Sprite = _fixture.createCanvas();
+
+            var gradient:Quad = new Quad(80, 80);
+            gradient.setVertexColor(0, Color.RED);
+            gradient.setVertexColor(1, Color.GREEN);
+            gradient.setVertexColor(2, Color.BLUE);
+            gradient.setVertexColor(3, Color.YELLOW);
+            gradient.x = gradient.y = 10;
+            canvas.addChild(gradient);
+
+            var rotated:Quad = new Quad(50, 50, Color.WHITE);
+            rotated.alignPivot();
+            rotated.rotation = Math.PI / 6;
+            rotated.alpha = 0.5;
+            rotated.x = rotated.y = 85;
+            canvas.addChild(rotated);
+
+            assertMatchesGolden(canvas, "display/quad", onComplete);
         }
     }
 }
