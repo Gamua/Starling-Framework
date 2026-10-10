@@ -91,7 +91,7 @@ package starling.unit
             test.recordGoldenImages = _recordGoldenImages;
 
             setUp();
-
+            
             function setUp():void
             {
                 test.setUp();
@@ -100,15 +100,23 @@ package starling.unit
 
             function run():void
             {
-                var method:Function = test[methodName];
-                var async:Boolean = method.length != 0;
-                if (async)
+                try
                 {
-                    method(tearDown);
+                    var method:Function = test[methodName];
+                    var async:Boolean = method.length != 0;
+                    if (async)
+                    {
+                        method(tearDown);
+                    }
+                    else
+                    {
+                        method();
+                        tearDown();
+                    }
                 }
-                else
+                catch(e:Error)
                 {
-                    method();
+                    test.assertFunction(false, "Test Threw Exception: " + e + "\n" + e.getStackTrace());
                     tearDown();
                 }
             }
