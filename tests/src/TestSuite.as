@@ -32,6 +32,7 @@ package
     import tests.rendering.MeshStyleTest;
     import tests.rendering.VertexDataFormatTest;
     import tests.rendering.VertexDataTest;
+    import tests.styles.MultiTextureStyleTest;
     import tests.text.TextFieldTest;
     import tests.textures.TextureAtlasTest;
     import tests.textures.TextureTest;
@@ -103,6 +104,9 @@ package
             runner.add(MeshStyleTest);
             runner.add(VertexDataFormatTest);
             runner.add(VertexDataTest);
+
+            // styles
+            runner.add(MultiTextureStyleTest);
 
             // text
             runner.add(TextFieldTest);
