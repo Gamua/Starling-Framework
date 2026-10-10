@@ -16,8 +16,8 @@ package tests.animation
     import starling.animation.Transitions;
     import starling.animation.Tween;
     import starling.display.Quad;
-    import starling.utils.deg2rad;
     import starling.unit.UnitTest;
+    import starling.utils.deg2rad;
 
     public class TweenTest extends UnitTest
     {

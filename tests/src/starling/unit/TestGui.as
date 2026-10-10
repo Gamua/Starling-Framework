@@ -1,12 +1,12 @@
 package starling.unit
 {
+    import flash.utils.getQualifiedClassName;
     import flash.utils.getTimer;
 
     import starling.display.Sprite;
+    import starling.errors.AbstractClassError;
     import starling.events.Event;
     import starling.utils.Color;
-    import flash.utils.getQualifiedClassName;
-    import starling.errors.AbstractClassError;
 
     public class TestGui extends Sprite
     {

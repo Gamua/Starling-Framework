@@ -11,17 +11,17 @@
 package starling.display
 {
 
-    import flash.display.IGraphicsData;
-    import flash.display.GraphicsSolidFill;
+    import flash.display.GraphicsEndFill;
     import flash.display.GraphicsPath;
     import flash.display.GraphicsPathCommand;
-    import flash.display.GraphicsEndFill;
+    import flash.display.GraphicsSolidFill;
+    import flash.display.IGraphicsData;
     import flash.geom.Point;
 
     import starling.geom.Polygon;
     import starling.rendering.IndexData;
-    import starling.rendering.VertexData;
     import starling.rendering.Painter;
+    import starling.rendering.VertexData;
     import starling.utils.rad2deg;
 
     /** A display object supporting basic vector drawing functionality. In its current state,

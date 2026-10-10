@@ -16,6 +16,7 @@ package tests.assets
     import starling.events.Event;
     import starling.textures.TextureAtlas;
     import starling.unit.UnitTest;
+
     import utils.MockTexture;
 
     public class AssetManagerTest extends UnitTest

@@ -17,6 +17,9 @@ jobs:
         shell: bash
         run: tests/run.sh
 
+      - name: Check Import Order
+        run: ruby util/import_sorter/import_sorter.rb
+
       - name: Upload golden image failures
         if: failure()
         uses: actions/upload-artifact@v7

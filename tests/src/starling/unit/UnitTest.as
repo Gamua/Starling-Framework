@@ -1,13 +1,13 @@
 package starling.unit
 {
-    import flash.utils.describeType;
-    import flash.utils.getQualifiedClassName;
-    import flash.geom.Rectangle;
+    import flash.display.BitmapData;
+    import flash.geom.Matrix;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     import flash.geom.Vector3D;
     import flash.utils.ByteArray;
-    import flash.geom.Matrix;
-    import flash.display.BitmapData;
+    import flash.utils.describeType;
+    import flash.utils.getQualifiedClassName;
 
     import starling.display.DisplayObject;
     import starling.utils.StringUtil;

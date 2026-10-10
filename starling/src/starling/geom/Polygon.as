@@ -15,9 +15,9 @@ package starling.geom
 
     import starling.rendering.IndexData;
     import starling.rendering.VertexData;
+    import starling.utils.Earcut;
     import starling.utils.MathUtil;
     import starling.utils.Pool;
-    import starling.utils.Earcut;
 
     /** A polygon describes a closed two-dimensional shape bounded by a number of straight
      *  line segments.
