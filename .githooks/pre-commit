@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# Sorts the imports of the staged ActionScript files. This runs at commit time because every
+# change passes through here, unlike an editor or agent hook that misses files changed by
+# scripts or during conflict resolution.
+#
+# Activated via 'git config core.hooksPath .githooks' (Claude Code does this on session start).
+# Without Ruby, the check is skipped; the CI still catches unsorted imports.
+
+command -v ruby > /dev/null || exit 0
+
+staged_files() { git diff --cached --name-only --diff-filter=d -z -- '*.as'; }
+
+[ -n "$(staged_files)" ] || exit 0
+staged_files | xargs -0 ruby util/import_sorter/import_sorter.rb --fix >&2
+staged_files | xargs -0 git add
